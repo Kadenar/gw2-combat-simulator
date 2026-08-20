@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
   MesmerActivePrimaryWeapon,
@@ -9,23 +9,12 @@ import type {
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
   MesmerPendingResource,
-  MesmerRuntimeState,
   MesmerResourceCause,
   MesmerResourceController,
   MesmerResourceDefinition,
-  MesmerRuntime
+  MesmerRuntime,
+  MesmerRuntimeState
 } from '../types.js';
-
-// Names (not ids) — matched against proc `reason` strings via startsWith below.
-const RESOURCE_TRAIT_IDS = new Set<number>([
-  TRAIT.BLOODSONG,
-  TRAIT.DECEPTIVE_EVASION,
-  TRAIT.FORTISSIMO,
-  TRAIT.HARMONIZE,
-  TRAIT.ILLUSIONARY_REVERSION,
-  TRAIT.INFINITE_FORGE,
-  TRAIT.SELF_DECEPTION
-]);
 
 interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -42,9 +31,7 @@ interface ResourceControllerOptions {
   readonly balanceProfile: MesmerRuntime['balanceProfile'];
 }
 
-/**
- * Owns clone/blade/note gains and their typed-task reactions.
- */
+/** Owns shared clone or numeric resource gains and exposes committed gains to active specialization reactions. */
 export function createResourceController({
   state,
   traits,
@@ -60,18 +47,16 @@ export function createResourceController({
   balanceProfile
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
+  const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
   const numericResourceState = () => {
-    const active = state.profession.specialization;
-    if (active.kind !== 'Virtuoso' && active.kind !== 'Troubadour') {
-      throw new TypeError(`${active.kind} does not own a numeric Mesmer resource.`);
+    const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
+    if (typeof active.numericResource !== 'number') {
+      throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
     }
-
-    return active.state;
+    return active as { numericResource: number };
   };
 
-  let onAmbushCreatedClones = (_at: number, _clones: readonly MesmerClone[]): void => {};
-
-  const markCompounding = (at: number, count: number) => {
+  const markCompounding = (at: number, count: number): void => {
     const duration = Number(balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8);
     for (let index = 0; index < count; index += 1) {
       addEvent({
@@ -141,19 +126,12 @@ export function createResourceController({
     }
 
     const resourceTraitId = Number(cause.traitId);
-    if (RESOURCE_TRAIT_IDS.has(resourceTraitId) && traits.has(resourceTraitId)) {
+    if (Number.isFinite(resourceTraitId) && traits.has(resourceTraitId)) {
       addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }
 
-    if (
-      (resourceTraitId === TRAIT.DECEPTIVE_EVASION ||
-        (resourceTraitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
-      traits.has(TRAIT.INFINITE_HORIZON) &&
-      state.profession.specialization.kind === 'Mirage' &&
-      state.profession.specialization.state.cloneAmbushUntil >= at - epsilon
-    ) {
-      onAmbushCreatedClones(at, createdClones);
-    }
+    // Reactions see only committed gains, including the exact clone entities created by this transaction.
+    for (const handler of gainHandlers) handler({ at, gained, reason, cause, createdClones });
   };
 
   const queueResources = (
@@ -162,28 +140,22 @@ export function createResourceController({
     weapon: string | null | undefined,
     reason: string,
     cause: MesmerResourceCause = {}
-  ) => {
+  ): void => {
     if (scheduleResourceTask) {
       scheduleResourceTask({ at, count, weapon, reason, cause });
       return;
     }
 
-    professionCoreState(state).pendingResources.push({
-      at,
-      count,
-      weapon,
-      reason,
-      cause
-    });
-    professionCoreState(state).pendingResources.sort((a, b) => a.at - b.at);
+    professionCoreState(state).pendingResources.push({ at, count, weapon, reason, cause });
+    professionCoreState(state).pendingResources.sort((left, right) => left.at - right.at);
   };
 
   return {
+    addGainHandler(handler) {
+      gainHandlers.push(handler);
+    },
     gainResources,
     markCompounding,
-    queueResources,
-    setAmbushCreatedClones(handler: (at: number, clones: readonly MesmerClone[]) => void) {
-      onAmbushCreatedClones = handler;
-    }
+    queueResources
   };
 }

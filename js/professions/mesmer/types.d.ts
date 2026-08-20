@@ -386,16 +386,19 @@ export interface MesmerRuntime {
   cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   ambushAttacks: Record<string, MesmerAmbushAttack>;
   phantasmAttackTimings: Record<number, MesmerPhantasmAttackTiming>;
+  phantasmPolicy: MesmerPhantasmPolicy;
   traitDamage: Record<string, MesmerTraitDamage>;
   shatters: Record<number, MesmerShatter>;
   shatterResolvers: Record<string, MesmerShatterResolver>;
   shatterResolvedHandlers: MesmerShatterResolvedHandler[];
+  skillCompletionHandlers: MesmerSkillCompletionHandler[];
   instruments: Record<number, MesmerInstrument>;
   balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   controlSkills: Set<number>;
   blindSkills: Set<number>;
   aristocracySkills: Set<number>;
   peithaSkills: Set<number>;
+  peithaProjectileDelays: Record<number, number>;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
   addEvent: MesmerAddEvent;
   addTraitProc: MesmerAddTraitProc;
@@ -406,9 +409,27 @@ export interface MesmerRuntime {
   resources: MesmerResourceController;
   expected: MesmerExpectedProcTracker;
   actions: MesmerProfessionActionController;
-  continuum: MesmerContinuumController;
-  mirage: MesmerMirageController;
+  continuum?: MesmerContinuumController;
+  mirage?: MesmerMirageController;
   skillEffects: MesmerSkillEffectController;
+}
+
+/** Specialization-provided variations applied by the shared phantasm lifecycle. */
+export interface MesmerPhantasmPolicy {
+  readonly spawnModifiers: Readonly<
+    Record<number, { readonly countMultiplier: number; readonly damageMultiplier: number }>
+  >;
+  readonly repeat?: {
+    readonly label: string;
+    readonly traitName: string;
+    readonly damageMultiplier: number;
+  };
+  readonly bonusStrike?: {
+    readonly name: string;
+    readonly traitName: string;
+    readonly damage: MesmerTraitDamage;
+  };
+  readonly conversionTiming: 'spawn' | 'blade-tick';
 }
 
 export interface MesmerActiveEmission {
@@ -498,6 +519,13 @@ export interface MesmerShatterResolution {
   readonly traitHits: readonly MesmerShatterTraitHit[];
 }
 
+/** Active-specialization completion override for skills that replace the shared cast path. */
+export type MesmerSkillCompletionHandler = (
+  context: MesmerCastContext,
+  skill: MesmerSkill,
+  at: number
+) => boolean | MesmerShatterResolution;
+
 export type MesmerShatterResolvedHandler = (context: MesmerCastContext, resolution: MesmerShatterResolution) => void;
 
 /**
@@ -543,6 +571,15 @@ export type MesmerQueueResources = (
   cause?: MesmerResourceCause
 ) => void;
 
+/** Completed resource gain exposed to active specialization reactions. */
+export interface MesmerResourceGain {
+  readonly at: number;
+  readonly gained: number;
+  readonly reason: string;
+  readonly cause: MesmerResourceCause;
+  readonly createdClones: readonly MesmerClone[];
+}
+
 export interface MesmerCloneAttackScheduler {
   handleTask(cloneId: number, at: number): void;
   initializeClone(clone: MesmerClone): MesmerClone;
@@ -551,6 +588,7 @@ export interface MesmerCloneAttackScheduler {
 }
 
 export interface MesmerResourceController {
+  addGainHandler(handler: (gain: MesmerResourceGain) => void): void;
   gainResources(
     at: number,
     count: number,
@@ -560,20 +598,18 @@ export interface MesmerResourceController {
   ): void;
   markCompounding(at: number, count: number): void;
   queueResources: MesmerQueueResources;
-  setAmbushCreatedClones(handler: (at: number, clones: readonly MesmerClone[]) => void): void;
 }
 
-export type MesmerExpectedProcCandidate = (
-  | {
-      readonly type: 'bleeding';
-      readonly at: number;
-      readonly stacks: number;
-    }
-  | {
-      readonly type: 'hit';
-      readonly at: number;
-      readonly event: SimulationEvent;
-    }
+export type MesmerExpectedProcCandidate = {
+  readonly type: 'hit';
+  readonly at: number;
+  readonly event: SimulationEvent;
+} & SchedulerRecord;
+
+/** Virtuoso-owned expected reactions to bleeding and blade critical hits. */
+export type MesmerVirtuosoExpectedProcCandidate = (
+  | { readonly type: 'bleeding'; readonly at: number; readonly stacks: number }
+  | { readonly type: 'blade'; readonly at: number; readonly event: SimulationEvent }
 ) &
   SchedulerRecord;
 
@@ -667,6 +703,7 @@ export interface MesmerSchedulerTaskPayloads {
   readonly cloneAttack: { readonly cloneId: number };
   readonly resourceGain: MesmerPendingResource;
   readonly expectedProc: MesmerExpectedProcCandidate;
+  readonly virtuosoExpectedProc: MesmerVirtuosoExpectedProcCandidate;
   readonly deadlyBladesCritical: { readonly event: Extract<SimulationEvent, { readonly type: 'damage' }> };
   readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
   readonly bladeSpend: {
@@ -772,14 +809,14 @@ export interface MesmerPhantasmAttackTiming {
   readonly damageAtMs: number;
   readonly damageAtMsByEntity?: readonly number[];
   readonly spawnAtMs: number;
-  readonly chronophantasmaDamageAtMs: number;
-  readonly chronophantasmaDamageAtMsByEntity?: readonly number[];
-  readonly chronophantasmaSpawnAtMs: number;
-  readonly virtuosoBladeTicks?: readonly MesmerAttackTimingTick[];
+  readonly repeatDamageAtMs: number;
+  readonly repeatDamageAtMsByEntity?: readonly number[];
+  readonly repeatSpawnAtMs: number;
+  readonly conversionTicks?: readonly MesmerAttackTimingTick[];
   readonly damageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
   readonly damageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];
-  readonly chronophantasmaDamageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
-  readonly chronophantasmaDamageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];
+  readonly repeatDamageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
+  readonly repeatDamageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];
   readonly phantasmalBladeDelayAfterSpawnMs?: number;
   readonly estimated?: boolean;
 }
@@ -803,6 +840,7 @@ export interface MesmerShatter {
   readonly coefficients: readonly number[];
   readonly minimumResource?: number;
   readonly consumesResources?: boolean;
+  readonly resetBySignetOfIllusions?: boolean;
   readonly hitsPerSource?: number;
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;

@@ -1,7 +1,7 @@
 import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { clamp } from '../../../platform/gw2/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { isMesmerBuildSkillAvailable, isMesmerContinuumSkillAvailable, mesmerMinimumResource } from './availability.js';
+import { isMesmerBuildSkillAvailable } from './availability.js';
 import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
 import type {
   ProfessionEventLogDescriptor,
@@ -23,10 +23,7 @@ export interface MesmerUiResourceDefinition {
   readonly pipStyle?: string;
 }
 
-type MesmerUiState = Partial<MesmerProfessionState> & {
-  readonly resource?: number;
-  readonly continuumActive?: boolean;
-};
+type MesmerUiState = Partial<MesmerProfessionState> & { readonly resource?: number };
 
 export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
@@ -129,19 +126,7 @@ export function mesmerPaletteSkillAvailability(
     };
   }
 
-  if (!isMesmerContinuumSkillAvailable(mesmerSkill, Boolean(state.continuumActive))) {
-    return {
-      available: false,
-      message: 'Unavailable until Continuum Split is active'
-    };
-  }
-
-  const minimum = mesmerMinimumResource(mesmerSkill);
-  const available = Number(state.resource ?? Infinity) >= minimum;
-  return {
-    available,
-    message: available ? '' : `Requires at least ${minimum} blade`
-  };
+  return { available: true, message: '' };
 }
 
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);

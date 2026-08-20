@@ -1,39 +1,46 @@
 import { EPSILON } from '../../../../platform/engine/clock.js';
-import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
 import { createContinuumController } from './continuum.js';
 import { resolveChronomancerShatterBoons, resolveIllusionaryReversion } from './shatter-traits.js';
 import {
-  MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS,
-  MESMER_CHRONOMANCER_BLIND_SKILLS,
   MESMER_CHRONOMANCER_CONTROL_SKILLS,
-  MESMER_CHRONOMANCER_INSTRUMENTS,
-  MESMER_CHRONOMANCER_PEITHA_SKILLS,
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
 } from './mechanics.js';
-import type { MesmerSchedulerContext } from '../../types.js';
+import type { MesmerContinuumController, MesmerRuntime, MesmerSchedulerContext } from '../../types.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE, CHRONOMANCER_SHATTER_PROFILE_IDS } from './profiles.js';
 import { mesmerBalanceValue, mesmerProfiledShatters, mesmerProfiledTraitDamage } from '../../core/profiles.js';
 
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
+
+/** Returns the controller installed only by the Chronomancer runtime. */
+export function chronomancerControllerFor(runtime: MesmerRuntime): MesmerContinuumController {
+  if (!runtime.continuum) throw new Error('Chronomancer runtime is not initialized.');
+  return runtime.continuum;
+}
 
 export function initializeChronomancerRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
   applyMesmerRuntimeManifest(runtime, {
     shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS, CHRONOMANCER_SHATTER_PROFILE_IDS),
     shatterResolvedHandlers: [resolveChronomancerShatterBoons, resolveIllusionaryReversion],
-    instruments: MESMER_CHRONOMANCER_INSTRUMENTS,
     traitDamage: {
       ...MESMER_CHRONOMANCER_TRAIT_DAMAGE,
       'Time Bomb': mesmerProfiledTraitDamage(context, MESMER_CHRONOMANCER_TRAIT_DAMAGE['Time Bomb'], PROFILE.timeBomb)
     },
     phantasmAttackTimings: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-    controlSkills: MESMER_CHRONOMANCER_CONTROL_SKILLS,
-    blindSkills: MESMER_CHRONOMANCER_BLIND_SKILLS,
-    aristocracySkills: MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS,
-    peithaSkills: MESMER_CHRONOMANCER_PEITHA_SKILLS
+    phantasmPolicy: runtime.traits.has(TRAIT.CHRONOPHANTASMA)
+      ? {
+          repeat: {
+            label: 'Chronophantasma',
+            traitName: 'Chronophantasma',
+            damageMultiplier: mesmerBalanceValue(context, PROFILE.chronophantasma, 'damageMultiplier', 1.05)
+          }
+        }
+      : undefined,
+    controlSkills: MESMER_CHRONOMANCER_CONTROL_SKILLS
   });
   for (const skill of context.catalog.skills) {
     if (context.maximumAmmoFor(skill) > 0) {
@@ -41,7 +48,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
     }
   }
 
-  runtime.continuum = createContinuumController({
+  const continuum = createContinuumController({
     state: context.state,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
     epsilon: EPSILON,
@@ -60,4 +67,9 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
         payload: { expiresAt: at }
       })
   });
+  runtime.continuum = continuum;
+  // Continuum Split replaces the ordinary shatter path while still publishing a resolved shatter contract.
+  runtime.skillCompletionHandlers.push((_castContext, skill, at) =>
+    skill.id === ID.CONTINUUM_SPLIT ? continuum.beginContinuumSplit(skill, at) : false
+  );
 }

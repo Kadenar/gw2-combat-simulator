@@ -4,12 +4,61 @@ import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { illusionSource, timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { initializeVirtuosoRuntime } from './runtime.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
 import type { MesmerSchedulerContext, MesmerSchedulerTask } from '../../types.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { handleDeadlyBladesCriticalTask, observeDeadlyBladesEvent } from './deadly-blades.js';
+import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { handleVirtuosoExpectedProcTask, observeVirtuosoExpectedProcEvent } from './expected-procs.js';
+import type { AvailabilityResult } from '../../../../platform/engine/types.js';
+import type { MesmerPrecastContext, MesmerSkill } from '../../types.js';
+
+/** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
+function virtuosoAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
+  if (skill.handlerId !== 'mesmer.bladesong' || mesmerRuntimeFor(context).actions.currentResource() >= 1) {
+    return { ready: true };
+  }
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'mesmer.no-blades',
+    reason: `${skill.name} requires at least one blade.`
+  };
+}
+
+export const virtuosoCastRules = Object.freeze({
+  availability: {
+    id: 'mesmer.virtuoso.availability',
+    order: 20,
+    handler: virtuosoAvailability
+  }
+});
+
+/** Applies Virtuoso-only attribute deltas that override shared trait baselines. */
+function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  const quietIntensityDelta = hasTrait(context, TRAIT.QUIET_INTENSITY)
+    ? Number(attributes.vitality || 0) *
+      (mesmerBalanceValue(context, PROFILE.quietIntensity, 'vitalityConversion', 0.1) - 0.1)
+    : 0;
+  const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
+    ? mesmerBalanceValue(context, PROFILE.sharpeningSorrow, 'expertiseBonus', 150) - 150
+    : 0;
+  if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
+  return {
+    ...attributes,
+    ferocity: Number(attributes.ferocity || 0) + quietIntensityDelta,
+    expertise: Number(attributes.expertise || 0) + sharpeningSorrowDelta
+  };
+}
 
 export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.15,
+    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+  },
   {
     id: 'mesmer.quiet-intensity-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -94,19 +143,28 @@ export function handleInfiniteForgeTask(
 }
 
 export const virtuosoSchedulerHooks = Object.freeze({
-  onEventScheduled: {
-    id: 'mesmer.virtuoso.deadly-blades',
-    order: 20,
-    handler: observeDeadlyBladesEvent
-  },
+  onEventScheduled: Object.freeze([
+    {
+      id: 'mesmer.virtuoso.deadly-blades',
+      order: 20,
+      handler: observeDeadlyBladesEvent
+    },
+    {
+      id: 'mesmer.virtuoso.expected-procs',
+      order: 30,
+      handler: observeVirtuosoExpectedProcEvent
+    }
+  ]),
   taskHandlers: Object.freeze({
     'mesmer.blade-spend': handleBladeSpendTask,
     'mesmer.infinite-forge': handleInfiniteForgeTask,
-    'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask
+    'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask,
+    'mesmer.virtuoso-expected-proc': handleVirtuosoExpectedProcTask
   })
 });
 
 export const virtuosoAttributeRules = Object.freeze({
+  modifyAttributes: applyVirtuosoAttributes,
   modifierRules: virtuosoModifierRules
 });
 

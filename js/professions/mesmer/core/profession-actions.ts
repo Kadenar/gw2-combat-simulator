@@ -72,12 +72,12 @@ export function createProfessionActionController({
 
   // Typed accessors — throw if the active specialization doesn't own this state shape.
   const numericResourceState = () => {
-    const active = state.profession.specialization;
-    if (active.kind !== 'Virtuoso' && active.kind !== 'Troubadour') {
-      throw new TypeError(`${active.kind} does not own a numeric Mesmer resource.`);
+    const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
+    if (typeof active.numericResource !== 'number') {
+      throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
     }
 
-    return active.state;
+    return active as { numericResource: number };
   };
 
   // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
@@ -181,17 +181,6 @@ export function createProfessionActionController({
         );
       }
       addTraitProc('Maim the Disillusioned', at, skill.name);
-    }
-
-    if (traits.has(TRAIT.PHANTOM_PAIN)) {
-      addEvent({
-        type: 'buff',
-        at: at + epsilon,
-        kind: 'phantom-pain',
-        stacks: Math.min(profileValue(TRAIT.PHANTOM_PAIN, 'maximumStacks', 4), spent + 1),
-        duration: profileValue(TRAIT.PHANTOM_PAIN, 'durationMultiplier', 10)
-      });
-      addTraitProc('Phantom Pain', at + epsilon, skill.name);
     }
 
     // Illusionary Membrane only procs on the F2 shatter (slot 2).

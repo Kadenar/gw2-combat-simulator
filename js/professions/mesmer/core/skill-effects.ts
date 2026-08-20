@@ -15,6 +15,7 @@ import type {
   MesmerExceptionalProfileOptions,
   MesmerInstrument,
   MesmerPhantasmAttackTiming,
+  MesmerPhantasmPolicy,
   MesmerQueueResources,
   MesmerResourceDefinition,
   MesmerRuntime,
@@ -31,6 +32,7 @@ interface SkillEffectControllerOptions {
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
+  readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly allSkills: readonly MesmerSkill[];
   readonly epsilon: number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
@@ -58,6 +60,7 @@ export function createSkillEffectController({
   traits,
   resourceDefinition,
   phantasmAttackTimings,
+  phantasmPolicy,
   allSkills,
   epsilon,
   activePrimaryWeapon,
@@ -75,8 +78,8 @@ export function createSkillEffectController({
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
   const phantasms = createPhantasmEffectController({
     traits,
-    resourceDefinition,
     phantasmAttackTimings,
+    phantasmPolicy,
     epsilon,
     markCompounding,
     queueResources,
@@ -84,7 +87,6 @@ export function createSkillEffectController({
     addTraitProc,
     addCondition,
     addDamage,
-    traitDamage,
     balanceProfile
   });
   const illusionResources = createIllusionResourceController({

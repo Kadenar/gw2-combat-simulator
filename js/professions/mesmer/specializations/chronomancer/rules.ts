@@ -6,11 +6,17 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
-import { initializeChronomancerRuntime } from './runtime.js';
+import { chronomancerControllerFor, initializeChronomancerRuntime } from './runtime.js';
 import { completeChronomancerTimeBomb } from './time-bomb.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { MesmerPrecastContext, MesmerSchedulerContext, MesmerSchedulerTask, MesmerSkill } from '../../types.js';
+import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
+import type {
+  MesmerPrecastContext,
+  MesmerRechargeContext,
+  MesmerSchedulerContext,
+  MesmerSchedulerTask,
+  MesmerSkill
+} from '../../types.js';
 
 function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
   if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
@@ -25,12 +31,27 @@ function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSk
   };
 }
 
+/** Upgrades Alacrity's recharge rate for Chronomancer while preserving Core exclusions. */
+function modifyChronomancerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
+  if (
+    !context.config.boons?.alacrity ||
+    context.ammoCastLockout ||
+    context.skill.id === ID.SWAP_WEAPONS ||
+    sharedDuration === 0
+  ) {
+    return sharedDuration;
+  }
+
+  return (sharedDuration * 1.25) / 1.5;
+}
+
 export const chronomancerCastRules = Object.freeze({
   availability: {
     id: 'mesmer.chronomancer.availability',
     order: 20,
     handler: chronomancerAvailability
-  }
+  },
+  modifyRechargeDuration: modifyChronomancerRecharge
 });
 
 export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -70,7 +91,31 @@ export function handleContinuumExpiryTask(
 ): void {
   const active = chronomancerState.from(context).continuum;
   if (!active || Math.abs(active.expiresAt - task.payload.expiresAt) > EPSILON) return;
-  mesmerRuntimeFor(context).continuum.restoreContinuum(task.at, 'split expired');
+  chronomancerControllerFor(mesmerRuntimeFor(context)).restoreContinuum(task.at, 'split expired');
+}
+
+/** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
+function observeChronomancerEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  if (event.type !== 'control') return;
+  const runtime = mesmerRuntimeFor(context);
+  const skillId = Number(event.skillId);
+  if (
+    !runtime.traits.has(TRAIT.DANGER_TIME) ||
+    (skillId !== ID.TIME_SINK && !runtime.traits.has(TRAIT.DELAYED_REACTIONS))
+  ) {
+    return;
+  }
+
+  const skillName = String(event.skillName || event.name || 'Control effect');
+  runtime.addEvent({
+    type: 'buff',
+    at: event.at,
+    kind: 'danger-time',
+    stacks: 1,
+    duration: Number(runtime.balanceProfile(TRAIT.DANGER_TIME)?.durationMultiplier || 10),
+    sourceSkill: skillName
+  });
+  runtime.addTraitProc('Danger Time', event.at, skillName);
 }
 
 export const chronomancerSchedulerHooks = Object.freeze({
@@ -78,6 +123,11 @@ export const chronomancerSchedulerHooks = Object.freeze({
     id: 'mesmer.chronomancer.time-bomb',
     order: 20,
     handler: completeChronomancerTimeBomb
+  },
+  onEventScheduled: {
+    id: 'mesmer.chronomancer.danger-time',
+    order: 20,
+    handler: observeChronomancerEvent
   },
   taskHandlers: Object.freeze({
     'mesmer.continuum-expire': handleContinuumExpiryTask
@@ -87,7 +137,7 @@ export const chronomancerSchedulerHooks = Object.freeze({
 /** Restores a manually ended Continuum Split through skill-owned trigger metadata. */
 export const chronomancerSkillMechanicHandlers = Object.freeze({
   'mesmer.chronomancer.restore-continuum': ({ context, at }: { context: MesmerSchedulerContext; at: number }): void => {
-    mesmerRuntimeFor(context).continuum.restoreContinuum(at, 'manual shift');
+    chronomancerControllerFor(mesmerRuntimeFor(context)).restoreContinuum(at, 'manual shift');
   }
 });
 

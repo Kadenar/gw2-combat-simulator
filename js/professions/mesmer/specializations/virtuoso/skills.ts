@@ -3,8 +3,7 @@
  * pre-migration table; this file is now the runtime source owner.
  */
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
-import type { Skill, SkillFragment, SkillId } from '../../../../platform/engine/types.js';
-import type { MesmerSkill } from '../../types.js';
+import type { SkillFragment, SkillId } from '../../../../platform/engine/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.THOUSAND_CUTS]: {
@@ -251,7 +250,3 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   }
 });
-
-export const MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({});
-
-export const MESMER_VIRTUOSO_EXTRA_SKILLS: readonly Skill[] = Object.freeze([] satisfies readonly MesmerSkill[]);

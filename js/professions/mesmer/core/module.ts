@@ -4,11 +4,11 @@ import {
   mesmerCoreAttributeRules,
   mesmerCastRules,
   mesmerCoreSchedulerHooks,
-  mesmerCoreSkillMechanicHandlers,
-  snapshotMesmerState
+  mesmerCoreSkillMechanicHandlers
 } from './rules.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from './resolver.js';
-import { createMesmerCoreResolverState, createMesmerCoreState, projectMesmerEndState } from './state.js';
+import { createMesmerCoreResolverState, createMesmerCoreState } from './state.js';
+import { projectMesmerEndState, snapshotMesmerState } from '../state.js';
 import { mesmerCoreUi } from './ui.js';
 import {
   MESMER_CORE_EXTRA_SKILLS,

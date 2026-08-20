@@ -5,9 +5,10 @@ import { illusionSource, timedActive } from '../../core/rules.js';
 import { initializeTroubadourRuntime } from './runtime.js';
 import { completeTroubadourPerformance } from './instruments.js';
 import { resolveTroubadourTale } from './tales.js';
+import { troubadourState } from './state.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
-import type { MesmerSchedulerContext, MesmerSkill } from '../../types.js';
+import type { MesmerCastContext, MesmerRechargeContext, MesmerSchedulerContext, MesmerSkill } from '../../types.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
 
@@ -101,13 +102,106 @@ export const troubadourAttributeRules = Object.freeze({
   modifierRules: troubadourModifierRules
 });
 
+/** Grants Harmonize's resource only once a phantasm has crossed its summon point. */
+function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSkill): void {
+  if (skill.resource?.mode !== 'phantasm') return;
+  const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
+  const summonProgress = Number(skill.phantasmSummonProgress);
+  const summonAt = context.start + (context.fullEnd - context.start) * summonProgress;
+  const completedInterruptedPhantasm =
+    interrupted && Number.isFinite(summonProgress) && context.effectiveEnd >= summonAt - context.epsilon;
+  if (interrupted && !completedInterruptedPhantasm) return;
+
+  const runtime = mesmerRuntimeFor(context);
+  runtime.resources.queueResources(
+    context.fullEnd + context.epsilon,
+    mesmerBalanceValue(context, TRAIT.HARMONIZE, 'resourceGain', 1),
+    runtime.activePrimaryWeapon(),
+    'Harmonize',
+    { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
+  );
+}
+
+/** Expires Troubadour instruments when their performance duration ends. */
+function advanceTroubadourScheduler(context: MesmerSchedulerContext, target: number): void {
+  const instruments = troubadourState.from(context).instruments;
+  for (const [instrument, expiresAt] of Object.entries(instruments)) {
+    if (expiresAt <= target + context.epsilon) delete instruments[instrument];
+  }
+}
+
+/** Applies Troubadour's Flute endurance-recharge bonus only to its dodge action. */
+function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
+  if (context.ammoCastLockout || context.skill.id !== ID.DODGE_TROUBADOUR) return sharedDuration;
+  const runtime = mesmerRuntimeFor(context);
+  const flutePlaying = troubadourState.from(runtime.context).instruments.Flute > runtime.context.state.time;
+  return Number(context.skill.cooldown || 0) / (flutePlaying ? 1.25 : 1);
+}
+
+/** Resolves Syncopate from Troubadour control and Method of Madness proc events. */
+function observeTroubadourEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  const runtime = mesmerRuntimeFor(context);
+  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+  const damage = runtime.traitDamage.Syncopate;
+  if (!damage) return;
+
+  if (event.type === 'control') {
+    const skillName = String(event.skillName || event.name || 'Control effect');
+    runtime.addDamage(
+      { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
+      event.at,
+      {
+        coefficient: damage.coefficient,
+        hits: damage.hits,
+        source: 'Trait',
+        actorType: 'player',
+        weapon: 'utility',
+        weaponStrengthProfileId: 'nonweapon.unequipped'
+      },
+      { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
+    );
+    runtime.addTraitProc('Syncopate', event.at, skillName);
+    return;
+  }
+
+  if (event.type !== 'proc' || event.sourceId !== 'Method of Madness') return;
+  runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, event.at, {
+    coefficient: damage.coefficient,
+    hits: damage.hits,
+    source: 'Player',
+    weapon: 'utility'
+  });
+  runtime.addTraitProc('Syncopate', event.at, 'Lesser Chaos Storm');
+}
+
+export const troubadourCastRules = Object.freeze({
+  modifyRechargeDuration: modifyTroubadourRecharge
+});
+
 export const troubadourSchedulerHooks = Object.freeze({
   initialize: initializeTroubadourRuntime,
-  // Instruments and Crescendo resolve here because their cast-start packets and Harp interruption belong to Troubadour.
-  onCastComplete: {
-    id: 'mesmer.troubadour.performance',
+  advance: {
+    id: 'mesmer.troubadour.instruments',
     order: 20,
-    handler: completeTroubadourPerformance
+    handler: advanceTroubadourScheduler
+  },
+  // Instruments and Crescendo resolve here because their cast-start packets and Harp interruption belong to Troubadour.
+  onCastComplete: Object.freeze([
+    {
+      id: 'mesmer.troubadour.performance',
+      order: 20,
+      handler: completeTroubadourPerformance
+    },
+    {
+      id: 'mesmer.troubadour.harmonize',
+      order: 30,
+      handler: completeTroubadourPhantasm
+    }
+  ]),
+  onEventScheduled: {
+    id: 'mesmer.troubadour.syncopate',
+    order: 20,
+    handler: observeTroubadourEvent
   }
 });
 

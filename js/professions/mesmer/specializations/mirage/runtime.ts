@@ -1,19 +1,23 @@
 import { EPSILON } from '../../../../platform/engine/clock.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { createMirageActionController } from './mirage.js';
+import { mirageState } from './state.js';
 import {
   MESMER_MIRAGE_AMBUSH_ATTACKS,
-  MESMER_MIRAGE_ARISTOCRACY_SKILLS,
   MESMER_MIRAGE_BLIND_SKILLS,
   MESMER_MIRAGE_CONTROL_SKILLS,
-  MESMER_MIRAGE_INSTRUMENTS,
-  MESMER_MIRAGE_PEITHA_SKILLS,
-  MESMER_MIRAGE_SHATTERS,
-  MESMER_MIRAGE_TRAIT_DAMAGE
+  MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS,
+  MESMER_MIRAGE_PEITHA_SKILLS
 } from './mechanics.js';
-import type { MesmerSchedulerContext } from '../../types.js';
-import { MIRAGE_AMBUSH_PROFILE_IDS } from './profiles.js';
-import { mesmerProfiledAmbush } from '../../core/profiles.js';
+import type { MesmerMirageController, MesmerRuntime, MesmerSchedulerContext } from '../../types.js';
+import { MIRAGE_AMBUSH_PROFILE_IDS, mesmerProfiledAmbush } from './profiles.js';
+
+/** Returns the controller installed only by the Mirage runtime. */
+export function mirageControllerFor(runtime: MesmerRuntime): MesmerMirageController {
+  if (!runtime.mirage) throw new Error('Mirage runtime is not initialized.');
+  return runtime.mirage;
+}
 
 export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
@@ -24,15 +28,12 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
         mesmerProfiledAmbush(context, attack, MIRAGE_AMBUSH_PROFILE_IDS[weapon])
       ])
     ),
-    shatters: MESMER_MIRAGE_SHATTERS,
-    instruments: MESMER_MIRAGE_INSTRUMENTS,
-    traitDamage: MESMER_MIRAGE_TRAIT_DAMAGE,
     controlSkills: MESMER_MIRAGE_CONTROL_SKILLS,
     blindSkills: MESMER_MIRAGE_BLIND_SKILLS,
-    aristocracySkills: MESMER_MIRAGE_ARISTOCRACY_SKILLS,
-    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS
+    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS,
+    peithaProjectileDelays: MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS
   });
-  runtime.mirage = createMirageActionController({
+  const mirage = createMirageActionController({
     state: context.state,
     config: context.config,
     traits: runtime.traits,
@@ -48,5 +49,30 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     queueResources: runtime.resources.queueResources,
     balanceProfile: runtime.balanceProfile
   });
-  runtime.resources.setAmbushCreatedClones(runtime.mirage.executeCloneAmbushes);
+  runtime.mirage = mirage;
+  // Ambush casts replace the shared skill-effect path and stay owned by the active Mirage runtime.
+  runtime.skillCompletionHandlers.push((_castContext, skill, at) => {
+    if (!skill.ambush) return false;
+    mirage.executePlayerAmbush(skill, at, _castContext.start);
+    return true;
+  });
+  runtime.shatterResolvedHandlers.push((_castContext, resolution) => {
+    mirage.handleMirageShatter(resolution.skill, resolution.at, resolution.spent);
+  });
+  // Infinite Horizon reacts to Mirage-authored clone gains while the generic resource controller stays spec-agnostic.
+  runtime.resources.addGainHandler(({ at, cause, createdClones }) => {
+    const traitId = Number(cause.traitId);
+    const triggersCloneAmbush =
+      traitId === TRAIT.DECEPTIVE_EVASION ||
+      (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
+    if (
+      triggersCloneAmbush &&
+      runtime.traits.has(TRAIT.INFINITE_HORIZON) &&
+      mirageState.from(context).cloneAmbushUntil >= at - context.epsilon
+    ) {
+      mirage.executeCloneAmbushes(at, createdClones);
+    }
+  });
+  // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
+  mirageState.from(context).riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
 }

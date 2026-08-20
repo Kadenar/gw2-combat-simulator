@@ -5,10 +5,7 @@ import { resolveBladesong } from './bladesongs.js';
 import { resolveInfiniteForgeRefund } from './shatter-traits.js';
 import {
   MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
-  MESMER_VIRTUOSO_BLIND_SKILLS,
   MESMER_VIRTUOSO_CONTROL_SKILLS,
-  MESMER_VIRTUOSO_INSTRUMENTS,
-  MESMER_VIRTUOSO_PEITHA_SKILLS,
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
   MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_TRAIT_DAMAGE
@@ -19,30 +16,41 @@ import { mesmerBalanceValue, mesmerProfiledShatters, mesmerProfiledTraitDamage }
 
 export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
+  const phantasmalBlade = mesmerProfiledTraitDamage(
+    context,
+    MESMER_VIRTUOSO_TRAIT_DAMAGE['Phantasmal Blade'],
+    PROFILE.phantasmalBlades
+  );
   applyMesmerRuntimeManifest(runtime, {
     shatters: mesmerProfiledShatters(context, MESMER_VIRTUOSO_SHATTERS, VIRTUOSO_SHATTER_PROFILE_IDS),
     shatterResolvers: {
       'mesmer.virtuoso.bladesong': resolveBladesong
     },
     shatterResolvedHandlers: [resolveDeadlyBlades, resolveInfiniteForgeRefund],
-    instruments: MESMER_VIRTUOSO_INSTRUMENTS,
     traitDamage: {
       ...MESMER_VIRTUOSO_TRAIT_DAMAGE,
-      'Phantasmal Blade': mesmerProfiledTraitDamage(
-        context,
-        MESMER_VIRTUOSO_TRAIT_DAMAGE['Phantasmal Blade'],
-        PROFILE.phantasmalBlades
-      )
+      'Phantasmal Blade': phantasmalBlade
     },
     phantasmAttackTimings: MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
+    // Virtuoso owns blade-tick conversion and its optional phantasm trait variations.
+    phantasmPolicy: {
+      conversionTiming: 'blade-tick',
+      ...(runtime.traits.has(TRAIT.PHANTASMAL_BLADES)
+        ? {
+            bonusStrike: {
+              name: 'Phantasmal Blade',
+              traitName: 'Phantasmal Blades',
+              damage: phantasmalBlade
+            }
+          }
+        : {})
+    },
     controlSkills: MESMER_VIRTUOSO_CONTROL_SKILLS,
-    blindSkills: MESMER_VIRTUOSO_BLIND_SKILLS,
-    aristocracySkills: MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
-    peithaSkills: MESMER_VIRTUOSO_PEITHA_SKILLS
+    aristocracySkills: MESMER_VIRTUOSO_ARISTOCRACY_SKILLS
   });
 
-  // Deadly Blades consumes the canonical critical result for each eligible blade strike.
-  if (runtime.traits.has(TRAIT.DEADLY_BLADES)) {
+  // Virtuoso critical traits consume canonical per-hit critical facts in specialization-owned observers.
+  if (runtime.traits.has(TRAIT.DEADLY_BLADES) || runtime.traits.has(TRAIT.JAGGED_MIND)) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
 

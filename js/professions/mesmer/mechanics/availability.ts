@@ -2,11 +2,15 @@
  * Stable application-facing availability facade.
  * Runtime ownership lives in Core and the active specialization.
  */
-import { isMesmerContinuumSkillAvailable, mesmerAvailability } from '../core/availability.js';
+import { mesmerAvailability } from '../core/availability.js';
 import { MECHANIC_SKILLS, SHATTERS } from './skill-mechanics.js';
 import type { MesmerConfig, MesmerSkill } from '../types.js';
 
-export { isMesmerContinuumSkillAvailable, mesmerAvailability };
+export { mesmerAvailability };
+
+export function isMesmerContinuumSkillAvailable(skill: MesmerSkill, continuumActive: boolean): boolean {
+  return skill.id !== -4 || Boolean(continuumActive);
+}
 
 export function isMesmerBuildSkillAvailable(
   skill: MesmerSkill,

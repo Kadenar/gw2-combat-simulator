@@ -324,7 +324,7 @@ export function createMirageActionController({
     mirageState.from(state).ambushSource = '';
   };
 
-  // Handles Mirage Shatter effects, including Riddle of Sand, Nomad's Endurance, Desert Distortion, and Dune Cloak.
+  // Handles Mirage-only shatter effects after Core resolves the shared shatter packet and resource spend.
   const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number) => {
     if (config.specialization !== 'Mirage') return;
     if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
@@ -342,6 +342,17 @@ export function createMirageActionController({
         skill.name
       );
       addTraitProc("Nomad's Endurance", at, skill.name, '3s vigor');
+    }
+
+    if (traits.has(TRAIT.PHANTOM_PAIN)) {
+      addEvent({
+        type: 'buff',
+        at: at + epsilon,
+        kind: 'phantom-pain',
+        stacks: Math.min(profileValue(PROFILE.phantomPain, 'maximumStacks', 4), spent + 1),
+        duration: profileValue(PROFILE.phantomPain, 'durationMultiplier', 10)
+      });
+      addTraitProc('Phantom Pain', at + epsilon, skill.name);
     }
 
     if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {

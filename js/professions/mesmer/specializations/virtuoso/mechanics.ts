@@ -2,22 +2,12 @@
  * Virtuoso-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerCloneAttack,
-  MesmerInstrument,
-  MesmerPhantasmAttackTiming,
-  MesmerShatter,
-  MesmerTraitDamage
-} from '../../types.js';
+import type { MesmerPhantasmAttackTiming, MesmerShatter, MesmerTraitDamage } from '../../types.js';
 
-export const MESMER_VIRTUOSO_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({});
-export const MESMER_VIRTUOSO_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttack>> = Object.freeze({});
-export const MESMER_VIRTUOSO_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({});
 export const MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
   Object.freeze({
     [ID.PHANTASMAL_BERSERKER]: {
-      virtuosoBladeTicks: [
+      conversionTicks: [
         {
           atMs: 3120
         },
@@ -80,7 +70,4 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
   }
 });
 export const MESMER_VIRTUOSO_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.BLADESONG_DISSONANCE]);
-export const MESMER_VIRTUOSO_BLIND_SKILLS: ReadonlySet<number> = new Set<number>([]);
 export const MESMER_VIRTUOSO_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<number>([ID.RAIN_OF_SWORDS]);
-export const MESMER_VIRTUOSO_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([]);
-export const MESMER_VIRTUOSO_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze({});

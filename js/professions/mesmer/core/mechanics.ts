@@ -2,14 +2,7 @@
  * Core-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerCloneAttack,
-  MesmerInstrument,
-  MesmerPhantasmAttackTiming,
-  MesmerShatter,
-  MesmerTraitDamage
-} from '../types.js';
+import type { MesmerCloneAttack, MesmerPhantasmAttackTiming, MesmerShatter, MesmerTraitDamage } from '../types.js';
 
 export const MESMER_CORE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({
   Axe: 1000,
@@ -163,7 +156,6 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     ]
   }
 });
-export const MESMER_CORE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({});
 export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
   Object.freeze({
     [ID.PHANTASMAL_SWORDSMAN]: {
@@ -368,4 +360,7 @@ export const MESMER_CORE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
   ID.PHASE_RETREAT,
   ID.AXES_OF_SYMMETRY
 ]);
-export const MESMER_CORE_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze({});
+export const MESMER_CORE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
+  [ID.AXES_OF_SYMMETRY]: 0.519,
+  [ID.PHASE_RETREAT]: 0.856
+});

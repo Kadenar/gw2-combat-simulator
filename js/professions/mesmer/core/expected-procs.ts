@@ -4,15 +4,13 @@ import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js'
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerState, SimulationEvent } from '../../../platform/engine/types.js';
 import type {
-  MesmerActivePrimaryWeapon,
   MesmerAddTraitProc,
   MesmerConfig,
   MesmerEmitDerivedEvent,
   MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker,
   MesmerRuntime,
-  MesmerRuntimeState,
-  MesmerQueueResources
+  MesmerRuntimeState
 } from '../types.js';
 
 const PROC_PROGRESS_TOLERANCE = 1e-9;
@@ -21,10 +19,7 @@ interface ExpectedProcTrackerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
   readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
-  readonly epsilon: number;
   readonly criticalChance: (event: SimulationEvent) => number;
-  readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly queueResources: MesmerQueueResources;
   readonly emitEvent: MesmerEmitDerivedEvent;
   readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -32,18 +27,14 @@ interface ExpectedProcTrackerOptions {
 }
 
 /**
- * Materializes Mesmer critical bleeding from deterministic expected frequency
- * or stochastic hit facts, then reduces all canonical bleeding events into
- * the scheduler-authoritative Bloodsong state.
+ * Materializes shared Mesmer critical traits from deterministic expected
+ * frequency or stochastic hit facts.
  */
 export function createExpectedProcTracker({
   state,
   config,
   traits,
-  epsilon,
   criticalChance,
-  activePrimaryWeapon,
-  queueResources,
   emitEvent,
   boonDuration,
   addTraitProc,
@@ -58,24 +49,7 @@ export function createExpectedProcTracker({
         `Missing sampled critical outcome for Mesmer event ${String(event.skillName || event.name || event.sourceId)}.`
       );
     }
-
     return event.didCrit;
-  };
-
-  const trackBloodsong = (at: number, bleedingStacks: number) => {
-    if (config.specialization !== 'Virtuoso' || !traits.has(TRAIT.BLOODSONG)) return;
-    const active = state.profession.specialization;
-    if (active.kind !== 'Virtuoso') return;
-    active.state.bloodsongProgress += Number(bleedingStacks || 0);
-    const profile = balanceProfile(TRAIT.BLOODSONG);
-    const threshold = Number(profile?.threshold || 5);
-    while (active.state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
-      active.state.bloodsongProgress -= threshold;
-      queueResources(at + epsilon, Number(profile?.resourceGain || 1), activePrimaryWeapon(), 'Bloodsong', {
-        traitId: TRAIT.BLOODSONG,
-        traitName: 'Bloodsong'
-      });
-    }
   };
 
   const materializeMasterFencer = (event: SimulationEvent, chance: number): void => {
@@ -95,19 +69,15 @@ export function createExpectedProcTracker({
         ? 1
         : 0
       : Math.floor((core.masterFencerProgress += chance) + PROC_PROGRESS_TOLERANCE);
-    if (!stochastic && criticals > 0) {
-      core.masterFencerProgress -= criticals;
-    }
+    if (!stochastic && criticals > 0) core.masterFencerProgress -= criticals;
 
     const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
-    if (criticals <= 0 || !isInternalCooldownReady(event.at, readyAt)) {
-      return;
-    }
+    if (criticals <= 0 || !isInternalCooldownReady(event.at, readyAt)) return;
 
     const profile = balanceProfile(TRAIT.MASTER_FENCER);
     core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown || 8);
     addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
-    const companionIds = professionCoreState(state).clones.map((clone) => `mesmer.clone:${clone.id}`);
+    const companionIds = core.clones.map((clone) => `mesmer.clone:${clone.id}`);
     const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
     for (const [index, application] of [
       { recipients: 'self' as const, duration: 8 },
@@ -138,71 +108,44 @@ export function createExpectedProcTracker({
     }
   };
 
-  const materializeCriticalTraits = (event: SimulationEvent) => {
+  const materializeCriticalTraits = (event: SimulationEvent): void => {
     const chance = Number(criticalChance(event) || 0);
     materializeMasterFencer(event, chance);
-    if (traits.has(TRAIT.SHARPER_IMAGES) && (event.source === 'Clone' || event.source === 'Phantasm')) {
-      let procCount = 0;
-      if (stochastic) {
-        procCount = sampledCritical(event) ? 1 : 0;
-      } else {
-        professionCoreState(state).sharperImagesProgress += chance;
-        procCount = Math.floor(professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE);
-      }
+    if (!traits.has(TRAIT.SHARPER_IMAGES) || (event.source !== 'Clone' && event.source !== 'Phantasm')) return;
 
-      if (procCount > 0) {
-        if (!stochastic) {
-          professionCoreState(state).sharperImagesProgress -= procCount;
-        }
-
-        emitEvent(event, {
-          type: 'condition',
-          at: event.at,
-          name: `${event.name} — Sharper Images`,
-          skillName: event.skillName,
-          condition: 'Bleeding',
-          duration: Number(profileEffect(TRAIT.SHARPER_IMAGES, 'condition')?.duration || 5),
-          stacks: procCount * Number(profileEffect(TRAIT.SHARPER_IMAGES, 'condition')?.stacks || 1),
-          source: 'Player',
-          sourceId: TRAIT.SHARPER_IMAGES,
-          actorType: 'player'
-        });
-        addTraitProc(
-          'Sharper Images',
-          event.at,
-          event.skillName,
-          `${procCount} critical-hit proc${procCount === 1 ? '' : 's'}`
-        );
-      }
+    let procCount = 0;
+    if (stochastic) {
+      procCount = sampledCritical(event) ? 1 : 0;
+    } else {
+      professionCoreState(state).sharperImagesProgress += chance;
+      procCount = Math.floor(professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE);
     }
+    if (procCount <= 0) return;
+    if (!stochastic) professionCoreState(state).sharperImagesProgress -= procCount;
 
-    if (traits.has(TRAIT.JAGGED_MIND) && event.blade) {
-      const jaggedMindStacks = stochastic ? (sampledCritical(event) ? 1 : 0) : chance;
-      if (!(jaggedMindStacks > 0)) return;
-      emitEvent(event, {
-        type: 'condition',
-        at: event.at,
-        name: `${event.name} — Jagged Mind`,
-        skillName: event.skillName,
-        parentSkillName: event.parentSkillName,
-        condition: 'Bleeding',
-        duration: Number(profileEffect(TRAIT.JAGGED_MIND, 'condition')?.duration || 4),
-        stacks: jaggedMindStacks * Number(profileEffect(TRAIT.JAGGED_MIND, 'condition')?.stacks || 1),
-        source: event.source,
-        sourceId: TRAIT.JAGGED_MIND,
-        actorType: event.actorType
-      });
-      addTraitProc('Jagged Mind', event.at, event.skillName);
-    }
+    emitEvent(event, {
+      type: 'condition',
+      at: event.at,
+      name: `${event.name} — Sharper Images`,
+      skillName: event.skillName,
+      condition: 'Bleeding',
+      duration: Number(profileEffect(TRAIT.SHARPER_IMAGES, 'condition')?.duration || 5),
+      stacks: procCount * Number(profileEffect(TRAIT.SHARPER_IMAGES, 'condition')?.stacks || 1),
+      source: 'Player',
+      sourceId: TRAIT.SHARPER_IMAGES,
+      actorType: 'player'
+    });
+    addTraitProc(
+      'Sharper Images',
+      event.at,
+      event.skillName,
+      `${procCount} critical-hit proc${procCount === 1 ? '' : 's'}`
+    );
   };
 
   return Object.freeze({
-    process(candidate: MesmerExpectedProcCandidate) {
-      if (candidate.type === 'bleeding') {
-        trackBloodsong(candidate.at, candidate.stacks);
-      } else if (candidate.type === 'hit' && candidate.event) {
-        materializeCriticalTraits(candidate.event);
-      }
+    process(candidate: MesmerExpectedProcCandidate): void {
+      materializeCriticalTraits(candidate.event);
     }
   });
 }

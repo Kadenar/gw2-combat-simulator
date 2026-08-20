@@ -19,7 +19,6 @@ import type {
 const CLARITY_DURATION = 15;
 const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';
 const CLARITY_CONSUMERS = new Set<number>([ID.IMAGINARY_INVERSION, ID.PHANTASMAL_LANCER, ID.MENTAL_COLLAPSE]);
-const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set<number>([ID.CONTINUUM_SPLIT, ID.CRESCENDO]);
 
 export interface MesmerSkillSpecialEffectController {
   consumeClarity(skill: MesmerSkill, castStart: number): boolean;
@@ -130,7 +129,8 @@ export function createSkillSpecialEffectController({
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       for (const target of allSkills.filter(
         (candidate) =>
-          (shatters[candidate.id] || instruments[candidate.id]) && !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.id)
+          Boolean(instruments[candidate.id]) ||
+          Boolean(shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
       )) {
         const ammo = state.ammo.get(target.id);
         if (ammo) {
@@ -146,7 +146,7 @@ export function createSkillSpecialEffectController({
         type: 'marker',
         at,
         name: 'Signet of Illusions',
-        detail: 'Shatter/instrument cooldowns reset (excluding Continuum Split and Crescendo)'
+        detail: 'Eligible shatter and instrument cooldowns reset'
       });
     }
 
@@ -188,24 +188,6 @@ export function createSkillSpecialEffectController({
     );
     addTraitProc('Method of Madness', at, skill.name);
     professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
-    if (!traits.has(TRAIT.SYNCOPATE)) return;
-    const syncopate = traitDamage.Syncopate;
-    addDamage(
-      {
-        id: 'Syncopate',
-        name: 'Syncopate',
-        weapon: 'Utility',
-        blade: false
-      },
-      at,
-      {
-        coefficient: syncopate.coefficient,
-        hits: syncopate.hits,
-        source: 'Player',
-        weapon: 'utility'
-      }
-    );
-    addTraitProc('Syncopate', at, 'Lesser Chaos Storm');
   };
 
   return { consumeClarity, apply };

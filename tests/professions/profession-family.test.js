@@ -1110,6 +1110,62 @@ test('Mesmer modules are vertical slices with disjoint catalog ownership', () =>
   assert.doesNotMatch(coreSources, /specializations\//);
 });
 
+test('Mesmer specialization mechanics contribute only registries they own', () => {
+  const mechanicsSources = Object.fromEntries(
+    ['chronomancer', 'mirage', 'virtuoso', 'troubadour'].map((specialization) => [
+      specialization,
+      readFileSync(
+        new URL(`../../js/professions/mesmer/specializations/${specialization}/mechanics.ts`, import.meta.url),
+        'utf8'
+      )
+    ])
+  );
+
+  for (const [specialization, source] of Object.entries(mechanicsSources)) {
+    assert.doesNotMatch(
+      source,
+      /=\s*(?:Object\.freeze\(\{\}\)|new Set<number>\(\[\]\))\s*;/,
+      `${specialization}/mechanics.ts declares an empty manifest placeholder`
+    );
+  }
+
+  for (const specialization of Object.keys(mechanicsSources)) {
+    const skills = readFileSync(
+      new URL(`../../js/professions/mesmer/specializations/${specialization}/skills.ts`, import.meta.url),
+      'utf8'
+    );
+    assert.doesNotMatch(
+      skills,
+      /_SUPPLEMENTAL_SKILL_MECHANICS[^=]*=\s*Object\.freeze\(\{\}\)|_EXTRA_SKILLS[^=]*=\s*Object\.freeze\(\[\]/,
+      `${specialization}/skills.ts declares an empty module placeholder`
+    );
+  }
+
+  assert.deepEqual(
+    Object.entries(mechanicsSources)
+      .filter(([, source]) => /export const MESMER_[A-Z]+_INSTRUMENTS\b/.test(source))
+      .map(([specialization]) => specialization),
+    ['troubadour']
+  );
+
+  const coreState = readFileSync(new URL('../../js/professions/mesmer/core/state.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(
+    coreState,
+    /numericResource|instruments|lastInstrument|mirrors|riddleOfSand|continuum|timeBomb|bloodsong|nextForge/
+  );
+
+  const coreProfiles = readFileSync(new URL('../../js/professions/mesmer/core/profiles.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(coreProfiles, /mesmerProfiledAmbush|mesmerProfiledInstrument/);
+
+  const coreBehavior = ['expected-procs.ts', 'resources.ts', 'rules.ts']
+    .map((filename) => readFileSync(new URL(`../../js/professions/mesmer/core/${filename}`, import.meta.url), 'utf8'))
+    .join('\n');
+  assert.doesNotMatch(
+    coreBehavior,
+    /Infinite Horizon|Riddle of Sand|Sigil of Energy|Danger Time|Harmonize|Syncopate|Jagged Mind|Bloodsong/
+  );
+});
+
 test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', () => {
   const skillOwner = nativeSkillOwnerMap(mesmerSlices, mesmerCatalog);
 

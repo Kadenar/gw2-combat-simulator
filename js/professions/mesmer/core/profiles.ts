@@ -1,13 +1,7 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from './mechanics.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerAttackStatus,
-  MesmerInstrument,
-  MesmerShatter,
-  MesmerTraitDamage
-} from '../types.js';
+import type { MesmerShatter, MesmerTraitDamage } from '../types.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',
@@ -35,14 +29,6 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   sharperImages: TRAIT.SHARPER_IMAGES,
   shatterStorm: TRAIT.SHATTER_STORM,
   bountifulBlades: TRAIT.BOUNTIFUL_BLADES
-});
-
-export const MESMER_RESOURCE_PROFILE_IDS = Object.freeze({
-  Core: MESMER_CORE_BALANCE_PROFILE_IDS.resources,
-  Chronomancer: MESMER_CORE_BALANCE_PROFILE_IDS.resources,
-  Mirage: MESMER_CORE_BALANCE_PROFILE_IDS.resources,
-  Virtuoso: 'mesmer.virtuoso.resources',
-  Troubadour: 'mesmer.troubadour.resources'
 });
 
 const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
@@ -108,101 +94,6 @@ export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: Mesm
               timingScale: 'fixed'
             })
       }
-    ]
-  });
-}
-
-function attackStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'): SkillEffect {
-  return {
-    type: 'condition',
-    source,
-    condition: status.name,
-    duration: status.duration,
-    stacks: status.stacks
-  };
-}
-
-function boonStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'): SkillEffect {
-  return {
-    type: 'boon',
-    source,
-    boon: status.name.toLowerCase(),
-    duration: status.duration,
-    stacks: status.stacks
-  };
-}
-
-export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalanceProfile {
-  return variant(id, attack.id, `${attack.name} - Ambush`, {
-    effects: [
-      {
-        type: 'strike',
-        name: 'Player attack',
-        source: 'Player',
-        coefficient: attack.player.coefficient,
-        hits: attack.player.hits
-      },
-      ...(attack.player.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Player'))
-      ),
-      ...(attack.playerBoons || []).map((status) => boonStatusEffect(status, 'Player')),
-      {
-        type: 'strike',
-        name: 'Clone attack',
-        source: 'Clone',
-        coefficient: attack.clone.coefficient,
-        hits: attack.clone.hits
-      },
-      ...(attack.clone.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Clone'))
-      ),
-      ...(attack.cloneBoons || []).map((status) => boonStatusEffect(status, 'Clone')),
-      ...(attack.vulnerability
-        ? [
-            {
-              type: 'buff' as const,
-              name: 'Vulnerability',
-              kind: 'target-vulnerability',
-              duration: attack.vulnerability.duration,
-              stacks: attack.vulnerability.stacks
-            }
-          ]
-        : [])
-    ]
-  });
-}
-
-export function mesmerInstrumentProfile(
-  id: string,
-  parentId: SkillId,
-  name: string,
-  instrument: MesmerInstrument
-): BalanceProfile {
-  return variant(id, parentId, `${name} - Instrument`, {
-    effects: [
-      ...(instrument.hits > 0
-        ? [
-            {
-              type: 'strike' as const,
-              coefficient: instrument.coefficient,
-              hits: instrument.hits,
-              ...(instrument.intervalMs == null
-                ? {}
-                : {
-                    intervalMs: instrument.intervalMs,
-                    timingAnchor: 'castEnd' as const,
-                    timingScale: 'fixed' as const
-                  })
-            }
-          ]
-        : []),
-      ...(instrument.conditions || []).map((status) => ({
-        type: 'condition' as const,
-        condition: status.name,
-        duration: status.duration,
-        stacks: status.stacks,
-        ...(status.applications == null ? {} : { applications: status.applications })
-      }))
     ]
   });
 }
@@ -445,84 +336,6 @@ export function mesmerProfiledShatters(
       ];
     })
   );
-}
-
-function profileStatuses(
-  profile: BalanceProfile | undefined,
-  type: 'condition' | 'boon',
-  source: 'Player' | 'Clone'
-): MesmerAttackStatus[] {
-  return (profile?.effects || [])
-    .filter((effect) => effect.type === type && effect.source === source)
-    .map((effect) => ({
-      name: String(type === 'condition' ? effect.condition || '' : effect.boon || ''),
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
-      ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
-    }));
-}
-
-export function mesmerProfiledAmbush(
-  context: unknown,
-  attack: MesmerAmbushAttack,
-  balanceProfileId: string
-): MesmerAmbushAttack {
-  const profile = mesmerBalanceProfile(context, balanceProfileId);
-  const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
-  const playerStrike = strikes.find((effect) => effect.source === 'Player');
-  const cloneStrike = strikes.find((effect) => effect.source === 'Clone');
-  const vulnerability = (profile?.effects || []).find(
-    (effect) => effect.type === 'buff' && effect.kind === 'target-vulnerability'
-  );
-  return {
-    ...attack,
-    balanceProfileId,
-    player: {
-      ...attack.player,
-      coefficient: Number(playerStrike?.coefficient ?? attack.player.coefficient),
-      hits: Number(playerStrike?.hits ?? attack.player.hits),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Player') : attack.player.conditions
-    },
-    clone: {
-      ...attack.clone,
-      coefficient: Number(cloneStrike?.coefficient ?? attack.clone.coefficient),
-      hits: Number(cloneStrike?.hits ?? attack.clone.hits),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Clone') : attack.clone.conditions
-    },
-    playerBoons: profile ? profileStatuses(profile, 'boon', 'Player') : attack.playerBoons,
-    cloneBoons: profile ? profileStatuses(profile, 'boon', 'Clone') : attack.cloneBoons,
-    vulnerability: vulnerability
-      ? {
-          duration: Number(vulnerability.duration || 0),
-          stacks: Number(vulnerability.stacks || 1)
-        }
-      : attack.vulnerability
-  };
-}
-
-export function mesmerProfiledInstrument(
-  context: unknown,
-  instrument: MesmerInstrument,
-  balanceProfileId: string
-): MesmerInstrument {
-  const profile = mesmerBalanceProfile(context, balanceProfileId);
-  const strike = mesmerBalanceProfileEffect(profile, 'strike');
-  const conditions = (profile?.effects || [])
-    .filter((effect) => effect.type === 'condition')
-    .map((effect) => ({
-      name: String(effect.condition || ''),
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks || 1),
-      ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
-    }));
-  return {
-    ...instrument,
-    balanceProfileId,
-    coefficient: Number(strike?.coefficient ?? instrument.coefficient),
-    hits: Number(strike?.hits ?? instrument.hits),
-    intervalMs: Number(strike?.intervalMs ?? (instrument.intervalMs || 0)),
-    conditions: profile ? conditions : instrument.conditions
-  };
 }
 
 export function mesmerProfiledTraitDamage(

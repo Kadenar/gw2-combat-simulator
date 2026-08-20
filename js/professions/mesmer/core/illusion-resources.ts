@@ -73,7 +73,7 @@ export function createIllusionResourceController({
 
     const conversionGroups = new Map<number, MesmerPhantasmExecution[]>();
     for (const phantasm of phantasmExecutions) {
-      const conversionAt = phantasm.virtuosoBladeAt ?? phantasm.conversionAt;
+      const conversionAt = phantasm.resourceAtOverride ?? phantasm.conversionAt;
       const group = conversionGroups.get(conversionAt) || [];
       group.push(phantasm);
       conversionGroups.set(conversionAt, group);

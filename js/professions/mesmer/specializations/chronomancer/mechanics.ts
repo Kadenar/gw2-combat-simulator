@@ -2,25 +2,15 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerCloneAttack,
-  MesmerInstrument,
-  MesmerPhantasmAttackTiming,
-  MesmerShatter,
-  MesmerTraitDamage
-} from '../../types.js';
+import type { MesmerPhantasmAttackTiming, MesmerShatter, MesmerTraitDamage } from '../../types.js';
 
-export const MESMER_CHRONOMANCER_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({});
-export const MESMER_CHRONOMANCER_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttack>> = Object.freeze({});
-export const MESMER_CHRONOMANCER_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({});
 export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
-    chronophantasmaDamageAtMs: 5920,
-    chronophantasmaSpawnAtMs: 7450,
-    chronophantasmaDamageTicks: {
+    repeatDamageAtMs: 5920,
+    repeatSpawnAtMs: 7450,
+    repeatDamageTicks: {
       'Phantasm leap': [{ atMs: 4474 }],
       'Phantasm Blurred Frenzy': [
         { atMs: 4960 },
@@ -35,9 +25,9 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     }
   },
   [ID.PHANTASMAL_DUELIST]: {
-    chronophantasmaDamageAtMs: 5380,
-    chronophantasmaSpawnAtMs: 6010,
-    chronophantasmaDamageTicks: {
+    repeatDamageAtMs: 5380,
+    repeatSpawnAtMs: 6010,
+    repeatDamageTicks: {
       'Illusion Damage': [
         { atMs: 3972 },
         { atMs: 4173 },
@@ -51,14 +41,14 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     }
   },
   [ID.PHANTASMAL_MAGE]: {
-    chronophantasmaDamageAtMs: 5040,
-    chronophantasmaSpawnAtMs: 5290
+    repeatDamageAtMs: 5040,
+    repeatSpawnAtMs: 5290
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    chronophantasmaDamageAtMs: 7243,
-    chronophantasmaDamageAtMsByEntity: [7085, 7243],
-    chronophantasmaSpawnAtMs: 8730,
-    chronophantasmaDamageTicksByEntity: [
+    repeatDamageAtMs: 7243,
+    repeatDamageAtMsByEntity: [7085, 7243],
+    repeatSpawnAtMs: 8730,
+    repeatDamageTicksByEntity: [
       {
         'One warlock': [{ atMs: 5484 }, { atMs: 6280 }, { atMs: 7085 }]
       },
@@ -68,10 +58,10 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    chronophantasmaDamageAtMs: 3721,
-    chronophantasmaDamageAtMsByEntity: [3544, 3721],
-    chronophantasmaSpawnAtMs: 5370,
-    chronophantasmaDamageTicksByEntity: [
+    repeatDamageAtMs: 3721,
+    repeatDamageAtMsByEntity: [3544, 3721],
+    repeatSpawnAtMs: 5370,
+    repeatDamageTicksByEntity: [
       {
         'One berserker': [{ atMs: 3186 }, { atMs: 3302 }, { atMs: 3427 }, { atMs: 3544 }]
       },
@@ -81,28 +71,28 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     ]
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    chronophantasmaDamageAtMs: 3240,
-    chronophantasmaSpawnAtMs: 3930
+    repeatDamageAtMs: 3240,
+    repeatSpawnAtMs: 3930
   },
   [ID.PHANTASMAL_WARDEN]: {
-    chronophantasmaDamageAtMs: 12530,
-    chronophantasmaSpawnAtMs: 14730
+    repeatDamageAtMs: 12530,
+    repeatSpawnAtMs: 14730
   },
   [ID.PHANTASMAL_DEFENDER]: {
-    chronophantasmaDamageAtMs: 8560,
-    chronophantasmaSpawnAtMs: 9270
+    repeatDamageAtMs: 8560,
+    repeatSpawnAtMs: 9270
   },
   [ID.ECHO_OF_MEMORY]: {
-    chronophantasmaDamageAtMs: 2950,
-    chronophantasmaSpawnAtMs: 3710
+    repeatDamageAtMs: 2950,
+    repeatSpawnAtMs: 3710
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
-    chronophantasmaDamageAtMs: 2600,
-    chronophantasmaSpawnAtMs: 2600
+    repeatDamageAtMs: 2600,
+    repeatSpawnAtMs: 2600
   },
   [ID.PHANTASMAL_LANCER]: {
-    chronophantasmaDamageAtMs: 1833.3333333,
-    chronophantasmaSpawnAtMs: 1833.3333333
+    repeatDamageAtMs: 1833.3333333,
+    repeatSpawnAtMs: 1833.3333333
   }
 });
 export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
@@ -119,6 +109,7 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
     kind: 'continuum',
     resolver: 'mesmer.chronomancer.continuum',
     consumesResources: false,
+    resetBySignetOfIllusions: false,
     coefficients: [0, 0, 0, 0]
   },
   [ID.TIME_SINK]: {
@@ -143,7 +134,3 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
   }
 });
 export const MESMER_CHRONOMANCER_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.GRAVITY_WELL, ID.TIME_SINK]);
-export const MESMER_CHRONOMANCER_BLIND_SKILLS: ReadonlySet<number> = new Set<number>([]);
-export const MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<number>([]);
-export const MESMER_CHRONOMANCER_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([]);
-export const MESMER_CHRONOMANCER_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze({});

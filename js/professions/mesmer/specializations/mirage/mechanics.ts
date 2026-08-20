@@ -2,17 +2,8 @@
  * Mirage-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
-import type {
-  MesmerAmbushAttack,
-  MesmerCloneAttack,
-  MesmerInstrument,
-  MesmerPhantasmAttackTiming,
-  MesmerShatter,
-  MesmerTraitDamage
-} from '../../types.js';
+import type { MesmerAmbushAttack } from '../../types.js';
 
-export const MESMER_MIRAGE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({});
-export const MESMER_MIRAGE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttack>> = Object.freeze({});
 export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({
   Axe: {
     id: ID.IMAGINARY_AXES,
@@ -293,13 +284,8 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     control: true
   }
 });
-export const MESMER_MIRAGE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
-  Object.freeze({});
-export const MESMER_MIRAGE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({});
-export const MESMER_MIRAGE_SHATTERS: Readonly<Record<number, MesmerShatter>> = Object.freeze({});
 export const MESMER_MIRAGE_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.MIRAGE_ADVANCE, ID.MIRAGE_THRUST]);
 export const MESMER_MIRAGE_BLIND_SKILLS: ReadonlySet<number> = new Set<number>([ID.MIRAGE_ADVANCE]);
-export const MESMER_MIRAGE_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<number>([]);
 export const MESMER_MIRAGE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
   ID.FALSE_OASIS,
   ID.CRYSTAL_SANDS,
@@ -308,4 +294,7 @@ export const MESMER_MIRAGE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>(
   ID.ILLUSIONARY_AMBUSH,
   ID.JAUNT
 ]);
-export const MESMER_MIRAGE_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze({});
+export const MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
+  [ID.CRYSTAL_SANDS]: 0.241,
+  [ID.JAUNT]: 0.241
+});

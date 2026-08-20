@@ -1,7 +1,8 @@
-import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import type { BalanceProfile, SkillId } from '../../../../platform/engine/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerInstrumentProfile, mesmerTraitDamageProfile } from '../../core/profiles.js';
+import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerTraitDamageProfile } from '../../core/profiles.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS, MESMER_TROUBADOUR_TRAIT_DAMAGE } from './mechanics.js';
+import type { MesmerInstrument } from '../../types.js';
 
 export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.troubadour.resources',
@@ -45,6 +46,82 @@ const trait = (id: number, name: string, fields: Readonly<Record<string, unknown
   effects: [],
   ...fields
 });
+
+const variant = (
+  id: string,
+  parentId: SkillId,
+  name: string,
+  fields: Readonly<Record<string, unknown>> = {}
+): BalanceProfile => ({
+  id,
+  parentId,
+  name,
+  profileKind: 'skill-variant',
+  effects: [],
+  ...fields
+});
+
+/** Builds the patchable balance profile for one Troubadour instrument. */
+export function mesmerInstrumentProfile(
+  id: string,
+  parentId: SkillId,
+  name: string,
+  instrument: MesmerInstrument
+): BalanceProfile {
+  return variant(id, parentId, `${name} - Instrument`, {
+    effects: [
+      ...(instrument.hits > 0
+        ? [
+            {
+              type: 'strike' as const,
+              coefficient: instrument.coefficient,
+              hits: instrument.hits,
+              ...(instrument.intervalMs == null
+                ? {}
+                : {
+                    intervalMs: instrument.intervalMs,
+                    timingAnchor: 'castEnd' as const,
+                    timingScale: 'fixed' as const
+                  })
+            }
+          ]
+        : []),
+      ...(instrument.conditions || []).map((status) => ({
+        type: 'condition' as const,
+        condition: status.name,
+        duration: status.duration,
+        stacks: status.stacks,
+        ...(status.applications == null ? {} : { applications: status.applications })
+      }))
+    ]
+  });
+}
+
+/** Applies the active Troubadour instrument profile to its runtime definition. */
+export function mesmerProfiledInstrument(
+  context: unknown,
+  instrument: MesmerInstrument,
+  balanceProfileId: string
+): MesmerInstrument {
+  const profile = mesmerBalanceProfile(context, balanceProfileId);
+  const strike = mesmerBalanceProfileEffect(profile, 'strike');
+  const conditions = (profile?.effects || [])
+    .filter((effect) => effect.type === 'condition')
+    .map((effect) => ({
+      name: String(effect.condition || ''),
+      duration: Number(effect.duration || 0),
+      stacks: Number(effect.stacks || 1),
+      ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
+    }));
+  return {
+    ...instrument,
+    balanceProfileId,
+    coefficient: Number(strike?.coefficient ?? instrument.coefficient),
+    hits: Number(strike?.hits ?? instrument.hits),
+    intervalMs: Number(strike?.intervalMs ?? (instrument.intervalMs || 0)),
+    conditions: profile ? conditions : instrument.conditions
+  };
+}
 
 const tale = (
   id: string,

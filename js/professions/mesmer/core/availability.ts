@@ -1,6 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { EPSILON } from '../../../platform/engine/clock.js';
-import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
 import { mesmerRuntimeFor } from './runtime.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime, MesmerSkill } from '../types.js';
@@ -9,7 +8,6 @@ export function isMesmerBuildSkillAvailable(
   skill: MesmerSkill,
   config: Pick<MesmerConfig, 'specialization' | 'weaponmasterTraining'>
 ): boolean {
-  if (skill.ambush) return config.specialization === 'Mirage';
   if (skill.id < 0) {
     return !skill.specialization || skill.specialization === config.specialization;
   }
@@ -24,14 +22,6 @@ export function isMesmerBuildSkillAvailable(
   )
     return false;
   return true;
-}
-
-export function mesmerMinimumResource(skill: MesmerSkill): number {
-  return skill.handlerId === 'mesmer.bladesong' ? 1 : 0;
-}
-
-export function isMesmerContinuumSkillAvailable(skill: MesmerSkill, continuumActive: boolean): boolean {
-  return skill.id !== ID.CONTINUUM_SHIFT || Boolean(continuumActive);
 }
 
 export function mesmerAvailability(
@@ -94,15 +84,6 @@ export function mesmerAvailability(
         reason: `${skill.name} is not armed until ${flip.availableAt.toFixed(3)}.`
       };
     }
-  }
-
-  if (runtime.actions.currentResource() < mesmerMinimumResource(skill)) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'mesmer.no-blades',
-      reason: `${skill.name} requires at least one blade.`
-    };
   }
 
   return { ready: true };

@@ -7,12 +7,11 @@ import type {
   MesmerConditionEffect,
   MesmerDamageGroup,
   MesmerPhantasmAttackTiming,
+  MesmerPhantasmPolicy,
   MesmerQueueResources,
-  MesmerResourceDefinition,
   MesmerRuntime,
   MesmerSkill,
-  MesmerStrikeEffect,
-  MesmerTraitDamage
+  MesmerStrikeEffect
 } from '../types.js';
 
 export interface MesmerPhantasmExecution {
@@ -23,20 +22,18 @@ export interface MesmerPhantasmExecution {
   readonly damageMultiplier: number;
   readonly summonAt: number;
   readonly damageAt: number;
-  // When Chronophantasma re-summons the phantasm; equals damageAt without the trait.
+  // When a specialization repeat policy re-summons the phantasm; equals damageAt otherwise.
   readonly spawnAt: number;
-  // Timestamp for the Chronophantasma repeat attack; unused without the trait.
+  // Timestamp for the optional repeat attack.
   readonly repeatDamageAt: number;
   // When the phantasm converts to a blade/resource. Equals spawnAt normally;
-  // equals Chronophantasma re-spawn time when that trait is active.
+  // equals the specialization-authored re-spawn time when repeat is active.
   readonly conversionAt: number;
-  // When Phantasmal Blades fires — uses a post-spawn delay if the skill specifies one,
-  // otherwise aligns with the first damage hit.
+  // When a specialization bonus strike fires; uses a post-spawn delay when supplied.
   readonly initialBladeAt: number;
-  readonly hasChronophantasma: boolean;
-  // Non-null only for Virtuoso (blade resource), overrides conversionAt so the blade
-  // queues off the phantasm's measured blade-tick time instead of the spawn time.
-  readonly virtuosoBladeAt: number | null;
+  readonly hasRepeat: boolean;
+  // Optional specialization policy override for the generic conversion timestamp.
+  readonly resourceAtOverride: number | null;
   readonly timing: MesmerPhantasmAttackTiming;
   // Converts a raw post-cast millisecond offset from timing metadata into a simulation
   // timestamp, accounting for cast duration and Phantasmal Haste speed scaling.
@@ -70,8 +67,8 @@ export interface MesmerPhantasmEffectController {
 
 interface PhantasmEffectControllerOptions {
   readonly traits: ReadonlySet<number>;
-  readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
+  readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly epsilon: number;
   readonly markCompounding: (at: number, count: number) => void;
   readonly queueResources: MesmerQueueResources;
@@ -79,7 +76,6 @@ interface PhantasmEffectControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
-  readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly balanceProfile: MesmerRuntime['balanceProfile'];
 }
 
@@ -92,8 +88,8 @@ function phantasmAttackDisplayName(skillId: number, damageGroupName: string): st
 
 export function createPhantasmEffectController({
   traits,
-  resourceDefinition,
   phantasmAttackTimings,
+  phantasmPolicy,
   epsilon,
   markCompounding,
   queueResources,
@@ -101,7 +97,6 @@ export function createPhantasmEffectController({
   addTraitProc,
   addCondition,
   addDamage,
-  traitDamage,
   balanceProfile
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
   const prepare = (
@@ -112,15 +107,13 @@ export function createPhantasmEffectController({
   ): readonly MesmerPhantasmExecution[] => {
     if (skill.resource?.mode !== 'phantasm') return [];
 
-    // Bountiful Blades (Virtuoso trait) spawns 2 Berserkers at 66% damage each.
-    const bountifulBerserker = skill.id === ID.PHANTASMAL_BERSERKER && traits.has(TRAIT.BOUNTIFUL_BLADES);
-
     // Clarity (Herald legend) doubles Lancer's phantasm count when consumed on cast.
-    const bountifulProfile = balanceProfile(TRAIT.BOUNTIFUL_BLADES);
+    const policy = phantasmPolicy();
+    const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
       Number(skill.resource.count || 1) *
       (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
-      (bountifulBerserker ? Number(bountifulProfile?.summons || 2) : 1);
+      Number(spawnModifier?.countMultiplier || 1);
 
     const timing = phantasmAttackTimings[skill.id];
     if (!timing) {
@@ -137,40 +130,34 @@ export function createPhantasmEffectController({
       return castStart + actualCastTime + measuredPostCast / speed;
     };
 
-    const hasChronophantasma = traits.has(TRAIT.CHRONOPHANTASMA);
+    const hasRepeat = Boolean(policy.repeat);
 
     // Each entity in the spawn batch gets its own execution so per-entity timing
     // offsets (e.g. staggered Berserker attacks) are preserved independently.
     return Array.from({ length: count }, (_, entityIndex) => {
       const damageAt = endpoint(timing.damageAtMsByEntity?.[entityIndex] ?? timing.damageAtMs);
       const spawnAt = endpoint(timing.spawnAtMs);
-      const repeatDamageAt = endpoint(
-        timing.chronophantasmaDamageAtMsByEntity?.[entityIndex] ?? timing.chronophantasmaDamageAtMs
-      );
+      const repeatDamageAt = endpoint(timing.repeatDamageAtMsByEntity?.[entityIndex] ?? timing.repeatDamageAtMs);
       // Blade ticks table may have fewer entries than phantasm count; clamp to last entry.
-      const virtuosoBladeTick =
-        timing.virtuosoBladeTicks?.[Math.min(entityIndex, timing.virtuosoBladeTicks.length - 1)];
+      const conversionTick = timing.conversionTicks?.[Math.min(entityIndex, timing.conversionTicks.length - 1)];
       return {
         skill,
         entityIndex,
-        damageMultiplier: bountifulBerserker ? Number(bountifulProfile?.damageMultiplier || 0.66) : 1,
+        damageMultiplier: Number(spawnModifier?.damageMultiplier || 1),
         summonAt,
         damageAt,
         spawnAt,
         repeatDamageAt,
-        // With Chronophantasma the phantasm re-spawns after its first attack cycle;
-        // the resource conversion happens at that later re-spawn time, not at spawnAt.
-        conversionAt: hasChronophantasma ? endpoint(timing.chronophantasmaSpawnAtMs) : spawnAt,
+        // A repeat policy defers conversion until the specialization-authored re-spawn timestamp.
+        conversionAt: hasRepeat ? endpoint(timing.repeatSpawnAtMs) : spawnAt,
         initialBladeAt:
           timing.phantasmalBladeDelayAfterSpawnMs != null
             ? spawnAt + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
             : damageAt,
-        hasChronophantasma,
-        // Virtuoso blade conversion uses a measured per-phantasm tick time rather than
-        // the generic spawn time. Disabled under Chronophantasma (phantasm doesn't convert).
-        virtuosoBladeAt:
-          resourceDefinition.singular === 'blade' && !hasChronophantasma && virtuosoBladeTick
-            ? endpoint(virtuosoBladeTick.atMs)
+        hasRepeat,
+        resourceAtOverride:
+          policy.conversionTiming === 'blade-tick' && !hasRepeat && conversionTick
+            ? endpoint(conversionTick.atMs)
             : null,
         timing,
         endpoint
@@ -178,21 +165,22 @@ export function createPhantasmEffectController({
     });
   };
 
-  const addPhantasmalBlade = (execution: MesmerPhantasmExecution, at: number): void => {
-    const blade = traitDamage['Phantasmal Blade'];
+  const addBonusStrike = (execution: MesmerPhantasmExecution, at: number): void => {
+    const bonus = phantasmPolicy().bonusStrike;
+    if (!bonus) return;
     addDamage(
       {
-        id: 'Phantasmal Blade',
-        name: 'Phantasmal Blade',
+        id: bonus.name,
+        name: bonus.name,
         weapon: execution.skill.weapon,
         blade: true
       },
       at,
       {
-        coefficient: blade.coefficient,
-        hits: blade.hits,
+        coefficient: bonus.damage.coefficient,
+        hits: bonus.damage.hits,
         source: 'Player',
-        weaponStrength: blade.weaponStrength
+        weaponStrength: bonus.damage.weaponStrength
       }
     );
   };
@@ -202,6 +190,7 @@ export function createPhantasmEffectController({
     if (!execution) return;
     const { skill } = execution;
     const count = executions.length;
+    const policy = phantasmPolicy();
 
     // Lifecycle events use the latest entity's timestamp so the "complete" marker
     // fires after every entity in the batch has finished attacking.
@@ -228,24 +217,24 @@ export function createPhantasmEffectController({
       repeat: false,
       complete: true
     });
-    if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
-      // Each entity fires its own blade proc at its own initialBladeAt.
+    if (policy.bonusStrike) {
+      // Each entity fires its specialization-defined bonus strike at its own initial timestamp.
       for (const item of executions) {
-        addPhantasmalBlade(item, item.initialBladeAt);
+        addBonusStrike(item, item.initialBladeAt);
       }
 
-      addTraitProc('Phantasmal Blades', initialBladeAt, skill.name);
+      addTraitProc(policy.bonusStrike.traitName, initialBladeAt, skill.name);
     }
 
-    if (!execution.hasChronophantasma) return;
+    if (!execution.hasRepeat || !policy.repeat) return;
 
-    // Chronophantasma re-summons the phantasm at spawnAt for a second attack cycle.
+    // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     if (traits.has(TRAIT.COMPOUNDING_POWER)) {
       markCompounding(execution.spawnAt, count);
       addTraitProc(
         'Compounding Power',
         execution.spawnAt,
-        `${skill.name} - Chronophantasma`,
+        `${skill.name} - ${policy.repeat.label}`,
         `${count} phantasm${count === 1 ? '' : 's'}`
       );
     }
@@ -264,15 +253,15 @@ export function createPhantasmEffectController({
       repeat: true,
       complete: true
     });
-    if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
+    if (policy.bonusStrike) {
       for (const item of executions) {
-        addPhantasmalBlade(item, item.repeatDamageAt);
+        addBonusStrike(item, item.repeatDamageAt);
       }
 
-      addTraitProc('Phantasmal Blades', repeatDamageAt, `${skill.name} - Chronophantasma`);
+      addTraitProc(policy.bonusStrike.traitName, repeatDamageAt, `${skill.name} - ${policy.repeat.label}`);
     }
 
-    addTraitProc('Chronophantasma', execution.spawnAt, skill.name);
+    addTraitProc(policy.repeat.traitName, execution.spawnAt, skill.name);
   };
 
   const scheduleStrike = (
@@ -372,14 +361,15 @@ export function createPhantasmEffectController({
 
     const initialHitTimes = initialEvents.map((event) => event.at);
     let repeatHitTimes: readonly number[] = [];
-    if (execution.hasChronophantasma) {
-      // Prefer dedicated Chronophantasma tick data; fall back to shifting the initial
+    if (execution.hasRepeat) {
+      const repeatPolicy = phantasmPolicy().repeat;
+      if (!repeatPolicy) return { damageGroup, initialHitTimes, repeatHitTimes };
+      // Prefer dedicated repeat tick data; fall back to shifting the initial
       // hit pattern by the delta between repeatDamageAt and damageAt.
       const repeatMeasuredTicks =
-        execution.timing.chronophantasmaDamageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
-        execution.timing.chronophantasmaDamageTicks?.[groupName] ??
+        execution.timing.repeatDamageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
+        execution.timing.repeatDamageTicks?.[groupName] ??
         null;
-      const chronophantasmaMultiplier = Number(balanceProfile(TRAIT.CHRONOPHANTASMA)?.damageMultiplier || 1.05);
       if (repeatMeasuredTicks?.length) {
         const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
         repeatHitTimes = addDamage(
@@ -400,9 +390,9 @@ export function createPhantasmEffectController({
             timingScale: 'fixed'
           },
           {
-            name: `${attackDisplayName || execution.skill.name} - Chronophantasma`,
+            name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
             ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
-            multiplier: chronophantasmaMultiplier
+            multiplier: repeatPolicy.damageMultiplier
           }
         ).map((event) => event.at);
       } else {
@@ -428,9 +418,9 @@ export function createPhantasmEffectController({
               timingScale: 'fixed'
             },
             {
-              name: `${attackDisplayName || execution.skill.name} - Chronophantasma`,
+              name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
               ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
-              multiplier: chronophantasmaMultiplier
+              multiplier: repeatPolicy.damageMultiplier
             }
           ).map((event) => event.at);
         }
@@ -493,9 +483,11 @@ export function createPhantasmEffectController({
       }
     }
 
-    if (!execution.hasChronophantasma || entityConditions.length === 0) return;
+    if (!execution.hasRepeat || entityConditions.length === 0) return;
+    const repeatPolicy = phantasmPolicy().repeat;
+    if (!repeatPolicy) return;
 
-    // Repeat cycle: prefer dedicated Chronophantasma tick data; fall back to shifting
+    // Repeat cycle: prefer dedicated repeat tick data; fall back to shifting
     // initial tick timestamps by the delta between the two damage windows.
     const repeatOffset = execution.repeatDamageAt - execution.damageAt;
     for (const effect of entityConditions) {
@@ -506,8 +498,8 @@ export function createPhantasmEffectController({
           null)
         : null;
       const repeatConditionTicks = condition.packetLabel
-        ? (execution.timing.chronophantasmaDamageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
-          execution.timing.chronophantasmaDamageTicks?.[condition.packetLabel] ??
+        ? (execution.timing.repeatDamageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
+          execution.timing.repeatDamageTicks?.[condition.packetLabel] ??
           null)
         : null;
       // Use repeat-specific ticks if available; otherwise fall back to shifted initial ticks.
@@ -534,7 +526,7 @@ export function createPhantasmEffectController({
             timingScale: 'fixed'
           },
           'Phantasm',
-          `${execution.skill.name} - Chronophantasma`,
+          `${execution.skill.name} - ${repeatPolicy.label}`,
           conditionEventExtra
         );
       } else {
@@ -543,7 +535,7 @@ export function createPhantasmEffectController({
           execution.repeatDamageAt,
           condition,
           'Phantasm',
-          `${execution.skill.name} - Chronophantasma`,
+          `${execution.skill.name} - ${repeatPolicy.label}`,
           conditionEventExtra
         );
       }
@@ -552,12 +544,18 @@ export function createPhantasmEffectController({
 
   const queueConversion = (execution: MesmerPhantasmExecution, amount = 1): void => {
     // epsilon offset ensures conversion resolves after any same-timestamp damage events.
-    if (execution.virtuosoBladeAt != null) {
-      // Virtuoso: blade arrives at a measured per-phantasm tick time, not the spawn time.
-      queueResources(execution.virtuosoBladeAt + epsilon, amount, null, `${execution.skill.name} phantasm conversion`, {
-        kind: 'phantasm-conversion',
-        sourceSkillId: execution.skill.id
-      });
+    if (execution.resourceAtOverride != null) {
+      // An active specialization may align conversion to a measured per-phantasm tick.
+      queueResources(
+        execution.resourceAtOverride + epsilon,
+        amount,
+        null,
+        `${execution.skill.name} phantasm conversion`,
+        {
+          kind: 'phantasm-conversion',
+          sourceSkillId: execution.skill.id
+        }
+      );
       return;
     }
 

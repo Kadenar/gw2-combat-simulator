@@ -27,19 +27,19 @@ import { MESMER_TRAIT_COVERAGE } from '../../../js/professions/mesmer/data/trait
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS,
   MESMER_CORE_SHATTER_PROFILE_IDS,
-  mesmerProfiledAmbush,
-  mesmerProfiledInstrument,
   mesmerProfiledShatters
 } from '../../../js/professions/mesmer/core/profiles.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/chronomancer/profiles.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
-  MIRAGE_BALANCE_PROFILE_IDS
+  MIRAGE_BALANCE_PROFILE_IDS,
+  mesmerProfiledAmbush
 } from '../../../js/professions/mesmer/specializations/mirage/profiles.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS,
-  TROUBADOUR_INSTRUMENT_PROFILE_IDS
+  TROUBADOUR_INSTRUMENT_PROFILE_IDS,
+  mesmerProfiledInstrument
 } from '../../../js/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   defaultMesmerLegacySkillId,
@@ -338,14 +338,8 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
     assert.ok(timing.castTimeMs > 0, `${skill.name} has an invalid cast time`);
     assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
     assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${skill.name} converts before damage ends`);
-    assert.ok(
-      timing.chronophantasmaDamageAtMs >= timing.damageAtMs,
-      `${skill.name} has an invalid Chronophantasma damage time`
-    );
-    assert.ok(
-      timing.chronophantasmaSpawnAtMs >= timing.chronophantasmaDamageAtMs,
-      `${skill.name} converts before its repeat ends`
-    );
+    assert.ok(timing.repeatDamageAtMs >= timing.damageAtMs, `${skill.name} has an invalid Chronophantasma damage time`);
+    assert.ok(timing.repeatSpawnAtMs >= timing.repeatDamageAtMs, `${skill.name} converts before its repeat ends`);
   }
 });
 
@@ -371,13 +365,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
     const timing = PHANTASM_ATTACK_TIMINGS[skillId];
 
     assert.deepEqual(
-      [
-        timing.castTimeMs,
-        timing.damageAtMs,
-        timing.spawnAtMs,
-        timing.chronophantasmaDamageAtMs,
-        timing.chronophantasmaSpawnAtMs
-      ],
+      [timing.castTimeMs, timing.damageAtMs, timing.spawnAtMs, timing.repeatDamageAtMs, timing.repeatSpawnAtMs],
       values
     );
     const skill = mesmerCatalog.skillsById.get(Number(skillId));

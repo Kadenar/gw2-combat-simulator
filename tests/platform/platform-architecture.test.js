@@ -60,7 +60,7 @@ import { MECHANIC_SKILLS } from '../../js/professions/mesmer/mechanics/skill-mec
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '../../js/professions/mesmer/core/state.js';
+import { snapshotMesmerState } from '../../js/professions/mesmer/state.js';
 import { testProfession } from '../fixtures/test-profession.js';
 
 test('native professions share one skill timing contract', async () => {

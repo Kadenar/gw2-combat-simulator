@@ -2,8 +2,10 @@ import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { mesmerMechanicPaletteGroups, mesmerMechanicSkillBarGroups, mesmerResourceViews } from '../../core/ui.js';
 import type {
   ProfessionEventLogDescriptor,
+  PaletteSkillAvailability,
   ProfessionUiContract,
-  SchedulerRecord
+  SchedulerRecord,
+  Skill
 } from '../../../../platform/engine/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '../../types.js';
 
@@ -30,6 +32,17 @@ function chronomancerEventLogRow(
   };
 }
 
+/** Keeps Continuum Shift unavailable until the active split has produced a restorable snapshot. */
+function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
+  if (skill.id !== ID.CONTINUUM_SHIFT) return { available: true, message: '' };
+  const state = (context.professionState || context.state?.profession || {}) as SchedulerRecord;
+  const available = Boolean(state.continuumActive);
+  return {
+    available,
+    message: available ? '' : 'Unavailable until Continuum Split is active'
+  };
+}
+
 export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: chronomancerEventLogRow,
   paletteGroups: (context: MesmerUiContext) =>
@@ -44,5 +57,6 @@ export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       singular: 'clone',
       plural: 'clones',
       maximum: 3
-    })
+    }),
+  paletteSkillAvailability: chronomancerPaletteSkillAvailability
 });

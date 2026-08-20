@@ -5,11 +5,17 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { timedStacks } from '../../core/rules.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
-import { initializeMirageRuntime } from './runtime.js';
+import { initializeMirageRuntime, mirageControllerFor } from './runtime.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
-import type { AvailabilityResult, SkillMechanicTrigger } from '../../../../platform/engine/types.js';
+import type { AvailabilityResult, SimulationEvent, SkillMechanicTrigger } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { MesmerCastContext, MesmerPrecastContext, MesmerSchedulerContext, MesmerSkill } from '../../types.js';
+import type {
+  MesmerCastContext,
+  MesmerPrecastContext,
+  MesmerRechargeContext,
+  MesmerSchedulerContext,
+  MesmerSkill
+} from '../../types.js';
 
 type MirageSkillMechanicHandler = (invocation: {
   readonly context: MesmerSchedulerContext;
@@ -23,17 +29,17 @@ type MirageSkillMechanicHandler = (invocation: {
 
 export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMechanicHandler>> = Object.freeze({
   'mesmer.mirage.create-mirror': ({ context, trigger, at, skill }) => {
-    mesmerRuntimeFor(context).mirage.createMirrors(at, trigger.count ?? 1, skill.name);
+    mirageControllerFor(mesmerRuntimeFor(context)).createMirrors(at, trigger.count ?? 1, skill.name);
   },
   'mesmer.mirage.grant-cloak': ({ context, at, skill }) => {
-    mesmerRuntimeFor(context).mirage.grantMirageCloak(at, skill.name);
+    mirageControllerFor(mesmerRuntimeFor(context)).grantMirageCloak(at, skill.name);
   },
   'mesmer.mirage.pick-up-mirror': ({ context, at, skill }) => {
-    mesmerRuntimeFor(context).mirage.pickUpMirror(at, skill.name);
+    mirageControllerFor(mesmerRuntimeFor(context)).pickUpMirror(at, skill.name);
   },
   'mesmer.mirage.dodge': ({ context, at, skill }) => {
     const runtime = mesmerRuntimeFor(context);
-    runtime.mirage.grantMirageCloak(at, skill.name);
+    mirageControllerFor(runtime).grantMirageCloak(at, skill.name);
     if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
       runtime.resources.queueResources(at + EPSILON, 1, runtime.activePrimaryWeapon(), 'Deceptive Evasion', {
         traitId: TRAIT.DECEPTIVE_EVASION,
@@ -111,13 +117,38 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
   };
 }
 
+/** Uses Mirage endurance recharge semantics only for the specialization's dodge action. */
+function modifyMirageRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
+  if (context.ammoCastLockout || context.skill.id !== ID.DODGE_MIRAGE_CLOAK) return sharedDuration;
+  return Number(context.skill.cooldown || 0) / (context.config.boons?.vigor ? 1.5 : 1);
+}
+
 export const mirageCastRules = Object.freeze({
   availability: {
     id: 'mesmer.mirage.availability',
     order: 20,
     handler: mirageAvailability
-  }
+  },
+  modifyRechargeDuration: modifyMirageRecharge
 });
+
+/** Expires Mirage Mirrors when scheduler time passes their pickup window. */
+function advanceMirageScheduler(context: MesmerSchedulerContext, target: number): void {
+  const state = mirageState.from(context);
+  state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > target + EPSILON);
+}
+
+/** Converts Sigil of Energy's proc into Mirage dodge endurance without involving Core. */
+function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  if (event.type !== 'proc' || event.sourceId !== 'sigil.energy') return;
+  const runtime = mesmerRuntimeFor(context);
+  const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
+  const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, event.at) : null;
+  if (!dodge || !ammo || ammo.charges >= ammo.maximum) return;
+  ammo.charges += 1;
+  if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
+  context.state.cooldowns.delete(dodge.id);
+}
 
 export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -155,5 +186,15 @@ export const mirageAttributeRules = Object.freeze({
 
 export const mirageSchedulerHooks = Object.freeze({
   initialize: initializeMirageRuntime,
-  onCastComplete: completeMirageSkill
+  advance: {
+    id: 'mesmer.mirage.mirrors',
+    order: 20,
+    handler: advanceMirageScheduler
+  },
+  onCastComplete: completeMirageSkill,
+  onEventScheduled: {
+    id: 'mesmer.mirage.energy-sigil',
+    order: 20,
+    handler: observeMirageEvent
+  }
 });
