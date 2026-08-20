@@ -667,6 +667,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.SKRITT_SWIPE]: {
     implemented: true,
+    stealTraitSkill: true,
     movementSkill: true,
     handlerId: 'thief.skritt-swipe',
     castTimeMs: 0,

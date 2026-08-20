@@ -1,7 +1,7 @@
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { emitThiefState } from '../../core/shared.js';
-import { storeStolenSkill } from '../../core/steal.js';
+import { storeStolenSkillChoices } from '../../core/steal.js';
 import { hasThiefTrait } from '../../core/state.js';
 import type {
   ThiefCastContext,
@@ -17,26 +17,26 @@ import type { SchedulerContext } from '../../../../platform/engine/types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-export const DEADEYE_STOLEN_ID_BY_CHOICE: Readonly<Record<string, number>> = Object.freeze({
-  'steal-time': ID.STEAL_TIME,
-  'steal-warmth': ID.STEAL_WARMTH,
-  'steal-resistance': ID.STEAL_RESISTANCE,
-  'steal-precision': ID.STEAL_PRECISION,
-  'steal-health': ID.STEAL_HEALTH,
-  'steal-strength': ID.STEAL_STRENGTH,
-  'steal-durability': ID.STEAL_DURABILITY,
-  'steal-defenses': ID.STEAL_DEFENSES,
-  'steal-mobility': ID.STEAL_MOBILITY
-});
+export const DEADEYE_STOLEN_SKILL_IDS: readonly number[] = Object.freeze([
+  ID.STEAL_TIME,
+  ID.STEAL_WARMTH,
+  ID.STEAL_RESISTANCE,
+  ID.STEAL_PRECISION,
+  ID.STEAL_HEALTH,
+  ID.STEAL_STRENGTH,
+  ID.STEAL_DURABILITY,
+  ID.STEAL_DEFENSES,
+  ID.STEAL_MOBILITY
+]);
 
-export function selectedDeadeyeStolenSkill(context: ThiefCastContext): number {
-  // Fire for Effect locks the stolen skill to Steal Time regardless of the user's assumption control
-  if (hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) {
-    return ID.STEAL_TIME;
-  }
-
-  const choice = context.config.deterministicChoices?.deadeyeStolenSkillChoice || 'steal-time';
-  return DEADEYE_STOLEN_ID_BY_CHOICE[choice] || DEADEYE_STOLEN_ID_BY_CHOICE['steal-time'];
+export function deadeyeStolenSkillGrant(context: ThiefCastContext): {
+  readonly skillIds: readonly number[];
+  readonly forcedSkillId: number | null;
+} {
+  // Fire for Effect replaces Deadeye's choice pool with Steal Time, matching the trait's forced stolen skill.
+  return hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)
+    ? { skillIds: [ID.STEAL_TIME], forcedSkillId: ID.STEAL_TIME }
+    : { skillIds: DEADEYE_STOLEN_SKILL_IDS, forcedSkillId: null };
 }
 
 function skillForEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): ThiefSkill | undefined {
@@ -191,7 +191,8 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
 
   if (hasThiefTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {
     // One in the Chamber recharges the stolen skill on every cantrip use, overwriting any previously stored skill
-    storeStolenSkill(context, selectedDeadeyeStolenSkill(context));
+    const grant = deadeyeStolenSkillGrant(context);
+    storeStolenSkillChoices(context, grant.skillIds, grant.forcedSkillId);
   }
 }
 

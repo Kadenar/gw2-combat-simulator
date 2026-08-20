@@ -1,43 +1,51 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession.js';
-import { THIEF_DEADEYE_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { deadeyeCastAvailability } from './availability.js';
-import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { hasThiefTrait } from '../../core/state.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from './mechanics.js';
+import { deadeyeWeaponSkillMatchesSet } from './weapons.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
 
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
 }
 
-function professionSkillIds(context: ThiefUiContext = {}): number[] {
-  const state = stateFrom(context);
-  // Deadeye's Mark is always shown in the F-slot palette; the stolen skill slot appears only when one is stored
-  return [ID.DEADEYES_MARK, state.storedStolenSkillId]
-    .filter((value) => value != null)
-    .map(Number)
-    .filter(Number.isFinite);
+function deadeyeStolenSkillIds(context: ThiefUiContext = {}): number[] {
+  return hasThiefTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ? [ID.STEAL_TIME] : [...DEADEYE_STOLEN_SKILL_IDS];
 }
 
 export const deadeyeUi = Object.freeze({
-  assumptionControls: THIEF_DEADEYE_ASSUMPTION_CONTROLS,
-  paletteGroups: (context: ThiefUiContext) => [
-    {
-      id: 'thief-profession',
-      label: 'F',
-      skillIds: professionSkillIds(context),
-      color: '#9a535c',
-      resourceAnchor: true
-    }
-  ],
-  skillBarGroups: () => [
+  weaponSkillMatchesSet: deadeyeWeaponSkillMatchesSet,
+  paletteGroups: (context: ThiefUiContext) => {
+    const stolenSkillIds = deadeyeStolenSkillIds(context);
+    // Keep every choice visible beside Mark; shared availability greys out skills that have not been stolen.
+    return [
+      {
+        id: 'thief-profession',
+        label: 'F',
+        skillIds: [ID.DEADEYES_MARK],
+        color: '#9a535c',
+        resourceAnchor: true,
+        stackId: 'deadeye-stolen-skills',
+        className: 'deadeye-mark-skill'
+      },
+      {
+        id: 'deadeye-stolen-skills',
+        label: 'Stolen',
+        skillIds: stolenSkillIds,
+        color: '#9a535c',
+        stackId: 'deadeye-stolen-skills',
+        className: 'deadeye-stolen-skills-grid'
+      }
+    ];
+  },
+  skillBarGroups: (context: ThiefUiContext) => [
     {
       id: 'deadeye-stolen-skills',
       label: 'Deadeye Stolen Skills',
-      skillIds:
-        THIEF_DEADEYE_ASSUMPTION_CONTROLS.filter((control) => control.type === 'select')
-          .flatMap((control) => control.options)
-          .map((option) => Number(option.skillId))
-          .filter(Number.isFinite) || [],
-      color: '#9a535c'
+      skillIds: deadeyeStolenSkillIds(context),
+      color: '#9a535c',
+      className: 'deadeye-stolen-skills-grid'
     }
   ],
   resourceViews: (context: ThiefUiContext) => {

@@ -4,25 +4,41 @@ import { THIEF_CORE_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { spearChainStageForSkill } from './conditions.js';
 import { thiefWeaponSkillMatchesSet } from './weapons.js';
+import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from './steal.js';
 import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '../types.js';
 
-function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
+export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
 }
 
-function professionIds(context: ThiefUiContext): number[] {
-  const state = stateFrom(context);
-  return [state.professionSkillId || ID.STEAL, state.storedStolenSkillId]
-    .filter((value) => value != null)
-    .map(Number)
-    .filter(Number.isFinite);
+export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
+  // Keep the base stolen-skill pool beside Steal so choices stay discoverable before and after they are granted.
+  return [
+    {
+      id: 'thief-profession',
+      label: 'F',
+      skillIds: [professionSkillId],
+      color: '#9a535c',
+      resourceAnchor: true,
+      stackId: 'thief-stolen-skills',
+      className: 'thief-steal-skill'
+    },
+    {
+      id: 'thief-stolen-skills',
+      label: 'Stolen',
+      skillIds: [...THIEF_STOLEN_SKILL_IDS],
+      color: '#9a535c',
+      stackId: 'thief-stolen-skills',
+      className: 'thief-stolen-skill-choices'
+    }
+  ];
 }
 
 function corePaletteSkillAvailability(
   context: ThiefUiContext = {},
   skill: ThiefSkill
 ): { available: boolean; message: string } {
-  const state = stateFrom(context);
+  const state = thiefUiState(context);
   const stealthed =
     Number(state.stealthUntil || 0) > Number(context.time || 0) &&
     Number(state.revealedUntil || 0) <= Number(context.time || 0);
@@ -32,6 +48,18 @@ function corePaletteSkillAvailability(
   const spearChainStage = spearChainStageForSkill(skill.id);
   const flipValue = state.availableFlips?.[String(skill.id)];
   const flipAvailable = flipValue === Number.POSITIVE_INFINITY || Number(flipValue || 0) > Number(context.time || 0);
+  if (
+    skill.slot === 'Profession_2' &&
+    (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
+    !storedStolenSkillChoices(state as ThiefState).includes(skill.id)
+  ) {
+    // Stolen-skill palettes remain visible for selection, but only the currently granted choices are actionable.
+    return {
+      available: false,
+      message: 'Steal this skill before using it'
+    };
+  }
+
   if (spearChainStage != null && Number(state.spearChainStage || 0) !== spearChainStage) {
     return {
       available: false,
@@ -92,35 +120,29 @@ export const thiefCoreUi = Object.freeze({
   assumptionControls: Object.freeze([...THIEF_CORE_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) =>
-    ['Core', 'Daredevil'].includes(context.specialization || context.config?.specialization || 'Core')
-      ? [
-          {
-            id: 'thief-profession',
-            label: 'F',
-            skillIds: professionIds(context),
-            color: '#9a535c',
-            resourceAnchor: true
-          }
-        ]
-      : [],
+    (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   skillBarGroups: (context: ThiefUiContext) =>
-    ['Core', 'Daredevil'].includes(context.specialization || context.config?.specialization || 'Core')
+    (context.specialization || context.config?.specialization || 'Core') === 'Core'
       ? [
           {
             id: 'thief-stolen-skills',
             label: 'Stolen Skills',
-            skillIds:
-              THIEF_CORE_ASSUMPTION_CONTROLS.filter((control) => control.type === 'select')
-                .flatMap((control) => control.options)
-                .map((option) => Number(option.skillId))
-                .filter(Number.isFinite) || [],
+            skillIds: [...THIEF_STOLEN_SKILL_IDS],
             color: '#9a535c'
           }
         ]
       : [],
   resourceViews: (context: ThiefUiContext) => {
-    const state = stateFrom(context);
-    const specialization = context.specialization || context.config?.specialization || 'Core';
+    const state = thiefUiState(context);
+    const enduranceCapacity = Math.max(
+      Number(state.maximumEndurance || 100),
+      100 + Number(state.enduranceCapacityBonus || 0)
+    );
+    const endurance =
+      Number(state.maximumEndurance || 100) < enduranceCapacity &&
+      Number(state.endurance ?? 100) === Number(state.maximumEndurance || 100)
+        ? enduranceCapacity
+        : Number(state.endurance ?? enduranceCapacity);
     return [
       {
         id: 'initiative',
@@ -135,7 +157,7 @@ export const thiefCoreUi = Object.freeze({
         step: 1,
         displayMode: 'pips',
         pipStyle: 'thief-initiative',
-        pipRows: Number(state.initiativePipRows || (specialization === 'Antiquary' ? 3 : 2)),
+        pipRows: Number(state.initiativePipRows || 2),
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
@@ -143,8 +165,9 @@ export const thiefCoreUi = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        maximum: Number(state.maximumEndurance || (specialization === 'Daredevil' ? 150 : 100)),
-        value: Number(state.endurance ?? 100),
+        // Specializations publish capacity bonuses; Core renders the shared meter without naming their owner.
+        maximum: enduranceCapacity,
+        value: endurance,
         canStart: false,
         step: 1,
         displayMode: 'bar',

@@ -46,11 +46,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   state.maximumInitiative = hasThiefTrait(context.config, TRAIT.PREPAREDNESS)
     ? Number(resources?.minimumStacks || 15)
     : Number(resources?.maximumStacks || 12);
-  state.maximumEndurance =
-    context.state.profession.specialization.kind === 'Daredevil'
-      ? Number(thiefBalanceProfile(context, 'thief.daredevil.resources')?.maximumStacks || 150)
-      : 100;
-  state.endurance = Math.min(state.maximumEndurance, state.endurance);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   state.leadAttacksUntil = state.leadAttackExpirations.length ? Math.max(...state.leadAttackExpirations) : 0;

@@ -6,7 +6,6 @@ import type { DeadeyeState, ThiefConfig } from '../../types.js';
 export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   const traits = selectedThiefTraits(config);
   return {
-    usesMaliciousStealthAttacks: true,
     markedTargetId: null,
     markExpiresAt: 0,
     // Bumped each time Deadeye's Mark is applied; the expiry task checks this to ignore stale scheduled expirations
@@ -26,5 +25,31 @@ export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     stealthAttackExpiresAt: 0
   };
 }
+
+export const DEADEYE_PUBLIC_END_STATE_KEYS: readonly (keyof DeadeyeState)[] = Object.freeze([
+  'markedTargetId',
+  'markExpiresAt',
+  'markGeneration',
+  'malice',
+  'maximumMalice',
+  'maliceCriticalProgress',
+  'deadeyeRelicUntil',
+  'stealthAttackCharges',
+  'stealthAttackExpiresAt',
+  'maleficentSevenTriggered'
+]);
+
+export const DEADEYE_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DeadeyeState>> = Object.freeze({
+  markedTargetId: null,
+  markExpiresAt: 0,
+  markGeneration: 0,
+  malice: 0,
+  maximumMalice: 5,
+  maliceCriticalProgress: 0,
+  deadeyeRelicUntil: 0,
+  stealthAttackCharges: 0,
+  stealthAttackExpiresAt: 0,
+  maleficentSevenTriggered: false
+});
 
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);

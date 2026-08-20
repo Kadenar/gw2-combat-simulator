@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
@@ -11,28 +10,20 @@ import {
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { thiefCoreCastAvailability } from './availability.js';
 import { advanceThiefCoreResources, completeThiefCoreResources, spendThiefCoreResources } from './resources.js';
-import { hasThiefTrait, snapshotThiefState } from './state.js';
+import { hasThiefTrait } from './state.js';
+import { snapshotThiefState } from '../state.js';
 import { updateThiefTraitCastState } from './traits.js';
 import { updateThiefWeaponState } from './weapon-state.js';
 import { thiefCoreTaskHandlers } from './tasks.js';
 import { applyThiefWeaponSwapEffects } from './actions.js';
-import type { Skill } from '../../../platform/engine/types.js';
+import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import type {
   Gw2ModifierContext,
   Gw2ModifierHooks,
   Gw2ModifierRule,
   Gw2ResolvedStats
 } from '../../../platform/gw2/types.js';
-import type {
-  AntiquaryState,
-  DaredevilState,
-  DeadeyeState,
-  SpecterState,
-  ThiefCoreState,
-  ThiefPrecastContext,
-  ThiefQueryRuntime,
-  ThiefSchedulerContext
-} from '../types.js';
+import type { ThiefCoreState, ThiefPrecastContext, ThiefQueryRuntime, ThiefSchedulerContext } from '../types.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
@@ -49,17 +40,10 @@ export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCor
   return 'core' in state && state.core ? state.core : (state as Partial<ThiefCoreState>);
 }
 
-interface ThiefSpecializationStateMap {
-  Antiquary: AntiquaryState;
-  Daredevil: DaredevilState;
-  Deadeye: DeadeyeState;
-  Specter: SpecterState;
-}
-
-export function thiefRuntimeSpecializationState<TKind extends keyof ThiefSpecializationStateMap>(
+export function thiefRuntimeSpecializationState<TState extends object = SchedulerRecord>(
   context: Gw2ModifierContext,
-  expectedKind: TKind
-): Partial<ThiefSpecializationStateMap[TKind]> {
+  expectedKind: string
+): Partial<TState> {
   const state = (context.runtime as ThiefQueryRuntime | undefined)?.profession || {};
   if (
     'specialization' in state &&
@@ -71,10 +55,10 @@ export function thiefRuntimeSpecializationState<TKind extends keyof ThiefSpecial
       throw new TypeError(`Expected active specialization ${expectedKind}, received ${state.specialization.kind}.`);
     }
 
-    return state.specialization.state as unknown as Partial<ThiefSpecializationStateMap[TKind]>;
+    return state.specialization.state as unknown as Partial<TState>;
   }
 
-  return state as Partial<ThiefSpecializationStateMap[TKind]>;
+  return state as Partial<TState>;
 }
 
 export function thiefTargetHealthFraction(context: Gw2ModifierContext): number {
@@ -197,7 +181,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 2,
     when: (context) =>
       thiefPlayerEvent(context) &&
-      ['Backstab', 'Malicious Backstab'].includes(thiefEventSkill(context)?.name || '') &&
+      thiefEventSkill(context)?.id === ID.BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
   {
@@ -295,21 +279,19 @@ export const thiefCoreAttributeRules = Object.freeze({
 
 function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration: number): number {
   const skill = context.skill;
-  const state = professionCoreState(context);
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (skill.usableWhileRecharging === true && readyAt > context.start + Number(context.epsilon || 0.0001)) {
     return 0;
   }
 
   let result = duration;
-  if (skill.id === state.professionSkillId) {
+  if (skill.stealTraitSkill) {
     const leadAttacks = hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
     const leadMultiplier = Number(thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
     const sleightMultiplier = Number(thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8);
-    if (skill.id === ID.SIPHON) {
-      // Specter's Siphon is the exception to the ordinary multiplicative
-      // stacking used by Steal replacements: these two reductions add.
+    if (skill.stealRechargeMode === 'additive') {
+      // Skills can own an additive exception while the base traits remain shared.
       result *= 1 - Number(leadAttacks) * (1 - leadMultiplier) - Number(sleightOfHand) * (1 - sleightMultiplier);
     } else {
       if (leadAttacks) result *= leadMultiplier;

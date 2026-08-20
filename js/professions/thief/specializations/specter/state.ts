@@ -19,4 +19,20 @@ export function createSpecterState(config: ThiefConfig = {}): SpecterState {
   };
 }
 
+export const SPECTER_PUBLIC_END_STATE_KEYS: readonly (keyof SpecterState)[] = Object.freeze([
+  'shadowForce',
+  'maximumShadowForce',
+  'shadowForcePoolCapacity',
+  'shadowShroudActive',
+  'darkSentryReadyAt'
+]);
+
+export const SPECTER_INACTIVE_STATE_DEFAULTS: Readonly<Partial<SpecterState>> = Object.freeze({
+  shadowForce: 0,
+  maximumShadowForce: 100,
+  shadowForcePoolCapacity: 0,
+  shadowShroudActive: false,
+  darkSentryReadyAt: 0
+});
+
 export const specterState = defineProfessionSpecializationState('Specter', createSpecterState);

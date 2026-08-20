@@ -1,4 +1,3 @@
-import { flattenProfessionState } from '../../platform/engine/profession.js';
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
 import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
@@ -9,27 +8,20 @@ import { THIEF_SUPPLEMENTAL_SKILLS } from './data/thief-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
 import { spearChainStageForSkill } from './core/conditions.js';
 import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from './core/weapons.js';
+import { deadeyeWeaponSkillMatchesSet } from './specializations/deadeye/weapons.js';
 import type { CatalogEntity, SkillId } from '../../platform/engine/types.js';
-import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from './types.js';
+import type { ThiefSkill, ThiefWeaponMatcherContext } from './types.js';
 
 export function thiefWeaponSkillMatchesSet(
   skill: ThiefSkill,
   pair: readonly (string | undefined)[] = [],
   context: ThiefWeaponMatcherContext = {}
 ): boolean {
-  const professionState = flattenProfessionState(
-    context.professionState || context.state?.profession || {}
-  ) as unknown as Partial<ThiefState>;
-
-  return thiefCoreWeaponSkillMatchesSet(skill, pair, {
-    ...context,
-    professionState: {
-      ...professionState,
-      usesMaliciousStealthAttacks:
-        professionState.usesMaliciousStealthAttacks ??
-        (context.specialization === 'Deadeye' || context.config?.specialization === 'Deadeye')
-    }
-  });
+  const specialization = context.specialization || context.config?.specialization || 'Core';
+  if (specialization === 'Deadeye') return deadeyeWeaponSkillMatchesSet(skill, pair, context);
+  // Family dispatch excludes Deadeye-owned malicious replacements from every other runtime.
+  if (skill.stealthAttack && skill.malicious) return false;
+  return thiefCoreWeaponSkillMatchesSet(skill, pair, context);
 }
 
 const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({

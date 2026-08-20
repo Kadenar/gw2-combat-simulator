@@ -305,6 +305,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.DEADEYES_MARK]: {
     implemented: true,
+    stealTraitSkill: true,
     movementSkill: true,
     handlerId: 'thief.deadeyes-mark',
     castTimeMs: 0,

@@ -2,7 +2,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasThiefTrait } from './state.js';
 import { emitThiefCondition, emitThiefState, gainThiefInitiative } from './shared.js';
-import type { AntiquaryState, ThiefCastContext, ThiefCoreState, ThiefSkill } from '../types.js';
+import type { ThiefCastContext, ThiefCoreState, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
@@ -12,10 +12,13 @@ import {
 export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
-  const specializationState = specialization.state as Partial<AntiquaryState>;
-  const stealthAttackState: Partial<AntiquaryState> = Object.hasOwn(specializationState, 'stealthAttackCharges')
+  const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;
+  const stealthAttackState: Partial<ThiefStealthAttackChargeState> = Object.hasOwn(
+    specializationState,
+    'stealthAttackCharges'
+  )
     ? specializationState
-    : (state as ThiefCoreState & Partial<AntiquaryState>);
+    : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
   const stealthed = state.stealthUntil > context.start && state.revealedUntil <= context.start;
   if (
     !stealthed &&

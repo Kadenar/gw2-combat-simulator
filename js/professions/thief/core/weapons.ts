@@ -10,10 +10,6 @@ export function thiefWeaponSkillMatchesSet(
   const professionState = flattenProfessionState(
     context.professionState || context.state?.profession || {}
   ) as unknown as Partial<ThiefState>;
-  if (skill.stealthAttack && Boolean(skill.malicious) !== Boolean(professionState.usesMaliciousStealthAttacks)) {
-    return false;
-  }
-
   if (
     skill.weapon === 'Rifle' &&
     !skill.stealthAttack &&

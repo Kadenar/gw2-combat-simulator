@@ -70,8 +70,7 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    },
-    "deadeyeStolenSkillChoice": "steal-time"
+    }
   },
   "initialInitiative": 12,
   "initialShadowForce": 0,

@@ -1,13 +1,13 @@
 import { deadeyeState } from './state.js';
 import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { completeStealWithStoredSkill } from '../../core/steal.js';
+import { completeStealWithStoredSkills } from '../../core/steal.js';
 import { emitStealTraitEffects } from '../../core/traits.js';
 import { emitThiefCondition, emitThiefState, gainThiefInitiative } from '../../core/shared.js';
 import { beginStealthAttack, completeStealthAttack } from '../../core/stealth.js';
 import { grantThiefStealth } from '../../core/weapon-state.js';
 import { consumeStoredStolenSkill } from '../../core/steal.js';
-import { selectedDeadeyeStolenSkill } from './mechanics.js';
+import { deadeyeStolenSkillGrant } from './mechanics.js';
 import {
   applyMaleficentSeven,
   applyDeadeyesMarkTraits,
@@ -38,7 +38,8 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
     : initialDeadeyeMalice(context);
   if (!remarkingTarget) state.maleficentSevenTriggered = false;
   applyMaleficentSeven(context, at);
-  completeStealWithStoredSkill(context, selectedDeadeyeStolenSkill(context));
+  const grant = deadeyeStolenSkillGrant(context);
+  completeStealWithStoredSkills(context, grant.skillIds, grant.forcedSkillId);
   applyDeadeyesMarkTraits(context, at);
   // Cancel any pending expiry task from the previous mark before scheduling the new one
   context.tasks.cancelOwner('thief.deadeye-mark');
@@ -122,7 +123,7 @@ function completeDeadeyeStolenSkill(context: ThiefCastContext, skill: ThiefSkill
     grantThiefStealth(context, skill, context.effectiveEnd, 3);
   }
 
-  consumeStoredStolenSkill(context);
+  consumeStoredStolenSkill(context, skill);
   applyDeadeyeStolenSkillTraits(context, context.effectiveEnd);
 }
 

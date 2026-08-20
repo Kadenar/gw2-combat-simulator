@@ -121,6 +121,17 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       SHADOW_FLARE_SKILL_IDS.has(Number(thiefEventSkill(context)?.id))
   },
   {
+    id: 'thief.malicious-backstab-position',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 2,
+    // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
+    when: (context) =>
+      thiefPlayerEvent(context) &&
+      thiefEventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
+      Boolean(context.config?.target?.defiant)
+  },
+  {
     id: 'thief.relic-of-the-deadeye',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',

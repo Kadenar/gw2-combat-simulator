@@ -12,6 +12,7 @@ import type {
   ThiefSummonStrike
 } from '../types.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { thiefSpecializationGuildSummon } from '../thieves-guild.js';
 
 interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly attack: ThiefSummonStrike;
@@ -20,20 +21,22 @@ interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly summon: ThiefSummonDefinition;
 }
 
-function thievesGuildSummons(profile: ThiefSummonAttack, variant: string): readonly ThiefSummonDefinition[] {
-  return profile.summons.filter((summon) => summon.variant == null || summon.variant === variant);
-}
-
 export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const variant = state.thievesGuildVariant || 'Core Thief';
   const profile = skill.summonAttack;
   if (!profile) return;
-  const summons = thievesGuildSummons(profile, variant);
+  const specializationSummon = thiefSpecializationGuildSummon(context.state.profession.specialization.kind);
+  const coreSummon = profile.summons.find((summon) => summon.variant === 'Core Thief');
+  const thirdSummon = specializationSummon || coreSummon;
+  // Shared thieves come from the core elite profile; only the specialization-owned third summon is swapped.
+  const summons = [
+    ...profile.summons.filter((summon) => summon.variant == null),
+    ...(thirdSummon ? [thirdSummon] : [])
+  ];
   const expiresAt = context.start + Number(profile.duration || 0);
   state.activeThievesGuild = {
-    variant: summons.find((summon) => summon.variant != null)?.name || variant,
+    variant: thirdSummon?.name || 'Core Thief',
     expiresAt
   };
   context.tasks.cancelOwner('thief.thieves-guild');

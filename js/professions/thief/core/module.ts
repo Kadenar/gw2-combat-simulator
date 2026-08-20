@@ -8,7 +8,8 @@ import {
 import { createThiefModuleData } from '../catalog-data.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from './resolver.js';
 import { thiefCoreAttributeRules, thiefCoreCastRules, thiefCoreSchedulerHooks } from './rules.js';
-import { createThiefCoreState, projectThiefEndState } from './state.js';
+import { createThiefCoreState } from './state.js';
+import { projectThiefEndState } from '../state.js';
 import { thiefCoreUi } from './ui.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from './skills.js';
 import { thiefCoreSkillHandlers } from './handlers.js';

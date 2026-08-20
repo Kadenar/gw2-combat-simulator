@@ -87,6 +87,9 @@ const thiefBuildCodec = createGw2BuildCodec({
     delete assumptions.targetDistance;
     delete assumptions.artifactDrawSequence;
     delete assumptions.doubleEdgeOutcomeSequence;
+    // Stolen skills moved from persisted assumptions to choices made from the live profession palette.
+    delete assumptions.stolenSkillChoice;
+    delete assumptions.deadeyeStolenSkillChoice;
     return {
       ...build,
       assumptions,

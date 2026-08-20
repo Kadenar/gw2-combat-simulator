@@ -1,4 +1,6 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
@@ -8,11 +10,29 @@ import {
   thiefTargetHasCondition
 } from '../../core/rules.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { DaredevilState, ThiefSchedulerContext } from '../../types.js';
 import { daredevilCastAvailability } from './availability.js';
 import { updatePalmStrikeWindow } from './mechanics.js';
 import { applyDaredevilDodge, beginDaredevilTraits } from './traits.js';
+import { thiefBalanceProfile } from '../../core/profiles.js';
+import { hasThiefTrait } from '../../core/state.js';
+
+function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
+  const state = professionCoreState(context);
+  // Daredevil owns both its third dodge and the dynamic health conversion from Marauder's Resilience.
+  state.maximumEndurance = Number(thiefBalanceProfile(context, 'thief.daredevil.resources')?.maximumStacks || 150);
+  state.endurance = state.maximumEndurance;
+  if (!professionStaticRulesApplied(context.config) && hasThiefTrait(context.config, TRAIT.MARAUDERS_RESILIENCE)) {
+    state.maximumHealth += Number(context.config.stats?.power ?? context.config.attributes?.power ?? 1000) * 0.7;
+  }
+}
 
 export const daredevilSchedulerHooks = Object.freeze({
+  initialize: {
+    id: 'thief.daredevil-endurance',
+    order: 10,
+    handler: initializeDaredevilRuntime
+  },
   // onCastStart runs before the cast so Staff Master / Brawler's Tenacity endurance and Weakening Strikes are armed in time
   onCastStart: beginDaredevilTraits,
   afterCast: Object.freeze([
@@ -61,7 +81,8 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       thiefPlayerEvent(context) &&
       hasTrait(context, TRAIT.BOUNDING_DODGER) &&
-      Number(thiefRuntimeSpecializationState(context, 'Daredevil').boundingDamageUntil || 0) > context.time
+      Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) >
+        context.time
   },
   {
     id: 'thief.lotus-training',
@@ -71,7 +92,8 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       thiefPlayerEvent(context) &&
       hasTrait(context, TRAIT.LOTUS_TRAINING) &&
-      Number(thiefRuntimeSpecializationState(context, 'Daredevil').lotusConditionDamageUntil || 0) > context.time
+      Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
+        context.time
   }
 ]);
 

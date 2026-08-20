@@ -7,6 +7,9 @@ const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SIPHON]: {
     implemented: true,
+    stealTraitSkill: true,
+    // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.
+    stealRechargeMode: 'additive',
     handlerId: 'thief.siphon',
     quicknessCastTimeMs: 520,
     cooldown: 18,

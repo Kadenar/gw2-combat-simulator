@@ -957,6 +957,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.STEAL]: {
     implemented: true,
+    stealTraitSkill: true,
     movementSkill: true,
     handlerId: 'thief.steal',
     castTimeMs: 0,
@@ -1700,76 +1701,6 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
               interval: 2.68
             }
           ]
-        },
-        {
-          name: 'Staff Daredevil',
-          displayName: 'Daredevil',
-          variant: 'Daredevil',
-          weapon: 'Staff',
-          weaponStrengthProfileId: 'weapon.staff',
-          attacks: [
-            {
-              name: 'Vault',
-              skillId: 41056,
-              coefficientPerHit: 2.4,
-              hits: 1,
-              initialDelay: 1.72,
-              interval: 11.36
-            },
-            {
-              name: 'Impairing Daggers',
-              skillId: 40482,
-              coefficientPerHit: 0.25,
-              hits: 3,
-              initialDelay: 2.72,
-              conditions: [
-                {
-                  condition: 'Poisoned',
-                  stacks: 3,
-                  duration: 8
-                },
-                {
-                  condition: 'Slow',
-                  stacks: 1,
-                  duration: 4
-                },
-                {
-                  condition: 'Immobilized',
-                  stacks: 1,
-                  duration: 2
-                }
-              ]
-            },
-            {
-              name: 'Weakening Charge',
-              skillId: 40005,
-              coefficientPerHit: 0.45,
-              hits: 2,
-              initialDelay: 4.04,
-              interval: 3.36
-            }
-          ]
-        },
-        {
-          name: 'Rifle Deadeye',
-          displayName: 'Deadeye',
-          variant: 'Deadeye',
-          weapon: 'Rifle',
-          weaponStrengthProfileId: 'weapon.rifle'
-        },
-        {
-          name: 'Scepter Specter',
-          displayName: 'Specter',
-          variant: 'Specter',
-          weapon: 'Scepter',
-          weaponStrengthProfileId: 'weapon.scepter'
-        },
-        {
-          name: 'Sword/Dagger Skritt',
-          displayName: 'Skritt',
-          variant: 'Skritt',
-          weapon: 'Sword',
-          weaponStrengthProfileId: 'weapon.sword'
         },
         {
           name: 'Sword Thief',

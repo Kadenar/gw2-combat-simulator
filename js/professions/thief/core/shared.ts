@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
-import { snapshotThiefState } from './state.js';
+import { snapshotThiefState } from '../state.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ThiefSchedulerContext, ThiefEmissionContext, ThiefSkill } from '../types.js';
 

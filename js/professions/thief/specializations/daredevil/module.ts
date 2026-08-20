@@ -4,6 +4,7 @@ import { daredevilAttributeRules, daredevilCastRules, daredevilSchedulerHooks } 
 import { daredevilState } from './state.js';
 import { DAREDEVIL_SKILL_MECHANICS } from './skills.js';
 import { DAREDEVIL_BALANCE_PROFILES } from './profiles.js';
+import { daredevilUi } from './ui.js';
 
 export const daredevilModule = defineNativeModule({
   id: 'Daredevil',
@@ -17,5 +18,6 @@ export const daredevilModule = defineNativeModule({
     modifiers: daredevilAttributeRules,
     castRules: daredevilCastRules,
     schedulerHooks: daredevilSchedulerHooks
-  }
+  },
+  presentation: daredevilUi
 });

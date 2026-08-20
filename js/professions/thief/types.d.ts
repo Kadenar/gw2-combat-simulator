@@ -52,8 +52,6 @@ export interface ThiefApplicationBuild extends ProfessionApplicationBuild {
 
 export interface ThiefDeterministicChoices extends SchedulerRecord {
   readonly forgedSurferBombsHit?: number;
-  readonly stolenSkillChoice?: string;
-  readonly deadeyeStolenSkillChoice?: string;
 }
 
 export interface ThiefConfig extends Gw2Config {
@@ -79,8 +77,8 @@ export interface ThiefCoreState {
   stealthUntil: number;
   revealedUntil: number;
   storedStolenSkillId: SkillId | null;
+  storedStolenSkillIds: SkillId[];
   storedStolenSkillCount: number;
-  professionSkillId: SkillId;
   kneeling: boolean;
   endurance: number;
   maximumEndurance: number;
@@ -102,7 +100,6 @@ export interface ThiefCoreState {
   thousandNeedlesArmedAt: number;
   thousandNeedlesGeneration: number;
   activeThievesGuild: ThievesGuildState | null;
-  thievesGuildVariant: string;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: Record<string, number>;
@@ -112,6 +109,7 @@ export interface ThiefCoreState {
 }
 
 export interface DaredevilState {
+  enduranceCapacityBonus: number;
   selectedDodge: ThiefDodge;
   boundingDamageUntil: number;
   lotusConditionDamageUntil: number;
@@ -119,8 +117,12 @@ export interface DaredevilState {
   weakeningStrikeReady: boolean;
 }
 
-export interface DeadeyeState {
-  usesMaliciousStealthAttacks: boolean;
+export interface ThiefStealthAttackChargeState {
+  stealthAttackCharges: number;
+  stealthAttackExpiresAt: number;
+}
+
+export interface DeadeyeState extends ThiefStealthAttackChargeState {
   markedTargetId: string | null;
   markExpiresAt: number;
   markGeneration: number;
@@ -130,8 +132,6 @@ export interface DeadeyeState {
   maliceResolvedActivations: Record<string, boolean>;
   maleficentSevenTriggered: boolean;
   deadeyeRelicUntil: number;
-  stealthAttackCharges: number;
-  stealthAttackExpiresAt: number;
 }
 
 export interface SpecterState {
@@ -163,7 +163,7 @@ export interface ThiefAntiquarySummon extends SchedulerRecord {
   readonly expiresAt: number;
 }
 
-export interface AntiquaryState {
+export interface AntiquaryState extends ThiefStealthAttackChargeState {
   initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
@@ -177,8 +177,6 @@ export interface AntiquaryState {
   antiquaryDamageUntil: number;
   combatHighExpiresAt: number;
   combatHighStacks: number;
-  stealthAttackCharges: number;
-  stealthAttackExpiresAt: number;
   artifactStealthAttacksRemaining?: number;
   artifactStealthAttackExpiresAt?: number;
   mistburnCharges: number;
@@ -256,6 +254,8 @@ export interface ThiefSkill extends Skill {
   readonly shadowShroudSkill?: boolean;
   readonly spearStealthAttack?: boolean;
   readonly stealthAttack?: boolean;
+  readonly stealTraitSkill?: boolean;
+  readonly stealRechargeMode?: 'multiplicative' | 'additive';
   readonly summonAttack?: ThiefSummonAttack;
 }
 

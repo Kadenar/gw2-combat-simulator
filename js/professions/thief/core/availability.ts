@@ -2,8 +2,9 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { thiefEnduranceReadyAt, thiefInitiativeRegenerationRate } from './resources.js';
 import { spearChainStageForSkill } from './conditions.js';
+import { storedStolenSkillChoices } from './steal.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
-import type { AntiquaryState, ThiefCoreState, ThiefPrecastContext, ThiefSkill } from '../types.js';
+import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
 
 function deny(skill: ThiefSkill, code: string, cause: string, retryAt: number | null = null): AvailabilityResult {
   return {
@@ -28,10 +29,13 @@ function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): b
 export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
-  const specializationState = specialization.state as Partial<AntiquaryState>;
-  const stealthAttackState: Partial<AntiquaryState> = Object.hasOwn(specializationState, 'stealthAttackCharges')
+  const specializationState = specialization.state as Partial<ThiefStealthAttackChargeState>;
+  const stealthAttackState: Partial<ThiefStealthAttackChargeState> = Object.hasOwn(
+    specializationState,
+    'stealthAttackCharges'
+  )
     ? specializationState
-    : (state as ThiefCoreState & Partial<AntiquaryState>);
+    : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
   if (skill.id === ID.DODGE) {
     return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }
@@ -123,7 +127,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   if (
     skill.slot === 'Profession_2' &&
     (skill.categories || []).includes('stolen skill') &&
-    (state.storedStolenSkillId !== skill.id || Number(state.storedStolenSkillCount || 0) <= 0)
+    !storedStolenSkillChoices(state).includes(skill.id)
   ) {
     return deny(skill, 'thief.stolen-skill', 'steal this skill before using it.');
   }

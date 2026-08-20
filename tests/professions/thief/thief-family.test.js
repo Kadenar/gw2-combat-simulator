@@ -82,7 +82,7 @@ test('Thief modules own vertical source slices', () => {
 
       const rootFacadeImport =
         directory === 'core'
-          ? /from\s+["']\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js["']/
+          ? /from\s+["']\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|ui)\.js["']/
           : /from\s+["']\.\.\/\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js["']/;
 
       assert.doesNotMatch(source, rootFacadeImport, `${directory}/${entry.name} imports an application facade`);
@@ -132,6 +132,9 @@ test('Thief modules own vertical source slices', () => {
     .join('\n');
 
   assert.doesNotMatch(coreSources, /specializations\//);
+  assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
+  assert.equal(existsSync(new URL('../../../js/professions/thief/core/events.ts', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../../../js/professions/thief/state.ts', import.meta.url)), true);
   assert.doesNotMatch(
     readFileSync(new URL('../../../js/professions/thief/mechanics/skill-mechanics.ts', import.meta.url), 'utf8'),
     /\[ID\./

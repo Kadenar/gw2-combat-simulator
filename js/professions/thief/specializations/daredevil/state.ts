@@ -18,6 +18,8 @@ function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>
 export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
   const traits = selectedThiefTraits(config);
   return {
+    // Daredevil owns the extra dodge capacity even though endurance is spent by the shared Thief resource system.
+    enduranceCapacityBonus: 50,
     selectedDodge: selectedDodge(config, traits),
     boundingDamageUntil: 0,
     lotusConditionDamageUntil: 0,
@@ -25,5 +27,21 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
     weakeningStrikeReady: false
   };
 }
+
+export const DAREDEVIL_PUBLIC_END_STATE_KEYS: readonly (keyof DaredevilState)[] = Object.freeze([
+  'selectedDodge',
+  'boundingDamageUntil',
+  'lotusConditionDamageUntil',
+  'palmStrikeUntil',
+  'weakeningStrikeReady'
+]);
+
+export const DAREDEVIL_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DaredevilState>> = Object.freeze({
+  selectedDodge: 'Dodge',
+  boundingDamageUntil: 0,
+  lotusConditionDamageUntil: 0,
+  palmStrikeUntil: 0,
+  weakeningStrikeReady: false
+});
 
 export const daredevilState = defineProfessionSpecializationState('Daredevil', createDaredevilState);
