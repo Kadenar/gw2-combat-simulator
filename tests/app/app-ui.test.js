@@ -514,6 +514,20 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   );
 });
 
+test('shared profession palettes preserve utility rows before wrapping combat tools', async () => {
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(css, /\.rotation-palette \.pal-group\.utility-palette-group > \.pal-row\s*\{\s*flex-wrap: nowrap;/);
+  assert.match(
+    css,
+    /body\[data-profession\] \.rotation-palette:not\(:has\(\.weaver-weapon-palette\)\)\s*\{\s*display: flex;\s*flex-wrap: wrap;/
+  );
+  assert.match(
+    css,
+    /body\[data-profession\] \.rotation-palette > \.timeline-tools-palette-stack\s*\{[\s\S]*?flex: 0 0 auto;[\s\S]*?flex-wrap: nowrap;[\s\S]*?margin-inline-start: auto;/
+  );
+});
+
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
   const results = {
     innerHTML: '',

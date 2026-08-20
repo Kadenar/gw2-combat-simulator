@@ -3909,98 +3909,44 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   }
 }
 
-@container rotation-builder (min-width: 701px) and (max-width: 899px) {
-  body[data-profession] .rotation-palette {
-    display: grid;
-    grid-template-areas:
-      'profession weapons'
-      'profession utility'
-      'tools tools';
-    grid-template-columns: max-content minmax(0, 1fr);
-    align-items: start;
-  }
-
-  body[data-profession] .rotation-palette > .profession-palette-section {
-    display: flex;
-    grid-area: profession;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-self: start;
-    gap: 6px;
-  }
-
-  body[data-profession] .rotation-palette > .weapon-palette-section {
-    display: flex !important;
-    width: 100%;
-    min-width: 0;
-    grid-area: weapons;
-    flex-wrap: wrap;
-    justify-self: start;
-  }
-
-  body[data-profession] .rotation-palette .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    align-items: stretch;
-  }
-
-  body[data-profession] .rotation-palette > .utility-palette-group {
-    grid-area: utility;
-    justify-self: start;
-  }
-
-  body[data-profession] .rotation-palette > .timeline-tools-palette-stack {
-    display: flex;
-    grid-area: tools;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  body[data-profession] .rotation-palette > .timeline-tools-palette-stack > .pal-break {
-    display: none;
-  }
+/* Keep selected utilities at their intrinsic one-row width. Palette sections
+   then wrap as units, allowing combat/wait tools to use right-side slack or
+   move to the next row without compressing profession-neutral utilities. */
+.rotation-palette .pal-group.utility-palette-group {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
 }
 
-@container rotation-builder (min-width: 900px) {
-  body[data-profession]:not(.elementalist-theme) .rotation-palette,
-  .elementalist-theme .rotation-palette:not(:has(.weaver-weapon-palette)) {
-    display: grid;
-    /* Wide layout has room, so the combat/wait tools ride up to the top-right. */
-    grid-template-areas: 'profession weapons utility tools';
-    grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
-    align-items: start;
-  }
+.rotation-palette .pal-group.utility-palette-group > .pal-row {
+  flex-wrap: nowrap;
+}
 
-  .elementalist-theme .rotation-palette:has(.weaver-weapon-palette) {
-    display: grid;
-    grid-template-areas:
-      'profession utility'
-      'weapons weapons'
-      'tools tools';
-    grid-template-columns: max-content minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .elementalist-theme .rotation-palette:not(:has(.weaver-weapon-palette)) {
-    grid-template-columns: max-content minmax(0, 1fr) max-content;
+@container rotation-builder (min-width: 701px) {
+  body[data-profession] .rotation-palette:not(:has(.weaver-weapon-palette)) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   body[data-profession] .rotation-palette > .profession-palette-section {
     display: flex;
-    grid-area: profession;
+    max-width: 100%;
+    flex: 0 0 auto;
     flex-direction: column;
     align-items: flex-start;
-    justify-self: start;
     gap: 6px;
+    order: 1;
   }
 
   body[data-profession] .rotation-palette > .weapon-palette-section {
     display: flex !important;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     min-width: 0;
-    grid-area: weapons;
+    flex: 0 0 auto;
     flex-wrap: wrap;
-    justify-self: start;
+    order: 2;
   }
 
   body[data-profession] .rotation-palette .weapon-palette-section > .weapon-palette-stack:not(.loadout-palette-stack) {
@@ -4010,15 +3956,17 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   }
 
   body[data-profession] .rotation-palette > .utility-palette-group {
-    grid-area: utility;
-    justify-self: start;
+    order: 3;
   }
 
   body[data-profession] .rotation-palette > .timeline-tools-palette-stack {
     display: flex;
-    grid-area: tools;
-    flex-wrap: wrap;
+    max-width: 100%;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     gap: 6px;
+    margin-inline-start: auto;
+    order: 4;
   }
 
   body[data-profession] .rotation-palette > .timeline-tools-palette-stack > .pal-break {
