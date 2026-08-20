@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
   ROTATION_HOTKEY_STORAGE_KEY,
+  activeRotationMouseHotkeyAction,
   activeRotationHotkeyAction,
   defaultRotationHotkeyBindings,
   duplicateRotationHotkeyCodes,
@@ -18,7 +19,7 @@ import {
   saveRotationHotkeyBindings,
   saveRotationHotkeysEnabled
 } from '../../js/app/rotation/hotkeys.js';
-import { gw2KeyboardCode, parseGw2HotkeyBindingsXml } from '../../js/app/rotation/gw2-keybind-import.js';
+import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '../../js/app/rotation/gw2-keybind-import.js';
 import { paletteSkillHtml } from '../../js/platform/ui/palette.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
@@ -129,6 +130,7 @@ test('hotkey lookup, duplicate detection, and labels use keyboard codes', () => 
   assert.equal(formatRotationHotkey('Digit6'), '6');
   assert.equal(formatRotationHotkey('KeyQ'), 'Q');
   assert.equal(formatRotationHotkey('Numpad4'), 'Numpad 4');
+  assert.equal(formatRotationHotkey('Mouse5'), 'Mouse 5');
   assert.equal(formatRotationHotkey('Ctrl+Alt+NumpadMultiply'), 'Ctrl+Alt+NumpadMultiply');
   assert.equal(formatRotationHotkey(''), 'Unbound');
 });
@@ -165,6 +167,19 @@ test('rotation hotkeys match imported modifier combinations exactly', () => {
   assert.equal(activeRotationHotkeyAction(bindings, { ...event, shiftKey: false }, true), null);
 });
 
+test('rotation hotkeys recognize standard side mouse buttons while active', () => {
+  const bindings = defaultRotationHotkeyBindings();
+  bindings['slot-6'] = 'Mouse5';
+  bindings['slot-7'] = 'Ctrl+Mouse4';
+  const mouse5 = { button: 4, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false };
+  const ctrlMouse4 = { ...mouse5, button: 3, ctrlKey: true };
+
+  assert.equal(activeRotationMouseHotkeyAction(bindings, mouse5, true), 'slot-6');
+  assert.equal(activeRotationMouseHotkeyAction(bindings, mouse5, false), null);
+  assert.equal(activeRotationMouseHotkeyAction(bindings, ctrlMouse4, true), 'slot-7');
+  assert.equal(activeRotationMouseHotkeyAction(bindings, { ...mouse5, button: 2 }, true), null);
+});
+
 test('GW2 keybind XML maps combat actions, modifiers, and keyboard fallbacks', () => {
   const result = parseGw2HotkeyBindingsXml(`<InputBindings>
     <action name="Weapon Skill 1" device="Keyboard" button="94" mod="5"/>
@@ -172,18 +187,22 @@ test('GW2 keybind XML maps combat actions, modifiers, and keyboard fallbacks', (
       device2="Keyboard" button2="54"/>
     <action name="Utility Skill 1" id="24" device="Keyboard" button="69"/>
     <action name="Utility Skill 2" id="25" device="Mouse" button="3"/>
+    <action name="Utility Skill 3" id="26" device="Mouse" button="9"
+      device2="Keyboard" button2="70"/>
     <action name="Profession Skill 6" id="201" device="Keyboard" button="49" mod="2"/>
     <action name="Profession Skill 7" id="202" device="None"/>
   </InputBindings>`);
 
   assert.deepEqual(result.bindings, {
     'weapon-1': 'Alt+Shift+NumpadMultiply',
-    'slot-6': 'Digit6',
+    'slot-6': 'Mouse5',
     'slot-7': 'KeyE',
+    'slot-8': 'Mouse4',
+    'slot-9': 'KeyF',
     'profession-6': 'Ctrl+Digit1',
     'profession-7': ''
   });
-  assert.deepEqual(result.skippedActions, ['slot-8']);
+  assert.deepEqual(result.skippedActions, []);
 });
 
 test('GW2 key codes use browser physical-key names and invalid XML is rejected', () => {
@@ -192,6 +211,9 @@ test('GW2 key codes use browser physical-key names and invalid XML is rejected',
   assert.equal(gw2KeyboardCode('94'), 'NumpadMultiply');
   assert.equal(gw2KeyboardCode('96'), 'Numpad1');
   assert.equal(gw2KeyboardCode('999'), null);
+  assert.equal(gw2MouseCode('3'), 'Mouse4');
+  assert.equal(gw2MouseCode('4'), 'Mouse5');
+  assert.equal(gw2MouseCode('5'), null);
   assert.throws(() => parseGw2HotkeyBindingsXml('<settings />'), /not a Guild Wars 2 InputBindings/);
 });
 

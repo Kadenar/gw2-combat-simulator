@@ -137,6 +137,12 @@ export function gw2KeyboardCode(button: string | undefined): string | null {
   return SPECIAL_GW2_KEY_CODES[keyCode] || null;
 }
 
+export function gw2MouseCode(button: string | undefined): string | null {
+  if (!button || !/^\d+$/.test(button)) return null;
+  const mouseButton = Number(button);
+  return mouseButton === 3 || mouseButton === 4 ? `Mouse${mouseButton + 1}` : null;
+}
+
 function hotkeyWithModifiers(code: string, rawModifier: string | undefined): string | null {
   const modifier = rawModifier === undefined || rawModifier === '' ? 0 : Number(rawModifier);
   if (!Number.isInteger(modifier) || modifier < 0 || modifier > 7) return null;
@@ -154,8 +160,12 @@ function bindingForAttributes(attributes: Record<string, string>): string | null
     { device: attributes.device2, button: attributes.button2, modifier: attributes.mod2 }
   ];
   for (const candidate of candidates) {
-    if (candidate.device !== 'Keyboard') continue;
-    const code = gw2KeyboardCode(candidate.button);
+    const code =
+      candidate.device === 'Keyboard'
+        ? gw2KeyboardCode(candidate.button)
+        : candidate.device === 'Mouse'
+          ? gw2MouseCode(candidate.button)
+          : null;
     const hotkey = code ? hotkeyWithModifiers(code, candidate.modifier) : null;
     if (hotkey) return hotkey;
   }
@@ -165,7 +175,7 @@ function bindingForAttributes(attributes: Record<string, string>): string | null
 }
 
 /**
- * Imports only simulator combat actions, preferring GW2's primary keyboard binding and falling back to its secondary one.
+ * Imports only simulator combat actions, preferring GW2's primary supported binding and falling back to its secondary one.
  */
 export function parseGw2HotkeyBindingsXml(xml: string): Gw2HotkeyImportResult {
   if (!/<InputBindings(?:\s|>)/i.test(xml) || !/<\/InputBindings\s*>/i.test(xml)) {

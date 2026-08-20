@@ -231,6 +231,22 @@ export function activeRotationHotkeyAction(
   return rotationHotkeyActionForCode(bindings, parts.filter((part) => part !== 'Shift').join('+'));
 }
 
+export function activeRotationMouseHotkeyAction(
+  bindings: RotationHotkeyBindings,
+  event: Pick<MouseEvent, 'button' | 'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'>,
+  active: boolean
+): RotationHotkeyAction | null {
+  if (!active || event.metaKey || (event.button !== 3 && event.button !== 4)) return null;
+  const code = `Mouse${event.button + 1}`;
+  const parts = [event.ctrlKey ? 'Ctrl' : '', event.altKey ? 'Alt' : '', event.shiftKey ? 'Shift' : '', code].filter(
+    Boolean
+  );
+  const exact = rotationHotkeyActionForCode(bindings, parts.join('+'));
+  if (exact || !event.shiftKey) return exact;
+
+  return rotationHotkeyActionForCode(bindings, parts.filter((part) => part !== 'Shift').join('+'));
+}
+
 export function duplicateRotationHotkeyCodes(bindings: RotationHotkeyBindings): string[] {
   const seen = new Set<string>();
   const duplicates = new Set<string>();
@@ -255,6 +271,8 @@ const DISPLAY_CODES: Readonly<Record<string, string>> = Object.freeze({
   Comma: ',',
   Equal: '=',
   Minus: '-',
+  Mouse4: 'Mouse 4',
+  Mouse5: 'Mouse 5',
   Period: '.',
   Quote: "'",
   Semicolon: ';',
@@ -303,6 +321,23 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
   if (!target || !MouseEventConstructor) return;
   event.preventDefault();
   if (event.repeat) return;
+  target.dispatchEvent(
+    new MouseEventConstructor('click', {
+      bubbles: true,
+      cancelable: true,
+      shiftKey: event.shiftKey && !controller.bindings[action].includes('Shift+')
+    })
+  );
+}
+
+/** Activates standard browser Mouse 4/5 events while the pointer remains over the active rotation palette. */
+function activateRotationMouseHotkey(controller: RotationHotkeyController, event: PointerEvent): void {
+  const action = activeRotationMouseHotkeyAction(controller.bindings, event, controller.active);
+  if (!action) return;
+  const target = currentHotkeyTarget(controller.root, action);
+  const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
+  if (!target || !MouseEventConstructor) return;
+  event.preventDefault();
   target.dispatchEvent(
     new MouseEventConstructor('click', {
       bubbles: true,
@@ -431,7 +466,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.setAttribute('aria-labelledby', 'rotation-hotkey-title');
   dialog.innerHTML = `<form class="rotation-hotkey-form" method="dialog">
     <h3 id="rotation-hotkey-title">Rotation hotkeys</h3>
-    <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Bindings apply to every profession.</p>
+    <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Press a key or Mouse 4/5 in a field to bind it. Bindings apply to every profession.</p>
     <label class="rotation-hotkey-enable">
       <input type="checkbox" data-hotkey-enabled />
       <span>Enable rotation hotkeys</span>
@@ -483,6 +518,20 @@ function ensureDialog(controller: RotationHotkeyController): void {
       input.dataset.code = code;
       input.value = formatRotationHotkey(code);
     });
+    input.addEventListener('pointerdown', (event) => {
+      if (event.button !== 3 && event.button !== 4) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const modifiers = [event.ctrlKey ? 'Ctrl' : '', event.altKey ? 'Alt' : '', event.shiftKey ? 'Shift' : ''].filter(
+        Boolean
+      );
+      const code = [...modifiers, `Mouse${event.button + 1}`].join('+');
+      input.dataset.code = code;
+      input.value = formatRotationHotkey(code);
+    });
+    input.addEventListener('auxclick', (event) => {
+      if (event.button === 3 || event.button === 4) event.preventDefault();
+    });
   }
 
   const importInput = dialog.querySelector<HTMLInputElement>('[data-hotkey-import-file]');
@@ -516,7 +565,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
           result.importedActions.length === 1 ? '' : 's'
         }${
           result.skippedActions.length
-            ? `; skipped ${result.skippedActions.length} mouse-only or unsupported binding${
+            ? `; skipped ${result.skippedActions.length} unsupported binding${
                 result.skippedActions.length === 1 ? '' : 's'
               }`
             : ''
@@ -614,7 +663,7 @@ function ensureControls(controller: RotationHotkeyController): void {
   setRotationHotkeysActive(controller, controller.active);
 }
 
-/** Mounts one document-level keyboard handler and refreshes palette badges. */
+/** Mounts document-level keyboard and side-mouse handlers and refreshes palette badges. */
 export function mountRotationHotkeys(root: HTMLElement | null): void {
   if (!root) return;
   const document = root.ownerDocument;
@@ -636,6 +685,18 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
       const current = controller as RotationHotkeyController;
       const target = event.target;
       setRotationHotkeysActive(current, target instanceof Node && current.root.contains(target));
+      activateRotationMouseHotkey(current, event);
+    });
+    document.addEventListener('auxclick', (event) => {
+      const current = controller as RotationHotkeyController;
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        current.root.contains(target) &&
+        activeRotationMouseHotkeyAction(current.bindings, event, current.active)
+      ) {
+        event.preventDefault();
+      }
     });
     document.addEventListener('keydown', (event) => {
       const current = controller as RotationHotkeyController;
