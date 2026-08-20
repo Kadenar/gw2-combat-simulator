@@ -3221,6 +3221,39 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   grid-row: 2;
 }
 
+/* Keep the base stolen-skill choices visible beside Steal, with initiative
+   directly beneath the skill that grants those choices. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.thief-steal-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.thief-stolen-skill-choices {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-stolen-skills'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
 .pal-label {
   font-size: 9px;
   text-transform: uppercase;
@@ -7531,6 +7564,53 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 .thief-theme {
   --accent: #c65d68;
   --accent-dim: #813a43;
+}
+
+/* Deadeye offers nine stolen skills; keep both the live palette and build
+   inspection list compact instead of rendering one nine-icon row. */
+.thief-theme .deadeye-stolen-skills-grid > .pal-row,
+.thief-theme .deadeye-stolen-skills-grid > .skill-bar-inspection-skills {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+}
+
+/* Match Antiquary's grouped mechanic layout: Mark and its resources stay in
+   the first column while the always-visible stolen-skill grid sits beside it. */
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='deadeye-stolen-skills']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='deadeye-stolen-skills'])
+  > .profession-palette-stack,
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='deadeye-stolen-skills'])
+  > .active-resource-stack {
+  display: contents;
+}
+
+.deadeye-mark-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.deadeye-stolen-skills-grid {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='deadeye-stolen-skills'])
+  .active-resource-group:has([data-resource-id='initiative']) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='deadeye-stolen-skills'])
+  .active-resource-group:has([data-resource-id='malice']) {
+  grid-column: 1;
+  grid-row: 3;
 }
 
 .fixed-loadout-selectors {
