@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 import { attributeProvenance } from '../../../platform/gw2/attribute-provenance.js';
 import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/target-state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
@@ -58,12 +59,6 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
   return (
     typeof weapon === 'string' && !['Greatsword', 'Hammer', 'Longbow', 'Short Bow', 'Spear', 'Staff'].includes(weapon)
   );
-}
-
-function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  const source = context.config?.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.map(String).includes(name);
 }
 
 /**
@@ -206,7 +201,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
           ? amount
           : 0;
     },
-    when: (context) => selectedSkill(context, 'Signet of Wrath')
+    when: (context) => hasSelectedSkill(context, 'Signet of Wrath')
   },
   {
     id: 'guardian.inspired-virtue',

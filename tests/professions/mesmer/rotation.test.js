@@ -3687,6 +3687,53 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   );
 });
 
+test('False Oasis creates its Mirage Mirror three seconds after cast completion', () => {
+  const result = simulateMesmer(
+    ['False Oasis', 'Pick Up Mirage Mirror'],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      selectedSkills: ['False Oasis'],
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch',
+      initialResource: 0
+    })
+  );
+  const falseOasis = result.steps.find((step) => step.skill === 'False Oasis');
+  const mirror = result.events.find((event) => event.type === 'damage' && event.skillName === 'Mirage Mirror');
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(falseOasis);
+  assert.ok(mirror);
+  assert.ok(Math.abs(mirror.at - (falseOasis.end / 1000 + 3)) < 0.00001);
+  assert.equal(result.endState.profession.availableMirrors, 0);
+});
+
+test('Mirage Mirror palette availability follows active ground mirrors', () => {
+  const mirror = mesmerCatalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
+  const unavailable = mesmerProfession.ui.paletteSkillAvailability(
+    {
+      specialization: 'Mirage',
+      professionState: { availableMirrors: 0 },
+      build: { weaponmasterTraining: true }
+    },
+    mirror
+  );
+  const available = mesmerProfession.ui.paletteSkillAvailability(
+    {
+      specialization: 'Mirage',
+      professionState: { availableMirrors: 1 },
+      build: { weaponmasterTraining: true }
+    },
+    mirror
+  );
+
+  assert.deepEqual(unavailable, {
+    available: false,
+    message: 'No Mirage Mirror is active on the ground.'
+  });
+  assert.deepEqual(available, { available: true, message: '' });
+});
+
 test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {
   const result = simulateMesmer(
     ['__combat_start', 'Dodge / Mirage Cloak', 'Dodge / Mirage Cloak', 'Swap Weapons', 'Dodge / Mirage Cloak'],

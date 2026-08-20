@@ -53,9 +53,12 @@ function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
     {
       id: 'ranger-soulbeast-profession',
       label: 'Beastmode',
-      skillIds: active
-        ? [ID.LEAVE_BEASTMODE, ...(selectedRangerUiPet(context)?.beastmodeSkillIds || [])]
-        : [ID.BEASTMODE],
+      // Declare both toggle sides and let the shared projector choose one.
+      skillIds: [
+        ID.BEASTMODE,
+        ID.LEAVE_BEASTMODE,
+        ...(active ? selectedRangerUiPet(context)?.beastmodeSkillIds || [] : [])
+      ],
       color: '#b78b42',
       resourceAnchor: true
     }

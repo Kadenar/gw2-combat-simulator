@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/revenant-api-metadata.js';
@@ -51,7 +52,7 @@ const normalize = (skill: Skill): Skill => ({
   ...(skill.recharge == null && skill.ammoRecharge == null
     ? {}
     : {
-        cooldown: Number(skill.ammo) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge
+        cooldown: gw2BaseRecharge(skill)
       }),
   flipParentId: flipParentById.get(skill.id) ?? skill.flipParentId ?? null
 });

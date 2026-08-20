@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../../platform/engine/profession.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { playerHealthFraction } from '../../../../platform/gw2/runtime-query.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -64,7 +65,7 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
     // Skip if the caller already baked static profession rules into the supplied attributes.
     !professionStaticRulesApplied(context.config) &&
-    Number(context.config?.playerHealthFraction ?? 1) > 0.5
+    playerHealthFraction(context) > 0.5
   ) {
     modified.power = Number(modified.power || 0) + 240;
   }

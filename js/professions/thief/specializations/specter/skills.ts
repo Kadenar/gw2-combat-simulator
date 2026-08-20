@@ -1,6 +1,9 @@
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
+// Shadow Shroud entry and exit are state-selected variants of one UI tile.
+const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
+
 export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SIPHON]: {
     implemented: true,
@@ -23,6 +26,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'thief.shadow-shroud-enter',
     castTimeMs: 0,
     cooldown: 8,
+    paletteTileId: SHADOW_SHROUD_PALETTE_TILE,
+    paletteTileOrder: 1,
     initiativeCost: 0,
     effects: []
   },
@@ -228,6 +233,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     handlerId: 'thief.shadow-shroud-exit',
     castTimeMs: 0,
     cooldown: 0,
+    paletteTileId: SHADOW_SHROUD_PALETTE_TILE,
+    paletteTileOrder: 2,
     initiativeCost: 0,
     effects: []
   },

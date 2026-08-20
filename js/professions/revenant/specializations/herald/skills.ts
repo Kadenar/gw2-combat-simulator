@@ -6,6 +6,10 @@ import type { BalanceProfile, SkillFragment } from '../../../../platform/engine/
 
 export const HERALD_SPIRIT_BOON_PROFILE_ID = 'revenant.spirit-boon.dragon';
 
+// Facet of Nature has one legend-dependent consume, but every variant occupies
+// the same profession-mechanic tile as the activating facet.
+const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
+
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
     implemented: true,
@@ -257,6 +261,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 1,
     energyCost: 0,
     upkeepCost: 2,
     effects: [],
@@ -273,6 +279,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.TRUE_NATURE]: {
     implemented: true,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
@@ -291,6 +299,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.TRUE_NATURE_ID_51675]: {
     implemented: true,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
@@ -308,6 +318,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.TRUE_NATURE_ID_51696]: {
     implemented: true,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
@@ -318,6 +330,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.TRUE_NATURE_ID_51713]: {
     implemented: true,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
@@ -328,6 +342,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
   },
   [ID.TRUE_NATURE_ID_51714]: {
     implemented: true,
+    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
+    paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,

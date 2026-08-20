@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/guardian-api-metadata.js';
@@ -87,7 +88,7 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   return {
     ...skill,
     flipSkillId: firebrandFinalFlipByNormalId.get(skill.id) ?? skill.flipSkillId,
-    cooldown: Number(skill.ammo || 0) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
+    cooldown: gw2BaseRecharge(skill),
     flipParentId: flipParentId ?? null,
     flipParent: flipParent?.name || '',
     ...(skill.id === ID.MIGHTY_BLOW || skill.id === ID.GLACIAL_BLOW

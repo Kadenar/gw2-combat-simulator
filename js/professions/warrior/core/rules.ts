@@ -2,6 +2,11 @@ import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-pr
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { targetHasCondition } from '../../../platform/gw2/target-state.js';
+import {
+  eventSkill as gw2EventSkill,
+  hasSelectedSkill,
+  targetHealthFraction
+} from '../../../platform/gw2/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { warriorCastAvailability } from './availability.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -15,7 +20,7 @@ import {
   updateWarriorCastState
 } from './traits.js';
 import { advanceWarriorResources, handleWarriorAdrenalineTask } from './resources.js';
-import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
+import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
 import type { WarriorCastContext, WarriorRuntimeState, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import type { WarriorCoreState } from '../types.js';
@@ -31,18 +36,8 @@ function coreState(context: Gw2ModifierContext): Partial<WarriorCoreState> {
   return runtimeState(context).core || {};
 }
 
-function eventSkill(context: Gw2ModifierContext): WarriorSkill | undefined {
-  const profession = context.profession as
-    { catalog?: { skillsById?: ReadonlyMap<SkillId, WarriorSkill> } } | undefined;
-  return profession?.catalog?.skillsById?.get((context.event?.skillId ?? context.skillId) as SkillId);
-}
-
-function targetHealthFraction(context: Gw2ModifierContext): number {
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const totals = (context.runtime as { totals?: { strike?: number; condition?: number } } | undefined)?.totals;
-  return Math.max(0, 1 - (Number(totals?.strike || 0) + Number(totals?.condition || 0)) / maximum);
-}
+// Keeps Warrior skill typing local while sharing the GW2-wide skill-id fallback policy.
+const eventSkill = (context: Gw2ModifierContext): WarriorSkill | undefined => gw2EventSkill<WarriorSkill>(context);
 
 function targetControlled(context: Gw2ModifierContext): boolean {
   return Boolean(
@@ -58,6 +53,7 @@ const BREACHING_STRIKE_IDS = new Set<number>([
   ID.BREACHING_STRIKE_ID_69433
 ]);
 
+// Warrior modifiers historically read configured and live resolver boons only; timeline state must not change them.
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
@@ -119,12 +115,6 @@ function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
     weaponSet === 1 ? context.config?.secondaryWeapon || '' : context.config?.weaponSet2Secondary || ''
   );
   return primary === weapon || secondary === weapon;
-}
-
-function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  const source = context.config?.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.map(String).includes(name);
 }
 
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
@@ -216,7 +206,7 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
     ['Signet of Might', ID.SIGNET_OF_MIGHT, 'power'],
     ['Signet of Fury', ID.SIGNET_OF_FURY, 'precision']
   ] as const) {
-    if (!selectedSkill(context, name)) continue;
+    if (!hasSelectedSkill(context, name)) continue;
     const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
     if (staticRulesApplied ? onCooldown : !onCooldown) {
       const passiveBonus = Number(warriorBalanceProfile(context, PROFILE.signetPassives)?.attributeBonus ?? 180);

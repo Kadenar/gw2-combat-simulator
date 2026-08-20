@@ -1,4 +1,5 @@
 import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
+import { insertSorted } from './collections.js';
 import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from './types.js';
 
 function cloneSerializable<T>(value: T, label: string): T {
@@ -39,20 +40,6 @@ export function createTaskQueue<TContext, TPayload>({
 
   const compareTasks = (left: ScheduledTask<TPayload>, right: ScheduledTask<TPayload>): number =>
     left.at - right.at || left.priority - right.priority || left.order - right.order;
-  const insertTask = (task: ScheduledTask<TPayload>): void => {
-    let low = 0;
-    let high = queue.length;
-    while (low < high) {
-      const middle = (low + high) >>> 1;
-      if (compareTasks(queue[middle], task) <= 0) {
-        low = middle + 1;
-      } else {
-        high = middle;
-      }
-    }
-
-    queue.splice(low, 0, task);
-  };
 
   const schedule = (input: ScheduledTaskInput<TPayload>): string => {
     const { id, type, at, priority = 0, ownerId = null, payload = null, required = true } = input;
@@ -77,7 +64,7 @@ export function createTaskQueue<TContext, TPayload>({
       payload: clonedPayload,
       order: sequence++
     });
-    insertTask(task);
+    insertSorted(queue, task, compareTasks);
     return task.id;
   };
 

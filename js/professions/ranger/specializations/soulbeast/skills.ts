@@ -2,6 +2,9 @@
 import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
+// Entering and leaving Beastmode are two states of the same F5 palette tile.
+const BEASTMODE_PALETTE_TILE = 'ranger-soulbeast-beastmode-toggle';
+
 export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NARCOTIC_SPORES]: {
     implemented: true,
@@ -308,12 +311,16 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.BEASTMODE]: {
     implemented: true,
     castTimeMs: 0,
+    paletteTileId: BEASTMODE_PALETTE_TILE,
+    paletteTileOrder: 1,
     effects: [],
     handlerId: 'ranger.beastmode-enter'
   },
   [ID.LEAVE_BEASTMODE]: {
     implemented: true,
     castTimeMs: 0,
+    paletteTileId: BEASTMODE_PALETTE_TILE,
+    paletteTileOrder: 2,
     effects: [],
     handlerId: 'ranger.beastmode-exit'
   },

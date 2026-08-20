@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -150,7 +151,7 @@ const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
     return {
       ...build,
       assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialHeat: Math.max(0, Math.min(150, Number(saved.initialHeat ?? 0) || 0)),
+      initialHeat: boundedNumber(saved.initialHeat ?? 0, 0, 0, 150),
       selectedMorphSkillIds,
       rotation: normalizeMorphRotation(build.rotation, saved.rotation, selectedMorphSkillIds)
     };

@@ -3,6 +3,7 @@
  * ordered by timestamp, then explicit priority, then insertion order.
  */
 import type { QueuedEvent } from './types.js';
+import { eventCausalOrder, eventTimestamp } from './events.js';
 
 export { EPSILON } from './clock.js';
 
@@ -10,15 +11,6 @@ interface HeapEntry<T extends QueuedEvent> {
   readonly event: T;
   readonly causalOrder: number | null;
   readonly sequence: number;
-}
-
-/**
- * @param {QueuedEvent} event
- * @returns {number|null}
- */
-function explicitCausalOrder(event: QueuedEvent): number | null {
-  const order = Number(event?.causalOrder ?? event?.__order);
-  return Number.isFinite(order) ? order : null;
 }
 
 /**
@@ -45,12 +37,12 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
  * @returns {number}
  */
 export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
-  const time = Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0);
+  const time = eventTimestamp(left) - eventTimestamp(right);
   if (time) return time;
   const priority = Number(left.priority || 0) - Number(right.priority || 0);
   if (priority) return priority;
-  const leftOrder = explicitCausalOrder(left);
-  const rightOrder = explicitCausalOrder(right);
+  const leftOrder = eventCausalOrder(left);
+  const rightOrder = eventCausalOrder(right);
   return leftOrder != null && rightOrder != null ? leftOrder - rightOrder : 0;
 }
 
@@ -71,7 +63,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   constructor(events: readonly T[] = []) {
     this.heap = [...events].map((event, sequence) => ({
       event,
-      causalOrder: explicitCausalOrder(event),
+      causalOrder: eventCausalOrder(event),
       sequence
     }));
     this.nextSequence = this.heap.length;
@@ -92,7 +84,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   enqueue(event: T): T {
     const entry: HeapEntry<T> = {
       event,
-      causalOrder: explicitCausalOrder(event) ?? this.currentCausalOrder,
+      causalOrder: eventCausalOrder(event) ?? this.currentCausalOrder,
       sequence: this.nextSequence
     };
     this.nextSequence += 1;

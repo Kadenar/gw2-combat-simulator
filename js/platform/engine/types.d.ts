@@ -315,6 +315,7 @@ export interface Skill extends CatalogSkill {
   /** Keep the serial cast lane blocked through the original cast end. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
+  readonly mechanicTriggers?: readonly SkillMechanicTrigger[];
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly handlerId?: string;
@@ -322,6 +323,10 @@ export interface Skill extends CatalogSkill {
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
   readonly nextChainId?: SkillId | null;
+  /** UI-only family key for skills that occupy one live combat-bar tile. */
+  readonly paletteTileId?: SkillId | string;
+  /** Stable fallback order within a UI-only tile family. */
+  readonly paletteTileOrder?: number;
   readonly weaponBarChainRootId?: SkillId | null;
   readonly weaponBarChainStep?: number | null;
   readonly tags?: readonly string[];
@@ -350,6 +355,15 @@ export type SkillFragment = Partial<Skill> & SchedulerRecord;
 export interface SkillLockout {
   readonly group: string;
   readonly durationMs: number;
+}
+
+/** Declarative profession-mechanic callback scheduled relative to a skill cast. */
+export interface SkillMechanicTrigger {
+  readonly type: string;
+  readonly atMs?: number;
+  readonly timingAnchor?: 'castStart' | 'castEnd';
+  readonly timingScale?: 'cast' | 'fixed';
+  readonly count?: number;
 }
 
 export interface AutoattackChainPosition {

@@ -1,6 +1,7 @@
 export * from './attributes.js';
 export * from './attribute-provenance.js';
 export * from './build-codec.js';
+export * from './build-normalization.js';
 export * from './build-template-codec.js';
 export * from './combo-definitions.js';
 export * from './combo-catalog.js';
@@ -17,7 +18,9 @@ export * from './numeric.js';
 export * from './query.js';
 export * from './relic-rules.js';
 export * from './runtime-rules.js';
+export * from './runtime-query.js';
 export * from './sigil-rules.js';
+export * from './skill-recharge.js';
 export * from './resolver/index.js';
 export * from './scheduler/index.js';
 export * from './simulate.js';

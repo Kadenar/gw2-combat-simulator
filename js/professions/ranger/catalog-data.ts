@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/ranger-api-metadata.js';
@@ -82,8 +83,7 @@ function normalize(skill: RangerSkill): RangerSkill {
 
   return {
     ...skill,
-    cooldown:
-      Number(skill.ammo || 0) > 0 ? Number(skill.ammoRecharge || skill.recharge || 0) : Number(skill.recharge || 0),
+    cooldown: gw2BaseRecharge(skill),
     flipParentId: flipParentById.get(skill.id) ?? null,
     paletteFlip: isRangerHammerVariant(skill.id) ? false : skill.paletteFlip,
     petSkill,

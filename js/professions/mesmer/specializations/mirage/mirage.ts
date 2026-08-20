@@ -15,23 +15,12 @@ import type {
   MesmerClone,
   MesmerCloneAttack,
   MesmerConfig,
-  MesmerCurrentResource,
   MesmerMirageCloakOptions,
   MesmerMirageController,
   MesmerRuntimeState,
   MesmerQueueResources,
   MesmerSkill
 } from '../../types.js';
-
-const MIRAGE_CLOAK_SKILLS = new Set<number>([ID.ILLUSIONARY_AMBUSH, ID.SAND_THROUGH_GLASS]);
-const DECEPTION_SKILLS = new Set<number>([
-  ID.FALSE_OASIS,
-  ID.CRYSTAL_SANDS,
-  ID.MIRAGE_ADVANCE,
-  ID.SAND_THROUGH_GLASS,
-  ID.ILLUSIONARY_AMBUSH,
-  ID.JAUNT
-]);
 
 interface MirageActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -47,7 +36,6 @@ interface MirageActionControllerOptions {
   readonly addDamage: MesmerAddDamage;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
-  readonly currentResource: MesmerCurrentResource;
   readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
 }
 
@@ -68,10 +56,8 @@ export function createMirageActionController({
   addDamage,
   activePrimaryWeapon,
   queueResources,
-  currentResource,
   balanceProfile
 }: MirageActionControllerOptions): MesmerMirageController {
-
   // Returns the numeric value of a given field from a balance profile, or a fallback if not found.
   const profileValue = (id: SkillId, field: string, fallback: number) => {
     const value = balanceProfile(id)?.[field];
@@ -88,13 +74,12 @@ export function createMirageActionController({
     stacks: Number(effect?.stacks ?? fallback.stacks ?? 1)
   });
 
-  // Creates Mirage Mirrors at the given time, with the specified count and source, optionally delayed.
-  const createMirrors = (at: number, count: number, source: string, delay = 0) => {
-    const availableAt = at + Math.max(0, delay);
+  // Creates Mirage Mirrors at the trigger's resolved timestamp; skill metadata owns any delay.
+  const createMirrors = (at: number, count: number, source: string) => {
     for (let index = 0; index < Math.max(0, count); index += 1) {
       mirageState.from(state).mirrors.push({
-        availableAt,
-        expiresAt: availableAt + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration || 8),
+        availableAt: at,
+        expiresAt: at + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration || 8),
         source
       });
     }
@@ -372,34 +357,6 @@ export function createMirageActionController({
     }
   };
 
-  // Handles post-skill effects for Mirage, including mirror creation, cloak granting, and Self-Deception resource gain.
-  const handlePostSkill = (skill: MesmerSkill, at: number) => {
-    if (skill.id === ID.CRYSTAL_SANDS) {
-      createMirrors(at, 1, skill.name, profileValue(PROFILE.mechanics, 'initialDelay', 0.32));
-    } else if(skill.id == ID.FALSE_OASIS) {
-      createMirrors(at, 1, skill.name, profileValue(PROFILE.mechanics, 'initialDelay', 3)); // ? need to confirm this delay value
-    }
-
-    if (MIRAGE_CLOAK_SKILLS.has(skill.id)) {
-      grantMirageCloak(at, skill.name);
-    }
-    
-    // If Self-Deception trait is taken, grant a clone if user already has at least 1 clone and skill used was classified as a Deception skill
-    if (traits.has(TRAIT.SELF_DECEPTION) && DECEPTION_SKILLS.has(skill.id) && currentResource() > 0) {
-      queueResources(
-        at + epsilon,
-        profileValue(PROFILE.selfDeception, 'resourceGain', 1),
-        activePrimaryWeapon(),
-        `Self-Deception: ${skill.name}`,
-        {
-          traitId: TRAIT.SELF_DECEPTION,
-          traitName: 'Self-Deception',
-          sourceSkillId: skill.id
-        }
-      );
-    }
-  };
-
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
   const pickUpMirror = (at: number, source: string) => {
     const mirrors = mirageState.from(state).mirrors;
@@ -432,7 +389,6 @@ export function createMirageActionController({
     executePlayerAmbush,
     grantMirageCloak,
     handleMirageShatter,
-    handlePostSkill,
     pickUpMirror
   };
 }

@@ -1,5 +1,6 @@
 import { normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedInteger } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -93,7 +94,7 @@ const guardianBuildCodec = createGw2BuildCodec({
     return {
       ...current,
       assumptions: normalizeSimulationRandomnessAssumptions(current.assumptions),
-      initialTomePages: Math.max(0, Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)))
+      initialTomePages: boundedInteger(Number.isFinite(configured) ? configured : 5, 5, 0, 8)
     };
   },
   validateExtra(build) {

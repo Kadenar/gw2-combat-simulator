@@ -52,7 +52,6 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'mechanic',
     durationMultiplier: 0.75,
     durationPerTier: 1.5,
-    initialDelay: 0.32,
     effects: [
       { type: 'strike', coefficient: 0.6, hits: 1 },
       { type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }

@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber, enumValue } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import {
@@ -28,6 +29,7 @@ const THIEF_BUILD_ASSUMPTION_CONTROLS = Object.freeze([
   ...THIEF_ASSUMPTION_CONTROLS,
   ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS
 ]);
+const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
 
 export { createDefaultTargetConditions };
 export function createThiefBuildDefaults(): ThiefCanonicalBuild {
@@ -88,13 +90,9 @@ const thiefBuildCodec = createGw2BuildCodec({
     return {
       ...build,
       assumptions,
-      initialInitiative: Math.max(0, Math.min(15, Number(saved.initialInitiative ?? 12) || 0)),
-      initialShadowForce: Math.max(0, Math.min(100, Number(saved.initialShadowForce ?? 0) || 0)),
-      selectedDodge: ['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'].includes(
-        String(saved.selectedDodge)
-      )
-        ? (saved.selectedDodge as ThiefDodge)
-        : 'Dodge'
+      initialInitiative: boundedNumber(saved.initialInitiative ?? 12, 0, 0, 15),
+      initialShadowForce: boundedNumber(saved.initialShadowForce ?? 0, 0, 0, 100),
+      selectedDodge: enumValue(String(saved.selectedDodge), THIEF_DODGES, 'Dodge') as ThiefDodge
     };
   },
   validateExtra(build) {

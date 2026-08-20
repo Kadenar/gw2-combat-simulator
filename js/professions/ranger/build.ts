@@ -1,11 +1,10 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { enumValue } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
-import {
-  normalizeSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
+import { normalizeSimulationRandomnessAssumptions } from '../../app/simulation/randomness.js';
 import { RANGER_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { rangerCatalog } from './catalog.js';
 import { RANGER_PETS } from './data/ranger-pet-data.js';
@@ -114,7 +113,7 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
       selectedPet,
       selectedPet2,
       selectedHammerSkillIds: normalizeRangerHammerSkillIds(saved.selectedHammerSkillIds),
-      initialUntamedState: saved.initialUntamedState === 'Ranger' ? 'Ranger' : 'Pet',
+      initialUntamedState: enumValue(saved.initialUntamedState, ['Pet', 'Ranger'], 'Pet'),
       initialAstralForce: Math.max(0, Math.min(100, Number(saved.initialAstralForce ?? 100))),
       initialArrows: Math.max(0, Math.min(8, Number(saved.initialArrows ?? 8)))
     };

@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber, enumValue } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -18,7 +19,8 @@ import type { ElementalistApplicationBuild, ElementalistCanonicalBuild } from '.
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;
 export const ELEMENTALIST_PROFESSION_ID = 'elementalist';
 
-const ATTUNEMENTS = new Set(['Fire', 'Water', 'Air', 'Earth']);
+const ATTUNEMENT_VALUES = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
+const ATTUNEMENTS = new Set<string>(ATTUNEMENT_VALUES);
 const SNAPSHOT_SELECTED_SKILL_SLOTS = Object.freeze({
   heal: 'Heal',
   util1: 'Utility1',
@@ -93,11 +95,7 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
 }
 
 function attunement(value: unknown, fallback: string): string {
-  return ATTUNEMENTS.has(String(value)) ? String(value) : fallback;
-}
-
-function bounded(value: unknown, minimum: number, maximum: number): number {
-  return Math.max(minimum, Math.min(maximum, Number(value) || 0));
+  return enumValue(String(value), ATTUNEMENT_VALUES, fallback as (typeof ATTUNEMENT_VALUES)[number]);
 }
 
 function pistolBullets(value: unknown): Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean> {
@@ -177,10 +175,10 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
       assumptions,
       startAttunement: attunement(saved.startAttunement, 'Fire'),
       secondaryAttunement: attunement(saved.secondaryAttunement, 'Air'),
-      initialCatalystEnergy: bounded(saved.initialCatalystEnergy ?? 30, 0, 30),
+      initialCatalystEnergy: boundedNumber(saved.initialCatalystEnergy ?? 30, 0, 0, 30),
       evokerElement: attunement(saved.evokerElement, 'Fire'),
-      initialEvokerCharges: bounded(saved.initialEvokerCharges ?? 6, 0, 6),
-      initialEvokerEmpowered: bounded(saved.initialEvokerEmpowered ?? 0, 0, 3),
+      initialEvokerCharges: boundedNumber(saved.initialEvokerCharges ?? 6, 0, 0, 6),
+      initialEvokerEmpowered: boundedNumber(saved.initialEvokerEmpowered ?? 0, 0, 0, 3),
       pistolBullets: pistolBullets(saved.pistolBullets)
     };
     return normalized;

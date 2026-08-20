@@ -1,8 +1,13 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
-import { CANONICAL_TARGET_CONDITIONS, canonicalTargetConditionName } from '../../../platform/gw2/target-state.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import {
+  eventSkill,
+  hasSelectedSkill,
+  targetConditionCount,
+  targetHealthFraction
+} from '../../../platform/gw2/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { thiefCoreCastAvailability } from './availability.js';
 import { advanceThiefCoreResources, completeThiefCoreResources, spendThiefCoreResources } from './resources.js';
@@ -10,7 +15,7 @@ import { hasThiefTrait, snapshotThiefState } from './state.js';
 import { updateThiefTraitCastState } from './traits.js';
 import { updateThiefWeaponState } from './weapon-state.js';
 import { thiefCoreTaskHandlers } from './tasks.js';
-import type { Skill, SkillId } from '../../../platform/engine/types.js';
+import type { Skill } from '../../../platform/engine/types.js';
 import type {
   Gw2ModifierContext,
   Gw2ModifierHooks,
@@ -30,14 +35,7 @@ import type {
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
-  const source = context as Gw2ModifierContext & {
-    readonly profession?: {
-      readonly catalog?: { readonly skillsById?: ReadonlyMap<SkillId, Skill> };
-    };
-    readonly skillId?: SkillId;
-  };
-  const skillId = context.event?.skillId ?? source.skillId;
-  return skillId == null ? undefined : source.profession?.catalog?.skillsById?.get(skillId);
+  return eventSkill(context);
 }
 
 export function thiefPlayerEvent(context: Gw2ModifierContext): boolean {
@@ -79,34 +77,15 @@ export function thiefRuntimeSpecializationState<TKind extends keyof ThiefSpecial
 }
 
 export function thiefTargetHealthFraction(context: Gw2ModifierContext): number {
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const totals = (context.runtime as ThiefQueryRuntime | undefined)?.totals;
-  const damage = Number(totals?.strike || 0) + Number(totals?.condition || 0);
-  return Math.max(0, 1 - damage / maximum);
+  return targetHealthFraction(context);
 }
 
 export function thiefTargetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
   return Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime));
 }
 
-function targetConditionCount(context: Gw2ModifierContext): number {
-  const names = new Set([
-    ...CANONICAL_TARGET_CONDITIONS,
-    ...Object.keys(context.config?.target?.conditions || {}).map(canonicalTargetConditionName),
-    ...[...(context.runtime?.conditionState?.keys?.() || [])].map(canonicalTargetConditionName)
-  ]);
-  return [...names].filter((condition) => thiefTargetHasCondition(context, condition)).length;
-}
-
 function targetBoonless(context: Gw2ModifierContext): boolean {
   return context.config?.target?.boonless !== false;
-}
-
-function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  const source = context.config?.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.some((value) => (typeof value === 'string' ? value : value?.name) === name);
 }
 
 export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -270,7 +249,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const result = { ...attributes };
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (selectedSkill(context, "Assassin's Signet")) {
+  if (hasSelectedSkill(context, "Assassin's Signet")) {
     const profile = thiefBalanceProfile(context, PROFILE.assassinsSignet);
     const passive = Number(profile?.attributeBonus || 180);
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;

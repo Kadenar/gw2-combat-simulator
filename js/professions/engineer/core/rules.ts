@@ -64,9 +64,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.07,
     when: (context) =>
-      playerStrike(context) &&
-      hasTrait(context, TRAIT.GLASS_CANNON) &&
-      Number(context.config?.playerHealthFraction ?? 1) > 0.75
+      playerStrike(context) && hasTrait(context, TRAIT.GLASS_CANNON) && playerHealthFraction(context) > 0.75
   },
   {
     id: 'engineer.big-boomer',

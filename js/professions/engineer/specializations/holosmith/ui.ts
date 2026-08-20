@@ -59,6 +59,16 @@ function holosmithProfessionSkills(context: EngineerUiContext) {
 
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: EngineerSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
+  // The shared tile projector selects the active Photon Forge transition while
+  // this contract remains the sole source of its state availability.
+  if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
+    return { available: false, message: 'Photon Forge is already active' };
+  }
+
+  if (skill.id === ID.DEACTIVATE_PHOTON_FORGE && !state.photonForgeActive) {
+    return { available: false, message: 'Enter Photon Forge first' };
+  }
+
   if (skill.type === 'Weapon' && skill.weapon && state.photonForgeActive) {
     return {
       available: false,
@@ -113,7 +123,13 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
       {
         id: 'engineer-profession',
         label: 'F',
-        skillIds: uniqueIdsBySkillName(holosmithProfessionSkills(context).filter((id) => id != null)),
+        skillIds: uniqueIdsBySkillName(
+          [
+            ...engineerToolbeltSkillIds(context).slice(0, 4),
+            namedSkillId('Engage Photon Forge'),
+            namedSkillId('Deactivate Photon Forge')
+          ].filter((skillId): skillId is SkillId => skillId != null)
+        ),
         color: '#b88a35',
         className: 'compact-resource-palette engineer-profession-skills',
         resourceAnchor: true,

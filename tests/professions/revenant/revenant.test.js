@@ -735,7 +735,7 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
   assert.doesNotMatch(catalog, /REVENANT_SKILL_MECHANICS/);
 });
 
-test('legend palette renders both selected legends through shared swap cooldown', () => {
+test('legend palette shows only the destination legend with the shared swap cooldown', async () => {
   const context = {
     build: baseConfig,
     specialization: 'Core',
@@ -751,14 +751,61 @@ test('legend palette renders both selected legends through shared swap cooldown'
 
   assert.deepEqual(
     group.skillEntries.map((entry) => entry.paletteLegendId),
-    [LEGEND.ASSASSIN, LEGEND.DEMON]
+    [LEGEND.DEMON]
   );
   assert.ok(group.skillEntries.every((entry) => entry.skillId === -4 && entry.icon));
   assert.ok(group.skillEntries.every((entry) => !/Legendary|Stance/.test(entry.displayName)));
-  const [active, inactive] = group.skillEntries;
+  const [destination] = group.skillEntries;
 
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, active), false);
-  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, inactive), true);
+  assert.equal(revenantProfession.ui.isPaletteSkillAvailable(context, destination), true);
+  const cooldownContext = {
+    ...context,
+    time: 1,
+    professionState: {
+      ...context.professionState,
+      legendSwapReadyAt: 10
+    }
+  };
+  const cooldown = revenantProfession.ui.paletteSkillAvailability(cooldownContext, destination);
+
+  assert.deepEqual(cooldown, {
+    available: false,
+    message: 'Legend swap is recharging',
+    retryAt: 10
+  });
+  assert.equal(
+    paletteSkillView(
+      {
+        results: {
+          endState: {
+            time: 1000,
+            cooldowns: {},
+            profession: cooldownContext.professionState
+          }
+        }
+      },
+      revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS),
+      cooldown.available,
+      cooldown.message,
+      cooldown.retryAt
+    ).cooldownLabel,
+    '9.0s'
+  );
+  const swappedGroup = revenantProfession.ui
+    .paletteGroups({
+      ...context,
+      professionState: {
+        ...context.professionState,
+        activeLegendId: LEGEND.DEMON,
+        activeLoadoutId: LEGEND.DEMON
+      }
+    })
+    .find((candidate) => candidate.id === 'revenant-profession');
+
+  assert.deepEqual(
+    swappedGroup.skillEntries.map((entry) => entry.paletteLegendId),
+    [LEGEND.ASSASSIN]
+  );
   const loadout = revenantLegendLoadout.view(context);
 
   assert.equal(loadout.selectionControl, 'icons');
@@ -799,6 +846,39 @@ test('legend palette renders both selected legends through shared swap cooldown'
     ['Assassin', 'Demon']
   );
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
+
+  const adapter = await loadProfessionAppAdapter('revenant');
+  const canonicalBuild = createRevenantBuildDefaults();
+
+  canonicalBuild.selectedLegends = [LEGEND.ASSASSIN, LEGEND.DEMON];
+  canonicalBuild.startingLegend = LEGEND.ASSASSIN;
+  const build = adapter.toApplicationBuild(canonicalBuild);
+
+  build.rotation = ['__combat_start', 'Swap Legends'];
+  const app = {
+    build,
+    adapter,
+    profession: revenantProfession,
+    skills: revenantCatalog.skills,
+    skillById: revenantCatalog.skillsById,
+    skillByName: revenantCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: simulate('Core', build.rotation)
+  };
+  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  assert.equal((palette.innerHTML.match(/data-skill="Swap Legends"/g) || []).length, 1);
+  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10s<\/span>/);
 });
 
 test('Revenant utilities and Conduit resources render by their related skills', async () => {
@@ -2355,7 +2435,15 @@ test('Herald palette replaces active facets with their consume skills', () => {
   const professionGroups = revenantProfession.ui.paletteGroups(context);
   const profession = professionGroups.find((group) => group.id === 'revenant-profession');
 
-  assert.deepEqual(profession.skillIds, [SKILL.TRUE_NATURE_ID_51696]);
+  // The UI declares the complete tile family; the shared projector chooses the live legend variant.
+  assert.deepEqual(profession.skillIds, [
+    SKILL.FACET_OF_NATURE,
+    SKILL.TRUE_NATURE,
+    SKILL.TRUE_NATURE_ID_51675,
+    SKILL.TRUE_NATURE_ID_51696,
+    SKILL.TRUE_NATURE_ID_51713,
+    SKILL.TRUE_NATURE_ID_51714
+  ]);
   assert.equal(
     professionGroups.some((group) => group.id === 'revenant-facet-consumes'),
     false

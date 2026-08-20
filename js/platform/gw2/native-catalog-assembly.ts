@@ -1,4 +1,5 @@
 import { createCanonicalCatalog } from '../engine/catalog.js';
+import { toEntries } from '../engine/collections.js';
 import type {
   CanonicalCatalog,
   BalanceProfile,
@@ -120,10 +121,6 @@ interface AssemblyCacheEntry {
 }
 
 const assemblyCache = new WeakMap<AnyNativeModule, AssemblyCacheEntry[]>();
-
-function entriesOf<T>(value: ReadonlyMap<string, T> | Readonly<Record<string, T>> | undefined): [string, T][] {
-  return value instanceof Map ? [...value] : Object.entries(value || {});
-}
 
 function mergeEntityArrays<T extends CatalogEntity>(
   modules: readonly AnyNativeModule[],
@@ -254,7 +251,7 @@ function composeNativeCatalog(
       overrides[skillId] = override;
     }
 
-    for (const [handlerId, handler] of entriesOf(
+    for (const [handlerId, handler] of toEntries(
       module.data.handlers as NativeSkillHandlerRegistry<object> | undefined
     )) {
       const prior = handlerOwners.get(handlerId);
@@ -277,7 +274,7 @@ function composeNativeCatalog(
     }
 
     for (const weapon of module.data.weapons || []) weapons.add(weapon);
-    for (const [weapon, hand] of entriesOf(module.data.weaponHands)) {
+    for (const [weapon, hand] of toEntries(module.data.weaponHands)) {
       const prior = weaponHandOwners.get(weapon);
       if (prior) {
         throw new TypeError(`Duplicate weapon-hand entry ${weapon} in ${prior} and ${module.id}.`);

@@ -2,6 +2,9 @@
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
+// Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
+const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
+
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
     interruptCommitMs: 0,
@@ -53,6 +56,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 1,
+    paletteTileId: UNLEASH_PALETTE_TILE,
+    paletteTileOrder: 1,
     effects: [],
     handlerId: 'ranger.unleash-ranger'
   },
@@ -197,6 +202,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 1,
+    paletteTileId: UNLEASH_PALETTE_TILE,
+    paletteTileOrder: 2,
     effects: [],
     handlerId: 'ranger.unleash-pet'
   },

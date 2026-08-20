@@ -84,6 +84,20 @@ export function revenantCorePaletteSkillAvailability(
     };
   }
 
+  if (skill.id === SKILL.SWAP_LEGENDS || skill.paletteLegendId) {
+    // The visible tile targets the inactive legend, but both destinations share
+    // the combat-only legend-swap timer stored in profession state.
+    const now = Number(context.time || 0);
+    const readyAt = Number(state.legendSwapReadyAt || 0);
+    if (readyAt > now) {
+      return {
+        available: false,
+        message: 'Legend swap is recharging',
+        retryAt: readyAt
+      };
+    }
+  }
+
   // Check for Unyielding Impact and Call to Anguish flip availability
   if (skill.id === SKILL.UNYIELDING_IMPACT && !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]) {
     return { available: false, message: 'Cast Call to Anguish first' };
@@ -125,13 +139,16 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
   timelineSkillIcon: revenantTimelineSkillIcon,
   paletteGroups: (context: RevenantUiContext) => {
     const loadout = revenantLegendLoadout.view(context);
-    const destination = loadout.inactiveBars[0];
+    const activeLegend = activeRevenantLegend(context);
+    const destination = loadout.bars.find((legend) => legend.id !== activeLegend);
 
     return [
       {
         id: 'revenant-profession',
         label: 'F',
         skillIds: [SKILL.ANCIENT_ECHO],
+        // The F1 tile always invokes the other selected legend; after swapping,
+        // the previous legend becomes this same tile's destination.
         skillEntries: destination
           ? [
               {

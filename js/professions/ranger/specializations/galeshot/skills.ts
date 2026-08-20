@@ -2,6 +2,9 @@
 import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
+// Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
+const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
+
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WHIRLWIND]: {
     implemented: true,
@@ -19,6 +22,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.SUMMON_CYCLONE_BOW]: {
     implemented: true,
     castTimeMs: 0,
+    paletteTileId: CYCLONE_BOW_PALETTE_TILE,
+    paletteTileOrder: 1,
     effects: [],
     handlerId: 'ranger.cyclone-bow-enter'
   },
@@ -76,6 +81,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.DISMISS_CYCLONE_BOW]: {
     implemented: true,
     castTimeMs: 0,
+    paletteTileId: CYCLONE_BOW_PALETTE_TILE,
+    paletteTileOrder: 2,
     effects: [],
     handlerId: 'ranger.cyclone-bow-exit'
   },

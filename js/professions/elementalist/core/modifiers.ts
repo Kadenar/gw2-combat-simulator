@@ -1,5 +1,6 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { targetHealthFraction } from '../../../platform/gw2/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
@@ -42,17 +43,6 @@ export function elementalistMightStacks(context: Gw2ModifierContext): number {
   return Number(
     context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? context.config?.boons?.might ?? 0
   );
-}
-
-function targetHealthFraction(context: Gw2ModifierContext): number {
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const totals = (context.runtime?.totals || {}) as {
-    readonly strike?: number;
-    readonly condition?: number;
-  };
-  const damage = Number(totals?.strike || 0) + Number(totals?.condition || 0);
-  return Math.max(0, 1 - damage / maximum);
 }
 
 export function elementalistTimedBuffStacks(context: Gw2ModifierContext, kind: string, maximum = 25): number {

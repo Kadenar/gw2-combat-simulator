@@ -7,6 +7,9 @@
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
+// Crash Down and Recall Mech occupy the same profession-mechanic tile.
+const MECH_TOGGLE_PALETTE_TILE = 'engineer-mechanist-mech-toggle';
+
 export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
     implemented: true,
@@ -19,6 +22,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     handlerId: 'engineer.mech-summon',
     castTimeMs: 750,
     cooldown: 50,
+    paletteTileId: MECH_TOGGLE_PALETTE_TILE,
+    paletteTileOrder: 1,
     effects: [
       {
         type: 'strike',
@@ -43,6 +48,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     handlerId: 'engineer.mech-recall',
     castTimeMs: 750,
     cooldown: 10,
+    paletteTileId: MECH_TOGGLE_PALETTE_TILE,
+    paletteTileOrder: 2,
     effects: [],
     mechanicSlot: 4
   },

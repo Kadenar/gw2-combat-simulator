@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber, enumValue } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -26,6 +27,7 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 export const REVENANT_BUILD_SCHEMA_VERSION = 3;
 export const REVENANT_PROFESSION_ID = 'revenant';
+const REVENANT_DODGES = Object.freeze(['Death Drop', 'Saint of zu Heltzer', 'Imperial Impact'] as const);
 
 export { createDefaultTargetConditions };
 
@@ -74,18 +76,15 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
   createDefaults: createRevenantBuildDefaults,
   slotLoadout: revenantLegendLoadout as unknown as Gw2SlotLoadout<RevenantCanonicalBuild>,
   normalizeExtra(build, { saved }) {
-    const selectedDodge = String(saved.selectedDodge || '');
     return {
       ...build,
       assumptions: normalizeProfessionAssumptions(
         normalizeSimulationRandomnessAssumptions(build.assumptions),
         REVENANT_ASSUMPTION_CONTROLS
       ),
-      initialEnergy: Math.max(0, Math.min(100, Number(saved.initialEnergy ?? 50) || 0)),
-      selectedDodge: ['Death Drop', 'Saint of zu Heltzer', 'Imperial Impact'].includes(selectedDodge)
-        ? (selectedDodge as RevenantDodge)
-        : 'Death Drop',
-      allianceSide: saved.allianceSide === 'kurzick' ? 'kurzick' : 'luxon'
+      initialEnergy: boundedNumber(saved.initialEnergy ?? 50, 0, 0, 100),
+      selectedDodge: enumValue(String(saved.selectedDodge || ''), REVENANT_DODGES, 'Death Drop') as RevenantDodge,
+      allianceSide: enumValue(saved.allianceSide, ['luxon', 'kurzick'], 'luxon')
     };
   },
   validateExtra(build) {

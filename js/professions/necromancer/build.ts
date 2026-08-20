@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -76,7 +77,7 @@ const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
     return {
       ...build,
       assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialResource: Math.max(0, Math.min(100, Number(saved.initialResource ?? 100) || 0)),
+      initialResource: boundedNumber(saved.initialResource ?? 100, 0, 0, 100),
       initialBlight: Math.max(0, Math.min(25, Math.trunc(Number(saved.initialBlight || 0)))),
       initialCascadingCorruptionStacks: Math.max(
         0,
@@ -94,9 +95,9 @@ const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
       errors.push('initialBlight must be between 0 and 25.');
     }
 
-    if (
-      !(Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19)
-    ) {
+    if (!(
+      Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19
+    )) {
       errors.push('initialCascadingCorruptionStacks must be between 0 and 19.');
     }
 

@@ -100,8 +100,8 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
     {
       id: 'ranger-galeshot-profession',
       label: 'F5',
-      // Both IDs appear in the palette so the user can drag either; the
-      // skillBarGroups function hides the inactive one from the live bar.
+      // Declare both sides so the shared projector can render the currently
+      // usable Summon/Dismiss identity as one live F5 tile.
       skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
       color: '#67b4c4',
       className: 'ranger-galeshot-f5',

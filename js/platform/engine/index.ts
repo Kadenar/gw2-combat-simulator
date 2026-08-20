@@ -1,6 +1,7 @@
 // Public surface for the profession-neutral engine layer.
 export * from './catalog.js';
 export * from './clock.js';
+export * from './collections.js';
 export * from './cooldown-controller.js';
 export * from './event-queue.js';
 export * from './events.js';

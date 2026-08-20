@@ -138,6 +138,11 @@ export const revenantSchedulerHooks = Object.freeze({
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import {
+  playerHealthFraction,
+  targetHealthFraction,
+  vulnerabilityStacks
+} from '../../../platform/gw2/runtime-query.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2Stats } from '../../../platform/gw2/types.js';
 import type { RevenantConfig, RevenantCoreState, RevenantRuntimeState, RevenantState } from '../types.js';
@@ -180,11 +185,7 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
 }
 
 export function revenantTargetHealthFraction(context: RevenantModifierContext): number {
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const totals = context.runtime?.totals as { readonly strike?: number; readonly condition?: number } | undefined;
-  const dealt = Number(totals?.strike || 0) + Number(totals?.condition || 0);
-  return Math.max(0, 1 - dealt / maximum);
+  return targetHealthFraction(context);
 }
 
 export function revenantTargetHasCondition(context: RevenantModifierContext, condition: string): boolean {
@@ -192,7 +193,7 @@ export function revenantTargetHasCondition(context: RevenantModifierContext, con
 }
 
 export function revenantTargetVulnerability(context: RevenantModifierContext): number {
-  return Number(context.query?.targetConditionStacks('Vulnerability', context.time, context.runtime) || 0);
+  return vulnerabilityStacks(context);
 }
 
 function activeOffhand(context: RevenantModifierContext): boolean {
@@ -264,9 +265,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      revenantPlayer(context) &&
-      hasTrait(context, TRAIT.RISING_TIDE) &&
-      Number(context.config?.playerHealthFraction ?? 1) > 0.75
+      revenantPlayer(context) && hasTrait(context, TRAIT.RISING_TIDE) && playerHealthFraction(context) > 0.75
   },
   {
     id: 'revenant.acolyte-of-torment',

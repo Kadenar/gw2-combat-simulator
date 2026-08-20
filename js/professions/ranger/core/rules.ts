@@ -2,6 +2,7 @@ import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modi
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { professionCoreState } from '../../../platform/engine/profession.js';
+import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerCoreCastAvailability } from './availability.js';
 import { rangerPetByName, snapshotRangerState } from './state.js';
@@ -9,7 +10,7 @@ import { advanceRangerResources } from './resources.js';
 import { completeRangerTraits } from './traits.js';
 import { updateRangerWeaponState } from './weapon-state.js';
 import { beginRangerPetCommand, observeRangerPetEvent, rangerPetTaskHandlers } from './pets.js';
-import type { SimulationEvent, SkillId } from '../../../platform/engine/types.js';
+import type { SimulationEvent } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../platform/gw2/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '../types.js';
 import type { RangerCastContext } from '../types.js';
@@ -167,16 +168,8 @@ function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names
   return weapons.some((weapon) => names.includes(String(weapon || '')));
 }
 
-function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  const source = context.config?.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.map(String).includes(name);
-}
-
-function eventSkill(context: Gw2ModifierContext): RangerSkill | undefined {
-  const profession = context.profession as { catalog?: { skillsById?: ReadonlyMap<SkillId, RangerSkill> } } | undefined;
-  return profession?.catalog?.skillsById?.get((context.event?.skillId ?? context.skillId) as SkillId);
-}
+// Keeps Ranger-specific skill typing while using the shared modifier-context lookup precedence.
+const eventSkill = (context: Gw2ModifierContext): RangerSkill | undefined => gw2EventSkill<RangerSkill>(context);
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
   const core = (
@@ -489,7 +482,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     adjust('healingPower', petPower * conversion);
   }
 
-  if (selectedSkill(context, 'Signet of the Wild')) {
+  if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
     const bonus = rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     if (staticRulesApplied) adjust('ferocity', active ? bonus - 180 : -180);

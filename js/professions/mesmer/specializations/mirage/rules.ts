@@ -4,11 +4,82 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/id
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { timedStacks } from '../../core/rules.js';
+import { mesmerBalanceValue } from '../../core/profiles.js';
 import { initializeMirageRuntime } from './runtime.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
-import type { AvailabilityResult } from '../../../../platform/engine/types.js';
+import type { AvailabilityResult, SkillMechanicTrigger } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { MesmerPrecastContext, MesmerSkill } from '../../types.js';
+import type { MesmerCastContext, MesmerPrecastContext, MesmerSkill } from '../../types.js';
+
+interface SkillMechanicTriggerTiming {
+  readonly castStart: number;
+  readonly castEnd: number;
+}
+
+type MirageSkillMechanicHandler = (
+  context: MesmerCastContext,
+  trigger: SkillMechanicTrigger,
+  at: number,
+  skill: MesmerSkill
+) => void;
+
+const MIRAGE_SKILL_MECHANIC_HANDLERS: Readonly<Record<string, MirageSkillMechanicHandler>> = Object.freeze({
+  'mesmer.mirage.create-mirror': (context, trigger, at, skill) => {
+    mesmerRuntimeFor(context).mirage.createMirrors(at, trigger.count ?? 1, skill.name);
+  },
+  'mesmer.mirage.grant-cloak': (context, _trigger, at, skill) => {
+    mesmerRuntimeFor(context).mirage.grantMirageCloak(at, skill.name);
+  }
+});
+
+/** Resolves trigger offsets against the actual cast and invokes Mirage-owned mechanic handlers. */
+export function dispatchSkillMechanicTriggers(
+  context: MesmerCastContext,
+  skill: MesmerSkill,
+  timing: SkillMechanicTriggerTiming
+): void {
+  for (const trigger of skill.mechanicTriggers || []) {
+    const handler = MIRAGE_SKILL_MECHANIC_HANDLERS[trigger.type];
+    if (!handler) continue;
+
+    const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
+    const actualCastMs = Math.max(0, timing.castEnd - timing.castStart) * 1000;
+    const authoredOffsetMs = Number(trigger.atMs || 0);
+    const offsetMs =
+      trigger.timingScale === 'cast' && baseCastMs > 0
+        ? authoredOffsetMs * (actualCastMs / baseCastMs)
+        : authoredOffsetMs;
+    const anchor = trigger.timingAnchor === 'castStart' ? timing.castStart : timing.castEnd;
+    handler(context, trigger, anchor + offsetMs / 1000, skill);
+  }
+}
+
+/** Dispatches declarative skill mechanics and applies Self-Deception to categorized Deception skills. */
+function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): void {
+  const runtime = mesmerRuntimeFor(context);
+  dispatchSkillMechanicTriggers(context, skill, {
+    castStart: context.start,
+    castEnd: context.fullEnd
+  });
+
+  if (
+    runtime.traits.has(TRAIT.SELF_DECEPTION) &&
+    skill.categories?.includes('Deception') &&
+    runtime.actions.currentResource() > 0
+  ) {
+    runtime.resources.queueResources(
+      context.fullEnd + EPSILON,
+      mesmerBalanceValue(context, TRAIT.SELF_DECEPTION, 'resourceGain', 1),
+      runtime.activePrimaryWeapon(),
+      `Self-Deception: ${skill.name}`,
+      {
+        traitId: TRAIT.SELF_DECEPTION,
+        traitName: 'Self-Deception',
+        sourceSkillId: skill.id
+      }
+    );
+  }
+}
 
 function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
@@ -96,5 +167,6 @@ export const mirageAttributeRules = Object.freeze({
 });
 
 export const mirageSchedulerHooks = Object.freeze({
-  initialize: initializeMirageRuntime
+  initialize: initializeMirageRuntime,
+  onCastComplete: completeMirageSkill
 });

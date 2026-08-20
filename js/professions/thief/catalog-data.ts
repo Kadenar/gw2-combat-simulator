@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '../../platform/engine/profession.js';
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/thief-api-metadata.js';
@@ -219,7 +220,7 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...(skill.recharge == null && skill.ammoRecharge == null
     ? {}
     : {
-        cooldown: Number(skill.ammo || 0) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge
+        cooldown: gw2BaseRecharge(skill)
       }),
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),

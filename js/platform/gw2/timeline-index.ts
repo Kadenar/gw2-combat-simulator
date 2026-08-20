@@ -1,4 +1,6 @@
 import { EPSILON } from '../engine/clock.js';
+import { insertSorted } from '../engine/collections.js';
+import { eventCausalOrder, eventTimestamp } from '../engine/events.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -47,33 +49,10 @@ export function createGw2TimelineIndex({
    * @param {SimulationEvent} right
    */
   const compareEvents = (left: SimulationEvent, right: SimulationEvent): number =>
-    left.at - right.at ||
-    Number(left.causalOrder ?? left.__order ?? 0) - Number(right.causalOrder ?? right.__order ?? 0);
-  /**
-   * @param {SimulationEvent[]} target
-   * @param {SimulationEvent} event
-   */
-  const insertOrdered = (target: SimulationEvent[], event: SimulationEvent): void => {
-    if (target.length === 0 || compareEvents(target[target.length - 1], event) <= 0) {
-      target.push(event);
-      return;
-    }
-
-    let low = 0;
-    let high = target.length;
-    // Events are usually appended chronologically. Binary insertion handles
-    // late-derived events without re-sorting every indexed collection.
-    while (low < high) {
-      const middle = (low + high) >>> 1;
-      if (compareEvents(target[middle], event) <= 0) {
-        low = middle + 1;
-      } else {
-        high = middle;
-      }
-    }
-
-    target.splice(low, 0, event);
-  };
+    eventTimestamp(left) - eventTimestamp(right) || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
+  // Late-derived events use neutral stable insertion without changing the GW2-specific comparator.
+  const insertOrdered = (target: SimulationEvent[], event: SimulationEvent): void =>
+    insertSorted(target, event, compareEvents);
 
   const indexed: IndexedEvents = {
     weaponSet: [],

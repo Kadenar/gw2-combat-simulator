@@ -1,6 +1,7 @@
 import type { SimulationEventInput, Skill } from '../engine/types.js';
 import { clamp } from './numeric.js';
 import { conditionDurationFractionFromExpertise } from './stat-scaling.js';
+import { gw2BaseRecharge } from './skill-recharge.js';
 import type { Gw2Config, Gw2ResolvedStats, Gw2SigilSet, Gw2Stats } from './types.js';
 
 interface RechargeRateOptions {
@@ -109,11 +110,9 @@ export function gw2EffectiveCooldown(
   config: Gw2Config,
   { cooldownMultiplier = 1, rechargeRate = gw2RechargeRate(config) }: EffectiveCooldownOptions = {}
 ): number {
-  const ammoRecharge = Number(skill.ammoRecharge || 0);
   // Ammo skills report time per restored charge; non-ammo skills use their
   // cooldown/recharge field. Cast lockouts are handled by the scheduler.
-  const baseRecharge =
-    Number(skill.ammo || 0) > 0 && ammoRecharge > 0 ? ammoRecharge : Number(skill.cooldown ?? skill.recharge ?? 0);
+  const baseRecharge = gw2BaseRecharge(skill);
   return (
     (Math.max(0, baseRecharge) * Math.max(0, Number(cooldownMultiplier || 0))) /
     Math.max(Number.EPSILON, Number(rechargeRate || 1))

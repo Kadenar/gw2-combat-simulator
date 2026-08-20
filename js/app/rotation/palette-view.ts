@@ -33,16 +33,14 @@ import {
 import { activeSpecialization, paletteEndState, paletteProfessionState, seconds } from './context.js';
 import { ACTION_ICONS, COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } from './icons.js';
 import {
-  autoattackChainSkillAvailable,
   currentAutoattackSkill,
-  displayedFlipSkills,
+  displayedSkillTiles,
   displayedWeaponSkills,
   paletteActionSkills,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
   rotationPaletteGroups,
   rotationSelectedSlotSkills,
-  rotationUtilityFlipByParent,
   uniqueByName,
   weaponPaletteRows,
   weaponPaletteSectionHtml,
@@ -320,7 +318,7 @@ export function renderPalette(app: ProfessionAppState): void {
         ...group,
         // Reserved groups intentionally retain stable placeholders; ordinary
         // profession groups project sequence families to the live bar tile.
-        skills: reservedSkillIds.length ? skills : displayedFlipSkills(app, skills)
+        skills: reservedSkillIds.length ? skills : displayedSkillTiles(app, skills)
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);
@@ -336,24 +334,12 @@ export function renderPalette(app: ProfessionAppState): void {
     }))
   }));
   const selected = rotationSelectedSlotSkills(app);
-  // Walk every declared descendant so utilities with more than one flip stage
-  // remain complete without the shell knowing the depth of a particular chain.
-  const utilityFlipByParent = rotationUtilityFlipByParent(app);
-  const selectedWithFlipChains = uniqueByName(selected).flatMap((skill, index) => {
-    const chain: Skill[] = [];
-    const visited = new Set<number>();
-    let current: Skill | undefined = skill;
-    while (current && !visited.has(Number(current.id))) {
-      chain.push(current);
-      visited.add(Number(current.id));
-      current = utilityFlipByParent.get(current.name);
-    }
-
-    return chain.map((candidate) => ({
-      ...candidate,
-      hotkeyAction: rotationUtilityHotkeyAction(index)
-    }));
-  });
+  // The shared projector discovers and selects descendants from the catalog;
+  // selected utilities only need to contribute their root tile and hotkey.
+  const selectedWithFlipChains = uniqueByName(selected).map((skill, index) => ({
+    ...skill,
+    hotkeyAction: rotationUtilityHotkeyAction(index)
+  }));
   const groupedActionSkillIds = new Set(
     [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
       group.skills.filter((skill) => skill.type === 'Action' && !skill.concealed).map((skill) => String(skill.id))
@@ -365,11 +351,6 @@ export function renderPalette(app: ProfessionAppState): void {
   const weaponSwapActions = actions.filter((skill) => skill.name === 'Swap Weapons');
   const generalActions = actions.filter((skill) => skill.name !== 'Swap Weapons');
   const activeWeaponSet = endState?.activeWeaponSet || 1;
-
-  const availableFlips =
-    professionState.availableFlips && typeof professionState.availableFlips === 'object'
-      ? (professionState.availableFlips as SchedulerRecord)
-      : {};
 
   const availableAmbush =
     professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
@@ -403,29 +384,12 @@ export function renderPalette(app: ProfessionAppState): void {
   const professionPaletteRetryAt = (skill: Skill): number | null =>
     professionPaletteAvailability(skill).retryAt ?? null;
 
-  const flipAvailable = (skill: Skill): boolean => {
-    const value = availableFlips[skill.id] ?? availableFlips[skill.name];
-    return typeof value === 'number' ? value > Number(endState?.time || 0) / 1000 : Boolean(value);
-  };
-
-  const flipParentName = (skill: Skill): string =>
-    String(skill.flipParent || app.skillById.get(Number(skill.flipParentId))?.name || 'its parent skill');
-
-  const usesStatefulFlip = (skill: Skill): boolean =>
-    skill.paletteFlip !== false && Boolean(skill.flipParent || skill.flipParentId != null);
-
-  const chainExpected = (skill: Skill): unknown => {
-    const root = String(skill.chainRoot || '');
-    return autoattackChains[root] || root;
-  };
-
   const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean => {
     if (weaponSet !== activeWeaponSet) return false;
     if (!professionAllowsPaletteSkill(skill)) return false;
     if (skill.ambush) return String(availableAmbush?.name || '') === skill.name;
     if (availableAmbush && skill.slot === 'Weapon_1') return false;
-    if (usesStatefulFlip(skill) && !flipAvailable(skill)) return false;
-    return autoattackChainSkillAvailable(skill, autoattackChains);
+    return true;
   };
 
   const weaponSkillUnavailableMessage = (skill: Skill, weaponSet: number): string => {
@@ -447,41 +411,13 @@ export function renderPalette(app: ProfessionAppState): void {
       return `${String(availableAmbush.name || '')} currently replaces weapon skill 1`;
     }
 
-    if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
-      return `Unavailable until ${flipParentName(skill)} has been used`;
-    }
-
-    if (skill.chainRoot) {
-      const expected = chainExpected(skill);
-      if (skill.name !== expected && skill.id !== Number(expected)) {
-        const expectedSkill = app.skillById.get(Number(expected));
-        return `Cast ${expectedSkill?.name || expected} first`;
-      }
-    }
-
     return '';
   };
 
-  const activeFlipDescendantFor = (skill: Skill): Skill | null => {
-    const visited = new Set<number>();
-    let flip = utilityFlipByParent.get(skill.name);
-    while (flip && !visited.has(Number(flip.id))) {
-      if (flipAvailable(flip)) return flip;
-      visited.add(Number(flip.id));
-      flip = utilityFlipByParent.get(flip.name);
-    }
-    
-    return null;
-  };
-
-  const selectedWithFlips = selectedWithFlipChains.filter((skill) =>
-    usesStatefulFlip(skill) ? flipAvailable(skill) : !activeFlipDescendantFor(skill)
-  );
+  const selectedWithFlips = displayedSkillTiles(app, selectedWithFlipChains);
 
   const utilitySkillAvailable = (skill: Skill): boolean => {
-    if (!professionAllowsPaletteSkill(skill)) return false;
-    if (usesStatefulFlip(skill)) return flipAvailable(skill);
-    return !activeFlipDescendantFor(skill);
+    return professionAllowsPaletteSkill(skill);
   };
 
   const utilitySkillUnavailableMessage = (skill: Skill): string => {
@@ -489,45 +425,14 @@ export function renderPalette(app: ProfessionAppState): void {
       return professionPaletteUnavailableMessage(skill);
     }
 
-    if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
-      return `Unavailable until ${flipParentName(skill)} has been used`;
-    }
-
-    const flip = activeFlipDescendantFor(skill);
-    if (flip) return `Unavailable while ${flip.name} has charges`;
-
     return '';
   };
 
-  const professionSkillAvailable = (skill: Skill): boolean => {
-    if (!professionAllowsPaletteSkill(skill)) return false;
+  const professionSkillAvailable = (skill: Skill): boolean => professionAllowsPaletteSkill(skill);
 
-    if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
-      return false;
-    }
-
-    if (!autoattackChainSkillAvailable(skill, autoattackChains)) {
-      return false;
-    }
-
-    return true;
-  };
-  
   const professionSkillUnavailableMessage = (skill: Skill): string => {
     if (!professionAllowsPaletteSkill(skill)) {
       return professionPaletteUnavailableMessage(skill);
-    }
-
-    if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
-      return `Unavailable until ${flipParentName(skill)} has been used`;
-    }
-
-    if (skill.chainRoot) {
-      const expected = chainExpected(skill);
-      if (skill.name !== expected && skill.id !== Number(expected)) {
-        const expectedSkill = app.skillById.get(Number(expected));
-        return `Cast ${expectedSkill?.name || expected} first`;
-      }
     }
 
     return '';
@@ -874,12 +779,10 @@ export function renderPalette(app: ProfessionAppState): void {
 
       const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
       if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
-
         app.addRotation(name, {
           ...identity,
           offset: CONCURRENT_OFFSET_MS
         });
-
       } else if (event.ctrlKey && !instant) {
         const suggestedInterruptMs = suggestedPaletteInterruptMs(skill);
         openActivationEditor({

@@ -1,6 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { boundedNumber } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
@@ -59,7 +60,7 @@ const warriorBuildCodec = createGw2BuildCodec<WarriorCanonicalBuild>({
     return {
       ...build,
       assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialResource: Math.max(0, Math.min(100, Number(saved.initialResource ?? 0) || 0))
+      initialResource: boundedNumber(saved.initialResource ?? 0, 0, 0, 100)
     };
   },
   validateExtra(build) {

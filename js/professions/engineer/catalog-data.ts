@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/engineer-api-metadata.js';
@@ -162,7 +163,7 @@ const flipParentById = createFlipParentMap(allDeclared, {
 
 const generated: readonly Skill[] = generatedSource.map((skill) => ({
   ...skill,
-  cooldown: Number(skill.ammo) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
+  cooldown: gw2BaseRecharge(skill),
   flipParentId: flipParentById.get(skill.id) ?? null,
   implemented: false,
   effects: [],

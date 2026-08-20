@@ -1,7 +1,7 @@
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import { ETCHING_CHAINS, HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
+import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS, HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import type { ElementalistState } from '../types.js';
 import type {
@@ -102,17 +102,15 @@ function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGr
   const live = pistolBulletRecord(state.pistolBullets);
   const displayed = live || configured;
   const activeAttunements = new Set([state.primaryAttunement, state.secondaryAttunement].filter(Boolean).map(String));
-  const primaryAttunement = String(
-    state.primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
-  );
   return {
     id: 'elementalist-pistol-bullets',
     label: 'Bullet',
     skillIds: [],
     color: '#ddbb88',
     className: 'elementalist-pistol-bullets',
-    placement: 'active-weapon',
-    weaponRowLabel: primaryAttunement,
+    // Keep the stock controls after the complete attunement bank so they do
+    // not split the active weapon's elemental rows.
+    placement: 'weapon-set-1',
     controls: PISTOL_BULLETS.map(({ element, label, skillName }) => {
       const currentStocked = Boolean(displayed[element]);
       const startsStocked = Boolean(configured[element]);
@@ -303,6 +301,48 @@ function attunementStartControl(
 function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   const state = uiState(context);
   const now = Number(context.time || 0);
+  const transmuteAura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+  const generatedAura = AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
+  if (transmuteAura || generatedAura) {
+    // Aura generators and transmutes are reciprocal catalog flips. This state
+    // check lets the shared projector expose only the side usable right now.
+    const aura = transmuteAura || generatedAura;
+    const transmuteActive = Boolean(state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > now));
+    const available = transmuteAura ? transmuteActive : !transmuteActive;
+    if (!available) {
+      return {
+        available: false,
+        message: transmuteActive ? `${aura} can be transmuted now.` : `Requires an active ${aura}.`
+      };
+    }
+  }
+
+  if (skill.name === 'Weave Self' || skill.name === 'Tailored Victory') {
+    // Perfect Weave flips the selected elite slot without requiring a second
+    // utility-specific projection path in the shared palette shell.
+    const tailoredVictoryActive = Number(state.perfectWeaveUntil || 0) > now;
+    const available = skill.name === (tailoredVictoryActive ? 'Tailored Victory' : 'Weave Self');
+    if (!available) {
+      return {
+        available: false,
+        message: tailoredVictoryActive ? 'Tailored Victory currently replaces Weave Self.' : 'Requires Perfect Weave.'
+      };
+    }
+  }
+
+  // The shared tile projector chooses the one Rock Barrier variant that is
+  // usable at the inspection point, including the exact barrier expiry.
+  if (skill.name === 'Rock Barrier' || skill.name === 'Hurl') {
+    const hurlActive = Number(state.rockBarrierExpiresAt || 0) > now;
+    const available = skill.name === (hurlActive ? 'Hurl' : 'Rock Barrier');
+    if (!available) {
+      return {
+        available: false,
+        message: hurlActive ? 'Hurl currently replaces Rock Barrier.' : 'Requires an active Rock Barrier.'
+      };
+    }
+  }
+
   // Evoker familiars are Profession-mechanic skills keyed to the selected
   // familiar element rather than the active attunement, so the shared attunement
   // gate below must not veto them. Defer to the Evoker UI slice, which governs

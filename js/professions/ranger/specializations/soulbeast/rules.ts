@@ -1,5 +1,6 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { playerHealthFraction, targetHealthFraction } from '../../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { selectedRangerPet } from '../../core/state.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
@@ -26,19 +27,11 @@ function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
   );
 }
 
-function targetHealthFraction(context: Gw2ModifierContext): number {
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const totals = context.runtime?.totals as { strike?: number; condition?: number } | undefined;
-  return Math.max(0, 1 - (Number(totals?.strike || 0) + Number(totals?.condition || 0)) / maximum);
-}
-
 // Oppressive Superiority activates when the target's HP fraction is below the player's HP fraction —
 // playerHealthFraction defaults to 1 (full HP) if unset, making the condition always false unless configured.
 function oppressiveSuperiorityActive(context: Gw2ModifierContext): boolean {
   return (
-    hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) &&
-    targetHealthFraction(context) < Number(context.config?.playerHealthFraction ?? 1)
+    hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) && targetHealthFraction(context) < playerHealthFraction(context)
   );
 }
 

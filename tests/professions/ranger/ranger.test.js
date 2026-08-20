@@ -983,6 +983,7 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
     ['ranger-soulbeast-profession']
   );
   assert.deepEqual(mergedGroups[0].skillIds, [
+    ID.BEASTMODE,
     ID.LEAVE_BEASTMODE,
     ...RANGER_PETS.find((pet) => pet.name === 'Smokescale').beastmodeSkillIds
   ]);
@@ -995,7 +996,7 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
     unmergedGroups.map((group) => group.id),
     ['ranger-soulbeast-profession', 'ranger-pet']
   );
-  assert.deepEqual(unmergedGroups[0].skillIds, [ID.BEASTMODE]);
+  assert.deepEqual(unmergedGroups[0].skillIds, [ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
   assert.deepEqual(unmergedGroups[1].skillIds, [ID.SMOKE_CLOUD, ID.PET_SWAP]);
   assert.equal(unmergedGroups[1].statusIcon.label, 'Smokescale');
   assert.equal(availability(unmerged.endState.profession, ID.BEASTMODE), true);

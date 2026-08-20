@@ -18,6 +18,16 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     phantasm: false,
     resource: null,
     blade: false,
+    // False Oasis leaves its mirror three seconds after the cast finishes.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.create-mirror',
+        count: 1,
+        atMs: 3000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ],
     effects: []
   },
   [ID.CRYSTAL_SANDS]: {
@@ -31,6 +41,15 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.create-mirror',
+        count: 1,
+        atMs: 320,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -88,6 +107,13 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     phantasm: false,
     resource: null,
     blade: false,
+    // These instant Deceptions grant Mirage Cloak when their cast completes.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.grant-cloak',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.ILLUSIONARY_AMBUSH]: {
@@ -102,6 +128,12 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.grant-cloak',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.JAUNT]: {

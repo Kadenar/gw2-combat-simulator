@@ -46,7 +46,6 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     addDamage: runtime.addDamage,
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
-    currentResource: runtime.actions.currentResource,
     balanceProfile: runtime.balanceProfile
   });
   runtime.resources.setAmbushCreatedClones(runtime.mirage.executeCloneAmbushes);

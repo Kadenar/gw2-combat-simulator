@@ -386,7 +386,6 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     executePlayerAmbush: () => undefined,
     grantMirageCloak: () => undefined,
     handleMirageShatter: () => undefined,
-    handlePostSkill: () => undefined,
     pickUpMirror: () => false
   };
   const skillEffects = createSkillEffectController({
@@ -607,7 +606,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         );
       }
 
-      runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.id);
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
         professionCoreState(state).availableFlips[armedFlip.id] = {

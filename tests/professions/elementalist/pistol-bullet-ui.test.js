@@ -151,8 +151,10 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   const bullets = fullStock.indexOf('data-palette-group="elementalist-pistol-bullets"');
   const earthAutoattack = fullStock.indexOf('data-skill="Piercing Pebble"');
 
-  assert.ok(explosion < bullets);
-  assert.ok(bullets < earthAutoattack);
+  // Starting-stock controls follow the complete attunement bank instead of
+  // interrupting the active and Earth weapon rows.
+  assert.ok(explosion < earthAutoattack);
+  assert.ok(earthAutoattack < bullets);
 });
 
 test('Aerial Agility collapses its chain into one pistol palette tile', () => {

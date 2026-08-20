@@ -1,30 +1,51 @@
 import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '../../core/ui.js';
 import { HERALD_MECHANICS } from './mechanics.js';
-import type { ProfessionUiContract, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
-import type { RevenantUiContext } from '../../types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionUiContract,
+  SchedulerRecord,
+  SkillId
+} from '../../../../platform/engine/types.js';
+import type { RevenantSkill, RevenantUiContext } from '../../types.js';
+
+const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
+
+function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSkill): PaletteSkillAvailability {
+  if (skill.id !== SKILL.FACET_OF_NATURE && !TRUE_NATURE_IDS.includes(skill.id)) {
+    return { available: true, message: '' };
+  }
+
+  const expected = (HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[
+    activeRevenantLegend(context)
+  ];
+  const consumeActive = expected != null && Boolean(revenantUiState(context).availableFlips?.[expected]);
+  if (skill.id === SKILL.FACET_OF_NATURE) {
+    return consumeActive
+      ? { available: false, message: 'True Nature currently replaces Facet of Nature' }
+      : { available: true, message: '' };
+  }
+
+  return skill.id === expected && consumeActive
+    ? { available: true, message: '' }
+    : { available: false, message: 'Activate Facet of Nature first' };
+}
 
 export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   paletteGroups: (context: RevenantUiContext) => {
-    // True Nature's skill ID differs per active legend; look it up before deciding which button to show.
-    const trueNatureId = (HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[
-      activeRevenantLegend(context)
-    ];
     return [
       {
         id: 'revenant-profession-specialization',
         label: 'F',
-        skillIds: [
-          // Show the legend-specific True Nature only when Facet of Nature is already active (flip registered); otherwise show the activating facet.
-          trueNatureId != null && revenantUiState(context).availableFlips?.[trueNatureId]
-            ? trueNatureId
-            : SKILL.FACET_OF_NATURE
-        ],
+        // All legend variants declare one family; shared projection selects the
+        // active legend's consume only while that flip is armed.
+        skillIds: [SKILL.FACET_OF_NATURE, ...TRUE_NATURE_IDS],
         color: '#a84f54',
         resourceAnchor: true
       }
     ];
   },
+  paletteSkillAvailability: heraldPaletteAvailability,
   // Herald has no custom resource bar; it reuses the core Energy bar declared in revenantCoreUi.
   resourceViews: () => []
 });

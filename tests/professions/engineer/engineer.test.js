@@ -275,7 +275,8 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
     'Grenade Barrage',
     'Mine Field',
     'Surprise Shot (engineer skill)',
-    'Engage Photon Forge'
+    'Engage Photon Forge',
+    'Deactivate Photon Forge'
   ]);
   assert.deepEqual(names(grenade), [
     'Grenade',

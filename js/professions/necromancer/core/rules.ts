@@ -1,18 +1,19 @@
-import {
-  CANONICAL_TARGET_CONDITIONS,
-  canonicalTargetConditionName,
-  targetHasCondition as targetHasConfiguredCondition
-} from '../../../platform/gw2/target-state.js';
+import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/target-state.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import {
+  eventSkill,
+  hasSelectedSkill,
+  targetConditionCount,
+  targetHealthFraction
+} from '../../../platform/gw2/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { necromancerCastRules, necromancerSchedulerHooks } from './contract.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE, necromancerBalanceProfile } from './profiles.js';
-import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
+import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
 import type {
-  NecromancerConfig,
   NecromancerCoreState,
   NecromancerQueryRuntime,
   NecromancerRechargeModifierContext,
@@ -40,14 +41,7 @@ export function necromancerRuntimeSpecializationState(context: Gw2ModifierContex
 }
 
 export function necromancerEventSkill(context: Gw2ModifierContext): NecromancerSkill | undefined {
-  const profession = context.profession as
-    | {
-        readonly catalog?: {
-          readonly skillsById?: ReadonlyMap<SkillId, NecromancerSkill>;
-        };
-      }
-    | undefined;
-  return profession?.catalog?.skillsById?.get((context.event?.skillId ?? context.skillId) as SkillId);
+  return eventSkill<NecromancerSkill>(context);
 }
 
 export function necromancerTargetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
@@ -59,20 +53,11 @@ export function necromancerTargetHasCondition(context: Gw2ModifierContext, condi
 }
 
 export function necromancerTargetConditionCount(context: Gw2ModifierContext): number {
-  const names = new Set([
-    ...CANONICAL_TARGET_CONDITIONS,
-    ...Object.keys(context.config?.target?.conditions || {}).map(canonicalTargetConditionName),
-    ...[...(context.runtime?.conditionState?.keys?.() || [])].map(canonicalTargetConditionName)
-  ]);
-  return [...names].filter((condition) => necromancerTargetHasCondition(context, condition)).length;
+  return targetConditionCount(context);
 }
 
 export function necromancerTargetHealthFraction(context: Gw2ModifierContext): number {
-  const runtime = context.runtime as NecromancerQueryRuntime | null | undefined;
-  const maximum = Number(context.config?.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  const damage = Number(runtime?.totals?.strike || 0) + Number(runtime?.totals?.condition || 0);
-  return Math.max(0, 1 - damage / maximum);
+  return targetHealthFraction(context);
 }
 
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
@@ -122,16 +107,9 @@ export function necromancerCriticalExpectedFactor(context: Gw2ModifierContext, c
   return modifiedExpected / normalExpected;
 }
 
-function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  const config = (context.config || {}) as NecromancerConfig;
-  const source = config.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.map(String).includes(name);
-}
-
 function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   return (
-    selectedSkill(context, 'Signet of Spite') &&
+    hasSelectedSkill(context, 'Signet of Spite') &&
     !necromancerActiveShroud(context) &&
     !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_SPITE, context.time)
   );
@@ -147,7 +125,7 @@ export function modifyNecromancerCoreAttributes(
   // (accrued on `result`).
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (selectedSkill(context, 'Signet of Spite')) {
+  if (hasSelectedSkill(context, 'Signet of Spite')) {
     const signetPower = Number(necromancerBalanceProfile(context, PROFILE.signetOfSpite)?.attributeBonus || 180);
     const passiveActive = context.actorType !== 'summon' && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {

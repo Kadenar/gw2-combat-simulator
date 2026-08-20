@@ -1,6 +1,7 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { boonActive } from '../../../../platform/gw2/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { thiefEventSkill, thiefPlayerEvent, thiefRuntimeSpecializationState } from '../../core/rules.js';
 import { deadeyeCastAvailability } from './availability.js';
@@ -51,16 +52,6 @@ const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
   ID.MALICIOUS_BACKSTAB,
   ID.MALICIOUS_DEATHS_JUDGMENT
 ]);
-
-function boonActive(context: Gw2ModifierContext, boon: string): boolean {
-  // Three sources checked in priority order: static config boons → pre-computed timeline → live resolver boon map
-  if (context.config?.boons?.[boon]) return true;
-  if (context.timeline?.timedActive(boon, context.time)) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) =>
-      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
-  );
-}
 
 function activeBoonCount(context: Gw2ModifierContext): number {
   return BOON_KINDS.filter((boon) => boonActive(context, boon)).length;
