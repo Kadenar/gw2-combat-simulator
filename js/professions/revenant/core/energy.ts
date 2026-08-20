@@ -2,13 +2,10 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
- * The scheduler calls advanceRevenantEnergy whenever its clock advances and
- * spendRevenantEnergy at cast start. This module applies passive regeneration,
- * aggregate upkeep drain, exact starvation timing, out-of-combat Energy
- * capping and endurance regeneration.
+ * The scheduler calls advanceRevenantEnergy whenever its clock advances. This
+ * module applies passive regeneration, aggregate upkeep drain, exact starvation
+ * timing, out-of-combat Energy capping and endurance regeneration.
  */
-import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import { hasRevenantTrait } from './state.js';
 import { emitRevenantState } from './shared.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
@@ -120,60 +117,25 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   emitRevenantState(context, target, 'energy');
 }
 
-/** Resolves state-dependent Energy overrides shared by UI and scheduling. */
+/** Minimal Core state used to make active upkeep toggles free. */
 interface RevenantEnergyCostState {
   readonly activeUpkeeps?: RevenantCoreState['activeUpkeeps'];
-  readonly beguilingHazeCharges?: number;
-  readonly energyCostOverrides?: Readonly<Record<string, number>>;
 }
 
-function energyCostStateSlices(context: RevenantEnergyContext): {
-  readonly core: RevenantEnergyCostState;
-  readonly specialization: RevenantEnergyCostState;
-} {
+function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
   if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
-    const runtime = candidate as RevenantRuntimeState;
-    return {
-      core: runtime.core,
-      specialization: runtime.specialization.state as unknown as RevenantEnergyCostState
-    };
+    return (candidate as RevenantRuntimeState).core;
   }
 
-  // Application UI callers may supply the stable flat public projection.
-  // Runtime scheduler callers always take the explicit nested branch above.
-  const applicationState = candidate as RevenantEnergyCostState;
-  return { core: applicationState, specialization: applicationState };
+  return candidate as RevenantEnergyCostState;
 }
 
-export function effectiveRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
-  const state = energyCostStateSlices(context);
-  const active = (state.core.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
+/** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */
+export function baseRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
+  const state = energyCostCoreState(context);
+  const active = (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (active) return 0;
-  if (skill.freeWithTraitId != null && hasRevenantTrait(context.config, skill.freeWithTraitId)) {
-    return 0;
-  }
-
-  if (
-    skill.freeWhenStatePositive &&
-    Number((state.specialization as unknown as Record<string, unknown>)[skill.freeWhenStatePositive] || 0) > 0
-  ) {
-    return 0;
-  }
-
-  const override = state.specialization.energyCostOverrides?.[String(skill.id)];
-  if (override != null) return Math.max(0, Number(override));
   return Math.max(0, Number(skill.energyCost || 0));
-}
-
-/** Pays a cast's Energy cost. */
-export function spendRevenantEnergy(context: RevenantPrecastContext, skill: RevenantSkill): void {
-  if (([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(Number(skill.id))) return;
-  const state = professionCoreState(context);
-  const cost = effectiveRevenantEnergyCost(context, skill);
-  state.energy = Math.max(0, state.energy - cost);
-  if (cost > 0) {
-    emitRevenantState(context, context.start, 'energy-spent');
-  }
 }

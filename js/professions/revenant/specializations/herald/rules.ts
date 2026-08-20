@@ -13,6 +13,9 @@ import {
 } from '../../data/ids.js';
 import type { RevenantSchedulerContext, RevenantSimulationEvent } from '../../types.js';
 import { HERALD_SPIRIT_BOON_PROFILE_ID } from './skills.js';
+import { afterHeraldFacetCast, handleHeraldFacetPulse } from './upkeep.js';
+import { denyRevenantSkill } from '../../core/availability.js';
+import type { RevenantPrecastContext, RevenantSkill } from '../../types.js';
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -44,7 +47,26 @@ export const heraldAttributeRules = Object.freeze({
   modifierRules: heraldModifierRules
 });
 
-export const heraldCastRules = Object.freeze({});
+function heraldCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
+  const state = professionCoreState(context);
+  if (skill.consume && !state.availableFlips[skill.id]) {
+    return denyRevenantSkill(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
+  }
+
+  if (skill.facet && state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)) {
+    return denyRevenantSkill(skill, 'revenant.facet-active', 'the facet is already active; consume it instead.');
+  }
+
+  return { ready: true as const };
+}
+
+export const heraldCastRules = Object.freeze({
+  availability: {
+    id: 'revenant.herald-facet-availability',
+    order: 20,
+    handler: heraldCastAvailability
+  }
+});
 
 function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   // activeLegendId is already updated to the destination legend by the time sigil_swap is emitted, so this tests the legend just swapped into.
@@ -65,10 +87,18 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
 }
 
 export const heraldSchedulerHooks = Object.freeze({
+  afterCast: {
+    id: 'revenant.herald-facet-start',
+    order: 20,
+    handler: afterHeraldFacetCast
+  },
   onEventScheduled: {
     id: 'revenant.herald-legend-invocation',
     // order: 20 places this after the core weapon/spear observers (order 10) so legend state is stable before invocation fires.
     order: 20,
     handler: observeHeraldEvent
-  }
+  },
+  taskHandlers: Object.freeze({
+    'revenant.herald-facet-pulse': handleHeraldFacetPulse
+  })
 });

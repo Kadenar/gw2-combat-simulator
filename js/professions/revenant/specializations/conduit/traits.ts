@@ -1,5 +1,4 @@
 import { conduitState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -7,7 +6,8 @@ import {
 } from '../../data/ids.js';
 import { emitRevenantBoon } from '../../core/boons.js';
 import { revenantCombatActive } from '../../core/legend.js';
-import { hasRevenantTrait, revenantConduitFormIsActive } from '../../core/state.js';
+import { hasRevenantTrait } from '../../core/state.js';
+import { revenantConduitFormIsActive } from './state.js';
 import { applyCosmicWisdomAfterCast } from './conduit.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
@@ -136,13 +136,13 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
     return;
   }
 
-  const state = professionCoreState(context);
+  const state = conduitState.from(context);
   const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
   const burning = profile?.effects?.find((effect) => effect.type === 'condition');
-  const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
+  const readyAt = Number(state.mistfireReadyAt || 0);
   // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
   if (event.at + context.epsilon < readyAt) return;
-  state.traitProcReadyAt.mistfire = event.at + Math.max(0, Number(profile?.cooldown || 0));
+  state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
   context.emitDerived(event, {
     type: 'condition',
     at: event.at,

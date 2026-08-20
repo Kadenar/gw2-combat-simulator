@@ -1,5 +1,4 @@
 import { renegadeState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { activeKallasFervorStacks, grantKallasFervor, isBandTogetherReady } from './renegade.js';
@@ -66,15 +65,15 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
     });
   }
 
-  const state = professionCoreState(context);
-  if (!enmity || criticals <= 0 || event.at + context.epsilon < Number(state.traitProcReadyAt.endlessEnmity || 0)) {
+  const state = renegadeState.from(context);
+  if (!enmity || criticals <= 0 || event.at + context.epsilon < Number(state.endlessEnmityReadyAt || 0)) {
     return;
   }
 
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.endlessEnmity);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
   if (!profile || !effect) return;
-  state.traitProcReadyAt.endlessEnmity = event.at + Math.max(0, Number(profile.cooldown || 0));
+  state.endlessEnmityReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
   context.emitDerived(event, {
     type: 'buff',
     at: event.at,
@@ -196,15 +195,14 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
 
 export function observeRenegadeTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const state = renegadeState.from(context);
-  const coreState = professionCoreState(context);
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'fury' &&
     hasRevenantTrait(context.config, TRAIT.BLOOD_FURY) &&
-    event.at + context.epsilon >= Number(coreState.traitProcReadyAt.bloodFury || 0)
+    event.at + context.epsilon >= Number(state.bloodFuryReadyAt || 0)
   ) {
     const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.bloodFury);
-    coreState.traitProcReadyAt.bloodFury = event.at + Math.max(0, Number(profile?.cooldown || 0));
+    state.bloodFuryReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
     grantKallasFervor(context, event, {
       sourceId: TRAIT.BLOOD_FURY,
       sourceName: 'Blood Fury'

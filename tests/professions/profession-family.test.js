@@ -52,6 +52,7 @@ import { virtuosoModule } from '../../js/professions/mesmer/specializations/virt
 import { REVENANT_ELITE_SPECIALIZATIONS, revenantCatalog } from '../../js/professions/revenant/catalog.js';
 import { revenantProfession } from '../../js/professions/revenant/definition.js';
 import { revenantCoreModule } from '../../js/professions/revenant/core/module.js';
+import { REVENANT_SKILL_IDS } from '../../js/professions/revenant/data/ids.js';
 import { conduitModule } from '../../js/professions/revenant/specializations/conduit/module.js';
 import { heraldModule } from '../../js/professions/revenant/specializations/herald/module.js';
 import { renegadeModule } from '../../js/professions/revenant/specializations/renegade/module.js';
@@ -1301,7 +1302,11 @@ const revenantSpecializationStateKeys = Object.freeze({
     'bandTogetherExpiresAt',
     'kallasFervor',
     'renegadeCriticalProgress',
-    'razorclawsRage'
+    'razorclawsRage',
+    'soulcleaveNextAlliedProcAt',
+    'endlessEnmityReadyAt',
+    'bloodFuryReadyAt',
+    'soulcleaveReadyAt'
   ],
   Vindicator: ['allianceSide', 'selectedDodge', 'reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
@@ -1311,7 +1316,10 @@ const revenantSpecializationStateKeys = Object.freeze({
     'beguilingHazeCharges',
     'beguilingHazeReadyAt',
     'beguilingHazeMainReservations',
-    'energyCostOverrides'
+    'energyCostOverrides',
+    'upkeepAffinityNextAt',
+    'impossibleOddsLesserDaggersNextAt',
+    'mistfireReadyAt'
   ]
 });
 
@@ -1374,15 +1382,56 @@ test('Revenant modules are vertical slices with disjoint ownership', () => {
   assert.equal(modifierRuleOwners.get('revenant.leviathan-strength'), 'Vindicator');
   assert.equal(modifierRuleOwners.get('revenant.release-warrior-affinity'), 'Conduit');
 
-  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']
+  const coreSources = [
+    'availability.ts',
+    'energy.ts',
+    'events.ts',
+    'handlers.ts',
+    'legend-traits.ts',
+    'module.ts',
+    'rules.ts',
+    'skills.ts',
+    'state.ts',
+    'ui.ts',
+    'upkeep.ts',
+    'weapon-state.ts'
+  ]
     .map((filename) => readFileSync(new URL(`../../js/professions/revenant/core/${filename}`, import.meta.url), 'utf8'))
     .join('\n');
 
   assert.doesNotMatch(coreSources, /specializations\//);
+  assert.doesNotMatch(
+    coreSources,
+    /CITADEL_BOMBARDMENT|beguiling-haze|\bfacet\b|upkeepPulse|freeWithTraitId|freeWhenStatePositive|energyCostOverrides|LEGEND\.ENTITY/
+  );
 });
 
 test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () => {
   const skillOwner = nativeSkillOwnerMap(revenantSlices, revenantCatalog);
+
+  for (const [owner, skillIds] of [
+    ['Herald', [REVENANT_SKILL_IDS.LEGENDARY_DRAGON_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_DRAGON]],
+    [
+      'Renegade',
+      [
+        REVENANT_SKILL_IDS.LEGENDARY_RENEGADE_STANCE,
+        REVENANT_SKILL_IDS.LEGENDARY_RENEGADE_STANCE_ID_46409,
+        REVENANT_SKILL_IDS.CALL_OF_THE_RENEGADE
+      ]
+    ],
+    ['Vindicator', [REVENANT_SKILL_IDS.LEGENDARY_ALLIANCE_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_ALLIANCE]],
+    [
+      'Conduit',
+      [
+        REVENANT_SKILL_IDS.LEGENDARY_ENTITY_STANCE,
+        REVENANT_SKILL_IDS.PAIN_ABSORPTION_ID_78505,
+        REVENANT_SKILL_IDS.BANISH_ENCHANTMENT_ID_78587,
+        REVENANT_SKILL_IDS.EMPOWERING_MISERY_ID_78681
+      ]
+    ]
+  ]) {
+    for (const skillId of skillIds) assert.equal(skillOwner.get(skillId), owner, String(skillId));
+  }
 
   assert.equal(revenantProfession.catalog, revenantCatalog);
   for (const active of ['Core', ...REVENANT_ELITE_SPECIALIZATIONS]) {
@@ -1420,6 +1469,11 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
       Object.hasOwn(runtime.taskHandlers, 'revenant.affinity-hit'),
       active === 'Conduit',
       `${active}:affinity-task`
+    );
+    assert.equal(
+      Object.hasOwn(runtime.taskHandlers, 'revenant.herald-facet-pulse'),
+      active === 'Herald',
+      `${active}:facet-task`
     );
     assert.equal(
       Object.hasOwn(runtime.eventReactions, 'damage.resolved'),

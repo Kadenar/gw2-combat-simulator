@@ -692,13 +692,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ]
   },
-  [ID.LEGENDARY_DRAGON_STANCE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
   [ID.DROP_THE_HAMMER]: {
     interruptCommitMs: 0,
     implemented: true,
@@ -1876,13 +1869,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ]
   },
-  [ID.LEGENDARY_RENEGADE_STANCE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
   [ID.SPIRITCRUSH]: {
     implemented: true,
     castTimeMs: 400,
@@ -1968,13 +1954,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ]
   },
-  [ID.LEGENDARY_RENEGADE_STANCE_ID_46409]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
   [ID.CALL_OF_THE_DWARF]: {
     implemented: true,
     castTimeMs: 0,
@@ -2003,28 +1982,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     cooldown: 0,
     energyCost: 0,
     effects: []
-  },
-  [ID.CALL_OF_THE_RENEGADE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        name: 'Call of the Renegade',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 8,
-        actorType: 'player'
-      }
-    ]
   },
   [ID.CALL_OF_THE_ASSASSIN]: {
     implemented: true,
@@ -2085,35 +2042,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         condition: 'Torment',
         stacks: 2,
         duration: 8,
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.CALL_OF_THE_DRAGON]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: 'Call of the Dragon',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 3,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
         actorType: 'player'
       }
     ]
@@ -2590,22 +2518,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ]
   },
-  [ID.CALL_OF_THE_ALLIANCE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    resourceGain: 8,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.93,
-        hits: 1,
-        name: 'Call of the Alliance',
-        actorType: 'player'
-      }
-    ]
-  },
   [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
     implemented: true,
     quicknessCastTimeMs: 438,
@@ -2691,13 +2603,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         actorType: 'player'
       }
     ]
-  },
-  [ID.LEGENDARY_ALLIANCE_STANCE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
     implemented: true,
@@ -3353,34 +3258,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     legendId: 'LegendaryDemon'
-  },
-  [ID.LEGENDARY_ENTITY_STANCE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.PAIN_ABSORPTION_ID_78505]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.BANISH_ENCHANTMENT_ID_78587]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.EMPOWERING_MISERY_ID_78681]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 30,
-    energyCost: 0,
-    effects: []
   }
 });
 

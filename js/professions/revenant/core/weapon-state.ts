@@ -30,11 +30,7 @@ export function updateRevenantWeaponState(context: RevenantCastContext, skill: R
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
-  } else if (
-    skill.id === ID.DODGE ||
-    skill.id === ID.CITADEL_BOMBARDMENT ||
-    skill.handlerId === 'revenant.beguiling-haze'
-  ) {
+  } else if (skill.id === ID.DODGE) {
     state.autoattackChains = {};
   } else if (skill.id !== ID.TEMPORAL_RIFT && skill.type === 'Weapon') {
     state.autoattackChains = {};

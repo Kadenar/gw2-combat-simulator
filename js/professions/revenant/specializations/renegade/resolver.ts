@@ -46,9 +46,9 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
     active.has(soulcleave.id) &&
     // Exclude Soulcleave's own events to prevent self-triggering
     event.skillId !== soulcleave.id &&
-    event.at >= Number(professionCoreState(context).traitProcReadyAt.soulcleave || 0)
+    event.at >= Number(renegadeState.from(context).soulcleaveReadyAt || 0)
   ) {
-    professionCoreState(context).traitProcReadyAt.soulcleave = event.at + Math.max(0, Number(proc.cooldown || 0));
+    renegadeState.from(context).soulcleaveReadyAt = event.at + Math.max(0, Number(proc.cooldown || 0));
     for (const effect of proc.effects || []) {
       const applications = materializeSkillEffectApplications({
         skill: proc,

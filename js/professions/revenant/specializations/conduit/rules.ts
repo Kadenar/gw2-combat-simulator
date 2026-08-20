@@ -27,9 +27,11 @@ import {
   handleConduitAffinityHit,
   syncConduitEnergyCostOverrides
 } from './conduit.js';
-import { effectiveRevenantEnergyCost } from '../../core/energy.js';
+import { effectiveRevenantEnergyCost } from '../../energy.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { revenantCombatActive } from '../../core/legend.js';
+import { emitLegendInvocationProfile } from '../../core/legend-traits.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../../core/skills.js';
 import {
   afterConduitTraitCast,
   modifyConduitCastDuration,
@@ -203,17 +205,24 @@ export const conduitCastRules = Object.freeze({
 
 function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   afterConduitTraitCast(context, skill);
-  if (skill.handlerId !== 'revenant.upkeep') return;
-  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
-  // Initialize nextAffinityAt only once per upkeep activation; re-activating a running upkeep must not reset it.
-  if (active && active.nextAffinityAt == null) {
-    // Affinity ticks 3 s after the upkeep begins; subsequent ticks are advanced in advanceConduitUpkeep.
-    active.nextAffinityAt = context.effectiveEnd + 3;
+  // Beguiling Haze interrupts Core weapon chains, but Conduit owns which cast causes that transition.
+  if (context.action?.cancelled !== true && skill.handlerId === 'revenant.beguiling-haze') {
+    professionCoreState(context).autoattackChains = {};
   }
 
-  if (active && skill.id === ID.IMPOSSIBLE_ODDS && active.nextAlliedProcAt == null) {
+  if (skill.handlerId !== 'revenant.upkeep') return;
+  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
+  const state = conduitState.from(context);
+  const upkeepKey = String(skill.id);
+  // Initialize the Conduit-owned cadence only once per upkeep activation.
+  if (active && state.upkeepAffinityNextAt[upkeepKey] == null) {
+    // Affinity ticks 3 s after the upkeep begins; subsequent ticks are advanced in advanceConduitUpkeep.
+    state.upkeepAffinityNextAt[upkeepKey] = context.effectiveEnd + 3;
+  }
+
+  if (active && skill.id === ID.IMPOSSIBLE_ODDS && state.impossibleOddsLesserDaggersNextAt == null) {
     // Impossible Odds also fires Lesser Enchanted Daggers every 1 s; first proc is 1 s after activation.
-    active.nextAlliedProcAt = context.effectiveEnd + 1;
+    state.impossibleOddsLesserDaggersNextAt = context.effectiveEnd + 1;
   }
 }
 
@@ -230,27 +239,39 @@ function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number)
     syncConduitEnergyCostOverrides(context);
   }
 
-  for (const active of professionCoreState(context).activeUpkeeps) {
+  const activeUpkeeps = professionCoreState(context).activeUpkeeps;
+  const activeIds = new Set(activeUpkeeps.map((active) => String(active.skillId)));
+  for (const skillId of Object.keys(state.upkeepAffinityNextAt)) {
+    if (!activeIds.has(skillId)) delete state.upkeepAffinityNextAt[skillId];
+  }
+  if (!activeIds.has(String(ID.IMPOSSIBLE_ODDS))) state.impossibleOddsLesserDaggersNextAt = null;
+
+  for (const active of activeUpkeeps) {
+    const upkeepKey = String(active.skillId);
+    const nextAffinityAt = state.upkeepAffinityNextAt[upkeepKey];
     if (
-      active.nextAffinityAt != null &&
+      nextAffinityAt != null &&
       // epsilon prevents floating-point drift from skipping an affinity tick at exactly the boundary.
-      target + context.epsilon >= active.nextAffinityAt
+      target + context.epsilon >= nextAffinityAt
     ) {
       gainConduitAffinity(context, 1, 'enigmatic-upkeep');
-      active.nextAffinityAt += 3;
+      state.upkeepAffinityNextAt[upkeepKey] += 3;
     }
 
     if (
       active.skillId === ID.IMPOSSIBLE_ODDS &&
-      active.nextAlliedProcAt != null &&
-      target + context.epsilon >= active.nextAlliedProcAt
+      state.impossibleOddsLesserDaggersNextAt != null &&
+      target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
     ) {
       const skill = context.catalog.skillsById.get(active.skillId);
       if (skill) {
         // While loop handles multiple elapsed ticks if the advance step spans more than 1 s.
-        while (active.nextAlliedProcAt != null && target + context.epsilon >= active.nextAlliedProcAt) {
-          emitLesserEnchantedDaggers(context, skill, active.nextAlliedProcAt);
-          active.nextAlliedProcAt += 1;
+        while (
+          state.impossibleOddsLesserDaggersNextAt != null &&
+          target + context.epsilon >= state.impossibleOddsLesserDaggersNextAt
+        ) {
+          emitLesserEnchantedDaggers(context, skill, state.impossibleOddsLesserDaggersNextAt);
+          state.impossibleOddsLesserDaggersNextAt += 1;
         }
       }
     }
@@ -275,6 +296,31 @@ function gainConduitAffinityFromCost(context: RevenantCastContext, skill: Revena
 function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   if (event.type !== 'sigil_swap') return;
   const state = conduitState.from(context);
+  const coreState = professionCoreState(context);
+  // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
+  if (coreState.activeLegendId === LEGEND.ENTITY && revenantCombatActive(context, event.at)) {
+    const pairedLegendId = coreState.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
+    if (pairedLegendId && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+      emitLegendInvocationProfile(
+        context,
+        REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
+        event.at,
+        TRAIT.SPIRIT_BOON,
+        (effect) => effect.metadata?.legendId === pairedLegendId
+      );
+    }
+
+    if (pairedLegendId && hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
+      emitLegendInvocationProfile(
+        context,
+        REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
+        event.at,
+        TRAIT.SONG_OF_THE_MISTS,
+        (effect) => effect.metadata?.legendId === pairedLegendId
+      );
+    }
+  }
+
   // Snapshot active status before resetting affinity so Enhanced Embodiment and form updates use the pre-swap value.
   const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
   // Legend swap always resets affinity to 0 regardless of traits.

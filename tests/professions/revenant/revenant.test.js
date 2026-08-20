@@ -453,9 +453,8 @@ test('Beguiling Haze variants share the common cast timing fields', () => {
 });
 
 test('Herald invocation effects use patch-authorable skill declarations', () => {
-  const core = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
   const herald = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
-  const call = core.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_DRAGON);
+  const call = herald.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_DRAGON);
   const spiritBoon = herald.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Dragon)');
 
   assert.deepEqual(
@@ -510,9 +509,8 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
 });
 
 test('Renegade invocation effects use patch-authorable skill declarations', () => {
-  const core = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
   const renegade = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
-  const call = core.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE);
+  const call = renegade.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE);
   const spiritBoon = renegade.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Renegade)');
 
   assert.deepEqual(

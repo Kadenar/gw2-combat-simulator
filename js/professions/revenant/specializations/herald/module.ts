@@ -18,7 +18,7 @@ export const heraldModule = defineNativeModule({
   state: { scheduler: heraldState.create, resolver: heraldState.create },
   mechanics: {
     modifiers: heraldAttributeRules,
-    // No Herald-specific cast availability rules; facet gating is enforced by the core revenant availability handler.
+    // Herald owns facet activation/consume availability while Core supplies only the shared upkeep resource gate.
     castRules: heraldCastRules,
     schedulerHooks: heraldSchedulerHooks,
     resolverHooks: {

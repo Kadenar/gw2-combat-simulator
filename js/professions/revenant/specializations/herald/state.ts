@@ -1,6 +1,9 @@
 import type { HeraldState } from '../../types.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
+export const HERALD_PUBLIC_END_STATE_KEYS: readonly (keyof HeraldState)[] = Object.freeze([]);
+export const HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HeraldState>> = Object.freeze({});
+
 // Herald carries no private simulation state beyond what the shared core (activeUpkeeps, availableFlips, energy) already tracks.
 export function createHeraldState(): HeraldState {
   return {};

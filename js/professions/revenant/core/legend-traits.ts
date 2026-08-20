@@ -4,19 +4,14 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  * Trait effects triggered by invoking a legend.
  *
  * Materializes Spirit Boon, Song of the Mists, Invoking Torment, Diabolic
- * Inferno for Core legends at legend-swap completion. Legend selection
- * accounts for Conduit's Entity bar by resolving the paired Core legend.
+ * Inferno for Core legends at legend-swap completion. Elite legends add their
+ * own invocation behavior through specialization-local observers.
  */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasRevenantTrait } from './state.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '../../../platform/engine/types.js';
-import type { RevenantCastContext, RevenantCoreState, RevenantSchedulerContext, RevenantSkill } from '../types.js';
-
-function invokedLegend(state: RevenantCoreState): string {
-  if (state.activeLegendId !== LEGEND.ENTITY) return state.activeLegendId;
-  return state.selectedLegendIds.find((id) => id !== LEGEND.ENTITY) || LEGEND.ENTITY;
-}
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 
@@ -126,7 +121,7 @@ function emitInvokingTorment(context: RevenantCastContext, at: number): void {
 /** Applies every selected trait that triggers from the newly invoked legend. */
 export function applyLegendInvocationTraits(context: RevenantCastContext, swapSkill: RevenantSkill): void {
   const at = context.effectiveEnd;
-  const legendId = invokedLegend(professionCoreState(context));
+  const legendId = professionCoreState(context).activeLegendId;
   if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitSpiritBoon(context, swapSkill, legendId, at);
   }

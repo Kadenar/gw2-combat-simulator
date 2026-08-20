@@ -101,8 +101,6 @@ export interface RevenantUpkeepState extends SchedulerRecord {
   skillId: SkillId;
   upkeepCost: number;
   empoweredNextPulse: boolean;
-  nextAlliedProcAt: number | null;
-  nextAffinityAt: number | null;
 }
 
 export interface RevenantSelfCondition extends SchedulerRecord {
@@ -151,6 +149,10 @@ export interface RenegadeState {
   kallasFervorMaximumStacks: number;
   renegadeCriticalProgress: number;
   razorclawsRage: RevenantChargeState;
+  soulcleaveNextAlliedProcAt: number | null;
+  endlessEnmityReadyAt: number;
+  bloodFuryReadyAt: number;
+  soulcleaveReadyAt: number;
 }
 
 export interface VindicatorState {
@@ -169,6 +171,9 @@ export interface ConduitState {
   beguilingHazeReadyAt: number;
   beguilingHazeMainReservations: string[];
   energyCostOverrides: Record<string, number>;
+  upkeepAffinityNextAt: Record<string, number>;
+  impossibleOddsLesserDaggersNextAt: number | null;
+  mistfireReadyAt: number;
 }
 
 export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {}

@@ -5,7 +5,8 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  */
 
 import { revenantCastAvailability } from './availability.js';
-import { advanceRevenantEnergy, spendRevenantEnergy } from './energy.js';
+import { advanceRevenantEnergy } from './energy.js';
+import { spendRevenantEnergy } from '../energy.js';
 import { prepareRevenantHitboxEvent } from './events.js';
 import { handleRevenantUpkeepPulse } from './upkeep.js';
 import { completeRevenantFollowup } from './actions.js';
@@ -147,7 +148,7 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2Stats } from '../../../platform/gw2/types.js';
 import type { RevenantConfig, RevenantCoreState, RevenantRuntimeState, RevenantState } from '../types.js';
 
-export { snapshotRevenantState } from './state.js';
+export { snapshotRevenantState } from '../state.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;

@@ -7,7 +7,8 @@ import {
   revenantSchedulerHooks,
   snapshotRevenantState
 } from './rules.js';
-import { createRevenantCoreState, projectRevenantEndState } from './state.js';
+import { createRevenantCoreState } from './state.js';
+import { projectRevenantEndState } from '../state.js';
 import { revenantCoreUi } from './ui.js';
 import {
   REVENANT_CORE_BALANCE_PROFILES,

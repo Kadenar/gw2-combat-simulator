@@ -9,7 +9,12 @@ import type {
 import type { GuardianCoreState, GuardianFirebrandState } from '../../js/professions/guardian/types.js';
 import type { MesmerCoreState, MesmerVirtuosoState } from '../../js/professions/mesmer/types.js';
 import type { NecromancerCoreState, ScourgeState } from '../../js/professions/necromancer/types.js';
-import type { RevenantCoreState, VindicatorState } from '../../js/professions/revenant/types.js';
+import type {
+  ConduitState,
+  RenegadeState,
+  RevenantCoreState,
+  VindicatorState
+} from '../../js/professions/revenant/types.js';
 import { weaverState } from '../../js/professions/elementalist/specializations/weaver/state.js';
 import { catalystState } from '../../js/professions/elementalist/specializations/catalyst/state.js';
 import type { CatalystState } from '../../js/professions/elementalist/specializations/catalyst/state.js';
@@ -47,7 +52,11 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Owns<RevenantCoreState, 'activeLegendId'>>,
   Assert<Rejects<VindicatorState, 'activeLegendId'>>,
   Assert<Owns<VindicatorState, 'allianceSide'>>,
-  Assert<Rejects<RevenantCoreState, 'allianceSide'>>
+  Assert<Rejects<RevenantCoreState, 'allianceSide'>>,
+  Assert<Owns<RenegadeState, 'soulcleaveNextAlliedProcAt'>>,
+  Assert<Rejects<RevenantCoreState, 'soulcleaveNextAlliedProcAt'>>,
+  Assert<Owns<ConduitState, 'upkeepAffinityNextAt'>>,
+  Assert<Rejects<RevenantCoreState, 'upkeepAffinityNextAt'>>
 ];
 
 declare const context: EngineerSchedulerContext;

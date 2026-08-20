@@ -2,17 +2,14 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *
- * Toggles and releases upkeep skills and handles the recurring
- * revenant.upkeep-pulse task. Active elites add their own pulse side effects
- * through specialization-local scheduler hooks.
+ * Toggles and releases shared upkeep skills and handles recurring Core upkeep
+ * pulses. Elite specializations own any additional upkeep lifecycle.
  */
 import { emitRevenantState } from './shared.js';
-import { emitRevenantBoon } from './boons.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
 import type {
   RevenantCastContext,
-  RevenantCoreState,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill,
@@ -83,12 +80,6 @@ function pulseIntervalForUpkeep(skill: RevenantSkill | undefined): number {
   return Math.max(0, Number(skill?.pulseInterval ?? 1));
 }
 
-function facetConsumeId(skill: RevenantSkill, state: RevenantCoreState): SkillId | undefined {
-  return (
-    skill.upkeepConsumeByLegendId?.[state.activeLegendId] ?? skill.upkeepConsumeId ?? skill.flipSkillId ?? undefined
-  );
-}
-
 function emitEmbraceTheDarknessPulse(
   context: RevenantSchedulerContext,
   skill: RevenantSkill,
@@ -117,9 +108,6 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   const index = state.activeUpkeeps.findIndex((upkeep) => upkeep.skillId === skill.id);
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
-    const consumeId = facetConsumeId(skill, state);
-    const consume = consumeId == null ? undefined : context.catalog.skillsById.get(consumeId);
-    if (consume) delete state.availableFlips[consume.id];
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
     emitRevenantState(context, at, 'upkeep-disabled');
     return;
@@ -128,14 +116,9 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   const active: RevenantUpkeepState = {
     skillId: skill.id,
     upkeepCost: Number(skill.upkeepCost || 0),
-    empoweredNextPulse: false,
-    nextAlliedProcAt: null,
-    nextAffinityAt: null
+    empoweredNextPulse: false
   };
   state.activeUpkeeps.push(active);
-  const consumeId = facetConsumeId(skill, state);
-  const consume = consumeId == null ? undefined : context.catalog.skillsById.get(consumeId);
-  if (consume) state.availableFlips[consume.id] = true;
   const release = skill.flipSkillId == null ? null : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) state.availableFlips[release.id] = true;
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
@@ -197,15 +180,6 @@ export function handleRevenantUpkeepPulse(
         hitIndex: hammer,
         totalHits: hammers
       });
-    }
-  } else if (skill?.upkeepPulse) {
-    const pulse = skill.upkeepPulse as {
-      readonly kind: string;
-      readonly duration: number;
-      readonly stacks: number;
-    };
-    if (pulse) {
-      emitRevenantBoon(context, skill, pulse.kind, pulse.duration, pulse.stacks, { at: task.at });
     }
   }
 

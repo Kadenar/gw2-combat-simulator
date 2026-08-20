@@ -24,7 +24,7 @@ import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necroman
 import { RANGER_TRAIT_COVERAGE } from '../../js/professions/ranger/data/trait-coverage.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/professions/ranger/core/state.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../js/professions/revenant/data/trait-coverage.js';
-import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/professions/revenant/core/state.js';
+import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/professions/revenant/state.js';
 import { THIEF_TRAIT_COVERAGE } from '../../js/professions/thief/data/trait-coverage.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/core/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../../js/professions/warrior/data/trait-coverage.js';
@@ -500,7 +500,19 @@ test('ready native professions expose deliberate public end-state keys', async (
       'weaponSpells'
     ],
     ranger: [],
-    revenant: ['energyUpdatedAt', 'enduranceUpdatedAt', 'renegadeCriticalProgress', 'traitProcReadyAt'],
+    revenant: [
+      'energyUpdatedAt',
+      'enduranceUpdatedAt',
+      'renegadeCriticalProgress',
+      'soulcleaveNextAlliedProcAt',
+      'endlessEnmityReadyAt',
+      'bloodFuryReadyAt',
+      'soulcleaveReadyAt',
+      'upkeepAffinityNextAt',
+      'impossibleOddsLesserDaggersNextAt',
+      'mistfireReadyAt',
+      'traitProcReadyAt'
+    ],
     thief: ['artifactOutcomeIndices', 'doubleEdgeOutcomeIndex', 'initiativeSpentSincePilfer', 'traitProcReadyAt'],
     warrior: [
       'burstPowerExpiries',

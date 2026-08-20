@@ -443,6 +443,42 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     energyCost: 5,
     effects: BASE_BREAKRAZOR_EFFECTS,
     legendId: 'LegendaryRenegade'
+  },
+  [ID.LEGENDARY_RENEGADE_STANCE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.LEGENDARY_RENEGADE_STANCE_ID_46409]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.CALL_OF_THE_RENEGADE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.5,
+        hits: 1,
+        name: 'Call of the Renegade',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 8,
+        actorType: 'player'
+      }
+    ]
   }
 });
 

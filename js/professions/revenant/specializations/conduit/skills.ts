@@ -524,6 +524,34 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         actorType: 'player'
       }
     ]
+  },
+  [ID.LEGENDARY_ENTITY_STANCE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.PAIN_ABSORPTION_ID_78505]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 5,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.BANISH_ENCHANTMENT_ID_78587]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 5,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.EMPOWERING_MISERY_ID_78681]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 30,
+    energyCost: 0,
+    effects: []
   }
 });
 

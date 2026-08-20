@@ -1,8 +1,6 @@
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { normalizeRevenantLegendIds } from '../legend-rules.js';
-import type { ConduitState, RevenantConfig, RevenantCoreState, RevenantRuntimeState, RevenantState } from '../types.js';
-import type { SchedulerState } from '../../../platform/engine/types.js';
+import type { RevenantConfig, RevenantCoreState } from '../types.js';
 
 export function selectedRevenantTraits(config: RevenantConfig = {}): Set<string | number> {
   return new Set(
@@ -19,14 +17,6 @@ export function hasRevenantTrait(
   const traits =
     configOrTraits instanceof Set ? configOrTraits : selectedRevenantTraits(configOrTraits as RevenantConfig);
   return traits.has(traitId) || traits.has(String(traitId));
-}
-
-export function revenantConduitFormIsActive(
-  state: Partial<ConduitState> | null | undefined,
-  form: string,
-  at = 0
-): boolean {
-  return state?.conduitForm === form && Number(state.cosmicWisdomUntil || 0) > Number(at || 0);
 }
 
 export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCoreState {
@@ -68,11 +58,8 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
   };
 }
 
-export function snapshotRevenantState(state: unknown): RevenantState {
-  return structuredClone(flattenProfessionState(state)) as unknown as RevenantState;
-}
-
-export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = Object.freeze([
+// Core publishes only state shared by every Revenant build; elite state is projected by its owning module.
+export const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
   'energy',
   'maximumEnergy',
   'activeLegendId',
@@ -83,22 +70,9 @@ export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = 
   'availableFlips',
   'autoattackChains',
   'abyssalStrikeSecondCast',
-  'allianceSide',
   'endurance',
   'maximumEndurance',
-  'selectedDodge',
-  'reaversCurseUntil',
-  'forerunnerOfDeathUntil',
-  'affinity',
-  'cosmicWisdomUntil',
-  'conduitForm',
-  'beguilingHazeCharges',
-  'beguilingHazeReadyAt',
-  'bandTogetherReady',
-  'bandTogetherExpiresAt',
-  'kallasFervor',
   'enchantedDaggers',
-  'razorclawsRage',
   'battleScars',
   'crushingAbyss',
   'combatBeganAt',
@@ -107,37 +81,3 @@ export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = 
   'selfConditionCount',
   'activeLegendSummons'
 ]);
-
-const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RevenantState>> = Object.freeze({
-  allianceSide: 'luxon',
-  selectedDodge: 'Death Drop',
-  reaversCurseUntil: 0,
-  forerunnerOfDeathUntil: 0,
-  affinity: 0,
-  cosmicWisdomUntil: 0,
-  conduitForm: '',
-  beguilingHazeCharges: 0,
-  beguilingHazeReadyAt: 0,
-  bandTogetherReady: false,
-  bandTogetherExpiresAt: 0,
-  kallasFervor: [],
-  razorclawsRage: {
-    charges: 0,
-    expiresAt: 0,
-    readyAt: 0
-  }
-});
-
-export function projectRevenantEndState({
-  schedulerState
-}: {
-  schedulerState: SchedulerState<RevenantRuntimeState>;
-}): Partial<RevenantState> {
-  const state = snapshotRevenantState(schedulerState.profession);
-  return Object.fromEntries(
-    REVENANT_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(Object.hasOwn(state, key) ? state[key] : REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
-}

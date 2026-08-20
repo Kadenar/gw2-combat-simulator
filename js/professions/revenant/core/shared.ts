@@ -6,7 +6,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  * resolver state handoff. State events always contain a detached snapshot so
  * later scheduler mutations cannot rewrite earlier timeline state.
  */
-import { snapshotRevenantState } from './state.js';
+import { snapshotRevenantState } from '../state.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 /** Switches equipped weapon sets and emits the shared weapon-set event. */

@@ -358,6 +358,42 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ],
     legendId: 'LegendaryDragon',
     consume: true
+  },
+  [ID.LEGENDARY_DRAGON_STANCE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
+  },
+  [ID.CALL_OF_THE_DRAGON]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.75,
+        hits: 1,
+        name: 'Call of the Dragon',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 2,
+        duration: 3,
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
+      }
+    ]
   }
 });
 

@@ -388,6 +388,29 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     resourceGain: 25,
     freeWithTraitId: TRAIT.ANGSIYANS_TRUST,
     effects: []
+  },
+  [ID.CALL_OF_THE_ALLIANCE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    resourceGain: 8,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.93,
+        hits: 1,
+        name: 'Call of the Alliance',
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.LEGENDARY_ALLIANCE_STANCE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
   }
 });
 

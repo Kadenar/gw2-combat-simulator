@@ -16,7 +16,8 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
-import { hasRevenantTrait, revenantConduitFormIsActive } from '../../core/state.js';
+import { hasRevenantTrait } from '../../core/state.js';
+import { revenantConduitFormIsActive } from './state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
   BalanceProfile,

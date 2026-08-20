@@ -19,6 +19,7 @@ import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { grantKallasFervor } from './renegade.js';
+import { renegadeState } from './state.js';
 import { RENEGADE_PROFILE_IDS, RENEGADE_SPIRIT_BOON_PROFILE_ID } from './skills.js';
 import {
   handleRenegadeCriticalTraitsTask,
@@ -129,20 +130,31 @@ export const renegadeCastRules = Object.freeze({
 });
 
 function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Citadel Bombardment interrupts Core weapon chains, but the ownership decision stays with Renegade.
+  if (context.action?.cancelled !== true && skill.id === ID.CITADEL_BOMBARDMENT) {
+    professionCoreState(context).autoattackChains = {};
+  }
+
   if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
-  // nextAlliedProcAt is null when there are no allies, suppressing all allied-proc advance logic.
+  // The specialization-local timer is null when there are no allies, suppressing allied-proc advance logic.
   // Math.max(1, 1/strikesPerSecond) ensures the first allied proc is at least 1s after upkeep starts
   // so the initial cast's own resolver hit doesn't immediately claim the first allied Soulcleave proc.
-  active.nextAlliedProcAt =
+  renegadeState.from(context).soulcleaveNextAlliedProcAt =
     allies.count && allies.strikesPerSecond ? context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond) : null;
 }
 
 function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number): void {
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT);
-  if (!active || active.nextAlliedProcAt == null || target + context.epsilon < active.nextAlliedProcAt) {
+  const state = renegadeState.from(context);
+  if (!active) {
+    state.soulcleaveNextAlliedProcAt = null;
+    return;
+  }
+
+  if (state.soulcleaveNextAlliedProcAt == null || target + context.epsilon < state.soulcleaveNextAlliedProcAt) {
     return;
   }
 
@@ -151,8 +163,8 @@ function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
   // Loop catches up all missed intervals when the scheduler jumps ahead (e.g., after a long cast)
-  while (active.nextAlliedProcAt != null && target + context.epsilon >= active.nextAlliedProcAt) {
-    const at = active.nextAlliedProcAt;
+  while (state.soulcleaveNextAlliedProcAt != null && target + context.epsilon >= state.soulcleaveNextAlliedProcAt) {
+    const at = state.soulcleaveNextAlliedProcAt;
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
       for (const effect of proc.effects || []) {
         const applications = materializeSkillEffectApplications({
@@ -182,7 +194,7 @@ function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number
     }
 
     // Advance by whichever is larger: the 1s internal cooldown or the ally's natural strike interval, preventing proc rates from exceeding what allies can realistically trigger
-    active.nextAlliedProcAt += Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond);
+    state.soulcleaveNextAlliedProcAt += Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond);
   }
 }
 

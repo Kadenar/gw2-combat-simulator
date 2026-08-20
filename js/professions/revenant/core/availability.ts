@@ -1,16 +1,11 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import { effectiveRevenantEnergyCost, revenantEnduranceReadyAt } from './energy.js';
-import type { AvailabilityResult, SkillId } from '../../../platform/engine/types.js';
+import { revenantEnduranceReadyAt } from './energy.js';
+import { effectiveRevenantEnergyCost } from '../energy.js';
+import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '../types.js';
 
-const UPKEEP_RELEASES = new Set<SkillId>([
-  ID.RELEASE_HAMMERS,
-  ID.RESIST_THE_DARKNESS,
-  ID.RELINQUISH_POWER,
-  ID.DISMISS_LIEUTENANT_SOULCLEAVE
-]);
 export function denyRevenantSkill(
   skill: RevenantSkill,
   code: string,
@@ -108,24 +103,12 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return denyRevenantSkill(skill, 'revenant.wrong-specialization', `requires ${skill.specialization}.`);
   }
 
-  if (skill.consume && !state.availableFlips[skill.id]) {
-    return denyRevenantSkill(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
-  }
-
-  if (UPKEEP_RELEASES.has(skill.id) && !state.availableFlips[skill.id]) {
+  if (skill.handlerId === 'revenant.upkeep-release' && !state.availableFlips[skill.id]) {
     return denyRevenantSkill(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
   }
 
-  if (
-    skill.handlerId === 'revenant.upkeep' &&
-    !skill.facet &&
-    state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)
-  ) {
+  if (skill.handlerId === 'revenant.upkeep' && state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)) {
     return denyRevenantSkill(skill, 'revenant.upkeep-active', 'use the matching release skill.');
-  }
-
-  if (skill.facet && state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)) {
-    return denyRevenantSkill(skill, 'revenant.facet-active', 'the facet is already active; consume it instead.');
   }
 
   const cost = effectiveRevenantEnergyCost(context, skill);
