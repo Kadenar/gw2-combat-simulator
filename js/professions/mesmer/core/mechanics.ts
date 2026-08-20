@@ -358,7 +358,8 @@ export const MESMER_CORE_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<numbe
 export const MESMER_CORE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
   ID.BLINK,
   ID.PHASE_RETREAT,
-  ID.AXES_OF_SYMMETRY
+  ID.AXES_OF_SYMMETRY,
+  ID.MENTAL_COLLAPSE
 ]);
 export const MESMER_CORE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
   [ID.AXES_OF_SYMMETRY]: 0.519,
