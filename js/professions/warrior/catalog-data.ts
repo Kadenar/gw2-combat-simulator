@@ -1,4 +1,9 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import {
+  createFlipParentMap,
+  createSpecializationSkillIds,
+  createSpecializationSkillOwners
+} from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from './data/warrior-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
@@ -33,6 +38,7 @@ const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
   45380, // Featherfoot Grace
   62804 // Electric Fence
 ]);
+
 const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   14443, // Whirling Strike
   14469, // Forceful Shot
@@ -45,6 +51,7 @@ const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   44397, // Dissonance
   46044 // Magehunter Strike
 ]);
+
 // These duplicate-name records are addressed directly by live mechanics.
 const WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS = new Set<SkillId>([
   30435, // Berserk
@@ -56,18 +63,16 @@ const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))),
   ...WARRIOR_SUPPLEMENTAL_SKILLS
 ]);
-const byId = new Map(allSkills.map((skill) => [skill.id, skill]));
-const canonicalIdByName = new Map<string, SkillId>();
-for (const skill of [...allSkills].sort((left, right) => Number(left.id) - Number(right.id))) {
-  if (!canonicalIdByName.has(skill.name)) canonicalIdByName.set(skill.name, skill.id);
-}
 
-const flipParentById = new Map<SkillId, SkillId>();
-for (const skill of allSkills) {
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId && byId.has(skill.flipSkillId)) {
-    flipParentById.set(skill.flipSkillId, skill.id);
+const canonicalIdByName = new Map<string, SkillId>();
+
+for (const skill of [...allSkills].sort((left, right) => Number(left.id) - Number(right.id))) {
+  if (!canonicalIdByName.has(skill.name)) {
+    canonicalIdByName.set(skill.name, skill.id);
   }
 }
+
+const flipParentById = createFlipParentMap(allSkills);
 
 const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
@@ -79,7 +84,9 @@ const generated: readonly Skill[] = Object.freeze(
       maximumAmmo > 0
         ? Number(ammoRecharge || skill.cooldown || legacyRecharge || 0)
         : Number(skill.cooldown || legacyRecharge || 0);
+
     const ammoCastLockout = maximumAmmo > 0 ? Number(skill.ammoCastLockout ?? legacyRecharge ?? 0) : 0;
+
     return {
       ...sourceSkill,
       cooldown,
@@ -104,19 +111,9 @@ const SPECIALIZATION_MECHANICS = Object.freeze({
   Bladesworn: BLADESWORN_SKILL_MECHANICS,
   Paragon: PARAGON_SKILL_MECHANICS
 });
-const SPECIALIZATION_ONLY_SKILLS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_MECHANICS).map(([owner, mechanics]) => [
-      owner,
-      Object.freeze(Object.keys(mechanics).map(Number))
-    ])
-  )
-);
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, ids]) => ids.map((id) => [String(id), owner]))
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILLS = createSpecializationSkillIds(SPECIALIZATION_MECHANICS);
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 const WEAPONS = Object.freeze([
   'Axe',
   'Dagger',
@@ -133,6 +130,7 @@ const WEAPONS = Object.freeze([
   'Torch',
   'Warhorn'
 ]);
+
 const WEAPON_HANDS = Object.freeze({
   Axe: 'mh+oh',
   Dagger: 'mh+oh',
@@ -155,7 +153,8 @@ interface WarriorModuleDataOptions<TContext extends object> {
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly extraSkills?: readonly Skill[];
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -174,11 +173,15 @@ export function createWarriorModuleData<TContext extends object>(
       Object.entries(skillMechanics).map(([skillId, mechanic]) => [
         skillId,
         mechanic.burst && mechanic.skillWeapon && mechanic.skillWeapon !== 'Gunsaber'
-          ? { ...mechanic, requiredMainHand: mechanic.skillWeapon }
+          ? {
+              ...mechanic,
+              requiredMainHand: mechanic.skillWeapon
+            }
           : mechanic
       ])
     )
   );
+
   return createNativeModuleData({
     id,
     generatedSkills: generated,
@@ -190,7 +193,12 @@ export function createWarriorModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {}),
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

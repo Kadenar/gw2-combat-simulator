@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from './data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from './data/ids.js';
@@ -44,6 +45,7 @@ const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
     'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png'
   ]
 ]);
+
 const UNSELECTABLE_SLOT_SKILLS = new Set([
   'Elixir B',
   'Elixir C',
@@ -54,7 +56,6 @@ const UNSELECTABLE_SLOT_SKILLS = new Set([
   'Rocket Boots'
 ]);
 
-// These API records have numeric definitions but no path into the simulator.
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.JUMP_SHOT_ID_5817,
   ID.ELIXIR_B,
@@ -142,15 +143,12 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
 ]);
 
 const generatedIds = new Set<SkillId>(SKILLS.map((skill) => skill.id));
+
 const generatedSource = SKILLS.map((skill) => ({ ...skill }));
+
 const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
+
 const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
-const flipParentById = new Map<SkillId, SkillId>();
-for (const skill of allDeclared) {
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId && byId.has(skill.flipSkillId)) {
-    flipParentById.set(skill.flipSkillId, skill.id);
-  }
-}
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_RIFLE_TURRET, ID.RIFLE_TURRET],
@@ -163,22 +161,25 @@ const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.STOW_FLAMETHROWER, ID.FLAMETHROWER],
   [ID.ELECTRIC_ARTILLERY, ID.LIGHTNING_ROD]
 ]);
-const resolvedFlipParentId = (skillId: SkillId): SkillId | null =>
-  preferredFlipParentById.get(skillId) ?? flipParentById.get(skillId) ?? null;
+
+const flipParentById = createFlipParentMap(allDeclared, {
+  overrides: preferredFlipParentById
+});
 
 const generated: readonly Skill[] = generatedSource.map((skill) => ({
   ...skill,
   cooldown: Number(skill.ammo) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
-  flipParentId: resolvedFlipParentId(skill.id),
+  flipParentId: flipParentById.get(skill.id) ?? null,
   implemented: false,
   effects: [],
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
   ...(UNSELECTABLE_SLOT_SKILLS.has(skill.name) ? { slotSelectable: false } : {})
 }));
+
 const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => ({
   ...skill,
   icon: ENGINEER_SKILL_ICON_OVERRIDES.get(skill.name) || skill.icon,
-  flipParentId: resolvedFlipParentId(skill.id),
+  flipParentId: flipParentById.get(skill.id) ?? null,
   slotSelectable: false,
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
 }));
@@ -202,15 +203,11 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   Mechanist: [ID.CRASH_DOWN, ID.RECALL_MECH, ID.MECH_SUPPORT_DEPTH_CHARGES],
   Amalgam: [ID.EVOLVE, ID.EVOLVE_ID_76651, ID.LOCKED, ID.LOCKED_ID_77107, ID.LOCKED_ID_77388]
 });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-      skillIds.map((skillId) => [String(skillId), owner])
-    )
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPONS = Object.freeze(['Hammer', 'Mace', 'Pistol', 'Rifle', 'Shield', 'Shortbow', 'Spear', 'Sword']);
+
 const WEAPON_HANDS = Object.freeze({
   Hammer: '2h',
   Mace: 'mh',
@@ -224,10 +221,15 @@ const WEAPON_HANDS = Object.freeze({
 
 interface EngineerModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+
   readonly balanceProfiles?: readonly BalanceProfile[];
+
   readonly extraSkills?: readonly Skill[];
+
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -238,8 +240,15 @@ function normalizeMechanics(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, mechanic]) => {
         const declared = byId.get(Number(id));
+
         if (Number(id) === ID.FOCUSED_DEVASTATION) {
-          return [id, { ...mechanic, simulatorExcluded: true }];
+          return [
+            id,
+            {
+              ...mechanic,
+              simulatorExcluded: true
+            }
+          ];
         }
 
         if (declared?.categories?.includes('Turret') && Number.isFinite(Number(mechanic.paletteFlipSkillId))) {
@@ -253,8 +262,17 @@ function normalizeMechanics(
           ];
         }
 
-        if (!declared?.categories?.includes('Morph')) return [id, mechanic];
-        return [id, { ...mechanic, handlerId: 'engineer.amalgam-morph' }];
+        if (!declared?.categories?.includes('Morph')) {
+          return [id, mechanic];
+        }
+
+        return [
+          id,
+          {
+            ...mechanic,
+            handlerId: 'engineer.amalgam-morph'
+          }
+        ];
       })
     )
   );
@@ -284,7 +302,12 @@ export function createEngineerModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {}),
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

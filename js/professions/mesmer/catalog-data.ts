@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createSpecializationSkillOwners } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from './data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from './data/ids.js';
@@ -36,13 +37,8 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   ],
   Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR]
 });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-      skillIds.map((skillId) => [String(skillId), owner])
-    )
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPONS = Object.freeze([
   'Axe',
@@ -58,6 +54,7 @@ const WEAPONS = Object.freeze([
   'Sword',
   'Torch'
 ]);
+
 const WEAPON_HANDS = Object.freeze({
   Axe: 'mh',
   Dagger: 'mh',
@@ -79,6 +76,7 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
     Object.fromEntries(
       MESMER_DUPLICATE_SKILL_NAMES.flatMap((name) => {
         const id = defaultMesmerLegacySkillId(name);
+
         return id == null ? [] : [[name, id]];
       })
     )
@@ -87,17 +85,28 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
 
 interface MesmerModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+
   readonly supplementalSkillMechanics?: Readonly<Record<string, SkillFragment>>;
+
   readonly extraSkills?: readonly Skill[];
+
   readonly balanceProfiles?: readonly BalanceProfile[];
+
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
 function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): Readonly<Record<string, SkillFragment>> {
   return Object.freeze(
     Object.fromEntries(
-      Object.entries(mechanics).map(([id, skill]) => [id, prepareMesmerSkillForCatalog({ ...skill, id: Number(id) })])
+      Object.entries(mechanics).map(([id, skill]) => [
+        id,
+        prepareMesmerSkillForCatalog({
+          ...skill,
+          id: Number(id)
+        })
+      ])
     )
   );
 }
@@ -117,16 +126,25 @@ export function createMesmerModuleData<TContext extends object>(
       .filter(([, skill]) => Number(skill.ammo || 0) > 0)
       .flatMap(([id]) => {
         const parentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(id)];
+
         return parentId == null ? [] : [parentId];
       })
   );
+
   const skillOverrides: Readonly<Record<SkillId, SkillFragment>> = Object.freeze(
     Object.fromEntries(
       generated
         .filter((skill) => flipParentsWithAmmoChild.has(Number(skill.id)))
-        .map((skill) => [skill.id, { ammo: 0, ammoRecharge: 0 }])
+        .map((skill) => [
+          skill.id,
+          {
+            ammo: 0,
+            ammoRecharge: 0
+          }
+        ])
     )
   );
+
   return createNativeModuleData({
     id,
     generatedSkills: generated,
@@ -135,13 +153,23 @@ export function createMesmerModuleData<TContext extends object>(
       ...supplementalSkillMechanics
     }),
     skillOverrides,
-    extraSkills: extraSkills.map((skill) => prepareMesmerSkillForCatalog({ ...skill, id: Number(skill.id) })),
+    extraSkills: extraSkills.map((skill) =>
+      prepareMesmerSkillForCatalog({
+        ...skill,
+        id: Number(skill.id)
+      })
+    ),
     balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {})
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {})
   });
 }

@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/guardian-api-metadata.js';
 import { GUARDIAN_BUNDLE_SKILLS } from './data/guardian-bundle-skills.js';
 import { GUARDIAN_SKILL_IDS as ID } from './data/ids.js';
@@ -34,35 +35,35 @@ export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(
 
 const allSkills: readonly GuardianSkill[] = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
-const flipParentById = new Map<SkillId, SkillId>();
+
 const willbenderFlameIds = new Set<SkillId>([
   ID.WILLBENDER_FLAMES,
   ID.WILLBENDER_FLAMES_ID_62618,
   ID.WILLBENDER_FLAMES_COURAGE
 ]);
+
 const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>([
   [ID.RESTORING_REPRIEVE, ID.REJUVENATING_RESPITE],
   [ID.FLAME_RUSH, ID.FLAME_SURGE],
   [ID.POTENT_HASTE, ID.OVERWHELMING_CELERITY],
   [ID.PORTENT_OF_FREEDOM, ID.UNHINDERED_DELIVERY]
 ]);
-for (const skill of allSkills) {
-  if (
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skill.flipSkillId !== ID.GLACIAL_BLOW &&
-    !willbenderFlameIds.has(skill.flipSkillId) &&
-    generatedById.has(skill.flipSkillId) &&
-    generatedById.get(skill.flipSkillId)?.name !== skill.name &&
-    !generatedById.get(skill.flipSkillId)?.categories?.includes('Virtue')
-  ) {
-    flipParentById.set(skill.flipSkillId, skill.id);
+
+const flipParentById = createFlipParentMap(allSkills, {
+  include(parent, child) {
+    return (
+      parent.flipSkillId !== ID.GLACIAL_BLOW &&
+      !willbenderFlameIds.has(parent.flipSkillId!) &&
+      child.name !== parent.name &&
+      !child.categories?.includes('Virtue')
+    );
   }
-}
+});
 
 // The API exposes Shield of Absorption's detonation under the same display
 // name, so it needs an explicit back-reference to remain one stateful tile.
 flipParentById.set(ID.SHIELD_OF_ABSORPTION_ID_9224, ID.SHIELD_OF_ABSORPTION);
+
 for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);
 }
@@ -70,12 +71,16 @@ for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
 const patchAuthoringExcludedSkillIds = new Set<SkillId>(
   allSkills.filter((skill) => GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name)).map((skill) => skill.id)
 );
+
 let discoveredExcludedFlip = true;
+
 while (discoveredExcludedFlip) {
   discoveredExcludedFlip = false;
+
   for (const [skillId, parentId] of flipParentById) {
     if (patchAuthoringExcludedSkillIds.has(parentId) && !patchAuthoringExcludedSkillIds.has(skillId)) {
       patchAuthoringExcludedSkillIds.add(skillId);
+
       discoveredExcludedFlip = true;
     }
   }
@@ -84,14 +89,13 @@ while (discoveredExcludedFlip) {
 const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
   const flipParent = flipParentId == null ? undefined : generatedById.get(flipParentId);
+
   return {
     ...skill,
     flipSkillId: firebrandFinalFlipByNormalId.get(skill.id) ?? skill.flipSkillId,
     cooldown: Number(skill.ammo || 0) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
     flipParentId: flipParentId ?? null,
     flipParent: flipParent?.name || '',
-    // Glacial Blow is a permanent trait replacement, not a cast-time flip;
-    // preserve both candidates until the Guardian palette applies the build.
     ...(skill.id === ID.MIGHTY_BLOW || skill.id === ID.GLACIAL_BLOW ? { paletteFlip: false } : {}),
     simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
     ...(patchAuthoringExcludedSkillIds.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
@@ -130,13 +134,8 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.RADIANT_JUSTICE
   ]
 });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-      skillIds.map((skillId) => [String(skillId), owner])
-    )
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
 const WEAPONS = Object.freeze([
   'Axe',
@@ -153,6 +152,7 @@ const WEAPONS = Object.freeze([
   'Sword',
   'Torch'
 ]);
+
 const WEAPON_HANDS = Object.freeze({
   Axe: 'mh',
   Focus: 'oh',
@@ -174,7 +174,9 @@ interface GuardianModuleDataOptions<TContext extends object> {
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -199,7 +201,12 @@ export function createGuardianModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {}),
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

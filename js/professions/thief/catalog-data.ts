@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '../../platform/engine/profession.js';
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from './data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from './data/thief-supplemental-skills.js';
@@ -23,6 +24,7 @@ export function thiefWeaponSkillMatchesSet(
   const professionState = flattenProfessionState(
     context.professionState || context.state?.profession || {}
   ) as unknown as Partial<ThiefState>;
+
   return thiefCoreWeaponSkillMatchesSet(skill, pair, {
     ...context,
     professionState: {
@@ -39,7 +41,9 @@ const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze
   13016: 13007,
   63267: 63128
 });
+
 const DUAL_FOLLOWUP_IDS = new Set<SkillId>(Object.values(DUAL_FOLLOWUP_BY_PARENT));
+
 const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
   ...DUAL_FOLLOWUP_BY_PARENT,
   [ID.INFILTRATORS_STRIKE]: ID.INFILTRATORS_RETURN,
@@ -47,6 +51,7 @@ const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
   [ID.DEBILITATING_ARC]: ID.HELMET_BREAKER,
   [ID.SNIPERS_COVER]: ID.DEATHS_ADVANCE
 });
+
 const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
   [ID.INFILTRATORS_STRIKE]: 15,
   [ID.CLUSTER_BOMB]: 1,
@@ -54,14 +59,37 @@ const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.
   [ID.SNIPERS_COVER]: 5
 });
 
-// Specter scepter's API snapshot omits chain links, so supply the canonical
-// slot-1 progression used by runtime validation and the one-tile palette.
 function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
-  const chain = new Map<SkillId, { step: number; next: SkillId | null }>([
-    [ID.SHADOW_BOLT, { step: 1, next: ID.DOUBLE_BOLT }],
-    [ID.DOUBLE_BOLT, { step: 2, next: ID.TRIPLE_BOLT }],
-    [ID.TRIPLE_BOLT, { step: 3, next: null }]
+  const chain = new Map<
+    SkillId,
+    {
+      step: number;
+      next: SkillId | null;
+    }
+  >([
+    [
+      ID.SHADOW_BOLT,
+      {
+        step: 1,
+        next: ID.DOUBLE_BOLT
+      }
+    ],
+    [
+      ID.DOUBLE_BOLT,
+      {
+        step: 2,
+        next: ID.TRIPLE_BOLT
+      }
+    ],
+    [
+      ID.TRIPLE_BOLT,
+      {
+        step: 3,
+        next: null
+      }
+    ]
   ]).get(skill.id);
+
   return chain
     ? {
         chainRoot: ID.SHADOW_BOLT,
@@ -73,7 +101,9 @@ function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
 
 function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
   const stage = spearChainStageForSkill(skill.id);
+
   if (stage == null) return {};
+
   return {
     weaponBarChainRootId: skill.slot === 'Weapon_2' ? ID.MANTIS_STING : ID.UNSUSPECTING_STRIKE,
     weaponBarChainStep: stage + 1
@@ -90,9 +120,9 @@ const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
   'Shadowstep',
   'Smoke Screen'
 ]);
+
 const SIMULATOR_EXCLUDED_ALIAS_IDS = new Set<SkillId>([45094, 80278, 76744, 76550, 76601, 76800, 76900, 77288]);
-// Retained identities with authored values but no selectable or indirect
-// runtime path in the simulator.
+
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.BRANCH_LEAP,
   ID.THROW_CHAIN,
@@ -168,6 +198,7 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.INQUEST_PORTAL_DEVICE_BACKFIRED,
   ID.METAL_LEGION_GUITAR_ID_76591
 ]);
+
 const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
   (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name) && !SIMULATOR_EXCLUDED_ALIAS_IDS.has(skill.id)
 ).map((skill) => ({
@@ -176,18 +207,16 @@ const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
     WEAPON_FLIP_BY_PARENT[Number(skill.id)] ??
     (['Weapon', 'Profession'].includes(skill.type || '') ? null : skill.flipSkillId)
 }));
+
 const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filter(
   (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name)
 );
+
 const allDeclared = [...generatedSource, ...supplementalSource];
+
 const declaredIds = new Set(allDeclared.map((skill) => skill.id));
-const byId = new Map<SkillId, ThiefSkill>(allDeclared.map((skill) => [skill.id, skill]));
-const flipParentById = new Map<SkillId, SkillId>();
-for (const skill of allDeclared) {
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId && byId.has(skill.flipSkillId)) {
-    flipParentById.set(skill.flipSkillId, skill.id);
-  }
-}
+
+const flipParentById = createFlipParentMap(allDeclared);
 
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
@@ -204,12 +233,14 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
   ...(Number(skill.initiativeCost || 0) > 0 ? { resource: 'initiative' } : {})
 });
+
 const generated: readonly ThiefSkill[] = generatedSource.map((skill) => ({
   ...normalize(skill),
   implemented: false,
   effects: [],
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
 }));
+
 const supplemental: readonly ThiefSkill[] = supplementalSource.map((skill) => ({
   ...normalize(skill),
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
@@ -243,14 +274,11 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309
   ]
 });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-      skillIds.map((skillId) => [String(skillId), owner])
-    )
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
+
 const WEAPONS = Object.freeze(['Axe', 'Dagger', 'Pistol', 'Rifle', 'Scepter', 'Shortbow', 'Spear', 'Staff', 'Sword']);
+
 const WEAPON_HANDS = Object.freeze({
   Axe: 'mh',
   Dagger: 'mh+oh',
@@ -265,10 +293,14 @@ const WEAPON_HANDS = Object.freeze({
 
 interface ThiefModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+
   readonly extraSkills?: readonly ThiefSkill[];
+
   readonly balanceProfiles?: readonly BalanceProfile[];
+
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
 export function createThiefModuleData<TContext extends object>(
@@ -282,11 +314,20 @@ export function createThiefModuleData<TContext extends object>(
         skillId,
         {
           ...mechanics,
-          ...(Number(mechanics.initiativeCost || 0) > 0 ? { resource: 'initiative' } : {}),
-          ...(mechanics.artifactKind ? { ignoresStealthWeaponReplacement: true } : {})
+          ...(Number(mechanics.initiativeCost || 0) > 0
+            ? {
+                resource: 'initiative'
+              }
+            : {}),
+          ...(mechanics.artifactKind
+            ? {
+                ignoresStealthWeaponReplacement: true
+              }
+            : {})
         }
       ])
   );
+
   return createNativeModuleData({
     id,
     generatedSkills: generated,
@@ -299,6 +340,11 @@ export function createThiefModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {})
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {})
   });
 }

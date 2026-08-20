@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/revenant-api-metadata.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from './data/revenant-supplemental-skills.js';
@@ -12,7 +13,6 @@ import type {
   SkillId
 } from '../../platform/engine/types.js';
 
-// API and supplemental records with no selectable or indirect runtime path.
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.DOME_OF_THE_MISTS,
   ID.IGNITING_BRAND,
@@ -38,15 +38,13 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.REPLENISHING_DESPAIR_TRAIT_SKILL
 ]);
 
-const generatedSource = SKILLS.filter((skill) => skill.name !== "Duelist's Preparation").map((skill) => ({ ...skill }));
+const generatedSource = SKILLS.filter((skill) => skill.name !== "Duelist's Preparation").map((skill) => ({
+  ...skill
+}));
+
 const allDeclared: readonly Skill[] = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
-const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
-const flipParentById = new Map<SkillId, SkillId>();
-for (const skill of allDeclared) {
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId && byId.has(skill.flipSkillId)) {
-    flipParentById.set(skill.flipSkillId, skill.id);
-  }
-}
+
+const flipParentById = createFlipParentMap(allDeclared);
 
 const normalize = (skill: Skill): Skill => ({
   ...skill,
@@ -59,12 +57,15 @@ const normalize = (skill: Skill): Skill => ({
       }),
   flipParentId: flipParentById.get(skill.id) ?? skill.flipParentId ?? null
 });
+
 const generated = generatedSource.map((skill) => ({
   ...normalize(skill),
   implemented: false,
   effects: []
 }));
+
 const supplemental = REVENANT_SUPPLEMENTAL_SKILLS.map(normalize);
+
 export const REVENANT_DECLARED_SKILLS: readonly Skill[] = Object.freeze([...generated, ...supplemental]);
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
@@ -87,13 +88,9 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.RELEASE_POTENTIAL_WARRIOR
   ]
 });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
-  Object.fromEntries(
-    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-      skillIds.map((skillId) => [String(skillId), owner])
-    )
-  )
-);
+
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
+
 const WEAPONS = Object.freeze([
   'Axe',
   'Greatsword',
@@ -106,6 +103,7 @@ const WEAPONS = Object.freeze([
   'Staff',
   'Sword'
 ]);
+
 const WEAPON_HANDS = Object.freeze({
   Axe: 'oh',
   Greatsword: '2h',
@@ -121,10 +119,14 @@ const WEAPON_HANDS = Object.freeze({
 
 interface RevenantModuleDataOptions {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+
   readonly extraSkills?: readonly Skill[];
+
   readonly balanceProfiles?: readonly BalanceProfile[];
+
   readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<never>> | Readonly<Record<string, SkillHandlerStrategy<never>>>;
+    | ReadonlyMap<string, SkillHandlerStrategy<never>>
+    | Readonly<Record<string, SkillHandlerStrategy<never>>>;
 }
 
 export function createRevenantModuleData(
@@ -143,6 +145,11 @@ export function createRevenantModuleData(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core' ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {})
+    ...(id === 'Core'
+      ? {
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS
+        }
+      : {})
   });
 }
