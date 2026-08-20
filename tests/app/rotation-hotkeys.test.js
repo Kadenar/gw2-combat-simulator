@@ -9,6 +9,7 @@ import {
   defaultRotationHotkeyBindings,
   duplicateRotationHotkeyCodes,
   formatRotationHotkey,
+  formatRotationHotkeyBadge,
   loadRotationHotkeyBindings,
   loadRotationHotkeysEnabled,
   normalizeRotationHotkeyBindings,
@@ -137,6 +138,13 @@ test('hotkey lookup, duplicate detection, and labels use keyboard codes', () => 
   assert.equal(formatRotationHotkey('Mouse5'), 'Mouse 5');
   assert.equal(formatRotationHotkey('Ctrl+Alt+NumpadMultiply'), 'Ctrl+Alt+NumpadMultiply');
   assert.equal(formatRotationHotkey(''), 'Unbound');
+});
+
+test('palette hotkey labels stay compact for large key names and modifiers', () => {
+  assert.equal(formatRotationHotkeyBadge('Mouse5'), 'M5');
+  assert.equal(formatRotationHotkeyBadge('Numpad4'), 'N4');
+  assert.equal(formatRotationHotkeyBadge('Ctrl+Alt+Shift+NumpadMultiply'), 'CAS+N*');
+  assert.equal(formatRotationHotkeyBadge(''), '');
 });
 
 test('rotation keys are captured only while the rotation builder is active', () => {

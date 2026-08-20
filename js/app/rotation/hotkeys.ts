@@ -286,6 +286,29 @@ const DISPLAY_CODES: Readonly<Record<string, string>> = Object.freeze({
   Space: 'Space'
 });
 
+const BADGE_CODES: Readonly<Record<string, string>> = Object.freeze({
+  Backspace: 'Bksp',
+  CapsLock: 'Caps',
+  Delete: 'Del',
+  Enter: 'Ent',
+  Escape: 'Esc',
+  Insert: 'Ins',
+  Mouse4: 'M4',
+  Mouse5: 'M5',
+  NumpadAdd: 'N+',
+  NumpadClear: 'NClr',
+  NumpadDecimal: 'N.',
+  NumpadDivide: 'N/',
+  NumpadEnter: 'NEnt',
+  NumpadEqual: 'N=',
+  NumpadMultiply: 'N*',
+  NumpadSubtract: 'N-',
+  PageDown: 'PgDn',
+  PageUp: 'PgUp',
+  PrintScreen: 'PrtSc',
+  Space: 'Spc'
+});
+
 export function formatRotationHotkey(code: string): string {
   if (!code) return 'Unbound';
   const parts = code.split('+');
@@ -298,6 +321,18 @@ export function formatRotationHotkey(code: string): string {
         ? `Numpad ${keyCode.slice(-1)}`
         : DISPLAY_CODES[keyCode] || keyCode;
   return [...parts, label].join('+');
+}
+
+/** Keeps palette badges compact so long bindings identify the key without covering most of the skill icon. */
+export function formatRotationHotkeyBadge(code: string): string {
+  if (!code) return '';
+  const parts = code.split('+');
+  const keyCode = parts.pop() || '';
+  const modifiers = parts.map((part) => ({ Ctrl: 'C', Alt: 'A', Shift: 'S' })[part] || part).join('');
+  const keyLabel = /^Numpad\d$/.test(keyCode)
+    ? `N${keyCode.slice(-1)}`
+    : BADGE_CODES[keyCode] || formatRotationHotkey(keyCode);
+  return modifiers ? `${modifiers}+${keyLabel}` : keyLabel;
 }
 
 function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
@@ -383,9 +418,11 @@ function ensureStyles(document: Document): void {
       letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
     .rotation-hotkeys-active .rotation-hotkey-status { color:var(--health); }
     .rotation-hotkey-button { padding:2px 8px; font-size:10px; text-transform:none; letter-spacing:0; }
-    .pal-hotkey { position:absolute; z-index:4; top:1px; right:1px; min-width:12px; padding:1px 3px;
+    .pal-hotkey { position:absolute; z-index:4; top:1px; right:1px; box-sizing:border-box;
+      min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
       color:#fff; font-size:8px; font-weight:800; line-height:10px; text-align:center;
+      text-overflow:ellipsis; white-space:nowrap;
       text-shadow:0 1px 2px #000; pointer-events:none; }
     .rotation-panel:not(.rotation-hotkeys-active) .pal-hotkey { opacity:.45; }
     .rotation-hotkey-dialog { position:fixed; inset:0; width:min(720px, calc(100vw - 32px));
@@ -424,7 +461,7 @@ function refreshHotkeyBadges(controller: RotationHotkeyController): void {
     if (!controller.enabled || !code) continue;
     const badge = skill.ownerDocument.createElement('span');
     badge.className = 'pal-hotkey';
-    badge.textContent = formatRotationHotkey(code);
+    badge.textContent = formatRotationHotkeyBadge(code);
     badge.setAttribute('aria-hidden', 'true');
     skill.append(badge);
     skill.setAttribute('aria-keyshortcuts', formatRotationHotkey(code));
