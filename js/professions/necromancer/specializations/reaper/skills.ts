@@ -7,6 +7,7 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
@@ -314,6 +315,9 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [],
     cooldown: 10,
     specialization: 'Reaper',
+    shroudEntry: 'reaper',
+    shroudProfileId: PROFILE.resources,
+    minimumShroudLifeForcePercent: 10,
     handlerId: 'necromancer.shroud'
   },
   [ID.DEATHS_CHARGE]: {
@@ -364,6 +368,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [],
     cooldown: 0,
     specialization: 'Reaper',
+    shroudExit: 'reaper',
     handlerId: 'necromancer.shroud'
   }
 });

@@ -1,11 +1,16 @@
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   necromancerCoreTargetHealthThresholds,
+  necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups
 } from '../../core/ui.js';
 import { createProfessionAssumptionControls } from '../../../../app/profession/assumptions.js';
-import type { ProfessionUiContract, SchedulerRecord } from '../../../../platform/engine/types.js';
+import type {
+  ProfessionResourceView,
+  ProfessionUiContract,
+  SchedulerRecord
+} from '../../../../platform/engine/types.js';
 import type { NecromancerUiContext } from '../../types.js';
 
 const REAPER_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
@@ -23,14 +28,18 @@ export const reaperUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.REAPERS_SHROUD,
+      exitId: ID.EXIT_REAPERS_SHROUD,
       shroud: 'reaper',
       stackId: 'reaper-profession'
     }),
   skillBarGroups: (context: NecromancerUiContext) =>
     necromancerTransformSkillBarGroups(context, {
       entryId: ID.REAPERS_SHROUD,
+      exitId: ID.EXIT_REAPERS_SHROUD,
       shroud: 'reaper'
     }),
+  resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] =>
+    necromancerSoulShardResourceViews(context),
   // Suppress the default 50% Gravedigger threshold when the core layer already defines its own thresholds.
   targetHealthThresholds: (context: NecromancerUiContext) =>
     necromancerCoreTargetHealthThresholds(context).length ? [] : [0.5]

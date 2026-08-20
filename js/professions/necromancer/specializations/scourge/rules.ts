@@ -6,8 +6,20 @@ import { cloneNecromancerAttributes, necromancerRuntimeSpecializationState } fro
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import type { NecromancerAmmoModifierContext, NecromancerRechargeModifierContext } from '../../types.js';
+import type {
+  NecromancerPrecastContext,
+  NecromancerSchedulerContext,
+  NecromancerSimulationEvent,
+  NecromancerSkill
+} from '../../types.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import {
+  gainNecromancerLifeForce,
+  hasTrait as hasNecromancerTrait,
+  registerNecromancerBoonConcentrationModifier
+} from '../../core/shared.js';
+import { purgeScourgeTimedState, scourgeState } from './state.js';
 
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
@@ -47,6 +59,56 @@ function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maxim
     : maximum;
 }
 
+function validateScourgeBuild(context: NecromancerPrecastContext, skill: NecromancerSkill): boolean {
+  // Herald of Sorrow owns the mutually exclusive F5 replacement at the Scourge boundary.
+  if (skill.id === ID.SANDSTORM_SHROUD) return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW);
+  if (skill.id === ID.DESERT_SHROUD) return !hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW);
+  return true;
+}
+
+function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
+  registerNecromancerBoonConcentrationModifier(context, 'scourge.sand-sage', (runtime, concentration, at) => {
+    const activeShade = scourgeState.from(runtime).shades.some((expiresAt: number) => expiresAt > at);
+    if (!activeShade || !hasNecromancerTrait(runtime, TRAIT.SAND_SAGE)) return concentration;
+    return concentration + Number(necromancerBalanceProfile(runtime, PROFILE.sandSage)?.attributeBonus || 225);
+  });
+}
+
+function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
+  const state = scourgeState.from(context);
+  if (
+    event.type !== 'condition' ||
+    event.condition !== 'Burning' ||
+    !hasNecromancerTrait(context, TRAIT.NOURISHING_ASHES) ||
+    event.at < state.nourishingAshesReadyAt
+  ) {
+    return;
+  }
+
+  const profile = necromancerBalanceProfile(context, PROFILE.nourishingAshes);
+  state.nourishingAshesReadyAt = event.at + Number(profile?.cooldown || 3);
+  gainNecromancerLifeForce(context, Number(profile?.lifeForceGain || 5), event.at, 'nourishing-ashes');
+}
+
+export const scourgeSchedulerHooks = Object.freeze({
+  initialize: {
+    id: 'scourge.initialize-runtime',
+    order: 10,
+    handler: initializeScourgeRuntime
+  },
+  advance: {
+    id: 'scourge.purge-shades',
+    order: -10,
+    handler: (context: NecromancerSchedulerContext, target: number) =>
+      purgeScourgeTimedState(scourgeState.from(context), target)
+  },
+  onEventScheduled: {
+    id: 'scourge.nourishing-ashes',
+    order: 10,
+    handler: onScourgeEventScheduled
+  }
+});
+
 export const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'necromancer.fell-beacon',
@@ -72,6 +134,11 @@ export const scourgeAttributeRules = Object.freeze({
 });
 
 export const scourgeCastRules = Object.freeze({
+  validateCast: {
+    id: 'scourge.build',
+    order: 20,
+    handler: validateScourgeBuild
+  },
   modifyRechargeDuration: modifyScourgeRechargeDuration,
   modifyMaximumAmmo: modifyScourgeMaximumAmmo
 });

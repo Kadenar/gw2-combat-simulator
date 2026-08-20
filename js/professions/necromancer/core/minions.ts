@@ -22,7 +22,8 @@ import {
   emitDamage,
   emitState,
   gainNecromancerLifeForce,
-  hasTrait
+  hasTrait,
+  necromancerCreatureStrikeMultiplier
 } from './shared.js';
 import type { ScheduledTask, SchedulerRecord, SkillEffect, SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
@@ -231,8 +232,7 @@ function summonStrikeMetadata(
     summonCriticalChance: Number(definition.criticalChance ?? 0.05),
     summonCriticalDamage: Number(definition.criticalDamage ?? 1.5),
     summonStrikeMultiplier:
-      (hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) *
-      (hasTrait(context, TRAIT.SPIRITS_STRENGTH) ? 1.5 : 1),
+      (hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) * necromancerCreatureStrikeMultiplier(context),
     independentSummonStrike: true
   };
 }

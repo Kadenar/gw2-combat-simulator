@@ -3,6 +3,7 @@ import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import { handleNecromancerPainfulBond, handleNecromancerWeaponSpell } from './events.js';
+import { materializeNecromancerSummonAttack } from '../../core/events.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '../../types.js';
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
@@ -160,6 +161,21 @@ export const ritualistResolverEventReactions = Object.freeze({
 });
 
 export const ritualistEventHandlers = Object.freeze({
+  'necromancer.spirit-attack': (context: NecromancerResolverContext, event: NecromancerResolverEvent): void => {
+    const state = ritualistState.from(context);
+    if (
+      !event.requiresSpirit ||
+      !state.activeSpirits[event.requiresSpirit] ||
+      (event.requiresSpiritGeneration != null &&
+        Number(state.spiritGenerations[event.requiresSpirit] || 0) !== Number(event.requiresSpiritGeneration)) ||
+      Number(state.spiritBusyUntil[event.requiresSpirit] || 0) > event.at
+    ) {
+      return;
+    }
+
+    // Ritualist validates spirit generation and active-skill lockout before reusing Core's generic packet materializer.
+    materializeNecromancerSummonAttack(context, event);
+  },
   'necromancer.painful-bond': handleNecromancerPainfulBond,
   'necromancer.weapon-spell': handleNecromancerWeaponSpell,
   'necromancer.weapon-spell-ally-trigger': handleNecromancerWeaponSpellAllyTrigger

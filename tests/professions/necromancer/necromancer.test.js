@@ -767,6 +767,14 @@ test('life-force capacity is 69% of health and Soul Battery increases it by 20%'
   assert.equal(battery.lifeForcePoolCapacity, base.lifeForcePoolCapacity * 1.2);
 });
 
+test('Alchemic Vigor increases Harbinger health and its physical life-force pool', () => {
+  const core = simulate('Core', [], { stats: { vitality: 1000 } }).endState.profession;
+  const harbinger = simulate('Harbinger', [], { stats: { vitality: 1000 } }).endState.profession;
+
+  assert.equal(harbinger.maximumHealth, core.maximumHealth + 2400);
+  assert.equal(harbinger.lifeForcePoolCapacity, harbinger.maximumHealth * 0.69);
+});
+
 test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
@@ -1026,6 +1034,19 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     buffs(sandstorm, 'necromancer-soul-barbs').map((event) => event.duration),
     [15]
   );
+});
+
+test('Sand Sage extends boons only while a Scourge shade is active', () => {
+  const run = (selectedTraitIds) =>
+    simulate('Scourge', ['Manifest Sand Shade', 'Blood Is Power'], {
+      selectedSkills: ['Blood Is Power'],
+      selectedTraitIds
+    });
+  const mightDuration = (result) =>
+    result.events.find((event) => event.type === 'buff' && event.kind === 'might')?.duration;
+
+  assert.equal(mightDuration(run([])), 20);
+  assert.equal(mightDuration(run([TRAIT.SAND_SAGE])), 23);
 });
 
 test('Lingering Curse increases scepter base duration beyond the stat cap', () => {
@@ -2521,6 +2542,19 @@ test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   assert.ok(lingering.breakdown.some((entry) => entry.name === 'Anguish Autoattack'));
 });
 
+test('Soul Twisting refunds only the first spirit summon after entering Ritualist Shroud', () => {
+  const baseline = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish'], { initialResource: 100 });
+  const twisting = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', 'Wanderlust'], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.SOUL_TWISTING]
+  });
+
+  assert.ok(baseline.endState.cooldowns.Anguish);
+  assert.equal(twisting.endState.cooldowns.Anguish, undefined);
+  assert.ok(twisting.endState.cooldowns.Wanderlust);
+  assert.equal(twisting.endState.profession.soulTwistingAvailable, false);
+});
+
 test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
   const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 8000 }], {
     initialResource: 100
@@ -2670,6 +2704,24 @@ test("Innervate Anguish uses profession-mechanic strength without Spirit's Stren
   assert.equal(baselineHit.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.equal(baselineHit.resolvedWeaponStrength, 1100);
   assert.equal(strengthenedHit.damage, baselineHit.damage);
+});
+
+test("Spirit's Strength scales Ritualist minion strikes at the specialization boundary", () => {
+  const run = (selectedTraitIds) =>
+    simulate('Ritualist', ['Summon Bone Fiend', { type: 'wait', durationMs: 5000 }], {
+      selectedSkills: ['Summon Bone Fiend'],
+      selectedTraitIds
+    });
+  const strike = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.source === 'Minion' && event.parentSkillName === 'Summon Bone Fiend'
+    );
+  const baseline = strike(run([]));
+  const strengthened = strike(run([TRAIT.SPIRITS_STRENGTH]));
+
+  assert.ok(baseline);
+  assert.ok(strengthened);
+  assert.equal(strengthened.damage, baseline.damage * 1.5);
 });
 
 test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', () => {
@@ -3205,7 +3257,7 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
     selectedSkills: ['Summon Blood Fiend'],
     selectedTraitIds: [TRAIT.MALICIOUS_SWARM]
   });
-  const ashes = simulate('Harbinger', ['Harrowing Wave'], {
+  const ashes = simulate('Scourge', ['Harrowing Wave'], {
     initialResource: 0,
     primaryWeapon: 'Pistol',
     secondaryWeapon: 'Torch',

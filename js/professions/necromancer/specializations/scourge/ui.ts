@@ -2,6 +2,7 @@ import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups,
+  necromancerSoulShardResourceViews,
   necromancerUiState
 } from '../../core/ui.js';
 import { getActiveTraits } from '../../data/traits-data.js';
@@ -60,6 +61,7 @@ export const scourgeUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
       professionSkillIds: scourgeSkillBarIds(context)
     }),
   resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
+    ...necromancerSoulShardResourceViews(context),
     {
       id: 'active-shades',
       singular: 'active shade',

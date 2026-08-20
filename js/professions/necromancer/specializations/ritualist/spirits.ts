@@ -1,5 +1,6 @@
 import { ritualistState } from './state.js';
 import { gw2StatsForWeaponSet } from '../../../../platform/gw2/runtime-rules.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -17,9 +18,12 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
   necromancerPartyBoonRecipients,
+  registerNecromancerCreatureStrikeMultiplier,
   registerCreatureSummonReaction,
   runCreatureSummonReactions
 } from '../../core/shared.js';
+import { syncNecromancerResources } from '../../core/state.js';
+import { registerNecromancerResourceAdvance, registerNecromancerShroudLifecycle } from '../../core/shroud-lifecycle.js';
 import type { ScheduledTask, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
@@ -100,12 +104,61 @@ function applyRitualistCreatureSummonTraits(
   });
 }
 
+function initializeRitualistRuntime(context: NecromancerSchedulerContext): void {
+  registerCreatureSummonReaction(context, 'ritualist.creature-summon-traits', applyRitualistCreatureSummonTraits);
+  registerNecromancerCreatureStrikeMultiplier(context, 'ritualist.spirits-strength', (castContext) =>
+    hasTrait(castContext, TRAIT.SPIRITS_STRENGTH) ? 1.5 : 1
+  );
+  registerNecromancerShroudLifecycle(context, 'ritualist.shroud', {
+    onEnter: (runtime, skill) => {
+      if (skill.shroudEntry !== 'ritualist') return;
+      const state = ritualistState.from(runtime);
+      state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
+      state.spiritAutoAnchorAt = Number.NaN;
+      state.soulTwistingAvailable = hasTrait(runtime, TRAIT.SOUL_TWISTING);
+    },
+    onExit: (runtime) => {
+      if (hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) return;
+      ritualistState.from(runtime).activeSpirits = {};
+    }
+  });
+  registerNecromancerResourceAdvance(context, 'ritualist.lingering-spirits', (runtime, start, end) => {
+    const core = professionCoreState(runtime);
+    const state = ritualistState.from(runtime);
+    if (core.activeShroud || !Object.keys(state.activeSpirits).length || !hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) {
+      return;
+    }
+
+    const drainPercent = Number(necromancerBalanceProfile(runtime, PROFILE.resources)?.lifeForceDrain || 3);
+    core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
+    if (core.lifeForce <= runtime.epsilon) {
+      core.lifeForce = 0;
+      state.activeSpirits = {};
+    }
+
+    syncNecromancerResources(core);
+  });
+}
+
+function refundSoulTwisting(context: NecromancerCastContext, skill: NecromancerSkill): void {
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const state = ritualistState.from(context);
+  if (state.pendingSoulTwistSkill !== skill.id) return;
+  // Soul Twisting refunds exactly the first spirit summon after entering Ritualist Shroud.
+  context.state.cooldowns.delete(skill.id);
+  delete state.pendingSoulTwistSkill;
+}
+
 export const ritualistSchedulerHooks = Object.freeze({
   initialize: {
-    id: 'ritualist.creature-summon-traits',
+    id: 'ritualist.initialize-runtime',
     order: 10,
-    handler: (context: NecromancerSchedulerContext) =>
-      registerCreatureSummonReaction(context, 'ritualist.creature-summon-traits', applyRitualistCreatureSummonTraits)
+    handler: initializeRitualistRuntime
+  },
+  onCastComplete: {
+    id: 'ritualist.soul-twisting-refund',
+    order: 10,
+    handler: refundSoulTwisting
   },
   taskHandlers: Object.freeze({
     [SPIRIT_ATTACK_TASK]: handleSpiritAutoattack,
@@ -246,7 +299,7 @@ function handleSpiritAutoattack(
   if (!skill || !spirit || spirit.key !== payload.spiritKey) return;
 
   context.emit({
-    type: 'necromancer.summon-attack',
+    type: 'necromancer.spirit-attack',
     at: task.at,
     source: 'Spirit',
     sourceId: skill.id,
@@ -482,7 +535,7 @@ function summonSpirit(
   state.spiritInitialUntil[spirit.key] = at + initialDuration;
   state.spiritBusyUntil[spirit.key] = at + initialDuration;
   if (state.soulTwistingAvailable) {
-    // Soul Twisting consumes availability on the first summon that triggers it; resolver picks up pendingSoulTwistSkill
+    // Soul Twisting consumes availability on the first summon; the completion hook refunds that skill's committed cooldown.
     state.soulTwistingAvailable = false;
     state.pendingSoulTwistSkill = skill.id;
   }

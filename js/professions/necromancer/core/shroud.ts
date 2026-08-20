@@ -17,9 +17,6 @@ import {
 } from './profiles.js';
 import { advanceNecromancerState, leaveShroud } from './life-force.js';
 import {
-  EXIT_ID_BY_SHROUD,
-  SHROUD_ENTRY,
-  SHROUD_EXIT,
   addCarapace,
   emitBuff,
   emitCondition,
@@ -28,11 +25,12 @@ import {
   gainNecromancerLifeForce,
   hasTrait
 } from './shared.js';
+import { runNecromancerShroudEnter } from './shroud-lifecycle.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 
 function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = professionCoreState(context);
-  const shroud = SHROUD_ENTRY[skill.id];
+  const shroud = String(skill.shroudEntry || '');
   const at = context.effectiveEnd;
   const specialization = context.config.specialization || 'Core';
   const timedCarapace = (state.carapaceExpiries || []).filter((expiresAt: number) => expiresAt > at).length;
@@ -58,23 +56,19 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   }
 
   state.activeShroud = shroud;
+  state.activeShroudEntryId = skill.id;
+  state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
   state.shroudEnteredAt = at;
   state.lastResourceAt = at;
-  const active = context.state.profession.specialization;
-  if (active.kind === 'Ritualist') {
-    active.state.resummonedSpiritAutoCycle =
-      shroud === 'ritualist' && Object.keys(active.state.activeSpirits).length > 0;
-    active.state.spiritAutoAnchorAt = Number.NaN;
-    active.state.soulTwistingAvailable = shroud === 'ritualist' && hasTrait(context, TRAIT.SOUL_TWISTING);
-  }
-
-  const exitId = EXIT_ID_BY_SHROUD[shroud];
-  state.availableFlips[exitId] = Number.POSITIVE_INFINITY;
+  const exitSkill = [...context.catalog.skillsById.values()].find((candidate) => candidate.shroudExit === shroud);
+  state.activeShroudExitId = exitSkill?.id ?? null;
+  if (exitSkill) state.availableFlips[exitSkill.id] = Number.POSITIVE_INFINITY;
   state.pendingShroudEntryId = skill.id;
   state.plagueSendingArmed =
     hasTrait(context, TRAIT.PLAGUE_SENDING) &&
     (state.selfConditions || []).some((application) => application.appliedAt <= at && application.expiresAt > at);
   state.plagueSendingEntrySkillId = null;
+  runNecromancerShroudEnter(context, skill, at);
 
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitBuff(context, skill, 'necromancer-soul-barbs', 15);
@@ -143,8 +137,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
 
 function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   advanceNecromancerState(context, context.start);
-  if (SHROUD_ENTRY[skill.id]) return activateShroud(context, skill);
-  if (SHROUD_EXIT[skill.id]) {
+  if (skill.shroudEntry) return activateShroud(context, skill);
+  if (skill.shroudExit) {
     leaveShroud(context, context.effectiveEnd);
     return true;
   }

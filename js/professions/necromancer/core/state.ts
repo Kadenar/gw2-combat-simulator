@@ -1,13 +1,7 @@
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { NECROMANCER_TRAIT_IDS } from '../data/ids.js';
 import type { SkillId } from '../../../platform/engine/types.js';
-import type {
-  NecromancerConfig,
-  NecromancerCoreState,
-  NecromancerEndStateProjectionOptions,
-  NecromancerState
-} from '../types.js';
+import type { NecromancerConfig, NecromancerCoreState } from '../types.js';
 
 export const NECROMANCER_BASE_HEALTH = 9212;
 
@@ -40,10 +34,6 @@ function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet
     if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
       vitality += 180;
     }
-
-    if (config.specialization === 'Harbinger' || hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.ALCHEMIC_VIGOR)) {
-      vitality += 240;
-    }
   }
 
   return NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10;
@@ -63,19 +53,9 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
   return (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
 }
 
-export function syncNecromancerResources<
-  TState extends NecromancerCoreState & {
-    blight?: number;
-    blightExpiries?: number[];
-  }
->(state: TState): TState {
+export function syncNecromancerResources<TState extends NecromancerCoreState>(state: TState): TState {
   state.lifeForce = Math.max(0, Math.min(Number(state.maximumLifeForce || 100), Number(state.lifeForce || 0)));
   state.resource = state.lifeForce;
-  if (Object.hasOwn(state, 'blightExpiries')) {
-    state.blightExpiries = (state.blightExpiries || []).sort((left, right) => left - right).slice(-25);
-    state.blight = state.blightExpiries.length;
-  }
-
   state.soulShardExpiries = (state.soulShardExpiries || []).sort((left, right) => left - right).slice(-6);
   state.soulShards = state.soulShardExpiries.length;
   return state;
@@ -96,6 +76,9 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     maximumHealth,
     lifeForcePoolCapacity,
     activeShroud: '',
+    activeShroudEntryId: null,
+    activeShroudExitId: null,
+    activeShroudProfileId: '',
     shroudEnteredAt: 0,
     lastResourceAt: 0,
     soulShards: 0,
@@ -120,73 +103,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
     barbedPrecisionProgress: 0.5,
-    chillingNovaProgress: 0,
-    demonicLoreReadyAt: 0,
     spitefulFortitudeLifeForce: 0,
     traitProcReadyAt: {}
   });
-}
-
-export function snapshotNecromancerState(state: unknown): NecromancerState {
-  const flattened = flattenProfessionState(state) as unknown as NecromancerState;
-  syncNecromancerResources(flattened);
-  return structuredClone(flattened) as NecromancerState;
-}
-
-export const NECROMANCER_PUBLIC_END_STATE_KEYS: readonly (keyof NecromancerState)[] = Object.freeze([
-  'lifeForce',
-  'resource',
-  'maximumLifeForce',
-  'maximumHealth',
-  'lifeForcePoolCapacity',
-  'activeShroud',
-  'shroudEnteredAt',
-  'blight',
-  'blightExpiries',
-  'cascadingCorruptionStacks',
-  'soulShards',
-  'soulShardExpiries',
-  'carapaceExpiries',
-  'shades',
-  'activeMinions',
-  'activeSpirits',
-  'availableFlips',
-  'autoattackChains',
-  'selfConditions',
-  'lichEndsAt',
-  'soulTwistingAvailable',
-  'meltdownUntil',
-  'dreadUntil'
-]);
-
-const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<NecromancerState>> = Object.freeze({
-  blight: 0,
-  blightExpiries: [],
-  cascadingCorruptionStacks: 0,
-  shades: [],
-  activeSpirits: {},
-  soulTwistingAvailable: false,
-  meltdownUntil: 0
-});
-
-export function projectNecromancerEndState({
-  schedulerState,
-  resolverState
-}: NecromancerEndStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotNecromancerState(schedulerState.profession);
-  const projected = Object.fromEntries(
-    NECROMANCER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  ) as Record<string, unknown> & {
-    lifeForce: number;
-    maximumLifeForce: number;
-    resource: number;
-  };
-  const resolver = flattenProfessionState(resolverState || {});
-  const resolverLifeForce = Math.max(0, Number(resolver.spitefulFortitudeLifeForce || 0));
-  projected.lifeForce = Math.min(projected.maximumLifeForce, projected.lifeForce + resolverLifeForce);
-  projected.resource = projected.lifeForce;
-  return projected;
 }

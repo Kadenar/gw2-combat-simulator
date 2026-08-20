@@ -6,15 +6,13 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  *     with the snapshot carried on a `necromancer.state` event, replacing it
  *     wholesale while preserving resolver-only fields and merging carapace
  *     stacks (see mergeExpiryStacks).
- *   - `handleNecromancerChillEvent` applies the on-chill trait procs (Bitter
- *     Chill vulnerability, Deathly Chill bleeding).
- *   - `handleNecromancerSummonAttack` materializes a queued minion/spirit
+ *   - `handleNecromancerChillEvent` canonicalizes internal chill packets.
+ *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
 import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasTrait } from './shared.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '../types.js';
+import { captureNecromancerStatePreserver } from './state-reconciliation.js';
 
 /**
  * Declares revive-only skills as supported without changing combat state,
@@ -59,19 +57,10 @@ export function handleNecromancerStateEvent(
     fearOfDeathReadyAt: core.fearOfDeathReadyAt,
     vampiricPresenceReadyAt: core.vampiricPresenceReadyAt,
     barbedPrecisionProgress: core.barbedPrecisionProgress,
-    chillingNovaProgress: core.chillingNovaProgress,
-    demonicLoreReadyAt: core.demonicLoreReadyAt,
     spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
     traitProcReadyAt: core.traitProcReadyAt
   };
-  const ritualistOnly =
-    active.kind === 'Ritualist'
-      ? {
-          painfulBondUntil: active.state.painfulBondUntil,
-          painfulBondPulseAnchorAt: active.state.painfulBondPulseAnchorAt,
-          weaponSpells: active.state.weaponSpells
-        }
-      : null;
+  const restoreSpecializationState = captureNecromancerStatePreserver(active.state);
   for (const key of coreKeys) delete mutableCore[key];
   for (const key of specializationKeys) delete specializationState[key];
   for (const [key, value] of Object.entries(event.state || {})) {
@@ -86,52 +75,27 @@ export function handleNecromancerStateEvent(
     if (value !== undefined) mutableCore[key] = value;
   }
 
-  if (ritualistOnly) {
-    Object.assign(active.state, ritualistOnly);
-  }
+  restoreSpecializationState();
 }
 
 export function handleNecromancerChillEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  professionCoreState(context).targetChilledUntil = Math.max(
-    Number(professionCoreState(context).targetChilledUntil || 0),
-    event.at + Number(event.duration || 0)
-  );
-  if (hasTrait(context, TRAIT.BITTER_CHILL)) {
-    enqueueOrdered(context.queue, {
-      type: 'buff',
-      at: event.at,
-      name: 'Bitter Chill',
-      skillName: 'Bitter Chill',
-      kind: 'target-vulnerability',
-      stacks: 3,
-      duration: 8,
-      source: 'Trait',
-      sourceId: TRAIT.BITTER_CHILL,
-      actorType: 'effect',
-      triggeredBy: event.skillName
-    });
-    context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
-  }
-
-  if (hasTrait(context, TRAIT.DEATHLY_CHILL)) {
-    enqueueOrdered(context.queue, {
-      type: 'condition',
-      at: event.at,
-      name: 'Deathly Chill — Bleeding',
-      skillName: 'Deathly Chill',
-      condition: 'Bleeding',
-      stacks: 4,
-      duration: 4,
-      source: 'Trait',
-      sourceId: TRAIT.DEATHLY_CHILL,
-      actorType: 'effect',
-      triggeredBy: event.skillName
-    });
-    context.recordProc?.('trait', 'Deathly Chill', event.at, event.skillName);
-  }
+  // Custom chill packets become canonical conditions so Core and active-specialization reactions share one path.
+  enqueueOrdered(context.queue, {
+    type: 'condition',
+    at: event.at,
+    name: `${event.skillName || event.name || 'Necromancer'} — Chilled`,
+    skillName: event.skillName,
+    condition: 'Chilled',
+    stacks: Number(event.stacks || 1),
+    duration: Number(event.duration || 0),
+    source: event.source,
+    sourceId: event.sourceId,
+    actorType: event.actorType,
+    triggeredBy: event.triggeredBy
+  });
 }
 
 export function handleNecromancerSummonAttack(
@@ -152,21 +116,14 @@ export function handleNecromancerSummonAttack(
     )
   )
     return;
-  if (
-    event.requiresSpirit &&
-    !(() => {
-      const active = context.profession.specialization;
-      if (active.kind !== 'Ritualist') return false;
-      return (
-        active.state.activeSpirits[event.requiresSpirit] &&
-        (event.requiresSpiritGeneration == null ||
-          Number(active.state.spiritGenerations[event.requiresSpirit] || 0) ===
-            Number(event.requiresSpiritGeneration)) &&
-        Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <= event.at
-      );
-    })()
-  )
-    return;
+  materializeNecromancerSummonAttack(context, event);
+}
+
+/** Materializes an attack after the owning module has validated its creature lifetime. */
+export function materializeNecromancerSummonAttack(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent
+): void {
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,

@@ -2,7 +2,7 @@ import { defineNativeModule, onConditionApplied } from '../../../../platform/gw2
 import { createNecromancerModuleData } from '../../catalog-data.js';
 import { scourgeSkillHandlers } from './handlers.js';
 import { scourgeResolverEventReactions } from './resolver.js';
-import { scourgeAttributeRules, scourgeCastRules } from './rules.js';
+import { scourgeAttributeRules, scourgeCastRules, scourgeSchedulerHooks } from './rules.js';
 import { scourgeState } from './state.js';
 import { scourgeUi } from './ui.js';
 import { SCOURGE_BASE_SKILL_MECHANICS } from './skills.js';
@@ -19,6 +19,7 @@ export const scourgeModule = defineNativeModule({
   mechanics: {
     modifiers: scourgeAttributeRules,
     castRules: scourgeCastRules,
+    schedulerHooks: scourgeSchedulerHooks,
     reactions: [
       // Demonic Lore fires on every Torment application; ICD is enforced inside the handler
       onConditionApplied({

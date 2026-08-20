@@ -19,4 +19,32 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
   };
 }
 
+/** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
+export function syncHarbingerState<TState extends HarbingerState>(state: TState): TState {
+  state.blightExpiries = (state.blightExpiries || []).sort((left, right) => left - right).slice(-25);
+  state.blight = state.blightExpiries.length;
+  return state;
+}
+
+export function purgeHarbingerTimedState(state: HarbingerState, at: number): void {
+  state.blightExpiries = state.blightExpiries.filter((expiresAt: number) => expiresAt > at);
+  syncHarbingerState(state);
+}
+
+export function addBlight(state: HarbingerState, stacks: number, at: number): number {
+  purgeHarbingerTimedState(state, at);
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 25 - state.blightExpiries.length);
+  state.blightExpiries.push(...Array.from({ length: count }, () => at + 25));
+  syncHarbingerState(state);
+  return count;
+}
+
+export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
+  purgeHarbingerTimedState(state, at);
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.blightExpiries.length);
+  state.blightExpiries.splice(0, count);
+  syncHarbingerState(state);
+  return count;
+}
+
 export const harbingerState = defineProfessionSpecializationState('Harbinger', createHarbingerState);

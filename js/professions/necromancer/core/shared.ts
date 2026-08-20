@@ -4,53 +4,28 @@ import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
  * Shared primitives for every necromancer skill handler.
  *
  * Three groups of helpers:
- *   - Shroud id maps (entry/exit skill id <-> shroud name) used to route
- *     shroud enter/leave logic.
  *   - Event emitters (`emitState`, `emitDamage`, `emitCondition`,
  *     `emitControl`, `emitBuff`) that stamp the common necromancer fields onto
  *     canonical events before pushing them through `context.emit`.
  *   - Timed-resource mutators for blight/carapace/shades and life force
- *     (`purgeTimedState`, `addCarapace`, `addBlight`, `consumeBlight`,
- *     `addSoulShards`, `consumeSoulShards`, `gainNecromancerLifeForce`),
+ *     (`purgeTimedState`, `addCarapace`, `addSoulShards`,
+ *     `consumeSoulShards`, `gainNecromancerLifeForce`),
  *     plus the module-composed creature-summon reaction dispatcher.
  *
  * Handlers depend on this module; it must not depend on them.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasNecromancerTrait, snapshotNecromancerState, syncNecromancerResources } from './state.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotNecromancerState } from '../state.js';
+import { hasNecromancerTrait, syncNecromancerResources } from './state.js';
 import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
 import type {
-  HarbingerState,
   NecromancerCastContext,
   NecromancerConfig,
   NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerSchedulerContext,
-  NecromancerSkill,
-  ScourgeState
+  NecromancerSkill
 } from '../types.js';
-
-export const SHROUD_ENTRY: Readonly<Record<SkillId, string>> = Object.freeze({
-  [ID.DEATH_SHROUD]: 'death',
-  [ID.REAPERS_SHROUD]: 'reaper',
-  [ID.HARBINGER_SHROUD]: 'harbinger',
-  [ID.RITUALISTS_SHROUD]: 'ritualist'
-});
-export const SHROUD_EXIT: Readonly<Record<SkillId, SkillId>> = Object.freeze({
-  [ID.END_DEATH_SHROUD]: ID.DEATH_SHROUD,
-  [ID.EXIT_REAPERS_SHROUD]: ID.REAPERS_SHROUD,
-  [ID.EXIT_HARBINGER_SHROUD]: ID.HARBINGER_SHROUD,
-  [ID.EXIT_RITUALISTS_SHROUD]: ID.RITUALISTS_SHROUD
-});
-export const EXIT_ID_BY_SHROUD: Readonly<Record<string, SkillId>> = Object.freeze({
-  death: ID.END_DEATH_SHROUD,
-  reaper: ID.EXIT_REAPERS_SHROUD,
-  harbinger: ID.EXIT_HARBINGER_SHROUD,
-  ritualist: ID.EXIT_RITUALISTS_SHROUD
-});
-export const ENTRY_ID_BY_SHROUD: Readonly<Record<string, SkillId>> = Object.freeze(
-  Object.fromEntries(Object.entries(SHROUD_ENTRY).map(([skillId, shroud]) => [shroud, Number(skillId)]))
-);
 
 interface EmitDamageOptions {
   readonly at?: number;
@@ -238,13 +213,8 @@ export function necromancerBoonDuration(
 ): number {
   const stats = gw2StatsForWeaponSet(context.config, context.state.activeWeaponSet);
   let concentration = Number(stats.concentration || 0);
-  const active = context.state.profession.specialization;
-  if (
-    hasTrait(context, TRAIT.SAND_SAGE) &&
-    active.kind === 'Scourge' &&
-    active.state.shades.some((expiresAt: number) => expiresAt > at)
-  ) {
-    concentration += 225;
+  for (const modifier of boonConcentrationModifiers.get(context.state)?.values() || []) {
+    concentration = modifier(context, concentration, at);
   }
 
   const name = String(boon || '');
@@ -261,35 +231,10 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   syncNecromancerResources(state);
 }
 
-export function purgeHarbingerTimedState(state: HarbingerState, at: number): void {
-  state.blightExpiries = state.blightExpiries.filter((expiresAt: number) => expiresAt > at);
-  state.blight = state.blightExpiries.length;
-}
-
-export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
-  state.shades = state.shades.filter((expiresAt: number) => expiresAt > at);
-}
-
 export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
   purgeTimedState(state, at);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 30 - state.carapaceExpiries.length);
   state.carapaceExpiries.push(...Array.from({ length: count }, () => at + duration));
-  return count;
-}
-
-export function addBlight(state: HarbingerState, stacks: number, at: number): number {
-  purgeHarbingerTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 25 - state.blightExpiries.length);
-  state.blightExpiries.push(...Array.from({ length: count }, () => at + 25));
-  state.blight = state.blightExpiries.length;
-  return count;
-}
-
-export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
-  purgeHarbingerTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.blightExpiries.length);
-  state.blightExpiries.splice(0, count);
-  state.blight = state.blightExpiries.length;
   return count;
 }
 
@@ -366,4 +311,49 @@ export function runCreatureSummonReactions(
   for (const reaction of creatureSummonReactions.get(context.state)?.values() || []) {
     reaction(context, skill, at, count);
   }
+}
+
+type BoonConcentrationModifier = (context: NecromancerCastContext, concentration: number, at: number) => number;
+type CreatureStrikeMultiplier = (context: NecromancerCastContext) => number;
+
+const boonConcentrationModifiers = new WeakMap<object, Map<string, BoonConcentrationModifier>>();
+const creatureStrikeMultipliers = new WeakMap<object, Map<string, CreatureStrikeMultiplier>>();
+
+/** Registers an active module's boon-duration contribution without importing that module into Core. */
+export function registerNecromancerBoonConcentrationModifier(
+  context: NecromancerSchedulerContext,
+  id: string,
+  modifier: BoonConcentrationModifier
+): void {
+  let modifiers = boonConcentrationModifiers.get(context.state);
+  if (!modifiers) {
+    modifiers = new Map();
+    boonConcentrationModifiers.set(context.state, modifiers);
+  }
+
+  modifiers.set(id, modifier);
+}
+
+/** Registers specialization-owned multipliers that must be stamped onto Core creature attacks. */
+export function registerNecromancerCreatureStrikeMultiplier(
+  context: NecromancerSchedulerContext,
+  id: string,
+  multiplier: CreatureStrikeMultiplier
+): void {
+  let multipliers = creatureStrikeMultipliers.get(context.state);
+  if (!multipliers) {
+    multipliers = new Map();
+    creatureStrikeMultipliers.set(context.state, multipliers);
+  }
+
+  multipliers.set(id, multiplier);
+}
+
+export function necromancerCreatureStrikeMultiplier(context: NecromancerCastContext): number {
+  let multiplier = 1;
+  for (const contribution of creatureStrikeMultipliers.get(context.state)?.values() || []) {
+    multiplier *= Number(contribution(context) || 1);
+  }
+
+  return multiplier;
 }

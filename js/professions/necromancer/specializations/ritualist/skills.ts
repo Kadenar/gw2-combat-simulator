@@ -7,12 +7,14 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    usableInShroud: true,
     handlerId: 'necromancer.innervate'
   },
   [ID.SUMMON_SPIRITS]: {
@@ -41,6 +43,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     implemented: true,
     castTimeMs: 0,
     effects: [],
+    usableInShroud: true,
     handlerId: 'necromancer.innervate'
   },
   [ID.NIGHTMARE_WEAPON]: {
@@ -87,6 +90,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [],
     cooldown: 0,
     specialization: 'Ritualist',
+    shroudExit: 'ritualist',
     handlerId: 'necromancer.shroud'
   },
   [ID.XINRAES_WEAPON]: {
@@ -135,6 +139,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       { type: 'boon', boon: 'might', duration: 10, stacks: 8 },
       { type: 'boon', boon: 'fury', duration: 5, stacks: 1 }
     ],
+    usableInShroud: true,
     handlerId: 'necromancer.innervate'
   },
   [ID.WEAPON_OF_REMEDY]: {
@@ -166,6 +171,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [],
     cooldown: 10,
     specialization: 'Ritualist',
+    shroudEntry: 'ritualist',
+    shroudProfileId: PROFILE.resources,
+    minimumShroudLifeForcePercent: 10,
     handlerId: 'necromancer.shroud'
   },
   [ID.RESILIENT_WEAPON]: {

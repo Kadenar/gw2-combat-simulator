@@ -14,7 +14,8 @@ import {
   snapshotNecromancerState
 } from './rules.js';
 import { necromancerCoreResolverEventHandlers, necromancerCoreResolverEventReactions } from './resolver.js';
-import { createNecromancerCoreState, projectNecromancerEndState } from './state.js';
+import { createNecromancerCoreState } from './state.js';
+import { projectNecromancerEndState } from '../state.js';
 import { bindNecromancerCoreUi } from './ui.js';
 import { NECROMANCER_CORE_BASE_SKILL_MECHANICS, NECROMANCER_CORE_EXTRA_SKILLS } from './skills.js';
 import { necromancerCoreSkillHandlers } from './handlers.js';

@@ -7,6 +7,7 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
@@ -50,6 +51,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [],
     cooldown: 0,
     specialization: 'Harbinger',
+    shroudExit: 'harbinger',
     handlerId: 'necromancer.shroud'
   },
   [ID.VITAL_DRAW]: {
@@ -92,6 +94,9 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [],
     cooldown: 10,
     specialization: 'Harbinger',
+    shroudEntry: 'harbinger',
+    shroudProfileId: PROFILE.resources,
+    minimumShroudLifeForcePercent: 0,
     handlerId: 'necromancer.shroud'
   },
   [ID.TAINTED_BOLTS]: {

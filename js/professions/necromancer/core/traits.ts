@@ -376,6 +376,22 @@ export function reactToNecromancerCoreCondition(
       Number(professionCoreState(context).targetChilledUntil || 0),
       event.at + Number(event.effectiveDuration ?? event.duration ?? 0)
     );
+    if (hasTrait(context, TRAIT.BITTER_CHILL)) {
+      enqueueOrdered(context.queue, {
+        type: 'buff',
+        at: event.at,
+        name: 'Bitter Chill',
+        skillName: 'Bitter Chill',
+        kind: 'target-vulnerability',
+        stacks: 3,
+        duration: 8,
+        source: 'Trait',
+        sourceId: TRAIT.BITTER_CHILL,
+        actorType: 'effect',
+        triggeredBy: event.skillName
+      });
+      context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
+    }
   }
 
   if (event.actorType !== 'summon' && hasTrait(context, TRAIT.CORRUPTERS_FERVOR)) {

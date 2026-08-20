@@ -12,7 +12,8 @@ export const SCOURGE_BALANCE_PROFILE_IDS = Object.freeze({
   desertShroud: 'necromancer.scourge.desert-shroud',
   sandstormShroud: 'necromancer.scourge.sandstorm-shroud',
   fellBeacon: TRAIT.FELL_BEACON,
-  sandSage: TRAIT.SAND_SAGE
+  sandSage: TRAIT.SAND_SAGE,
+  nourishingAshes: TRAIT.NOURISHING_ASHES
 });
 
 const trait = (id: string | number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
@@ -201,5 +202,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   }),
   trait(SCOURGE_BALANCE_PROFILE_IDS.sandSage, 'Sand Sage', {
     attributeBonus: 225
+  }),
+  trait(SCOURGE_BALANCE_PROFILE_IDS.nourishingAshes, 'Nourishing Ashes', {
+    lifeForceGain: 5,
+    cooldown: 3
   })
 ]);

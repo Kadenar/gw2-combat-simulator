@@ -9,12 +9,36 @@ import {
   necromancerTargetConditionCount,
   necromancerTargetControlled
 } from '../../core/rules.js';
-import type { SchedulerRecord } from '../../../../platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import type { NecromancerPrecastContext, NecromancerSkill } from '../../types.js';
+import { ritualistState } from './state.js';
 
 export { ritualistSchedulerHooks } from './spirits.js';
+
+const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
+  [ID.INNERVATE_ANGUISH, 'anguish'],
+  [ID.INNERVATE_WANDERLUST, 'wanderlust'],
+  [ID.INNERVATE_PRESERVATION, 'preservation']
+]);
+
+function ritualistAvailability(
+  context: NecromancerPrecastContext,
+  skill: NecromancerSkill
+): Readonly<AvailabilityResult> | null {
+  const spirit = INNERVATE_SPIRIT.get(skill.id);
+  if (!spirit) return null;
+  if (ritualistState.from(context).activeSpirits[spirit]) return { ready: true };
+  // Innervate availability follows the matching specialization-owned spirit lifetime.
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'necromancer.spirit',
+    reason: `${skill.name} is unavailable — requires an active ${spirit} spirit.`
+  };
+}
 
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
@@ -79,4 +103,12 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 export const ritualistAttributeRules = Object.freeze({
   modifyAttributes: modifyRitualistAttributes,
   modifierRules: ritualistModifierRules
+});
+
+export const ritualistCastRules = Object.freeze({
+  availability: {
+    id: 'ritualist.innervate-availability',
+    order: 20,
+    handler: ritualistAvailability
+  }
 });

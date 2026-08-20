@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/clock.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -10,6 +9,7 @@ import type {
 } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { scourgeState } from './state.js';
 
 function reactToCondition(
   context: NecromancerResolverContext,
@@ -20,7 +20,7 @@ function reactToCondition(
   if (
     event.condition !== 'Torment' ||
     !hasTrait(context, TRAIT.DEMONIC_LORE) ||
-    !isInternalCooldownReady(event.at, Number(professionCoreState(context).demonicLoreReadyAt || 0))
+    !isInternalCooldownReady(event.at, Number(scourgeState.from(context).demonicLoreReadyAt || 0))
   ) {
     return;
   }
@@ -29,7 +29,7 @@ function reactToCondition(
   const effect = balanceProfileEffect(profile, 'condition');
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc
-  professionCoreState(context).demonicLoreReadyAt = event.at + Number(profile?.cooldown || 3);
+  scourgeState.from(context).demonicLoreReadyAt = event.at + Number(profile?.cooldown || 3);
   applyTraitCondition(details, context, event, {
     name: 'Demonic Lore',
     traitId: TRAIT.DEMONIC_LORE,

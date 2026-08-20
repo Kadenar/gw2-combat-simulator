@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
 import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { onResolvedPlayerCriticalHit } from '../../../../platform/gw2/native-profession.js';
@@ -12,6 +11,7 @@ import type {
 } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { reaperState } from './state.js';
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
 const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
@@ -25,16 +25,16 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
   when: (context, event) =>
     Number(event.coefficient) > 0 && hasTrait(context, TRAIT.CHILLING_NOVA) && targetIsChilled(context, event.at),
   expectedProgress: {
-    get: (context) => professionCoreState(context).chillingNovaProgress,
+    get: (context) => reaperState.from(context).chillingNovaProgress,
     set: (context, value) => {
-      professionCoreState(context).chillingNovaProgress = value;
+      reaperState.from(context).chillingNovaProgress = value;
     }
   },
   internalCooldown: {
     duration: (context) => Number(necromancerBalanceProfile(context, PROFILE.chillingNova)?.cooldown || 3),
-    readyAt: (context) => Number(professionCoreState(context).traitProcReadyAt.chillingNova || 0),
+    readyAt: (context) => Number(reaperState.from(context).chillingNovaReadyAt || 0),
     setReadyAt: (context, readyAt) => {
-      professionCoreState(context).traitProcReadyAt.chillingNova = readyAt;
+      reaperState.from(context).chillingNovaReadyAt = readyAt;
     }
   },
   attribution: { kind: 'trait', id: TRAIT.CHILLING_NOVA },

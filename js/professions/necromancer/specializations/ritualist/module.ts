@@ -1,7 +1,7 @@
 import { defineNativeModule, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
 import { createNecromancerModuleData } from '../../catalog-data.js';
 import { ritualistEventHandlers, ritualistResolverEventReactions } from './resolver.js';
-import { ritualistAttributeRules, ritualistSchedulerHooks } from './rules.js';
+import { ritualistAttributeRules, ritualistCastRules, ritualistSchedulerHooks } from './rules.js';
 import { ritualistState } from './state.js';
 import { ritualistUi } from './ui.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from './skills.js';
@@ -19,6 +19,7 @@ export const ritualistModule = defineNativeModule({
   state: { scheduler: ritualistState.create, resolver: ritualistState.create },
   mechanics: {
     modifiers: ritualistAttributeRules,
+    castRules: ritualistCastRules,
     resolverHooks: { eventHandlers: ritualistEventHandlers },
     reactions: [
       onResolvedDamage({

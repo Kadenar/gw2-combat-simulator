@@ -45,12 +45,14 @@ export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.HARBINGER_SHROUD,
+      exitId: ID.EXIT_HARBINGER_SHROUD,
       shroud: 'harbinger',
       stackId: 'harbinger-profession'
     }),
   skillBarGroups: (context: NecromancerUiContext) =>
     necromancerTransformSkillBarGroups(context, {
       entryId: ID.HARBINGER_SHROUD,
+      exitId: ID.EXIT_HARBINGER_SHROUD,
       shroud: 'harbinger'
     }),
   rotationStateSnapshot: harbingerStateSnapshot,

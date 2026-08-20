@@ -1,4 +1,4 @@
-import { harbingerState } from './state.js';
+import { addBlight, consumeBlight, harbingerState, purgeHarbingerTimedState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
 /**
  * Harbinger blight skill handlers.
@@ -10,8 +10,6 @@ import { professionCoreState } from '../../../../platform/engine/profession.js';
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
-  addBlight,
-  consumeBlight,
   emitBuff,
   emitCondition,
   emitControl,
@@ -37,8 +35,13 @@ const CASCADING_CORRUPTION_EFFECT: NecromancerSkill = Object.freeze({
 export function advanceHarbingerBlight(context: NecromancerSchedulerContext, target: number): void {
   const state = harbingerState.from(context);
   const coreState = professionCoreState(context);
-  // Blight only accrues while inside Harbinger Shroud; advancing outside shroud is a no-op.
-  if (coreState.activeShroud !== 'harbinger') return;
+  purgeHarbingerTimedState(state, target);
+  // Blight only accrues while inside Harbinger Shroud; reset the cursor after every exit path.
+  if (coreState.activeShroud !== 'harbinger') {
+    state.nextBlightAt = Number.POSITIVE_INFINITY;
+    return;
+  }
+
   const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   // Life force drains at 5% of maximum per second inside Harbinger Shroud.

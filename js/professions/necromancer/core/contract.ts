@@ -13,7 +13,7 @@ import { addCarapace, emitBuff, emitCondition, emitDamage, hasTrait } from './sh
 import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
 import { necromancerMinionTaskHandlers } from './minions.js';
-import { EXIT_IDS, necromancerCastAvailability, requiredShroud, validateNecromancerBuild } from './availability.js';
+import { necromancerCastAvailability, requiredShroud, validateNecromancerBuild } from './availability.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -63,7 +63,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
     }
   }
 
-  if (skill.flipParentId != null && !EXIT_IDS.has(skill.id) && skill.handlerId !== 'necromancer.minion-command') {
+  if (skill.flipParentId != null && !skill.shroudExit && skill.handlerId !== 'necromancer.minion-command') {
     delete state.availableFlips[skill.id];
   }
 
@@ -170,16 +170,6 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
  */
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   const state = professionCoreState(context);
-  if (
-    event.type === 'condition' &&
-    event.condition === 'Burning' &&
-    hasTrait(context, TRAIT.NOURISHING_ASHES) &&
-    event.at >= Number(state.traitProcReadyAt.nourishingAshes || 0)
-  ) {
-    state.traitProcReadyAt.nourishingAshes = event.at + 3;
-    gainNecromancerLifeForce(context, 5, event.at, 'nourishing-ashes');
-  }
-
   if (
     !state.plagueSendingArmed ||
     event.type !== 'damage' ||

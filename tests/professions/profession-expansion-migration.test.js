@@ -20,7 +20,7 @@ import { GUARDIAN_TRAIT_COVERAGE } from '../../js/professions/guardian/data/trai
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/professions/guardian/state.js';
 import { MESMER_TRAIT_COVERAGE } from '../../js/professions/mesmer/data/trait-coverage.js';
 import { NECROMANCER_TRAIT_COVERAGE } from '../../js/professions/necromancer/data/trait-coverage.js';
-import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necromancer/core/state.js';
+import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necromancer/state.js';
 import { RANGER_TRAIT_COVERAGE } from '../../js/professions/ranger/data/trait-coverage.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/professions/ranger/core/state.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../js/professions/revenant/data/trait-coverage.js';
@@ -476,6 +476,9 @@ test('ready native professions expose deliberate public end-state keys', async (
       'spiritAutoAnchorAt',
       'resummonedSpiritAutoCycle',
       'pendingShroudEntryId',
+      'activeShroudEntryId',
+      'activeShroudExitId',
+      'activeShroudProfileId',
       'pendingSoulTwistSkill',
       'plagueSendingArmed',
       'plagueSendingEntrySkillId',
@@ -488,7 +491,10 @@ test('ready native professions expose deliberate public end-state keys', async (
       'vampiricPresenceReadyAt',
       'barbedPrecisionProgress',
       'chillingNovaProgress',
+      'chillingNovaReadyAt',
+      'chillingVictoryReadyAt',
       'demonicLoreReadyAt',
+      'nourishingAshesReadyAt',
       'spitefulFortitudeLifeForce',
       'traitProcReadyAt',
       'weaponSpells'

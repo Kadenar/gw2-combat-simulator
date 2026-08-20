@@ -24,10 +24,28 @@ import type {
   NecromancerRechargeModifierContext,
   NecromancerSimulationEvent,
   NecromancerCastContext,
+  NecromancerSchedulerContext,
   NecromancerSkill
 } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { registerNecromancerShroudLifecycle } from '../../core/shroud-lifecycle.js';
+
+function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void {
+  const core = professionCoreState(context);
+  if (!professionStaticRulesApplied(context.config)) {
+    // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
+    const vitality = Number(necromancerBalanceProfile(context, PROFILE.alchemicVigor)?.attributeBonus || 240);
+    core.maximumHealth += vitality * 10;
+    core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.maximumLifeForce / 100);
+  }
+
+  registerNecromancerShroudLifecycle(context, 'harbinger.shroud', {
+    onExit: (runtime) => {
+      harbingerState.from(runtime).nextBlightAt = Number.POSITIVE_INFINITY;
+    }
+  });
+}
 
 function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = harbingerState.from(context);
@@ -111,6 +129,11 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 }
 
 export const harbingerSchedulerHooks = Object.freeze({
+  initialize: {
+    id: 'harbinger.initialize-runtime',
+    order: 10,
+    handler: initializeHarbingerRuntime
+  },
   // order: -10 ensures Harbinger blight advances before any profession-agnostic advance hooks run.
   advance: {
     id: 'harbinger.advance-blight',

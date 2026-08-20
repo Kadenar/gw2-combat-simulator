@@ -24,6 +24,7 @@ import type {
   NecromancerSimulationEvent,
   NecromancerSkill
 } from '../../types.js';
+import { reaperState } from './state.js';
 
 // Reaper's Onslaught reduces all Reaper Shroud skill cooldowns by 1s on Life Reap's hit.
 function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number): void {
@@ -70,17 +71,17 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const state = professionCoreState(context);
+  const state = reaperState.from(context);
   if (
     hasNecromancerTrait(context, TRAIT.CHILLING_VICTORY) &&
     requiredShroud(skill) === 'reaper' &&
-    isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.chillingVictory || 0)) &&
+    isInternalCooldownReady(context.effectiveEnd, Number(state.chillingVictoryReadyAt || 0)) &&
     // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
     context.config?.target?.conditions?.Chilled
   ) {
     const profile = necromancerBalanceProfile(context, PROFILE.chillingVictory);
     gainNecromancerLifeForce(context, Number(profile?.lifeForceGain || 1), context.effectiveEnd, 'chilling-victory');
-    state.traitProcReadyAt.chillingVictory = context.effectiveEnd + Number(profile?.cooldown || 1);
+    state.chillingVictoryReadyAt = context.effectiveEnd + Number(profile?.cooldown || 1);
   }
 }
 

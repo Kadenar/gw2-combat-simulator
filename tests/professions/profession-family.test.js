@@ -669,8 +669,8 @@ test('scheduler, resolver, and canonical simulation normalize family sources', (
 });
 
 const inactiveStateKeys = Object.freeze({
-  Reaper: [],
-  Scourge: ['shades'],
+  Reaper: ['chillingNovaProgress', 'chillingNovaReadyAt', 'chillingVictoryReadyAt'],
+  Scourge: ['shades', 'demonicLoreReadyAt', 'nourishingAshesReadyAt'],
   Harbinger: ['blight', 'blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
   Ritualist: [
     'activeSpirits',
@@ -681,6 +681,7 @@ const inactiveStateKeys = Object.freeze({
     'resummonedSpiritAutoCycle',
     'weaponSpells',
     'soulTwistingAvailable',
+    'pendingSoulTwistSkill',
     'painfulBondUntil',
     'painfulBondPulseAnchorAt'
   ]
@@ -777,6 +778,17 @@ test('Necromancer modules contain complete vertical slices', () => {
     readFileSync(new URL('../../js/professions/necromancer/specializations/reaper/rules.ts', import.meta.url), 'utf8'),
     /function modifyReaperCastDuration/
   );
+  const coreSource = readdirSync(new URL('../../js/professions/necromancer/core/', import.meta.url))
+    .filter((filename) => filename.endsWith('.ts'))
+    .map((filename) =>
+      readFileSync(new URL(`../../js/professions/necromancer/core/${filename}`, import.meta.url), 'utf8')
+    )
+    .join('\n');
+  assert.doesNotMatch(
+    coreSource,
+    /TRAIT\.(?:ALCHEMIC_VIGOR|DEATHLY_CHILL|HERALD_OF_SORROW|LINGERING_SPIRITS|NOURISHING_ASHES|SAND_SAGE|SOUL_TWISTING|SPIRITS_STRENGTH)/,
+    'Core contains active-specialization trait logic'
+  );
 });
 
 test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () => {
@@ -823,6 +835,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
 
     assert.equal(Object.hasOwn(runtime.eventHandlers, 'necromancer.painful-bond'), active === 'Ritualist', active);
     assert.equal(Object.hasOwn(runtime.eventHandlers, 'necromancer.weapon-spell'), active === 'Ritualist', active);
+    assert.equal(Object.hasOwn(runtime.eventHandlers, 'necromancer.spirit-attack'), active === 'Ritualist', active);
   }
 });
 

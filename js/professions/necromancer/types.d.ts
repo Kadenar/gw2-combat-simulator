@@ -77,6 +77,9 @@ export interface NecromancerCoreState {
   maximumHealth: number;
   lifeForcePoolCapacity: number;
   activeShroud: string;
+  activeShroudEntryId?: SkillId | null;
+  activeShroudExitId?: SkillId | null;
+  activeShroudProfileId?: string;
   shroudEnteredAt: number;
   lastResourceAt: number;
   soulShards: number;
@@ -102,16 +105,20 @@ export interface NecromancerCoreState {
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;
   barbedPrecisionProgress: number;
-  chillingNovaProgress: number;
-  demonicLoreReadyAt: number;
   spitefulFortitudeLifeForce: number;
   traitProcReadyAt: Record<string, number>;
 }
 
-export interface ReaperState {}
+export interface ReaperState {
+  chillingNovaProgress: number;
+  chillingNovaReadyAt: number;
+  chillingVictoryReadyAt: number;
+}
 
 export interface ScourgeState {
   shades: number[];
+  demonicLoreReadyAt: number;
+  nourishingAshesReadyAt: number;
 }
 
 export interface HarbingerState {
@@ -157,6 +164,11 @@ export interface NecromancerSkill extends Skill {
   readonly lifeForceGain?: number;
   readonly shroud?: string;
   readonly shroudDrainPercent?: number;
+  readonly shroudEntry?: string;
+  readonly shroudExit?: string;
+  readonly shroudProfileId?: string;
+  readonly minimumShroudLifeForcePercent?: number;
+  readonly usableInShroud?: boolean;
   readonly shroudSlot?: number;
   readonly slotSelectable?: boolean;
 }

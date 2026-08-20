@@ -1,8 +1,9 @@
 import type { RitualistState } from '../../types.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { registerNecromancerStatePreserver } from '../../core/state-reconciliation.js';
 
 export function createRitualistState(): RitualistState {
-  return {
+  const state: RitualistState = {
     activeSpirits: {},
     spiritGenerations: {},
     spiritInitialUntil: {},
@@ -18,6 +19,18 @@ export function createRitualistState(): RitualistState {
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
     painfulBondPulseAnchorAt: Number.NaN
   };
+  registerNecromancerStatePreserver(state, () => {
+    // Resolver-owned effect windows must survive scheduler snapshots that carry the same specialization state keys.
+    const painfulBondUntil = state.painfulBondUntil;
+    const painfulBondPulseAnchorAt = state.painfulBondPulseAnchorAt;
+    const weaponSpells = state.weaponSpells;
+    return () => {
+      state.painfulBondUntil = painfulBondUntil;
+      state.painfulBondPulseAnchorAt = painfulBondPulseAnchorAt;
+      state.weaponSpells = weaponSpells;
+    };
+  });
+  return state;
 }
 
 export const ritualistState = defineProfessionSpecializationState('Ritualist', createRitualistState);

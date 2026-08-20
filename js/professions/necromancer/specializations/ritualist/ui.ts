@@ -2,6 +2,7 @@ import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups,
+  necromancerSoulShardResourceViews,
   necromancerUiState
 } from '../../core/ui.js';
 import type {
@@ -15,6 +16,7 @@ import type { NecromancerSimulationEvent, NecromancerSkill, NecromancerUiContext
 
 const RITUALIST_PACKET_EVENTS = new Set<string>([
   'necromancer.painful-bond',
+  'necromancer.spirit-attack',
   'necromancer.weapon-spell',
   'necromancer.weapon-spell-ally-trigger'
 ]);
@@ -52,6 +54,7 @@ export const ritualistUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.RITUALISTS_SHROUD,
+      exitId: ID.EXIT_RITUALISTS_SHROUD,
       shroud: 'ritualist',
       professionSkillIds: Object.values(INNERVATE_BY_SPIRIT),
       stackId: 'ritualist-profession'
@@ -59,8 +62,10 @@ export const ritualistUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   skillBarGroups: (context: NecromancerUiContext) =>
     necromancerTransformSkillBarGroups(context, {
       entryId: ID.RITUALISTS_SHROUD,
+      exitId: ID.EXIT_RITUALISTS_SHROUD,
       shroud: 'ritualist',
       professionSkillIds: Object.values(INNERVATE_BY_SPIRIT)
     }),
+  resourceViews: (context: NecromancerUiContext) => necromancerSoulShardResourceViews(context),
   paletteSkillAvailability: ritualistPaletteAvailability
 });

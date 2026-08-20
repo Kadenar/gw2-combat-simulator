@@ -7,6 +7,7 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
@@ -695,6 +696,9 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
+    shroudEntry: 'death',
+    shroudProfileId: PROFILE.shroud,
+    minimumShroudLifeForcePercent: 10,
     handlerId: 'necromancer.shroud'
   },
   [ID.TASTE_OF_DEATH]: {
@@ -722,6 +726,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
+    shroudExit: 'death',
     handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {

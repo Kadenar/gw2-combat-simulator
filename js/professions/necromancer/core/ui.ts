@@ -26,42 +26,6 @@ const LICH_SKILLS: readonly SkillId[] = Object.freeze([
   ID.GRIM_SPECTER,
   ID.EXIT_LICH_FORM
 ]);
-const SHROUD_ENTRY_IDS = new Set<SkillId>([
-  ID.DEATH_SHROUD,
-  ID.REAPERS_SHROUD,
-  ID.HARBINGER_SHROUD,
-  ID.RITUALISTS_SHROUD
-]);
-const SHROUD_EXIT_IDS = new Set<SkillId>([
-  ID.END_DEATH_SHROUD,
-  ID.EXIT_REAPERS_SHROUD,
-  ID.EXIT_HARBINGER_SHROUD,
-  ID.EXIT_RITUALISTS_SHROUD
-]);
-const SHROUD_EXIT_ID_BY_SHROUD: Readonly<Record<string, SkillId>> = Object.freeze({
-  death: ID.END_DEATH_SHROUD,
-  reaper: ID.EXIT_REAPERS_SHROUD,
-  harbinger: ID.EXIT_HARBINGER_SHROUD,
-  ritualist: ID.EXIT_RITUALISTS_SHROUD
-});
-const SHROUD_BY_EXIT_ID: Readonly<Record<SkillId, string>> = Object.freeze({
-  [ID.END_DEATH_SHROUD]: 'death',
-  [ID.EXIT_REAPERS_SHROUD]: 'reaper',
-  [ID.EXIT_HARBINGER_SHROUD]: 'harbinger',
-  [ID.EXIT_RITUALISTS_SHROUD]: 'ritualist'
-});
-const SHROUD_SKILL_BAR_IDS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
-  death: Object.freeze([ID.LIFE_BLAST, ID.DARK_PATH, ID.DOOM, ID.LIFE_TRANSFER, ID.TAINTED_SHACKLES]),
-  reaper: Object.freeze([ID.LIFE_REND, ID.DEATHS_CHARGE, ID.INFUSING_TERROR, ID.SOUL_SPIRAL, ID.EXECUTIONERS_SCYTHE]),
-  harbinger: Object.freeze([ID.TAINTED_BOLTS, ID.DARK_BARRAGE, ID.DEVOURING_CUT, ID.VORACIOUS_ARC, ID.VITAL_DRAW]),
-  ritualist: Object.freeze([ID.ESSENCE_BLAST, ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION, ID.SUMMON_SPIRITS])
-});
-const SHROUD_SKILL_BAR_LABELS: Readonly<Record<string, string>> = Object.freeze({
-  death: 'Death Shroud',
-  reaper: "Reaper's Shroud",
-  harbinger: 'Harbinger Shroud',
-  ritualist: "Ritualist's Shroud"
-});
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
@@ -72,9 +36,18 @@ export function necromancerUiSpecialization(context: NecromancerUiContext = {}):
   return context.specialization || context.config?.specialization || 'Core';
 }
 
-function shroudSkillIds(shroud: string): SkillId[] {
+function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
   return necromancerCatalog.skills
-    .filter((skill) => skill.shroud === shroud && skill.implemented && !skill.simulatorExcluded)
+    .filter((skill) => {
+      const chain = necromancerCatalog.autoattackChainPositions.get(Number(skill.id));
+      return (
+        skill.shroud === shroud &&
+        skill.implemented &&
+        !skill.simulatorExcluded &&
+        (includeFlips || skill.flipParentId == null) &&
+        (includeFlips || !chain || chain.root === skill.id)
+      );
+    })
     .sort((left, right) => {
       const slotOrder = Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
       if (slotOrder) return slotOrder;
@@ -89,15 +62,16 @@ export function necromancerTransformSkillBarGroups(
   context: NecromancerUiContext,
   {
     entryId,
+    exitId,
     shroud,
     professionSkillIds = []
   }: {
     readonly entryId?: SkillId;
+    readonly exitId?: SkillId;
     readonly shroud?: string;
     readonly professionSkillIds?: readonly SkillId[];
   }
 ): ProfessionSkillBarGroup[] {
-  const exitId = SHROUD_EXIT_ID_BY_SHROUD[String(shroud || '')];
   const groups: ProfessionSkillBarGroup[] = [
     {
       id: 'necromancer-f-keys',
@@ -111,11 +85,11 @@ export function necromancerTransformSkillBarGroups(
     }
   ];
   const shroudName = String(shroud || '');
-  const shroudSkills = SHROUD_SKILL_BAR_IDS[shroudName] || [];
+  const shroudSkills = shroudName ? shroudSkillIds(shroudName, false) : [];
   if (shroudSkills.length) {
     groups.push({
       id: `necromancer-${shroudName}-shroud`,
-      label: SHROUD_SKILL_BAR_LABELS[shroudName] || 'Shroud',
+      label: String((entryId == null ? undefined : necromancerCatalog.skillsById.get(entryId)?.name) || 'Shroud'),
       skillIds: [...shroudSkills],
       color: '#4d9560',
       className: 'necromancer-shroud-skills',
@@ -130,18 +104,19 @@ export function necromancerTransformPaletteGroups(
   context: NecromancerUiContext,
   {
     entryId,
+    exitId,
     shroud,
     professionSkillIds = [],
     stackId = ''
   }: {
     readonly entryId?: SkillId;
+    readonly exitId?: SkillId;
     readonly shroud?: string;
     readonly professionSkillIds?: readonly SkillId[];
     readonly stackId?: string;
   }
 ): ProfessionPaletteGroup[] {
   const state = necromancerUiState(context);
-  const exitId = SHROUD_EXIT_ID_BY_SHROUD[String(shroud || '')];
   const groups: ProfessionPaletteGroup[] = [
     {
       id: 'profession',
@@ -241,19 +216,18 @@ function necromancerCorePaletteAvailability(
     };
   }
 
-  if ((SHROUD_ENTRY_IDS.has(skill.id) || skill.id === ID.LICH_FORM) && active) {
+  if ((skill.shroudEntry || skill.id === ID.LICH_FORM) && active) {
     return {
       available: false,
       message: 'Exit the current transform first'
     };
   }
 
-  if (SHROUD_EXIT_IDS.has(skill.id)) {
-    const requiredShroud = SHROUD_BY_EXIT_ID[skill.id];
-    const available = active === requiredShroud;
+  if (skill.shroudExit) {
+    const available = active === skill.shroudExit;
     return {
       available,
-      message: available ? '' : `Enter ${SHROUD_SKILL_BAR_LABELS[requiredShroud] || 'Shroud'} first`
+      message: available ? '' : `Enter ${skill.shroudExit} shroud first`
     };
   }
 
@@ -276,8 +250,7 @@ export function necromancerEventLogRow(
     };
   }
 
-  // Revive has no modeled target state, and summon attacks are replaced by
-  // their materialized events, so neither needs a separate log row.
+  // Internal revive and summon packets do not have independent result rows.
   if (['necromancer.revive', 'necromancer.summon-attack'].includes(event?.type)) {
     return null;
   }
@@ -365,10 +338,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       statusLabel: 'Current'
     }
   ];
-  if (necromancerUiSpecialization(context) !== 'Harbinger') {
-    views.push(...necromancerSoulShardResourceViews(context));
-  }
-
+  if (necromancerUiSpecialization(context) === 'Core') views.push(...necromancerSoulShardResourceViews(context));
   return views;
 }
 
@@ -380,6 +350,7 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord 
     necromancerUiSpecialization(context) === 'Core'
       ? necromancerTransformPaletteGroups(context, {
           entryId: ID.DEATH_SHROUD,
+          exitId: ID.END_DEATH_SHROUD,
           shroud: 'death',
           stackId: 'core-profession'
         })
@@ -388,6 +359,7 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord 
     necromancerUiSpecialization(context) === 'Core'
       ? necromancerTransformSkillBarGroups(context, {
           entryId: ID.DEATH_SHROUD,
+          exitId: ID.END_DEATH_SHROUD,
           shroud: 'death'
         })
       : [],

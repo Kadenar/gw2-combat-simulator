@@ -7,18 +7,6 @@ import type { NecromancerPrecastContext, NecromancerCoreState, NecromancerSkill 
 
 export { hasTrait };
 
-const ENTRY_SHROUD_BY_ID: Readonly<Record<SkillId, string>> = Object.freeze({
-  [ID.DEATH_SHROUD]: 'death',
-  [ID.REAPERS_SHROUD]: 'reaper',
-  [ID.HARBINGER_SHROUD]: 'harbinger',
-  [ID.RITUALISTS_SHROUD]: 'ritualist'
-});
-export const EXIT_IDS: ReadonlySet<SkillId> = new Set([
-  ID.END_DEATH_SHROUD,
-  ID.EXIT_REAPERS_SHROUD,
-  ID.EXIT_HARBINGER_SHROUD,
-  ID.EXIT_RITUALISTS_SHROUD
-]);
 const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.DEATHLY_CLAWS,
   ID.LICHS_GAZE,
@@ -27,17 +15,6 @@ const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.SUMMON_MADNESS,
   ID.GRIM_SPECTER,
   ID.EXIT_LICH_FORM
-]);
-const SHROUD_FOR_SPECIALIZATION: Readonly<Record<string, string>> = Object.freeze({
-  Core: 'death',
-  Reaper: 'reaper',
-  Harbinger: 'harbinger',
-  Ritualist: 'ritualist'
-});
-const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
-  [ID.INNERVATE_ANGUISH, 'anguish'],
-  [ID.INNERVATE_WANDERLUST, 'wanderlust'],
-  [ID.INNERVATE_PRESERVATION, 'preservation']
 ]);
 interface AvailabilityEnvironment {
   readonly state: NecromancerCoreState;
@@ -113,18 +90,20 @@ function shroudEntryGate(
   skill: NecromancerSkill,
   { state, activeShroud, spec }: AvailabilityEnvironment
 ): AvailabilityVerdict {
-  if (!ENTRY_SHROUD_BY_ID[skill.id]) return null;
+  if (!skill.shroudEntry) return null;
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `already in ${activeShroud} shroud.`);
   }
 
-  const expected = SHROUD_FOR_SPECIALIZATION[spec] || 'death';
-  if (ENTRY_SHROUD_BY_ID[skill.id] !== expected) {
+  const expectedSpecialization = skill.specialization || 'Core';
+  if (expectedSpecialization !== spec) {
     return deny(skill, 'necromancer.wrong-specialization', `not available for the ${spec} specialization.`);
   }
 
-  if (spec !== 'Harbinger' && Number(state.lifeForce || 0) < Number(state.maximumLifeForce || 100) * 0.1) {
-    return deny(skill, 'necromancer.insufficient-life-force', 'requires 10 life force.');
+  const minimumPercent = Number(skill.minimumShroudLifeForcePercent ?? 10);
+  const minimumLifeForce = Number(state.maximumLifeForce || 100) * (minimumPercent / 100);
+  if (Number(state.lifeForce || 0) < minimumLifeForce) {
+    return deny(skill, 'necromancer.insufficient-life-force', `requires ${minimumPercent} life force.`);
   }
 
   return READY;
@@ -135,10 +114,8 @@ function shroudExitGate(
   skill: NecromancerSkill,
   { state, activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
-  if (!EXIT_IDS.has(skill.id)) return null;
-  const parent = skill.flipParentId == null ? undefined : context.catalog.skillsById.get(skill.flipParentId);
-  const parentShroud = parent ? ENTRY_SHROUD_BY_ID[parent.id] || requiredShroud(parent) : '';
-  const available = activeShroud === parentShroud || Number(state.availableFlips[skill.id] || 0) > context.start;
+  if (!skill.shroudExit) return null;
+  const available = activeShroud === skill.shroudExit || Number(state.availableFlips[skill.id] || 0) > context.start;
   return available ? READY : deny(skill, 'necromancer.not-in-shroud', 'the matching shroud is not active.');
 }
 
@@ -174,19 +151,6 @@ function inShroudGate(
   return chainVerdict(context, skill, state);
 }
 
-function spiritGate(
-  context: NecromancerPrecastContext,
-  skill: NecromancerSkill,
-  _environment: AvailabilityEnvironment
-): AvailabilityVerdict {
-  const spirit = INNERVATE_SPIRIT.get(skill.id);
-  if (!spirit) return null;
-  const active = context.state.profession.specialization;
-  return active.kind === 'Ritualist' && Boolean(active.state.activeSpirits[spirit])
-    ? READY
-    : deny(skill, 'necromancer.spirit', `requires an active ${spirit} spirit.`);
-}
-
 function activeMinionGate(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -216,6 +180,7 @@ function baselineGate(
   skill: NecromancerSkill,
   { state, activeShroud }: AvailabilityEnvironment
 ): Readonly<AvailabilityResult> {
+  if (skill.usableInShroud) return chainVerdict(context, skill, state);
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
@@ -248,7 +213,6 @@ const CAST_STATE_GATES: readonly CastStateGate[] = Object.freeze([
   lichFormGate,
   lichSkillGate,
   inShroudGate,
-  spiritGate,
   selectedSlotSkillGate,
   activeMinionGate,
   baselineGate
@@ -265,8 +229,6 @@ export function validateNecromancerBuild(context: NecromancerPrecastContext, ski
   }
 
   if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(context, TRAIT.LINGERING_CURSE)) return false;
-  if (skill.id === ID.SANDSTORM_SHROUD && !hasTrait(context, TRAIT.HERALD_OF_SORROW)) return false;
-  if (skill.id === ID.DESERT_SHROUD && hasTrait(context, TRAIT.HERALD_OF_SORROW)) return false;
   return true;
 }
 
