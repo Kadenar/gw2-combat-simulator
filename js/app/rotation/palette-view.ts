@@ -26,6 +26,7 @@ import { openDragonSlashReleaseEditor } from './charge-release.js';
 import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from './double-edge.js';
 import { normalizeRotationInsertionIndex } from '../../platform/ui/insertion-cursor.js';
 import {
+  rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
@@ -244,7 +245,10 @@ export function paletteSkillView(
   return {
     name: skill.name,
     skillId: skill.id,
-    hotkeyAction: String(skill.hotkeyAction || '') || rotationHotkeyActionForSkillSlot(skill.slot),
+    hotkeyAction:
+      String(skill.hotkeyAction || '') ||
+      rotationHotkeyActionForSkillSlot(skill.slot) ||
+      rotationHotkeyActionForSkillName(skill.name),
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
     variantBadge: String(skill.variantBadge || ''),
     title,

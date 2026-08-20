@@ -7,6 +7,7 @@ export interface Gw2HotkeyImportResult {
 }
 
 const ACTION_BY_GW2_ID: Readonly<Record<string, RotationHotkeyAction>> = Object.freeze({
+  '17': 'weapon-swap',
   '18': 'weapon-1',
   '19': 'weapon-2',
   '20': 'weapon-3',
@@ -109,6 +110,7 @@ function parseAttributes(source: string): Record<string, string> {
 
 function hotkeyActionFromName(name: string): RotationHotkeyAction | null {
   const normalized = name.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (normalized === 'swap weapons' || normalized === 'weapon swap') return 'weapon-swap';
   const numbered = /^(weapon|utility|profession) skill ([1-7])$/.exec(normalized);
   if (numbered) {
     const index = Number(numbered[2]);

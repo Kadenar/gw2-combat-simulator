@@ -13,6 +13,7 @@ import {
   loadRotationHotkeysEnabled,
   normalizeRotationHotkeyBindings,
   rotationHotkeyActionForCode,
+  rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction,
@@ -24,6 +25,7 @@ import { paletteSkillHtml } from '../../js/platform/ui/palette.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
   assert.deepEqual(defaultRotationHotkeyBindings(), {
+    'weapon-swap': 'Backquote',
     'weapon-1': 'Digit1',
     'weapon-2': 'Digit2',
     'weapon-3': 'Digit3',
@@ -91,6 +93,8 @@ test('rotation hotkeys default on and persist an explicit opt-out', () => {
 });
 
 test('skill slots resolve to weapon, utility, and profession actions', () => {
+  assert.equal(rotationHotkeyActionForSkillName('Swap Weapons'), 'weapon-swap');
+  assert.equal(rotationHotkeyActionForSkillName('Weapon Skill 1'), '');
   assert.equal(rotationHotkeyActionForSkillSlot('Weapon_3'), 'weapon-3');
   assert.equal(rotationHotkeyActionForSkillSlot('Profession_5'), 'profession-5');
   assert.equal(rotationHotkeyActionForSkillSlot('Profession_7'), 'profession-7');
@@ -182,6 +186,7 @@ test('rotation hotkeys recognize standard side mouse buttons while active', () =
 
 test('GW2 keybind XML maps combat actions, modifiers, and keyboard fallbacks', () => {
   const result = parseGw2HotkeyBindingsXml(`<InputBindings>
+    <action name="Swap Weapons" id="17" device="Keyboard" button="17"/>
     <action name="Weapon Skill 1" device="Keyboard" button="94" mod="5"/>
     <action name="Healing Skill" id="23" device="Mouse" button="4"
       device2="Keyboard" button2="54"/>
@@ -194,6 +199,7 @@ test('GW2 keybind XML maps combat actions, modifiers, and keyboard fallbacks', (
   </InputBindings>`);
 
   assert.deepEqual(result.bindings, {
+    'weapon-swap': 'Backquote',
     'weapon-1': 'Alt+Shift+NumpadMultiply',
     'slot-6': 'Mouse5',
     'slot-7': 'KeyE',

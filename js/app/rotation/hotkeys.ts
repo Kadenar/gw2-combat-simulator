@@ -5,6 +5,7 @@ export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';
 
 export const ROTATION_HOTKEY_ACTIONS = Object.freeze([
+  { id: 'weapon-swap', label: 'Weapon swap', group: 'Weapon', code: 'Backquote' },
   { id: 'weapon-1', label: 'Weapon skill 1', group: 'Weapon', code: 'Digit1' },
   { id: 'weapon-2', label: 'Weapon skill 2', group: 'Weapon', code: 'Digit2' },
   { id: 'weapon-3', label: 'Weapon skill 3', group: 'Weapon', code: 'Digit3' },
@@ -165,6 +166,11 @@ export function rotationHotkeyActionForSkillSlot(slot: unknown): RotationHotkeyA
   if (!match) return '';
   const action = match[2] ? `weapon-${match[2]}` : `profession-${match[3]}`;
   return actionIds.has(action) ? (action as RotationHotkeyAction) : '';
+}
+
+/** Assigns the shared weapon-swap pseudo-skill to its configurable hotkey in every profession palette. */
+export function rotationHotkeyActionForSkillName(name: unknown): RotationHotkeyAction | '' {
+  return String(name || '') === 'Swap Weapons' ? 'weapon-swap' : '';
 }
 
 export function rotationUtilityHotkeyAction(index: number): RotationHotkeyAction | '' {
