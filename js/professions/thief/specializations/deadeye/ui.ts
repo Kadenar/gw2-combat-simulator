@@ -11,7 +11,14 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
 }
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): number[] {
-  return hasThiefTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ? [ID.STEAL_TIME] : [...DEADEYE_STOLEN_SKILL_IDS];
+  const paletteTraits = context.traits;
+  const fireForEffectSelected =
+    hasThiefTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ||
+    (paletteTraits != null &&
+      typeof (paletteTraits as ReadonlySet<string | number>).has === 'function' &&
+      hasThiefTrait(paletteTraits as ReadonlySet<string | number>, TRAIT.FIRE_FOR_EFFECT));
+  // Runtime configuration and the live palette expose traits through different contracts; honor either source.
+  return fireForEffectSelected ? [ID.STEAL_TIME] : [...DEADEYE_STOLEN_SKILL_IDS];
 }
 
 export const deadeyeUi = Object.freeze({

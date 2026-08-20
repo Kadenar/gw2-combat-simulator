@@ -2732,6 +2732,12 @@ test('Thief skill bar previews specialization-specific stolen skills', () => {
     'Steal Mobility'
   ]);
   assert.deepEqual(namesFor('Deadeye', { selectedTraitIds: [TRAIT.FIRE_FOR_EFFECT] }), ['Steal Time']);
+  assert.deepEqual(
+    thiefProfession.ui
+      .paletteGroups({ specialization: 'Deadeye', traits: new Set([TRAIT.FIRE_FOR_EFFECT]) })
+      .find((group) => group.id === 'deadeye-stolen-skills').skillIds,
+    [ID.STEAL_TIME]
+  );
   assert.equal(
     thiefProfession.ui
       .skillBarGroups({ specialization: 'Deadeye', config: { specialization: 'Deadeye' } })
