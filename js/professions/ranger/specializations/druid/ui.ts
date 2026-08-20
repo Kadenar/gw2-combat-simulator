@@ -1,5 +1,5 @@
 import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import { rangerUiState } from '../../core/ui.js';
+import { rangerPetPaletteGroup, rangerUiState } from '../../core/ui.js';
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
@@ -68,7 +68,8 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.f
       color: '#75c5c5'
     }
   ],
-  paletteGroups: () => [
+  paletteGroups: (context: RangerUiContext) => [
+    rangerPetPaletteGroup(context),
     {
       id: 'ranger-druid-profession',
       label: 'Avatar',

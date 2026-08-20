@@ -108,12 +108,6 @@ export function isPlayerStrike(event: RangerResolverEvent): boolean {
   return event.actorType === 'player' && !isPetStrike(event);
 }
 
-export function beastmodeActive(context: RangerResolverContext): boolean {
-  return Boolean(
-    context.profession.specialization.kind === 'Soulbeast' && context.profession.specialization.state.beastmodeActive
-  );
-}
-
 export function targetHealthFraction(context: RangerResolverContext): number {
   const maximum = Number(context.config.target?.health || 0);
   if (!(maximum > 0)) return 1;

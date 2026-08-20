@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RangerPrecastContext, RangerSkill } from '../types.js';
@@ -29,8 +29,8 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
         };
   }
 
-  if (skill.id === ID.PET_SWAP && flattenProfessionState(context.state.profession).beastmodeActive) {
-    return deny(skill, 'ranger.pet-merged', 'leave Beastmode first.');
+  if (skill.id === ID.PET_SWAP && !state.petActive) {
+    return deny(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
   if (
@@ -68,12 +68,11 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
     return deny(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }
 
-  const flattenedState = flattenProfessionState(context.state.profession);
-  if (flattenedState.beastmodeActive) {
-    return deny(skill, 'ranger.pet-merged', 'leave Beastmode first.');
+  if (!state.petActive) {
+    return deny(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
-  if (!((flattenedState.activePetSkillIds as unknown[]) || []).includes(skill.id)) {
+  if (!state.activePetSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-pet', 'select the pet that owns this Beast skill.');
   }
 

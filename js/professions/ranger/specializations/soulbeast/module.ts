@@ -20,6 +20,7 @@ import {
   soulbeastEventHandlers
 } from './resolver.js';
 import { SOULBEAST_BALANCE_PROFILES } from './profiles.js';
+import { soulbeastSchedulerHooks } from './scheduler.js';
 
 export const soulbeastModule = defineNativeModule({
   id: 'Soulbeast',
@@ -33,6 +34,7 @@ export const soulbeastModule = defineNativeModule({
   mechanics: {
     modifiers: soulbeastAttributeRules,
     castRules: soulbeastCastRules,
+    schedulerHooks: soulbeastSchedulerHooks,
     resolverHooks: { eventHandlers: soulbeastEventHandlers },
     reactions: [
       onResolvedDamage({

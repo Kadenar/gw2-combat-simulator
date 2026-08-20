@@ -1,5 +1,20 @@
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
-import type { DruidState, RangerConfig } from '../../types.js';
+import type { DruidState, RangerConfig, RangerState } from '../../types.js';
+
+// Druid owns its public Celestial Avatar resource projection.
+export const DRUID_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+  'astralForce',
+  'maximumAstralForce',
+  'celestialAvatarActive',
+  'celestialAvatarEndsAt'
+]);
+
+export const DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+  astralForce: 0,
+  maximumAstralForce: 100,
+  celestialAvatarActive: false,
+  celestialAvatarEndsAt: 0
+});
 
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {

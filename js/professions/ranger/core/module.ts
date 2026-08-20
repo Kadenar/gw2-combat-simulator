@@ -14,7 +14,8 @@ import {
   rangerCoreSkillMechanicHandlers
 } from './rules.js';
 import { RANGER_CORE_BASE_SKILL_MECHANICS, RANGER_CORE_EXTRA_SKILLS } from './skills.js';
-import { createRangerCoreState, projectRangerEndState } from './state.js';
+import { projectRangerEndState } from '../state.js';
+import { createRangerCoreState } from './state.js';
 import { bindRangerCoreUi } from './ui.js';
 import { rangerCoreEventHandlers, rangerCoreEventReactions } from './resolver.js';
 import { RANGER_CORE_BALANCE_PROFILES } from './profiles.js';

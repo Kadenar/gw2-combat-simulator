@@ -1,6 +1,5 @@
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { RANGER_PETS } from '../data/ranger-pet-data.js';
-import type { RangerConfig, RangerCoreState, RangerEndStateProjectionOptions, RangerState } from '../types.js';
+import type { RangerConfig, RangerCoreState, RangerState } from '../types.js';
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
   const selected = String(slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig');
@@ -19,6 +18,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     activePetSlot: 1,
     petNames: [pet?.name || '', pet2?.name || ''],
     activePetSkillIds: [...(pet?.skillIds || [])],
+    petActive: true,
     endurance: 100,
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
@@ -60,11 +60,8 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   };
 }
 
-export function snapshotRangerState(state: unknown): RangerState {
-  return structuredClone(flattenProfessionState(state)) as unknown as RangerState;
-}
-
-export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+// Core declares only the public state fields that it semantically owns.
+export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
   'activePet',
   'activePetSlot',
   'petNames',
@@ -91,60 +88,5 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Obje
   'petSwapCount',
   'petAutoNextAt',
   'petAutoBusyUntil',
-  'petAutoCooldowns',
-  'astralForce',
-  'maximumAstralForce',
-  'celestialAvatarActive',
-  'celestialAvatarEndsAt',
-  'beastmodeActive',
-  'archetype',
-  'oneWolfPackUntil',
-  'oneWolfPackReadyAt',
-  'rangerUnleashed',
-  'ambushReadyUntil',
-  'cycloneBowActive',
-  'arrows',
-  'maximumArrows',
-  'arrowsUpdatedAt',
-  'windForce',
-  'galeForceUntil',
-  'mistralUntil',
-  'wutheringWindReady',
-  'thrillOfTheCatchReadyAt',
-  'flockTogetherReadyAt',
-  'missileHits'
+  'petAutoCooldowns'
 ]);
-
-const RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
-  astralForce: 0,
-  maximumAstralForce: 100,
-  celestialAvatarActive: false,
-  celestialAvatarEndsAt: 0,
-  beastmodeActive: false,
-  archetype: '',
-  oneWolfPackUntil: 0,
-  oneWolfPackReadyAt: 0,
-  rangerUnleashed: false,
-  ambushReadyUntil: 0,
-  cycloneBowActive: false,
-  arrows: 0,
-  maximumArrows: 8,
-  arrowsUpdatedAt: 0,
-  windForce: 0,
-  galeForceUntil: 0,
-  mistralUntil: 0,
-  wutheringWindReady: false,
-  thrillOfTheCatchReadyAt: 0,
-  flockTogetherReadyAt: 0,
-  missileHits: 0
-});
-
-export function projectRangerEndState({ schedulerState }: RangerEndStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotRangerState(schedulerState.profession);
-  return Object.fromEntries(
-    RANGER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
-}

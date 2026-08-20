@@ -22,6 +22,10 @@ function beastmodeActive(context: RangerUiContext): boolean {
 
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const active = beastmodeActive(context);
+  if (skill.petSkill && active) {
+    return { available: false, message: 'Leave Beastmode first' };
+  }
+
   const selectedSkillIds = selectedRangerUiPet(context)?.beastmodeSkillIds || [];
   // A beast skill exists in the catalog for every pet, but only the selected pet's
   // merged skills should be usable — block the rest before checking the mode flag.

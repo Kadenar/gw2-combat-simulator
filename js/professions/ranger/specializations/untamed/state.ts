@@ -1,5 +1,16 @@
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
-import type { RangerConfig, UntamedState } from '../../types.js';
+import type { RangerConfig, RangerState, UntamedState } from '../../types.js';
+
+// Untamed owns its public unleash and ambush-window projection.
+export const UNTAMED_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+  'rangerUnleashed',
+  'ambushReadyUntil'
+]);
+
+export const UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+  rangerUnleashed: false,
+  ambushReadyUntil: 0
+});
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {

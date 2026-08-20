@@ -2,7 +2,8 @@ import type { AvailabilityResult, SimulationEvent } from '../../../../platform/e
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { gw2StatsForWeaponSet } from '../../../../platform/gw2/runtime-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
+import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { druidState } from './state.js';
@@ -13,7 +14,7 @@ import {
   handleDruidAstralForceDamageTask,
   observeDruidAstralForceEvent
 } from './mechanics.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect } from '../../core/profiles.js';
+import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 // Grace of the Land emits alacrity; duration scales with concentration/boon duration like any boon
@@ -186,7 +187,19 @@ export const druidModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
+/** Applies Druid-owned attribute bonuses without making Core aware of the specialization. */
+function modifyDruidAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  if (!hasTrait(context, TRAIT.NATURAL_FORTITUDE)) return attributes;
+  const staticRulesApplied = professionStaticRulesApplied(context.config);
+  if (staticRulesApplied && context.event?.actorType === 'summon') return attributes;
+  const result = { ...attributes };
+  const vitality = rangerBalanceValue(context, PROFILE.naturalFortitude, 'attributeBonus', 240);
+  result.vitality = Number(result.vitality || 0) + vitality - (staticRulesApplied ? 240 : 0);
+  return result;
+}
+
 export const druidAttributeRules = Object.freeze({
+  modifyAttributes: modifyDruidAttributes,
   modifierRules: druidModifierRules
 });
 

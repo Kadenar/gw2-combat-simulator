@@ -33,10 +33,16 @@ import { RANGER_PETS } from '../../../js/professions/ranger/data/ranger-pet-data
 import { RANGER_TRAIT_COVERAGE } from '../../../js/professions/ranger/data/trait-coverage.js';
 import { rangerProfession } from '../../../js/professions/ranger/definition.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/core/profiles.js';
+import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/druid/profiles.js';
+import { druidAttributeRules } from '../../../js/professions/ranger/specializations/druid/rules.js';
+import { DRUID_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/druid/state.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/soulbeast/profiles.js';
+import { SOULBEAST_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/soulbeast/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/untamed/profiles.js';
+import { UNTAMED_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/untamed/state.js';
 import { GALESHOT_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/galeshot/profiles.js';
+import { GALESHOT_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '../../../js/professions/ranger/core/pets.js';
 import {
   rangerCoreAttributeRules,
@@ -44,7 +50,13 @@ import {
   rangerCoreModifierRules
 } from '../../../js/professions/ranger/core/rules.js';
 import { RANGER_SKILL_MECHANICS } from '../../../js/professions/ranger/mechanics/skill-mechanics.js';
-import { soulbeastModifierRules } from '../../../js/professions/ranger/specializations/soulbeast/rules.js';
+import {
+  soulbeastAttributeRules,
+  soulbeastCastRules,
+  soulbeastModifierRules
+} from '../../../js/professions/ranger/specializations/soulbeast/rules.js';
+import { untamedCastRules } from '../../../js/professions/ranger/specializations/untamed/rules.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/state.js';
 import {
   rangerAppAdapter,
   calculateAttributes,
@@ -104,6 +116,42 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
   assert.equal(result.snapshot.specialization, undefined);
   assert.equal(result.snapshot.activePet, 'Lynx');
   assert.equal(result.snapshot.beastmodeActive, true);
+});
+
+test('Ranger public state is composed from Core and specialization-owned manifests', () => {
+  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('beastmodeActive'), false);
+  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralForce'), false);
+  assert.deepEqual(RANGER_PUBLIC_END_STATE_KEYS, [
+    ...RANGER_CORE_PUBLIC_END_STATE_KEYS,
+    ...DRUID_PUBLIC_END_STATE_KEYS,
+    ...SOULBEAST_PUBLIC_END_STATE_KEYS,
+    ...UNTAMED_PUBLIC_END_STATE_KEYS,
+    ...GALESHOT_PUBLIC_END_STATE_KEYS
+  ]);
+});
+
+test('Ranger Core source stays specialization-agnostic', async () => {
+  const files = [
+    'availability.ts',
+    'events.ts',
+    'handlers.ts',
+    'module.ts',
+    'pets.ts',
+    'resolver.ts',
+    'rules.ts',
+    'shared.ts',
+    'state.ts',
+    'traits.ts',
+    'ui.ts'
+  ];
+  const sources = await Promise.all(
+    files.map((file) => readFile(new URL(`../../../js/professions/ranger/core/${file}`, import.meta.url), 'utf8'))
+  );
+  const coreSource = sources.join('\n');
+
+  assert.doesNotMatch(coreSource, /specializations\//);
+  assert.doesNotMatch(coreSource, /\b(?:Druid|Soulbeast|Untamed|Galeshot|Beastmode)\b/);
+  assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralForce|rangerUnleashed|cycloneBowActive)\b/);
 });
 
 test('Ranger catalog pins API identity and explicit module-owned mechanics', () => {
@@ -688,36 +736,30 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
 });
 
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
-  const recharge = (skill) =>
-    rangerCoreCastRules.modifyRechargeDuration(
-      {
-        skill,
-        traits: new Set([TRAIT.PACK_ALPHA]),
-        state: {
-          time: 0,
-          profession: { core: { quickDrawUntil: 0 } }
-        }
-      },
-      10
-    );
+  const context = (skill) => ({
+    skill,
+    traits: new Set([TRAIT.PACK_ALPHA]),
+    state: {
+      time: 0,
+      profession: { core: { quickDrawUntil: 0 } }
+    }
+  });
+  const recharge = (skill) => rangerCoreCastRules.modifyRechargeDuration(context(skill), 10);
 
   assert.equal(recharge({ name: 'Pet skill', petSkill: true }), 8);
-  assert.equal(
-    recharge({
-      name: 'Unleashed pet skill',
-      petSkill: true,
-      unleashedPetSkill: true
-    }),
-    10
-  );
-  assert.equal(
-    recharge({
-      name: 'Beastmode skill',
-      petSkill: true,
-      beastmodeSkill: true
-    }),
-    10
-  );
+  const unleashedPetSkill = {
+    name: 'Unleashed pet skill',
+    petSkill: true,
+    unleashedPetSkill: true
+  };
+  const beastmodeSkill = {
+    name: 'Beastmode skill',
+    petSkill: true,
+    beastmodeSkill: true
+  };
+
+  assert.equal(untamedCastRules.modifyRechargeDuration(context(unleashedPetSkill), recharge(unleashedPetSkill)), 10);
+  assert.equal(soulbeastCastRules.modifyRechargeDuration(context(beastmodeSkill), recharge(beastmodeSkill)), 10);
 });
 
 test("Pack Alpha improves only the Pig's five documented attributes", () => {
@@ -960,6 +1002,82 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
 
   assert.match(leftBeastmode.warnings[0], /enter Beastmode/);
   assert.equal(leftBeastmode.endState.profession.beastmodeActive, false);
+});
+
+test('Soulbeast owns merged pet suspension and restores the pet after leaving Beastmode', () => {
+  const merged = simulate('Soulbeast', ['__combat_start', { type: 'wait', durationMs: 4000 }], {
+    selectedPet: 'Carrion Devourer'
+  });
+  const unmerged = simulate('Soulbeast', ['__combat_start', 'Leave Beastmode', { type: 'wait', durationMs: 4000 }], {
+    selectedPet: 'Carrion Devourer'
+  });
+
+  const autonomousPetActions = (result) =>
+    result.events.filter(
+      (event) => event.type === 'action' && event.actorType === 'summon' && event.autonomousPetSkill
+    );
+
+  assert.deepEqual(merged.warnings, []);
+  assert.deepEqual(autonomousPetActions(merged), []);
+  assert.equal(autonomousPetActions(unmerged).length > 0, true);
+
+  const swapped = simulate('Soulbeast', ['Leave Beastmode', 'Swap Pets'], {
+    selectedPet: 'Pig',
+    selectedPet2: 'Smokescale'
+  });
+
+  assert.deepEqual(swapped.warnings, []);
+  assert.equal(swapped.endState.profession.activePet, 'Smokescale');
+  assert.equal(swapped.endState.profession.archetype, 'Ferocious');
+});
+
+test("Soulbeast applies Sic 'Em to the merged ranger and to the pet while unmerged", () => {
+  const skillName = rangerCatalog.skillsById.get(ID.SIC_EM).name;
+  const merged = simulate('Soulbeast', [skillName]);
+  const unmerged = simulate('Soulbeast', ['Leave Beastmode', skillName]);
+
+  assert.equal(
+    merged.events.some((event) => event.type === 'buff' && event.kind === 'sic-em'),
+    true
+  );
+  assert.equal(
+    merged.events.some((event) => event.type === 'buff' && event.kind === 'sic-em-pet'),
+    false
+  );
+  assert.equal(
+    unmerged.events.some((event) => event.type === 'buff' && event.kind === 'sic-em'),
+    false
+  );
+  assert.equal(
+    unmerged.events.some((event) => event.type === 'buff' && event.kind === 'sic-em-pet'),
+    true
+  );
+});
+
+test('Poisonous Strikes follows Soulbeast pet ownership', () => {
+  const merged = simulate('Soulbeast', ['Double Arc', 'Deadly Delivery'], { primaryWeapon: 'Dagger' });
+  const unmerged = simulate(
+    'Soulbeast',
+    ['Leave Beastmode', 'Double Arc', 'Deadly Delivery', { type: 'wait', durationMs: 3000 }],
+    { primaryWeapon: 'Dagger', selectedPet: 'Carrion Devourer' }
+  );
+  const procs = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Poisonous Strikes' && event.condition === 'Poisoned'
+    );
+
+  assert.equal(
+    procs(merged).some((event) => event.source === 'ranger' && event.actorType === 'effect'),
+    true
+  );
+  assert.equal(
+    procs(unmerged).some((event) => event.source === 'ranger-pet' && event.actorType === 'summon'),
+    true
+  );
+  assert.equal(
+    procs(unmerged).some((event) => event.source === 'ranger'),
+    false
+  );
 });
 
 test('Soulbeast palette swaps between merged skills and the active pet', () => {
@@ -1944,15 +2062,43 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     'ranger.hunters-tactics-damage',
     'ranger.light-on-your-feet',
     'ranger.bountiful-hunter-player',
-    'ranger.bountiful-hunter-pet',
-    'ranger.loud-whistle-player'
+    'ranger.bountiful-hunter-pet'
   ]) {
     assert.equal(coreOperations.get(id), 'multiply', id);
   }
 
-  for (const id of ['ranger.sic-em-player', 'ranger.oppressive-superiority']) {
+  for (const id of ['ranger.loud-whistle-player', 'ranger.sic-em-player', 'ranger.oppressive-superiority']) {
     assert.equal(soulbeastOperations.get(id), 'multiply', id);
   }
+
+  assert.equal(coreOperations.has('ranger.loud-whistle-player'), false);
+
+  const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
+  const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
+  const druidAttributes = druidAttributeRules.modifyAttributes(druidContext, baseAttributes);
+  const coreAttributes = rangerCoreAttributeRules.modifyAttributes(druidContext, baseAttributes);
+
+  assert.equal(druidAttributes.vitality, 1240);
+  assert.equal(coreAttributes.vitality, 1000);
+
+  const soulbeastAttributes = soulbeastAttributeRules.modifyAttributes(
+    {
+      config: { selectedPet: 'Pig' },
+      traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
+      runtime: {
+        profession: {
+          core: { activePet: 'Pig' },
+          specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } }
+        }
+      }
+    },
+    baseAttributes
+  );
+
+  assert.equal(soulbeastAttributes.power, 300);
+  assert.equal(soulbeastAttributes.ferocity, 400);
+  assert.equal(soulbeastAttributes.toughness, 150);
+  assert.equal(soulbeastAttributes.vitality, 1150);
 
   for (const id of ['ranger.furious-strength', 'ranger.twice-as-vicious-strike', 'ranger.twice-as-vicious-condition']) {
     assert.equal(soulbeastOperations.get(id), 'damage-additive', id);

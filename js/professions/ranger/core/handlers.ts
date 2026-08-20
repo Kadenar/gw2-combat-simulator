@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
 import { replaceSkill } from '../../../platform/gw2/native-profession.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
@@ -28,10 +28,6 @@ function swapRangerPets(context: RangerCastContext, skill: RangerSkill): boolean
   state.activePet = pet.name;
   state.activePetSkillIds = [...pet.skillIds];
   state.petOpeningStrikeReady = true;
-  if (context.state.profession.specialization.kind === 'Soulbeast') {
-    context.state.profession.specialization.state.archetype = pet.archetype;
-  }
-
   context.emit({
     type: 'ranger.pet-swapped',
     at: context.effectiveEnd,
@@ -127,7 +123,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.sic-em': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const merged = Boolean(flattenProfessionState(context.state.profession).beastmodeActive);
+      if (!professionCoreState(context).petActive) return;
       context.emit({
         type: 'buff',
         at: context.start,
@@ -136,7 +132,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        kind: merged ? 'sic-em' : 'sic-em-pet',
+        kind: 'sic-em-pet',
         duration: rangerBalanceValue(context, PROFILE.sicEm, 'durationMultiplier', 10),
         stacks: 1
       });

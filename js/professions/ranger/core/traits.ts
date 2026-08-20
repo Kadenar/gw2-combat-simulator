@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
 import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
@@ -6,7 +6,6 @@ import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerPetCompanionId } from './pets.js';
 import {
-  beastmodeActive,
   eventSkill,
   isPetStrike,
   isPlayerStrike,
@@ -82,10 +81,7 @@ function emitPartyBoon(
 }
 
 function isBeastSkill(skill: RangerSkill): boolean {
-  return Boolean(
-    (skill.petSkill && !skill.petFamilySkill) ||
-    (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
-  );
+  return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
 
 export function applyRangerDodgeTraits(context: RangerCastContext): void {
@@ -203,6 +199,16 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
   }
 
   if (!isBeastSkill(skill)) return;
+  applyRangerBeastSkillTraits(context, skill, true);
+}
+
+/** Applies shared Beast-skill traits after the active owner classifies the triggering skill. */
+export function applyRangerBeastSkillTraits(
+  context: RangerCastContext,
+  skill: RangerSkill,
+  triggerPoisonMaster: boolean
+): void {
+  const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.REJUVENATION) && context.start >= state.rejuvenationReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
@@ -220,7 +226,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
 
   const notBeforeCombat =
     !context.hasExplicitCombatStart || (context.combatStartTime != null && context.start >= context.combatStartTime);
-  if (hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
+  if (triggerPoisonMaster && hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
     context.emit({
       type: 'ranger.beast-skill-used',
       at: context.effectiveEnd,
@@ -399,21 +405,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
 }
 
 export function applyRangerCommandTraits(context: RangerCastContext, skill: RangerSkill): void {
-  if (!hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
-  const merged = Boolean(flattenProfessionState(context.state.profession).beastmodeActive);
-  if (merged) {
-    context.emit({
-      type: 'ranger.boon-extension',
-      at: context.start,
-      source: 'ranger',
-      sourceId: TRAIT.RESOUNDING_TIMBRE,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: 'Resounding Timbre',
-      duration: rangerBalanceValue(context, PROFILE.resoundingTimbre, 'durationMultiplier', 2)
-    });
-    return;
-  }
+  if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
   const boonKinds = new Set([
     'aegis',
@@ -592,22 +584,19 @@ function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerRe
     state.poisonousStrikesCharges = 0;
   }
 
-  const merged = beastmodeActive(context);
-  const eligibleStrike = merged ? isPlayerStrike(event) : isPetStrike(event);
-  if (state.poisonousStrikesCharges <= 0 || !eligibleStrike || !(Number(event.coefficient) > 0)) {
+  if (state.poisonousStrikesCharges <= 0 || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
 
   state.poisonousStrikesCharges -= 1;
-  const petSource = !merged;
   const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
   enqueueOrdered(context.queue, {
-    ...(petSource ? petDerivedConditionMetadata(context, event) : {}),
+    ...petDerivedConditionMetadata(context, event),
     type: 'condition',
     at: event.at,
-    source: petSource ? 'ranger-pet' : 'ranger',
+    source: 'ranger-pet',
     sourceId: ID.DOUBLE_ARC,
-    actorType: petSource ? 'summon' : 'effect',
+    actorType: 'summon',
     skillId: ID.DOUBLE_ARC,
     skillName: 'Poisonous Strikes',
     name: 'Poisonous Strikes - Poisoned',
@@ -786,7 +775,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   consumeOpeningStrike(context, event);
   // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so
   // the triggering hit cannot benefit from the buff it creates.
-  if (!beastmodeActive(context)) triggerGoForTheThroat(context, event);
+  triggerGoForTheThroat(context, event);
   triggerHuntersGaze(context, event);
   triggerPoisonMaster(context, event);
   triggerPoisonousStrikes(context, event);

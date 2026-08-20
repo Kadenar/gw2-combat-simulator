@@ -1,6 +1,21 @@
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 import { selectedRangerPet } from '../../core/state.js';
-import type { RangerConfig, SoulbeastState } from '../../types.js';
+import type { RangerConfig, RangerState, SoulbeastState } from '../../types.js';
+
+// Soulbeast owns its public Beastmode and stance projection.
+export const SOULBEAST_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+  'beastmodeActive',
+  'archetype',
+  'oneWolfPackUntil',
+  'oneWolfPackReadyAt'
+]);
+
+export const SOULBEAST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+  beastmodeActive: false,
+  archetype: '',
+  oneWolfPackUntil: 0,
+  oneWolfPackReadyAt: 0
+});
 
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
   const pet = selectedRangerPet(config);

@@ -4,8 +4,9 @@ import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-pr
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotRangerState } from '../state.js';
 import { rangerCoreCastAvailability } from './availability.js';
-import { rangerPetByName, snapshotRangerState } from './state.js';
+import { rangerPetByName } from './state.js';
 import { advanceRangerResources } from './resources.js';
 import { applyRangerWeaponSwapTraits, completeRangerTraits } from './traits.js';
 import { updateRangerWeaponState } from './weapon-state.js';
@@ -15,8 +16,6 @@ import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../.
 import type { RangerSchedulerContext, RangerSkill } from '../types.js';
 import type { RangerCastContext } from '../types.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS } from '../specializations/druid/profiles.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS } from '../specializations/soulbeast/profiles.js';
 
 export const rangerCoreSchedulerHooks = Object.freeze({
   advance: {
@@ -73,28 +72,6 @@ function playerEvent(context: Gw2ModifierContext): boolean {
 
 function petEvent(context: Gw2ModifierContext): boolean {
   return context.event?.actorType === 'summon' && context.event?.source === 'ranger-pet';
-}
-
-function beastmodeActive(context: Gw2ModifierContext): boolean {
-  const profession = (
-    context.runtime as
-      | {
-          profession?: {
-            specialization?: {
-              kind?: string;
-              state?: { beastmodeActive?: boolean };
-            };
-          };
-        }
-      | undefined
-  )?.profession;
-  return Boolean(profession?.specialization?.kind === 'Soulbeast' && profession.specialization.state?.beastmodeActive);
-}
-
-function soulbeastSpecialization(context: Gw2ModifierContext): boolean {
-  const profession = (context.runtime as { profession?: { specialization?: { kind?: string } } } | undefined)
-    ?.profession;
-  return profession?.specialization?.kind === 'Soulbeast' || context.config?.specialization === 'Soulbeast';
 }
 
 function targetConditionCount(context: Gw2ModifierContext): number {
@@ -207,92 +184,11 @@ function activePetFamily(context: Gw2ModifierContext): string {
   return rangerPetByName(String(activePet || context.config?.selectedPet || 'Pig')).family;
 }
 
-const PACK_ALPHA_RUNTIME_ATTRIBUTES = Object.freeze([
-  'power',
-  'conditionDamage',
-  'precision',
-  'toughness',
-  'vitality'
-] as const);
-
-const SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES: Readonly<
-  Record<string, Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>>>
-> = Object.freeze({
-  Stout: Object.freeze({ toughness: 200, vitality: 100 }),
-  Deadly: Object.freeze({ conditionDamage: 150, precision: 100 }),
-  Versatile: Object.freeze({ vitality: 200, concentration: 225 }),
-  Ferocious: Object.freeze({ power: 150, ferocity: 100 }),
-  Supportive: Object.freeze({ vitality: 100 })
-});
-
-function soulbeastArchetypeAttributes(
-  context: Gw2ModifierContext,
-  archetype: string
-): Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>> {
-  switch (archetype) {
-    case 'Stout':
-      return {
-        toughness: rangerBalanceValue(context, SOULBEAST_BALANCE_PROFILE_IDS.stoutArchetype, 'attributeBonus', 200),
-        vitality: rangerBalanceValue(context, SOULBEAST_BALANCE_PROFILE_IDS.stoutArchetype, 'weaponAttributeBonus', 100)
-      };
-    case 'Deadly':
-      return {
-        conditionDamage: rangerBalanceValue(
-          context,
-          SOULBEAST_BALANCE_PROFILE_IDS.deadlyArchetype,
-          'attributeBonus',
-          150
-        ),
-        precision: rangerBalanceValue(
-          context,
-          SOULBEAST_BALANCE_PROFILE_IDS.deadlyArchetype,
-          'weaponAttributeBonus',
-          100
-        )
-      };
-    case 'Versatile':
-      return {
-        vitality: rangerBalanceValue(context, SOULBEAST_BALANCE_PROFILE_IDS.versatileArchetype, 'attributeBonus', 200),
-        concentration: rangerBalanceValue(
-          context,
-          SOULBEAST_BALANCE_PROFILE_IDS.versatileArchetype,
-          'weaponAttributeBonus',
-          225
-        )
-      };
-    case 'Ferocious':
-      return {
-        power: rangerBalanceValue(context, SOULBEAST_BALANCE_PROFILE_IDS.ferociousArchetype, 'attributeBonus', 150),
-        ferocity: rangerBalanceValue(
-          context,
-          SOULBEAST_BALANCE_PROFILE_IDS.ferociousArchetype,
-          'weaponAttributeBonus',
-          100
-        )
-      };
-    case 'Supportive':
-      return {
-        vitality: rangerBalanceValue(context, SOULBEAST_BALANCE_PROFILE_IDS.supportiveArchetype, 'attributeBonus', 100)
-      };
-    default:
-      return {};
-  }
-}
-
-function petArchetype(context: Gw2ModifierContext, active: boolean): string {
-  const configured = active
-    ? (context.runtime as { profession?: { core?: { activePet?: string } } } | undefined)?.profession?.core
-        ?.activePet || context.config?.selectedPet
-    : context.config?.selectedPet;
-  return rangerPetByName(String(configured || 'Pig')).archetype;
-}
-
 function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const result = { ...attributes };
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   const calculatedWeapon = String(context.config?.attributeProvenance?.calculatedPrimaryWeapon || '');
   const calculatedWeaponSet = Number(context.config?.attributeProvenance?.calculatedWeaponSet) === 2 ? 2 : 1;
-  const merged = beastmodeActive(context);
   const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
@@ -330,24 +226,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       adjust('ferocity', rangerBalanceValue(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
     }
 
-    if (merged && hasTrait(context, TRAIT.PACK_ALPHA)) {
-      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
-        adjust(attribute, rangerBalanceValue(context, PROFILE.packAlpha, 'attributeBonus', 150));
-      }
-    }
-
-    if (merged && hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust('ferocity', rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300));
-    }
-
-    if (merged) {
-      for (const [attribute, amount] of Object.entries(
-        soulbeastArchetypeAttributes(context, petArchetype(context, true))
-      )) {
-        adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
-      }
-    }
-
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
       adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'attributeBonus', 150));
     }
@@ -374,49 +252,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         Number(context.config?.stats?.power || 0) *
           rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07)
       );
-    }
-
-    if (hasTrait(context, TRAIT.NATURAL_FORTITUDE)) {
-      adjust(
-        'vitality',
-        rangerBalanceValue(context, DRUID_BALANCE_PROFILE_IDS.naturalFortitude, 'attributeBonus', 240)
-      );
-    }
-  } else if (!merged && soulbeastSpecialization(context)) {
-    if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
-        adjust(attribute, -150);
-      }
-    }
-
-    if (hasTrait(context, TRAIT.PETS_PROWESS)) adjust('ferocity', -300);
-    for (const [attribute, amount] of Object.entries(
-      SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[petArchetype(context, false)] || {}
-    )) {
-      adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
-    }
-  } else if (staticRulesApplied && merged) {
-    const configuredArchetype = petArchetype(context, false);
-    const activeArchetype = petArchetype(context, true);
-    for (const [attribute, amount] of Object.entries(
-      SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[configuredArchetype] || {}
-    )) {
-      adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
-    }
-
-    for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, activeArchetype))) {
-      adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
-    }
-
-    if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const bonus = rangerBalanceValue(context, PROFILE.packAlpha, 'attributeBonus', 150);
-      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
-        adjust(attribute, bonus - 150);
-      }
-    }
-
-    if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust('ferocity', rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300) - 300);
     }
   }
 
@@ -450,13 +285,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
       adjust('concentration', rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240) - 240);
-    }
-
-    if (hasTrait(context, TRAIT.NATURAL_FORTITUDE)) {
-      adjust(
-        'vitality',
-        rangerBalanceValue(context, DRUID_BALANCE_PROFILE_IDS.naturalFortitude, 'attributeBonus', 240) - 240
-      );
     }
 
     if (hasTrait(context, TRAIT.WELLSPRING)) {
@@ -614,10 +442,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      playerEvent(context) &&
-      eventSkill(context)?.type === 'Weapon' &&
-      !eventSkill(context)?.cycloneBowSkill &&
-      hasTrait(context, TRAIT.FARSIGHTED)
+      playerEvent(context) && eventSkill(context)?.type === 'Weapon' && hasTrait(context, TRAIT.FARSIGHTED)
   },
   {
     id: 'ranger.bountiful-hunter-player',
@@ -693,13 +518,6 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) => playerEvent(context) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
-  },
-  {
-    id: 'ranger.loud-whistle-player',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    when: (context) => playerEvent(context) && beastmodeActive(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
   },
   {
     id: 'ranger.loud-whistle-pet',
@@ -802,12 +620,7 @@ export const rangerCoreCastRules = Object.freeze({
       result *= rangerBalanceValue(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
     }
 
-    if (
-      skill?.petSkill &&
-      !skill.beastmodeSkill &&
-      !skill.unleashedPetSkill &&
-      hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)
-    ) {
+    if (skill?.petSkill && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)) {
       result *= rangerBalanceValue(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
     }
 

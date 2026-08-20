@@ -27,7 +27,6 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.pet-swapped',
   'ranger.poisonous-strikes',
   'ranger.sharpening-stone',
-  'ranger.untamed-state',
   'ranger.winter-bite-ready'
 ]);
 
@@ -65,17 +64,23 @@ function commandablePetSkillIds(context: RangerUiContext): SkillId[] {
   return commandableSkillIds(activePetSkillIds(context));
 }
 
-const RANGER_GALESHOT_PALETTE_STACK = 'ranger-galeshot';
+interface RangerPetPaletteGroupOptions {
+  readonly resourceAnchor?: boolean;
+  readonly stackId?: string;
+}
 
-export function rangerPetPaletteGroup(context: RangerUiContext): ProfessionPaletteGroup {
+export function rangerPetPaletteGroup(
+  context: RangerUiContext,
+  options: RangerPetPaletteGroupOptions = {}
+): ProfessionPaletteGroup {
   const activePet = activeRangerUiPet(context);
   return {
     id: 'ranger-pet',
     label: 'Pet',
     skillIds: [...commandablePetSkillIds(context), ID.PET_SWAP],
     color: '#7ca64a',
-    resourceAnchor: rangerUiSpecialization(context) === 'Core',
-    stackId: rangerUiSpecialization(context) === 'Galeshot' ? RANGER_GALESHOT_PALETTE_STACK : undefined,
+    resourceAnchor: options.resourceAnchor === true,
+    stackId: options.stackId,
     includeActionSkills: true,
     statusIcon: {
       icon: activePet.icon,
@@ -199,10 +204,6 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   }
 
   if (!skill.petSkill) return { available: true, message: '' };
-  if (state.beastmodeActive) {
-    return { available: false, message: 'Leave Beastmode first' };
-  }
-
   const available = !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
   return {
     available,
@@ -226,12 +227,11 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
       icon: option.icon,
       description: option.description
     }));
+    // Each specialization gets a stable layout hook without Core naming specific elite mechanics.
     const layout =
-      specialization === 'Untamed'
-        ? 'ranger-mechanics ranger-untamed-mechanics'
-        : specialization === 'Soulbeast'
-          ? 'ranger-mechanics ranger-soulbeast-mechanics'
-          : 'ranger-mechanics';
+      specialization === 'Core'
+        ? 'ranger-mechanics'
+        : `ranger-mechanics ranger-${specialization.toLowerCase()}-mechanics`;
     const groups: ProfessionSkillBarGroup[] = [
       {
         id: 'ranger-pet-1-selection',
@@ -295,8 +295,8 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
   },
   updateSkillBarSelection: updateRangerCoreSelection,
   paletteGroups: (context: RangerUiContext) => {
-    if (rangerUiSpecialization(context) === 'Soulbeast') return [];
-    return [rangerPetPaletteGroup(context)];
+    if (rangerUiSpecialization(context) !== 'Core') return [];
+    return [rangerPetPaletteGroup(context, { resourceAnchor: true })];
   },
   resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
     const state = rangerUiState(context);

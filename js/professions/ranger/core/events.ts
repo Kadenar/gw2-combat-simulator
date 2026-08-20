@@ -2,7 +2,6 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerPetCompanionId } from './pets.js';
-import { beastmodeActive } from './shared.js';
 import { rangerPetByName } from './state.js';
 import type { RangerResolverContext, RangerResolverEvent } from '../types.js';
 
@@ -15,7 +14,7 @@ export function handleRangerWinterBiteReady(context: RangerResolverContext, _eve
 }
 
 export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: RangerResolverEvent): void {
-  if (hasTrait(context, TRAIT.POISON_MASTER) && !beastmodeActive(context)) {
+  if (hasTrait(context, TRAIT.POISON_MASTER)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;
   }
 }
@@ -63,7 +62,4 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Ra
   state.activePetSlot = Number(event.activePetSlot) === 2 ? 2 : 1;
   state.activePetSkillIds = [...pet.skillIds];
   state.petOpeningStrikeReady = true;
-  if (context.profession.specialization.kind === 'Soulbeast') {
-    context.profession.specialization.state.archetype = pet.archetype;
-  }
 }

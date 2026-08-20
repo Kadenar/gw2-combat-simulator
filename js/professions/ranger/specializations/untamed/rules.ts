@@ -6,7 +6,7 @@ import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { untamedState } from './state.js';
-import { rangerBalanceValue } from '../../core/profiles.js';
+import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../core/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
@@ -135,6 +135,21 @@ export const untamedCastRules = Object.freeze({
     id: 'ranger.untamed-availability',
     order: 20,
     handler: untamedCastAvailability
+  },
+  // Unleashed pet skills belong to Untamed's replacement bar, not the Core pet recharge contract.
+  modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
+    if (
+      !context.skill?.petSkill ||
+      !context.skill.unleashedPetSkill ||
+      !hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)
+    ) {
+      return duration;
+    }
+
+    return (
+      duration /
+      Math.max(Number.EPSILON, rangerBalanceValue(context, CORE_PROFILE.packAlpha, 'rechargeMultiplier', 0.8))
+    );
   }
 });
 

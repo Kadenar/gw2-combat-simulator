@@ -1,5 +1,5 @@
 import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import { rangerUiState } from '../../core/ui.js';
+import { rangerPetPaletteGroup, rangerUiState } from '../../core/ui.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -89,7 +89,8 @@ const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze
       color: '#3f9b64'
     }
   ],
-  paletteGroups: () => [
+  paletteGroups: (context: RangerUiContext) => [
+    rangerPetPaletteGroup(context),
     {
       id: 'ranger-untamed-profession',
       label: 'Unleash',
@@ -98,7 +99,10 @@ const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze
       resourceAnchor: true
     }
   ],
-  paletteSkillAvailability: availability
+  paletteSkillAvailability: availability,
+  // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
+  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+    event.type === 'ranger.untamed-state' ? null : undefined
 });
 
 export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>) {

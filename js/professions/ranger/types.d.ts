@@ -84,6 +84,7 @@ export interface RangerCoreState {
   activePetSlot: 1 | 2;
   petNames: [string, string];
   activePetSkillIds: SkillId[];
+  petActive: boolean;
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;

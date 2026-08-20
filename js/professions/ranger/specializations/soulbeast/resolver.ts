@@ -13,6 +13,7 @@ import {
   RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
 } from '../../core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { isPlayerStrike } from '../../core/shared.js';
 
 function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
@@ -125,9 +126,41 @@ function queueCondition(
   });
 }
 
+/** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
+function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const core = professionCoreState(context);
+  if (event.at > core.poisonousStrikesExpiresAt) core.poisonousStrikesCharges = 0;
+  if (
+    !soulbeastState.from(context).beastmodeActive ||
+    core.poisonousStrikesCharges <= 0 ||
+    !isPlayerStrike(event) ||
+    !(Number(event.coefficient) > 0)
+  ) {
+    return;
+  }
+
+  core.poisonousStrikesCharges -= 1;
+  const poison = profileEffect(context, CORE_PROFILE.poisonousStrikes, 'condition');
+  enqueueOrdered(context.queue, {
+    type: 'condition',
+    at: event.at,
+    source: 'ranger',
+    sourceId: ID.DOUBLE_ARC,
+    actorType: 'effect',
+    skillId: ID.DOUBLE_ARC,
+    skillName: 'Poisonous Strikes',
+    name: 'Poisonous Strikes - Poisoned',
+    condition: 'Poisoned',
+    duration: Number(poison?.duration ?? 6),
+    stacks: Number(poison?.stacks ?? 1),
+    triggeredBy: event.skillName
+  });
+}
+
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = soulbeastState.from(context);
+  triggerMergedPoisonousStrikes(context, event);
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.
   if (

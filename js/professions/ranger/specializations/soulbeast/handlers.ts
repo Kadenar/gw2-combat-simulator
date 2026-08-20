@@ -3,10 +3,12 @@ import type { RangerCastContext, RangerSkill } from '../../types.js';
 import { applyUnstoppableUnion, soulbeastStanceDuration } from './traits.js';
 import { rangerBalanceValue } from '../../core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { setRangerPetActive } from '../../core/pets.js';
 
 function emitBeastmodeState(context: RangerCastContext, skill: RangerSkill, active: boolean): void {
   // Mutate scheduler state immediately so subsequent casts in the same tick see the correct mode.
   soulbeastState.from(context).beastmodeActive = active;
+  setRangerPetActive(context, !active, context.start);
   context.emit({
     type: 'ranger.beastmode',
     at: context.start,

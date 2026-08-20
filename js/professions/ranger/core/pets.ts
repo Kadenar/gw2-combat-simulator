@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
 import { materializeSkillEffectApplications } from '../../../platform/engine/effect-materializer.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
@@ -229,6 +229,7 @@ function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = fa
 
 function startPetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
   const state = professionCoreState(context);
+  if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
   if (!reset && state.petAutoNextAt > context.state.time + context.epsilon) {
@@ -340,7 +341,7 @@ export function handleRangerPetAutoTask(
   if (Number(task.payload?.generation) !== state.petAutoGeneration) return;
   state.petAutoTaskId = '';
   state.petAutoNextAt = 0;
-  if (flattenProfessionState(context.state.profession).beastmodeActive) return;
+  if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
   if (task.at < state.petAutoBusyUntil - context.epsilon) {
@@ -435,6 +436,7 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
 export function beginRangerPetCommand(context: RangerCastContext, skill: RangerSkill): void {
   if (!skill.petSkill || skill.petAutonomousSkill) return;
   const state = professionCoreState(context);
+  if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
   const scheduledOpeningEnd =
@@ -478,6 +480,21 @@ export function beginRangerPetCommand(context: RangerCastContext, skill: RangerS
       provisionalCooldownReadyAt
     }
   });
+}
+
+/** Activates or suspends the generic pet runtime when a specialization changes pet ownership. */
+export function setRangerPetActive(context: RangerSchedulerContext, active: boolean, at: number): void {
+  const state = professionCoreState(context);
+  if (state.petActive === active) return;
+  state.petActive = active;
+  context.tasks.cancelOwner(PET_AUTO_OWNER);
+  state.petAutoGeneration += 1;
+  state.petAutoTaskId = '';
+  state.petAutoNextAt = 0;
+  state.petAutoBusyUntil = at;
+  state.petCommandReadyAt = at;
+  state.petCommandDelays = {};
+  if (active) startPetAuto(context, at);
 }
 
 export function handleRangerPetCommandStartTask(
