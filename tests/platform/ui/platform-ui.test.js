@@ -42,6 +42,7 @@ import {
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,
+  mountRotationDpsSummary,
   reduceRotationWorkspaceState,
   syncRotationFocusResults
 } from '../../../js/platform/ui/rotation-workspace.js';
@@ -132,6 +133,29 @@ test('focus mode expands DPS snapshots only for the focused workspace', () => {
   syncRotationFocusResults(root);
   assert.equal(details.open, false);
   assert.equal(details.dataset.focusExpanded, undefined);
+});
+
+test('rotation DPS summary mounts directly after the timeline', () => {
+  let inserted = null;
+  const timeline = {
+    after(element) {
+      inserted = element;
+    }
+  };
+  const panel = {
+    querySelector: (selector) => (selector === '#rotation-timeline' ? timeline : null)
+  };
+  const root = {
+    getElementById: () => null,
+    createElement: () => ({ id: '', className: '' })
+  };
+
+  mountRotationDpsSummary(root, panel);
+
+  assert.deepEqual(inserted, {
+    id: 'rotation-dps-summary',
+    className: 'rotation-dps-summary'
+  });
 });
 
 test('activation editor suggests and validates manual interruption times', () => {

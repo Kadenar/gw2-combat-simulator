@@ -103,6 +103,7 @@ export interface ResultRandomDistributionProgress {
 export interface RotationResultsModel {
   readonly metrics?: readonly ResultMetric[];
   readonly summaryPlaceholder?: boolean;
+  readonly showSummary?: boolean;
   readonly breakpoints?: readonly ResultBreakpoint[];
   readonly skillRows?: readonly ResultRow[];
   readonly skillColumns?: readonly ResultColumn[];
@@ -373,6 +374,7 @@ export function mountRotationResults(
   if (!container) return null;
   const metrics = model.metrics || [];
   const summaryPlaceholder = model.summaryPlaceholder === true;
+  const showSummary = model.showSummary !== false;
   const breakpoints = model.breakpoints || [];
   const skillRows = model.skillRows || [];
   const skillColumns = model.skillColumns || [];
@@ -425,9 +427,11 @@ export function mountRotationResults(
   const initialSkillRows = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
 
   // Replacing the subtree gives every mount a clean DOM/event-handler slate.
-  container.innerHTML = `<div class="res-summary${summaryPlaceholder ? ' res-summary-placeholder' : ''}"${
-    summaryPlaceholder ? ' aria-label="Rotation metrics unavailable until skills are added"' : ''
-  }>
+  container.innerHTML = `${
+    showSummary
+      ? `<div class="res-summary${summaryPlaceholder ? ' res-summary-placeholder' : ''}"${
+          summaryPlaceholder ? ' aria-label="Rotation metrics unavailable until skills are added"' : ''
+        }>
     ${metrics
       .map(
         (metric) => `<div class="res-stat">
@@ -436,7 +440,9 @@ export function mountRotationResults(
     </div>`
       )
       .join('')}
-  </div>
+  </div>`
+      : ''
+  }
   ${
     breakpoints.length
       ? `<details class="res-breakpoints">

@@ -506,7 +506,7 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   );
   assert.match(
     css,
-    /body\[data-rotation-focus\] \.rotation-results \.res-summary\s*\{\s*display: grid;\s*width: 100%;\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
+    /body\[data-rotation-focus\] \.rotation-dps-summary \.res-summary\s*\{\s*display: grid;\s*width: 100%;\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
   );
   assert.match(
     css,
@@ -518,17 +518,21 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   const results = {
     innerHTML: '',
     querySelector: () => null,
-    querySelectorAll: () => [],
-    insertAdjacentHTML(position, markup) {
-      assert.equal(position, 'beforeend');
-      this.innerHTML += markup;
-    }
+    querySelectorAll: () => []
   };
+  const summaryStrip = { ...results, innerHTML: '' };
   const summaryMirror = { innerHTML: 'stale summary' };
   const previousDocument = globalThis.document;
 
   globalThis.document = {
-    getElementById: (id) => (id === 'rotation-results' ? results : id === 'analysis-dps-summary' ? summaryMirror : null)
+    getElementById: (id) =>
+      id === 'rotation-results'
+        ? results
+        : id === 'rotation-dps-summary'
+          ? summaryStrip
+          : id === 'analysis-dps-summary'
+            ? summaryMirror
+            : null
   };
   try {
     renderResults({ build: { rotation: [] }, results: null });
@@ -536,12 +540,12 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
     globalThis.document = previousDocument;
   }
 
-  assert.match(results.innerHTML, /res-summary-placeholder/);
+  assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
   assert.deepEqual(
-    [...results.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
+    [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
     ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
-  assert.equal([...results.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 5);
+  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 5);
   assert.match(results.innerHTML, /No analysis yet/);
   assert.equal(summaryMirror.innerHTML, '');
 });

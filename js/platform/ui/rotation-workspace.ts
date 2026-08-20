@@ -188,6 +188,18 @@ function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonEle
   return button;
 }
 
+/** Adds the live DPS strip to the builder flow immediately below its timeline. */
+export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLElement): void {
+  if (root.getElementById('rotation-dps-summary')) return;
+  const timeline = rotationPanel.querySelector<HTMLElement>('#rotation-timeline');
+  if (!timeline) return;
+
+  const summary = root.createElement('div');
+  summary.id = 'rotation-dps-summary';
+  summary.className = 'rotation-dps-summary';
+  timeline.after(summary);
+}
+
 /** Mounts the anchored config panel and full-viewport Rotation Builder mode. */
 export function mountRotationWorkspace(root: Document = document): void {
   if (controllers.has(root)) return;
@@ -214,6 +226,7 @@ export function mountRotationWorkspace(root: Document = document): void {
   panelShell.className = 'rotation-panel-shell';
   rotationPanel.before(panelShell);
   panelShell.append(rotationPanel);
+  mountRotationDpsSummary(root, rotationPanel);
 
   configPanel.id ||= 'simulation-config-panel';
   configPanel.setAttribute('aria-labelledby', 'simulation-config-title');

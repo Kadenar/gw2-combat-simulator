@@ -42,20 +42,18 @@ const EMPTY_RESULT_METRICS = Object.freeze([
 
 export function renderResults(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-results');
+  const summaryStrip = document.getElementById('rotation-dps-summary');
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
-    mountRotationResults(element, {
+    mountRotationResults(summaryStrip, {
       metrics: EMPTY_RESULT_METRICS,
       summaryPlaceholder: true
     });
-    element.insertAdjacentHTML(
-      'beforeend',
-      `<div class="analysis-empty-state">
+    element.innerHTML = `<div class="analysis-empty-state">
       <strong>No analysis yet</strong>
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
-    </div>`
-    );
+    </div>`;
     const mirror = document.getElementById('analysis-dps-summary');
     if (mirror) mirror.innerHTML = '';
     return;
@@ -64,6 +62,8 @@ export function renderResults(app: ProfessionAppState): void {
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
   );
+  // The builder owns the live strip; the results root only renders detailed analysis.
+  mountRotationResults(summaryStrip, { metrics });
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];
   const series = buildChartSeries(result);
@@ -77,6 +77,7 @@ export function renderResults(app: ProfessionAppState): void {
     element,
     {
       metrics,
+      showSummary: false,
       breakpoints,
       skillRows,
       skillColumns: SKILL_COLS,
@@ -134,7 +135,7 @@ export function renderResults(app: ProfessionAppState): void {
   const mirror = document.getElementById('analysis-dps-summary');
   if (mirror) {
     mirror.innerHTML = '';
-    const summary = element.querySelector('.res-summary');
+    const summary = summaryStrip?.querySelector('.res-summary');
     const bpDetails = element.querySelector('.res-breakpoints');
     if (summary) mirror.appendChild(summary.cloneNode(true));
     if (bpDetails) mirror.appendChild(bpDetails.cloneNode(true));

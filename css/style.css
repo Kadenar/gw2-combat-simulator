@@ -2730,6 +2730,11 @@ body[data-profession][data-simulator-view='workspace']
   display: none;
 }
 
+body[data-profession][data-simulator-view='workspace']
+  #rotation-results:not(:has(> .res-breakpoints, > .rng-distribution)) {
+  display: none;
+}
+
 body[data-profession][data-simulator-view='analysis']
   :is(
     .build-templates-region,
@@ -2978,7 +2983,7 @@ body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
 
 body[data-rotation-focus] .rotation-results {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   min-height: 0;
   max-height: 32vh;
@@ -2990,16 +2995,16 @@ body[data-rotation-focus] .rotation-results:empty {
   display: none;
 }
 
-body[data-rotation-focus] .rotation-results > :not(.res-summary, .res-breakpoints) {
+body[data-rotation-focus] .rotation-results > :not(.res-breakpoints) {
   display: none;
 }
 
-body[data-rotation-focus] .rotation-results .res-summary,
+body[data-rotation-focus] .rotation-dps-summary .res-summary,
 body[data-rotation-focus] .rotation-results .res-breakpoints {
   margin: 0;
 }
 
-body[data-rotation-focus] .rotation-results .res-summary {
+body[data-rotation-focus] .rotation-dps-summary .res-summary {
   align-items: center;
   flex-wrap: nowrap;
 }
@@ -4167,6 +4172,19 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   place-items: center;
   background: radial-gradient(circle at center, rgba(157, 123, 208, 0.1), transparent 55%), var(--bg-dark);
   border: 1px dashed var(--border-light);
+}
+
+.rotation-dps-summary {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.rotation-dps-summary:empty {
+  display: none;
+}
+
+.rotation-dps-summary .res-summary {
+  margin-bottom: 0;
 }
 
 .rotation-timeline.drag-over-empty {
@@ -9511,14 +9529,14 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     overflow-x: hidden;
   }
 
-  body[data-rotation-focus] .rotation-results .res-summary {
+  body[data-rotation-focus] .rotation-dps-summary .res-summary {
     display: grid;
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px 8px;
   }
 
-  body[data-rotation-focus] .rotation-results .res-stat {
+  body[data-rotation-focus] .rotation-dps-summary .res-stat {
     min-width: 0;
   }
 
