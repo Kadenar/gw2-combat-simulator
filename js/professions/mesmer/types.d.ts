@@ -388,6 +388,7 @@ export interface MesmerRuntime {
   phantasmAttackTimings: Record<number, MesmerPhantasmAttackTiming>;
   traitDamage: Record<string, MesmerTraitDamage>;
   shatters: Record<number, MesmerShatter>;
+  shatterResolvers: Record<string, MesmerShatterResolver>;
   shatterResolvedHandlers: MesmerShatterResolvedHandler[];
   instruments: Record<number, MesmerInstrument>;
   balanceProfile: (id: SkillId) => BalanceProfile | undefined;
@@ -469,12 +470,32 @@ export type MesmerCastContext = MesmerPrecastContext & {
   readonly reservationId: string;
 };
 
+/** One group of shatter hits used by shared traits such as Maim the Disillusioned. */
+export interface MesmerShatterTraitHit {
+  readonly at: number;
+  readonly count: number;
+}
+
+/** Inputs passed to the resolver that owns a shatter family's packet behavior. */
+export interface MesmerShatterResolverRequest {
+  readonly skill: MesmerSkill;
+  readonly shatter: MesmerShatter;
+  readonly at: number;
+  readonly castStart: number;
+  readonly spent: number;
+}
+
+export type MesmerShatterResolver = (
+  context: MesmerCastContext,
+  request: MesmerShatterResolverRequest
+) => readonly MesmerShatterTraitHit[];
+
 /** Runtime result passed to specialization mechanics after a shatter successfully resolves. */
 export interface MesmerShatterResolution {
   readonly skill: MesmerSkill;
   readonly at: number;
   readonly spent: number;
-  readonly bladeSong: boolean;
+  readonly traitHits: readonly MesmerShatterTraitHit[];
 }
 
 export type MesmerShatterResolvedHandler = (context: MesmerCastContext, resolution: MesmerShatterResolution) => void;
@@ -588,15 +609,12 @@ export interface MesmerResourceSpendDetails {
   readonly rotationIndex?: number | null;
 }
 
-export interface MesmerShatterTraitOptions {
-  readonly skipMaim?: boolean;
-}
-
 export interface MesmerProfessionActionController {
   commitReservedResources(at: number, reserved: number, details?: MesmerResourceSpendDetails): number;
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
   currentResource(): number;
   handleShatter(
+    context: MesmerCastContext,
     skill: MesmerSkill,
     at: number,
     resourcesSpent?: number | null,
@@ -604,13 +622,7 @@ export interface MesmerProfessionActionController {
   ): MesmerShatterResolution | null;
   reserveResources(): number;
   restoreReservedResources(spent: number): void;
-  triggerShatterTraits(
-    skill: MesmerSkill,
-    at: number,
-    spent: number,
-    bladeSong?: boolean,
-    options?: MesmerShatterTraitOptions
-  ): void;
+  triggerShatterTraits(resolution: MesmerShatterResolution): void;
 }
 
 export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventInput) => unknown;
@@ -655,6 +667,7 @@ export interface MesmerSchedulerTaskPayloads {
   readonly cloneAttack: { readonly cloneId: number };
   readonly resourceGain: MesmerPendingResource;
   readonly expectedProc: MesmerExpectedProcCandidate;
+  readonly deadlyBladesCritical: { readonly event: Extract<SimulationEvent, { readonly type: 'damage' }> };
   readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
   readonly bladeSpend: {
     readonly reservationId: string;
@@ -786,7 +799,11 @@ export interface MesmerShatter {
   readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly kind: string;
+  readonly resolver: string;
   readonly coefficients: readonly number[];
+  readonly minimumResource?: number;
+  readonly consumesResources?: boolean;
+  readonly hitsPerSource?: number;
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
   readonly damageAtMs?: number;

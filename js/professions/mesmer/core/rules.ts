@@ -26,6 +26,7 @@ import {
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { createCloneAttackScheduler } from './clone-attacks.js';
 import { createProfessionActionController } from './profession-actions.js';
+import { resolveCloneShatter } from './shatters.js';
 import { createExpectedProcTracker } from './expected-procs.js';
 import { createMesmerEventMaterializer } from './event-materializer.js';
 import { createResourceController } from './resources.js';
@@ -36,7 +37,6 @@ import {
   MESMER_CORE_SHATTER_PROFILE_IDS,
   MESMER_RESOURCE_PROFILE_IDS,
   mesmerBalanceProfile,
-  mesmerBalanceProfileEffect,
   mesmerBalanceValue,
   mesmerProfiledShatters,
   mesmerProfiledTraitDamage
@@ -244,6 +244,9 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
       )
     },
     shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS, MESMER_CORE_SHATTER_PROFILE_IDS),
+    shatterResolvers: {
+      'mesmer.core.clone-shatter': resolveCloneShatter
+    },
     shatterResolvedHandlers: [],
     instruments: { ...MESMER_CORE_INSTRUMENTS },
     balanceProfile: (id: SkillId) => mesmerBalanceProfile(context, id),
@@ -352,24 +355,19 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     destroyClone,
     epsilon: EPSILON,
     shatters: runtime.shatters,
+    shatterResolvers: runtime.shatterResolvers,
     warnings: context.warnings,
     addEvent,
     addTraitProc,
     addCondition,
-    addDamage,
-    activePrimaryWeapon,
-    queueResources: resources.queueResources,
-    balanceProfile: runtime.balanceProfile,
-    boonDuration: (sourceId, sourceName, effect, duration) =>
-      context.schedulerPolicy.effectDuration?.(context, { id: sourceId, name: sourceName }, effect, duration) ??
-      duration
+    balanceProfile: runtime.balanceProfile
   });
   const continuum = {
     beginContinuumSplit: (skill: MesmerSkill, at: number): MesmerShatterResolution => ({
       skill,
       at,
       spent: 0,
-      bladeSong: false
+      traitHits: []
     }),
     restoreContinuum: () => undefined
   };
@@ -532,7 +530,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     } else if (skill.id === ID.CONTINUUM_SPLIT) {
       dispatchShatterResolved(context, runtime.continuum.beginContinuumSplit(skill, at));
     } else if (runtime.shatters[skill.id]) {
-      const resolution = runtime.actions.handleShatter(skill, at, details.shatterSpent ?? null, context.start);
+      const resolution = runtime.actions.handleShatter(context, skill, at, details.shatterSpent ?? null, context.start);
       if (resolution) dispatchShatterResolved(context, resolution);
       runtime.mirage.handleMirageShatter(skill, at, Number(details.shatterSpent || 0));
     } else {
@@ -701,7 +699,6 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
   if (
     runtime.traits.has(TRAIT.JAGGED_MIND) ||
     runtime.traits.has(TRAIT.SHARPER_IMAGES) ||
-    runtime.traits.has(TRAIT.DEADLY_BLADES) ||
     runtime.traits.has(TRAIT.MASTER_FENCER)
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
@@ -751,11 +748,11 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   const shatter = runtime.shatters[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
-  const delayedBladeSpend =
-    shatter?.kind.startsWith('blade') && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
-  if (delayedBladeSpend) {
+  const delayedResourceSpend =
+    shatter?.consumesResources !== false && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
+  if (delayedResourceSpend) {
     shatterSpent = runtime.actions.reserveResources();
-  } else if (shatter && shatter.kind !== 'continuum') {
+  } else if (shatter && shatter.consumesResources !== false) {
     shatterSpent = runtime.actions.consumeResources(context.start, {
       sourceSkill: skill.name,
       rotationIndex: context.commandIndex
@@ -763,11 +760,11 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   }
 
   runtime.castDetails.set(context.reservationId, {
-    reservedShatterResources: delayedBladeSpend,
-    shatterSpendCommitted: !delayedBladeSpend,
+    reservedShatterResources: delayedResourceSpend,
+    shatterSpendCommitted: !delayedResourceSpend,
     shatterSpent
   });
-  if (delayedBladeSpend) {
+  if (delayedResourceSpend) {
     context.tasks.schedule({
       type: TASK.bladeSpend,
       at: spendProgress === 1 ? context.fullEnd : context.start + (context.fullEnd - context.start) * spendProgress,
@@ -1020,7 +1017,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
         Number(event.coefficient) > 0 &&
         event.noCrit !== true &&
         event.canCrit !== false) ||
-      (isBlade && (runtime.traits.has(TRAIT.JAGGED_MIND) || runtime.traits.has(TRAIT.DEADLY_BLADES))) ||
+      (isBlade && runtime.traits.has(TRAIT.JAGGED_MIND)) ||
       (runtime.traits.has(TRAIT.SHARPER_IMAGES) && (event.source === 'Clone' || event.source === 'Phantasm'));
 
     if (!tracksCriticalTrait) return;
@@ -1090,35 +1087,6 @@ export function handleExpectedProcTask(
   // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
   // original candidate (such as a skill-derived `blade` flag).
   const event = payloadEvent ? { ...payloadEvent, ...(canonicalEvent || {}) } : null;
-  if (event?.blade && !event.noCrit && event.canCrit !== false && runtime.traits.has(TRAIT.DEADLY_BLADES)) {
-    const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'buff');
-    const vulnerabilityStacks =
-      context.config.randomness?.mode === 'stochastic'
-        ? event.didCrit
-          ? 1
-          : 0
-        : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
-    if (vulnerabilityStacks > EPSILON) {
-      context.emitDerived(event, {
-        type: 'buff',
-        at: event.at,
-        kind: 'target-vulnerability',
-        stacks: vulnerabilityStacks * Number(deadlyBlades?.stacks || 1),
-        duration: Number(deadlyBlades?.duration || 5),
-        source: 'Trait',
-        sourceId: TRAIT.DEADLY_BLADES,
-        sourceSkill: event.skillName
-      });
-      context.emitDerived(event, {
-        type: 'weakness_vulnerability',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.DEADLY_BLADES,
-        skillName: event.skillName
-      });
-    }
-  }
-
   runtime.expected.process(task.payload.type === 'hit' && event ? { ...task.payload, event } : task.payload);
 }
 

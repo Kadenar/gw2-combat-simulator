@@ -2,7 +2,7 @@ import { EPSILON } from '../../../../platform/engine/clock.js';
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
 import { createContinuumController } from './continuum.js';
-import { resolveIllusionaryReversion } from './shatter-traits.js';
+import { resolveChronomancerShatterBoons, resolveIllusionaryReversion } from './shatter-traits.js';
 import {
   MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS,
   MESMER_CHRONOMANCER_BLIND_SKILLS,
@@ -23,7 +23,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
   const runtime = mesmerRuntimeFor(context);
   applyMesmerRuntimeManifest(runtime, {
     shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS, CHRONOMANCER_SHATTER_PROFILE_IDS),
-    shatterResolvedHandlers: [resolveIllusionaryReversion],
+    shatterResolvedHandlers: [resolveChronomancerShatterBoons, resolveIllusionaryReversion],
     instruments: MESMER_CHRONOMANCER_INSTRUMENTS,
     traitDamage: {
       ...MESMER_CHRONOMANCER_TRAIT_DAMAGE,

@@ -7,7 +7,6 @@ import type { MesmerCastContext, MesmerShatterResolution } from '../../types.js'
 export function resolveInfiniteForgeRefund(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
   const runtime = mesmerRuntimeFor(context);
   if (
-    !resolution.bladeSong ||
     !runtime.traits.has(TRAIT.INFINITE_FORGE) ||
     resolution.spent < mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'threshold', 5)
   ) {

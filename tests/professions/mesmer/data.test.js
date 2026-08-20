@@ -244,6 +244,15 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].castTimeMs,
     MESMER_SKILL_MECHANICS[ID.BLADECALL].castTimeMs
   );
+  assert.equal(
+    Object.values(MESMER_SKILL_MECHANICS).some((mechanics) => mechanics.blade === false),
+    false
+  );
+  assert.equal(MESMER_SKILL_MECHANICS[ID.FLYING_CUTTER].specialization, '');
+  assert.equal(MESMER_SKILL_MECHANICS[ID.UNSTABLE_BLADESTORM].specialization, '');
+  assert.equal(SHATTERS[ID.MIND_WRACK].resolver, 'mesmer.core.clone-shatter');
+  assert.equal(SHATTERS[ID.BLADESONG_HARMONY].resolver, 'mesmer.virtuoso.bladesong');
+  assert.equal(SHATTERS[ID.BLADESONG_HARMONY].minimumResource, 1);
 });
 
 test('every Mesmer catalog skill is explicitly implemented', () => {

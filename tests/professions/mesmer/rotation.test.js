@@ -3869,6 +3869,26 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
   );
 });
 
+test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Virtuoso',
+    selectedTraits: ['Deadly Blades'],
+    initialResource: 1
+  });
+  const completed = simulateMesmer(['Bladesong Harmony'], config);
+  const interrupted = simulateMesmer([{ name: 'Bladesong Harmony', interruptMs: 100 }], config);
+  const action = completed.events.find((event) => event.type === 'action' && event.name === 'Bladesong Harmony');
+  const buff = completed.events.find((event) => event.type === 'buff' && event.kind === 'deadly-blades');
+
+  assert.ok(buff);
+  assert.equal(buff.duration, 7);
+  assert.ok(Math.abs(buff.at - action.fullEndsAt - 0.0001) < 1e-12);
+  assert.equal(
+    interrupted.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'),
+    false
+  );
+});
+
 test('Infinite Forge refunds two blades only after a completed five-blade Bladesong', () => {
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
@@ -4150,6 +4170,23 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
     Player: 1,
     Phantasm: 2.46
   });
+});
+
+test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', () => {
+  const result = simulateMesmer(
+    ['Flying Cutter', 'Unstable Bladestorm'],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: ''
+    })
+  );
+
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'action').map((event) => event.name),
+    ['Flying Cutter', 'Unstable Bladestorm']
+  );
+  assert.equal(result.warnings.length, 0);
 });
 
 test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {

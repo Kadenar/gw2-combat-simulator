@@ -6,24 +6,22 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import type { SchedulerState, SkillEffect } from '../../../platform/engine/types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
-  MesmerActivePrimaryWeapon,
   MesmerAddCondition,
-  MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
+  MesmerCastContext,
   MesmerDestroyClone,
   MesmerProfessionActionController,
   MesmerRuntimeState,
-  MesmerQueueResources,
   MesmerResourceDefinition,
   MesmerRuntime,
   MesmerResourceSpendDetails,
   MesmerShatter,
+  MesmerShatterResolver,
   MesmerShatterResolution,
-  MesmerShatterTraitOptions,
   MesmerSkill
 } from '../types.js';
 
@@ -38,11 +36,8 @@ interface ProfessionActionControllerOptions {
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
-  readonly addDamage: MesmerAddDamage;
-  readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly queueResources: MesmerQueueResources;
+  readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
   readonly balanceProfile: MesmerRuntime['balanceProfile'];
-  readonly boonDuration: (sourceId: number, sourceName: string, effect: SkillEffect, baseDuration: number) => number;
 }
 
 export function createProfessionActionController({
@@ -56,11 +51,8 @@ export function createProfessionActionController({
   addEvent,
   addTraitProc,
   addCondition,
-  addDamage,
-  activePrimaryWeapon,
-  queueResources,
-  balanceProfile,
-  boonDuration
+  shatterResolvers,
+  balanceProfile
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
   const profileValue = (id: number | string, field: string, fallback: number) => {
     const value = balanceProfile(id)?.[field];
@@ -93,12 +85,6 @@ export function createProfessionActionController({
     resourceDefinition.singular === 'clone'
       ? professionCoreState(state).clones.length
       : numericResourceState().numericResource;
-  // Clone companion IDs are passed so the boon engine can apply buffs to each clone actor as well.
-  const partyBoonRecipients = (maximumRecipients = 5) => ({
-    recipients: 'party' as const,
-    maximumRecipients,
-    companionIds: professionCoreState(state).clones.map((clone) => `mesmer.clone:${clone.id}`)
-  });
 
   const addResourceSpendEvent = (
     at: number,
@@ -175,30 +161,25 @@ export function createProfessionActionController({
     );
   };
 
-  // Called after every shatter. bladeSong=true caps Maim/Phantom Pain sources to 1 (Virtuoso shatter hits once per blade, not once per source).
-  const triggerShatterTraits = (
-    skill: MesmerSkill,
-    at: number,
-    spent: number,
-    bladeSong = false,
-    { skipMaim = false }: MesmerShatterTraitOptions = {}
-  ): void => {
+  // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
+  const triggerShatterTraits = ({ skill, at, spent, traitHits }: MesmerShatterResolution): void => {
     const shatter = shatters[skill.id];
-    // Core/Chrono shatters hit (spent + 1) times (player + each clone); blade shatters hit once per blade tick.
-    const sources = bladeSong ? 1 : spent + 1;
-    if (!skipMaim && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
+    if (traitHits.length && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
       const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
         name: 'Torment',
         duration: 6,
         stacks: 1
       });
-      addCondition(
-        skill.name,
-        at,
-        { ...maim, stacks: maim.stacks * sources },
-        'Player',
-        `${skill.name} — Maim the Disillusioned`
-      );
+      for (const hit of traitHits) {
+        if (hit.count <= 0) continue;
+        addCondition(
+          skill.name,
+          hit.at,
+          { ...maim, stacks: maim.stacks * hit.count },
+          'Player',
+          `${skill.name} — Maim the Disillusioned`
+        );
+      }
       addTraitProc('Maim the Disillusioned', at, skill.name);
     }
 
@@ -225,53 +206,12 @@ export function createProfessionActionController({
       });
       addTraitProc('Illusionary Membrane', at + epsilon, skill.name);
     }
-
-    // Deadly Blades only procs on Virtuoso blade songs, not core/chrono shatters.
-    if (bladeSong && traits.has(TRAIT.DEADLY_BLADES)) {
-      addEvent({
-        type: 'buff',
-        at: at + epsilon,
-        kind: 'deadly-blades',
-        stacks: 1,
-        duration: profileValue(TRAIT.DEADLY_BLADES, 'durationMultiplier', 7)
-      });
-      addTraitProc('Deadly Blades', at + epsilon, skill.name);
-    }
-
-    // Stretched Time (alacrity) and Seize the Moment (quickness) both scale duration by (spent + 1) tiers.
-    const triggerShatterBoon = (traitId: number, traitName: string, fallbackBoon: 'alacrity' | 'quickness'): void => {
-      if (!traits.has(traitId)) return;
-      const effect = profileEffect(traitId, 'boon') || {
-        type: 'boon',
-        boon: fallbackBoon,
-        duration: 3,
-        stacks: 1,
-        recipients: 'party',
-        maximumRecipients: 5
-      };
-      const kind = String(effect.boon || fallbackBoon);
-      const baseDuration = Number(effect.duration ?? 3) + (spent + 1) * profileValue(traitId, 'durationPerTier', 1);
-      const duration = boonDuration(traitId, traitName, effect, baseDuration);
-      addEvent({
-        type: 'buff',
-        at,
-        kind,
-        stacks: Number(effect.stacks ?? 1),
-        duration,
-        skillName: skill.name,
-        sourceSkill: skill.name,
-        ...partyBoonRecipients(Number(effect.maximumRecipients ?? 5))
-      });
-      addTraitProc(traitName, at, skill.name, `${duration}s ${kind}`);
-    };
-
-    triggerShatterBoon(TRAIT.STRETCHED_TIME, 'Stretched Time', 'alacrity');
-    triggerShatterBoon(TRAIT.SEIZE_THE_MOMENT, 'Seize the Moment', 'quickness');
   };
 
-  // Returns false (and warns) when a blade song is attempted with no blades.
-  // resourcesSpent=null means consume resources now; a pre-computed value skips the consume (used by Chrono well interactions).
+  // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
+  // resourcesSpent=null means consume resources now; a pre-computed value skips the consume.
   const handleShatter = (
+    context: MesmerCastContext,
     skill: MesmerSkill,
     at: number,
     resourcesSpent: number | null = null,
@@ -282,223 +222,38 @@ export function createProfessionActionController({
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
 
-    const isBladeSong = shatter.kind.startsWith('blade');
-    // Maim is tracked separately for blade shatters: each blade tick can trigger it independently,
-    // so we defer addTraitProc until after all ticks are processed to avoid duplicate proc entries.
-    let maimTriggered = false;
-    const addMaimOnHit = (hitAt: number) => {
-      if (!traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
-      const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
-        name: 'Torment',
-        duration: 6,
-        stacks: 1
-      });
-      addCondition(skill.name, hitAt, maim, 'Player', `${skill.name} — Maim the Disillusioned`);
-      maimTriggered = true;
-    };
-
-    if (isBladeSong && resourcesSpent == null && currentResource() < 1) {
-      warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no blades.`);
+    const minimumResource = Number(shatter.minimumResource || 0);
+    if (resourcesSpent == null && currentResource() < minimumResource) {
+      warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no ${resourceDefinition.plural}.`);
       return null;
     }
 
+    const resolver = shatterResolvers[shatter.resolver];
+    if (!resolver) {
+      throw new Error(`Missing Mesmer shatter resolver ${shatter.resolver} for ${skill.name}.`);
+    }
+
     const spent = resourcesSpent ?? consumeResources(at);
-    const sources = spent + 1;
-    // Each blade fires a separate damage tick; coefficient is split evenly across all blades.
-    const bladePacketTicks = (fallback: (index: number) => number) =>
-      Array.from({ length: spent }, (_, index) => ({
-        atMs: Number(shatter.ticks?.[index]?.atMs ?? fallback(index)),
-        coefficient: shatter.coefficients[spent] / spent
-      }));
-    const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
-      addDamage(
+    const resolution: MesmerShatterResolution = {
+      skill,
+      at,
+      spent,
+      traitHits: resolver(context, {
         skill,
+        shatter,
         at,
-        {
-          ticks,
-          timingAnchor: 'castStart',
-          timingScale: 'fixed',
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true, blade: true }
-      );
-
-    if (shatter.kind === 'core-power') {
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: sources,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true }
-      );
-    } else if (shatter.kind === 'core-confusion') {
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: sources,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true }
-      );
-
-      const baseConfusion = conditionFromProfile(shatter.balanceProfileId || skill.id, {
-        name: 'Confusion',
-        duration: 3,
-        stacks: 1
-      });
-
-      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
-        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
-        : baseConfusion;
-      addCondition(skill.name, at, {
-        ...confusion,
-        stacks: sources * confusion.stacks
-      });
-
-      if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
-        addEvent({
-          type: 'blind',
-          at,
-          skillName: skill.name,
-          count: sources
-        });
-        addTraitProc('Blinding Dissipation', at, skill.name);
-      }
-    } else if (shatter.kind === 'defense') {
-      // Distortion deals no damage, but its clones still land a 0-coefficient
-      // strike that registers a hit for on-hit effects such as Relic of
-      // Fireworks.
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: sources,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true }
-      );
-    } else if (shatter.kind === 'chrono-power') {
-      // Chrono shatters hit twice per source (once from player/clone, once from phantasm echo).
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: sources * 2,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true }
-      );
-    } else if (shatter.kind === 'chrono-confusion') {
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: sources,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true }
-      );
-      const baseConfusion = conditionFromProfile(shatter.balanceProfileId || skill.id, {
-        name: 'Confusion',
-        duration: 3,
-        stacks: 1
-      });
-      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
-        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
-        : baseConfusion;
-      addCondition(skill.name, at, {
-        ...confusion,
-        stacks: sources * confusion.stacks
-      });
-      if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
-        addEvent({
-          type: 'blind',
-          at,
-          skillName: skill.name,
-          count: sources
-        });
-        addTraitProc('Blinding Dissipation', at, skill.name);
-      }
-    } else if (shatter.kind === 'blade-power') {
-      const ticks = bladePacketTicks(() => 0);
-      addBladeDamage(ticks);
-      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
-    } else if (shatter.kind === 'blade-confusion') {
-      const baseConfusion = conditionFromProfile(shatter.balanceProfileId || skill.id, {
-        name: 'Confusion',
-        duration: 3,
-        stacks: 1
-      });
-      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
-        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
-        : baseConfusion;
-      const duration = confusion.duration;
-      const stacks = confusion.stacks;
-      const ticks = bladePacketTicks(() => 0);
-      addBladeDamage(ticks);
-      addCondition(skill.name, at, {
-        name: 'Confusion',
-        duration,
-        ticks: ticks.map((tick) => ({
-          atMs: tick.atMs,
-          condition: 'Confusion',
-          duration,
-          stacks
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      });
-      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
-    } else if (shatter.kind === 'blade-control') {
-      // blade-control has a single hit with a fixed offset from castStart rather than per-blade ticks.
-      const damageAt = shatter.damageAtMs == null ? at : castStart + Number(shatter.damageAtMs) / 1000;
-      addDamage(
-        skill,
-        damageAt,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: 1,
-          source: 'Player',
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-        },
-        { shatter: true, blade: true }
-      );
-      addMaimOnHit(damageAt);
-    } else if (shatter.kind === 'blade-requiem') {
-      // Blade Requiem fires each blade 1 second apart (fallback atMs = blade index * 1000ms).
-      const ticks = bladePacketTicks((index) => (index + 1) * 1000);
-      addBladeDamage(ticks);
-      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
-    }
-
-    if (maimTriggered) {
-      addTraitProc('Maim the Disillusioned', at, skill.name);
-    }
-
-    triggerShatterTraits(skill, at, spent, isBladeSong, {
-      skipMaim: maimTriggered
-    });
+        castStart,
+        spent
+      })
+    };
+    triggerShatterTraits(resolution);
     addEvent({
       type: 'marker',
       at,
       name: skill.name,
       detail: `${spent} ${resourceDefinition.plural} spent`
     });
-    return { skill, at, spent, bladeSong: isBladeSong };
+    return resolution;
   };
 
   return {

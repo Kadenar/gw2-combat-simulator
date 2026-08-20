@@ -316,22 +316,26 @@ export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage
 export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatter>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {
     slot: 2,
-    kind: 'core-confusion',
+    kind: 'confusion',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0.42, 0.84, 1.25, 1.67]
   },
   [ID.MIND_WRACK]: {
     slot: 1,
-    kind: 'core-power',
+    kind: 'power',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0.81, 1.61, 2.42, 3.22]
   },
   [ID.DISTORTION]: {
     slot: 4,
     kind: 'defense',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0, 0, 0, 0]
   },
   [ID.DIVERSION]: {
     slot: 3,
     kind: 'control',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0, 0, 0, 0]
   }
 });

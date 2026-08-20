@@ -39,5 +39,5 @@ export function isMesmerBuildSkillAvailable(
 }
 
 export function mesmerMinimumResource(skill: MesmerSkill): number {
-  return SHATTERS[skill.id]?.kind.startsWith('blade') ? 1 : 0;
+  return Number(SHATTERS[skill.id]?.minimumResource || 0);
 }

@@ -15,9 +15,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     environment: 'Terrestrial',
     castTimeMs: 1440,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     // False Oasis leaves its mirror three seconds after the cast finishes.
     mechanicTriggers: [
       {
@@ -38,9 +35,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     environment: 'Terrestrial',
     quicknessCastTimeMs: 371,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.create-mirror',
@@ -81,9 +75,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -104,9 +95,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     // These instant Deceptions grant Mirage Cloak when their cast completes.
     mechanicTriggers: [
       {
@@ -125,9 +113,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.grant-cloak',
@@ -145,9 +130,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0.5,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -171,9 +153,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.CHAOS_VORTEX]: {
     quicknessCastTimeMs: 720,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -181,9 +160,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.ETHER_BARRAGE]: {
     castTimeMs: 1500,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -191,9 +167,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.SPLIT_SURGE]: {
     quicknessCastTimeMs: 940,
     cooldown: 0.5,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -201,9 +174,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.IMAGINARY_AXES]: {
     quicknessCastTimeMs: 440,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -211,9 +181,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.MIRAGE_THRUST]: {
     quicknessCastTimeMs: 500,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -221,9 +188,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.PHANTOM_RAZOR]: {
     quicknessCastTimeMs: 600,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -231,9 +195,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.EFFERVESCENCE]: {
     quicknessCastTimeMs: 166.666666667,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []
@@ -241,9 +202,6 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.FRACTURED_GLASS]: {
     quicknessCastTimeMs: 880,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     ambush: true,
     implemented: true,
     effects: []

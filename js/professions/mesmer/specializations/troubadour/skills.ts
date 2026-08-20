@@ -22,12 +22,10 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     specialization: 'Troubadour',
     environment: 'Terrestrial',
     cooldown: 5,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -84,9 +82,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
@@ -101,9 +96,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     ammo: 2,
     ammoRecharge: 25,
     ammoCastLockout: 4,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
@@ -115,9 +107,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 15,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
@@ -129,9 +118,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
@@ -143,9 +129,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
@@ -158,9 +141,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     quicknessCastTimeMs: 1000,
     cooldown: 35,
     damageAtMs: 850,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.HARMONIOUS_HARP]: {
@@ -173,9 +153,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     quicknessCastTimeMs: 2000,
     paletteInterruptMs: 480,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
@@ -186,9 +163,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 75,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
@@ -200,9 +174,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 400,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: [
       {
@@ -266,9 +237,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     quicknessCastTimeMs: 2000,
     paletteInterruptMs: 480,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.DEAFENING_DRUM]: {
@@ -279,9 +247,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
@@ -293,9 +258,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 30,
-    phantasm: false,
-    resource: null,
-    blade: false,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
@@ -307,9 +269,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   }
 });

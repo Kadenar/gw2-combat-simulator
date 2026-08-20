@@ -19,7 +19,7 @@ interface ContinuumControllerOptions {
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number) => number;
-  readonly triggerShatterTraits: (skill: MesmerSkill, at: number, spent: number, bladeSong?: boolean) => void;
+  readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
   readonly addEvent: MesmerAddEvent;
   readonly durationPerSource: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
@@ -116,14 +116,20 @@ export function createContinuumController({
       expiresAt: at + durationPerSource * (spent + 1)
     };
     scheduleExpiry?.(chronomancer.continuum.expiresAt);
-    triggerShatterTraits(skill, at, spent, false);
+    const resolution: MesmerShatterResolution = {
+      skill,
+      at,
+      spent,
+      traitHits: [{ at, count: spent + 1 }]
+    };
+    triggerShatterTraits(resolution);
     addEvent({
       type: 'marker',
       at,
       name: 'Continuum Split',
       detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`
     });
-    return { skill, at, spent, bladeSong: false };
+    return resolution;
   };
 
   return {

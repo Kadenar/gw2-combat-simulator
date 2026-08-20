@@ -14,9 +14,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 9,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -52,9 +49,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     comboFields: [
       {
         ownerId: 'mesmer',
@@ -95,9 +89,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.MIND_GASH,
     effects: [
       {
@@ -119,9 +110,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.MIND_SPIKE,
     effects: [
       {
@@ -142,9 +130,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1260,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     boonlessCoefficient: 2,
     nextChainId: null,
     effects: [
@@ -166,12 +151,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 600,
     cooldown: 12,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -196,7 +179,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       count: 1
     },
     phantasmSummonProgress: 0.8181818181818182,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -238,7 +220,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -288,9 +269,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MIRROR]: {
@@ -301,9 +279,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TEMPORAL_CURTAIN]: {
@@ -314,9 +289,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 740,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PHANTASMAL_MAGE]: {
@@ -331,7 +303,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -395,9 +366,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     ],
     rechargeAnchor: 'castStart',
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MIND_WRACK]: {
@@ -415,9 +383,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     ],
     rechargeAnchor: 'castStart',
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.DISTORTION]: {
@@ -435,9 +400,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     ],
     rechargeAnchor: 'castStart',
     cooldown: 50,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PORTAL_ENTRE]: {
@@ -449,9 +411,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 72,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.BLINK]: {
@@ -463,9 +422,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.DECOY]: {
@@ -477,12 +433,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: []
   },
   [ID.MIRROR_IMAGES]: {
@@ -494,12 +448,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 25,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 2
     },
-    blade: false,
     effects: []
   },
   [ID.NULL_FIELD]: {
@@ -510,9 +462,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 166.666666667,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
@@ -523,9 +472,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 1,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
@@ -536,9 +482,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 10,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PHANTASMAL_WARLOCK]: {
@@ -554,7 +497,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       count: 2
     },
     phantasmSummonProgress: 0.7619047619047619,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -580,9 +522,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 10,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -606,9 +545,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 750,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -633,9 +569,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 960,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -662,7 +595,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -690,9 +622,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -722,9 +651,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 166.666666667,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
@@ -736,9 +662,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.SIGNET_OF_INSPIRATION]: {
@@ -749,9 +672,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MASS_INVISIBILITY]: {
@@ -762,9 +682,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 35,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
@@ -775,9 +692,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1680,
     cooldown: 60,
-    phantasm: false,
-    resource: null,
-    blade: false,
     // Restart the passive clone interval only after the active cast completes.
     mechanicTriggers: [
       {
@@ -799,7 +713,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -819,9 +732,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -858,10 +768,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1333.333333333,
     cooldown: 6,
-    phantasm: false,
-    blade: false,
     effects: [],
-    resource: null,
     defaultInterruptMs: 120
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
@@ -872,12 +779,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 12,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -902,7 +807,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -924,9 +828,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     quicknessCastTimeMs: 40,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -972,9 +873,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     ],
     rechargeAnchor: 'castStart',
     cooldown: 38,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.ETHER_BOLT]: {
@@ -984,9 +882,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.ETHER_BLAST,
     effects: [
       {
@@ -1017,9 +912,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.ETHER_CLONE,
     effects: [
       {
@@ -1049,7 +941,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1260,
     cooldown: 0,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
@@ -1062,7 +953,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         stacks: 1
       }
     ],
-    blade: false,
     nextChainId: null,
     effects: [
       {
@@ -1087,9 +977,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 32,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PHASE_RETREAT]: {
@@ -1101,12 +988,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 8,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: []
   },
   [ID.TIME_WARP]: {
@@ -1117,9 +1002,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 960,
     cooldown: 120,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.CHAOS_ARMOR]: {
@@ -1131,9 +1013,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 16,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'condition',
@@ -1151,7 +1030,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 900,
     cooldown: 5,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
@@ -1213,9 +1091,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1440,
     cooldown: 10,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1239,7 +1114,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1259,8 +1133,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 30,
-    phantasm: false,
-    blade: false,
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
     mechanicTriggers: [
       {
@@ -1271,7 +1143,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       }
     ],
     effects: [],
-    resource: null,
     quicknessCastTimeMs: 919
   },
   [ID.SIGNET_OF_HUMILITY]: {
@@ -1282,9 +1153,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 45,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.MIMIC]: {
@@ -1295,9 +1163,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.TIDES_OF_TIME]: {
@@ -1308,9 +1173,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1020,
     cooldown: 35,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1334,7 +1196,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1355,9 +1216,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     castTimeMs: 1080,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: null,
     effects: [
       {
@@ -1389,9 +1247,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Mirage',
     environment: 'Terrestrial',
     cooldown: 8,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1419,9 +1274,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Mirage',
     environment: 'Terrestrial',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
       {
@@ -1449,9 +1301,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 530,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
       {
@@ -1487,14 +1336,12 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1,
       timingAnchor: 'castEnd',
       atMs: 160
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1523,12 +1370,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     implemented: true,
     type: 'Weapon',
     weapon: 'Dagger',
-    specialization: 'Virtuoso',
+    specialization: '',
     environment: 'Terrestrial',
     castTimeMs: 660,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -1570,12 +1415,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1591,12 +1434,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     implemented: true,
     type: 'Weapon',
     weapon: 'Dagger',
-    specialization: 'Virtuoso',
+    specialization: '',
     environment: 'Terrestrial',
     castTimeMs: 660,
     cooldown: 12,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -1630,7 +1471,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 5,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1,
@@ -1693,12 +1533,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Troubadour',
     environment: 'Terrestrial',
     cooldown: 0.25,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1724,9 +1562,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Troubadour',
     environment: 'Terrestrial',
     cooldown: 8,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1759,9 +1594,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1781,12 +1613,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 5,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1806,9 +1636,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
@@ -1824,7 +1651,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       mode: 'phantasm',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1844,9 +1670,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.PHANTASMAL_LANCER]: {
@@ -1857,7 +1680,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 12,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1904,9 +1726,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1926,9 +1745,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.MIND_PIERCE,
     effects: [
       {
@@ -1949,12 +1765,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 600,
     cooldown: 5,
-    phantasm: false,
     resource: {
       mode: 'add',
       count: 1
     },
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -1974,9 +1788,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: null,
     effects: [
       {
@@ -1997,9 +1808,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
     cooldown: 10,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -2018,9 +1826,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     nextChainId: ID.PSYSTRIKE,
     effects: [
       {
@@ -2041,8 +1846,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
-    resource: null,
-    blade: false,
     ammo: 2,
     armedAtStart: true,
     implemented: true,
@@ -2063,7 +1866,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       mode: 'add',
       count: 1
     },
-    blade: false,
     flipDuration: 2,
     implemented: true,
     effects: [
@@ -2090,9 +1892,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     flipDuration: 5,
     flipDelay: 0,
     implemented: true,
@@ -2101,9 +1900,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
   [ID.COUNTER_BLADE]: {
     castTimeMs: 1020,
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     flipDuration: 3,
     flipDelay: 0,
     implemented: true,
@@ -2125,9 +1921,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     flipDuration: 5,
     flipDelay: 1,
     implemented: true,
@@ -2137,9 +1930,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     flipDuration: 3,
     flipDelay: 0,
     parentCooldownIncrease: 0.5,
@@ -2150,9 +1940,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    phantasm: false,
-    resource: null,
-    blade: false,
     flipDuration: 2,
     flipDelay: 0,
     implemented: true,

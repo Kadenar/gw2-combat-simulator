@@ -15,9 +15,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 60,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.CONTINUUM_SPLIT]: {
@@ -35,9 +32,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ],
     rechargeAnchor: 'castStart',
     cooldown: 105,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.WELL_OF_SENILITY]: {
@@ -48,9 +42,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     castTimeMs: 1140,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -70,9 +61,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     quicknessCastTimeMs: 400,
     cooldown: 30,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.GRAVITY_WELL]: {
@@ -83,9 +71,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1080,
     cooldown: 60,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -143,9 +128,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     castTimeMs: 950,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -181,9 +163,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     environment: 'Terrestrial',
     castTimeMs: 1200,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: [
       {
         type: 'strike',
@@ -210,9 +189,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ],
     rechargeAnchor: 'castStart',
     cooldown: 38,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.REWINDER]: {
@@ -230,9 +206,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ],
     rechargeAnchor: 'castStart',
     cooldown: 30,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   },
   [ID.SPLIT_SECOND]: {
@@ -250,9 +223,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ],
     rechargeAnchor: 'castStart',
     cooldown: 12,
-    phantasm: false,
-    resource: null,
-    blade: false,
     effects: []
   }
 });

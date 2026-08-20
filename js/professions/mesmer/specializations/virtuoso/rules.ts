@@ -7,6 +7,7 @@ import { initializeVirtuosoRuntime } from './runtime.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import type { MesmerSchedulerContext, MesmerSchedulerTask } from '../../types.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
+import { handleDeadlyBladesCriticalTask, observeDeadlyBladesEvent } from './deadly-blades.js';
 
 export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -93,9 +94,15 @@ export function handleInfiniteForgeTask(
 }
 
 export const virtuosoSchedulerHooks = Object.freeze({
+  onEventScheduled: {
+    id: 'mesmer.virtuoso.deadly-blades',
+    order: 20,
+    handler: observeDeadlyBladesEvent
+  },
   taskHandlers: Object.freeze({
     'mesmer.blade-spend': handleBladeSpendTask,
-    'mesmer.infinite-forge': handleInfiniteForgeTask
+    'mesmer.infinite-forge': handleInfiniteForgeTask,
+    'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask
   })
 });
 

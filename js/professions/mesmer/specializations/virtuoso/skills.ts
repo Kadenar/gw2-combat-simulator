@@ -15,8 +15,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     castTimeMs: 0,
     cooldown: 60,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -79,8 +77,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -101,7 +97,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     quicknessCastTimeMs: 1333.333333333,
     cooldown: 35,
-    phantasm: false,
     resource: {
       mode: 'fill',
       count: 5
@@ -117,8 +112,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     castTimeMs: 1020,
     cooldown: 25,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -139,8 +132,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 20,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -161,8 +152,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 3,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: [
       {
@@ -189,8 +178,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ],
     cooldown: 30,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: []
   },
@@ -208,8 +195,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ],
     cooldown: 30,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: []
   },
@@ -227,8 +212,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ],
     cooldown: 20,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: []
   },
@@ -246,8 +229,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ],
     cooldown: 12,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: []
   },
@@ -266,8 +247,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ],
     rechargeAnchor: 'castStart',
     cooldown: 50,
-    phantasm: false,
-    resource: null,
     blade: true,
     effects: []
   }

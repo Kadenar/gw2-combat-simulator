@@ -117,23 +117,29 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
   [ID.CONTINUUM_SPLIT]: {
     slot: 5,
     kind: 'continuum',
+    resolver: 'mesmer.chronomancer.continuum',
+    consumesResources: false,
     coefficients: [0, 0, 0, 0]
   },
   [ID.TIME_SINK]: {
     slot: 3,
     kind: 'control',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0, 0, 0, 0]
   },
   [ID.REWINDER]: {
     slot: 2,
-    kind: 'chrono-confusion',
+    kind: 'confusion',
+    resolver: 'mesmer.core.clone-shatter',
     coefficients: [0.38, 0.76, 1.14, 1.52],
     rechargeReductionPerSource: 3
   },
   [ID.SPLIT_SECOND]: {
     slot: 1,
-    kind: 'chrono-power',
-    coefficients: [1.53, 3.07, 3.68, 4.3]
+    kind: 'power',
+    resolver: 'mesmer.core.clone-shatter',
+    coefficients: [1.53, 3.07, 3.68, 4.3],
+    hitsPerSource: 2
   }
 });
 export const MESMER_CHRONOMANCER_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.GRAVITY_WELL, ID.TIME_SINK]);
