@@ -1399,7 +1399,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       ['Illusionary Wave', 0, [401]],
       ['Mind Stab', 1, [200]],
       ['Mirror Blade', 2, [602, 767, 918, 1084]],
-      ['Spatial Surge', 3, [366, 518, 684]]
+      ['Spatial Surge', 3, [360, 520, 680]]
     ]
   );
   assertOffsets(['Well of Calamity'], { specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] }, [
@@ -3402,6 +3402,55 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
   }
 });
 
+test('Split Surge resolves its three beam packets with per-hit Might and Vulnerability', () => {
+  const result = simulateMesmer(
+    ['Dodge / Mirage Cloak', 'Split Surge'],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      initialResource: 0
+    })
+  );
+  const cast = result.steps.find((step) => step.skill === 'Split Surge');
+  const packet = (event) => Math.round((event.at - cast.start / 1000) * 1000);
+  const damage = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Split Surge' && event.source === 'Player'
+  );
+  const might = result.events.filter(
+    (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'might'
+  );
+  const vulnerability = result.events.filter(
+    (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'target-vulnerability'
+  );
+
+  assert.equal(cast.end - cast.start, 960);
+  assert.deepEqual(
+    damage.map((event) => [packet(event), event.coefficient]),
+    [
+      [360, 1.0625],
+      [520, 1.0625],
+      [680, 1.0625]
+    ]
+  );
+  assert.deepEqual(
+    might.map((event) => [packet(event), event.stacks, event.duration]),
+    [
+      [360, 2, 5],
+      [520, 2, 5],
+      [680, 2, 5]
+    ]
+  );
+  assert.deepEqual(
+    vulnerability.map((event) => [packet(event), event.stacks, event.duration]),
+    [
+      [360, 2, 5],
+      [520, 2, 5],
+      [680, 2, 5]
+    ]
+  );
+});
+
 test('Mirage self-Might triggers Relic of Mistburn', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Split Surge'],
@@ -3580,7 +3629,8 @@ test('Mesmer Peitha triggers share cast-start ICD logic with measured travel del
     ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', 856],
     ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', 241],
     ['Jaunt', ID.JAUNT, 'Axe', 241],
-    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 519]
+    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 519],
+    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear', 800]
   ];
 
   for (const [skillName, skillId, primaryWeapon, delayMs] of cases) {
@@ -5232,6 +5282,69 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
   );
   assert.ok(Math.abs(conversions[0].at - 3.6801) < 0.00001);
   assert.ok(Math.abs(conversions[1].at - 4.0001) < 0.00001);
+});
+
+test('Rain of Swords pulses after its cast with fixed damage and vulnerability timing', () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(['Rain of Swords', 'Rain of Swords'], {
+    ...defaults,
+    specialization: 'Virtuoso',
+    selectedTraits: [],
+    selectedSkills: ['Rain of Swords'],
+    boons: {
+      ...defaults.boons,
+      alacrity: false
+    },
+    target: {
+      ...defaults.target,
+      conditions: {
+        ...defaults.target.conditions,
+        Vulnerability: 0
+      }
+    }
+  });
+  const firstCastEnd = result.steps[0].end / 1000;
+  const firstActivation = result.events.find((event) => event.type === 'action' && event.name === 'Rain of Swords');
+  const firstActivationDamage = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.skillName === 'Rain of Swords' &&
+      event.activationId === firstActivation.activationId
+  );
+  const firstActivationVulnerability = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' &&
+      event.skillName === 'Rain of Swords' &&
+      event.condition === 'Vulnerability' &&
+      event.activationId === firstActivation.activationId
+  );
+
+  assert.equal(result.steps[0].end - result.steps[0].start, 680);
+  assert.equal(result.steps[1].start, 25_680);
+  assert.deepEqual(
+    firstActivationDamage.map((event) => [Math.round((event.at - firstCastEnd) * 1000), event.coefficient]),
+    [
+      [840, 1.2],
+      [1840, 1.2],
+      [2840, 1.2],
+      [3840, 1.2],
+      [4840, 1.2]
+    ]
+  );
+  assert.deepEqual(
+    firstActivationVulnerability.map((event) => [
+      Math.round((event.at - firstCastEnd) * 1000),
+      event.stacks,
+      event.duration
+    ]),
+    [
+      [840, 3, 10],
+      [1840, 3, 10],
+      [2840, 3, 10],
+      [3840, 3, 10],
+      [4840, 3, 10]
+    ]
+  );
 });
 
 test('Virtuoso cast-end blade spends retain timeline metadata', () => {

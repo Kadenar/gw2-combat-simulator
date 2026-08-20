@@ -363,5 +363,7 @@ export const MESMER_CORE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
 ]);
 export const MESMER_CORE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
   [ID.AXES_OF_SYMMETRY]: 0.519,
-  [ID.PHASE_RETREAT]: 0.856
+  [ID.PHASE_RETREAT]: 0.856,
+  // Mental Collapse's Peitha impact arrives about 0.8 seconds after cast start rather than immediately.
+  [ID.MENTAL_COLLAPSE]: 0.8
 });
