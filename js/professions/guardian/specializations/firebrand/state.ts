@@ -43,6 +43,50 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
   };
 }
 
+/** Keeps Firebrand projection ownership beside the state that produces it. */
+export const FIREBRAND_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
+  'activeTome',
+  'tomePages',
+  'maximumTomePages',
+  'tomePageInterval',
+  'nextTomePageAt',
+  'ashesCharges',
+  'ashesExpiresAt',
+  'nextCourageAegisAt',
+  'tomeDormantReadyAt',
+  'swiftScholarTome',
+  'swiftScholarCount',
+  'liberatorsVowReadyAt',
+  'stalwartSpeedReadyAt',
+  'quickfireReadyAt',
+  'mantraRechargeReadyAt'
+]);
+
+export const FIREBRAND_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
+  'ashesCharges',
+  'ashesExpiresAt',
+  'stalwartSpeedReadyAt',
+  'quickfireReadyAt'
+]);
+
+export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFirebrandState>> = Object.freeze({
+  activeTome: '',
+  tomePages: 5,
+  maximumTomePages: 5,
+  tomePageInterval: 8,
+  nextTomePageAt: Number.POSITIVE_INFINITY,
+  ashesCharges: 0,
+  ashesExpiresAt: 0,
+  nextCourageAegisAt: 0,
+  tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
+  swiftScholarTome: '',
+  swiftScholarCount: 0,
+  liberatorsVowReadyAt: 0,
+  stalwartSpeedReadyAt: 0,
+  quickfireReadyAt: 0,
+  mantraRechargeReadyAt: {}
+});
+
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
   const state = firebrandState.from(context);
   const selectedTraits = new Set((context.config.selectedTraitIds || []).map(Number));

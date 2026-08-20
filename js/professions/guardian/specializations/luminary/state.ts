@@ -27,4 +27,40 @@ export function createLuminaryState(): GuardianLuminaryState {
   };
 }
 
+/** Keeps Luminary projection ownership beside the state that produces it. */
+export const LUMINARY_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
+  'radiantForge',
+  'radiantForgeEndsAt',
+  'radiantWeapon',
+  'radiantWeaponsUsed',
+  'empoweredArmamentsUntil',
+  'piercingStanceUntil',
+  'lightAuraUntil',
+  'radiantJusticeArmed',
+  'radiantCourageSwordArmed',
+  'radiantCourageShieldArmed',
+  'effulgentActiveUntil',
+  'effulgentStacks'
+]);
+
+export const LUMINARY_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
+  'effulgentActiveUntil',
+  'effulgentStacks'
+]);
+
+export const LUMINARY_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianLuminaryState>> = Object.freeze({
+  radiantForge: false,
+  radiantForgeEndsAt: 0,
+  radiantWeapon: '',
+  radiantWeaponsUsed: {},
+  empoweredArmamentsUntil: 0,
+  piercingStanceUntil: 0,
+  lightAuraUntil: 0,
+  radiantJusticeArmed: false,
+  radiantCourageSwordArmed: false,
+  radiantCourageShieldArmed: false,
+  effulgentActiveUntil: 0,
+  effulgentStacks: 0
+});
+
 export const luminaryState = defineProfessionSpecializationState('Luminary', createLuminaryState);

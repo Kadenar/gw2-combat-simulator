@@ -1,4 +1,5 @@
-import { handleVirtueActivation, handleVirtueRefresh, reactToJusticeHit } from './virtues.js';
+import { reactToCoreGuardianJusticeHit } from '../justice.js';
+import { handleVirtueActivation, handleVirtueRefresh } from './virtues.js';
 import {
   handleSymbolOfIgnitionField,
   handleRighteousInstinctsTick,
@@ -23,7 +24,7 @@ export const guardianCoreEventReactions = Object.freeze({
     {
       id: 'guardian.justice',
       order: 20,
-      handler: reactToJusticeHit
+      handler: reactToCoreGuardianJusticeHit
     }
   ]),
   buff: Object.freeze([

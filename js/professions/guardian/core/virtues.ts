@@ -1,8 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
- * @fileoverview Implements specialization-specific Guardian virtue
- * validation, activation and refresh events, plus resolver-time Justice
- * burning.
+ * @fileoverview Implements shared Guardian virtue validation, activation and
+ * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
@@ -60,7 +59,6 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boo
   const passiveReadyAt = context.rechargeReadyAt ?? context.effectiveEnd;
   emitGuardianEvent(context, skill, 'guardian.virtue-activated', {
     virtue,
-    specialization: skill.specialization || context.config.specialization || 'Core',
     passiveReadyAt
   });
   state.virtueReadyAt[virtue] = passiveReadyAt;
@@ -175,28 +173,7 @@ function applyJusticeBurn(
   context.recordProc('profession', active ? 'Justice Active' : 'Justice Passive', event.at, event.skillName);
 }
 
-/**
- * Reacts to an eligible player strike by consuming armed active Justice or by
- * advancing the passive three/five-hit counter.
- *
- * @param {GuardianResolverContext} context Resolver reaction context.
- * @param {GuardianResolverEvent} event Resolved damage event.
- * @param {JusticeHitDependencies} dependencies Resolver helpers.
- * @returns {void}
- */
-export function reactToJusticeHit(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  { hitContext, applyCondition }: JusticeHitDependencies = {}
-): void {
-  const runtime = context.profession;
-  if (runtime.specialization?.kind && runtime.specialization.kind !== 'Core') {
-    return;
-  }
-
-  reactToJusticeHitWithOptions(context, event, { hitContext, applyCondition });
-}
-
+/** Applies the shared Justice hit contract with specialization-selected options. */
 export function reactToJusticeHitWithOptions(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,

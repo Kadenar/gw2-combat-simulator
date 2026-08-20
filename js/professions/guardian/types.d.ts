@@ -142,7 +142,12 @@ export interface GuardianWillbenderState {
 }
 
 export interface GuardianState
-  extends GuardianCoreState, GuardianDragonhunterState, GuardianFirebrandState, GuardianLuminaryState {}
+  extends
+    GuardianCoreState,
+    GuardianDragonhunterState,
+    GuardianFirebrandState,
+    GuardianWillbenderState,
+    GuardianLuminaryState {}
 
 export interface GuardianRuntimeState {
   core: GuardianCoreState;
@@ -235,7 +240,6 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly radiantForgeEndsAt?: number;
   readonly radiantForgeEnteredAt?: number;
   readonly radiantWeapon?: string;
-  readonly specialization?: string;
   readonly sourceSkill?: string;
   readonly tetherUntil?: number;
   readonly virtue?: GuardianVirtue;

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
@@ -858,6 +858,7 @@ test('Necromancer public projection keeps inactive compatibility fields', () => 
 });
 
 const guardianInactiveStateKeys = Object.freeze({
+  Dragonhunter: ['tetherUntil', 'nextShieldOfCourageAegisAt', 'heavyLightReadyAt'],
   Firebrand: [
     'activeTome',
     'tomePages',
@@ -868,11 +869,25 @@ const guardianInactiveStateKeys = Object.freeze({
     'ashesNextTriggerAt',
     'ashesExpiresAt',
     'nextCourageAegisAt',
+    'tomeDormantReadyAt',
     'swiftScholarTome',
     'swiftScholarCount',
     'liberatorsVowReadyAt',
     'stalwartSpeedReadyAt',
-    'quickfireReadyAt'
+    'quickfireReadyAt',
+    'mantraRechargeReadyAt'
+  ],
+  Willbender: [
+    'flameGeneration',
+    'flameVirtue',
+    'pendingWeaponCooldownReduction',
+    'justiceUntil',
+    'resolveUntil',
+    'courageUntil',
+    'virtueHitCounts',
+    'lethalTempoStacks',
+    'lethalTempoUntil',
+    'triggeredVirtueEffects'
   ],
   Luminary: [
     'radiantForge',
@@ -940,6 +955,17 @@ test('Guardian modules own disjoint vertical slices', () => {
 
   assert.equal(modifierRuleOwners.get('guardian.empowered-armaments'), 'Luminary');
   assert.equal(modifierRuleOwners.get('guardian.radiant-power-critical-chance'), 'Core');
+
+  const coreDirectory = new URL('../../js/professions/guardian/core/', import.meta.url);
+  const coreSource = readdirSync(coreDirectory)
+    .filter((filename) => filename.endsWith('.ts'))
+    .map((filename) => readFileSync(new URL(filename, coreDirectory), 'utf8'))
+    .join('\n');
+
+  assert.doesNotMatch(coreSource, /Dragonhunter|Firebrand|Willbender|Luminary/i);
+  for (const key of Object.values(guardianInactiveStateKeys).flat()) {
+    assert.doesNotMatch(coreSource, new RegExp(`['"]${key}['"]`), `Core owns elite state key ${key}`);
+  }
 });
 
 test('Guardian runtimes exclude inactive elite catalogs, registries, and state', () => {

@@ -54,8 +54,7 @@ export function validateGuardianBuild(context: GuardianAvailabilityContext, skil
 
 /**
  * Runtime Guardian state gates. Generic cooldown and ammo readiness remains
- * scheduler-owned; Firebrand contributes its regenerating tome-page gate from
- * the specialization module.
+ * scheduler-owned; active specializations contribute their resource gates.
  */
 export function guardianCastAvailability(
   context: GuardianPrecastContext,
@@ -70,9 +69,9 @@ export function guardianCastAvailability(
   }
 
   if (skill.flipParentId != null) {
-    // Firebrand mantra flips use persistent ammo/final-charge state and are
-    // validated by their specialization instead of a short flip window.
-    if (skill.tags?.includes('firebrand-mantra-charge')) return READY;
+    // Active specializations can own persistent or resource-driven flips whose
+    // retry semantics cannot be represented by Core's short-lived flip window.
+    if (skill.tags?.includes('specialization-managed-flip')) return READY;
     return Number(state.availableFlips[skill.id] || 0) > context.start + context.epsilon
       ? READY
       : deny(skill, 'guardian.flip-not-armed', 'not currently armed.');

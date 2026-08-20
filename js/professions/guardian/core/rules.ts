@@ -15,8 +15,6 @@ import { validateVirtueCast } from './virtues.js';
 import { updateWeaponCastState } from './weapon-state.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from './profiles.js';
 
-export { snapshotGuardianState } from './state.js';
-
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
   SchedulerRecord & {
     readonly skill?: GuardianSkill;

@@ -17,7 +17,7 @@ import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/co
 import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../js/professions/elementalist/data/trait-coverage.js';
 import { GUARDIAN_TRAIT_COVERAGE } from '../../js/professions/guardian/data/trait-coverage.js';
-import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/professions/guardian/core/state.js';
+import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/professions/guardian/state.js';
 import { MESMER_TRAIT_COVERAGE } from '../../js/professions/mesmer/data/trait-coverage.js';
 import { NECROMANCER_TRAIT_COVERAGE } from '../../js/professions/necromancer/data/trait-coverage.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necromancer/core/state.js';

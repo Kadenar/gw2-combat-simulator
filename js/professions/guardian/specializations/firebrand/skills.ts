@@ -117,7 +117,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ammoRecharge: 25,
     ammoCastLockout: 0,
     lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
@@ -265,7 +265,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ammoRecharge: 10,
     ammoCastLockout: 0,
     lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
@@ -331,7 +331,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     canCastConcurrently: true,
     lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
@@ -459,7 +459,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ammoRecharge: 10,
     ammoCastLockout: 0,
     lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
@@ -561,7 +561,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ammoRecharge: 10,
     ammoCastLockout: 0,
     lockouts: [{ group: 'firebrand-mantra-flame', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'strike',
@@ -617,7 +617,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     canCastConcurrently: true,
     lockouts: [{ group: 'firebrand-mantra-flame', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'strike',
@@ -637,7 +637,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     canCastConcurrently: true,
     lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
@@ -664,7 +664,7 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     canCastConcurrently: true,
     lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
-    tags: ['firebrand-mantra-charge'],
+    tags: ['specialization-managed-flip'],
     effects: [
       {
         type: 'boon',
