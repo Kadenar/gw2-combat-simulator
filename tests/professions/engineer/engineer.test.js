@@ -1538,7 +1538,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   );
   assert.deepEqual(
     shred.ticks.map((packet) => packet.atMs),
-    [957.6, 1026, 1094.4]
+    [638.4, 684, 729.6]
   );
   assert.equal(shredSkill.effects[1].condition, 'Immobilized');
   assert.equal(shredSkill.effects[1].duration, 3);

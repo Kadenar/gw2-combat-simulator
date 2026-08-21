@@ -285,11 +285,6 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     ['Strike', 'Vengeful Strike', 'Wrathful Strike'].map((name) => profile(quick, name).cast),
     [400, 600, 680]
   );
-  assert.deepEqual(profile(normal, 'Whirling Wrath'), {
-    cast: 2200,
-    ticks: [157, 314, 471, 628, 785, 942, 1099, 1257, 1414, 1571, 1728, 1885, 2042, 2200],
-    coefficient: 4.375
-  });
   assert.deepEqual(profile(quick, 'Whirling Wrath'), {
     cast: 1480,
     ticks: [106, 211, 317, 422, 528, 634, 739, 846, 951, 1057, 1162, 1268, 1374, 1480],

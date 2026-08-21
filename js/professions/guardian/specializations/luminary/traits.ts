@@ -3,6 +3,7 @@ import { PIERCING_STANCE_IMPACT_MS } from './skills.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
 import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
+import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skill-timing.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import {
@@ -179,11 +180,11 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
 function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = luminaryState.from(context);
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
-    const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
-    const runtimeCast = Math.max(0, context.fullEnd - context.start);
-    // Scale the impact offset proportionally to the actual cast time in case
-    // quickness or other cast-speed effects changed it from the base.
-    const at = context.start + (baseCastMs > 0 ? (PIERCING_STANCE_IMPACT_MS / baseCastMs) * runtimeCast : 0);
+    const runtimeCastMs = Math.max(0, (context.fullEnd - context.start) * 1000);
+    // Project the Quickness-authored buff timestamp through the same policy as
+    // the stance packets so its damage bonus begins when the logged impact lands.
+    const at =
+      context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, PIERCING_STANCE_IMPACT_MS) / 1000;
     if (at > context.effectiveEnd + context.epsilon) return;
     const wasActive = Number(state.piercingStanceUntil || 0) > at + context.epsilon;
     // Stack duration additively when already active rather than resetting the

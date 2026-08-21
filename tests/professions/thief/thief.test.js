@@ -103,9 +103,9 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.deepEqual(
     THIEF_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
-      [840, 0.21],
-      [960, 0.21],
-      [1200, 0.21]
+      [560, 0.21],
+      [640, 0.21],
+      [800, 0.21]
     ]
   );
   assert.deepEqual(
@@ -116,9 +116,9 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
       duration
     ]),
     [
-      [840, 'Bleeding', 2, 6],
-      [960, 'Bleeding', 2, 6],
-      [1200, 'Bleeding', 2, 6]
+      [560, 'Bleeding', 2, 6],
+      [640, 'Bleeding', 2, 6],
+      [800, 'Bleeding', 2, 6]
     ]
   );
   for (const excludedName of [

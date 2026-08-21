@@ -48,9 +48,6 @@ export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] 
   'antiquaryDamageUntil',
   'combatHighExpiresAt',
   'combatHighStacks',
-  // Metal Legion Guitar uses the shared stealth-attack charge contract.
-  'stealthAttackCharges',
-  'stealthAttackExpiresAt',
   'artifactStealthAttacksRemaining',
   'artifactStealthAttackExpiresAt',
   'mistburnCharges',
