@@ -1218,11 +1218,23 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
 }
 
 function normalizeApplicationUiList(values: readonly unknown[], callbackName: string): unknown[] {
+  // Preserve module ownership order by default, while allowing presentation
+  // slices to place elite mechanics ahead of their core mechanic rows.
+  const orderedValues = ['paletteGroups', 'skillBarGroups'].includes(callbackName)
+    ? values
+        .map((value, index) => ({ value, index }))
+        .sort((left, right) => {
+          const leftOrder = Number((left.value as SchedulerRecord | null)?.order ?? 0);
+          const rightOrder = Number((right.value as SchedulerRecord | null)?.order ?? 0);
+          return leftOrder - rightOrder || left.index - right.index;
+        })
+        .map(({ value }) => value)
+    : [...values];
   if (callbackName !== 'paletteGroups') {
-    return deduplicateUiEntries(values, callbackName);
+    return deduplicateUiEntries(orderedValues, callbackName);
   }
 
-  const groups = [...values];
+  const groups = orderedValues;
   const anchorIndexes = groups.flatMap((value, index) =>
     value && typeof value === 'object' && (value as SchedulerRecord).resourceAnchor ? [index] : []
   );

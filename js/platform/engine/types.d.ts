@@ -745,6 +745,8 @@ export interface ProfessionPaletteGroup {
   readonly id: string;
   readonly label: string;
   readonly skillIds: readonly SkillId[];
+  /** Lower values render before other profession palette groups. */
+  readonly order?: number;
   /** Moves a profession group beside the indicated palette surface. */
   readonly placement?: 'profession' | 'weapon-set-1' | 'active-weapon';
   /** Optional row label used when placing a group beside the active weapon. */
@@ -798,6 +800,8 @@ export interface ProfessionPaletteActionIdentity {
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
   readonly label: string;
   readonly skillIds: readonly SkillId[];
+  /** Lower values render before other profession mechanic groups. */
+  readonly order?: number;
   /** Presentation-only child-to-root links rendered like autoattack chains. */
   readonly inspectionChainRoots?: Readonly<Record<string, SkillId>>;
   /** Places a read-only mechanic group with the weapon previews. */

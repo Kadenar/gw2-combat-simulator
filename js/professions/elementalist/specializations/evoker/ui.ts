@@ -123,7 +123,8 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
           }
         ],
         color: '#c85142',
-        className: 'elementalist-familiar'
+        className: 'elementalist-familiar',
+        order: -10
       }
     ];
   },
@@ -135,7 +136,8 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
       label: 'F5',
       skillIds: [familiarSkillId(context)],
       color: '#c85142',
-      resourceAnchor: true // links this palette entry to the charge resource bar display
+      resourceAnchor: true, // links this palette entry to the charge resource bar display
+      order: -10
     }
   ],
   resourceViews: (context: SchedulerRecord): ProfessionResourceView[] => {

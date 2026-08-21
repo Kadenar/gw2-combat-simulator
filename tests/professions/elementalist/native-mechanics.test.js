@@ -747,7 +747,7 @@ test('rotation palette exposes each attunement as an action', () => {
   }
 
   assert.ok(
-    palette.innerHTML.indexOf('data-skill="Air Attunement"') < palette.innerHTML.indexOf('data-skill="Overload Air"')
+    palette.innerHTML.indexOf('data-skill="Overload Air"') < palette.innerHTML.indexOf('data-skill="Air Attunement"')
   );
 });
 

@@ -50,7 +50,8 @@ export const tempestUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
       label: 'Overloads',
       skillIds: Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS),
       color: '#cf6c42',
-      className: 'elementalist-overloads'
+      className: 'elementalist-overloads',
+      order: -10
     }
   ],
   paletteGroups: () => [
@@ -59,7 +60,8 @@ export const tempestUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
       label: 'OL',
       skillIds: Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS),
       color: '#cf6c42',
-      resourceAnchor: true
+      resourceAnchor: true,
+      order: -10
     }
   ],
   paletteSkillAvailability: overloadPaletteAvailability

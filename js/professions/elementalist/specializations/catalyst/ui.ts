@@ -44,7 +44,8 @@ export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
       label: 'Jade Sphere',
       skillIds: CATALYST_SPHERE_SKILL_IDS,
       color: '#44ddaa',
-      className: 'elementalist-catalyst-spheres'
+      className: 'elementalist-catalyst-spheres',
+      order: -10
     }
   ],
   paletteGroups: () => [
@@ -54,7 +55,8 @@ export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
       skillIds: CATALYST_SPHERE_SKILL_IDS,
       color: '#44ddaa',
       className: 'compact-resource-palette elementalist-catalyst-spheres',
-      resourceAnchor: true
+      resourceAnchor: true,
+      order: -10
     }
   ],
   paletteSkillAvailability: catalystPaletteAvailability,
