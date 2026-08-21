@@ -25,6 +25,7 @@ export interface DpsReportRecordedAction {
   readonly expectedDurationMs?: number;
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;
+  readonly independentTimeline?: boolean;
   readonly inference?:
     | 'initial-kit'
     | 'mine-setup'

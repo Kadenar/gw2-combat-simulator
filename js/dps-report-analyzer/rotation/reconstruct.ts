@@ -233,7 +233,12 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
   if (skillMetadata(report, action.rawSkillId)?.autoAttack !== true) return true;
   const expectedDurationMs = Number(action.expectedDurationMs || 0);
   if (action.status === 'interrupted' || expectedDurationMs <= 0) return true;
-  return action.end - action.start >= expectedDurationMs * AUTOATTACK_COMMIT_FRACTION;
+  // Prefer an explicit simulator cast time when EI's nominal duration includes
+  // a long aftercast; the modeled cast lane is the tighter commitment bound.
+  const runtimeDurationMs = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
+  const commitmentDurationMs =
+    runtimeDurationMs > 0 ? Math.min(expectedDurationMs, runtimeDurationMs) : expectedDurationMs;
+  return action.end - action.start >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;
 }
 
 function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart: number): EvtcReconstructedCommand[] {
@@ -290,7 +295,8 @@ function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart:
       offset?: number;
       interruptMs?: number;
     };
-    const independent = entry.action.skill.independentCast === true;
+    // Profession reconstruction can preserve timestamped actions that do not own the simulator's cast lane.
+    const independent = entry.action.skill.independentCast === true || entry.action.independentTimeline === true;
     if (previousCastStart != null && (independent || overlapping)) {
       command.offset = Math.max(0, at - previousCastStart);
     }

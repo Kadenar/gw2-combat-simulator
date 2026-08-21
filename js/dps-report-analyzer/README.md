@@ -30,8 +30,9 @@ provide a profession-specific dependency or repeated-cycle proof:
 - Conduit reconstructs omitted weapon/legend precasts from the opening upkeep release and later repeated skill set.
   Split Deathstrike and Phantom's Onslaught animations are merged, while generated Dervish attacks remain simulator
   effects.
-- Renegade reconstructs omitted opening warband summons from a later repeated legend cycle, normalizes legend changes,
-  and canonicalizes enhanced skill signals to actionable simulator skills.
+- Renegade reconstructs omitted opening warband summons from later repeated legend cycles across both condition and
+  power legend pairings, recovers the build-gated Charged Mists power opener, normalizes composite weapon animations and
+  legend changes, and canonicalizes enhanced skill signals to actionable simulator skills.
 
 When the available report data does not provide that evidence, the analyzer keeps the import conservative and presents a
 review warning.

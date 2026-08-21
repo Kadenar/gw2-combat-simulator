@@ -1,11 +1,6 @@
 import type { Skill } from '../../../../platform/engine/types.js';
-import type { EvtcRotationActionStatus } from '../../../../evtc-analyzer/types.js';
 import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
 
-const DEATHSTRIKE_START_ID = 27074;
-const DEATHSTRIKE_FINISH_ID = 28625;
-const PHANTOMS_ONSLAUGHT_START_ID = 62895;
-const PHANTOMS_ONSLAUGHT_FINISH_ID = 62713;
 const RELINQUISH_POWER_ID = 28382;
 const GENERATED_SIGNAL_IDS = new Set([76818, 77116, 77141]);
 const ASSASSIN_LEGEND_ID = 'LegendaryAssassin';
@@ -19,50 +14,6 @@ function normalized(value: unknown): string {
 
 function namedSkill(context: DpsReportProfessionReconstructionContext, name: string): Skill | null {
   return context.catalog?.skills.find((skill) => normalized(skill.name) === normalized(name)) || null;
-}
-
-function mergedStatus(first: DpsReportRecordedAction, second: DpsReportRecordedAction): EvtcRotationActionStatus {
-  if (first.status === 'interrupted' || second.status === 'interrupted') return 'interrupted';
-  if (first.status === 'reduced' || second.status === 'reduced') return 'reduced';
-  if (first.status === 'unknown' || second.status === 'unknown') return 'unknown';
-  return 'completed';
-}
-
-function mergeSplitCast(
-  actions: readonly DpsReportRecordedAction[],
-  startId: number,
-  finishId: number
-): DpsReportRecordedAction[] {
-  const consumed = new Set<DpsReportRecordedAction>();
-  const result: DpsReportRecordedAction[] = [];
-  for (const action of actions) {
-    if (consumed.has(action)) continue;
-    if (action.rawSkillId !== startId) {
-      result.push(action);
-      continue;
-    }
-
-    const finish = actions.find(
-      (candidate) =>
-        !consumed.has(candidate) && candidate.rawSkillId === finishId && Math.abs(candidate.start - action.end) <= 10
-    );
-    if (!finish) {
-      result.push(action);
-      continue;
-    }
-
-    consumed.add(finish);
-    result.push({
-      ...action,
-      end: finish.end,
-      status: mergedStatus(action, finish),
-      metadataAccurate: action.metadataAccurate && finish.metadataAccurate,
-      canonicalSkillId: startId,
-      canonicalName: action.rawName
-    });
-  }
-
-  return result;
 }
 
 function inferredSkillAction(
@@ -139,23 +90,11 @@ function legendSwapCooldownMs(context: DpsReportProfessionReconstructionContext)
 export function reconstructConduitDpsReportActions(
   context: DpsReportProfessionReconstructionContext
 ): readonly DpsReportRecordedAction[] {
-  const actionable = context.recordedActions.filter((action) => {
-    if (GENERATED_SIGNAL_IDS.has(action.rawSkillId)) return false;
-    if (action.rawSkillId !== RELINQUISH_POWER_ID) return true;
-    return !context.recordedActions.some(
-      (candidate) =>
-        normalized(candidate.rawName).startsWith('legendary ') &&
-        candidate.start >= action.start &&
-        candidate.start - action.start <= 5
-    );
-  });
-  const deathstrikes = mergeSplitCast(actionable, DEATHSTRIKE_START_ID, DEATHSTRIKE_FINISH_ID);
-  const merged = mergeSplitCast(deathstrikes, PHANTOMS_ONSLAUGHT_START_ID, PHANTOMS_ONSLAUGHT_FINISH_ID).sort(
-    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
-  );
-  const anchor = merged[0];
+  const actionable = context.recordedActions.filter((action) => !GENERATED_SIGNAL_IDS.has(action.rawSkillId));
+  const sorted = [...actionable].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  const anchor = sorted[0];
   const evidence = openingAssassinEvidence(context.recordedActions);
-  if (!anchor || !evidence) return merged;
+  if (!anchor || !evidence) return sorted;
 
   // Relinquish Power immediately before the first Entity invocation proves that
   // Assassin/Impossible Odds was active. Do not invent the benchmark's weapon
@@ -171,5 +110,5 @@ export function reconstructConduitDpsReportActions(
     needsCooldownReset ? cooldownResetAction(anchor.start, -1) : null
   ].filter((action): action is DpsReportRecordedAction => action != null);
 
-  return [...inferred, ...merged].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  return [...inferred, ...sorted].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
 }

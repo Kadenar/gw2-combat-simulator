@@ -3,6 +3,9 @@ import test from 'node:test';
 
 import { parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
 import { reconstructDpsReportRotation } from '../../js/dps-report-analyzer/rotation/index.js';
+import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
+import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
+import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
 
@@ -23,6 +26,63 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
     skillMap
   });
 }
+
+test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant casts', () => {
+  const report = reportFixture(
+    'Virtuoso',
+    [
+      { id: 73093, skills: [{ castTime: 0, duration: 600, timeGained: 0 }] },
+      {
+        id: 10212,
+        skills: [
+          { castTime: 200, duration: 0, timeGained: 0 },
+          { castTime: 850, duration: 0, timeGained: 0 }
+        ]
+      },
+      { id: 72957, skills: [{ castTime: 600, duration: 640, timeGained: 0 }] },
+      { id: 72946, skills: [{ castTime: 1240, duration: 240, timeGained: 0 }] },
+      { id: 62617, skills: [{ castTime: 1480, duration: 640, timeGained: 0 }] },
+      { id: 45425, skills: [{ castTime: 2120, duration: 680, timeGained: 0 }] }
+    ],
+    {
+      s73093: { name: 'Mind the Gap' },
+      s10212: { name: 'Power Spike', isInstantCast: true, isNotAccurate: true },
+      s72957: { name: 'Mental Collapse' },
+      s72946: { name: 'Phantasmal Lancer' },
+      s62617: { name: 'Bladesong Harmony' },
+      s45425: { name: 'Rain of Swords' }
+    },
+    8000
+  );
+  const reconstruction = reconstructDpsReportRotation(report, mesmerCatalog, {
+    selectedSkillNames: ['Mantra of Pain', 'Rain of Swords']
+  });
+  const powerSpikes = reconstruction.rotation.filter((command) => command.name === 'Power Spike');
+  const simulation = simulateMesmer(
+    reconstruction.rotation,
+    defaultSimulationConfig({
+      specialization: 'Virtuoso',
+      selectedTraits: [],
+      selectedSkills: ['Mantra of Pain', 'Rain of Swords'],
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      initialResource: 5
+    })
+  );
+
+  assert.equal(reconstruction.parserId, 'mesmer:virtuoso');
+  assert.deepEqual(
+    powerSpikes.map((command) => command.offset),
+    [200, 250]
+  );
+  // Spear's flip skill is a player input and must survive generic report reconstruction.
+  assert.equal(reconstruction.rotation.filter((command) => command.name === 'Mental Collapse').length, 1);
+  assert.equal(
+    reconstruction.actions.every((action) => action.supportedByCatalog),
+    true
+  );
+  assert.deepEqual(simulation.warnings, []);
+});
 
 test('recovers alacrity Luminary opening state and retains only physical weapon swaps', () => {
   const report = reportFixture(
@@ -196,6 +256,149 @@ test('recovers Renegade warband precasts and normalizes legend and enhanced summ
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Icerazor's Ire.*Razorclaw's Rage/);
 });
 
+test('normalizes Renegade warband variants and ignores generated Spear mine signals', () => {
+  const report = reportFixture(
+    'Renegade',
+    [
+      { id: 28287, skills: [{ castTime: 0, duration: 440, timeGained: 0 }] },
+      { id: 72938, skills: [{ castTime: 440, duration: 520, timeGained: 0 }] },
+      { id: -39, skills: [{ castTime: 440, duration: 0, timeGained: 0 }] },
+      { id: 73149, skills: [{ castTime: 960, duration: 0, timeGained: 0 }] },
+      { id: 72366, skills: [{ castTime: 800, duration: 0, timeGained: 0 }] },
+      { id: 26693, skills: [{ castTime: 1500, duration: 0, timeGained: 0 }] },
+      { id: 41858, skills: [{ castTime: 1600, duration: 0, timeGained: 0 }] }
+    ],
+    {
+      s28287: { name: 'Embrace the Darkness' },
+      s72938: { name: 'Abyssal Blitz' },
+      's-39': { name: 'Blitz Mines (Drop)', isInstantCast: true, isNotAccurate: true },
+      s73149: { name: 'Blitz Mines (Detonation)', isInstantCast: true, isNotAccurate: true },
+      s72366: { name: "Darkrazor's Daring", isInstantCast: true, isNotAccurate: true },
+      s26693: { name: 'Resist the Darkness', isInstantCast: true },
+      s41858: { name: 'Legendary Renegade Stance', isInstantCast: true }
+    }
+  );
+  const catalog = {
+    skills: [
+      skill(28287, 'Embrace the Darkness', { castTimeMs: 440 }),
+      skill(72938, 'Abyssal Blitz', { type: 'weapon', weapon: 'Spear', castTimeMs: 520 }),
+      skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
+      skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
+      skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
+      skill(26693, 'Resist the Darkness', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
+      skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),
+      skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.rotation.map((command) => [command.name, command.skillId]),
+    [
+      ['__combat_start', undefined],
+      ['Embrace the Darkness', 28287],
+      ['Abyssal Blitz', 72938],
+      ["Darkrazor's Daring", 41220],
+      ['Swap Legends', -4]
+    ]
+  );
+  assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
+});
+
+test('normalizes power Renegade legend cycles, composite casts, and Greatsword autoattacks', () => {
+  const report = reportFixture(
+    'Renegade',
+    [
+      { id: 62929, skills: [{ castTime: -840, duration: 840, timeGained: 0 }] },
+      { id: 28134, skills: [{ castTime: 0, duration: 0, timeGained: 0 }] },
+      { id: 41858, skills: [{ castTime: 10_000, duration: 0, timeGained: 0 }] },
+      { id: 40485, skills: [{ castTime: 10_500, duration: 520, timeGained: 0 }] },
+      { id: 62895, skills: [{ castTime: 11_020, duration: 40, timeGained: 460 }] },
+      { id: 62713, skills: [{ castTime: 11_060, duration: 400, timeGained: 0 }] },
+      { id: 62913, skills: [{ castTime: 11_460, duration: 400, timeGained: 188 }] },
+      { id: 28382, skills: [{ castTime: 20_000, duration: 0, timeGained: 0 }] },
+      { id: 28134, skills: [{ castTime: 20_000, duration: 0, timeGained: 0 }] },
+      { id: 27074, skills: [{ castTime: 20_100, duration: 360, timeGained: 120 }] },
+      { id: 28625, skills: [{ castTime: 20_460, duration: 360, timeGained: 0 }] }
+    ],
+    {
+      s62929: { name: "Eternity's Requiem" },
+      s28134: { name: 'Legendary Assassin Stance', isInstantCast: true },
+      s41858: { name: 'Legendary Renegade Stance', isInstantCast: true },
+      s40485: { name: "Icerazor's Ire" },
+      s62895: { name: "Phantom's Onslaught" },
+      s62713: { name: "Phantom's Onslaught (Hit)" },
+      s62913: { name: 'Mist Swing', autoAttack: true },
+      s28382: { name: 'Relinquish Power', isInstantCast: true },
+      s27074: { name: 'Deathstrike' },
+      s28625: { name: 'Deathstrike' }
+    },
+    25_000
+  );
+  const catalog = {
+    skills: [
+      skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' }),
+      skill(62929, "Eternity's Requiem", { type: 'weapon', weapon: 'Greatsword', quicknessCastTimeMs: 840 }),
+      skill(28134, 'Legendary Assassin Stance', { castTimeMs: 0 }),
+      skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),
+      skill(40485, "Icerazor's Ire", { quicknessCastTimeMs: 520 }),
+      skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
+      skill(62895, "Phantom's Onslaught", { type: 'weapon', weapon: 'Greatsword', quicknessCastTimeMs: 440 }),
+      skill(62713, "Phantom's Onslaught", { type: 'weapon', weapon: 'Greatsword', quicknessCastTimeMs: 440 }),
+      skill(62913, 'Mist Swing', {
+        type: 'weapon',
+        weapon: 'Greatsword',
+        slot: 'weapon_1',
+        chainRoot: 62913,
+        nextChainId: 62688,
+        castTimeMs: 400
+      }),
+      skill(28382, 'Relinquish Power', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
+      skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', quicknessCastTimeMs: 720 }),
+      skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', quicknessCastTimeMs: 720 })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog, {
+    professionConfig: {
+      specializations: [{ name: 'Invocation', traits: '2-1-2' }],
+      weapons: ['Greatsword', ''],
+      startingLegend: 'LegendaryRenegade'
+    }
+  });
+
+  assert.equal(
+    result.actions.some((action) => action.name === "Icerazor's Ire" && action.inferred),
+    true
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === "Darkrazor's Daring" && action.inferred),
+    true
+  );
+  assert.equal(
+    result.rotation.some((command) => command.name === '__wait' && command.waitMs === 520),
+    true
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) => ["Phantom's Onslaught", 'Deathstrike'].includes(action.name))
+      .map((action) => [action.name, action.durationMs]),
+    [
+      ["Phantom's Onslaught", 440],
+      ['Deathstrike', 720]
+    ]
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Mist Swing'),
+    true
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Relinquish Power'),
+    false
+  );
+});
+
 test('recovers Herald facet and Shortbow precasts without importing automatic legend calls', () => {
   const report = reportFixture(
     'Herald',
@@ -297,6 +500,61 @@ test('recovers Herald facet and Shortbow precasts without importing automatic le
     ['Misery Swipe', 'Temporal Rift', 'Anguish Swipe', 'Manifest Toxin']
   );
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Facet of Elements.*Facet of Strength.*Spiritcrush/);
+});
+
+test('normalizes Power Herald split weapon animations and automatic upkeep releases', () => {
+  const report = reportFixture(
+    'Herald',
+    [
+      { id: 27074, skills: [{ castTime: 1_000, duration: 360, timeGained: 0 }] },
+      { id: 28625, skills: [{ castTime: 1_360, duration: 360, timeGained: 0 }] },
+      { id: 28382, skills: [{ castTime: 2_000, duration: 0, timeGained: 0 }] },
+      { id: 28085, skills: [{ castTime: 2_001, duration: 0, timeGained: 0 }] },
+      { id: 62895, skills: [{ castTime: 3_000, duration: 40, timeGained: 0 }] },
+      { id: 62713, skills: [{ castTime: 3_040, duration: 400, timeGained: 0 }] }
+    ],
+    {
+      s27074: { name: 'Deathstrike' },
+      s28625: { name: 'Deathstrike' },
+      s28382: { name: 'Relinquish Power', isInstantCast: true },
+      s28085: { name: 'Legendary Dragon Stance', isInstantCast: true },
+      s62895: { name: "Phantom's Onslaught" },
+      s62713: { name: "Phantom's Onslaught (Hit)" }
+    }
+  );
+  const catalog = {
+    skills: [
+      skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', quicknessCastTimeMs: 720 }),
+      skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 0 }),
+      skill(28382, 'Relinquish Power', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
+      skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' }),
+      skill(62895, "Phantom's Onslaught", {
+        type: 'weapon',
+        weapon: 'Greatsword',
+        quicknessCastTimeMs: 440
+      }),
+      skill(62713, "Phantom's Onslaught", {
+        type: 'weapon',
+        weapon: 'Greatsword',
+        quicknessCastTimeMs: 440
+      })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.actions.map((action) => [action.name, action.durationMs]),
+    [
+      ['Deathstrike', 720],
+      ['Swap Legends', 0],
+      ["Phantom's Onslaught", 440]
+    ]
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Relinquish Power'),
+    false
+  );
 });
 
 test('recovers evidence-backed Conduit state and collapses composite animations into player inputs', () => {
