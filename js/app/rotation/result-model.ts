@@ -1,12 +1,14 @@
 import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
 import { durationStackingBoonCapSeconds } from '../../platform/gw2/boon-state.js';
 import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '../../platform/ui/charts.js';
+import { formatTimelineDuration, timelineDeadTimeMarkers } from '../../platform/ui/timeline.js';
 import {
   skillBreakdownRows as transformSkillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
 } from '../../platform/ui/result-tables.js';
 import { resultSummaryMetrics as transformResultSummaryMetrics } from '../../platform/ui/result-transform.js';
+import { shatterResourceSpends, timelineStepsWithChargeFills } from './timeline-model.js';
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {
   compounding: 'Compounding Power',
@@ -89,15 +91,27 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
   // independent from the explicit marker used as timeline display zero.
   const referenceSeconds = Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0));
-  if (referenceSeconds <= 0) {
-    return transformResultSummaryMetrics(result);
-  }
+  const normalizedResult =
+    referenceSeconds <= 0
+      ? result
+      : {
+          ...result,
+          duration: Math.max(0, Number(result.duration || 0) - referenceSeconds),
+          deathTime: result.deathTime == null ? null : Math.max(0, Number(result.deathTime) - referenceSeconds)
+        };
+  const metrics = transformResultSummaryMetrics(normalizedResult);
 
-  return transformResultSummaryMetrics({
-    ...result,
-    duration: Math.max(0, Number(result.duration || 0) - referenceSeconds),
-    deathTime: result.deathTime == null ? null : Math.max(0, Number(result.deathTime) - referenceSeconds)
+  // Match the timeline's charge-aware gap markers so the strip reports only
+  // time when no cast, explicit wait, or charging window occupied the player.
+  const deadTimeMs = timelineDeadTimeMarkers(
+    timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result))
+  ).reduce((total, marker) => total + marker.durationMs, 0);
+  metrics.splice(1, 0, {
+    label: 'Total Dead Time',
+    value: formatTimelineDuration(deadTimeMs),
+    className: ''
   });
+  return metrics;
 }
 
 export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {

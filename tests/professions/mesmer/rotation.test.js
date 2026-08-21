@@ -5803,8 +5803,36 @@ test('result summary uses the expected metric order', () => {
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
+});
+
+test('result summary totals the same charge-aware dead-time gaps shown on the timeline', () => {
+  const metrics = resultSummaryMetrics({
+    duration: 2,
+    deathTime: null,
+    events: [
+      {
+        type: 'resource',
+        reason: 'profession mechanic',
+        rotationIndex: 1,
+        amount: -4,
+        resource: 'dragon charges',
+        sourceSkill: 'Second Cast',
+        chargingSeconds: 0.5
+      }
+    ],
+    steps: [
+      { ri: 0, skill: 'First Cast', start: 0, end: 500 },
+      { ri: 1, skill: 'Second Cast', start: 1250, end: 1750 }
+    ]
+  });
+
+  assert.deepEqual(metrics[1], {
+    label: 'Total Dead Time',
+    value: '250ms',
+    className: ''
+  });
 });
 
 test('Kill Time accounts for an explicit Combat Start reference', () => {
@@ -5929,7 +5957,7 @@ test('result summary includes kill time when target health is exhausted', () => 
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Kill Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Kill Time', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));
 });

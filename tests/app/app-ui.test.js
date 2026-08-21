@@ -557,9 +557,9 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
   assert.deepEqual(
     [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
-    ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
-  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 5);
+  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 6);
   assert.match(results.innerHTML, /No analysis yet/);
   assert.equal(summaryMirror.innerHTML, '');
 });
@@ -689,13 +689,15 @@ test('Guardian Power Luminary default builds resolve', async () => {
   const adapter = await loadProfessionAppAdapter('guardian');
   const section = manifest.find((candidate) => candidate.section === 'Luminary');
   const powerPreset = section.presets.find((preset) => preset.label === 'Power (Greatsword / Spear)');
+  const longbowPreset = section.presets.find((preset) => preset.label === 'Power (Greatsword / Longbow)');
   const alacrityPreset = section.presets.find((preset) => preset.label === 'Power Alacrity (Greatsword / Spear)');
-  const [saved, savedAlacrity, alacrityRotation] = await Promise.all(
-    [powerPreset.build, alacrityPreset.build, alacrityPreset.rotation].map((path) =>
+  const [saved, savedLongbow, savedAlacrity, alacrityRotation] = await Promise.all(
+    [powerPreset.build, longbowPreset.build, alacrityPreset.build, alacrityPreset.rotation].map((path) =>
       readFile(new URL(`../../${path}`, import.meta.url), 'utf8').then(JSON.parse)
     )
   );
   const build = adapter.toApplicationBuild(saved);
+  const longbowBuild = adapter.toApplicationBuild(savedLongbow);
   const alacrityBuild = adapter.toApplicationBuild(savedAlacrity);
   const radiantBulwarks = alacrityRotation.rotation.filter(
     (step) => (typeof step === 'string' ? step : step.name) === 'Radiant Bulwark'
@@ -710,6 +712,11 @@ test('Guardian Power Luminary default builds resolve', async () => {
   assert.deepEqual(build.weapons, ['Greatsword', '']);
   assert.deepEqual(build.alternateWeapons, ['Spear', '']);
   assert.equal(build.startingWeaponSet, 2);
+  assert.deepEqual(longbowBuild.weapons, ['Greatsword', '']);
+  assert.deepEqual(longbowBuild.alternateWeapons, ['Longbow', '']);
+  assert.equal(longbowBuild.startingWeaponSet, 2);
+  // The Longbow variant intentionally replaces only the Spear, preserving every gearing choice.
+  assert.deepEqual({ ...savedLongbow, alternateWeapons: saved.alternateWeapons }, saved);
 
   assert.equal(alacrityPreset.benchmarkDps, 37836);
   assert.equal(Object.hasOwn(savedAlacrity, 'rotation'), false);
