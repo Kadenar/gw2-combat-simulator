@@ -44,7 +44,7 @@ export function emitResource(context: ElementalistCastContext, skill: Skill, sta
   });
 }
 
-export function weaponSkillChargeGain(context: unknown, skill: Skill, state: EvokerState): number {
+export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pick<EvokerState, 'element'>): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ''));
   if (
     skill.type !== 'Weapon' ||

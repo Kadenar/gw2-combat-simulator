@@ -381,6 +381,26 @@ function filterUncommittedFlamestrikes(
   });
 }
 
+function orderSimultaneousAttunementTransitions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  return actions.map((action) => {
+    if (action.evidence !== 'buff-transition') return action;
+    const enteredElement = String(action.canonicalName || action.rawName).split(' ')[0];
+    const precedingWeapon = actions.some((candidate) => {
+      if (candidate === action || candidate.start !== action.start) return false;
+      const skill = skillForAction(context, candidate);
+      const attunements = String(skill?.attunement || '').split('+');
+      return skill?.type === 'Weapon' && attunements.some(Boolean) && !attunements.includes(enteredElement);
+    });
+    if (!precedingWeapon) return action;
+    // Same-millisecond animation and buff packets are unordered; a weapon from the
+    // outgoing element must replay before the transition that would disable it.
+    return { ...action, start: action.start + 1, end: action.end + 1 };
+  });
+}
+
 export function reconstructElementalistProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
@@ -395,7 +415,8 @@ export function reconstructElementalistProfessionActions(
   actions = openingTempestScepterPrecast(context, actions);
   actions = inferArcLightningChannelDurations(context, actions);
   actions = filterUncommittedFlamestrikes(context, actions);
-  return [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)].sort(
+  actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)];
+  return orderSimultaneousAttunementTransitions(context, actions).sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
 }

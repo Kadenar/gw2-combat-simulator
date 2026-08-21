@@ -929,4 +929,212 @@ test('keeps committed Calcify inputs when Seismic Impact cancels the familiar an
     result.actions.some((action) => action.rawSkillId === 76681),
     false
   );
+  assert.equal(result.actions.find((action) => action.name === 'Calcify')?.timestampMs, 100);
+});
+
+test('delays queued Calcify only when an active slot 2-5 weapon cast supplies its missing charges', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ time: 1_900, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    ...animation(ID.SAND_SQUALL, 1_900, 300),
+    event({
+      time: 2_000,
+      source: TOAD_FAMILIAR,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    event({ time: 2_202, target: TARGET, value: 100, skillId: 76925 }),
+    event({
+      time: 2_800,
+      source: TOAD_FAMILIAR,
+      value: 800,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260816',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 3,
+      skillCount: 3,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Evoker',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      },
+      {
+        address: TOAD_FAMILIAR,
+        profession: 27042,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'ch27042-10',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: ID.SAND_SQUALL, name: 'Sand Squall' },
+      { id: 76925, name: 'Calcify' }
+    ],
+    events
+  };
+  const reconstruct = (initialEvokerCharges, slot = 'Weapon_4') =>
+    reconstructEvtcRotation(
+      fixture,
+      {
+        skills: [
+          catalogSkill(ID.FIRE_ATTUNEMENT, 'Fire Attunement'),
+          catalogSkill(ID.SAND_SQUALL, 'Sand Squall', 'Weapon', {
+            slot,
+            attunement: 'Earth',
+            quicknessCastTimeMs: 300
+          }),
+          catalogSkill(ID.CALCIFY, 'Calcify')
+        ]
+      },
+      {
+        professionConfig: {
+          evokerElement: 'Earth',
+          initialEvokerCharges,
+          initialEvokerEmpowered: 0
+        }
+      }
+    );
+
+  assert.equal(reconstruct(4).actions.find((action) => action.name === 'Calcify')?.timestampMs, 300);
+  assert.equal(reconstruct(6).actions.find((action) => action.name === 'Calcify')?.timestampMs, 100);
+  assert.equal(reconstruct(5, 'Weapon_1').actions.find((action) => action.name === 'Calcify')?.timestampMs, 100);
+});
+
+test('orders an outgoing-attunement weapon cast before a simultaneous attunement transition', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ time: 1_500, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 2_000,
+      target: PLAYER,
+      skillId: 5575,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    }),
+    event({
+      time: 3_000,
+      target: PLAYER,
+      skillId: 5580,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    }),
+    ...animation(30795, 3_000, 440)
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260816',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 2,
+      skillCount: 4,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Evoker',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: 5575, name: 'Air Attunement' },
+      { id: 5580, name: 'Earth Attunement' },
+      { id: 30795, name: 'Lightning Orb' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.FIRE_ATTUNEMENT, 'Fire Attunement'),
+    catalogSkill(ID.AIR_ATTUNEMENT, 'Air Attunement'),
+    catalogSkill(ID.EARTH_ATTUNEMENT, 'Earth Attunement'),
+    catalogSkill(30795, 'Lightning Orb', 'Weapon', {
+      slot: 'Weapon_5',
+      attunement: 'Air',
+      quicknessCastTimeMs: 440
+    })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.actions.map(({ name, timestampMs }) => ({ name, timestampMs })),
+    [
+      { name: 'Air Attunement', timestampMs: 500 },
+      { name: 'Lightning Orb', timestampMs: 1_500 },
+      { name: 'Earth Attunement', timestampMs: 1_501 }
+    ]
+  );
 });
