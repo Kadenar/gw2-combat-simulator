@@ -286,9 +286,9 @@ export function reactToEngineerDamage(
 
   const explosion = isExplosion(context, event);
   if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
-    queueBuff(context, event, {
+    applyCondition(details, context, event, {
       name: 'Steel-Packed Powder',
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       stacks: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'stacks', 1),
       duration: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'duration', 5),
       sourceId: TRAIT.STEEL_PACKED_POWDER,

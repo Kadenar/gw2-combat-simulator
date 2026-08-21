@@ -87,13 +87,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   ensurePermanentIceFieldAssumption(context, event);
-  if (
-    event.type === 'buff' &&
-    event.actorType === 'player' &&
-    // target-vulnerability buffs are player-sourced but are debuffs on the enemy, not boons — exclude them.
-    event.kind !== 'target-vulnerability' &&
-    hasNecromancerTrait(context, TRAIT.BLIGHTERS_BOON)
-  ) {
+  if (event.type === 'buff' && event.actorType === 'player' && hasNecromancerTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
       Number(necromancerBalanceProfile(context, PROFILE.blightersBoon)?.lifeForceGain || 1),

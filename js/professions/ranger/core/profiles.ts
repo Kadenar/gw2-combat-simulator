@@ -111,8 +111,8 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     effects: [
       { type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 1,
         stacks: 10
       }
@@ -150,8 +150,8 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.wolfsong, 'Wolfsong', {
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 6,
         stacks: 6
       }

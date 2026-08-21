@@ -387,16 +387,19 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
   }
 
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)) {
-    const exposure = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.symbolicExposure), 'buff');
+    const exposure = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.symbolicExposure),
+      'condition'
+    );
     context.emit({
-      type: 'buff',
+      type: 'condition',
       at: event.at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
       actorType: 'effect',
       skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
       skillName: 'Symbolic Exposure',
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       stacks: Number(exposure?.stacks || 2),
       duration: Number(exposure?.duration || 5),
       triggeredBy: event.skillName
@@ -545,11 +548,16 @@ function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianRe
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
   ) {
-    queueResolverBuff(context, {
+    // Lesser Symbol applies target Vulnerability directly so it shares condition duration and stacking rules.
+    enqueueOrdered(context.queue, {
+      type: 'condition',
       at: event.at,
+      source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
+      actorType: 'effect',
+      skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
       skillName: 'Symbolic Exposure',
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       duration: 5,
       stacks: 2,
       priority: 5

@@ -9,7 +9,6 @@ import { deriveAutoattackChains, indexAutoattackChains } from '../../js/platform
 import {
   blind,
   boon,
-  buff,
   condition,
   conditionTimeline,
   control,
@@ -385,9 +384,9 @@ test('shared declarative factories preserve generic effect options', () => {
     duration: 2,
     stacks: 2
   });
-  assert.deepEqual(buff('target-vulnerability', 3, { stacks: 5 }), {
-    type: 'buff',
-    kind: 'target-vulnerability',
+  assert.deepEqual(condition('Vulnerability', 5, 3), {
+    type: 'condition',
+    condition: 'Vulnerability',
     duration: 3,
     stacks: 5
   });

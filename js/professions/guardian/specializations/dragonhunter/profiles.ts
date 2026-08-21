@@ -62,8 +62,8 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     pulseInterval: 12,
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10
       }

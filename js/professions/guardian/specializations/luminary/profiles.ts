@@ -71,8 +71,8 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         timingScale: 'fixed'
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 8,
         duration: 8,
         atMs: 750,

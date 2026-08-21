@@ -2251,7 +2251,8 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
     beast.events.some(
       (event) =>
         event.sourceId === TRAIT.WOLFSONG &&
-        event.kind === 'target-vulnerability' &&
+        event.type === 'condition' &&
+        event.condition === 'Vulnerability' &&
         event.stacks === 6 &&
         event.duration === 6
     ),

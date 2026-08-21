@@ -165,8 +165,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 5,
         stacks: 2
       }
@@ -236,8 +236,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 4000,
@@ -246,8 +246,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 5000,
@@ -256,8 +256,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 6000,
@@ -266,8 +266,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 7000,
@@ -276,8 +276,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 8000,
@@ -286,8 +286,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 9000,
@@ -629,8 +629,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         hits: 2
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 7,
         stacks: 2
       }
@@ -1105,8 +1105,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingScale: 'cast'
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 10,
         stacks: 5,
         atMs: 840,
@@ -1849,8 +1849,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         }
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 10,
         stacks: 12
       }
@@ -2000,8 +2000,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
     quicknessCastTimeMs: 520,
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 6,
         stacks: 5
       }
@@ -2091,8 +2091,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingScale: 'fixed'
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 6,
         stacks: 6
       }
@@ -2175,8 +2175,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         persistsAfterInterrupt: true
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 5,
         atMs: 1080,
@@ -2328,8 +2328,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingScale: 'cast'
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 5,
         atMs: 540,
@@ -2532,8 +2532,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         }
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 8,
         atMs: 660,

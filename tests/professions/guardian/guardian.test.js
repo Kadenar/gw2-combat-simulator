@@ -3286,7 +3286,9 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
     rotation: ['Radiant Justice', 'Enter Radiant Forge', 'Dazzling Hammer', { type: 'wait', durationMs: 1000 }],
     config: { ...config, specialization: 'Luminary' }
   });
-  const hammerPackets = justice.resolvedEvents.filter((event) => event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+  const hammerPackets = justice.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER
+  );
 
   assert.deepEqual(
     hammerPackets.map((event) => event.coefficient),
@@ -3678,8 +3680,10 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
   assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
   assert.ok(blades.at(-1).damage > blades[0].damage);
   assert.equal(
-    symbols.events.filter((event) => event.kind === 'target-vulnerability' && event.skillName === 'Symbolic Exposure')
-      .length,
+    symbols.events.filter(
+      (event) =>
+        event.type === 'condition' && event.condition === 'Vulnerability' && event.skillName === 'Symbolic Exposure'
+    ).length,
     5
   );
   assert.equal(resolution.length, 5);

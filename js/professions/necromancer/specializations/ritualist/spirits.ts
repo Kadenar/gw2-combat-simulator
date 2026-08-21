@@ -436,18 +436,7 @@ function emitAnguishInitial(
   at: number
 ): void {
   emitCondition(context, skill, 'Crippled', 1, 4, { at });
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    kind: 'target-vulnerability',
-    duration: 10,
-    stacks: 8
-  });
+  emitCondition(context, skill, 'Vulnerability', 8, 10, { at });
   const hitCount = Number(spirit.summonHits || 1);
   const hitDelays =
     spirit.summonHitDelays ||
@@ -494,18 +483,11 @@ function emitWanderlustInitial(
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
   emitCondition(context, skill, 'Chilled', 1, 2, { at: fieldAt });
-  context.emit({
-    type: 'buff',
+  emitCondition(context, skill, 'Vulnerability', 4, 6, {
     at: fieldAt,
     source: 'Spirit',
-    sourceId: skill.id,
     actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    kind: 'target-vulnerability',
-    duration: 6,
-    stacks: 4,
-    ...spiritMetadata(context, 'wanderlust', 'initial')
+    metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
   emitCondition(context, skill, 'Weakness', 1, 4, {
     at: fieldAt + 2,

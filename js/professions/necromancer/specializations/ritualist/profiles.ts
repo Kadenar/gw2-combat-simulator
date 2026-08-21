@@ -178,8 +178,8 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         metadata: { noCrit: true, damageKind: 'life-steal' }
       },
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 8,
         actorType: 'effect'

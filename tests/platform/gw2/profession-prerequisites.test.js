@@ -103,9 +103,15 @@ test('target-condition queries combine assumptions and chronological runtime sta
         {
           stacks: [{ appliedAt: 0.5, expiresAt: 1.5, weight: 1 }]
         }
+      ],
+      [
+        'Vulnerability',
+        {
+          stacks: [{ appliedAt: 0, expiresAt: 2, weight: 3 }]
+        }
       ]
     ]),
-    boons: new Map([['target-vulnerability', [{ at: 0, expiresAt: 2, stacks: 3 }]]])
+    boons: new Map()
   };
 
   assert.equal(canonicalTargetConditionName('poison'), 'Poisoned');
@@ -233,7 +239,7 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
   assert.equal(timeline.buffStacksAt('quickness', 4, 0, 1), 0);
 });
 
-test('effective boon queries replace scheduled buffs with runtime state', () => {
+test('effective boon and Vulnerability queries use their canonical runtime state', () => {
   const events = [
     {
       type: 'buff',
@@ -254,11 +260,11 @@ test('effective boon queries replace scheduled buffs with runtime state', () => 
       stacks: 1
     },
     {
-      type: 'buff',
+      type: 'condition',
       at: 1,
       source: 'Player',
       sourceId: 'vulnerability',
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       duration: 5,
       stacks: 3
     }
@@ -285,11 +291,13 @@ test('effective boon queries replace scheduled buffs with runtime state', () => 
   assert.equal(query.vulnerabilityStacksAt(1, runtime), 1);
   assert.equal(query.mightStacksAt(1, null, event), 7);
   assert.equal(query.furyActiveAt(1, null, event), true);
-  assert.equal(query.vulnerabilityStacksAt(1, null), 4);
+  assert.equal(query.vulnerabilityStacksAt(1, null), 1);
 
   runtime.boons.set('might', [{ at: 1, expiresAt: 6, stacks: 5 }]);
   runtime.boons.set('fury', [{ at: 1, expiresAt: 6, stacks: 1 }]);
-  runtime.boons.set('target-vulnerability', [{ at: 1, expiresAt: 6, stacks: 3 }]);
+  runtime.conditionState.set('Vulnerability', {
+    stacks: [{ appliedAt: 1, expiresAt: 6, weight: 3 }]
+  });
 
   assert.equal(query.mightStacksAt(1, runtime, event), 7);
   assert.equal(query.furyActiveAt(1, runtime, event), true);

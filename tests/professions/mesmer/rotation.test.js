@@ -2620,7 +2620,8 @@ test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () =>
     })
   );
   const vulnerability = result.events.filter(
-    (event) => event.type === 'buff' && event.kind === 'target-vulnerability' && event.sourceId === TRAIT.DEADLY_BLADES
+    (event) =>
+      event.type === 'condition' && event.condition === 'Vulnerability' && event.sourceId === TRAIT.DEADLY_BLADES
   );
   const aristocracy = result.procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy');
 
@@ -3449,12 +3450,6 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
       [680, 2, 5]
     ]
   );
-  assert.equal(
-    result.events.some(
-      (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'target-vulnerability'
-    ),
-    false
-  );
 });
 
 test('Fractured Glass resolves seven measured packets with per-hit Vulnerability', () => {
@@ -3509,13 +3504,6 @@ test('Fractured Glass resolves seven measured packets with per-hit Vulnerability
       [720, 1, 6],
       [760, 1, 6]
     ]
-  );
-  assert.equal(
-    result.events.some(
-      (event) =>
-        event.type === 'buff' && event.sourceSkill === 'Fractured Glass' && event.kind === 'target-vulnerability'
-    ),
-    false
   );
 });
 
@@ -5931,14 +5919,14 @@ test('Vulnerability chart series caps at 25 stacks', () => {
   const series = buildChartSeries(
     {
       duration: 10,
-      resolvedEvents: [],
-      events: Array.from({ length: 30 }, (_, index) => ({
-        type: 'buff',
+      resolvedEvents: Array.from({ length: 30 }, (_, index) => ({
+        type: 'condition',
         at: index * 0.01,
-        kind: 'target-vulnerability',
+        condition: 'Vulnerability',
         duration: 8,
         stacks: 1
-      }))
+      })),
+      events: []
     },
     100
   );

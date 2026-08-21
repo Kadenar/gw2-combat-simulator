@@ -41,7 +41,7 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
 
 export function bigGameHunterTetherDuration(context: GuardianCastContext): number {
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
-  // unlocks the target-vulnerability buff and the passive Crippled in the resolver.
+  // unlocks the Vulnerability condition and passive Crippled in the resolver.
   return hasGuardianTrait(context, TRAIT.BIG_GAME_HUNTER)
     ? Number(guardianBalanceProfile(context, PROFILE.bigGameHunter)?.pulseInterval || 12)
     : 6;

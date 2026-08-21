@@ -157,7 +157,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER && luminaryState.from(context).radiantJusticeArmed) {
     const profile = guardianBalanceProfile(context, PROFILE.radiantJusticeImpact);
     const strike = guardianBalanceProfileEffect(profile, 'strike');
-    const vulnerability = guardianBalanceProfileEffect(profile, 'buff');
+    const vulnerability = guardianBalanceProfileEffect(profile, 'condition');
     const delay = Number(strike?.atMs || 750) / 1000;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
@@ -171,14 +171,14 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       })
     );
     context.emit({
-      type: 'buff',
+      type: 'condition',
       at: context.effectiveEnd + delay,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'effect',
       skillId: skill.id,
       skillName: skill.name,
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       stacks: Number(vulnerability?.stacks || 8),
       duration: Number(vulnerability?.duration || 8)
     });

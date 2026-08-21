@@ -25,7 +25,6 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   regeneration: 'Regeneration',
   swiftness: 'Swiftness',
   aegis: 'Aegis',
-  'target-vulnerability': 'Vulnerability',
   'kallas-fervor': "Kalla's Fervor",
   'elemental empowerment': 'Elemental Empowerment',
   'necromancer-soul-barbs': 'Soul Barbs',

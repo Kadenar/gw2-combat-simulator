@@ -30,7 +30,7 @@ function queueNightmareWeapon(
   definition: BalanceProfile
 ): void {
   const strike = balanceProfileEffect(definition, 'strike');
-  const vulnerability = balanceProfileEffect(definition, 'buff');
+  const vulnerability = balanceProfileEffect(definition, 'condition');
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,
@@ -53,11 +53,11 @@ function queueNightmareWeapon(
     triggeredByAlly: event.triggeredByAlly
   });
   enqueueOrdered(context.queue, {
-    type: 'buff',
+    type: 'condition',
     at: event.at,
     name: 'Nightmare Weapon',
     skillName: 'Nightmare Weapon',
-    kind: 'target-vulnerability',
+    condition: 'Vulnerability',
     stacks: Number(vulnerability?.stacks || 0),
     duration: Number(vulnerability?.duration || 0),
     source: 'Weapon Spell',

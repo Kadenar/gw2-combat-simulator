@@ -1194,7 +1194,8 @@ test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', ()
     (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
   const deadlyBlades = stochastic.events.filter(
-    (event) => event.type === 'buff' && event.kind === 'target-vulnerability' && event.sourceSkill === 'Flying Cutter'
+    (event) =>
+      event.type === 'condition' && event.condition === 'Vulnerability' && event.sourceSkill === 'Flying Cutter'
   );
 
   assert.ok(criticals > 0 && criticals < hits.length);

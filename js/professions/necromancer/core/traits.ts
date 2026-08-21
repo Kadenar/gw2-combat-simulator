@@ -161,11 +161,11 @@ export function applyTraitVulnerability(
   { name, traitId, stacks, duration }: TraitVulnerabilityDefinition
 ): void {
   enqueueOrdered(context.queue, {
-    type: 'buff',
+    type: 'condition',
     at: event.at,
     name,
     skillName: name,
-    kind: 'target-vulnerability',
+    condition: 'Vulnerability',
     stacks,
     duration,
     source: 'Trait',
@@ -300,7 +300,7 @@ export function reactToNecromancerCoreDamage(
   }
 
   if (hasTrait(context, TRAIT.UNYIELDING_BLAST) && firstHit && shroudSkillOne) {
-    const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.unyieldingBlast), 'buff');
+    const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.unyieldingBlast), 'condition');
     applyTraitVulnerability(context, event, {
       name: 'Unyielding Blast',
       traitId: TRAIT.UNYIELDING_BLAST,
@@ -378,11 +378,11 @@ export function reactToNecromancerCoreCondition(
     );
     if (hasTrait(context, TRAIT.BITTER_CHILL)) {
       enqueueOrdered(context.queue, {
-        type: 'buff',
+        type: 'condition',
         at: event.at,
         name: 'Bitter Chill',
         skillName: 'Bitter Chill',
-        kind: 'target-vulnerability',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 8,
         source: 'Trait',

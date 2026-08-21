@@ -305,14 +305,14 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   };
 
   /**
+   * Reads Vulnerability only from target-condition state so it follows condition stacking and expiry rules.
+   *
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
    */
   const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
     clamp(
-      configuredTargetConditionStacks('Vulnerability') +
-        runtimeTargetConditionStacks(runtime, 'Vulnerability', time) +
-        dynamicBoonStacksAt('target-vulnerability', time, 25, runtime, 'all', 1),
+      configuredTargetConditionStacks('Vulnerability') + runtimeTargetConditionStacks(runtime, 'Vulnerability', time),
       0,
       25
     );
@@ -404,10 +404,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     ) as unknown as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.
-    const relicConditionDamage = relicConditionDamageBonus(
-      runtime?.relic ? runtime : historicalRelicContext,
-      time
-    );
+    const relicConditionDamage = relicConditionDamageBonus(runtime?.relic ? runtime : historicalRelicContext, time);
     const stats =
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: Number(modifiedStats.conditionDamage ?? 0) + relicConditionDamage }

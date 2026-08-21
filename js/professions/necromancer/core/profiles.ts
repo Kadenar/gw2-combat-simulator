@@ -147,8 +147,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.unyieldingBlast, 'Unyielding Blast', {
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 10,
         actorType: 'effect'

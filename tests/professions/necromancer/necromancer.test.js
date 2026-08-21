@@ -348,7 +348,7 @@ test('Necromancer multi-hit skills use their configured packet timings', () => {
   assert.deepEqual(offsets(weepingShots, 'Weeping Shots', ID.WEEPING_SHOTS), [240, 360, 520, 640, 760, 880]);
   assert.deepEqual(
     offsets(weepingShots, 'Weeping Shots', ID.WEEPING_SHOTS, 'condition'),
-    [240, 360, 520, 640, 760, 880]
+    [240, 360, 520, 640, 760, 840, 880]
   );
   assert.deepEqual(offsets(vitalDraw, 'Vital Draw', ID.VITAL_DRAW), [760, 1760, 2760]);
   assert.deepEqual(offsets(taintedBolts, 'Tainted Bolts', ID.TAINTED_BOLTS), [320, 600]);
@@ -497,12 +497,13 @@ test('Signet of Spite follows its live passive and active profile', () => {
     ['Poisoned', 2, 10],
     ['Torment', 2, 6],
     ['Crippled', 1, 10],
+    ['Vulnerability', 5, 10],
     ['Weakness', 1, 10]
   ]);
   assert.equal(signetEvents.find((event) => event.type === 'blind')?.duration, 5);
   assert.deepEqual(
     signetEvents
-      .filter((event) => event.kind === 'target-vulnerability')
+      .filter((event) => event.type === 'condition' && event.condition === 'Vulnerability')
       .map((event) => [event.stacks, event.duration]),
     [[5, 10]]
   );
@@ -1426,9 +1427,9 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === 'buff' &&
+        event.type === 'condition' &&
         event.skillId === ID.ISOLATE &&
-        event.kind === 'target-vulnerability' &&
+        event.condition === 'Vulnerability' &&
         event.stacks === 8
     ),
     true
@@ -2805,7 +2806,7 @@ test('Ritualist weapon spells scale with allied players', () => {
     },
     observationTail(5000)
   );
-  const allyProcs = party.resolvedEvents.filter((event) => event.triggeredByAlly);
+  const allyProcs = party.resolvedEvents.filter((event) => event.type === 'damage' && event.triggeredByAlly);
   const applicationEvents = party.events.filter((event) => event.type === 'necromancer.weapon-spell');
 
   assert.equal(solo.totalDamage, 0);
@@ -2832,8 +2833,9 @@ test('Ritualist weapon spells scale with allied players', () => {
   );
 
   assert.equal(
-    wieldersBoon.resolvedEvents.filter((event) => event.name === 'Nightmare Weapon' && event.triggeredByAlly === 1)
-      .length,
+    wieldersBoon.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.triggeredByAlly === 1
+    ).length,
     5
   );
 });
@@ -2864,7 +2866,9 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
     false
   );
   assert.equal(
-    result.resolvedEvents.filter((event) => event.name === 'Nightmare Weapon' && event.triggeredByAlly).length,
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.triggeredByAlly
+    ).length,
     6
   );
 });

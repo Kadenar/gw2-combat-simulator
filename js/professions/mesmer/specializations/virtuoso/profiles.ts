@@ -74,8 +74,8 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     durationMultiplier: 7,
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: 5,
         stacks: 1
       }

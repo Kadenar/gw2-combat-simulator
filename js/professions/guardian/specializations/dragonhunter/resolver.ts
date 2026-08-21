@@ -93,11 +93,14 @@ export function reactToDragonhunterJusticeHit(
     return;
   }
 
-  // priority: 5 ensures this vulnerability buff sorts after zero-priority damage
+  // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
-  const vulnerability = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.bigGameHunter), 'buff');
+  const vulnerability = guardianBalanceProfileEffect(
+    guardianBalanceProfile(context, PROFILE.bigGameHunter),
+    'condition'
+  );
   enqueueOrdered(context.queue, {
-    type: 'buff',
+    type: 'condition',
     at: event.at,
     priority: 5,
     source: 'guardian',
@@ -105,7 +108,7 @@ export function reactToDragonhunterJusticeHit(
     actorType: 'effect',
     skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
     skillName: 'Big Game Hunter',
-    kind: 'target-vulnerability',
+    condition: 'Vulnerability',
     stacks: Number(vulnerability?.stacks || 1),
     duration: Number(vulnerability?.duration || 10),
     triggeredBy: event.skillName

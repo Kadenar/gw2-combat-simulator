@@ -177,15 +177,6 @@ function emitTransferredApplication(
     transferredCondition: true,
     transferredFromSkillId: application.sourceSkillId
   } as const;
-  if (application.condition === 'Vulnerability') {
-    context.emit({
-      ...common,
-      type: 'buff',
-      kind: 'target-vulnerability'
-    });
-    return;
-  }
-
   context.emit({
     ...common,
     type: 'condition',

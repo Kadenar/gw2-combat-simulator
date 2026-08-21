@@ -242,9 +242,9 @@ export function applyRangerBeastSkillTraits(
     hasTrait(context, TRAIT.WOLFSONG) &&
     rangerPetByName(professionCoreState(context).activePet).family === 'canine'
   ) {
-    const effect = profileEffect(context, PROFILE.wolfsong, 'buff');
+    const effect = profileEffect(context, PROFILE.wolfsong, 'condition');
     context.emit({
-      type: 'buff',
+      type: 'condition',
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.WOLFSONG,
@@ -252,7 +252,7 @@ export function applyRangerBeastSkillTraits(
       skillId: TRAIT.WOLFSONG,
       skillName: 'Wolfsong',
       name: 'Wolfsong - Vulnerability',
-      kind: String(effect?.kind || 'target-vulnerability'),
+      condition: String(effect?.condition || 'Vulnerability'),
       duration: Number(effect?.duration ?? 6),
       stacks: Number(effect?.stacks ?? 6),
       triggeredBy: skill.name
@@ -825,9 +825,12 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
     hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
     context.config?.target?.defiant
   ) {
-    const vulnerability = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.lightOnYourFeet), 'buff', 1);
+    const vulnerability = rangerBalanceProfileEffect(
+      rangerBalanceProfile(context, PROFILE.lightOnYourFeet),
+      'condition'
+    );
     enqueueOrdered(context.queue, {
-      type: 'buff',
+      type: 'condition',
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
@@ -835,7 +838,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       skillId: TRAIT.LIGHT_ON_YOUR_FEET,
       skillName: 'Light on your Feet',
       name: 'Light on your Feet — Vulnerability',
-      kind: String(vulnerability?.kind || 'target-vulnerability'),
+      condition: String(vulnerability?.condition || 'Vulnerability'),
       duration: Number(vulnerability?.duration ?? 1),
       stacks: Number(vulnerability?.stacks ?? 10),
       triggeredBy: event.skillName

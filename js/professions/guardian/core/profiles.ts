@@ -214,8 +214,8 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.symbolicExposure, 'Symbolic Exposure', {
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 5,
         actorType: 'effect'

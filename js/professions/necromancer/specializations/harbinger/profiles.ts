@@ -98,8 +98,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     blightGain: 4,
     effects: [
       {
-        type: 'buff',
-        kind: 'target-vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 6,
         actorType: 'effect'

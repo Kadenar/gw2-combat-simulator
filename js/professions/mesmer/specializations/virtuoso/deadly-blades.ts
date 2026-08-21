@@ -44,7 +44,7 @@ export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event:
   });
 }
 
-/** Applies Deadly Blades vulnerability after the engine materializes the blade strike's critical result. */
+/** Applies Deadly Blades as a target condition after the engine materializes the blade strike's critical result. */
 export function handleDeadlyBladesCriticalTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<'deadlyBladesCritical'>
@@ -53,7 +53,7 @@ export function handleDeadlyBladesCriticalTask(
   const payloadEvent = task.payload.event;
   const canonicalEvent = context.events.find((candidate) => candidate.__order === payloadEvent.__order);
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
-  const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'buff');
+  const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'condition');
   const vulnerabilityStacks =
     context.config.randomness?.mode === 'stochastic'
       ? event.didCrit
@@ -63,9 +63,11 @@ export function handleDeadlyBladesCriticalTask(
   if (vulnerabilityStacks <= EPSILON) return;
 
   context.emitDerived(event, {
-    type: 'buff',
+    type: 'condition',
     at: event.at,
-    kind: 'target-vulnerability',
+    name: 'Deadly Blades — Vulnerability',
+    skillName: event.skillName,
+    condition: 'Vulnerability',
     stacks: vulnerabilityStacks * Number(deadlyBlades?.stacks || 1),
     duration: Number(deadlyBlades?.duration || 5),
     source: 'Trait',
