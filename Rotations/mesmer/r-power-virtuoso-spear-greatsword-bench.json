@@ -5,6 +5,11 @@
       "skillId": 10267
     },
     {
+      "name": "Bladeturn Requiem",
+      "skillId": 62597,
+      "offset": 100
+    },
+    {
       "name": "Mind the Gap"
     },
     {
@@ -43,6 +48,10 @@
     },
     {
       "name": "Mind Stab"
+    },
+    {
+      "name": "Mirror Blade",
+      "skillId": 10333
     },
     {
       "name": "Bladesong Harmony"
@@ -116,7 +125,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 201
+      "skillId": 10212
     },
     {
       "name": "Psycut"
@@ -192,6 +201,10 @@
     },
     {
       "name": "Mind Stab"
+    },
+    {
+      "name": "Mirror Blade",
+      "skillId": 10333
     },
     {
       "name": "Bladesong Harmony"
@@ -385,6 +398,10 @@
     },
     {
       "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Dissonance",
+      "skillId": 62602
     },
     {
       "name": "Phantasmal Berserker"

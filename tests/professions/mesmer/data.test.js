@@ -684,7 +684,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
     'Mind Pierce': 1.5,
     'Mind the Gap': 1.92,
     'Imaginary Inversion': 2.4,
-    'Phantasmal Lancer': 2.23,
+    'Phantasmal Lancer': 1.6,
     'Mental Collapse': 3,
     'Phantasmal Warlock': 0.9,
     'Chaos Storm': 1.98,
@@ -696,6 +696,13 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   for (const [name, coefficient] of Object.entries(expectedSkills)) {
     assert.ok(Math.abs(effectiveCoefficient(normalized(name)) - coefficient) < 1e-12, name);
   }
+
+  const lancerPhantasm = strikeEffects(normalized('Phantasmal Lancer')).find(
+    (effect) => effect.actorType === 'phantasm'
+  );
+
+  // The phantasm's lower coefficient is paired with the medium phantasm weapon-strength table.
+  assert.deepEqual([lancerPhantasm.coefficient, lancerPhantasm.weapon], [0.6, 'phantasm medium']);
 
   assert.deepEqual(
     CLONE_ATTACKS.Spear.sequence.map((step) => [step.name, step.coefficient]),
@@ -711,7 +718,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
 
   const lancer = normalized('Phantasmal Lancer');
 
-  assert.equal(strikeEffects(lancer).find((effect) => effect.actorType === 'phantasm').coefficient, 1.23);
+  assert.equal(strikeEffects(lancer).find((effect) => effect.actorType === 'phantasm').coefficient, 0.6);
   const swordsman = normalized('Phantasmal Swordsman');
 
   assert.deepEqual(
@@ -753,7 +760,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     Journey: 1.5,
     Abstraction: 2.5,
     'Phantasmal Sharpshooter': 2.28,
-    'Phantasmal Lancer': 2.23
+    'Phantasmal Lancer': 1.6
   };
 
   for (const [name, coefficient] of Object.entries(expectedSkills)) {

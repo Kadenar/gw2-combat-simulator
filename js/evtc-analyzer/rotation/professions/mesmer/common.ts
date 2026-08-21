@@ -23,6 +23,10 @@ const UNSTABLE_BLADESTORM = Object.freeze({
 const CHAOS_STORM = Object.freeze({ name: 'Chaos Storm', skillId: 10169 });
 const PHASE_RETREAT = Object.freeze({ name: 'Phase Retreat', skillId: 10310 });
 const CHAOS_ARMOR = Object.freeze({ name: 'Chaos Armor', skillId: 10331 });
+const WELL_OF_CALAMITY = Object.freeze({ name: 'Well of Calamity', skillId: 30525 });
+const GRAVITY_WELL = Object.freeze({ name: 'Gravity Well', skillId: 30359 });
+const PHANTASMAL_SWORDSMAN = Object.freeze({ name: 'Phantasmal Swordsman', skillId: 10174 });
+const PHANTASMAL_LANCER = Object.freeze({ name: 'Phantasmal Lancer', skillId: 72946 });
 const DISTORTION = Object.freeze({ name: 'Distortion', skillId: 10192 });
 const MIRROR_IMAGES = Object.freeze({ name: 'Mirror Images', skillId: 10202 });
 const SIGNET_OF_MIDNIGHT = Object.freeze({
@@ -37,6 +41,29 @@ const TIME_ANCHORED_BUFF = 30136;
 const STAFF_CLONE_SPECIES = 8111;
 const MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS = 1500;
 const MIRAGE_PRE_SWAP_STAFF_ACTION_WINDOW_MS = 1500;
+const PHANTASM_COMBO_AURA_WINDOW_MS = 250;
+
+function phantasmComboAura(actions: readonly EvtcRecordedRotationAction[], time: number): boolean {
+  const fieldActive = [
+    { identity: WELL_OF_CALAMITY, durationMs: 4800 },
+    { identity: GRAVITY_WELL, durationMs: 4300 }
+  ].some(({ identity, durationMs }) =>
+    actions.some(
+      (action) =>
+        (action.rawSkillId === identity.skillId ||
+          action.canonicalSkillId === identity.skillId ||
+          normalized(action.rawName) === normalized(identity.name) ||
+          normalized(action.canonicalName) === normalized(identity.name)) &&
+        time >= action.start &&
+        time - action.start <= durationMs
+    )
+  );
+  if (!fieldActive) return false;
+
+  return [PHANTASMAL_SWORDSMAN, PHANTASMAL_LANCER].some((identity) =>
+    hasNearbyAction(actions, identity, time, PHANTASM_COMBO_AURA_WINDOW_MS)
+  );
+}
 
 function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, speciesId: number): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
@@ -129,6 +156,7 @@ function chaosArmorActions(
               signal.event.time > time && signal.event.time - time <= MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS
           )) &&
         !phaseTimes.some((time) => Math.abs(time - signal.event.time) <= 30) &&
+        !phantasmComboAura(actions, signal.event.time) &&
         !chaosStormTimes.some((time) => {
           const delay = signal.event.time - time;
           return delay >= 3000 && delay <= 5500;

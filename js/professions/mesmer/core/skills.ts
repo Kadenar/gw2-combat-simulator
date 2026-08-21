@@ -1693,11 +1693,11 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       },
       {
         type: 'strike',
-        coefficient: 1.23,
+        coefficient: 0.6,
         hits: 1,
         name: 'One lancer',
         actorType: 'phantasm',
-        weapon: 'spear'
+        weapon: 'phantasm medium'
       },
       {
         type: 'condition',
