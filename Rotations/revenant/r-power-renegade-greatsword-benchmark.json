@@ -1,189 +1,163 @@
 {
   "rotation": [
     {
-      "name": "Darkrazor's Daring",
-      "skillId": 41220
+      "name": "Enchanted Daggers",
+      "skillId": 26937
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Breakrazor's Bastion",
+      "skillId": 45686
+    },
+    {
+      "name": "__wait",
+      "waitMs": 2000
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "__wait",
-      "waitMs": 520
+      "name": "Eternity's Requiem"
     },
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Orders from Above",
+      "skillId": 45537,
+      "offset": 100
     },
     {
       "name": "Swap Legends",
-      "skillId": -4,
       "offset": 700
     },
     {
       "name": "__combat_start"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
       "name": "Impossible Odds",
-      "skillId": 27107,
       "offset": 78
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
-      "name": "Shackling Wave",
-      "skillId": 28472
+      "name": "Shackling Wave"
     },
     {
       "name": "Deathstrike",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
       "name": "Phantom's Onslaught",
       "skillId": 62895
     },
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Eternity's Requiem"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
       "name": "Phantom's Onslaught",
@@ -194,169 +168,131 @@
       "skillId": 40485
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
       "name": "Impossible Odds",
-      "skillId": 27107,
       "offset": 119
     },
     {
-      "name": "Shackling Wave",
-      "skillId": 28472
+      "name": "Shackling Wave"
     },
     {
       "name": "Deathstrike",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Eternity's Requiem"
     },
     {
       "name": "Phantom's Onslaught",
       "skillId": 62895
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
       "name": "Phantom's Onslaught",
@@ -367,29 +303,23 @@
       "skillId": 40485
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
       "name": "Impossible Odds",
-      "skillId": 27107,
       "offset": 40
     },
     {
-      "name": "Shackling Wave",
-      "skillId": 28472
+      "name": "Shackling Wave"
     },
     {
       "name": "Orders from Above",
-      "skillId": 45537,
       "offset": 517
     },
     {
@@ -397,144 +327,111 @@
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Eternity's Requiem"
     },
     {
       "name": "Phantom's Onslaught",
       "skillId": 62895
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
       "name": "Phantom's Onslaught",
@@ -545,169 +442,131 @@
       "skillId": 40485
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
       "name": "Impossible Odds",
-      "skillId": 27107,
       "offset": 39
     },
     {
-      "name": "Shackling Wave",
-      "skillId": 28472
+      "name": "Shackling Wave"
     },
     {
       "name": "Deathstrike",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Eternity's Requiem"
     },
     {
       "name": "Phantom's Onslaught",
       "skillId": 62895
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
+      "name": "Citadel Bombardment"
     },
     {
-      "name": "Mist Swing",
-      "skillId": 62913
+      "name": "Mist Swing"
     },
     {
-      "name": "Mist Slash",
-      "skillId": 62688
+      "name": "Mist Slash"
     },
     {
-      "name": "Arcing Mists",
-      "skillId": 62752
+      "name": "Arcing Mists"
     },
     {
-      "name": "Mist Unleashed",
-      "skillId": 62692
+      "name": "Mist Unleashed"
     },
     {
       "name": "Phantom's Onslaught",
@@ -718,81 +577,63 @@
       "skillId": 40485
     },
     {
-      "name": "Swap Legends",
-      "skillId": -4
+      "name": "Swap Legends"
     },
     {
-      "name": "Swap Weapons",
-      "skillId": -3
+      "name": "Swap Weapons"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
       "name": "Impossible Odds",
-      "skillId": 27107,
       "offset": 119
     },
     {
-      "name": "Shackling Wave",
-      "skillId": 28472
+      "name": "Shackling Wave"
     },
     {
       "name": "Deathstrike",
       "skillId": 27074
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Chilling Isolation",
-      "skillId": 29233
+      "name": "Chilling Isolation"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     },
     {
-      "name": "Preparation Thrust",
-      "skillId": 29057
+      "name": "Preparation Thrust"
     },
     {
-      "name": "Brutal Blade",
-      "skillId": 29256
+      "name": "Brutal Blade"
     },
     {
-      "name": "Rift Slash",
-      "skillId": 28964
+      "name": "Rift Slash"
     }
   ]
 }

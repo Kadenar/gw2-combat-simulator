@@ -664,7 +664,14 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
 
   assert.deepEqual(
     presets.map((preset) => preset.label),
-    ['Power', 'Condition', 'Condition - Dune Cloak', 'Condition', 'Power (Dagger-Sword / Spear)']
+    [
+      'Power',
+      'Condition',
+      'Condition - Dune Cloak',
+      'Power (Spear / Greatsword)',
+      'Condition',
+      'Power (Dagger-Sword / Spear)'
+    ]
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));

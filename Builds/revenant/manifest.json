@@ -6,7 +6,7 @@
         "label": "Power (Greatsword / SwSw)",
         "build": "Builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "Rotations/revenant/r-power-renegade-greatsword-benchmark.json",
-        "benchmarkDps": 43075,
+        "benchmarkDps": 43456,
         "referenceDps": 43752,
         "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
         "upToDate": true
