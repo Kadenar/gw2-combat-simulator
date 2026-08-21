@@ -1,42 +1,113 @@
-# dps.report analyzer
+# dps.report Analyzer
 
-This folder converts the public Elite Insights JSON behind a dps.report link into simulator rotation commands. It is
-parallel to `evtc-analyzer`, but its input is intentionally narrower:
+The `dps-report-analyzer` reconstructs simulator rotations from the Elite Insights JSON data exposed by [dps.report](https://dps.report).
 
-1. `url.ts` resolves a permalink and fetches `dps.report/getJson`.
-2. `parser.ts` validates the player, phase, skill-map, and cast-group contracts.
-3. `rotation/registry.ts` selects a player and dispatches through the same 45 profession/specialization profiles used by
-   EVTC reconstruction.
-4. `rotation/reconstruct.ts` filters automatic procs, builds a chronological cast timeline, resolves active-catalog
-   skills, and emits simulator commands.
-5. `rotation/professions/<profession>.ts` owns profession-wide corrections, while
-   `rotation/professions/<profession>/<specialization>.ts` owns specialization-specific reconstruction. This mirrors the
-   `evtc-analyzer` layout.
+It provides the simulator with a convenient way to import an existing benchmark or combat log without requiring the original EVTC file. A report can be loaded directly from a dps.report permalink or from previously downloaded Elite Insights JSON.
 
-## Known limits
+## Supported Inputs
 
-Elite Insights rotation JSON is a cast summary, not a replacement for raw EVTC events. It does not expose every effect
-packet, buff transition, initial state, or inferred instant action. Missing actions are only recovered when later casts
-provide a profession-specific dependency or repeated-cycle proof:
+The analyzer accepts:
 
-- Engineer reconstructs Bomb Kit equips from kit weapon skills and Throw Mine from otherwise impossible Detonate Mine
-  casts.
-- Elementalist normalizes attunement-dependent skills and Aerial Agility chains, preserves shortened channels, and
-  recovers otherwise omitted aura and Blinding Flash casts from build-gated buff and condition evidence.
-- Luminary reconstructs the opening Radiant Courage and Radiant Forge state from Forge-only skills and the later
-  reported activation cadence. Internal Forge transitions are separated from physical weapon swaps.
-- Herald reconstructs opening facet consumes and a precombat Spiritcrush from dependent consumes and the later repeated
-  Shortbow cycle. Automatic Song of the Mists calls are left to the simulator's trait logic.
-- Conduit reconstructs omitted weapon/legend precasts from the opening upkeep release and later repeated skill set.
-  Split Deathstrike and Phantom's Onslaught animations are merged, while generated Dervish attacks remain simulator
-  effects.
-- Renegade reconstructs omitted opening warband summons from later repeated legend cycles across both condition and
-  power legend pairings, recovers the build-gated Charged Mists power opener, normalizes composite weapon animations and
-  legend changes, and canonicalizes enhanced skill signals to actionable simulator skills.
+* A public `dps.report` permalink or report ID
+* Raw Elite Insights JSON downloaded from a report
 
-When the available report data does not provide that evidence, the analyzer keeps the import conservative and presents a
-review warning.
+When a permalink is provided, `url.ts` resolves the report ID and retrieves the report through the public `dps.report/getJson` endpoint.
 
-The app accepts either a dps.report link or a downloaded raw Elite Insights JSON file.
-`scripts/analysis/analyze-dps-report.mjs` remains a separate forensic tool for inspecting the private data embedded in
-rendered report HTML.
+## Rotation Reconstruction
+
+Elite Insights provides a summarized view of the original EVTC log. The analyzer converts that data into a chronological sequence of simulator actions by:
+
+1. Validating the report, players, phases, skill metadata, and recorded casts.
+2. Identifying players and their profession/specialization.
+3. Selecting the player that matches the simulator's active build.
+4. Converting Elite Insights cast groups into a chronological action timeline.
+5. Resolving recorded skills against the simulator's active skill catalog.
+6. Applying profession- and specialization-specific reconstruction rules.
+7. Converting the reconstructed timeline into simulator rotation commands.
+8. Reporting anything that could not be reconstructed confidently as an import warning.
+
+The profession-specific reconstruction layer mirrors the organization used by `evtc-analyzer`, allowing both import paths to account for mechanics that cannot be handled reliably by a completely generic cast parser.
+
+## Why Reconstruction Is Necessary
+
+Elite Insights rotation data is a summary of the original combat log rather than a complete event stream.
+
+It does not expose every:
+
+* Effect packet
+* Buff transition
+* Initial combat state
+* Weapon or profession state transition
+* Instant action
+* Precast action
+* Generated or automatic effect
+
+Because of this, the analyzer occasionally has to infer actions from surrounding casts, build state, or repeated rotation patterns.
+
+These inferences are intentionally conservative. An action is only reconstructed when the available report contains enough evidence to support it. Otherwise, the import is left incomplete and a warning is presented for review.
+
+## Profession-Specific Reconstruction
+
+Some professions require additional handling to turn Elite Insights cast data into simulator actions.
+
+Examples include:
+
+* **Engineer** — reconstructing kit transitions and actions implied by dependent kit skills.
+* **Elementalist** — normalizing attunement-dependent skills, chained movement skills, shortened channels, and certain omitted instant actions.
+* **Luminary** — reconstructing initial Radiant Courage and Radiant Forge state from Forge-dependent actions and later activation patterns.
+* **Herald** — reconstructing opening facet consumes and certain precasts from dependent actions and repeated weapon cycles.
+* **Conduit** — reconstructing omitted weapon or legend precasts and normalizing composite animations.
+* **Renegade** — reconstructing opening warband summons, legend-cycle precasts, composite weapon animations, and enhanced skill signals.
+
+Automatic effects that are already modeled by the simulator are not added to the imported rotation.
+
+## Project Structure
+
+```text
+dps-report-analyzer/
+├── parser.ts
+├── url.ts
+├── errors.ts
+├── types.ts
+└── rotation/
+    ├── registry.ts
+    ├── reconstruct.ts
+    ├── profiles.ts
+    └── professions/
+```
+
+### `url.ts`
+
+Validates dps.report links and report IDs and retrieves their public Elite Insights JSON.
+
+### `parser.ts`
+
+Validates the portions of the Elite Insights schema required for rotation reconstruction, including players, phases, skill metadata, rotation groups, and casts.
+
+### `rotation/registry.ts`
+
+Identifies supported players and dispatches reconstruction to the appropriate profession/specialization profile.
+
+### `rotation/reconstruct.ts`
+
+Builds the chronological action timeline, resolves skills against the simulator catalog, applies reconstruction rules, and produces simulator rotation commands.
+
+### `rotation/professions/`
+
+Contains profession-wide and specialization-specific corrections for mechanics that cannot be reconstructed reliably from generic Elite Insights cast data alone.
+
+## Limitations
+
+A reconstructed rotation should not be treated as a byte-for-byte replay of the original EVTC log.
+
+Information unavailable in Elite Insights JSON cannot always be recovered. In particular, opening state, instant skills, automatic effects, and actions occurring before the visible rotation may be ambiguous.
+
+When the analyzer cannot establish an action with sufficient confidence, it prefers to omit the action and surface a warning rather than manufacture a potentially incorrect rotation.
+
+For the most complete reconstruction, use the original EVTC log with `evtc-analyzer` when it is available.
+
+## Related Tools
+
+The application can import both dps.report data and raw EVTC logs through the rotation import interface.
+
+`scripts/analysis/analyze-dps-report.mjs` is separate from the application import path. It is intended as a forensic/development tool for inspecting additional data embedded in rendered dps.report pages.
