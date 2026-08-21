@@ -8,6 +8,7 @@ import {
   templateCategory,
   templateHasBoon,
   templateMatchesFilter,
+  templateSpecializations,
   undoTemplateLoad
 } from '../../js/app/build/presets.js';
 import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
@@ -58,30 +59,36 @@ test('template discovery loads the profession-scoped manifest', async (t) => {
   assert.equal(requestedPath, 'Builds/mesmer/manifest.json');
 });
 
-test('template filters combine damage type with an independent boon filter', () => {
+test('template filters combine damage type, boon, and specialization', () => {
   const power = {
     label: 'Power',
-    build: 'Builds/mesmer/b-power-chronomancer.json'
+    build: 'Builds/mesmer/b-power-chronomancer.json',
+    section: 'Chronomancer'
   };
   const condi = {
     label: 'Condition',
-    build: 'Builds/mesmer/b-condi-chronomancer.json'
+    build: 'Builds/mesmer/b-condi-chronomancer.json',
+    section: 'Chronomancer'
   };
   const powerBoon = {
     label: 'Power Quickness',
-    build: 'Builds/thief/b-power-quick-deadeye.json'
+    build: 'Builds/thief/b-power-quick-deadeye.json',
+    section: 'Deadeye'
   };
   const condiBoon = {
     label: 'Condition Alacrity',
-    build: 'Builds/engineer/b-condi-alac-amalgam.json'
+    build: 'Builds/engineer/b-condi-alac-amalgam.json',
+    section: 'Amalgam'
   };
   const other = {
     label: 'Inferno',
-    build: 'Builds/elementalist/b-inferno-tempest.json'
+    build: 'Builds/elementalist/b-inferno-tempest.json',
+    section: 'Tempest'
   };
   const otherBoon = {
     label: 'Inferno Alacrity',
-    build: 'Builds/elementalist/b-inferno-alac-tempest.json'
+    build: 'Builds/elementalist/b-inferno-alac-tempest.json',
+    section: 'Tempest'
   };
 
   assert.equal(templateCategory(power), 'power');
@@ -109,6 +116,22 @@ test('template filters combine damage type with an independent boon filter', () 
   assert.equal(templateMatchesFilter(otherBoon, 'condi', true), false);
   assert.equal(templateMatchesFilter(other, 'all'), true);
   assert.equal(templateMatchesFilter(other, 'all', true), false);
+  assert.equal(templateMatchesFilter(power, 'power', false, 'Chronomancer'), true);
+  assert.equal(templateMatchesFilter(power, 'power', false, 'Mirage'), false);
+  assert.equal(templateMatchesFilter(condi, 'condi', false, 'Chronomancer'), true);
+  assert.equal(templateMatchesFilter(powerBoon, 'power', true, 'Deadeye'), true);
+  assert.equal(templateMatchesFilter(powerBoon, 'power', true, 'Chronomancer'), false);
+});
+
+test('specialization filters come from unique manifest section names', () => {
+  const manifest = [
+    { section: 'Weaver', presets: [] },
+    { section: 'Tempest', presets: [] },
+    { section: 'Weaver', presets: [] },
+    { section: null, presets: [] }
+  ];
+
+  assert.deepEqual(templateSpecializations(manifest), ['Weaver', 'Tempest']);
 });
 
 test('filtered templates remain hidden despite their flex layout', () => {
@@ -120,20 +143,18 @@ test('filtered templates remain hidden despite their flex layout', () => {
   );
 });
 
-test('desktop templates and simulation config use independent sticky scrollers', () => {
+test('desktop template sidebar stays left of the simulator workspace', () => {
   const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
   const source = readFileSync(new URL('../../js/app/build/presets.ts', import.meta.url), 'utf8');
 
-  assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: minmax\(0, 1fr\) 310px;/);
+  assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: 310px minmax\(0, 1fr\);/);
+  assert.match(css, /\.profession-main\s*\{\s*min-width: 0;\s*grid-column: 2;\s*grid-row: 1;/);
   assert.match(css, /\.build-templates-region\s*\{\s*display: contents;/);
-  assert.match(css, /\.profession-layout > \.simulation-workspace\s*\{\s*grid-column: 1 \/ -1;\s*grid-row: 2;/);
+  assert.match(css, /\.build-templates\s*\{[\s\S]*?grid-column: 1;\s*grid-row: 1 \/ span 2;/);
+  assert.match(css, /\.profession-layout > \.simulation-workspace\s*\{\s*grid-column: 2;\s*grid-row: 2;/);
   assert.match(source, /templateRegion\.append\(container\)/);
   assert.match(source, /layout\.append\(simulationWorkspace\)/);
   assert.doesNotMatch(source, /templateRegion\.append\(configPanel\)/);
-  assert.match(source, /container\.querySelector<HTMLElement>\("\.build-templates-panel"\)/);
-  assert.match(css, /var\(--build-templates-sticky-height, 0px\)/);
-  assert.match(css, /var\(--build-templates-sticky-left, auto\)/);
-  assert.match(css, /var\(--build-templates-sticky-width, 310px\)/);
 });
 
 test('template actions load paired or partial state and support undo', async (t) => {

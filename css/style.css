@@ -1014,6 +1014,14 @@ header .community-actions {
   gap: 4px;
 }
 
+/* Specialization choices wrap into readable rows in the narrow template sidebar. */
+.template-specialization-filters {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 4px;
+}
+
 .template-filters button {
   min-width: 0;
   padding: 4px 6px;
