@@ -161,7 +161,8 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     [ID.PHANTASMAL_SWORDSMAN]: {
       castTimeMs: 880,
       damageAtMs: 2279,
-      spawnAtMs: 3600,
+      // EVTC phantasm lifecycles convert Swordsman about 3.4s after its cast completes.
+      spawnAtMs: 3400,
       damageTicks: {
         'Phantasm leap': [
           {

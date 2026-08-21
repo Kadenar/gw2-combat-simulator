@@ -1392,6 +1392,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
       skillId: ID.CUTTER_BURST,
       name: 'Cutter Burst',
       actorType: 'player',
+      // A third landed projectile commits Cutter Burst even when Flying Cutter's remaining animation is interrupted.
+      persistsAfterInterrupt: true,
       ticks: [
         {
           atMs: 217,
@@ -1767,9 +1769,12 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     environment: 'Terrestrial',
     quicknessCastTimeMs: 600,
     cooldown: 5,
+    // Mind the Gap creates its clone with the observed impact packet, before the cast-end cooldown is applied.
     resource: {
       mode: 'add',
-      count: 1
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 480
     },
     effects: [
       {

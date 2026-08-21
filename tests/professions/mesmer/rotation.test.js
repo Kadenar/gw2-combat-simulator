@@ -660,6 +660,24 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
   );
 });
 
+test('Phantasmal Swordsman converts on its measured base and Chronophantasma timelines', () => {
+  const conversionAt = (specialization, selectedTraits, waitMs) =>
+    simulateMesmer(
+      ['Phantasmal Swordsman', { name: '__wait', waitMs }],
+      defaultSimulationConfig({
+        specialization,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        initialResource: 0,
+        selectedTraits
+      })
+    ).events.find((event) => event.type === 'resource' && event.reason === 'Phantasmal Swordsman phantasm conversion')
+      ?.at;
+
+  assert.equal(Number(conversionAt('Core', [], 4000)?.toFixed(3)), 4.28);
+  assert.equal(Number(conversionAt('Chronomancer', ['Chronophantasma'], 8000)?.toFixed(3)), 7.92);
+});
+
 test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -1448,6 +1466,38 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
     },
     [['Magic Bullet', 0, [362]]]
   );
+});
+
+test('Well of Calamity uses its measured cast, pulse conditions, and ethereal field', () => {
+  const result = simulateMesmer(
+    ['Well of Calamity', { name: '__wait', waitMs: 4000 }],
+    defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] })
+  );
+  const conditions = result.resolvedEvents
+    .filter((event) => event.type === 'condition' && event.skillName === 'Well of Calamity')
+    .map((event) => [event.condition, Math.round(event.at * 1000), event.stacks, event.duration]);
+  const well = mesmerCatalog.skillsByName.get('Well of Calamity');
+
+  assert.equal(result.steps[0].end - result.steps[0].start, 800);
+  assert.deepEqual(conditions, [
+    ['Crippled', 559, 1, 2],
+    ['Weakness', 559, 1, 2],
+    ['Crippled', 1559, 1, 2],
+    ['Weakness', 1559, 1, 2],
+    ['Crippled', 2561, 1, 2],
+    ['Weakness', 2561, 1, 2],
+    ['Crippled', 3554, 1, 2],
+    ['Weakness', 3554, 1, 2]
+  ]);
+  assert.deepEqual(well.comboFields, [
+    {
+      ownerId: 'mesmer',
+      fieldType: 'Ethereal',
+      duration: 3,
+      startMs: 559,
+      startAnchor: 'castStart'
+    }
+  ]);
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -4331,11 +4381,11 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
 
   assert.deepEqual(coefficientBySource(normal), {
     Player: 1,
-    Phantasm: 1.23
+    Phantasm: 0.6
   });
   assert.deepEqual(coefficientBySource(empowered), {
     Player: 1,
-    Phantasm: 2.46
+    Phantasm: 1.2
   });
 });
 
@@ -4485,6 +4535,41 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
       .filter((event) => event.type === 'condition' && event.name === 'Bladecall — Jagged Mind')
       .map((event) => Number(event.at.toFixed(3))),
     [0.199, 0.199, 0.199, 2.716, 2.716, 2.766]
+  );
+});
+
+test('Flying Cutter commits its projectile before an interrupt and retains Cutter Burst', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Sword'
+  });
+  const afterRelease = simulateMesmer(
+    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 317 }, { name: '__wait', waitMs: 1000 }],
+    config
+  );
+  const beforeRelease = simulateMesmer(
+    ['Flying Cutter', 'Flying Cutter', { name: 'Flying Cutter', interruptMs: 316 }, { name: '__wait', waitMs: 1000 }],
+    config
+  );
+
+  assert.equal(
+    afterRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter')
+      .length,
+    3
+  );
+  assert.equal(
+    afterRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst').length,
+    3
+  );
+  assert.equal(
+    beforeRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter')
+      .length,
+    2
+  );
+  assert.equal(
+    beforeRelease.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst').length,
+    0
   );
 });
 
@@ -5607,6 +5692,28 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
   assert.equal(result.steps[0].end, 840);
   assert.equal(result.steps[1].start, 100);
   assert.equal(result.steps[3].start, result.steps[2].end);
+});
+
+test('Mind the Gap grants its clone before a concurrent two-clone Continuum Split snapshot', () => {
+  const result = simulateMesmer(
+    ['Mind the Gap', { name: 'Continuum Split', offset: 580 }, 'Continuum Shift', 'Mind the Gap'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 1,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: ''
+    })
+  );
+  const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Mind the Gap');
+
+  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 480);
+  assert.deepEqual(shatterResourceSpends(result).get(1), {
+    count: 2,
+    resource: 'clones',
+    sourceSkill: 'Continuum Split'
+  });
+  assert.equal(result.steps[1].start, 580);
+  assert.equal(result.steps[3].start, 600);
 });
 
 test('mid-rotation concurrent Continuum Split does not restore expired cooldowns', () => {

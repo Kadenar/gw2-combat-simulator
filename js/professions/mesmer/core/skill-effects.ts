@@ -126,7 +126,11 @@ export function createSkillEffectController({
     skill: MesmerSkill,
     at: number,
     castStart = at,
-    { phantasmSummonAt = at, playerEffectEnd = Infinity }: MesmerExceptionalProfileOptions = {}
+    {
+      phantasmSummonAt = at,
+      playerEffectEnd = Infinity,
+      skipDirectResource = false
+    }: MesmerExceptionalProfileOptions = {}
   ): boolean => {
     const clarityConsumed = specialEffects.consumeClarity(skill, castStart);
     const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
@@ -152,7 +156,10 @@ export function createSkillEffectController({
       conditions,
       phantasmExecutions
     );
-    illusionResources.schedule(skill, at, castStart, cloneAtMaximum, phantasmExecutions);
+    // Cast-start packets are scheduled by the cast lifecycle and must not be emitted again on completion.
+    if (!skipDirectResource) {
+      illusionResources.schedule(skill, at, castStart, cloneAtMaximum, phantasmExecutions);
+    }
     specialEffects.apply(skill, at, castStart);
     damage.finish(skill, damageResult);
     return clarityConsumed;

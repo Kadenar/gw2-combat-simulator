@@ -265,7 +265,8 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
 
   const emit = (event: SimulationEventInput): SimulationEvent | null => {
     const active = runtime.activeEmission;
-    if (active && Number(event.at) > active.effectiveEnd + EPSILON) {
+    // Packets committed by a landed projectile remain scheduled after the player interrupts its cast animation.
+    if (active && Number(event.at) > active.effectiveEnd + EPSILON && event.persistsAfterInterrupt !== true) {
       if (event.type !== 'condition' || !active.skill.applyConditionsOnInterrupt) {
         return null;
       }
@@ -477,6 +478,9 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
   const { state } = context;
   const at = context.fullEnd;
   const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  if (interrupted && details.earlyResourceAt != null && context.effectiveEnd < details.earlyResourceAt - EPSILON) {
+    context.tasks.cancelOwner(details.earlyResourceOwnerId || '');
+  }
   const phantasmSummonProgress = Number(skill.phantasmSummonProgress);
   const phantasmSummonThreshold = context.start + (context.fullEnd - context.start) * phantasmSummonProgress;
   const completedInterruptedPhantasm =
@@ -518,9 +522,10 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
           completedInterruptedPhantasm
             ? {
                 phantasmSummonAt: context.effectiveEnd,
-                playerEffectEnd: context.effectiveEnd
+                playerEffectEnd: context.effectiveEnd,
+                skipDirectResource: details.resourceScheduledDuringCast
               }
-            : undefined
+            : { skipDirectResource: details.resourceScheduledDuringCast }
         );
       }
 
@@ -699,6 +704,27 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   const spendProgress = Number(shatter?.resourceSpendProgress);
   const delayedResourceSpend =
     shatter?.consumesResources !== false && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
+  const earlyResourceAt =
+    skill.id === ID.MIND_THE_GAP && skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
+      ? context.start + Number(skill.resource.atMs || 0) / 1000 + EPSILON
+      : null;
+  const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < context.fullEnd - EPSILON;
+  const earlyResourceOwnerId = `${context.reservationId}:mesmer.resource`;
+  if (resourceScheduledDuringCast) {
+    // Mind the Gap's clone packet resolves before cast completion, allowing an instant shatter to consume it first.
+    context.tasks.schedule({
+      type: TASK.resourceGain,
+      at: earlyResourceAt,
+      ownerId: earlyResourceOwnerId,
+      payload: {
+        at: earlyResourceAt,
+        count: Number(skill.resource?.count || 0),
+        weapon: skill.weapon || runtime.activePrimaryWeapon(),
+        reason: skill.name,
+        cause: { kind: 'skill', sourceSkillId: skill.id }
+      }
+    });
+  }
   if (delayedResourceSpend) {
     shatterSpent = runtime.actions.reserveResources();
   } else if (shatter && shatter.consumesResources !== false) {
@@ -709,6 +735,9 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   }
 
   runtime.castDetails.set(context.reservationId, {
+    earlyResourceAt,
+    earlyResourceOwnerId,
+    resourceScheduledDuringCast,
     reservedShatterResources: delayedResourceSpend,
     shatterSpendCommitted: !delayedResourceSpend,
     shatterSpent

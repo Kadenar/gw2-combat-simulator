@@ -18,7 +18,7 @@
     "Weapon2": "Berserker's"
   },
   "weapons": ["Dagger", "Sword"],
-  "alternateWeapons": ["Greatsword", ""],
+  "alternateWeapons": ["Spear", ""],
   "rune": "Dragonhunter",
   "weaponSigils": [
     ["Force", "Accuracy"],
@@ -49,7 +49,7 @@
     },
     {
       "name": "Domination",
-      "traits": "1-2-1"
+      "traits": "2-2-1"
     },
     {
       "name": "Chronomancer",

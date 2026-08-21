@@ -79,7 +79,8 @@ export const troubadourModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.1,
-    when: hasLute
+    // Lute Playing buffs only the Troubadour, so illusion attacks must not inherit its damage bonus.
+    when: (context) => hasLute(context) && !illusionSource(context)
   },
   {
     id: 'mesmer.shredding',

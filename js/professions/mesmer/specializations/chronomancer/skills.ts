@@ -126,8 +126,17 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     weapon: '',
     specialization: 'Chronomancer',
     environment: 'Terrestrial',
-    castTimeMs: 950,
+    quicknessCastTimeMs: 800,
     cooldown: 20,
+    comboFields: [
+      {
+        ownerId: 'mesmer',
+        fieldType: 'Ethereal',
+        duration: 3,
+        startMs: 559,
+        startAnchor: 'castStart'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -150,6 +159,28 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         actorType: 'player',
         weapon: 'utility',
         atMs: 3554,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: [559, 1559, 2561, 3554].map((atMs) => ({
+          atMs,
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: [559, 1559, 2561, 3554].map((atMs) => ({
+          atMs,
+          condition: 'Weakness',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

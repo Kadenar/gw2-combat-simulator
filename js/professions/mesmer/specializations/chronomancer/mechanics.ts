@@ -9,7 +9,8 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
     repeatDamageAtMs: 5920,
-    repeatSpawnAtMs: 7450,
+    // The Chronophantasma repeat converts at a measured median near 7.04s post-cast.
+    repeatSpawnAtMs: 7040,
     repeatDamageTicks: {
       'Phantasm leap': [{ atMs: 4474 }],
       'Phantasm Blurred Frenzy': [

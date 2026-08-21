@@ -146,7 +146,9 @@ export function createMesmerEventMaterializer({
         sourceId,
         actorType,
         skillId: extra.skillId ?? skill.id ?? null,
-        skillName: skill.name
+        skillName: skill.name,
+        // Preserve a committed packet's interrupt lifetime through Mesmer's custom materializer.
+        ...(group.persistsAfterInterrupt === true ? { persistsAfterInterrupt: true } : {})
       },
       skillWeaponFallback: slotSkill ? 'Utility' : activePrimaryWeapon()
     });

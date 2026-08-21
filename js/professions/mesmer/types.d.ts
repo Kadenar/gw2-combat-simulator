@@ -439,13 +439,20 @@ export interface MesmerActiveEmission {
 }
 
 export interface MesmerCastDetails {
+  earlyResourceAt?: number | null;
+  earlyResourceOwnerId?: string;
+  resourceScheduledDuringCast?: boolean;
   reservedShatterResources?: boolean;
   shatterSpendCommitted?: boolean;
   shatterSpent?: number | null;
 }
 
 export interface MesmerContinuumController {
-  beginContinuumSplit(skill: MesmerSkill, at: number): MesmerShatterResolution;
+  beginContinuumSplit(
+    skill: MesmerSkill,
+    at: number,
+    spendDetails?: MesmerResourceSpendDetails
+  ): MesmerShatterResolution;
   restoreContinuum(at: number, reason: string): void;
 }
 
@@ -634,6 +641,7 @@ export interface MesmerMirageController {
 export interface MesmerExceptionalProfileOptions {
   readonly phantasmSummonAt?: number;
   readonly playerEffectEnd?: number;
+  readonly skipDirectResource?: boolean;
 }
 
 export interface MesmerSkillEffectController {

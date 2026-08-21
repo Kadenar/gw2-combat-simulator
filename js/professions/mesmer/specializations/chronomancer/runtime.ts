@@ -69,7 +69,12 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
   });
   runtime.continuum = continuum;
   // Continuum Split replaces the ordinary shatter path while still publishing a resolved shatter contract.
-  runtime.skillCompletionHandlers.push((_castContext, skill, at) =>
-    skill.id === ID.CONTINUUM_SPLIT ? continuum.beginContinuumSplit(skill, at) : false
+  runtime.skillCompletionHandlers.push((castContext, skill, at) =>
+    skill.id === ID.CONTINUUM_SPLIT
+      ? continuum.beginContinuumSplit(skill, at, {
+          sourceSkill: skill.name,
+          rotationIndex: castContext.commandIndex
+        })
+      : false
   );
 }

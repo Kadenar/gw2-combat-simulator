@@ -356,6 +356,39 @@ test('does not mistake a Phase Retreat clone pair for Mirror Images', () => {
   assert.equal(names(result, 'Mirror Images').length, 0);
 });
 
+test('does not reconstruct Chaos Armor from a phantasm leap inside a Chronomancer well', () => {
+  const skills = [
+    skill(30525, 'Well of Calamity', {
+      type: 'Utility',
+      slot: 'Utility',
+      quicknessCastTimeMs: 800
+    }),
+    skill(72946, 'Phantasmal Lancer', {
+      type: 'Weapon',
+      slot: 'Weapon_4',
+      quicknessCastTimeMs: 500
+    }),
+    skill(10331, 'Chaos Armor', {
+      type: 'Weapon',
+      slot: 'Weapon_4'
+    })
+  ];
+  const fixture = mesmerLog(40, skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({ skillId: 30525, value: 800, activation: EVTC_ACTIVATION.START }),
+    event({ time: 10_800, skillId: 30525, value: 800, activation: EVTC_ACTIVATION.CANCEL_FIRE }),
+    event({ time: 13_500, skillId: 72946, value: 800, activation: EVTC_ACTIVATION.START }),
+    event({ time: 14_300, skillId: 72946, value: 800, activation: EVTC_ACTIVATION.CANCEL_FIRE }),
+    // The aura packet can land after the field expires when the leap began inside it.
+    event({ time: 14_300, target: PLAYER, value: 5_000, skillId: 10332, buff: 1 })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.equal(names(result, 'Phantasmal Lancer').length, 1);
+  assert.equal(names(result, 'Chaos Armor').length, 0);
+});
+
 test('places delayed Mirage Chaos Armor evidence before the weapon swap', () => {
   const skills = [
     skill(10169, 'Chaos Storm', {

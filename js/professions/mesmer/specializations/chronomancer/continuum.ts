@@ -8,6 +8,7 @@ import type {
   MesmerAddEvent,
   MesmerRuntimeState,
   MesmerRefreshAmmo,
+  MesmerResourceSpendDetails,
   MesmerShatterResolution,
   MesmerSkill
 } from '../../types.js';
@@ -18,7 +19,7 @@ interface ContinuumControllerOptions {
   readonly epsilon: number;
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
-  readonly consumeResources: (at: number) => number;
+  readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
   readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
   readonly addEvent: MesmerAddEvent;
   readonly durationPerSource: number;
@@ -26,7 +27,11 @@ interface ContinuumControllerOptions {
 }
 
 export interface ContinuumController {
-  beginContinuumSplit(skill: MesmerSkill, at: number): MesmerShatterResolution;
+  beginContinuumSplit(
+    skill: MesmerSkill,
+    at: number,
+    spendDetails?: MesmerResourceSpendDetails
+  ): MesmerShatterResolution;
   restoreContinuum(at: number, reason: string): void;
 }
 
@@ -87,8 +92,13 @@ export function createContinuumController({
     chronomancer.continuum = null;
   };
 
-  const beginContinuumSplit = (skill: MesmerSkill, at: number): MesmerShatterResolution => {
-    const spent = consumeResources(at);
+  const beginContinuumSplit = (
+    skill: MesmerSkill,
+    at: number,
+    spendDetails: MesmerResourceSpendDetails = {}
+  ): MesmerShatterResolution => {
+    // Publish Split's exact clone spend against its rotation entry so the timeline can show the standard shatter badge.
+    const spent = consumeResources(at, spendDetails);
     const remainingCooldowns = new Map(
       [...state.cooldowns]
         .filter(([id]) => id !== skill.id && !unaffectedCooldownIds.has(id))

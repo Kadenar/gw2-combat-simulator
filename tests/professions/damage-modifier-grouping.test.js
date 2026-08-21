@@ -230,6 +230,21 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
   assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1.05), 1.42);
 });
 
+test('Mesmer Lute Playing damage excludes illusion attacks', () => {
+  const shared = {
+    config: { specialization: 'Troubadour' },
+    events: [{ type: 'mesmer.instrument', instrument: 'Lute', at: 0, expiresAt: 10 }],
+    sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
+  };
+  const player = modifierContext(shared);
+  const phantasm = modifierContext({ ...shared, event: { source: 'Phantasm' } });
+  const clone = modifierContext({ ...shared, event: { source: 'Clone' } });
+
+  assertClose(mesmerRules('Troubadour').modifyStrikeDamage(player, 1), 1.1);
+  assert.equal(mesmerRules('Troubadour').modifyStrikeDamage(phantasm, 1), 1);
+  assert.equal(mesmerRules('Troubadour').modifyConditionDamage({ ...clone, condition: 'Bleeding' }, 1), 1);
+});
+
 test('Mesmer Deadly Blades does not increase phantasm damage', () => {
   const context = modifierContext({
     event: { source: 'Phantasm' },
