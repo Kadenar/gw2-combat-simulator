@@ -11,7 +11,8 @@ import {
 } from './specializations/soulbeast/state.js';
 import {
   UNTAMED_PUBLIC_END_STATE_KEYS,
-  UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS
+  UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS,
+  UNTAMED_RESOLVER_END_STATE_KEYS
 } from './specializations/untamed/state.js';
 import type { RangerEndStateProjectionOptions, RangerState } from './types.js';
 
@@ -37,8 +38,18 @@ const RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Ob
 });
 
 /** Projects the family aggregate while preserving the existing public shape. */
-export function projectRangerEndState({ schedulerState }: RangerEndStateProjectionOptions): Record<string, unknown> {
+export function projectRangerEndState({
+  schedulerState,
+  resolverState
+}: RangerEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotRangerState(schedulerState.profession);
+  const resolver = flattenProfessionState(resolverState || {});
+  // Ferocious Symbiosis advances from resolved player/pet hits, so its resolver
+  // values supersede the scheduler copy in the public insertion-aware state.
+  for (const key of UNTAMED_RESOLVER_END_STATE_KEYS) {
+    if (Object.hasOwn(resolver, key)) state[key] = resolver[key] as never;
+  }
+
   return Object.fromEntries(
     RANGER_PUBLIC_END_STATE_KEYS.map((key) => [
       key,

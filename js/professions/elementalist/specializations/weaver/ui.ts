@@ -129,11 +129,12 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
     { id: 'elementalist-attunement', label: 'Attunement', value: `${primary}/${secondary}` }
   ];
 
-  // Surface only the stance window currently affecting the inspected rotation point,
-  // so Weave Self and its Perfect Weave follow-up are easy to time from the active-state bar.
+  // Surface only the Weaver windows currently affecting the inspected rotation point,
+  // so stance follow-ups and the temporary single-attunement override are easy to time.
   for (const [id, label, expiresAt] of [
     ['weave-self', 'Weave Self', Number(state.weaveSelfUntil || 0)],
-    ['perfect-weave', 'Perfect Weave', Number(state.perfectWeaveUntil || 0)]
+    ['perfect-weave', 'Perfect Weave', Number(state.perfectWeaveUntil || 0)],
+    ['unravel', 'Unravel', Number(state.unravelUntil || 0)]
   ] as const) {
     const remaining = expiresAt - at;
     if (remaining <= 0) continue;

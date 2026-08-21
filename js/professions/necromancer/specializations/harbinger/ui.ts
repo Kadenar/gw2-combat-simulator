@@ -9,18 +9,19 @@ import {
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord
 } from '../../../../platform/engine/types.js';
 import type { NecromancerUiContext } from '../../types.js';
 
-function harbingerStateSnapshot(context: NecromancerUiContext) {
+function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
   const blight = Math.max(0, Math.min(25, Math.trunc(Number(state.blight || 0))));
   const stacks = Math.max(0, Math.min(19, Math.trunc(Number(state.cascadingCorruptionStacks || 0))));
   const hasTrait = getActiveTraits(context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
   );
-  const items = [
+  const items: RotationStateSnapshotItem[] = [
     {
       id: 'harbinger-blight',
       label: 'Blight',
@@ -35,6 +36,17 @@ function harbingerStateSnapshot(context: NecromancerUiContext) {
       label: 'Cascading Corruption',
       value: `${stacks}/20`,
       title: 'Cascading Corruption stacks toward the next Meltdown'
+    });
+  }
+
+  // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
+  const meltdownRemaining = Number(state.meltdownUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  if (meltdownRemaining > 0) {
+    items.push({
+      id: 'harbinger-meltdown',
+      label: 'Meltdown',
+      value: `${meltdownRemaining.toFixed(1)}s`,
+      title: 'Time remaining in Meltdown'
     });
   }
 

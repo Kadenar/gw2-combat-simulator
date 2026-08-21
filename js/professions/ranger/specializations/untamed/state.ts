@@ -1,15 +1,30 @@
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 import type { RangerConfig, RangerState, UntamedState } from '../../types.js';
 
-// Untamed owns its public unleash and ambush-window projection.
+// Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.
 export const UNTAMED_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
   'rangerUnleashed',
-  'ambushReadyUntil'
+  'ambushReadyUntil',
+  'ferociousSymbiosisPlayerStacks',
+  'ferociousSymbiosisPlayerUntil',
+  'ferociousSymbiosisPetStacks',
+  'ferociousSymbiosisPetUntil'
+]);
+
+export const UNTAMED_RESOLVER_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+  'ferociousSymbiosisPlayerStacks',
+  'ferociousSymbiosisPlayerUntil',
+  'ferociousSymbiosisPetStacks',
+  'ferociousSymbiosisPetUntil'
 ]);
 
 export const UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
   rangerUnleashed: false,
-  ambushReadyUntil: 0
+  ambushReadyUntil: 0,
+  ferociousSymbiosisPlayerStacks: 0,
+  ferociousSymbiosisPlayerUntil: 0,
+  ferociousSymbiosisPetStacks: 0,
+  ferociousSymbiosisPetUntil: 0
 });
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {

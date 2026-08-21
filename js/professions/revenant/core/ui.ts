@@ -9,6 +9,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord
 } from '../../../platform/engine/types.js';
 import type { RevenantResolverEvent, RevenantSkill, RevenantState, RevenantUiContext } from '../types.js';
@@ -129,6 +130,36 @@ export function revenantCorePaletteSkillAvailability(
   };
 }
 
+/** Reports shared Revenant drains and spear charges that directly constrain the next action. */
+function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+  const state = revenantUiState(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const upkeeps = state.activeUpkeeps || [];
+  const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, Number(upkeep.upkeepCost || 0)), 0);
+  if (drain > 0) {
+    items.push({
+      id: 'revenant-upkeep-drain',
+      label: 'Upkeep Drain',
+      value: `-${drain}/s`,
+      title: `Total energy drain from ${upkeeps.length} active upkeep${upkeeps.length === 1 ? '' : 's'}`
+    });
+  }
+
+  const abyssExpiries = (state.crushingAbyss || []).map(Number).filter((expiry) => expiry > at);
+  if (abyssExpiries.length) {
+    const nextExpiry = Math.min(...abyssExpiries) - at;
+    items.push({
+      id: 'revenant-crushing-abyss',
+      label: 'Crushing Abyss',
+      value: `${Math.min(3, abyssExpiries.length)}/3 · ${nextExpiry.toFixed(1)}s`,
+      title: 'Active charges and time until the next charge expires'
+    });
+  }
+
+  return items;
+}
+
 export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: Object.freeze([...REVENANT_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
   targetHealthThresholds: (context: RevenantUiContext = {}) => {
@@ -136,6 +167,7 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
     return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
   },
   slotLoadout: revenantLegendLoadout,
+  rotationStateSnapshot: revenantCoreStateSnapshot,
   timelineSkillIcon: revenantTimelineSkillIcon,
   paletteGroups: (context: RevenantUiContext) => {
     const loadout = revenantLegendLoadout.view(context);

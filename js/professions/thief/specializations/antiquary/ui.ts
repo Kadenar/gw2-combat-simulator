@@ -1,14 +1,75 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession.js';
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import type { RotationStateSnapshotItem } from '../../../../platform/engine/types.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
 
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
 }
 
+/** Surfaces Combat High plus artifact effects with duration or consumable charges. */
+function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
+  const state = stateFrom(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
+  const combatHighStacks = Math.max(0, Math.min(10, Math.trunc(Number(state.combatHighStacks || 0))));
+  if (combatHighRemaining > 0 && combatHighStacks > 0) {
+    items.push({
+      id: 'antiquary-combat-high',
+      label: 'Combat High',
+      value: `${combatHighStacks}/10 · ${combatHighRemaining.toFixed(1)}s`,
+      title: 'Combat High stacks and time until the remaining stacks decay'
+    });
+  }
+
+  const timedEffects: readonly [string, string, number][] = [
+    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', Number(state.antiquaryDamageUntil || 0)],
+    ['antiquary-kryptis-turret', 'Kryptis Turret', Number(state.kryptisDamageUntil || 0)],
+    ['antiquary-chak-shield', 'Chak Shield', Number(state.chakInitiativeRefundUntil || 0)]
+  ];
+  for (const [id, label, expiresAt] of timedEffects) {
+    const remaining = expiresAt - at;
+    if (remaining <= 0) continue;
+    items.push({ id, label, value: `${remaining.toFixed(1)}s`, title: `${label} artifact effect remaining` });
+  }
+
+  for (const [id, label, chargesValue, expiresAt] of [
+    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.stealthAttackCharges, state.stealthAttackExpiresAt],
+    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburnCharges, state.mistburnExpiresAt]
+  ] as const) {
+    const remaining = Number(expiresAt || 0) - at;
+    const charges = Math.max(0, Math.trunc(Number(chargesValue || 0)));
+    if (remaining <= 0 || charges <= 0) continue;
+    items.push({
+      id,
+      label,
+      value: `${charges} ${charges === 1 ? 'charge' : 'charges'} · ${remaining.toFixed(1)}s`,
+      title: `${label} charges and time remaining`
+    });
+  }
+
+  const holoExpiries = (state.holoUtilityCooldownReductionExpirations || [])
+    .map(Number)
+    .filter((expiry) => expiry > at);
+  if (holoExpiries.length) {
+    items.push({
+      id: 'antiquary-holo-dancer-decoy',
+      label: 'Holo-Dancer Decoy',
+      value: `${holoExpiries.length} ${holoExpiries.length === 1 ? 'use' : 'uses'} · ${(
+        Math.min(...holoExpiries) - at
+      ).toFixed(1)}s`,
+      title: 'Reduced-recharge utility uses and time until the next use expires'
+    });
+  }
+
+  return items;
+}
+
 export const antiquaryUi = Object.freeze({
   assumptionControls: THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
+  rotationStateSnapshot: antiquaryStateSnapshot,
   paletteGroups: () => {
     const artifactGroups: readonly [string, string, readonly number[], string][] = [
       ['thief-artifacts-offensive', 'Offensive', THIEF_ARTIFACT_IDS.OFFENSIVE, '#c65d68'],

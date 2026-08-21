@@ -191,6 +191,10 @@ export interface RangerState extends RangerCoreState {
   oneWolfPackReadyAt?: number;
   rangerUnleashed?: boolean;
   ambushReadyUntil?: number;
+  ferociousSymbiosisPlayerStacks?: number;
+  ferociousSymbiosisPlayerUntil?: number;
+  ferociousSymbiosisPetStacks?: number;
+  ferociousSymbiosisPetUntil?: number;
   cycloneBowActive?: boolean;
   arrows?: number;
   maximumArrows?: number;

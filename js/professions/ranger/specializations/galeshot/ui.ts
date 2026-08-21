@@ -6,6 +6,7 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord
 } from '../../../../platform/engine/types.js';
 import type { RangerSkill, RangerUiContext } from '../../types.js';
@@ -20,6 +21,21 @@ const BOW_SKILLS = Object.freeze([
   ID.SUPERSONIC_ARROW
 ]);
 const GALESHOT_PALETTE_STACK = 'ranger-galeshot';
+
+/** Shows Mistral only while its Galeshot damage window remains active. */
+function galeshotStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
+  const remaining = Number(rangerUiState(context).mistralUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  return remaining > 0
+    ? [
+        {
+          id: 'galeshot-mistral',
+          label: 'Mistral',
+          value: `${remaining.toFixed(1)}s`,
+          title: 'Time remaining in Mistral'
+        }
+      ]
+    : [];
+}
 
 /** Replaces Quarry's Peril with Pelt only while Perilous Skies is selected. */
 function visibleBowSkills(context: RangerUiContext) {
@@ -174,5 +190,6 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
       }
     ];
   },
+  rotationStateSnapshot: galeshotStateSnapshot,
   paletteSkillAvailability: availability
 });

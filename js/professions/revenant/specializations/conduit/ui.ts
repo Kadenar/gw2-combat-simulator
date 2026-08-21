@@ -1,7 +1,12 @@
 import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../legend-rules.js';
 import { activeRevenantLegend, revenantUiState } from '../../core/ui.js';
-import type { ProfessionUiContract, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
+import type {
+  ProfessionUiContract,
+  RotationStateSnapshotItem,
+  SchedulerRecord,
+  SkillId
+} from '../../../../platform/engine/types.js';
 import type { RevenantUiContext } from '../../types.js';
 
 // Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.
@@ -13,7 +18,24 @@ const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
   'Release Potential: Warrior': SKILL.RELEASE_POTENTIAL_WARRIOR
 });
 
+/** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */
+function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+  const state = revenantUiState(context);
+  const remaining = Number(state.cosmicWisdomUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  return remaining > 0 && state.conduitForm
+    ? [
+        {
+          id: 'conduit-cosmic-wisdom',
+          label: 'Cosmic Wisdom',
+          value: `${state.conduitForm} · ${remaining.toFixed(1)}s`,
+          title: 'Active Cosmic Wisdom form and time remaining'
+        }
+      ]
+    : [];
+}
+
 export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  rotationStateSnapshot: conduitStateSnapshot,
   paletteGroups: (context: RevenantUiContext) => {
     // Release Potential variant depends on the currently active legend, so the palette rebuilds on legend swap.
     const releaseName = REVENANT_RELEASE_POTENTIAL_BY_LEGEND[activeRevenantLegend(context)];

@@ -5,6 +5,7 @@ import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { spearChainStageForSkill } from './conditions.js';
 import { thiefWeaponSkillMatchesSet } from './weapons.js';
 import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from './steal.js';
+import type { RotationStateSnapshotItem } from '../../../platform/engine/types.js';
 import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '../types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
@@ -116,8 +117,38 @@ function thiefCoreEventLogRow(_context: ThiefUiContext, event: ThiefSimulationEv
   };
 }
 
+/** Shows the mutually exclusive Stealth and Revealed gates that control stealth attacks. */
+function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
+  const state = thiefUiState(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const revealedRemaining = Number(state.revealedUntil || 0) - at;
+  if (revealedRemaining > 0) {
+    return [
+      {
+        id: 'thief-revealed',
+        label: 'Revealed',
+        value: `${revealedRemaining.toFixed(1)}s`,
+        title: 'Time remaining before Stealth can be gained again'
+      }
+    ];
+  }
+
+  const stealthRemaining = Number(state.stealthUntil || 0) - at;
+  return stealthRemaining > 0
+    ? [
+        {
+          id: 'thief-stealth',
+          label: 'Stealth',
+          value: `${stealthRemaining.toFixed(1)}s`,
+          title: 'Time remaining in Stealth'
+        }
+      ]
+    : [];
+}
+
 export const thiefCoreUi = Object.freeze({
   assumptionControls: Object.freeze([...THIEF_CORE_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
+  rotationStateSnapshot: thiefCoreStateSnapshot,
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],

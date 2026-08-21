@@ -4,7 +4,9 @@ import type {
   CanonicalCatalog,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
+  SimulationEvent,
   SkillId
 } from '../../../../platform/engine/types.js';
 import type { EngineerResolverEvent, EngineerSkill, EngineerUiContext, EngineerUiSelection } from '../../types.js';
@@ -141,10 +143,58 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
   return true;
 }
 
+function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: number): number {
+  let remaining = 0;
+  for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
+    if (Number(event.at || 0) > at) break;
+    if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
+    remaining = Math.max(remaining, Number(event.at || 0) + Number(event.duration || 0) - at);
+  }
+
+  return Math.max(0, remaining);
+}
+
+/** Surfaces Evolve and every duration-bearing Silver Lining strain active at the inspected point. */
+function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshotItem[] {
+  const state = engineerUiState(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const evolveRemaining = Number(state.evolvedUntil || 0) - at;
+  if (evolveRemaining > 0) {
+    items.push({
+      id: 'amalgam-evolve',
+      label: 'Evolve',
+      value: `${evolveRemaining.toFixed(1)}s`,
+      title: 'Time remaining in Evolve'
+    });
+  }
+
+  const strains: [string, number][] = [
+    ['Resiliant', activeBuffRemaining(context, 'engineer.resiliant-strain', at)],
+    ['Replicating', activeBuffRemaining(context, 'engineer.replicating-strain', at)],
+    ['Rapacious', Number(state.rapaciousUntil || 0) - at],
+    ['Predator', Number(state.predatorUntil || 0) - at],
+    ['Titanic', Number(state.titanicUntil || 0) - at],
+    ['Berserker', Number(state.berserkerUntil || 0) - at]
+  ];
+  const activeStrains = strains.filter(([, remaining]) => remaining > 0);
+  if (activeStrains.length) {
+    items.push({
+      id: 'amalgam-active-strains',
+      label: 'Active Strains',
+      value: activeStrains.map(([name, remaining]) => `${name} ${remaining.toFixed(1)}s`).join(' · '),
+      title: 'Duration-bearing strains currently granted by Evolve or Silver Lining'
+    });
+  }
+
+  return items;
+}
+
 export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
   assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
+  rotationStateSnapshot: amalgamStateSnapshot,
   skillBarGroups: amalgamSkillBarGroups,
   updateSkillBarSelection: updateAmalgamSkillBarSelection,
   paletteGroups: (context: EngineerUiContext) => [

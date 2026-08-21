@@ -6,10 +6,11 @@ import type {
   CanonicalCatalog,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
 } from '../../../platform/engine/types.js';
-import type { GuardianResolverEvent, GuardianSkill, GuardianUiContext } from '../types.js';
+import type { GuardianResolverEvent, GuardianSkill, GuardianState, GuardianUiContext } from '../types.js';
 
 let guardianCatalog: Readonly<CanonicalCatalog>;
 
@@ -25,6 +26,28 @@ export function guardianSnapshotAt(context: GuardianUiContext = {}): number {
 /** Formats a remaining duration for the active-state bar (e.g. `4.2s`). */
 export function formatSecondsRemaining(seconds: number): string {
   return `${Math.max(0, seconds).toFixed(1)}s`;
+}
+
+export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianState> {
+  return flattenProfessionState(context.state?.profession || context.professionState);
+}
+
+/** Keeps Symbolic Avenger visible for every Guardian specialization while its damage bonus is active. */
+function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+  const state = guardianUiState(context);
+  const at = guardianSnapshotAt(context);
+  const remaining = Number(state.symbolicAvengerUntil || 0) - at;
+  const stacks = Math.max(0, Math.min(5, Math.trunc(Number(state.symbolicAvengerStacks || 0))));
+  return remaining > 0 && stacks > 0
+    ? [
+        {
+          id: 'guardian-symbolic-avenger',
+          label: 'Symbolic Avenger',
+          value: `${stacks}/5 · ${formatSecondsRemaining(remaining)}`,
+          title: 'Active Symbolic Avenger stacks and time remaining'
+        }
+      ]
+    : [];
 }
 
 export function guardianUiSkillIdsByName(names: readonly string[], context: GuardianUiContext = {}): SkillId[] {
@@ -94,6 +117,7 @@ const CORE_VIRTUE_NAMES = Object.freeze(['Virtue of Justice', 'Virtue of Resolve
 export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: guardianEventLogRow,
+  rotationStateSnapshot: guardianCoreStateSnapshot,
   paletteWeaponSkills: guardianPaletteWeaponSkills,
   skillBarGroups: (context: GuardianUiContext) =>
     guardianUiSpecialization(context) === 'Core'

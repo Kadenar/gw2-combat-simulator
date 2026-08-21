@@ -212,15 +212,26 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
     });
   }
 
-  if (!hasSignetMasteryTrait(context)) return items;
-  const stacks = Math.min(SIGNET_MASTERY_MAX_STACKS, timedBuffStacksAt(result, 'signet-mastery', at));
-  if (stacks > 0) {
-    items.push({
-      id: 'signet-mastery',
-      label: 'Signet Mastery',
-      value: `${stacks}/${SIGNET_MASTERY_MAX_STACKS}`,
-      title: `Signet Mastery: +${stacks * 100} ferocity (+100 per stack)`
-    });
+  if (hasSignetMasteryTrait(context)) {
+    const stacks = Math.min(SIGNET_MASTERY_MAX_STACKS, timedBuffStacksAt(result, 'signet-mastery', at));
+    if (stacks > 0) {
+      items.push({
+        id: 'signet-mastery',
+        label: 'Signet Mastery',
+        value: `${stacks}/${SIGNET_MASTERY_MAX_STACKS}`,
+        title: `Signet Mastery: +${stacks * 100} ferocity (+100 per stack)`
+      });
+    }
+  }
+
+  // These independent stacking trait buffs are useful across every Warrior
+  // specialization, regardless of whether Signet Mastery is selected.
+  for (const [id, label, kind, maximum] of [
+    ['furious-surge', 'Furious Surge', 'furious-surge', 25],
+    ['berserkers-power', "Berserker's Power", 'berserkers-power', 4]
+  ] as const) {
+    const stacks = Math.min(maximum, timedBuffStacksAt(result, kind, at));
+    if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 
   return items;

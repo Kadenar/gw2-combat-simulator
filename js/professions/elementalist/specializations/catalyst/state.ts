@@ -42,10 +42,12 @@ export const catalystState = defineProfessionSpecializationState(
 
 export const createCatalystState = catalystState.create;
 
-// Catalyst exposes its profession resource and sphere timing at the family boundary.
+// Catalyst exposes active stack expiries alongside its resource and sphere timing so
+// insertion-aware UI can report the exact Elemental Empowerment stack count.
 export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
   'catalystBaseEmpowermentActive',
   'energy',
+  'elementalEmpowermentExpiries',
   'maximumEnergy',
   'sphereActiveUntil',
   'sphereExpiry'
@@ -54,6 +56,7 @@ export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
 export const CATALYST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<CatalystState>> = Object.freeze({
   catalystBaseEmpowermentActive: false,
   energy: 0,
+  elementalEmpowermentExpiries: [],
   maximumEnergy: CATALYST_MAXIMUM_ENERGY,
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }

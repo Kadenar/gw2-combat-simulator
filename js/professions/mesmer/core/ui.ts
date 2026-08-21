@@ -9,6 +9,7 @@ import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   Skill,
   SkillId
@@ -27,6 +28,29 @@ type MesmerUiState = Partial<MesmerProfessionState> & { readonly resource?: numb
 
 export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
+}
+
+export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState & SchedulerRecord {
+  return flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState &
+    SchedulerRecord;
+}
+
+/** Converts the projected millisecond Clarity duration into an active-state timer. */
+function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
+  const state = mesmerUiState(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const remaining =
+    state.clarityRemaining != null ? Number(state.clarityRemaining || 0) / 1000 : Number(state.clarityUntil || 0) - at;
+  return remaining > 0
+    ? [
+        {
+          id: 'mesmer-clarity',
+          label: 'Clarity',
+          value: `${remaining.toFixed(1)}s`,
+          title: 'Time remaining to consume Clarity'
+        }
+      ]
+    : [];
 }
 
 export function mesmerMechanicPaletteGroups(
@@ -134,6 +158,7 @@ const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION
 export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: mesmerEventLogRow,
+  rotationStateSnapshot: mesmerCoreStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerUiSpecialization(context) === 'Core'
       ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS, 'clones')

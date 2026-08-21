@@ -5,6 +5,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
 } from '../../../../platform/engine/types.js';
@@ -72,7 +73,22 @@ function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
   return groups;
 }
 
-const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+/** Shows One Wolf Pack only while its extra-strike window remains active. */
+function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
+  const remaining = Number(rangerUiState(context).oneWolfPackUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  return remaining > 0
+    ? [
+        {
+          id: 'soulbeast-one-wolf-pack',
+          label: 'One Wolf Pack',
+          value: `${remaining.toFixed(1)}s`,
+          title: 'Time remaining in One Wolf Pack'
+        }
+      ]
+    : [];
+}
+
+export const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: RangerUiContext) => [
     {
       id: 'ranger-soulbeast-f5',
@@ -90,6 +106,7 @@ const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.free
   ],
   paletteGroups,
   paletteSkillAvailability: availability,
+  rotationStateSnapshot: soulbeastStateSnapshot,
   // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
   eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
     SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined

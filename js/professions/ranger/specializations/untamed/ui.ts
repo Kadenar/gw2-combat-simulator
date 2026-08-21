@@ -4,6 +4,7 @@ import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
 } from '../../../../platform/engine/types.js';
@@ -61,7 +62,45 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   return { available: true, message: '' };
 }
 
-const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+/** Reports the weapon ambush deadline and each beneficiary's Ferocious Symbiosis stacks. */
+function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
+  const state = rangerUiState(context);
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const ambushRemaining = Number(state.ambushReadyUntil || 0) - at;
+  if (ambushRemaining > 0) {
+    items.push({
+      id: 'untamed-ambush-window',
+      label: 'Untamed Ambush',
+      value: `${ambushRemaining.toFixed(1)}s`,
+      title: 'Time remaining to use the unleashed ambush'
+    });
+  }
+
+  for (const [id, beneficiary, stacksValue, expiresAt] of [
+    [
+      'untamed-ferocious-symbiosis-player',
+      'Player',
+      state.ferociousSymbiosisPlayerStacks,
+      state.ferociousSymbiosisPlayerUntil
+    ],
+    ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPetStacks, state.ferociousSymbiosisPetUntil]
+  ] as const) {
+    const remaining = Number(expiresAt || 0) - at;
+    const stacks = Math.max(0, Math.min(5, Math.trunc(Number(stacksValue || 0))));
+    if (remaining <= 0 || stacks <= 0) continue;
+    items.push({
+      id,
+      label: `Ferocious Symbiosis (${beneficiary})`,
+      value: `${stacks}/5 · ${remaining.toFixed(1)}s`,
+      title: `${beneficiary} damage stacks and time remaining`
+    });
+  }
+
+  return items;
+}
+
+export const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: RangerUiContext) => [
     {
       id: 'ranger-untamed-f5',
@@ -100,6 +139,7 @@ const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze
     }
   ],
   paletteSkillAvailability: availability,
+  rotationStateSnapshot: untamedStateSnapshot,
   // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
   eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
     event.type === 'ranger.untamed-state' ? null : undefined

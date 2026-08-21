@@ -1,9 +1,15 @@
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
-import { mesmerMechanicPaletteGroups, mesmerMechanicSkillBarGroups, mesmerResourceViews } from '../../core/ui.js';
+import {
+  mesmerMechanicPaletteGroups,
+  mesmerMechanicSkillBarGroups,
+  mesmerResourceViews,
+  mesmerUiState
+} from '../../core/ui.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
@@ -43,8 +49,25 @@ function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: S
   };
 }
 
+/** Shows the restorable Continuum Split window using the projected millisecond duration. */
+function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
+  const state = mesmerUiState(context);
+  const remaining = Number(state.continuumRemaining || 0) / 1000;
+  return state.continuumActive && remaining > 0
+    ? [
+        {
+          id: 'chronomancer-continuum-split',
+          label: 'Continuum Split',
+          value: `${remaining.toFixed(1)}s`,
+          title: 'Time remaining before Continuum Split restores its snapshot'
+        }
+      ]
+    : [];
+}
+
 export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: chronomancerEventLogRow,
+  rotationStateSnapshot: chronomancerStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, CHRONOMANCER_PALETTE_SKILLS, 'clones').map((group) => ({
       ...group,

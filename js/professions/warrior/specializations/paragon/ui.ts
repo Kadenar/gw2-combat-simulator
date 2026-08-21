@@ -9,6 +9,7 @@ import {
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SimulationEvent
 } from '../../../../platform/engine/types.js';
 import type { WarriorSkill, WarriorUiContext } from '../../types.js';
@@ -35,8 +36,25 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
   ];
 }
 
+/** Shows the refrain currently pulsing while Paragon still has motivation to sustain it. */
+function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
+  const state = warriorUiState(context);
+  const refrain = String(state.activeRefrain || '');
+  return refrain && Number(state.motivation || 0) > 0
+    ? [
+        {
+          id: 'paragon-active-refrain',
+          label: 'Active Refrain',
+          value: refrain,
+          title: 'Refrain currently consuming Motivation on each pulse'
+        }
+      ]
+    : [];
+}
+
 export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, CHANTS),
+  rotationStateSnapshot: paragonStateSnapshot,
   skillBarGroups: (context: WarriorUiContext) => warriorSkillBarGroups(context, CHANTS),
   resourceViews: resources,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>

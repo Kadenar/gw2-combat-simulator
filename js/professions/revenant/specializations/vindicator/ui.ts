@@ -4,6 +4,7 @@ import type {
   LegacyRotationItem,
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
@@ -76,7 +77,24 @@ function resolveVindicatorPaletteAction(
   return action.name === VINDICATOR_DODGE_AUTO_ACTION ? vindicatorDodgeAutoRotationEntries(context) : undefined;
 }
 
+/** Shows the armed Reaver's Curse window until the next dodge consumes it. */
+function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+  const remaining =
+    Number(revenantUiState(context).reaversCurseUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  return remaining > 0
+    ? [
+        {
+          id: 'vindicator-reavers-curse',
+          label: "Reaver's Curse",
+          value: `${remaining.toFixed(1)}s`,
+          title: "Time remaining to consume Reaver's Curse with a dodge"
+        }
+      ]
+    : [];
+}
+
 export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  rotationStateSnapshot: vindicatorStateSnapshot,
   paletteGroups: (context: RevenantUiContext) => {
     const state = revenantUiState(context);
     return [

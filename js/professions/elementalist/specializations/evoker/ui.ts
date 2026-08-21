@@ -2,6 +2,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
@@ -89,6 +90,21 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
       };
 }
 
+/** Reports the brief Elemental Balance damage window only while it can affect the next action. */
+function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
+  const remaining = Number(uiState(context).elementalBalanceUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  return remaining > 0
+    ? [
+        {
+          id: 'evoker-elemental-balance',
+          label: 'Elemental Balance',
+          value: `${remaining.toFixed(1)}s`,
+          title: 'Time remaining in the Elemental Balance window'
+        }
+      ]
+    : [];
+}
+
 export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: SchedulerRecord) => {
     const element = selectedElement(context);
@@ -130,6 +146,7 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
   },
   updateSkillBarSelection: updateFamiliarSelection,
   paletteSkillAvailability: familiarPaletteAvailability,
+  rotationStateSnapshot: evokerStateSnapshot,
   paletteGroups: (context: SchedulerRecord) => {
     const element = selectedElement(context);
     return [

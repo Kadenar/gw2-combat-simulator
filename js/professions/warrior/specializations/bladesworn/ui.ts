@@ -1,4 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../../app/rotation/state-snapshot-view.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,
@@ -13,6 +14,7 @@ import type {
   RotationStateSnapshotItem
 } from '../../../../platform/engine/types.js';
 import type { WarriorSkill, WarriorUiContext } from '../../types.js';
+import type { Gw2SimulationResult } from '../../../../platform/gw2/types.js';
 import { dragonChargeReleaseProjection } from './charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -158,6 +160,29 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
+    const result = context.result as Gw2SimulationResult | null | undefined;
+    // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
+    // this snapshot aligned with the damage and ferocity modifier gates.
+    const fierceAsFire = Math.min(10, timedBuffStacksAt(result, 'fierce-as-fire', at));
+    if (fierceAsFire > 0) {
+      items.push({
+        id: 'bladesworn-fierce-as-fire',
+        label: 'Fierce as Fire',
+        value: `${fierceAsFire}/10`,
+        title: 'Active Fierce as Fire stacks'
+      });
+    }
+
+    const gunsAndGlory = timedBuffAt(result, 'guns-and-glory', at);
+    if (gunsAndGlory) {
+      items.push({
+        id: 'bladesworn-guns-and-glory',
+        label: 'Guns and Glory',
+        value: formatSecondsRemaining(gunsAndGlory.remaining),
+        title: 'Guns and Glory ferocity window remaining'
+      });
+    }
+
     const window = (state.overchargedCartridgeWindows || []).find(
       (candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at
     );

@@ -57,6 +57,18 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const result = context.result as Gw2SimulationResult | null | undefined;
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
+  const state = professionState(context);
+  const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
+  if (effulgentRemaining > 0) {
+    const stacks = Math.max(0, Math.min(10, Math.trunc(Number(state.effulgentStacks || 0))));
+    items.push({
+      id: 'luminary-effulgent-stance',
+      label: 'Effulgent Stance',
+      value: `${stacks}/10 · ${formatSecondsRemaining(effulgentRemaining)}`,
+      title: 'Effulgent stacks and time until detonation'
+    });
+  }
+
   // Radiant Armaments only grants +7% strike damage while the radiant hammer
   // (Dazzling Hammer) is the equipped armament; other radiant weapons still
   // emit the buff but strip the bonus, so mirror the modifier's hammer gate.
