@@ -32,7 +32,7 @@
         "label": "Condition (Mace-Axe / Spear)",
         "build": "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 40827
+        "benchmarkDps": 41312
       }
     ]
   },

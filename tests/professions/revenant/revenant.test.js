@@ -1569,6 +1569,32 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
   );
 });
 
+test('Abyssal Raze blasts Abyssal Blot for Dark Aura without Leeching Bolts', () => {
+  const result = simulate('Core', ['Abyssal Blot', 'Abyssal Raze'], {
+    primaryWeapon: 'Spear',
+    secondaryWeapon: '',
+    initialEnergy: 100,
+    boons: { quickness: true }
+  });
+  const combo = result.resolvedEvents.find(
+    (event) => event.type === 'combo' && event.skillName === 'Abyssal Raze' && event.fieldType === 'Dark'
+  );
+
+  // Dark blasts grant Dark Aura; only dark whirl finishers own Leeching Bolts damage.
+  assert.equal(combo?.finisherType, 'Blast');
+  assert.equal(combo?.name, 'Dark Aura');
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) => event.type === 'aura' && event.name === 'Dark Aura' && event.skillName === 'Abyssal Raze'
+    )
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Leeching Bolts'),
+    false
+  );
+  assert.equal(skillBreakdownRows(result).find((row) => row.name === 'Abyssal Raze')?.hits, 1);
+});
+
 test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   const result = simulate(
     'Core',

@@ -2962,6 +2962,18 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     cooldown: 15,
     energyCost: 12,
     rechargeReduction: 2,
+    // The dark field spans Blot's five impacts so subsequent spear finishers
+    // resolve their combo outcome against the field instead of its damage.
+    comboFields: [
+      {
+        ownerId: 'revenant',
+        fieldType: 'Dark',
+        duration: 1.12,
+        startMs: 960,
+        startAnchor: 'castStart',
+        inclusiveExpiry: true
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -3119,6 +3131,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ammoRecharge: 15,
     energyCost: 8,
     maximumStacks: 3,
+    comboFinishers: [
+      {
+        ownerId: 'revenant',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
