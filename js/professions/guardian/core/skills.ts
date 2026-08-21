@@ -917,17 +917,25 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 1000,
     effects: []
   },
+  // Longbow uses measured EVTC cast durations and packet offsets so projectile hits may precede aftercast unlock.
   [ID.DEFLECTING_SHOT]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1000,
+    quicknessCastTimeMs: 600,
     effects: [
       {
         type: 'strike',
         coefficient: 1.8,
-        hits: 1
+        hits: 1,
+        atMs: -80,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
+        atMs: -80,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         metadata: {
           controlKind: 'control'
         }
@@ -936,7 +944,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SYMBOL_OF_ENERGY]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 600,
+    quicknessCastTimeMs: 400,
     effects: [
       {
         type: 'strike',
@@ -946,8 +955,9 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
       },
       {
         type: 'strike',
-        coefficient: 0.5175,
-        hits: 5,
+        coefficient: 2.07,
+        hits: 4,
+        atMs: 1000,
         intervalMs: 1000,
         name: 'Symbol of Energy — Symbol Damage',
         timingAnchor: 'castEnd',
@@ -988,7 +998,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.TRUE_SHOT]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 920,
+    quicknessCastTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -1004,29 +1015,40 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.PUNCTURE_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        atMs: -160,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.HUNTERS_WARD]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1040,
+    quicknessCastTimeMs: 720,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: "Hunter's Ward — Initial Damage"
+        coefficient: 2.25,
+        hits: 3,
+        atMs: -100,
+        intervalMs: 520,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        name: "Hunter's Ward — Arrow Damage"
       },
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
+        atMs: 1460,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         name: "Hunter's Ward — Final Impact Damage"
       }
     ]

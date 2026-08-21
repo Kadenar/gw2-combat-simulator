@@ -78,7 +78,7 @@
         "label": "Power (Greatsword / Longbow)",
         "build": "Builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "Rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
-        "benchmarkDps": 32262,
+        "benchmarkDps": 41420,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true

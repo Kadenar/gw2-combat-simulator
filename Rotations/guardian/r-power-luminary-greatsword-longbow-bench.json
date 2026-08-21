@@ -4,90 +4,250 @@
     "benchmarkDurationSeconds": 97.356,
     "benchmarkDamage": 3969032,
     "benchmarkDps": 40768.23205554871,
-    "simulatedDps": 32262.36686800361,
-    "timingSource": "Elite Insights cast activations and weapon-swap timings",
-    "note": "dps.report omits pre-combat state, so the importer recovered Radiant Courage and Radiant Forge entry from the opening forge-dependent casts. The omitted opening Symbol of Energy is restored at 2.8 seconds, immediately before True Shot. Cancelled activations are omitted."
+    "simulatedDps": 41420.3973402303,
+    "timingSource": "Manual reconstruction from Elite Insights and in-game audit",
+    "note": "Manually reconstructed rotation supplied on 2026-08-21; preliminary and awaiting another audit."
   },
   "rotation": [
     {
-      "name": "__combat_start"
+      "name": "Radiant Courage",
+      "skillId": 78358
     },
-    "Radiant Courage",
-    "Enter Radiant Forge",
-    "Luminous Staff",
+    {
+      "name": "__wait",
+      "waitMs": 6000
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Daring Advance",
+      "skillId": 76687
+    },
+    {
+      "name": "__combat_start",
+      "offset": 900
+    },
+    {
+      "name": "Luminous Staff"
+    },
     {
       "name": "Effulgent Stance",
       "offset": 118
     },
     {
       "name": "Radiant Resolve",
+      "skillId": 78514,
       "offset": 0
     },
-    "Radiant Justice",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Symbol of Energy",
-    "True Shot",
-    "Hunter's Ward",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Piercing Stance",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Binding Blade",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Symbol of Energy",
-    "True Shot",
-    "Effulgent Stance",
-    "Radiant Justice",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Luminous Staff",
-    "Piercing Stance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "True Shot",
-    "Hunter's Ward",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Radiant Resolve",
-    "Strike",
-    "Vengeful Strike",
+    {
+      "name": "Radiant Justice"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Symbol of Energy"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Hunter's Ward"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Binding Blade"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Energy"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Deflecting Shot"
+    },
+    {
+      "name": "Effulgent Stance"
+    },
+    {
+      "name": "Radiant Justice"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Hunter's Ward"
+    },
+    {
+      "name": "Symbol of Energy",
+      "skillId": 29789
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
+    {
+      "name": "Radiant Resolve",
+      "skillId": 78514,
+      "offset": 100
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
     {
       "name": "Radiant Courage",
+      "skillId": 78358,
       "offset": 285
     },
-    "Wrathful Strike",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
     {
       "name": "Effulgent Stance",
       "offset": 139
@@ -96,71 +256,214 @@
       "name": "Radiant Justice",
       "offset": 125
     },
-    "Shining Spin",
-    "Glaring Burst",
-    "Exit Radiant Forge",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Symbol of Energy",
-    "True Shot",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Luminous Staff",
-    "Piercing Stance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "True Shot",
-    "Hunter's Ward",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Effulgent Stance",
-    "Radiant Justice",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Strike",
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Energy"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Deflecting Shot",
+      "skillId": 29630
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Hunter's Ward"
+    },
+    {
+      "name": "Symbol of Energy",
+      "skillId": 29789
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Effulgent Stance"
+    },
+    {
+      "name": "Radiant Justice"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
     {
       "name": "Radiant Resolve",
-      "offset": 563
+      "skillId": 78514,
+      "offset": 100
     },
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Piercing Stance",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "Binding Blade",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Symbol of Energy",
-    "True Shot",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Luminous Staff",
-    "Daring Advance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Binding Blade"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Energy"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Deflecting Shot",
+      "skillId": 29630
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Daring Advance"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Piercing Stance",
+      "skillId": 77078
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
     {
       "name": "Radiant Justice",
       "offset": 118
@@ -169,43 +472,122 @@
       "name": "Effulgent Stance",
       "offset": 90
     },
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "True Shot",
-    "Hunter's Ward",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Binding Blade",
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Hunter's Ward"
+    },
+    {
+      "name": "Symbol of Energy",
+      "skillId": 29789
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath",
+      "skillId": 9081
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Binding Blade"
+    },
     {
       "name": "Radiant Courage",
+      "skillId": 78358,
       "offset": 201
     },
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Strike",
-    "Vengeful Strike",
-    "Wrathful Strike",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Exit Radiant Forge",
-    "Whirling Wrath",
-    "Symbol of Resolution",
-    "Leap of Faith",
-    "Swap Weapons",
-    "Symbol of Energy",
-    "True Shot",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
-    "Glaring Burst",
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Energy"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Deflecting Shot",
+      "skillId": 29630
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
     {
       "name": "Effulgent Stance",
       "offset": 166
@@ -214,25 +596,66 @@
       "name": "Radiant Justice",
       "offset": 1
     },
-    "Luminous Staff",
-    "Piercing Stance",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Dazzling Hammer",
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
     {
       "name": "Radiant Resolve",
+      "skillId": 78514,
       "offset": 202
     },
-    "Shining Spin",
-    "Exit Radiant Forge",
-    "True Shot",
-    "Hunter's Ward",
-    "Deflecting Shot",
-    "Swap Weapons",
-    "Symbol of Resolution",
-    "Whirling Wrath",
-    "Leap of Faith",
-    "Strike",
-    "Piercing Stance"
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "True Shot"
+    },
+    {
+      "name": "Hunter's Ward"
+    },
+    {
+      "name": "Symbol of Energy",
+      "skillId": 29789
+    },
+    {
+      "name": "Deflecting Shot"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Binding Blade",
+      "skillId": 9147
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Piercing Stance"
+    }
   ]
 }

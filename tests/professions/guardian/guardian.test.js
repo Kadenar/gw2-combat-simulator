@@ -321,6 +321,68 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   assert.equal(quick.conditionDamage > 0, true);
 });
 
+test('Guardian longbow uses measured Quickness cast times', () => {
+  const skillNames = ['Symbol of Energy', 'True Shot', "Hunter's Ward", 'Deflecting Shot'];
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: skillNames,
+    config: {
+      ...config,
+      boons: { quickness: true },
+      primaryWeapon: 'Longbow'
+    }
+  });
+  const castTimes = skillNames.map((skillName) => {
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
+    return Math.round((action.endsAt - action.at) * 1000);
+  });
+
+  assert.deepEqual(castTimes, [400, 680, 720, 600]);
+});
+
+test('Guardian longbow packets and Symbol of Energy burning use measured EVTC timing', () => {
+  const profile = (skillName) => {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [skillName, { type: 'wait', durationMs: 6000 }],
+      config: {
+        ...config,
+        primaryWeapon: 'Longbow'
+      }
+    });
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
+    return {
+      result,
+      action,
+      damage: result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName)
+    };
+  };
+  const offsets = ({ action, damage }) => damage.map((event) => Math.round((event.at - action.at) * 1000));
+  const puncture = profile('Puncture Shot');
+  const deflecting = profile('Deflecting Shot');
+  const symbol = profile('Symbol of Energy');
+  const trueShot = profile('True Shot');
+  const ward = profile("Hunter's Ward");
+  const symbolBurning = symbol.result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Symbol of Energy' && event.condition === 'Burning'
+  );
+
+  assert.deepEqual(offsets(puncture), [840]);
+  assert.deepEqual(offsets(deflecting), [920]);
+  assert.deepEqual(offsets(symbol), [600, 1600, 2600, 3600, 4600]);
+  assert.deepEqual(offsets(trueShot), [920]);
+  assert.deepEqual(offsets(ward), [940, 1460, 1980, 2500]);
+  assert.deepEqual(
+    ward.damage.map((event) => event.coefficient),
+    [0.75, 0.75, 0.75, 2.5]
+  );
+  assert.equal(symbolBurning.length, 1);
+  assert.equal(Math.round((symbolBurning[0].at - symbol.action.at) * 1000), 600);
+  assert.equal(symbolBurning[0].duration, 12);
+});
+
 test('Guardian utilities and traps use the reference damage timelines', () => {
   const skillNames = [
     'Sword of Justice',
@@ -3747,7 +3809,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
   );
   assert.deepEqual(
     retribution.procSteps.filter((step) => step.skill === 'Righteous Instincts').map((step) => step.start),
-    [280, 1280, 2280, 3280, 4280, 5280]
+    [200, 1200, 2200, 3200, 4200, 5200]
   );
 });
 
