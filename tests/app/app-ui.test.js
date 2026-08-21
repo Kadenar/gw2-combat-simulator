@@ -898,7 +898,7 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
   assert.equal(build.profession, 'revenant');
   assert.deepEqual(build.specializations, [
     { name: 'Corruption', traits: '1-3-1' },
-    { name: 'Invocation', traits: '2-1-2' },
+    { name: 'Invocation', traits: '2-3-2' },
     { name: 'Renegade', traits: '2-2-2' }
   ]);
   assert.deepEqual(build.weapons, ['Mace', 'Axe']);

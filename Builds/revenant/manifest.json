@@ -5,7 +5,11 @@
       {
         "label": "Power (Greatsword / SwSw)",
         "build": "Builds/revenant/b-power-renegade-greatsword.json",
-        "benchmarkDps": 43756
+        "rotation": "Rotations/revenant/r-power-renegade-greatsword-benchmark.json",
+        "benchmarkDps": 43075,
+        "referenceDps": 43752,
+        "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
+        "upToDate": true
       },
       {
         "label": "Power Renegade (Hammer / SwSw)",
@@ -28,13 +32,21 @@
         "label": "Condition (Mace-Axe / Spear)",
         "build": "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 41300
+        "benchmarkDps": 40827
       }
     ]
   },
   {
     "section": "Herald",
     "presets": [
+      {
+        "label": "Power Quickness (Greatsword / SwSw)",
+        "build": "Builds/revenant/b-power-quick-herald-greatsword-sword-sword.json",
+        "rotation": "Rotations/revenant/r-power-quick-herald-greatsword-sword-sword-benchmark.json",
+        "benchmarkDps": 31725,
+        "referenceDps": 32073,
+        "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem"
+      },
       {
         "label": "Condition Quickness (Shortbow / Mace-Axe)",
         "build": "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",

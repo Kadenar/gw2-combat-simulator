@@ -5,626 +5,831 @@
       "skillId": 40485
     },
     {
-      "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Searing Fissure"
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 400
     },
     {
       "name": "Swap Legends",
-      "offset": 100
+      "skillId": -4,
+      "offset": 17
     },
     {
-      "name": "Embrace the Darkness"
+      "name": "__combat_start",
+      "offset": 67
     },
     {
-      "name": "Temporal Rift"
+      "name": "Embrace the Darkness",
+      "skillId": 28287
     },
     {
-      "name": "Swap Weapons"
+      "name": "Temporal Rift",
+      "skillId": 28409
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Blot"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Blot",
+      "skillId": 72954
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Swap Legends"
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Swap Weapons"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Echoing Eruption"
+      "name": "Echoing Eruption",
+      "skillId": 27964
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 234
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Temporal Rift",
+      "skillId": 28409
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Temporal Rift"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Echoing Eruption"
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220,
+      "offset": 0
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 201
+    },
+    {
+      "name": "Embrace the Darkness",
+      "skillId": 28287
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Blot",
+      "skillId": 72954
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 200
+    },
+    {
+      "name": "Temporal Rift",
+      "skillId": 28409
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220,
+      "offset": 0
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 117
+    },
+    {
+      "name": "Embrace the Darkness",
+      "skillId": 28287
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Blot",
+      "skillId": 72954
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Blitz",
+      "skillId": 72938
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 401
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 217
+    },
+    {
+      "name": "Temporal Rift",
+      "skillId": 28409
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
     },
     {
       "name": "Darkrazor's Daring",
       "skillId": 41220
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4
     },
     {
-      "name": "Embrace the Darkness"
+      "name": "Embrace the Darkness",
+      "skillId": 28287
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Swap Weapons"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Blot"
+      "name": "Abyssal Blot",
+      "skillId": 72954
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 400
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Swap Weapons"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Echoing Eruption"
+      "name": "Echoing Eruption",
+      "skillId": 27964
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 201
     },
     {
-      "name": "Temporal Rift"
+      "name": "Temporal Rift",
+      "skillId": 28409
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Anguish Swipe",
+      "skillId": 26730
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Manifest Toxin",
+      "skillId": 26666
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Misery Swipe"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Echoing Eruption"
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
       "name": "Darkrazor's Daring",
-      "skillId": 41220
+      "skillId": 41220,
+      "offset": 0
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 117
     },
     {
-      "name": "Embrace the Darkness"
+      "name": "Embrace the Darkness",
+      "skillId": 28287
     },
     {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Swap Weapons"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Blot"
+      "name": "Abyssal Blot",
+      "skillId": 72954
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Blitz"
+      "name": "Abyssal Blitz",
+      "skillId": 72938
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 399
     },
     {
-      "name": "Swap Legends"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Echoing Eruption"
-    },
-    {
-      "name": "Razorclaw's Rage",
-      "skillId": 42949
-    },
-    {
-      "name": "Temporal Rift"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Misery Swipe"
+      "name": "Citadel Bombardment",
+      "skillId": 42836
     },
     {
       "name": "Icerazor's Ire",
       "skillId": 40485
     },
     {
-      "name": "Echoing Eruption"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Darkrazor's Daring",
-      "skillId": 41220
-    },
-    {
-      "name": "Swap Legends"
-    },
-    {
-      "name": "Embrace the Darkness"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Abyssal Force"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Blot"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Force"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Swap Legends"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Echoing Eruption"
-    },
-    {
-      "name": "Razorclaw's Rage",
-      "skillId": 42949
-    },
-    {
-      "name": "Temporal Rift"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Echoing Eruption"
-    },
-    {
-      "name": "Darkrazor's Daring",
-      "skillId": 41220
-    },
-    {
-      "name": "Swap Legends"
-    },
-    {
-      "name": "Embrace the Darkness"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Abyssal Force"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Blot"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Blitz"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Force"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Abyssal Strike"
-    },
-    {
-      "name": "Swap Legends"
-    },
-    {
-      "name": "Citadel Bombardment"
-    },
-    {
-      "name": "Icerazor's Ire",
-      "skillId": 40485
-    },
-    {
-      "name": "Swap Weapons"
+      "name": "Echoing Eruption",
+      "skillId": 27964
     }
   ]
 }

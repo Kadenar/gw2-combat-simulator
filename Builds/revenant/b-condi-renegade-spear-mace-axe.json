@@ -17,24 +17,12 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
-  "weapons": [
-    "Mace",
-    "Axe"
-  ],
-  "alternateWeapons": [
-    "Spear",
-    ""
-  ],
+  "weapons": ["Mace", "Axe"],
+  "alternateWeapons": ["Spear", ""],
   "rune": "Trapper",
   "weaponSigils": [
-    [
-      "Geomancy",
-      "Torment"
-    ],
-    [
-      "Doom",
-      "Earth"
-    ]
+    ["Geomancy", "Torment"],
+    ["Doom", "Earth"]
   ],
   "relic": "Fractal",
   "food": "Meaty Asparagus Skewer",
@@ -61,7 +49,7 @@
     },
     {
       "name": "Invocation",
-      "traits": "2-1-2"
+      "traits": "2-3-2"
     },
     {
       "name": "Renegade",
@@ -69,10 +57,7 @@
     }
   ],
   "selectedSkills": {},
-  "selectedLegends": [
-    "LegendaryRenegade",
-    "LegendaryDemon"
-  ],
+  "selectedLegends": ["LegendaryRenegade", "LegendaryDemon"],
   "startingLegend": "LegendaryRenegade",
   "selectedDodge": "Death Drop",
   "allianceSide": "luxon",
