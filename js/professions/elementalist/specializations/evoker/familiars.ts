@@ -1,4 +1,5 @@
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/trait-state.js';
+import { castRelativeEffectTimingScale } from '../../../../platform/gw2/skill-timing.js';
 import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
 import { emitElementalistBuff, emitElementalistProc } from '../../core/mechanics.js';
@@ -34,10 +35,14 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
     if (!familiar) continue;
     for (const rawEffect of familiar.effects || []) {
       const effect = rawEffect as SchedulerRecord;
+      // Procession launches an independent familiar sequence rather than a
+      // player cast, so its packets retain their unquickened runtime spacing.
+      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0));
+      const timingScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
       const ticks = Array.isArray(effect.ticks) ? effect.ticks : [effect];
       for (const rawTick of ticks) {
         const tick = rawTick as SchedulerRecord;
-        const at = context.effectiveEnd + Number(tick.atMs ?? effect.atMs ?? 0) / 1_000;
+        const at = context.effectiveEnd + (Number(tick.atMs ?? effect.atMs ?? 0) * timingScale) / 1_000;
         const metadata = (tick.metadata || effect.metadata || {}) as SchedulerRecord;
         const comboFinishers = tick.comboFinishers || effect.comboFinishers;
         if (effect.type === 'strike') {

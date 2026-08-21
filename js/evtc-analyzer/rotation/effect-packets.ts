@@ -1,4 +1,5 @@
 import type { Skill, StrikeEffect } from '../../platform/engine/types.js';
+import { castRelativeEffectTimingScale, quicknessReferenceCastTimeMs } from '../../platform/gw2/skill-timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../types.js';
 import { findRotationSkill } from './catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './professions/types.js';
@@ -57,10 +58,7 @@ export function skillForAction(
 }
 
 export function quicknessRuntimeDurationMs(skill: Skill | null): number {
-  const explicit = Math.max(0, Number(skill?.quicknessCastTimeMs || 0));
-  if (explicit > 0) return explicit;
-  const base = Math.max(0, Number(skill?.castTimeMs || 0));
-  return skill?.unaffectedByQuickness === true ? base : (base * 2) / 3;
+  return quicknessReferenceCastTimeMs(skill);
 }
 
 export function strikePacketOffsets(
@@ -69,8 +67,9 @@ export function strikePacketOffsets(
   runtimeDurationMs = quicknessRuntimeDurationMs(skill)
 ): number[] {
   const origin = effect.timingAnchor === 'castEnd' ? runtimeDurationMs : 0;
-  const baseDurationMs = Math.max(0, Number(skill.castTimeMs || 0));
-  const castScale = effect.timingScale === 'cast' && baseDurationMs > 0 ? runtimeDurationMs / baseDurationMs : 1;
+  // EVTC packet reconstruction uses the same Quickness-authored timing contract
+  // as simulation so observed and expected packets stay on one timeline.
+  const castScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, runtimeDurationMs) : 1;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }

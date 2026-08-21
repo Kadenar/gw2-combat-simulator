@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
  *
@@ -387,10 +388,11 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const authoredOffsetMs = Number(strike?.ticks?.[0]?.atMs ?? strike?.atMs ?? skill.castTimeMs ?? 0);
-    const baseCastMs = Math.max(1, Number(skill.castTimeMs || 0));
     const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
     const offsetMs =
-      strike?.timingScale === 'cast' ? authoredOffsetMs * (runtimeCastMs / baseCastMs) : authoredOffsetMs;
+      strike?.timingScale === 'cast'
+        ? authoredOffsetMs * castRelativeEffectTimingScale(skill, runtimeCastMs)
+        : authoredOffsetMs;
     at = Math.min(context.effectiveEnd, context.start + offsetMs / 1000);
   }
 

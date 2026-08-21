@@ -51,7 +51,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -140,7 +140,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -234,7 +234,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         coefficient: 4,
         hits: 1,
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
-        atMs: 1260,
+        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         coefficientModifiers: [
@@ -252,7 +252,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       },
       {
         type: 'control',
-        atMs: 1260,
+        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -265,7 +265,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         stacks: 1,
         duration: 1,
         applications: 5,
-        atMs: 1260,
+        atMs: 840,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',

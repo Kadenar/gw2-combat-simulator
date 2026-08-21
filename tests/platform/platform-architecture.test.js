@@ -788,8 +788,8 @@ test('declarative multi-hit and delayed effects preserve individual events', () 
             type: 'strike',
             coefficient: 3,
             hits: 3,
-            atMs: 100,
-            intervalMs: 100,
+            atMs: 66.666667,
+            intervalMs: 66.666667,
             timingAnchor: 'castStart',
             timingScale: 'cast'
           },
@@ -841,7 +841,7 @@ test('declarative multi-hit and delayed effects preserve individual events', () 
 test('declarative repeated statuses keep fixed pulse intervals', () => {
   const timing = {
     applications: 3,
-    atMs: 300,
+    atMs: 200,
     intervalMs: 1000,
     intervalTimingScale: 'fixed',
     timingAnchor: 'castStart',
@@ -887,20 +887,23 @@ test('declarative repeated statuses keep fixed pulse intervals', () => {
 });
 
 test('declarative strike timelines preserve per-hit coefficients and shared timestamps', () => {
+  // Cast-relative fixtures are authored on the Quickness timeline; the normal
+  // simulation expands them back to the unquickened packet schedule.
   const ticks = [
     { atMs: 0, coefficient: 0.2 },
-    { atMs: 571, coefficient: 0.2 },
-    { atMs: 1000, coefficient: 0.5 },
-    { atMs: 1142, coefficient: 0.2 },
-    { atMs: 1714, coefficient: 0.2 },
-    { atMs: 2000, coefficient: 0.5 },
-    { atMs: 2285, coefficient: 0.2 },
-    { atMs: 2857, coefficient: 0.2 },
-    { atMs: 3000, coefficient: 0.5 },
-    { atMs: 3428, coefficient: 0.2 },
-    { atMs: 4000, coefficient: 0.2 },
-    { atMs: 4000, coefficient: 0.5 }
+    { atMs: 382.57, coefficient: 0.2 },
+    { atMs: 670, coefficient: 0.5 },
+    { atMs: 765.14, coefficient: 0.2 },
+    { atMs: 1148.38, coefficient: 0.2 },
+    { atMs: 1340, coefficient: 0.5 },
+    { atMs: 1530.95, coefficient: 0.2 },
+    { atMs: 1914.19, coefficient: 0.2 },
+    { atMs: 2010, coefficient: 0.5 },
+    { atMs: 2296.76, coefficient: 0.2 },
+    { atMs: 2680, coefficient: 0.2 },
+    { atMs: 2680, coefficient: 0.5 }
   ];
+  const unquickenedAtMs = [0, 571, 1000, 1142, 1714, 2000, 2285, 2857, 3000, 3428, 4000, 4000];
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -935,14 +938,14 @@ test('declarative strike timelines preserve per-hit coefficients and shared time
 
   assert.deepEqual(
     normalHits.map((event) => Math.round(event.at * 1000)),
-    ticks.map((tick) => tick.atMs)
+    unquickenedAtMs
   );
   assert.deepEqual(
     normalHits.map((event) => event.coefficient),
     ticks.map((tick) => tick.coefficient)
   );
   assert.deepEqual(
-    normalHits.slice(-2).map((event) => [event.at, event.coefficient]),
+    normalHits.slice(-2).map((event) => [Number(event.at.toFixed(6)), event.coefficient]),
     [
       [4, 0.2],
       [4, 0.5]
@@ -968,19 +971,19 @@ test('declarative condition timelines preserve each application', () => {
       duration: 2
     },
     {
-      atMs: 500,
+      atMs: 340,
       condition: 'Bleeding',
       stacks: 2,
       duration: 4
     },
     {
-      atMs: 2000,
+      atMs: 1360,
       condition: 'Poisoned',
       stacks: 1,
       duration: 3
     },
     {
-      atMs: 2000,
+      atMs: 1360,
       condition: 'Burning',
       stacks: 3,
       duration: 5
@@ -1025,10 +1028,15 @@ test('declarative condition timelines preserve each application', () => {
       stacks: event.stacks,
       duration: event.duration
     })),
-    ticks
+    [
+      { ...ticks[0], atMs: 0 },
+      { ...ticks[1], atMs: 500 },
+      { ...ticks[2], atMs: 2000 },
+      { ...ticks[3], atMs: 2000 }
+    ]
   );
   assert.deepEqual(
-    normalApplications.slice(-2).map((event) => [event.at, event.condition]),
+    normalApplications.slice(-2).map((event) => [Number(event.at.toFixed(6)), event.condition]),
     [
       [2, 'Poisoned'],
       [2, 'Burning']
@@ -1195,7 +1203,7 @@ test('canonical condition timelines reject invalid or ambiguous applications', (
   );
 });
 
-test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
+test('GW2 Quickness uses stored effect timing and slower casts scale it upward', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -1203,7 +1211,7 @@ test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
         name: 'Fixture Timeline',
         castTimeMs: 2200,
         effects: [
-          strikePackets(4, [550, 1100, 1650, 2200], {
+          strikePackets(4, [370, 740, 1110, 1480], {
             timingAnchor: 'castStart',
             timingScale: 'cast'
           })
@@ -1218,8 +1226,8 @@ test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
             type: 'strike',
             coefficient: 3,
             hits: 3,
-            atMs: 200,
-            intervalMs: 200,
+            atMs: 133.333333,
+            intervalMs: 133.333333,
             timingAnchor: 'castStart',
             timingScale: 'cast'
           }
@@ -1263,18 +1271,21 @@ test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
     name: 'Quickness Fixture',
     catalog
   });
-  const result = simulateGw2({
-    profession,
-    rotation: [
-      'Fixture Timeline',
-      'Fixture Channel',
-      'Fixture Field',
-      'Fixture Quickness Immune',
-      { type: 'wait', durationMs: 4000 }
-    ],
-    config: { boons: { quickness: true } }
-  });
-  const profile = (skillName) => {
+  const simulate = (quickness) =>
+    simulateGw2({
+      profession,
+      rotation: [
+        'Fixture Timeline',
+        'Fixture Channel',
+        'Fixture Field',
+        'Fixture Quickness Immune',
+        { type: 'wait', durationMs: 4000 }
+      ],
+      config: { boons: { quickness } }
+    });
+  const quick = simulate(true);
+  const normal = simulate(false);
+  const profile = (result, skillName) => {
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
 
     return {
@@ -1285,21 +1296,29 @@ test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
     };
   };
 
-  assert.deepEqual(profile('Fixture Timeline'), {
+  assert.deepEqual(profile(quick, 'Fixture Timeline'), {
     cast: 1480,
     ticks: [370, 740, 1110, 1480]
   });
-  assert.deepEqual(profile('Fixture Channel'), {
+  assert.deepEqual(profile(quick, 'Fixture Channel'), {
     cast: 400,
     ticks: [133, 267, 400]
   });
-  assert.deepEqual(profile('Fixture Field'), {
+  assert.deepEqual(profile(quick, 'Fixture Field'), {
     cast: 400,
     ticks: [1400, 2400, 3400]
   });
-  assert.deepEqual(profile('Fixture Quickness Immune'), {
+  assert.deepEqual(profile(quick, 'Fixture Quickness Immune'), {
     cast: 600,
     ticks: [600]
+  });
+  assert.deepEqual(profile(normal, 'Fixture Timeline'), {
+    cast: 2200,
+    ticks: [550, 1100, 1650, 2200]
+  });
+  assert.deepEqual(profile(normal, 'Fixture Channel'), {
+    cast: 600,
+    ticks: [200, 400, 600]
   });
 });
 

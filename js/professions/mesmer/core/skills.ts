@@ -31,7 +31,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         actorType: 'player',
         weapon: 'scepter',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       },
       {
         type: 'condition',
@@ -559,7 +559,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         name: 'Minimum-range damage',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       }
     ],
     pulseCount: 3

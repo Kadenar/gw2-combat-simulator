@@ -457,8 +457,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
       throw new TypeError('Explicit effect timing requires timingScale cast or fixed.');
     }
 
-    // "cast" scale means the offset is proportional to cast duration (quickness-aware);
-    // it can only be measured relative to the start of the cast, not the end.
+    // "cast" effect values are authored on the Quickness timeline and expand
+    // proportionally for slower casts. They must be relative to cast start.
     if (normalizedEffect.timingScale === 'cast' && normalizedEffect.timingAnchor !== 'castStart') {
       throw new TypeError('Cast-scaled effect timing must be anchored to castStart.');
     }

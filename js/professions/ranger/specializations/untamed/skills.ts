@@ -232,7 +232,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           coefficient: 1
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       },
       {
         type: 'boon',

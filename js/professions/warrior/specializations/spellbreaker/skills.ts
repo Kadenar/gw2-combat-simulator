@@ -505,7 +505,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -514,7 +514,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 3,
         duration: 6,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

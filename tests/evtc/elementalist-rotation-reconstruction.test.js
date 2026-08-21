@@ -336,7 +336,7 @@ test('infers partial Arc Lightning channels from EVTC packet boundaries', () => 
       effects: [
         {
           type: 'strike',
-          ticks: [660, 1_020, 1_440, 1_800, 2_160, 2_580, 2_940, 3_300, 3_720, 4_080].map((atMs) => ({
+          ticks: [440, 680, 960, 1_200, 1_440, 1_720, 1_960, 2_200, 2_480, 2_720].map((atMs) => ({
             atMs,
             coefficient: 1
           })),

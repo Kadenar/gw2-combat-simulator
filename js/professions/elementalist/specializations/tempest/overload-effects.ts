@@ -36,13 +36,14 @@ function boon(atMs: number, name: string, stacks: number, duration: number): Ski
   };
 }
 
-const OVERLOAD_FIRE_TICKS = Object.freeze([420, 1140, 1875, 2595, 4800, 6300, 7800, 9300, 10800, 12300]);
+// Overload packets are stored on their Quickness timelines and expand for unquickened casts.
+const OVERLOAD_FIRE_TICKS = Object.freeze([280, 760, 1250, 1730, 3200, 4200, 5200, 6200, 7200, 8200]);
 
 const OVERLOAD_AIR_TICKS = Object.freeze([
-  1080, 1680, 2280, 2880, 3480, 4080, 4680, 5460, 6240, 7020, 7815, 8580, 9360, 10140
+  720, 1120, 1520, 1920, 2320, 2720, 3120, 3640, 4160, 4680, 5210, 5720, 6240, 6760
 ]);
 
-const OVERLOAD_EARTH_TICKS = Object.freeze([120, 1200, 2280, 3360, 4140, 5640, 7140, 8640, 10140]);
+const OVERLOAD_EARTH_TICKS = Object.freeze([80, 800, 1520, 2240, 2760, 3760, 4760, 5760, 6760]);
 
 function overloadFireEffects(): readonly SkillEffect[] {
   return OVERLOAD_FIRE_TICKS.flatMap((atMs, index) => {

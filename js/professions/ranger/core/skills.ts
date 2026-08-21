@@ -754,7 +754,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         type: 'strike',
         ticks: [360, 520, 680, 840, 1000, 1160, 1320, 1480, 1640, 1800].map((atMs) => ({ atMs, coefficient: 0.6 })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -773,7 +773,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           duration: 10
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       }
     ],
     quicknessCastTimeMs: 1800,
@@ -1243,7 +1243,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           coefficient: 0.66
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       },
       {
         type: 'boon',
@@ -1258,7 +1258,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 10,
         atMs: 2600,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       }
     ],
     quicknessCastTimeMs: 2720
@@ -3775,9 +3775,9 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         ticks: [
-          { atMs: 333, coefficient: 1.25 },
-          { atMs: 667, coefficient: 1.25 },
-          { atMs: 1000, coefficient: 2.5 }
+          { atMs: 222, coefficient: 1.25 },
+          { atMs: 444.666667, coefficient: 1.25 },
+          { atMs: 666.666667, coefficient: 2.5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'

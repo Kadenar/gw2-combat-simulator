@@ -63,7 +63,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             coefficient: 1.56
           }
         ],
@@ -74,7 +74,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             condition: 'Burning',
             stacks: 2,
             duration: 4.5
@@ -139,7 +139,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     effects: [
       {
         type: 'control',
-        atMs: 3300,
+        atMs: 2200,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -196,23 +196,23 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             coefficient: 0.28
           },
           {
-            atMs: 2040,
+            atMs: 1360,
             coefficient: 0.28
           },
           {
-            atMs: 2400,
+            atMs: 1600,
             coefficient: 0.28
           },
           {
-            atMs: 2760,
+            atMs: 1840,
             coefficient: 0.28
           },
           {
-            atMs: 3120,
+            atMs: 2080,
             coefficient: 0.28
           }
         ],
@@ -223,31 +223,31 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 2040,
+            atMs: 1360,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 2400,
+            atMs: 1600,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 2760,
+            atMs: 1840,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 3120,
+            atMs: 2080,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -317,7 +317,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3180,
+            atMs: 2120,
             coefficient: 1.15,
             comboFinishers: [
               {
@@ -337,7 +337,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3180,
+            atMs: 2120,
             condition: 'Bleeding',
             stacks: 6,
             duration: 10
@@ -349,7 +349,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 3180,
+        atMs: 2120,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -426,7 +426,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             coefficient: 1.5
           }
         ],
@@ -437,7 +437,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             condition: 'Bleeding',
             stacks: 4,
             duration: 10

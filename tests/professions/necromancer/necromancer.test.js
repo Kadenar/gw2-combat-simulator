@@ -422,7 +422,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
 
     assert.equal(strike?.timingAnchor, 'castStart', skill.name);
     assert.equal(strike?.timingScale, 'cast', skill.name);
-    assert.equal(Math.round((strike.atMs * skill.quicknessCastTimeMs) / skill.castTimeMs), expectedOffset, skill.name);
+    assert.equal(Math.round(strike.atMs), expectedOffset, skill.name);
   }
 
   const devouringDarkness = simulate('Core', ['Devouring Darkness'], {
@@ -687,10 +687,10 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-          skill.effects.length ||
-          skill.lifeForceGain ||
-          skill.flipParentId != null ||
-          skill.type === 'Action'
+        skill.effects.length ||
+        skill.lifeForceGain ||
+        skill.flipParentId != null ||
+        skill.type === 'Action'
       ),
       true,
       `${skill.id} ${skill.name}`

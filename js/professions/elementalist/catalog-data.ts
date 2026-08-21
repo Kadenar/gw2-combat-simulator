@@ -140,7 +140,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
         ...effect,
         ticks: [
           ...(effect.ticks || []),
-          ...[12840, 14340].map((atMs) => ({
+          ...[8560, 9560].map((atMs) => ({
             atMs,
             coefficient: 0.44,
             metadata: {
@@ -157,7 +157,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
         ...effect,
         ticks: [
           ...(effect.ticks || []),
-          ...[12840, 14340].map((atMs) => ({
+          ...[8560, 9560].map((atMs) => ({
             atMs,
             condition: 'Burning',
             stacks: 1,

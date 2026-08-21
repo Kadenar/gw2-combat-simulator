@@ -1,7 +1,8 @@
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
-export const PIERCING_STANCE_IMPACT_MS = 240;
+// Cast-scaled impacts use the measured Quickness timeline as their source data.
+export const PIERCING_STANCE_IMPACT_MS = 160;
 
 export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EXIT_RADIANT_FORGE]: {
@@ -57,7 +58,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

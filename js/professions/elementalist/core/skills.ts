@@ -3,16 +3,17 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '../data/ids.js';
 import { elementalistPacketEffects } from './skill-effects.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 
-const DRAKES_BREATH_TICK_OFFSETS_MS = [780, 1140, 1500, 1860] as const;
-const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [240, 1740, 3240, 4740, 6240] as const;
-const FLAMEWALL_TICK_OFFSETS_MS = [840, 2340, 3840, 5340, 6840, 8340, 9840, 11340, 12840] as const;
-const WILDFIRE_TICK_OFFSETS_MS = [2340, 3840, 5340, 6840, 8340, 9840, 11340] as const;
-const DUST_STORM_TICK_OFFSETS_MS = [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960] as const;
-const FROST_VOLLEY_TICK_OFFSETS_MS = [540, 1020, 1500, 1980, 2460] as const;
+// Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
+const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
+const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as const;
+const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560] as const;
+const WILDFIRE_TICK_OFFSETS_MS = [1560, 2560, 3560, 4560, 5560, 6560, 7560] as const;
+const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640] as const;
+const FROST_VOLLEY_TICK_OFFSETS_MS = [360, 680, 1000, 1320, 1640] as const;
 const GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS = [
-  1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320
+  880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880
 ] as const;
-const FIRESTORM_TICK_OFFSETS_MS = [780, 2280, 3780, 5280, 6780, 8280, 9780, 11280, 12780] as const;
+const FIRESTORM_TICK_OFFSETS_MS = [520, 1520, 2520, 3520, 4520, 5520, 6520, 7520, 8520] as const;
 
 export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIRE_ATTUNEMENT]: {
@@ -83,7 +84,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 1.4
           }
         ],
@@ -94,7 +95,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Burning',
             stacks: 1,
             duration: 1
@@ -130,28 +131,28 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             coefficient: 0.525,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 3240,
+            atMs: 2160,
             coefficient: 0.525,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 4740,
+            atMs: 3160,
             coefficient: 0.525,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 6240,
+            atMs: 4160,
             coefficient: 0.525,
             metadata: {
               damageKind: 'field-tick'
@@ -165,25 +166,25 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 3240,
+            atMs: 2160,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 4740,
+            atMs: 3160,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 6240,
+            atMs: 4160,
             condition: 'Burning',
             stacks: 1,
             duration: 1
@@ -211,7 +212,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1
           }
         ],
@@ -222,7 +223,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             condition: 'Burning',
             stacks: 3,
             duration: 6
@@ -234,7 +235,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 480,
+        atMs: 320,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -268,7 +269,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 120,
+            atMs: 80,
             coefficient: 0.2
           }
         ],
@@ -279,7 +280,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 120,
+            atMs: 80,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -293,42 +294,42 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1620,
+            atMs: 1080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 3120,
+            atMs: 2080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 4620,
+            atMs: 3080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 6120,
+            atMs: 4080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 7620,
+            atMs: 5080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 9120,
+            atMs: 6080,
             coefficient: 0.2,
             metadata: {
               damageKind: 'field-tick'
@@ -342,37 +343,37 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1620,
+            atMs: 1080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 3120,
+            atMs: 2080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 4620,
+            atMs: 3080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 6120,
+            atMs: 4080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 7620,
+            atMs: 5080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 9120,
+            atMs: 6080,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -396,30 +397,30 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     skillFamily: 'Weapon skill',
     implemented: true,
     effects: elementalistPacketEffects([
-      [3480, 1.6],
-      [3900, 1.44],
-      [4380, 1.28],
-      [4860, 1.12],
-      [5100, 0.96],
-      [5820, 0.8],
-      [6720, 0.64],
-      [7140, 0.48],
-      [7620, 0.32],
-      [8100, 0.32],
-      [8340, 0.32],
-      [9060, 0.32],
-      [9960, 0.32],
-      [10380, 0.32],
-      [10860, 0.32],
-      [11340, 0.32],
-      [11580, 0.32],
-      [12300, 0.32],
-      [13200, 0.32],
-      [13620, 0.32],
-      [14100, 0.32],
-      [14580, 0.32],
-      [14820, 0.32],
-      [15540, 0.32]
+      [2320, 1.6],
+      [2600, 1.44],
+      [2920, 1.28],
+      [3240, 1.12],
+      [3400, 0.96],
+      [3880, 0.8],
+      [4480, 0.64],
+      [4760, 0.48],
+      [5080, 0.32],
+      [5400, 0.32],
+      [5560, 0.32],
+      [6040, 0.32],
+      [6640, 0.32],
+      [6920, 0.32],
+      [7240, 0.32],
+      [7560, 0.32],
+      [7720, 0.32],
+      [8200, 0.32],
+      [8800, 0.32],
+      [9080, 0.32],
+      [9400, 0.32],
+      [9720, 0.32],
+      [9880, 0.32],
+      [10360, 0.32]
     ])
   },
   [ID.WATER_BLAST]: {
@@ -438,7 +439,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 0.3
           }
         ],
@@ -463,7 +464,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2640,
+            atMs: 1760,
             coefficient: 1.5,
             comboFinishers: [
               {
@@ -482,7 +483,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2640,
+            atMs: 1760,
             condition: 'Vulnerability',
             stacks: 5,
             duration: 10
@@ -539,7 +540,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 240,
+            atMs: 160,
             condition: 'Chilled',
             stacks: 1,
             duration: 2
@@ -577,7 +578,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 13,
         durationScale: 'boon',
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -600,7 +601,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 0.8
           }
         ],
@@ -625,7 +626,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 1.8
           }
         ],
@@ -634,7 +635,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 1200,
+        atMs: 800,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -658,7 +659,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'control',
-        atMs: 270,
+        atMs: 180,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -686,7 +687,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 10,
         durationScale: 'boon',
-        atMs: 300,
+        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -697,7 +698,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 300,
+        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -728,7 +729,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 270,
+            atMs: 180,
             coefficient: 0.5
           }
         ],
@@ -738,7 +739,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 270,
+        atMs: 180,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -750,7 +751,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 0.5
           }
         ],
@@ -760,7 +761,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1020,
+        atMs: 680,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -786,7 +787,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 1.2,
             comboFinishers: [
               {
@@ -805,7 +806,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -833,7 +834,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 6000,
+            atMs: 4000,
             coefficient: 1.5,
             comboFinishers: [
               {
@@ -852,7 +853,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 6000,
+            atMs: 4000,
             condition: 'Bleeding',
             stacks: 6,
             duration: 12
@@ -866,7 +867,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 6000,
+            atMs: 4000,
             condition: 'Cripple',
             stacks: 1,
             duration: 3
@@ -910,7 +911,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             coefficient: 1,
             comboFinishers: [
               {
@@ -942,7 +943,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'control',
-        atMs: 600,
+        atMs: 400,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -968,7 +969,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 2.5,
             comboFinishers: [
               {
@@ -987,7 +988,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Bleeding',
             stacks: 1,
             duration: 20
@@ -1001,7 +1002,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
@@ -1029,7 +1030,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.5
           }
         ],
@@ -1040,7 +1041,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Burning',
             stacks: 1,
             duration: 1.5
@@ -1054,7 +1055,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.7
           }
         ],
@@ -1065,7 +1066,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Burning',
             stacks: 1,
             duration: 2.5
@@ -1093,7 +1094,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 3900,
+            atMs: 2600,
             coefficient: 2.25,
             comboFinishers: [
               {
@@ -1112,7 +1113,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 3900,
+            atMs: 2600,
             condition: 'Burning',
             stacks: 1,
             duration: 10
@@ -1140,7 +1141,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 0.75
           }
         ],
@@ -1151,7 +1152,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 1.7,
             comboFinishers: [
               {
@@ -1170,7 +1171,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Burning',
             stacks: 2,
             duration: 6
@@ -1184,7 +1185,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 570,
+            atMs: 380,
             coefficient: 0.75
           }
         ],
@@ -1197,7 +1198,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 5,
         durationScale: 'boon',
-        atMs: 570,
+        atMs: 380,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -1220,15 +1221,15 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.39999999999999997
           },
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.39999999999999997
           },
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.39999999999999997
           }
         ],
@@ -1253,7 +1254,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.8
           }
         ],
@@ -1264,7 +1265,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Chilled',
             stacks: 1,
             duration: 2
@@ -1278,7 +1279,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             coefficient: 0.8
           }
         ],
@@ -1289,7 +1290,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             condition: 'Chilled',
             stacks: 1,
             duration: 2
@@ -1319,7 +1320,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 2.4
           }
         ],
@@ -1345,16 +1346,16 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         // Arc Lightning ramps over ten attacks: three stage-one, three stage-two, then four stage-three packets.
         ticks: [
-          [660, 0.35],
-          [1020, 0.35],
-          [1440, 0.35],
-          [1800, 0.4],
-          [2160, 0.4],
-          [2580, 0.4],
-          [2940, 0.45],
-          [3300, 0.45],
-          [3720, 0.45],
-          [4080, 0.45]
+          [440, 0.35],
+          [680, 0.35],
+          [960, 0.35],
+          [1200, 0.4],
+          [1440, 0.4],
+          [1720, 0.4],
+          [1960, 0.45],
+          [2200, 0.45],
+          [2480, 0.45],
+          [2720, 0.45]
         ].map(([atMs, coefficient]) => ({ atMs, coefficient })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -1457,7 +1458,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 0.5,
             comboFinishers: [
               {
@@ -1477,7 +1478,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1491,7 +1492,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1500,
+            atMs: 1000,
             coefficient: 0.5,
             comboFinishers: [
               {
@@ -1511,7 +1512,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1500,
+            atMs: 1000,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1525,7 +1526,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             coefficient: 0.5,
             comboFinishers: [
               {
@@ -1545,7 +1546,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1583,7 +1584,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 4,
         durationScale: 'boon',
-        atMs: 1140,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -1869,7 +1870,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 1
           }
         ],
@@ -1895,7 +1896,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 1.1
           }
         ],
@@ -1921,7 +1922,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 1.8
           }
         ],
@@ -1932,7 +1933,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -1968,7 +1969,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 2,
             comboFinishers: [
               {
@@ -1987,7 +1988,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -2001,14 +2002,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2400,
+            atMs: 1600,
             coefficient: 0.5,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 3900,
+            atMs: 2600,
             coefficient: 0.5,
             metadata: {
               damageKind: 'field-tick'
@@ -2036,7 +2037,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 2.91
           }
         ],
@@ -2047,7 +2048,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Burning',
             stacks: 1,
             duration: 8
@@ -2076,7 +2077,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.8
           }
         ],
@@ -2102,7 +2103,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.9
           }
         ],
@@ -2128,7 +2129,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 1.1
           }
         ],
@@ -2161,7 +2162,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 60,
+            atMs: 40,
             coefficient: 0.33
           }
         ],
@@ -2174,7 +2175,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 5,
         durationScale: 'boon',
-        atMs: 60,
+        atMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -2197,7 +2198,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 0.75
           }
         ],
@@ -2210,7 +2211,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 5,
         durationScale: 'boon',
-        atMs: 900,
+        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -2234,7 +2235,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.9
           }
         ],
@@ -2260,7 +2261,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 1
           }
         ],
@@ -2273,7 +2274,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 2,
         durationScale: 'boon',
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -2297,7 +2298,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.2
           }
         ],
@@ -2308,7 +2309,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.32
           }
         ],
@@ -2319,7 +2320,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1440,
+            atMs: 960,
             coefficient: 0.32
           }
         ],
@@ -2330,7 +2331,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             coefficient: 0.32
           }
         ],
@@ -2355,7 +2356,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.66,
             comboFinishers: [
               {
@@ -2377,7 +2378,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -2386,7 +2387,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -2398,7 +2399,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 420,
+        atMs: 280,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2421,15 +2422,15 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [900, 0.5],
+        [600, 0.5],
+        [800, 0.425],
+        [1000, 0.425],
         [1200, 0.425],
-        [1500, 0.425],
+        [1400, 0.425],
+        [1600, 0.425],
         [1800, 0.425],
-        [2100, 0.425],
-        [2400, 0.425],
-        [2700, 0.425],
-        [3000, 0.425],
-        [3300, 0.425]
+        [2000, 0.425],
+        [2200, 0.425]
       ],
       { condition: { condition: 'Vulnerability', stacks: 1, duration: 8 } }
     )
@@ -2451,7 +2452,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.8
           }
         ],
@@ -2462,7 +2463,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Bleeding',
             stacks: 1,
             duration: 4
@@ -2491,7 +2492,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.9
           }
         ],
@@ -2502,7 +2503,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Bleeding',
             stacks: 1,
             duration: 4
@@ -2531,7 +2532,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 1.4
           }
         ],
@@ -2542,7 +2543,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -2556,7 +2557,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Cripple',
             stacks: 1,
             duration: 3
@@ -2584,7 +2585,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 1.8,
             comboFinishers: [
               {
@@ -2603,7 +2604,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Bleeding',
             stacks: 2,
             duration: 8
@@ -2617,7 +2618,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Cripple',
             stacks: 1,
             duration: 3
@@ -2642,14 +2643,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [540, 0.33],
-        [540, 0.33],
-        [900, 0.33],
-        [960, 0.33],
-        [1260, 0.33],
-        [1260, 0.33],
-        [1620, 0.33],
-        [1680, 0.33]
+        [360, 0.33],
+        [360, 0.33],
+        [600, 0.33],
+        [640, 0.33],
+        [840, 0.33],
+        [840, 0.33],
+        [1080, 0.33],
+        [1120, 0.33]
       ],
       { condition: { condition: 'Bleeding', stacks: 1, duration: 4 } }
     )
@@ -2670,15 +2671,15 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.45
           },
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.45
           },
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.45
           }
         ],
@@ -2747,7 +2748,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 3
           }
         ],
@@ -2758,7 +2759,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -2818,7 +2819,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 2
           }
         ],
@@ -2829,7 +2830,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Burning',
             stacks: 2,
             duration: 4
@@ -2857,7 +2858,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 3.5
           }
         ],
@@ -2882,7 +2883,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.33
           }
         ],
@@ -2893,7 +2894,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -2907,7 +2908,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2040,
+            atMs: 1360,
             coefficient: 0.33
           }
         ],
@@ -2918,7 +2919,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2040,
+            atMs: 1360,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -2946,7 +2947,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.6
           }
         ],
@@ -2957,7 +2958,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.6
           }
         ],
@@ -2968,7 +2969,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1500,
+            atMs: 1000,
             coefficient: 0.6
           }
         ],
@@ -2979,7 +2980,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             coefficient: 0.6
           }
         ],
@@ -3012,7 +3013,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             coefficient: 0.4,
             comboFinishers: [
               {
@@ -3031,7 +3032,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -3075,7 +3076,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             coefficient: 0.5
           }
         ],
@@ -3088,7 +3089,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 4,
         durationScale: 'boon',
-        atMs: 1260,
+        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -3125,7 +3126,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.75
           }
         ],
@@ -3136,7 +3137,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 0.75
           }
         ],
@@ -3161,7 +3162,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             coefficient: 2.4,
             comboFinishers: [
               {
@@ -3180,7 +3181,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -3196,7 +3197,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 2.5,
         durationScale: 'boon',
-        atMs: 1980,
+        atMs: 1320,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -3235,7 +3236,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             coefficient: 1.5
           }
         ],
@@ -3245,7 +3246,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1260,
+        atMs: 840,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3272,7 +3273,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 120,
+            atMs: 80,
             coefficient: 1.5
           }
         ],
@@ -3300,7 +3301,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             coefficient: 0
           }
         ],
@@ -3313,14 +3314,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 10,
         durationScale: 'boon',
-        atMs: 1320,
+        atMs: 880,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 1320,
+        atMs: 880,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3346,7 +3347,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             coefficient: 0.77
           }
         ],
@@ -3357,7 +3358,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             condition: 'Bleeding',
             stacks: 1,
             duration: 10
@@ -3385,7 +3386,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             coefficient: 0.33
           }
         ],
@@ -3396,7 +3397,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             condition: 'Bleeding',
             stacks: 3,
             duration: 6
@@ -3410,7 +3411,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
@@ -3424,7 +3425,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 1.9
           }
         ],
@@ -3435,7 +3436,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Bleeding',
             stacks: 3,
             duration: 6
@@ -3449,7 +3450,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
@@ -3477,7 +3478,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 2.3,
             comboFinishers: [
               {
@@ -3496,7 +3497,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
@@ -3524,7 +3525,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 3,
             comboFinishers: [
               {
@@ -3542,7 +3543,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 720,
+        atMs: 480,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3587,7 +3588,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 3
           }
         ],
@@ -3598,7 +3599,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             condition: 'Bleeding',
             stacks: 10,
             duration: 8
@@ -3612,7 +3613,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             condition: 'Cripple',
             stacks: 1,
             duration: 4
@@ -3702,7 +3703,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             coefficient: 1
           }
         ],
@@ -3713,7 +3714,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             condition: 'Burning',
             stacks: 1,
             duration: 6
@@ -3729,7 +3730,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 5,
         duration: 6,
         durationScale: 'boon',
-        atMs: 1260,
+        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -3753,7 +3754,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.25
           }
         ],
@@ -3764,7 +3765,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -3792,7 +3793,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.75,
             comboFinishers: [
               {
@@ -3810,7 +3811,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1140,
+        atMs: 760,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3847,7 +3848,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3935,7 +3936,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 10,
         durationScale: 'boon',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -3946,7 +3947,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 3,
         duration: 10,
         durationScale: 'boon',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4015,7 +4016,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             coefficient: 1,
             comboFinishers: [
               {
@@ -4033,7 +4034,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1380,
+        atMs: 920,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4080,7 +4081,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 0.9
           }
         ],
@@ -4094,7 +4095,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 10,
         durationScale: 'boon',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4105,14 +4106,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 2.5,
         durationScale: 'boon',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4135,26 +4136,26 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [600, 0.8],
-        [1020, 0.72],
-        [1440, 0.64],
-        [1860, 0.56],
-        [2280, 0.48],
-        [2700, 0.4],
-        [3120, 0.32],
-        [3540, 0.24],
-        [4140, 0.16],
-        [4740, 0.08],
-        [5400, 0.05],
-        [6000, 0.05],
-        [6600, 0.05],
-        [7200, 0.05],
-        [7200, 0.05],
-        [7590, 0.05],
-        [8085, 0.05],
-        [8685, 0.05],
-        [9330, 0.05],
-        [9930, 0.05]
+        [400, 0.8],
+        [680, 0.72],
+        [960, 0.64],
+        [1240, 0.56],
+        [1520, 0.48],
+        [1800, 0.4],
+        [2080, 0.32],
+        [2360, 0.24],
+        [2760, 0.16],
+        [3160, 0.08],
+        [3600, 0.05],
+        [4000, 0.05],
+        [4400, 0.05],
+        [4800, 0.05],
+        [4800, 0.05],
+        [5060, 0.05],
+        [5390, 0.05],
+        [5790, 0.05],
+        [6220, 0.05],
+        [6620, 0.05]
       ],
       { condition: { condition: 'Vulnerability', stacks: 1, duration: 10 } }
     )
@@ -4178,7 +4179,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 2,
         durationScale: 'boon',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4234,7 +4235,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 4,
         durationScale: 'boon',
-        atMs: 2340,
+        atMs: 1560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4255,7 +4256,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.5,
             comboFinishers: [
               {
@@ -4299,7 +4300,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 3,
         duration: 20,
         durationScale: 'boon',
-        atMs: 1020,
+        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4366,7 +4367,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 1.4,
             comboFinishers: [
               {
@@ -4384,7 +4385,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1200,
+        atMs: 800,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4431,7 +4432,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 0.3
           }
         ],
@@ -4497,31 +4498,31 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           },
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 0.25
           }
         ],
@@ -4532,43 +4533,43 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
@@ -4592,30 +4593,30 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [1560, 0.7],
-        [1980, 0.63],
-        [2280, 0.56],
-        [2340, 0.49],
-        [2700, 0.42],
-        [2700, 0.35],
-        [3000, 0.28],
-        [3060, 0.21],
-        [3420, 0.14],
-        [3420, 0.14],
+        [1040, 0.7],
+        [1320, 0.63],
+        [1520, 0.56],
+        [1560, 0.49],
+        [1800, 0.42],
+        [1800, 0.35],
+        [2000, 0.28],
+        [2040, 0.21],
+        [2280, 0.14],
+        [2280, 0.14],
+        [2480, 0.14],
+        [2520, 0.14],
+        [2760, 0.14],
+        [2760, 0.14],
+        [2960, 0.14],
+        [3000, 0.14],
+        [3240, 0.14],
+        [3240, 0.14],
+        [3480, 0.14],
         [3720, 0.14],
-        [3780, 0.14],
-        [4140, 0.14],
-        [4140, 0.14],
-        [4440, 0.14],
-        [4500, 0.14],
-        [4860, 0.14],
-        [4860, 0.14],
-        [5220, 0.14],
-        [5580, 0.14],
-        [5940, 0.14],
-        [6360, 0.14],
-        [6720, 0.14],
-        [7080, 0.14]
+        [3960, 0.14],
+        [4240, 0.14],
+        [4480, 0.14],
+        [4720, 0.14]
       ],
       {
         condition: { condition: 'Bleeding', stacks: 1, duration: 3 },
@@ -4638,7 +4639,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             coefficient: 0.8
           }
         ],
@@ -4650,7 +4651,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             condition: 'Chilled',
             stacks: 1,
             duration: 5
@@ -4662,7 +4663,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1680,
+        atMs: 1120,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4688,7 +4689,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 1
           }
         ],
@@ -4713,7 +4714,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1
           }
         ],
@@ -4738,7 +4739,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1.5,
             comboFinishers: [
               {
@@ -4755,7 +4756,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 480,
+        atMs: 320,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4780,7 +4781,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 1,
             comboFinishers: [
               {
@@ -4801,7 +4802,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 1200,
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -4823,7 +4824,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 0.33
           }
         ],
@@ -4837,14 +4838,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 1020,
+        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 1020,
+        atMs: 680,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4865,26 +4866,26 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     skillFamily: 'Weapon skill',
     implemented: true,
     effects: elementalistPacketEffects([
-      [540, 0.825],
-      [540, 0.7425],
-      [540, 0.66],
-      [720, 0.5775],
-      [720, 0.495],
-      [720, 0.4125],
-      [900, 0.33],
-      [900, 0.2475],
-      [900, 0.24],
-      [1140, 0.24],
-      [1140, 0.24],
-      [1140, 0.24],
-      [1320, 0.24],
-      [1320, 0.24],
-      [1320, 0.24],
-      [1320, 0.24],
-      [1320, 0.24],
-      [1320, 0.24],
-      [1500, 0.24],
-      [1500, 0.24]
+      [360, 0.825],
+      [360, 0.7425],
+      [360, 0.66],
+      [480, 0.5775],
+      [480, 0.495],
+      [480, 0.4125],
+      [600, 0.33],
+      [600, 0.2475],
+      [600, 0.24],
+      [760, 0.24],
+      [760, 0.24],
+      [760, 0.24],
+      [880, 0.24],
+      [880, 0.24],
+      [880, 0.24],
+      [880, 0.24],
+      [880, 0.24],
+      [880, 0.24],
+      [1000, 0.24],
+      [1000, 0.24]
     ])
   },
   [ID.STATIC_FIELD_LIGHTNING_HAMMER]: {
@@ -4910,7 +4911,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 270,
+            atMs: 180,
             coefficient: 0.5
           }
         ],
@@ -4920,7 +4921,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 270,
+        atMs: 180,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4932,7 +4933,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 0.5
           }
         ],
@@ -4942,7 +4943,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1020,
+        atMs: 680,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -4967,7 +4968,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 1.5
           }
         ],
@@ -4978,7 +4979,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Burning',
             stacks: 3,
             duration: 6
@@ -5017,7 +5018,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 0.5
           }
         ],
@@ -5027,7 +5028,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 600,
+        atMs: 400,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -5098,24 +5099,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [2400, 0.8],
-        [2880, 0.72],
-        [3360, 0.64],
-        [3840, 0.56],
-        [4320, 0.48],
-        [4800, 0.4],
-        [5280, 0.32],
+        [1600, 0.8],
+        [1920, 0.72],
+        [2240, 0.64],
+        [2560, 0.56],
+        [2880, 0.48],
+        [3200, 0.4],
+        [3520, 0.32],
+        [3840, 0.32],
+        [4160, 0.32],
+        [4480, 0.32],
+        [4800, 0.32],
+        [5120, 0.32],
+        [5440, 0.32],
         [5760, 0.32],
-        [6240, 0.32],
+        [6080, 0.32],
+        [6400, 0.32],
         [6720, 0.32],
-        [7200, 0.32],
-        [7680, 0.32],
-        [8160, 0.32],
-        [8640, 0.32],
-        [9120, 0.32],
-        [9600, 0.32],
-        [10080, 0.32],
-        [10560, 0.32]
+        [7040, 0.32]
       ],
       { condition: { condition: 'Chilled', stacks: 1, duration: 3 } }
     )
@@ -5132,42 +5133,42 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [1320, 0.825],
-        [1320, 0.78375],
-        [1320, 0.7425],
-        [2100, 0.70125],
-        [2340, 0.66],
-        [2520, 0.61875],
-        [2835, 0.5775],
-        [3300, 0.53625],
-        [3600, 0.495],
-        [3720, 0.45375],
-        [4260, 0.4125],
-        [4320, 0.37125],
-        [4920, 0.33],
-        [5100, 0.28875],
-        [5220, 0.2475],
-        [5820, 0.2475],
-        [6120, 0.2475],
-        [6240, 0.2475],
-        [6600, 0.2475],
-        [7200, 0.2475],
-        [7320, 0.2475],
-        [7320, 0.2475],
-        [8100, 0.2475],
-        [8160, 0.2475],
-        [8520, 0.2475],
-        [8820, 0.2475],
-        [9120, 0.2475],
-        [9600, 0.2475],
-        [9720, 0.2475],
-        [10140, 0.2475],
-        [10935, 0.2475],
-        [11100, 0.2475],
-        [12060, 0.2475],
-        [12120, 0.2475],
-        [13320, 0.2475],
-        [14520, 0.2475]
+        [880, 0.825],
+        [880, 0.78375],
+        [880, 0.7425],
+        [1400, 0.70125],
+        [1560, 0.66],
+        [1680, 0.61875],
+        [1890, 0.5775],
+        [2200, 0.53625],
+        [2400, 0.495],
+        [2480, 0.45375],
+        [2840, 0.4125],
+        [2880, 0.37125],
+        [3280, 0.33],
+        [3400, 0.28875],
+        [3480, 0.2475],
+        [3880, 0.2475],
+        [4080, 0.2475],
+        [4160, 0.2475],
+        [4400, 0.2475],
+        [4800, 0.2475],
+        [4880, 0.2475],
+        [4880, 0.2475],
+        [5400, 0.2475],
+        [5440, 0.2475],
+        [5680, 0.2475],
+        [5880, 0.2475],
+        [6080, 0.2475],
+        [6400, 0.2475],
+        [6480, 0.2475],
+        [6760, 0.2475],
+        [7290, 0.2475],
+        [7400, 0.2475],
+        [8040, 0.2475],
+        [8080, 0.2475],
+        [8880, 0.2475],
+        [9680, 0.2475]
       ],
       { condition: { condition: 'Vulnerability', stacks: 2, duration: 8 } }
     )
@@ -5209,9 +5210,9 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 1320,
+        atMs: 880,
         applications: 11,
-        intervalMs: 1500,
+        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -5241,7 +5242,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.5
           }
         ],
@@ -5252,7 +5253,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Burning',
             stacks: 2,
             duration: 10
@@ -5278,7 +5279,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.5
           }
         ],
@@ -5289,7 +5290,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Bleeding',
             stacks: 4,
             duration: 9
@@ -5303,7 +5304,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Immobilize',
             stacks: 1,
             duration: 3
@@ -5329,7 +5330,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 1
           }
         ],
@@ -5340,7 +5341,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Burning',
             stacks: 1,
             duration: 3
@@ -5367,7 +5368,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.65
           }
         ],
@@ -5378,7 +5379,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 0.65
           }
         ],
@@ -5389,7 +5390,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             coefficient: 0.65
           }
         ],
@@ -5400,7 +5401,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2520,
+            atMs: 1680,
             coefficient: 0.65
           }
         ],
@@ -5424,37 +5425,37 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 2580,
+            atMs: 1720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 4080,
+            atMs: 2720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 5580,
+            atMs: 3720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 7080,
+            atMs: 4720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
           },
           {
-            atMs: 8580,
+            atMs: 5720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
@@ -5478,14 +5479,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [420, 0.688],
-        [600, 0.688],
-        [795, 0.688],
-        [960, 0.688],
-        [1140, 0.688],
-        [1320, 0.688],
-        [1485, 0.688],
-        [1695, 0.688]
+        [280, 0.688],
+        [400, 0.688],
+        [530, 0.688],
+        [640, 0.688],
+        [760, 0.688],
+        [880, 0.688],
+        [990, 0.688],
+        [1130, 0.688]
       ],
       {
         condition: { condition: 'Cripple', stacks: 1, duration: 3 },
@@ -5517,7 +5518,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1620,
+            atMs: 1080,
             coefficient: 2
           }
         ],
@@ -5564,7 +5565,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1.5
           }
         ],
@@ -5589,7 +5590,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 2.6,
             comboFinishers: [
               {
@@ -5608,7 +5609,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Burning',
             stacks: 1,
             duration: 5
@@ -5680,7 +5681,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 3.375
           }
         ],
@@ -5715,7 +5716,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 8,
         durationScale: 'boon',
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -5739,7 +5740,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2280,
+            atMs: 1520,
             coefficient: 0.63
           }
         ],
@@ -5750,7 +5751,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2700,
+            atMs: 1800,
             coefficient: 0.567
           }
         ],
@@ -5761,7 +5762,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 3090,
+            atMs: 2060,
             coefficient: 0.504
           }
         ],
@@ -5772,7 +5773,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 3540,
+            atMs: 2360,
             coefficient: 0.441
           }
         ],
@@ -5783,7 +5784,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 3960,
+            atMs: 2640,
             coefficient: 0.378
           }
         ],
@@ -5794,7 +5795,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 4380,
+            atMs: 2920,
             coefficient: 0.315
           }
         ],
@@ -5819,18 +5820,18 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       {
         type: 'strike',
         ticks: [
-          [2340, 1.21],
-          [2700, 1.089],
-          [3180, 0.968],
-          [3600, 0.847],
-          [3960, 0.726],
-          [4380, 0.605],
-          [4860, 0.484],
-          [5220, 0.363],
-          [5640, 0.242],
-          [6060, 0.121],
-          [6480, 0.05],
-          [6960, 0.05]
+          [1560, 1.21],
+          [1800, 1.089],
+          [2120, 0.968],
+          [2400, 0.847],
+          [2640, 0.726],
+          [2920, 0.605],
+          [3240, 0.484],
+          [3480, 0.363],
+          [3760, 0.242],
+          [4040, 0.121],
+          [4320, 0.05],
+          [4640, 0.05]
         ].map(([atMs, coefficient]) => ({ atMs, coefficient })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -5854,7 +5855,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1
           }
         ],
@@ -5879,7 +5880,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.7
           }
         ],
@@ -5890,7 +5891,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
@@ -5904,7 +5905,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.7
           }
         ],
@@ -5915,7 +5916,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
@@ -5929,7 +5930,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 0.7
           }
         ],
@@ -5940,7 +5941,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Chilled',
             stacks: 1,
             duration: 1
@@ -5989,7 +5990,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 1.7
           }
         ],
@@ -5999,7 +6000,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 720,
+        atMs: 480,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6047,7 +6048,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.5
           }
         ],
@@ -6073,7 +6074,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 3
           }
         ],
@@ -6099,7 +6100,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1.35
           }
         ],
@@ -6110,7 +6111,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6138,7 +6139,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.4
           }
         ],
@@ -6149,7 +6150,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6163,7 +6164,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2220,
+            atMs: 1480,
             coefficient: 0.4
           }
         ],
@@ -6174,7 +6175,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2220,
+            atMs: 1480,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6188,7 +6189,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 3720,
+            atMs: 2480,
             coefficient: 0.4
           }
         ],
@@ -6199,7 +6200,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 3720,
+            atMs: 2480,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6213,7 +6214,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 5220,
+            atMs: 3480,
             coefficient: 0.4
           }
         ],
@@ -6224,7 +6225,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 5220,
+            atMs: 3480,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6238,7 +6239,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 6720,
+            atMs: 4480,
             coefficient: 0.4
           }
         ],
@@ -6249,7 +6250,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 6720,
+            atMs: 4480,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -6310,7 +6311,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1.84,
             comboFinishers: [
               {
@@ -6330,7 +6331,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Vulnerability',
             stacks: 10,
             duration: 10
@@ -6342,7 +6343,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 780,
+        atMs: 520,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6378,7 +6379,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 7,
         durationScale: 'boon',
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -6402,7 +6403,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 2
           }
         ],
@@ -6412,7 +6413,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6439,7 +6440,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 4
           }
         ],
@@ -6449,7 +6450,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6476,7 +6477,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1.2
           }
         ],
@@ -6487,7 +6488,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -6515,7 +6516,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 3,
             comboFinishers: [
               {
@@ -6534,7 +6535,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Cripple',
             stacks: 1,
             duration: 5
@@ -6583,7 +6584,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 3.375
           }
         ],
@@ -6594,7 +6595,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Weakness',
             stacks: 1,
             duration: 4
@@ -6608,7 +6609,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Cripple',
             stacks: 1,
             duration: 4
@@ -6658,7 +6659,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.75
           }
         ],
@@ -6667,7 +6668,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6679,7 +6680,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Cripple',
             stacks: 1,
             duration: 5
@@ -6708,7 +6709,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 4.25
           }
         ],
@@ -6717,7 +6718,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'blind',
-        atMs: 840,
+        atMs: 560,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -6729,7 +6730,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Vulnerability',
             stacks: 5,
             duration: 6
@@ -6743,7 +6744,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Weakness',
             stacks: 1,
             duration: 4
@@ -6757,7 +6758,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Cripple',
             stacks: 1,
             duration: 55
@@ -6786,7 +6787,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.69
           }
         ],
@@ -6797,7 +6798,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Burning',
             stacks: 1,
             duration: 1.5
@@ -6825,7 +6826,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 2.07
           }
         ],
@@ -6836,7 +6837,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Burning',
             stacks: 1,
             duration: 3
@@ -6907,7 +6908,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1
           }
         ],
@@ -6918,7 +6919,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -6932,7 +6933,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1
           }
         ],
@@ -6943,7 +6944,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -6957,7 +6958,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 1
           }
         ],
@@ -6968,7 +6969,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -6996,7 +6997,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 2.8,
             comboFinishers: [
               {
@@ -7017,7 +7018,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 10,
         durationScale: 'boon',
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -7028,7 +7029,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 6,
         duration: 10,
         durationScale: 'boon',
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -7052,7 +7053,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.575
           }
         ],
@@ -7078,7 +7079,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 0.575
           }
         ],
@@ -7104,7 +7105,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1.38
           }
         ],
@@ -7115,7 +7116,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             condition: 'Chilled',
             stacks: 1,
             duration: 1.5
@@ -7144,6 +7145,17 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
+            atMs: 320,
+            coefficient: 0.575
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
             atMs: 480,
             coefficient: 0.575
           }
@@ -7166,18 +7178,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
-            coefficient: 0.575
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1320,
+            atMs: 880,
             coefficient: 0.575
           }
         ],
@@ -7188,7 +7189,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -7259,7 +7260,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 1.438,
             comboFinishers: [
               {
@@ -7292,7 +7293,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 1.725,
             comboFinishers: [
               {
@@ -7325,7 +7326,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.036
           }
         ],
@@ -7348,15 +7349,15 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     implemented: true,
     effects: elementalistPacketEffects(
       [
-        [300, 0.55],
-        [540, 0.55],
-        [900, 0.55],
-        [1260, 0.55],
-        [1620, 0.55],
-        [1980, 0.55],
-        [2340, 0.55],
-        [2700, 0.55],
-        [3060, 0.55]
+        [200, 0.55],
+        [360, 0.55],
+        [600, 0.55],
+        [840, 0.55],
+        [1080, 0.55],
+        [1320, 0.55],
+        [1560, 0.55],
+        [1800, 0.55],
+        [2040, 0.55]
       ],
       { condition: { condition: 'Vulnerability', stacks: 1, duration: 10 } }
     )
@@ -7420,7 +7421,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.3
           }
         ],
@@ -7434,14 +7435,14 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 660,
+        atMs: 440,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -7467,7 +7468,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.575
           }
         ],
@@ -7478,7 +7479,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 0.925,
             comboFinishers: [
               {
@@ -7496,7 +7497,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 1200,
+        atMs: 800,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -7522,7 +7523,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 1.035
           }
         ],
@@ -7548,7 +7549,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.84
           }
         ],
@@ -7559,7 +7560,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -7573,7 +7574,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.84
           }
         ],
@@ -7584,7 +7585,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -7598,7 +7599,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1440,
+            atMs: 960,
             coefficient: 0.84
           }
         ],
@@ -7609,7 +7610,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1440,
+            atMs: 960,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -7623,7 +7624,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1800,
+            atMs: 1200,
             coefficient: 0.84
           }
         ],
@@ -7634,7 +7635,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1800,
+            atMs: 1200,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -7648,7 +7649,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2100,
+            atMs: 1400,
             coefficient: 0.84
           }
         ],
@@ -7659,7 +7660,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2100,
+            atMs: 1400,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -7743,7 +7744,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 2.8,
             comboFinishers: [
               {
@@ -7762,7 +7763,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Bleeding',
             stacks: 5,
             duration: 6
@@ -7776,7 +7777,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Immobilize',
             stacks: 1,
             duration: 3
@@ -7803,7 +7804,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 1.4,
             comboFinishers: [
               {
@@ -7837,7 +7838,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.3
           }
         ],
@@ -7848,7 +7849,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Burning',
             stacks: 1,
             duration: 1.5
@@ -7876,7 +7877,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.8
           }
         ],
@@ -7887,7 +7888,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Burning',
             stacks: 1,
             duration: 8
@@ -7903,7 +7904,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 6,
         durationScale: 'boon',
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -7927,7 +7928,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 1,
             comboFinishers: [
               {
@@ -7946,7 +7947,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Burning',
             stacks: 1,
             duration: 7
@@ -7960,7 +7961,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 0.25
           }
         ],
@@ -7971,7 +7972,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -7985,7 +7986,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 0.25
           }
         ],
@@ -7996,7 +7997,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -8010,7 +8011,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 0.25
           }
         ],
@@ -8021,7 +8022,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -8035,7 +8036,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 0.25
           }
         ],
@@ -8046,7 +8047,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -8075,7 +8076,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.4
           }
         ],
@@ -8101,7 +8102,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.2
           }
         ],
@@ -8112,7 +8113,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Bleeding',
             stacks: 1,
             duration: 7
@@ -8126,7 +8127,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.2
           }
         ],
@@ -8137,7 +8138,57 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 7
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 640,
+            coefficient: 0.2
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 640,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 7
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 800,
+            coefficient: 0.2
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 800,
             condition: 'Bleeding',
             stacks: 1,
             duration: 7
@@ -8163,56 +8214,6 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         ticks: [
           {
             atMs: 960,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1200,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1200,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
             condition: 'Bleeding',
             stacks: 1,
             duration: 7
@@ -8249,7 +8250,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.75
           }
         ],
@@ -8260,7 +8261,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Chilled',
             stacks: 1,
             duration: 1.5
@@ -8289,7 +8290,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.33
           }
         ],
@@ -8300,7 +8301,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 6
@@ -8328,7 +8329,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.75
           }
         ],
@@ -8340,7 +8341,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Vulnerability',
             stacks: 8,
             duration: 10
@@ -8352,7 +8353,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'control',
-        atMs: 420,
+        atMs: 280,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -8380,7 +8381,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0,
             comboFinishers: [
               {
@@ -8414,7 +8415,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.8
           }
         ],
@@ -8425,7 +8426,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -8454,7 +8455,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0,
             comboFinishers: [
               {
@@ -8475,7 +8476,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1,
         duration: 3,
         durationScale: 'boon',
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -8498,7 +8499,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.35
           }
         ],
@@ -8509,7 +8510,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -8537,7 +8538,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             coefficient: 0.8
           }
         ],
@@ -8548,7 +8549,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 540,
+            atMs: 360,
             condition: 'Bleeding',
             stacks: 3,
             duration: 10
@@ -8577,7 +8578,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 0.44,
             comboFinishers: [
               {
@@ -8596,7 +8597,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Bleeding',
             stacks: 5,
             duration: 8
@@ -8610,7 +8611,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Immobilize',
             stacks: 1,
             duration: 1.5
@@ -8645,7 +8646,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.2
           }
         ],
@@ -8656,7 +8657,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Burning',
             stacks: 2,
             duration: 6
@@ -8670,7 +8671,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 0.2
           }
         ],
@@ -8681,7 +8682,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             condition: 'Bleeding',
             stacks: 4,
             duration: 6
@@ -8695,7 +8696,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 0.2
           }
         ],
@@ -8706,7 +8707,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             condition: 'Vulnerability',
             stacks: 4,
             duration: 10
@@ -8720,7 +8721,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.2
           }
         ],
@@ -8731,7 +8732,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Cripple',
             stacks: 1,
             duration: 4
@@ -9038,29 +9039,27 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ['Frost Bow', ID.PICK_UP_FROST_BOW],
     ['Lightning Hammer', ID.PICK_UP_LIGHTNING_HAMMER],
     ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
-  ].map(
-    ([weapon, id]): Skill => ({
-      id: Number(id),
-      name: `__pickup_${weapon}`,
-      displayName: `Pick up ${weapon}`,
-      description: `Pick up the available ${weapon}.`,
-      icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
-      type: 'Action',
-      weapon: '',
-      slot: 'Action',
-      specialization: '',
-      categories: ['Bundle'],
-      cooldown: 0,
-      ammo: 0,
-      ammoRecharge: 0,
-      nextChainId: null,
-      flipSkillId: null,
-      castTimeMs: 300,
-      unaffectedByQuickness: true,
-      implemented: true,
-      simulatorExcluded: false,
-      paletteAction: false,
-      effects: []
-    })
-  )
+  ].map(([weapon, id]): Skill => ({
+    id: Number(id),
+    name: `__pickup_${weapon}`,
+    displayName: `Pick up ${weapon}`,
+    description: `Pick up the available ${weapon}.`,
+    icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
+    type: 'Action',
+    weapon: '',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Bundle'],
+    cooldown: 0,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    castTimeMs: 300,
+    unaffectedByQuickness: true,
+    implemented: true,
+    simulatorExcluded: false,
+    paletteAction: false,
+    effects: []
+  }))
 ]);

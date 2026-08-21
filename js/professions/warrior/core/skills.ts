@@ -173,7 +173,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -183,7 +183,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -193,7 +193,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Crippled',
         stacks: 1,
         duration: 1,
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -209,7 +209,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        atMs: 300,
+        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -218,7 +218,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        atMs: 300,
+        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -233,7 +233,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -242,7 +242,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -690,7 +690,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         ticks: Array.from({ length: 15 }, (_, index) => ({
-          atMs: 450 + index * 225,
+          atMs: 300 + index * 150,
           coefficient: 0.5592
         })),
         timingAnchor: 'castStart',
@@ -942,15 +942,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         ticks: [
-          { atMs: 660, coefficient: 1.25 },
-          { atMs: 720, coefficient: 1.25 }
+          { atMs: 440, coefficient: 1.25 },
+          { atMs: 480, coefficient: 1.25 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -1357,13 +1357,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 1,
         hits: 1,
-        atMs: 661.571428571429,
+        atMs: 441.047619047619,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 661.571428571429,
+        atMs: 441.047619047619,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -1621,7 +1621,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 2.25,
         hits: 1,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1630,7 +1630,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         boon: 'might',
         duration: 6,
         stacks: 5,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1639,7 +1639,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Vulnerability',
         stacks: 10,
         duration: 6,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1819,16 +1819,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         ticks: [
-          { atMs: 472.41847826087, coefficient: 0.775 },
-          { atMs: 721.059782608696, coefficient: 0.775 },
-          { atMs: 1019.42934782609, coefficient: 0.775 },
-          { atMs: 1317.79891304348, coefficient: 0.775 },
-          { atMs: 1740.48913043478, coefficient: 0.775 },
-          { atMs: 1964.26630434783, coefficient: 0.775 },
-          { atMs: 2337.22826086957, coefficient: 0.775 },
-          { atMs: 2685.32608695652, coefficient: 0.775 },
+          { atMs: 314.945652173913, coefficient: 0.775 },
+          { atMs: 480.706521739131, coefficient: 0.775 },
+          { atMs: 679.619565217393, coefficient: 0.775 },
+          { atMs: 878.532608695653, coefficient: 0.775 },
+          { atMs: 1160.32608695652, coefficient: 0.775 },
+          { atMs: 1309.51086956522, coefficient: 0.775 },
+          { atMs: 1558.152173913046, coefficient: 0.775 },
+          { atMs: 1790.217391304347, coefficient: 0.775 },
           {
-            atMs: 3406.38586956522,
+            atMs: 2270.92391304348,
             coefficient: 1.5,
             name: 'Hundred Blades — Final Strike Damage'
           }
@@ -2005,7 +2005,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 1.05,
         hits: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2014,7 +2014,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         boon: 'might',
         duration: 5,
         stacks: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2029,7 +2029,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 0.65,
         hits: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2044,7 +2044,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2072,13 +2072,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        atMs: 240,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 240,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -2520,7 +2520,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 1.2,
         hits: 1,
         name: 'Mighty Throw — Spear Damage',
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2529,7 +2529,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 0.9,
         hits: 1,
         name: 'Mighty Throw — Shard Damage',
-        atMs: 700,
+        atMs: 466.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2543,7 +2543,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        atMs: 599.625,
+        atMs: 399.75,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2669,7 +2669,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2678,7 +2678,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 3,
         duration: 6,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2698,7 +2698,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2708,7 +2708,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 2.5,
         hits: 1,
         name: 'Rend — Follow-Up Damage',
-        atMs: 1320,
+        atMs: 880,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2718,7 +2718,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Immobilized',
         stacks: 1,
         duration: 2,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2728,7 +2728,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 6,
         duration: 6,
-        atMs: 1320,
+        atMs: 880,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2745,7 +2745,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2754,7 +2754,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         condition: 'Bleeding',
         stacks: 3,
         duration: 6,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

@@ -134,7 +134,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         type: 'strike',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             coefficient: 0.6
           }
         ],
@@ -145,7 +145,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         type: 'condition',
         ticks: [
           {
-            atMs: 300,
+            atMs: 200,
             condition: 'Chilled',
             stacks: 1,
             duration: 1

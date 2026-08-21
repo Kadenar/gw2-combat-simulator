@@ -38,7 +38,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.75
           }
         ],
@@ -64,7 +64,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 2,
             comboFinishers: [
               {
@@ -83,7 +83,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Burning',
             stacks: 1,
             duration: 6
@@ -112,7 +112,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.1
           }
         ],
@@ -121,7 +121,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'blind',
-        atMs: 660,
+        atMs: 440,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -133,7 +133,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             coefficient: 1.4
           }
         ],
@@ -144,7 +144,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             condition: 'Burning',
             stacks: 1,
             duration: 8
@@ -173,7 +173,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 351,
+            atMs: 234,
             coefficient: 0.1,
             comboFinishers: [
               {
@@ -193,7 +193,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 351,
+            atMs: 234,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -209,14 +209,14 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         stacks: 1,
         duration: 4,
         durationScale: 'boon',
-        atMs: 351,
+        atMs: 234,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 351,
+        atMs: 234,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -228,7 +228,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2271,
+            atMs: 1514,
             coefficient: 1.25
           }
         ],
@@ -238,7 +238,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 2271,
+        atMs: 1514,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -265,7 +265,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1440,
+            atMs: 960,
             coefficient: 0.15
           }
         ],
@@ -275,7 +275,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 1440,
+        atMs: 960,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -302,7 +302,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             coefficient: 0.275
           }
         ],
@@ -313,7 +313,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -329,7 +329,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         stacks: 1,
         duration: 5,
         durationScale: 'boon',
-        atMs: 1380,
+        atMs: 920,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -338,7 +338,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             coefficient: 0.275
           }
         ],
@@ -349,7 +349,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2160,
+            atMs: 1440,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -363,7 +363,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2940,
+            atMs: 1960,
             coefficient: 0.275
           }
         ],
@@ -374,7 +374,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2940,
+            atMs: 1960,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -388,7 +388,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3720,
+            atMs: 2480,
             coefficient: 0.275
           }
         ],
@@ -399,7 +399,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3720,
+            atMs: 2480,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -413,7 +413,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 4500,
+            atMs: 3000,
             coefficient: 0.275
           }
         ],
@@ -424,7 +424,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 4500,
+            atMs: 3000,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -438,7 +438,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 5280,
+            atMs: 3520,
             coefficient: 0.275
           }
         ],
@@ -449,7 +449,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 5280,
+            atMs: 3520,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -478,7 +478,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1.1
           }
         ],
@@ -489,7 +489,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             condition: 'Burning',
             stacks: 1,
             duration: 4
@@ -503,7 +503,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -532,6 +532,17 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
+            atMs: 240,
+            coefficient: 0.55
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
             atMs: 360,
             coefficient: 0.55
           }
@@ -543,7 +554,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 540,
+            atMs: 520,
             coefficient: 0.55
           }
         ],
@@ -554,7 +565,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 640,
             coefficient: 0.55
           }
         ],
@@ -565,18 +576,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
-            coefficient: 0.55
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.55
           }
         ],
@@ -602,7 +602,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             coefficient: 1.2
           }
         ],
@@ -613,7 +613,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -627,7 +627,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 360,
+            atMs: 240,
             condition: 'Vulnerability',
             stacks: 3,
             duration: 8
@@ -641,7 +641,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             coefficient: 1.2
           }
         ],
@@ -652,7 +652,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -666,7 +666,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1260,
+            atMs: 840,
             condition: 'Vulnerability',
             stacks: 3,
             duration: 8
@@ -695,7 +695,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 2
           }
         ],
@@ -707,7 +707,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Chilled',
             stacks: 1,
             duration: 4
@@ -723,14 +723,14 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         stacks: 1,
         duration: 5,
         durationScale: 'boon',
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
       },
       {
         type: 'control',
-        atMs: 720,
+        atMs: 480,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -757,7 +757,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.3
           }
         ],
@@ -768,7 +768,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -782,7 +782,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -796,7 +796,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Cripple',
             stacks: 1,
             duration: 4
@@ -810,7 +810,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             coefficient: 0.3
           }
         ],
@@ -821,7 +821,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -835,7 +835,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1560,
+            atMs: 1040,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -849,7 +849,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             coefficient: 0.3
           }
         ],
@@ -860,7 +860,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -874,7 +874,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -888,7 +888,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2400,
+            atMs: 1600,
             coefficient: 0.3
           }
         ],
@@ -899,7 +899,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2400,
+            atMs: 1600,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -913,7 +913,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2400,
+            atMs: 1600,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -927,7 +927,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2820,
+            atMs: 1880,
             coefficient: 0.3
           }
         ],
@@ -938,7 +938,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2820,
+            atMs: 1880,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -952,7 +952,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2820,
+            atMs: 1880,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -966,7 +966,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3240,
+            atMs: 2160,
             coefficient: 0.3
           }
         ],
@@ -977,7 +977,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3240,
+            atMs: 2160,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -991,7 +991,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3240,
+            atMs: 2160,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -1005,7 +1005,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3660,
+            atMs: 2440,
             coefficient: 0.3
           }
         ],
@@ -1016,7 +1016,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3660,
+            atMs: 2440,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -1030,7 +1030,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3660,
+            atMs: 2440,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -1044,7 +1044,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 4080,
+            atMs: 2720,
             coefficient: 0.3
           }
         ],
@@ -1055,7 +1055,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 4080,
+            atMs: 2720,
             condition: 'Bleeding',
             stacks: 1,
             duration: 8
@@ -1069,7 +1069,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 4080,
+            atMs: 2720,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 8
@@ -1098,7 +1098,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 1.4
           }
         ],
@@ -1109,7 +1109,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 1
           }
         ],
@@ -1119,7 +1119,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 1080,
+        atMs: 720,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -1146,7 +1146,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 1
           }
         ],
@@ -1157,7 +1157,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Chilled',
             stacks: 1,
             duration: 3
@@ -1171,7 +1171,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             coefficient: 1.5
           }
         ],
@@ -1182,7 +1182,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 840,
+            atMs: 560,
             condition: 'Burning',
             stacks: 1,
             duration: 8
@@ -1211,7 +1211,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 1
           }
         ],
@@ -1222,7 +1222,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1236,7 +1236,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.33
           }
         ],
@@ -1247,7 +1247,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1140,
+            atMs: 760,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1261,7 +1261,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             coefficient: 0.33
           }
         ],
@@ -1272,7 +1272,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1286,7 +1286,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2220,
+            atMs: 1480,
             coefficient: 0.33
           }
         ],
@@ -1297,7 +1297,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2220,
+            atMs: 1480,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1311,7 +1311,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2760,
+            atMs: 1840,
             coefficient: 0.33
           }
         ],
@@ -1322,7 +1322,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2760,
+            atMs: 1840,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1336,7 +1336,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3300,
+            atMs: 2200,
             coefficient: 0.33
           }
         ],
@@ -1347,7 +1347,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3300,
+            atMs: 2200,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1361,7 +1361,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3840,
+            atMs: 2560,
             coefficient: 0.33
           }
         ],
@@ -1372,7 +1372,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3840,
+            atMs: 2560,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1386,7 +1386,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 4380,
+            atMs: 2920,
             coefficient: 0.33
           }
         ],
@@ -1397,7 +1397,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 4380,
+            atMs: 2920,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1411,7 +1411,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 4920,
+            atMs: 3280,
             coefficient: 0.33
           }
         ],
@@ -1422,7 +1422,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 4920,
+            atMs: 3280,
             condition: 'Burning',
             stacks: 1,
             duration: 2
@@ -1451,35 +1451,35 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             coefficient: 0.33,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 3360,
+            atMs: 2240,
             coefficient: 0.33,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 4860,
+            atMs: 3240,
             coefficient: 0.33,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 6360,
+            atMs: 4240,
             coefficient: 0.33,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 7860,
+            atMs: 5240,
             coefficient: 0.33,
             metadata: {
               damageKind: 'field-tick'
@@ -1493,31 +1493,31 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1860,
+            atMs: 1240,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 3360,
+            atMs: 2240,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 4860,
+            atMs: 3240,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 6360,
+            atMs: 4240,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 7860,
+            atMs: 5240,
             condition: 'Burning',
             stacks: 1,
             duration: 1
@@ -1546,7 +1546,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 1.8
           }
         ],
@@ -1557,7 +1557,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Bleeding',
             stacks: 3,
             duration: 8
@@ -1571,7 +1571,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Chilled',
             stacks: 1,
             duration: 2.5
@@ -1600,7 +1600,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 0.44
           }
         ],
@@ -1611,7 +1611,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1625,7 +1625,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1639,7 +1639,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             coefficient: 0.44
           }
         ],
@@ -1650,7 +1650,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1664,7 +1664,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1678,7 +1678,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             coefficient: 0.44
           }
         ],
@@ -1689,7 +1689,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1703,7 +1703,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1717,7 +1717,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             coefficient: 0.44
           }
         ],
@@ -1728,7 +1728,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1742,7 +1742,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1020,
+            atMs: 680,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1756,7 +1756,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             coefficient: 0.44
           }
         ],
@@ -1767,7 +1767,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1781,7 +1781,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1795,7 +1795,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             coefficient: 0.44
           }
         ],
@@ -1806,7 +1806,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1820,7 +1820,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1320,
+            atMs: 880,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1834,7 +1834,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             coefficient: 0.44
           }
         ],
@@ -1845,7 +1845,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1859,7 +1859,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1680,
+            atMs: 1120,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1873,7 +1873,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             coefficient: 0.44
           }
         ],
@@ -1884,7 +1884,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             condition: 'Bleeding',
             stacks: 1,
             duration: 6
@@ -1898,7 +1898,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
@@ -1927,7 +1927,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.275
           }
         ],
@@ -1939,7 +1939,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -1953,7 +1953,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 5
@@ -1965,7 +1965,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 780,
+        atMs: 520,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -1977,7 +1977,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             coefficient: 0.275
           }
         ],
@@ -1989,7 +1989,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -2003,7 +2003,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1380,
+            atMs: 920,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 5
@@ -2015,7 +2015,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 1380,
+        atMs: 920,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2027,7 +2027,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             coefficient: 0.275
           }
         ],
@@ -2039,7 +2039,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -2053,7 +2053,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1980,
+            atMs: 1320,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 5
@@ -2065,7 +2065,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 1980,
+        atMs: 1320,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2077,7 +2077,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2580,
+            atMs: 1720,
             coefficient: 0.275
           }
         ],
@@ -2089,7 +2089,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2580,
+            atMs: 1720,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -2103,7 +2103,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2580,
+            atMs: 1720,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 5
@@ -2115,7 +2115,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 2580,
+        atMs: 1720,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2127,7 +2127,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 3180,
+            atMs: 2120,
             coefficient: 0.275
           }
         ],
@@ -2139,7 +2139,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3180,
+            atMs: 2120,
             condition: 'Bleeding',
             stacks: 1,
             duration: 5
@@ -2153,7 +2153,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 3180,
+            atMs: 2120,
             condition: 'Vulnerability',
             stacks: 1,
             duration: 5
@@ -2165,7 +2165,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 3180,
+        atMs: 2120,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2192,7 +2192,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 900,
+            atMs: 600,
             coefficient: 2
           }
         ],
@@ -2201,7 +2201,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'blind',
-        atMs: 900,
+        atMs: 600,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2215,7 +2215,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         stacks: 1,
         duration: 4,
         durationScale: 'boon',
-        atMs: 900,
+        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}
@@ -2239,7 +2239,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 480,
+            atMs: 320,
             coefficient: 1.66
           }
         ],
@@ -2273,7 +2273,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             coefficient: 0.8
           }
         ],
@@ -2284,7 +2284,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1080,
+            atMs: 720,
             condition: 'Burning',
             stacks: 1,
             duration: 3
@@ -2298,28 +2298,28 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 2580,
+            atMs: 1720,
             coefficient: 0.4,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 4080,
+            atMs: 2720,
             coefficient: 0.4,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 5580,
+            atMs: 3720,
             coefficient: 0.4,
             metadata: {
               damageKind: 'field-tick'
             }
           },
           {
-            atMs: 7080,
+            atMs: 4720,
             coefficient: 0.4,
             metadata: {
               damageKind: 'field-tick'
@@ -2333,25 +2333,25 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 2580,
+            atMs: 1720,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 4080,
+            atMs: 2720,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 5580,
+            atMs: 3720,
             condition: 'Burning',
             stacks: 1,
             duration: 1
           },
           {
-            atMs: 7080,
+            atMs: 4720,
             condition: 'Burning',
             stacks: 1,
             duration: 1
@@ -2380,7 +2380,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.25
           }
         ],
@@ -2392,7 +2392,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Vulnerability',
             stacks: 8,
             duration: 8
@@ -2406,7 +2406,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Chilled',
             stacks: 1,
             duration: 4
@@ -2418,7 +2418,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 420,
+        atMs: 280,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -2430,7 +2430,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             coefficient: 0.25
           }
         ],
@@ -2441,7 +2441,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1500,
+            atMs: 1000,
             coefficient: 0.25
           }
         ],
@@ -2467,23 +2467,23 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1920,
+            atMs: 1280,
             coefficient: 0.25
           },
           {
-            atMs: 3420,
+            atMs: 2280,
             coefficient: 0.25
           },
           {
-            atMs: 4920,
+            atMs: 3280,
             coefficient: 0.25
           },
           {
-            atMs: 6420,
+            atMs: 4280,
             coefficient: 0.25
           },
           {
-            atMs: 7920,
+            atMs: 5280,
             coefficient: 0.25
           }
         ],
@@ -2494,31 +2494,31 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1920,
+            atMs: 1280,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 3420,
+            atMs: 2280,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 4920,
+            atMs: 3280,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 6420,
+            atMs: 4280,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 7920,
+            atMs: 5280,
             condition: 'Cripple',
             stacks: 1,
             duration: 2
@@ -2532,31 +2532,31 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 1920,
+            atMs: 1280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 3420,
+            atMs: 2280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 4920,
+            atMs: 3280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 6420,
+            atMs: 4280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
           },
           {
-            atMs: 7920,
+            atMs: 5280,
             condition: 'Immobilize',
             stacks: 1,
             duration: 2
@@ -2585,7 +2585,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 1740,
+            atMs: 1160,
             coefficient: 2.1,
             comboFinishers: [
               {
@@ -2603,7 +2603,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'control',
-        atMs: 1740,
+        atMs: 1160,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3753,7 +3753,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.3
           }
         ],
@@ -3764,7 +3764,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Chilled',
             stacks: 1,
             duration: 2.5
@@ -3778,7 +3778,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             coefficient: 0.3
           }
         ],
@@ -3789,7 +3789,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 660,
+            atMs: 440,
             condition: 'Burning',
             stacks: 1,
             duration: 5
@@ -3803,7 +3803,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             coefficient: 0.3
           }
         ],
@@ -3814,7 +3814,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 960,
+            atMs: 640,
             condition: 'Burning',
             stacks: 1,
             duration: 5
@@ -3844,7 +3844,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.8,
             comboFinishers: [
               {
@@ -3861,7 +3861,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       },
       {
         type: 'blind',
-        atMs: 720,
+        atMs: 480,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -3873,7 +3873,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Vulnerability',
             stacks: 5,
             duration: 5
@@ -3903,7 +3903,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.5
           }
         ],
@@ -3914,7 +3914,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Burning',
             stacks: 1,
             duration: 8
@@ -3928,7 +3928,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Bleeding',
             stacks: 2,
             duration: 8
@@ -3996,7 +3996,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             coefficient: 0.3
           }
         ],
@@ -4007,7 +4007,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 420,
+            atMs: 280,
             condition: 'Bleeding',
             stacks: 2,
             duration: 8
@@ -4021,7 +4021,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             coefficient: 0.3
           }
         ],
@@ -4032,7 +4032,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 720,
+            atMs: 480,
             condition: 'Bleeding',
             stacks: 2,
             duration: 8
@@ -4061,7 +4061,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'strike',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             coefficient: 0.7,
             comboFinishers: [
               {
@@ -4080,7 +4080,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Weakness',
             stacks: 1,
             duration: 3
@@ -4094,7 +4094,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
         type: 'condition',
         ticks: [
           {
-            atMs: 780,
+            atMs: 520,
             condition: 'Cripple',
             stacks: 1,
             duration: 4

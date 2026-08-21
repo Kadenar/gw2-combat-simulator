@@ -24,8 +24,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 4.6,
         hits: 8,
-        atMs: 270,
-        intervalMs: 270,
+        atMs: 180,
+        intervalMs: 180,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -40,7 +40,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.4,
         hits: 1,
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -49,7 +49,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 2,
         duration: 10,
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -64,7 +64,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -73,7 +73,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 3,
         duration: 10,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -118,7 +118,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -127,7 +127,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 4,
         duration: 15,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -158,7 +158,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 6,
         hits: 6,
-        atMs: 420,
+        atMs: 280,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -373,7 +373,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -382,7 +382,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -391,7 +391,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Poisoned',
         stacks: 1,
         duration: 6,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -964,7 +964,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         coefficient: 4.800000000000001,
         hits: 6,
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
-        atMs: 420,
+        atMs: 280,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -974,7 +974,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'blind',
         applications: 6,
-        atMs: 420,
+        atMs: 280,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -990,7 +990,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         stacks: 1,
         duration: 2,
         applications: 6,
-        atMs: 420,
+        atMs: 280,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -1056,7 +1056,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1,
         hits: 1,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1065,7 +1065,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 2,
         duration: 10,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1074,7 +1074,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Poisoned',
         stacks: 2,
         duration: 10,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1083,13 +1083,13 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Torment',
         stacks: 2,
         duration: 6,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'blind',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -1101,7 +1101,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Crippled',
         stacks: 1,
         duration: 10,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1110,7 +1110,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Vulnerability',
         duration: 10,
         stacks: 5,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1119,7 +1119,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Weakness',
         stacks: 1,
         duration: 10,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1133,7 +1133,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        atMs: 750,
+        atMs: 520,
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -1351,7 +1351,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.35,
         hits: 1,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1360,7 +1360,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1374,7 +1374,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.35,
         hits: 1,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1383,7 +1383,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1419,7 +1419,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        atMs: 240,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1464,7 +1464,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 1800,
+        atMs: 1200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1473,7 +1473,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Bleeding',
         stacks: 3,
         duration: 10,
-        atMs: 1800,
+        atMs: 1200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1482,7 +1482,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Weakness',
         stacks: 1,
         duration: 6,
-        atMs: 1800,
+        atMs: 1200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1586,7 +1586,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Torment',
         stacks: 2,
         duration: 12,
-        atMs: 250,
+        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1715,7 +1715,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         coefficient: 4.6,
         hits: 4,
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
-        atMs: 600,
+        atMs: 400,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -1725,7 +1725,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'blind',
         applications: 4,
-        atMs: 600,
+        atMs: 400,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -1738,7 +1738,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         stacks: 1,
         duration: 2,
         applications: 4,
-        atMs: 600,
+        atMs: 400,
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -1756,7 +1756,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1766,7 +1766,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         event: {
           duration: 2
         },
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1797,7 +1797,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        atMs: 1260,
+        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1811,7 +1811,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.4,
         hits: 1,
-        atMs: 780,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1885,7 +1885,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1894,13 +1894,13 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Torment',
         stacks: 2,
         duration: 9,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -1923,7 +1923,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        atMs: 480,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1932,7 +1932,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Burning',
         stacks: 1,
         duration: 8,
-        atMs: 480,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1941,7 +1941,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Torment',
         stacks: 2,
         duration: 6,
-        atMs: 480,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2028,7 +2028,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1,
         hits: 1,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2037,13 +2037,13 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Poisoned',
         stacks: 5,
         duration: 6,
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 840,
+        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -2117,7 +2117,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 0.65,
         hits: 1,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2126,7 +2126,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Torment',
         stacks: 1,
         duration: 3.5,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2141,7 +2141,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.6999999999999997,
         hits: 9,
-        atMs: 720,
+        atMs: 480,
         intervalMs: 160,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -2171,7 +2171,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.75,
         hits: 1,
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2181,7 +2181,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Vulnerability',
         duration: 8,
         stacks: 5,
-        atMs: 1080,
+        atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2242,7 +2242,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.5,
         hits: 5,
-        atMs: 720,
+        atMs: 480,
         intervalMs: 280,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
@@ -2254,7 +2254,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Weakness',
         stacks: 1,
         duration: 4,
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2264,7 +2264,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         boon: 'Might',
         duration: 8,
         stacks: 5,
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -2290,13 +2290,13 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'control',
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {
@@ -2315,7 +2315,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2325,7 +2325,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         event: {
           duration: 5
         },
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2334,7 +2334,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Vulnerability',
         duration: 8,
         stacks: 5,
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2356,7 +2356,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        atMs: 1140,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2365,7 +2365,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         boon: 'Might',
         duration: 8,
         stacks: 5,
-        atMs: 1140,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2374,7 +2374,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        atMs: 1140,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2383,7 +2383,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         kind: 'extirpation',
         duration: 4,
         stacks: 3,
-        atMs: 1140,
+        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2399,7 +2399,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2413,7 +2413,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.9,
         hits: 1,
-        atMs: 360,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2429,7 +2429,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.4,
         hits: 1,
-        atMs: 600,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2444,7 +2444,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        atMs: 780,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2454,7 +2454,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         event: {
           duration: 2
         },
-        atMs: 780,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2471,7 +2471,23 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [
           {
-            atMs: 600,
+            atMs: 400,
+            coefficient: 0.5
+          },
+          {
+            atMs: 480,
+            coefficient: 0.5
+          },
+          {
+            atMs: 520,
+            coefficient: 0.5
+          },
+          {
+            atMs: 560,
+            coefficient: 0.5
+          },
+          {
+            atMs: 640,
             coefficient: 0.5
           },
           {
@@ -2479,23 +2495,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
             coefficient: 0.5
           },
           {
-            atMs: 780,
-            coefficient: 0.5
-          },
-          {
-            atMs: 840,
-            coefficient: 0.5
-          },
-          {
-            atMs: 960,
-            coefficient: 0.5
-          },
-          {
-            atMs: 1080,
-            coefficient: 0.5
-          },
-          {
-            atMs: 1140,
+            atMs: 760,
             coefficient: 0.5
           }
         ],
@@ -2520,14 +2520,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         coefficient: 2.4,
         hits: 1,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'custom',
         eventType: 'necromancer.chill',
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         event: {
@@ -2539,7 +2539,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         condition: 'Vulnerability',
         duration: 8,
         stacks: 8,
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

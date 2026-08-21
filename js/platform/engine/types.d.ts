@@ -114,11 +114,7 @@ export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventTyp
 export type LegacySimulationEvent = SimulationEventBase<LegacySimulationEventType>;
 
 export type SimulationEvent =
-  | DamageEvent
-  | ConditionEvent
-  | CommonSimulationEvent
-  | CustomSimulationEvent
-  | LegacySimulationEvent;
+  DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent | LegacySimulationEvent;
 
 export interface SimulationEventInput {
   readonly type: string;
@@ -188,6 +184,7 @@ export interface SkillEffectBase {
   readonly atMs?: number;
   readonly intervalMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
+  /** `cast` values are authored on the Quickness timeline and expand for slower casts. */
   readonly timingScale?: 'cast' | 'fixed';
   readonly durationScale?: 'boon' | 'fixed';
   readonly applications?: number;
@@ -372,6 +369,7 @@ export interface SkillMechanicTrigger {
   readonly type: string;
   readonly atMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
+  /** Mechanic triggers retain their base-cast-relative timing contract. */
   readonly timingScale?: 'cast' | 'fixed';
   readonly count?: number;
 }
@@ -1105,16 +1103,16 @@ export interface ProfessionApplicationContract {
   readonly validateBuild: (build: SchedulerRecord) => BuildValidationResult;
 }
 
-export interface ProfessionFamilyContract<TProfessionState extends object = SchedulerRecord>
-  extends ProfessionApplicationContract {
+export interface ProfessionFamilyContract<
+  TProfessionState extends object = SchedulerRecord
+> extends ProfessionApplicationContract {
   readonly resolveRuntime: (
     config: Readonly<SchedulerConfig>
   ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
 
 export type ProfessionSource<TProfessionState extends object = SchedulerRecord> =
-  | NormalizedProfessionContract<TProfessionState>
-  | ProfessionFamilyContract;
+  NormalizedProfessionContract<TProfessionState> | ProfessionFamilyContract;
 
 export interface CastCommand {
   readonly type: 'cast';

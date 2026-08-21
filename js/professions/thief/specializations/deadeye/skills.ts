@@ -512,8 +512,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 5,
         name: 'Malicious Sneak Attack',
         actorType: 'player',
-        atMs: 200,
-        intervalMs: 200,
+        atMs: 136,
+        intervalMs: 136,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -610,8 +610,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 8,
         name: 'Malicious Shadowsquall',
         actorType: 'player',
-        atMs: 313,
-        intervalMs: 313,
+        atMs: 210.336,
+        intervalMs: 210.336,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -721,8 +721,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 5,
         name: 'Malicious Ashen Assault',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 173.913043478261,
+        intervalMs: 173.913043478261,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

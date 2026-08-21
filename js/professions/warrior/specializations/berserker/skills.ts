@@ -130,7 +130,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         type: 'strike',
         coefficient: 3.5,
         hits: 1,
-        atMs: 882.692307692308,
+        atMs: 588.461538461539,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -558,25 +558,25 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'strike',
         ticks: [
-          { atMs: 350, coefficient: 0.75 },
+          { atMs: 233.333333333333, coefficient: 0.75 },
           {
-            atMs: 650,
+            atMs: 433.333333333333,
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },
-          { atMs: 900, coefficient: 0.75 },
+          { atMs: 600, coefficient: 0.75 },
           {
-            atMs: 1200,
+            atMs: 800,
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },
-          { atMs: 1450, coefficient: 0.75 },
+          { atMs: 966.666666666667, coefficient: 0.75 },
           {
-            atMs: 1750,
+            atMs: 1166.666666666667,
             coefficient: 0.75,
             metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
           },
-          { atMs: 1920, coefficient: 0.75 }
+          { atMs: 1280, coefficient: 0.75 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast'

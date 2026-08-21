@@ -35,9 +35,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'strike',
         ticks: [
-          { atMs: 957.6, coefficient: 0.96 },
-          { atMs: 1026, coefficient: 0.96 },
-          { atMs: 1094.4, coefficient: 0.96 }
+          { atMs: 638.4, coefficient: 0.96 },
+          { atMs: 684, coefficient: 0.96 },
+          { atMs: 729.6, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -279,9 +279,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'strike',
         ticks: [
-          { atMs: 957.6, coefficient: 0.96 },
-          { atMs: 1026, coefficient: 0.96 },
-          { atMs: 1094.4, coefficient: 0.96 }
+          { atMs: 638.4, coefficient: 0.96 },
+          { atMs: 684, coefficient: 0.96 },
+          { atMs: 729.6, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -335,8 +335,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
         type: 'strike',
         coefficient: 3.2,
         hits: 4,
-        atMs: 375,
-        intervalMs: 375,
+        atMs: 250,
+        intervalMs: 250,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Liquid State',
@@ -615,9 +615,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'strike',
         ticks: [
-          { atMs: 957.6, coefficient: 0.96 },
-          { atMs: 1026, coefficient: 0.96 },
-          { atMs: 1094.4, coefficient: 0.96 }
+          { atMs: 638.4, coefficient: 0.96 },
+          { atMs: 684, coefficient: 0.96 },
+          { atMs: 729.6, coefficient: 0.96 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -691,8 +691,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'strike',
         ticks: [
-          { atMs: 640, coefficient: 2.25 },
-          { atMs: 1180, coefficient: 2.25 }
+          { atMs: 426.666666666667, coefficient: 2.25 },
+          { atMs: 786.666666666667, coefficient: 2.25 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -703,8 +703,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       {
         type: 'condition',
         ticks: [
-          { atMs: 640, condition: 'Burning', stacks: 2, duration: 5 },
-          { atMs: 1180, condition: 'Burning', stacks: 2, duration: 5 }
+          { atMs: 426.666666666667, condition: 'Burning', stacks: 2, duration: 5 },
+          { atMs: 786.666666666667, condition: 'Burning', stacks: 2, duration: 5 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',

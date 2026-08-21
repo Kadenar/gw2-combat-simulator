@@ -47,8 +47,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 2,
         name: 'Eternal Night',
         actorType: 'player',
-        atMs: 540,
-        intervalMs: 480,
+        atMs: 360,
+        intervalMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -58,7 +58,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         duration: 2,
         actorType: 'player',
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -68,15 +68,15 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         duration: 4,
         actorType: 'player',
-        atMs: 1020,
+        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [
-          { atMs: 540, condition: 'Poisoned', stacks: 2, duration: 4 },
-          { atMs: 1020, condition: 'Poisoned', stacks: 2, duration: 4 }
+          { atMs: 360, condition: 'Poisoned', stacks: 2, duration: 4 },
+          { atMs: 680, condition: 'Poisoned', stacks: 2, duration: 4 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -253,8 +253,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 3,
         name: 'Shadowfall',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
+        atMs: 120.24,
+        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -426,7 +426,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         hits: 1,
         name: 'Haunt Shot',
         actorType: 'player',
-        atMs: 850,
+        atMs: 566.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -436,7 +436,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         duration: 6,
         actorType: 'player',
-        atMs: 850,
+        atMs: 566.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

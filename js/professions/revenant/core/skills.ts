@@ -129,8 +129,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 5,
         name: 'Unrelenting Assault',
         actorType: 'player',
-        atMs: 150,
-        intervalMs: 150,
+        atMs: 104,
+        intervalMs: 104,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1289,8 +1289,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 8,
         name: 'Rapid Assault',
         actorType: 'player',
-        atMs: 156,
-        intervalMs: 156,
+        atMs: 104.832,
+        intervalMs: 104.832,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1315,8 +1315,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 5,
         name: 'Rift Containment',
         actorType: 'player',
-        atMs: 100,
-        intervalMs: 100,
+        atMs: 72,
+        intervalMs: 72,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1363,8 +1363,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 9,
         name: 'Surge of the Mists',
         actorType: 'player',
-        atMs: 111,
-        intervalMs: 111,
+        atMs: 75.48,
+        intervalMs: 75.48,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1390,8 +1390,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 2,
         name: 'Rejuvenating Assault',
         actorType: 'player',
-        atMs: 500,
-        intervalMs: 500,
+        atMs: 340,
+        intervalMs: 340,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2151,8 +2151,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 2,
         name: 'Reckoning Blast',
         actorType: 'player',
-        atMs: 500,
-        intervalMs: 500,
+        atMs: 340,
+        intervalMs: 340,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2213,8 +2213,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 8,
         name: 'Portal Fire',
         actorType: 'player',
-        atMs: 156,
-        intervalMs: 156,
+        atMs: 104.832,
+        intervalMs: 104.832,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2267,8 +2267,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 22,
         name: 'Torrential Mists',
         actorType: 'player',
-        atMs: 91,
-        intervalMs: 91,
+        atMs: 61.88,
+        intervalMs: 61.88,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2416,8 +2416,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 5,
         name: 'Inspiring Reinforcement',
         actorType: 'player',
-        atMs: 50,
-        intervalMs: 50,
+        atMs: 40,
+        intervalMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2709,8 +2709,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 4,
         name: 'Pulsing Damage',
         actorType: 'player',
-        atMs: 188,
-        intervalMs: 188,
+        atMs: 130.346666666667,
+        intervalMs: 130.346666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

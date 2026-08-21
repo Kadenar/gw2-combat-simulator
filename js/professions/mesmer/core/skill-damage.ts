@@ -13,6 +13,7 @@ import type {
   MesmerStrikeEffect
 } from '../types.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
 import type { MesmerPhantasmEffectController, MesmerPhantasmExecution } from './phantasms.js';
 
 export interface MesmerSkillDamageResult {
@@ -63,17 +64,39 @@ export function createSkillDamageController({
     castStart: number,
     pulseTimes: readonly number[]
   ): readonly number[] => {
+    const castScale =
+      group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
+    // Mesmer's replacing handler materializes its own packets, so project the
+    // same Quickness-authored timing that the shared scheduler would use.
+    const timedGroup: MesmerDamageGroup =
+      castScale === 1
+        ? selectedGroup
+        : {
+            ...selectedGroup,
+            ...(selectedGroup.atMs == null ? {} : { atMs: Number(selectedGroup.atMs) * castScale }),
+            ...(selectedGroup.intervalMs == null || selectedGroup.intervalTimingScale === 'fixed'
+              ? {}
+              : { intervalMs: Number(selectedGroup.intervalMs) * castScale }),
+            ...(Array.isArray(selectedGroup.ticks)
+              ? {
+                  ticks: selectedGroup.ticks.map((tick) => ({
+                    ...tick,
+                    atMs: Number(tick.atMs) * castScale
+                  }))
+                }
+              : {})
+          };
     const damageGroup: MesmerDamageGroup = {
-      ...selectedGroup,
+      ...timedGroup,
       source: 'Player'
     };
-    const fixedTicks = group.ticks?.length ? group.ticks : null;
-    const interval = Number(group.intervalMs || 0);
+    const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
+    const interval = Number(damageGroup.intervalMs || 0);
     const emittedAt = (origin: number, effect: MesmerDamageGroup): readonly number[] =>
       addDamage(skill, origin, effect).map((event) => event.at);
     if (fixedTicks?.length) {
       const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || fixedTicks.length || 1)));
-      const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
+      const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
       const ticks = Array.from({ length: hits }, (_, index) => {
         const packet = fixedTicks[index % fixedTicks.length];
         return {
@@ -94,7 +117,7 @@ export function createSkillDamageController({
     }
 
     if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
+      const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
       return emittedAt(timingAnchorAt, damageGroup);
     }
 
@@ -127,7 +150,7 @@ export function createSkillDamageController({
       });
     }
 
-    const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
+    const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
     return emittedAt(timingAnchorAt, damageGroup);
   };
 
@@ -269,10 +292,14 @@ export function createSkillDamageController({
         continue;
       }
 
+      const firstPacketMs = Number(group.ticks?.[0]?.atMs ?? group.atMs ?? 0);
+      const firstPacketScale =
+        group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
+      const timingOrigin = group.timingAnchor === 'castStart' ? castStart : at;
       const hitAt =
         group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
-          : at + Number(group.atMs || 0) / 1000;
+          : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
       if (hitAt > playerEffectEnd + epsilon) continue;
       const hitTimes = schedulePlayerStrike(skill, group, selectedGroup, at, castStart, pulseTimes);
       if (group.actorType === 'player') {

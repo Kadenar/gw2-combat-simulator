@@ -10,6 +10,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  * `necromancerWeaponTaskHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
@@ -196,7 +197,14 @@ function graspingDarknessCommitted(context: NecromancerCastContext, skill: Necro
 
 function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
-  return committedAtBaseOffset(context, skill, Number(firstPacket?.atMs || skill.castTimeMs || 0));
+  const authoredOffsetMs = Number(firstPacket?.atMs || skill.castTimeMs || 0);
+  // Nightfall commits at its first runtime packet, so project its stored
+  // Quickness-relative offset onto the current cast before checking interruption.
+  const runtimeOffsetMs =
+    firstPacket?.timingScale === 'cast'
+      ? authoredOffsetMs * castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000)
+      : authoredOffsetMs;
+  return context.effectiveEnd + context.epsilon >= context.start + runtimeOffsetMs / 1000;
 }
 
 function afterGraspingDarknessEffect(

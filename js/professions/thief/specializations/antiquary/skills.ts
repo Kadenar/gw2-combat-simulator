@@ -221,8 +221,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         hits: 3,
         name: 'Stone Summit Cannon — Packet 1',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
+        atMs: 111.333333333333,
+        intervalMs: 111.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

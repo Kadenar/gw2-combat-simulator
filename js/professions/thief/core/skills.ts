@@ -16,8 +16,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 6,
         name: 'Throw Gunk',
         actorType: 'player',
-        atMs: 83,
-        intervalMs: 83,
+        atMs: 59.76,
+        intervalMs: 59.76,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -749,8 +749,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'strike',
         ticks: [
-          { atMs: 240, coefficient: 0.4 },
-          { atMs: 420, coefficient: 0.4 }
+          { atMs: 160, coefficient: 0.4 },
+          { atMs: 280, coefficient: 0.4 }
         ],
         name: 'Double Strike',
         actorType: 'player',
@@ -790,9 +790,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'strike',
         ticks: [
-          { atMs: 840, coefficient: 0.21 },
-          { atMs: 960, coefficient: 0.21 },
-          { atMs: 1200, coefficient: 0.21 }
+          { atMs: 560, coefficient: 0.21 },
+          { atMs: 640, coefficient: 0.21 },
+          { atMs: 800, coefficient: 0.21 }
         ],
         name: 'Death Blossom',
         actorType: 'player',
@@ -802,9 +802,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'condition',
         ticks: [
-          { atMs: 840, condition: 'Bleeding', stacks: 2, duration: 6 },
-          { atMs: 960, condition: 'Bleeding', stacks: 2, duration: 6 },
-          { atMs: 1200, condition: 'Bleeding', stacks: 2, duration: 6 }
+          { atMs: 560, condition: 'Bleeding', stacks: 2, duration: 6 },
+          { atMs: 640, condition: 'Bleeding', stacks: 2, duration: 6 },
+          { atMs: 800, condition: 'Bleeding', stacks: 2, duration: 6 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -925,8 +925,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 8,
         name: 'Unload',
         actorType: 'player',
-        atMs: 145,
-        intervalMs: 145,
+        atMs: 96.666666666667,
+        intervalMs: 96.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1097,8 +1097,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 4,
         name: 'Choking Gas',
         actorType: 'player',
-        atMs: 125,
-        intervalMs: 125,
+        atMs: 90,
+        intervalMs: 90,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1272,8 +1272,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 4,
         name: 'Small Explosion',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 170,
+        intervalMs: 170,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1420,8 +1420,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Shadow Assault',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
+        atMs: 120.24,
+        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1798,7 +1798,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Wild Strike',
         actorType: 'player',
-        atMs: 240,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1808,7 +1808,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 2,
         duration: 3,
         actorType: 'player',
-        atMs: 240,
+        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1899,7 +1899,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Lotus Strike',
         actorType: 'player',
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1909,7 +1909,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 2,
         duration: 5,
         actorType: 'player',
-        atMs: 420,
+        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1935,8 +1935,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 2,
         name: 'Twisting Fangs',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 180,
+        intervalMs: 180,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -1963,8 +1963,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 5,
         name: 'Repeater (offhand empty)',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 168,
+        intervalMs: 168,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2008,8 +2008,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Black Powder',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
+        atMs: 120.24,
+        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2070,8 +2070,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 5,
         name: 'Sneak Attack',
         actorType: 'player',
-        atMs: 200,
-        intervalMs: 200,
+        atMs: 136,
+        intervalMs: 136,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2179,8 +2179,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 8,
         name: 'Nine-Tailed Strike — Packet 1',
         actorType: 'player',
-        atMs: 188,
-        intervalMs: 188,
+        atMs: 125.333333333333,
+        intervalMs: 125.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2315,8 +2315,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 6,
         name: 'Throw Gunk',
         actorType: 'player',
-        atMs: 83,
-        intervalMs: 83,
+        atMs: 59.76,
+        intervalMs: 59.76,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -2348,8 +2348,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Weakening Whirl',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
+        atMs: 111.333333333333,
+        intervalMs: 111.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2449,8 +2449,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 4,
         name: 'Punishing Strikes',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 166.666666666667,
+        intervalMs: 166.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2534,8 +2534,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Dust Strike',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 173.333333333333,
+        intervalMs: 173.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2759,8 +2759,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 2,
         name: 'Double Tap',
         actorType: 'player',
-        atMs: 375,
-        intervalMs: 375,
+        atMs: 260,
+        intervalMs: 260,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2819,8 +2819,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Three Round Burst',
         actorType: 'player',
-        atMs: 333,
-        intervalMs: 333,
+        atMs: 222,
+        intervalMs: 222,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -2961,8 +2961,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Throw Magnetic Bomb',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 173.333333333333,
+        intervalMs: 173.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3272,8 +3272,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 5,
         name: 'Throw Cursed Artifact',
         actorType: 'player',
-        atMs: 100,
-        intervalMs: 100,
+        atMs: 72,
+        intervalMs: 72,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3333,8 +3333,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 5,
         name: 'Repeater',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 168,
+        intervalMs: 168,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3383,8 +3383,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 7,
         name: 'Endless Night',
         actorType: 'player',
-        atMs: 411.428571428571,
-        intervalMs: 411.428571428571,
+        atMs: 274.285714285714,
+        intervalMs: 274.285714285714,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3394,7 +3394,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1,
         duration: 1.5,
         actorType: 'player',
-        atMs: 411.428571428571,
+        atMs: 274.285714285714,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3402,7 +3402,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         type: 'condition',
         ticks: [
           {
-            atMs: 411.428571428571,
+            atMs: 274.285714285714,
+            condition: 'Torment',
+            stacks: 1,
+            duration: 6
+          },
+          {
+            atMs: 548.571428571429,
             condition: 'Torment',
             stacks: 1,
             duration: 6
@@ -3414,30 +3420,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
             duration: 6
           },
           {
-            atMs: 1234.285714285714,
+            atMs: 1097.142857142857,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 1645.714285714286,
+            atMs: 1371.428571428571,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
           {
-            atMs: 2057.142857142857,
+            atMs: 1645.714285714285,
             condition: 'Torment',
             stacks: 1,
             duration: 6
           },
-          {
-            atMs: 2468.571428571428,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          { atMs: 2880, condition: 'Torment', stacks: 1, duration: 6 }
+          { atMs: 1920, condition: 'Torment', stacks: 1, duration: 6 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -3459,7 +3459,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 480,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3469,7 +3469,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3479,16 +3479,16 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 1560,
+        atMs: 1040,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [
-          { atMs: 480, condition: 'Torment', stacks: 1, duration: 5 },
-          { atMs: 960, condition: 'Torment', stacks: 1, duration: 5 },
-          { atMs: 1560, condition: 'Torment', stacks: 1, duration: 5 }
+          { atMs: 320, condition: 'Torment', stacks: 1, duration: 5 },
+          { atMs: 640, condition: 'Torment', stacks: 1, duration: 5 },
+          { atMs: 1040, condition: 'Torment', stacks: 1, duration: 5 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -3508,17 +3508,17 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Triple Threat',
         actorType: 'player',
-        atMs: 500,
-        intervalMs: 500,
+        atMs: 333.333333333333,
+        intervalMs: 333.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [
-          { atMs: 500, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 1000, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 1500, condition: 'Torment', stacks: 1, duration: 4 }
+          { atMs: 333.333333333333, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 666.666666666667, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 1000, condition: 'Torment', stacks: 1, duration: 4 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -3540,7 +3540,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Double Bolt',
         actorType: 'player',
-        atMs: 480,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3550,15 +3550,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Double Bolt',
         actorType: 'player',
-        atMs: 900,
+        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [
-          { atMs: 480, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 900, condition: 'Torment', stacks: 1, duration: 4 }
+          { atMs: 320, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -3578,7 +3578,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Initial Attack',
         actorType: 'player',
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3588,7 +3588,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Secondary Attack',
         actorType: 'player',
-        atMs: 1200,
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3598,7 +3598,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1,
         duration: 3,
         actorType: 'player',
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3608,7 +3608,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1,
         duration: 5,
         actorType: 'player',
-        atMs: 960,
+        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -3618,7 +3618,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 3,
         duration: 5,
         actorType: 'player',
-        atMs: 1200,
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -3665,22 +3665,22 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 8,
         name: 'Shadowsquall',
         actorType: 'player',
-        atMs: 367.5,
-        intervalMs: 367.5,
+        atMs: 245,
+        intervalMs: 245,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [
-          { atMs: 367.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 245, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 490, condition: 'Poisoned', stacks: 1, duration: 3 },
           { atMs: 735, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1102.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 980, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1225, condition: 'Poisoned', stacks: 1, duration: 3 },
           { atMs: 1470, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1837.5, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 2205, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 2572.5, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 2940, condition: 'Poisoned', stacks: 1, duration: 3 }
+          { atMs: 1715, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1960, condition: 'Poisoned', stacks: 1, duration: 3 }
         ],
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -3792,8 +3792,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 3,
         name: 'Venomous Volley',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 173.333333333333,
+        intervalMs: 173.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -4075,8 +4075,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 5,
         name: 'Ashen Assault',
         actorType: 'player',
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 173.913043478261,
+        intervalMs: 173.913043478261,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -4250,9 +4250,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'strike',
         ticks: [
-          { atMs: 600.45, coefficient: 0.53 },
-          { atMs: 839.55, coefficient: 0.53 },
-          { atMs: 1078.35, coefficient: 0.53 }
+          { atMs: 400.3, coefficient: 0.53 },
+          { atMs: 559.7, coefficient: 0.53 },
+          { atMs: 718.9, coefficient: 0.53 }
         ],
         name: 'Flawless Execution — Packet 1',
         actorType: 'player',
@@ -4265,19 +4265,19 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1,
         name: 'Final Slash Damage',
         actorType: 'player',
-        atMs: 1860.6,
+        atMs: 1240.4,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
         ticks: [
-          { atMs: 480.6, coefficient: 0.25 },
-          { atMs: 659.55, coefficient: 0.25 },
-          { atMs: 778.8, coefficient: 0.25 },
-          { atMs: 960.3, coefficient: 0.25 },
-          { atMs: 1140.15, coefficient: 0.25 },
-          { atMs: 1260.75, coefficient: 0.25 }
+          { atMs: 320.4, coefficient: 0.25 },
+          { atMs: 439.7, coefficient: 0.25 },
+          { atMs: 519.2, coefficient: 0.25 },
+          { atMs: 640.2, coefficient: 0.25 },
+          { atMs: 760.1, coefficient: 0.25 },
+          { atMs: 840.5, coefficient: 0.25 }
         ],
         name: 'Projectile Damage',
         actorType: 'player',

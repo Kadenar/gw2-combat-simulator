@@ -1668,9 +1668,9 @@ test('reconstructs Spellbreaker precasts and collapses internal Warrior animatio
         840,
         [{ type: 'strike', atMs: 760, timingScale: 'fixed' }]
       ],
-      [80_247, 'Rend', 'Weapon', 'Weapon_3', 960, 1_440, [{ type: 'strike', atMs: 660, timingScale: 'cast' }]],
-      [42_745, 'Precise Cut', 'Weapon', 'Weapon_1', 320, 480, [{ type: 'strike', atMs: 420, timingScale: 'cast' }]],
-      [14_518, 'Crushing Blow', 'Weapon', 'Weapon_2', 560, 1_200, [{ type: 'strike', atMs: 660, timingScale: 'cast' }]]
+      [80_247, 'Rend', 'Weapon', 'Weapon_3', 960, 1_440, [{ type: 'strike', atMs: 440, timingScale: 'cast' }]],
+      [42_745, 'Precise Cut', 'Weapon', 'Weapon_1', 320, 480, [{ type: 'strike', atMs: 280, timingScale: 'cast' }]],
+      [14_518, 'Crushing Blow', 'Weapon', 'Weapon_2', 560, 1_200, [{ type: 'strike', atMs: 308, timingScale: 'cast' }]]
     ].map(([id, name, type, slot, quicknessCastTimeMs, castTimeMs, effects]) => ({
       id,
       name,

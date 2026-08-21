@@ -14,11 +14,13 @@
  * is divided by the 1.5 action-rate multiplier and rounded up to the next 40 ms
  * action tick.
  *
- * Explicit effect offsets are also authored against the unquickened timeline:
+ * Explicit cast-scaled effect offsets are authored against the Quickness timeline:
  *
- *     runtimeOffset = authoredOffset * runtimeCast / castTimeMs
+ *     runtimeOffset = authoredOffset * runtimeCast / quicknessReferenceCastTimeMs
  *
- * This scaling only applies to effects marked `timingScale: "cast"`.
+ * A Quickness cast therefore uses the authored values 1:1, while an unquickened
+ * cast expands them. This scaling only applies to effects marked
+ * `timingScale: "cast"`.
  * `timingScale: "fixed"` keeps its authored offsets unchanged. An interval on
  * a cast-scaled effect follows the same scale unless it explicitly declares
  * `intervalTimingScale: "fixed"`.
@@ -33,6 +35,7 @@ import {
 } from '../boon-state.js';
 import { clamp } from '../numeric.js';
 import { gw2StatsForWeaponSet } from '../runtime-rules.js';
+import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skill-timing.js';
 import type {
   CanonicalCatalog,
   CastContext,
@@ -58,41 +61,24 @@ type CastBoundTimingContext = SchedulerContext &
     fullEnd: number;
   };
 
-/** Quickness increases action rate by 50%, so duration is divided by 1.5. */
-const QUICKNESS_ACTION_RATE = 1.5;
-/** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
-const ACTION_TICK_MS = 40;
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends']);
-
-/** Rounds a positive duration up to the next server/action interval. */
-function quantizeUp(value: number, interval: number): number {
-  if (!(value > 0)) return 0;
-  // Casts complete on the first 40 ms action tick at or after their scaled
-  // duration. The epsilon avoids rounding an exact boundary into the next tick.
-  return Math.ceil(value / interval - 1e-9) * interval;
-}
 
 function baseCastDurationMs(skill: Skill): number {
   return Math.max(0, Number(skill.castTimeMs || 0));
 }
 
 /**
- * Projects an effect from its unquickened cast timeline onto the runtime cast.
- *
- * For example, an effect at 840 ms on a 1320 ms base cast occurs at 560 ms
- * when the runtime cast is 880 ms: `840 * 880 / 1320`.
- *
- * `timingAnchor` remains independent: the scaled offset is still measured from
- * whichever anchor the effect declares (`castStart` or `castEnd`).
+ * Projects Quickness-relative effect timing onto the actual runtime cast.
+ * Quickened casts use the stored packet values unchanged; slower casts scale
+ * them upward while retaining their declared cast-start or cast-end anchor.
  */
 function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, effect: SkillEffect): SkillEffect {
   if (effect.timingScale !== 'cast') return effect;
   const baseCastMs = baseCastDurationMs(skill);
-  if (!(baseCastMs > 0)) return effect;
+  if (!(baseCastMs > 0) || skill.unaffectedByQuickness) return effect;
   const adjustedCastMs = Math.max(0, Number(context.fullEnd - context.start)) * 1000;
-  const scale = adjustedCastMs / baseCastMs;
   // Return a copy because skill metadata is shared by every simulation run.
   return {
     ...effect,
@@ -100,14 +86,16 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
       ? {
           ticks: effect.ticks.map((tick) => ({
             ...tick,
-            atMs: Number(tick.atMs) * scale
+            atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
           }))
         }
       : {}),
-    ...(effect.atMs == null ? {} : { atMs: Number(effect.atMs) * scale }),
+    ...(effect.atMs == null
+      ? {}
+      : { atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(effect.atMs)) }),
     ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
       ? {}
-      : { intervalMs: Number(effect.intervalMs) * scale })
+      : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(effect.intervalMs)) })
   };
 }
 
@@ -306,19 +294,12 @@ export function createGw2SchedulerPolicy(
       if (!context.hasBuff('quickness', context.start)) return baseDuration;
       // Measured metadata wins and is not quantized again. The fallback models
       // the standard action-rate conversion and action-tick boundary.
-      if (skill.quicknessCastTimeMs != null) {
-        return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
-      }
-
-      const quicknessMs = (baseDuration * 1000) / QUICKNESS_ACTION_RATE;
-      return quantizeUp(quicknessMs, ACTION_TICK_MS) / 1000;
+      return quicknessReferenceCastTimeMs(skill, baseDuration * 1000) / 1000;
     },
 
     effectTiming(context, skill, effect) {
-      if (skill.unaffectedByQuickness) return effect;
-      if (!context.hasBuff('quickness', context.start)) return effect;
-      // The helper leaves fixed effects untouched and scales opted-in offsets,
-      // tick arrays, and non-fixed intervals without mutating catalog metadata.
+      // The helper leaves fixed effects untouched, preserves stored Quickness
+      // timing at a 1:1 scale, and expands cast-bound timing for slower casts.
       return scaleCastBoundTiming(context, skill, effect);
     },
 

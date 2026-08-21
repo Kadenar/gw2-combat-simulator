@@ -72,9 +72,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'strike',
         ticks: [
-          { atMs: 540, coefficient: 0.75 },
-          { atMs: 660, coefficient: 0.75 },
-          { atMs: 780, coefficient: 1 }
+          { atMs: 360, coefficient: 0.75 },
+          { atMs: 440, coefficient: 0.75 },
+          { atMs: 520, coefficient: 1 }
         ],
         name: 'Impairing Daggers',
         actorType: 'player',
@@ -87,7 +87,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 3,
         duration: 10,
         actorType: 'player',
-        atMs: 540,
+        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -97,7 +97,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 1,
         duration: 5,
         actorType: 'player',
-        atMs: 660,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -107,7 +107,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 1,
         duration: 2,
         actorType: 'player',
-        atMs: 780,
+        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -233,11 +233,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'strike',
         ticks: [
-          { atMs: 180, coefficient: 0.75 },
-          { atMs: 420, coefficient: 0.75 },
-          { atMs: 600, coefficient: 0.75 },
-          { atMs: 840, coefficient: 0.75 },
-          { atMs: 1020, coefficient: 0.75 }
+          { atMs: 120, coefficient: 0.75 },
+          { atMs: 280, coefficient: 0.75 },
+          { atMs: 400, coefficient: 0.75 },
+          { atMs: 560, coefficient: 0.75 },
+          { atMs: 680, coefficient: 0.75 }
         ],
         name: 'Fist Flurry',
         actorType: 'player',
@@ -250,7 +250,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 1,
         duration: 5,
         actorType: 'player',
-        atMs: 180,
+        atMs: 120,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

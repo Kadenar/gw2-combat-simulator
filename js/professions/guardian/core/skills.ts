@@ -20,26 +20,25 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.WHIRLING_WRATH]: {
     implemented: true,
     interruptMode: 'per-packet',
-    castTimeMs: 2200,
-    // Scale the channel packets to the measured Quickness duration.
+    // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 1480,
     effects: [
       strikeTimeline(
         [
-          { atMs: 157, coefficient: 0.35 },
-          { atMs: 314, coefficient: 0.275 },
-          { atMs: 471, coefficient: 0.35 },
-          { atMs: 628, coefficient: 0.275 },
-          { atMs: 785, coefficient: 0.35 },
-          { atMs: 942, coefficient: 0.275 },
-          { atMs: 1099, coefficient: 0.35 },
-          { atMs: 1257, coefficient: 0.275 },
-          { atMs: 1414, coefficient: 0.35 },
-          { atMs: 1571, coefficient: 0.275 },
-          { atMs: 1728, coefficient: 0.35 },
-          { atMs: 1885, coefficient: 0.275 },
-          { atMs: 2042, coefficient: 0.35 },
-          { atMs: 2200, coefficient: 0.275 }
+          { atMs: 105.618181818182, coefficient: 0.35 },
+          { atMs: 211.236363636364, coefficient: 0.275 },
+          { atMs: 316.854545454545, coefficient: 0.35 },
+          { atMs: 422.472727272727, coefficient: 0.275 },
+          { atMs: 528.090909090909, coefficient: 0.35 },
+          { atMs: 633.709090909091, coefficient: 0.275 },
+          { atMs: 739.327272727273, coefficient: 0.35 },
+          { atMs: 845.618181818182, coefficient: 0.275 },
+          { atMs: 951.236363636364, coefficient: 0.35 },
+          { atMs: 1056.854545454545, coefficient: 0.275 },
+          { atMs: 1162.472727272727, coefficient: 0.35 },
+          { atMs: 1268.090909090909, coefficient: 0.275 },
+          { atMs: 1373.709090909091, coefficient: 0.35 },
+          { atMs: 1480, coefficient: 0.275 }
         ],
         {
           timingAnchor: 'castStart',
@@ -102,16 +101,15 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.CLEANSING_FLAME]: {
     implemented: true,
     interruptMode: 'per-packet',
-    castTimeMs: 4000,
-    // Scale the channel packets to the measured Quickness duration.
+    // The catalog derives the unquickened cast from this measured Quickness duration.
     quicknessCastTimeMs: 2600,
     effects: [
       {
         type: 'strike',
         coefficient: 4,
         hits: 10,
-        atMs: 400,
-        intervalMs: 400,
+        atMs: 260,
+        intervalMs: 260,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -120,7 +118,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         condition: 'Burning',
         stacks: 2,
         duration: 4,
-        atMs: 4000,
+        atMs: 2600,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -293,8 +291,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'strike',
         coefficient: 4.8,
         hits: 8,
-        atMs: 375,
-        intervalMs: 375,
+        atMs: 250,
+        intervalMs: 250,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -464,7 +462,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 1000,
+        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -528,7 +526,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        atMs: 720,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
