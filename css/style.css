@@ -3761,6 +3761,10 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   gap: 4px;
 }
 
+.start-resource-controls {
+  display: contents;
+}
+
 .start-state-toggle {
   display: inline-flex;
   gap: 3px;
@@ -6316,7 +6320,42 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   opacity: 0.35;
 }
 
-.evoker-pip {
+.elementalist-theme .start-resource-controls:has([data-resource-key='initialEvokerEmpowered']) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: center;
+  gap: 3px 4px;
+}
+
+.elementalist-theme .start-resource-controls:has([data-resource-key='initialEvokerEmpowered']) .start-resource-control {
+  display: contents;
+}
+
+.elementalist-theme .start-resource-control:has([data-resource-key='initialEvokerCharges']) .start-att-label {
+  margin-left: 6px;
+  font-size: 0;
+}
+
+.elementalist-theme .start-resource-control:has([data-resource-key='initialEvokerCharges']) .start-att-label::after {
+  font-size: 10px;
+  content: 'Start:';
+}
+
+.elementalist-theme .start-resource-control:has([data-resource-key='initialEvokerEmpowered']) .start-att-label {
+  display: none;
+}
+
+.elementalist-theme .resource-pips:has([data-resource-key='initialEvokerCharges']),
+.elementalist-theme .resource-pips:has([data-resource-key='initialEvokerEmpowered']) {
+  justify-content: center;
+  gap: 2px;
+}
+
+.elementalist-theme .resource-pips:has([data-resource-key='initialEvokerEmpowered']) {
+  grid-column: 2;
+}
+
+.elementalist-theme [data-resource-key='initialEvokerCharges'] {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -6325,13 +6364,13 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   transition: background 0.2s;
 }
 
-.evoker-pip.filled {
+.elementalist-theme [data-resource-key='initialEvokerCharges'].active {
   background: #ddaa33;
   border-color: #ffcc44;
   box-shadow: 0 0 3px rgba(255, 200, 50, 0.5);
 }
 
-.evoker-emp {
+.elementalist-theme [data-resource-key='initialEvokerEmpowered'] {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -6340,19 +6379,14 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   transition: background 0.2s;
 }
 
-.evoker-emp.filled {
+.elementalist-theme [data-resource-key='initialEvokerEmpowered'].active {
   background: #ee5522;
   border-color: #ff7744;
   box-shadow: 0 0 4px rgba(255, 80, 30, 0.6);
 }
 
-[data-role='evoker-start-basic'],
-[data-role='evoker-start-emp'] {
-  cursor: pointer;
-}
-
-[data-role='evoker-start-basic']:hover,
-[data-role='evoker-start-emp']:hover {
+.elementalist-theme [data-resource-key='initialEvokerCharges']:hover,
+.elementalist-theme [data-resource-key='initialEvokerEmpowered']:hover {
   filter: brightness(1.2);
 }
 

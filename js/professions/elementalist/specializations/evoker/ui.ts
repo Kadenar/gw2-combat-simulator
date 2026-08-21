@@ -192,6 +192,24 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
         showValue: false,
         shortLabel: 'Charges',
         statusLabel: `Familiar (${empowered}/3 empowered)`
+      },
+      {
+        // Expose empowered progress as a start-only resource so rotations can begin at any stage without adding a second live meter.
+        id: 'evoker-empowered-charges',
+        singular: 'empowered charge',
+        plural: 'empowered charges',
+        maximum: 3,
+        value: empowered,
+        startMaximum: 3,
+        startValue: Number(build?.initialEvokerEmpowered ?? 0),
+        canStart: true,
+        buildKey: 'initialEvokerEmpowered',
+        step: 1,
+        displayMode: 'pips',
+        showInPalette: false,
+        showValue: false,
+        shortLabel: 'Empowered',
+        statusLabel: 'Familiar'
       }
     ];
   }

@@ -84,6 +84,56 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
   assert.deepEqual(simulation.warnings, []);
 });
 
+test('recovers an opening Harbinger Shroud and removes canceled autoattacks', () => {
+  const report = reportFixture(
+    'Harbinger',
+    [
+      { id: 62539, skills: [{ castTime: -800, duration: 840, timeGained: 0 }] },
+      { id: 62540, skills: [{ castTime: 40, duration: 0, timeGained: 0 }] },
+      { id: 62517, skills: [{ castTime: 80, duration: 120, timeGained: -120 }] },
+      { id: 62513, skills: [{ castTime: 200, duration: 840, timeGained: 0 }] },
+      { id: 62567, skills: [{ castTime: 10_000, duration: 0, timeGained: 0 }] }
+    ],
+    {
+      s62539: { name: 'Voracious Arc' },
+      s62540: { name: 'Exit Harbinger Shroud', isInstantCast: true },
+      s62517: { name: 'Vicious Shot', autoAttack: true },
+      s62513: { name: 'Weeping Shots' },
+      s62567: { name: 'Harbinger Shroud', isInstantCast: true }
+    }
+  );
+  const catalog = {
+    skills: [
+      skill(62539, 'Voracious Arc', { castTimeMs: 840, shroud: 'harbinger' }),
+      skill(62540, 'Exit Harbinger Shroud', { castTimeMs: 0, handlerId: 'necromancer.shroud' }),
+      skill(62517, 'Vicious Shot', { type: 'weapon', slot: 'weapon_1', castTimeMs: 600 }),
+      skill(62513, 'Weeping Shots', { type: 'weapon', slot: 'weapon_2', castTimeMs: 840 }),
+      skill(62567, 'Harbinger Shroud', { castTimeMs: 0, handlerId: 'necromancer.shroud' })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.rotation.map((command) => command.name),
+    [
+      'Harbinger Shroud',
+      'Voracious Arc',
+      '__combat_start',
+      'Exit Harbinger Shroud',
+      'Weeping Shots',
+      'Harbinger Shroud'
+    ]
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Vicious Shot'),
+    false
+  );
+  assert.equal(result.actions[0].inferred, true);
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Harbinger Shroud/);
+  assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
+});
+
 test('recovers alacrity Luminary opening state and retains only physical weapon swaps', () => {
   const report = reportFixture(
     'Luminary',

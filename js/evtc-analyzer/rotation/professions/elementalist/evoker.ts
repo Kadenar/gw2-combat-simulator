@@ -1,4 +1,4 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '../../../types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../professions/elementalist/data/ids.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
@@ -17,49 +17,95 @@ function playerInstance(context: EvtcProfessionReconstructionContext): number | 
   );
 }
 
+function calcifyEffectCommitted(context: EvtcProfessionReconstructionContext, start: number, end: number): boolean {
+  return context.log.events.some(
+    (event) =>
+      event.source === context.playerAddress &&
+      event.skillId === CALCIFY_RAW_SKILL_ID &&
+      event.time >= start &&
+      event.time <= end &&
+      event.stateChange === EVTC_STATE_CHANGE.NONE &&
+      event.activation === EVTC_ACTIVATION.NONE &&
+      event.buff === 0 &&
+      event.value > 0 &&
+      event.target !== 0n
+  );
+}
+
+function matchingCalcifyStop(
+  start: ParsedEvtcEvent,
+  stops: readonly { readonly event: ParsedEvtcEvent; readonly eventIndex: number }[],
+  matchedStopIndexes: ReadonlySet<number>
+): { readonly event: ParsedEvtcEvent; readonly eventIndex: number } | null {
+  return (
+    stops.find(
+      ({ event, eventIndex }) =>
+        !matchedStopIndexes.has(eventIndex) &&
+        event.source === start.source &&
+        event.time > start.time &&
+        Math.abs(event.time - start.time - event.value) <= 150
+    ) ?? null
+  );
+}
+
+function calcifyAction(
+  event: ParsedEvtcEvent,
+  eventIndex: number,
+  start: number,
+  precast = false
+): EvtcRecordedRotationAction {
+  return {
+    start,
+    end: start,
+    expectedDuration: 0,
+    rawSkillId: event.skillId,
+    rawName: CALCIFY.name,
+    canonicalSkillId: CALCIFY.skillId,
+    canonicalName: CALCIFY.name,
+    evidence: 'animation',
+    status: 'instant',
+    eventIndex,
+    ...(precast ? { precast: true } : {})
+  };
+}
+
 function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
-  const starts = context.log.events.filter(
-    (event) =>
-      event.sourceMasterInstance === ownerInstance &&
-      event.skillId === CALCIFY_RAW_SKILL_ID &&
-      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
+  const ownedEvents = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .filter(({ event }) => event.sourceMasterInstance === ownerInstance && event.skillId === CALCIFY_RAW_SKILL_ID);
+  const starts = ownedEvents.filter(({ event }) => event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START);
+  const stops = ownedEvents.filter(
+    ({ event }) => event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP && event.value > 0
   );
-
-  return context.log.events.flatMap((event, eventIndex) => {
-    if (event.sourceMasterInstance !== ownerInstance || event.skillId !== CALCIFY_RAW_SKILL_ID) {
+  const matchedStopIndexes = new Set<number>();
+  const actions = starts.flatMap(({ event, eventIndex }) => {
+    const stop = matchingCalcifyStop(event, stops, matchedStopIndexes);
+    if (stop) matchedStopIndexes.add(stop.eventIndex);
+    // Seismic Impact can cancel the familiar's visual animation after Calcify
+    // committed; keep that input, but do not replay an uncommitted cancellation.
+    if (
+      stop?.event.activation === EVTC_ACTIVATION.CANCEL_CANCEL &&
+      !calcifyEffectCommitted(context, event.time, stop.event.time)
+    ) {
       return [];
     }
 
-    const directStart = event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START;
-    const unmatchedStop =
-      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
-      event.value > 0 &&
-      !starts.some(
-        (start) =>
-          start.source === event.source &&
-          start.time < event.time &&
-          Math.abs(event.time - start.time - event.value) <= 150
-      );
-    if (!directStart && !unmatchedStop) return [];
-    const start = directStart ? event.time : event.time - event.value;
-    return [
-      {
-        start,
-        end: start,
-        expectedDuration: 0,
-        rawSkillId: event.skillId,
-        rawName: CALCIFY.name,
-        canonicalSkillId: CALCIFY.skillId,
-        canonicalName: CALCIFY.name,
-        evidence: 'animation' as const,
-        status: 'instant' as const,
-        eventIndex,
-        ...(unmatchedStop ? { precast: true } : {})
-      }
-    ];
+    return [calcifyAction(event, eventIndex, event.time)];
   });
+
+  for (const { event, eventIndex } of stops) {
+    if (matchedStopIndexes.has(eventIndex)) continue;
+    const start = event.time - event.value;
+    if (event.activation === EVTC_ACTIVATION.CANCEL_CANCEL && !calcifyEffectCommitted(context, start, event.time)) {
+      continue;
+    }
+
+    actions.push(calcifyAction(event, eventIndex, start, true));
+  }
+
+  return actions;
 }
 
 /** Normalizes Evoker-only ArcDPS skill IDs into simulator skill identities. */

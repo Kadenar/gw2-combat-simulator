@@ -781,3 +781,152 @@ test('uses the Evoker parser to normalize familiar skills', () => {
     ]
   );
 });
+
+test('keeps committed Calcify inputs when Seismic Impact cancels the familiar animation', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ time: 1_900, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 2_000,
+      source: TOAD_FAMILIAR,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    event({
+      time: 2_202,
+      target: TARGET,
+      value: 100,
+      skillId: 76925
+    }),
+    event({
+      time: 2_758,
+      source: TOAD_FAMILIAR,
+      value: 758,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    }),
+    event({
+      time: 2_758,
+      source: TOAD_FAMILIAR,
+      skillId: 76681,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    ...animation(76707, 2_758, 360),
+    event({
+      time: 4_000,
+      source: TOAD_FAMILIAR,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    event({
+      time: 4_100,
+      source: TOAD_FAMILIAR,
+      value: 100,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260816',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 3,
+      skillCount: 5,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Evoker',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      },
+      {
+        address: TOAD_FAMILIAR,
+        profession: 27042,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'ch27042-10',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: 76681, name: 'Seismic Impact' },
+      { id: 76707, name: 'Seismic Impact' },
+      { id: 76925, name: 'Calcify' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.FIRE_ATTUNEMENT, 'Fire Attunement'),
+    catalogSkill(ID.CALCIFY, 'Calcify'),
+    catalogSkill(ID.SEISMIC_IMPACT, 'Seismic Impact')
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.actions.map(({ rawSkillId, skillId, name, status }) => ({ rawSkillId, skillId, name, status })),
+    [
+      {
+        rawSkillId: 76925,
+        skillId: ID.CALCIFY,
+        name: 'Calcify',
+        status: 'instant'
+      },
+      {
+        rawSkillId: 76707,
+        skillId: ID.SEISMIC_IMPACT,
+        name: 'Seismic Impact',
+        status: 'completed'
+      }
+    ]
+  );
+  assert.equal(
+    result.actions.some((action) => action.rawSkillId === 76681),
+    false
+  );
+});

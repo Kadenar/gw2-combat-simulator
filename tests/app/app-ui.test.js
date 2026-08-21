@@ -1024,6 +1024,7 @@ test('Necromancer preset builds keep rotation data separate', async () => {
       'Condition (Fields - Pistol / Torch + Greatsword)',
       'Power (Greatsword / Spear)',
       'Power (Greatsword / Spear)',
+      'Condition Quickness (Pistol / Dagger + Scepter / Torch)',
       'Condition (Pistol / Torch + Scepter / Dagger)'
     ]
   );

@@ -374,7 +374,9 @@ export function renderStartResource(app: ProfessionAppState): void {
         </div>`;
     })
     .join('');
-  element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}${resourceControls}`;
+  // Keep related resource controls in one styling hook while preserving the default inline layout through display: contents.
+  const resourceControlsHtml = resourceControls ? `<div class="start-resource-controls">${resourceControls}</div>` : '';
+  element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}${resourceControlsHtml}`;
   element.querySelectorAll<HTMLElement>('.resource-pip').forEach((button) => {
     button.addEventListener('click', () => {
       const count = Number(button.dataset.count);

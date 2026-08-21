@@ -919,6 +919,67 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.match(empoweredReadyHtml, /active-resource-pips elementalist-evoker-air-3/);
 });
 
+test('Evoker renders stacked starting controls for basic and empowered charges', () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    specializations: [
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' },
+      { name: 'Evoker', traits: '1-1-1' }
+    ]
+  });
+  const app = {
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    results: null,
+    changed() {}
+  };
+  const selector = { innerHTML: '', querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'start-att-selector' ? selector : null)
+  };
+  try {
+    renderStartResource(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  const basicControls = selector.innerHTML.match(/data-resource-key="initialEvokerCharges"/g) || [];
+  const empoweredControls = selector.innerHTML.match(/data-resource-key="initialEvokerEmpowered"/g) || [];
+  const activeBasicControls =
+    selector.innerHTML.match(
+      /class="resource-pip active"[^>]*data-count="\d" data-resource-key="initialEvokerCharges"/g
+    ) || [];
+  const activeEmpoweredControls =
+    selector.innerHTML.match(
+      /class="resource-pip active"[^>]*data-count="\d" data-resource-key="initialEvokerEmpowered"/g
+    ) || [];
+
+  assert.equal(build.initialEvokerCharges, 6);
+  assert.equal(build.initialEvokerEmpowered, 0);
+  assert.match(selector.innerHTML, /class="start-resource-controls"/);
+  assert.equal(basicControls.length, 6);
+  assert.equal(empoweredControls.length, 3);
+  assert.equal(activeBasicControls.length, 6);
+  assert.equal(activeEmpoweredControls.length, 0);
+
+  const resources = elementalistProfession.ui.resourceViews({
+    build: { ...build, initialEvokerCharges: 4, initialEvokerEmpowered: 2 },
+    specialization: 'Evoker',
+    professionState: {},
+    catalog: elementalistCatalog
+  });
+  const empowered = resources.find((resource) => resource.id === 'evoker-empowered-charges');
+
+  assert.equal(empowered.maximum, 3);
+  assert.equal(empowered.startValue, 2);
+  assert.equal(empowered.buildKey, 'initialEvokerEmpowered');
+  assert.equal(empowered.showInPalette, false);
+});
+
 test('Evoker familiar stays available when its element differs from the active attunement', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
