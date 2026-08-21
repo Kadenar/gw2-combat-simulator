@@ -684,6 +684,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
+    interruptMode: 'per-packet',
     cooldown: 15,
     effects: [
       {
@@ -1813,6 +1814,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.HUNDRED_BLADES]: {
     implemented: true,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',

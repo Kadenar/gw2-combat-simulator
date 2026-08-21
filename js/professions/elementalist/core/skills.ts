@@ -1330,6 +1330,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.ARC_LIGHTNING]: {
     name: 'Arc Lightning',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
@@ -1441,6 +1442,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.STONE_SHARDS]: {
     name: 'Stone Shards',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
@@ -1786,6 +1788,8 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     categories: ['Weapon skill'],
     quicknessCastTimeMs: 320,
     cooldown: 15,
+    // EVTC shows the dust projectile committing at 160 ms and striking again at one-second intervals.
+    interruptCommitMs: 160,
     skillFamily: 'Weapon skill',
     implemented: true,
     effects: [
@@ -1793,19 +1797,28 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'strike',
         ticks: [
           {
-            atMs: 240,
+            atMs: 160,
+            coefficient: 0.4
+          },
+          {
+            atMs: 1160,
+            coefficient: 0.4
+          },
+          {
+            atMs: 2160,
             coefficient: 0.4
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'blind',
-        atMs: 240,
+        atMs: 160,
         applications: 1,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         metadata: {
           controlKind: 'blind'
         }
@@ -1814,64 +1827,27 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         type: 'condition',
         ticks: [
           {
-            atMs: 240,
+            atMs: 160,
+            condition: 'Cripple',
+            stacks: 1,
+            duration: 1.5
+          },
+          {
+            atMs: 1160,
+            condition: 'Cripple',
+            stacks: 1,
+            duration: 1.5
+          },
+          {
+            atMs: 2160,
             condition: 'Cripple',
             stacks: 1,
             duration: 1.5
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1740,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1740,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 3240,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 3240,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]
@@ -2713,6 +2689,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.DRAKES_BREATH]: {
     name: "Drake's Breath",
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Dagger',
@@ -7152,6 +7129,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.RAIN_OF_BLOWS]: {
     name: 'Rain of Blows',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Hammer',
@@ -7358,6 +7336,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.HURRICANE_OF_PAIN]: {
     name: 'Hurricane of Pain',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Hammer',
@@ -7554,6 +7533,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.WHIRLING_STONES]: {
     name: 'Whirling Stones',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Hammer',
@@ -8106,6 +8086,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.FRIGID_FLURRY]: {
     name: 'Frigid Flurry',
+    interruptMode: 'per-packet',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: 'Pistol',
@@ -9057,27 +9038,29 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ['Frost Bow', ID.PICK_UP_FROST_BOW],
     ['Lightning Hammer', ID.PICK_UP_LIGHTNING_HAMMER],
     ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
-  ].map(([weapon, id]): Skill => ({
-    id: Number(id),
-    name: `__pickup_${weapon}`,
-    displayName: `Pick up ${weapon}`,
-    description: `Pick up the available ${weapon}.`,
-    icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
-    type: 'Action',
-    weapon: '',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Bundle'],
-    cooldown: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null,
-    castTimeMs: 300,
-    unaffectedByQuickness: true,
-    implemented: true,
-    simulatorExcluded: false,
-    paletteAction: false,
-    effects: []
-  }))
+  ].map(
+    ([weapon, id]): Skill => ({
+      id: Number(id),
+      name: `__pickup_${weapon}`,
+      displayName: `Pick up ${weapon}`,
+      description: `Pick up the available ${weapon}.`,
+      icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
+      type: 'Action',
+      weapon: '',
+      slot: 'Action',
+      specialization: '',
+      categories: ['Bundle'],
+      cooldown: 0,
+      ammo: 0,
+      ammoRecharge: 0,
+      nextChainId: null,
+      flipSkillId: null,
+      castTimeMs: 300,
+      unaffectedByQuickness: true,
+      implemented: true,
+      simulatorExcluded: false,
+      paletteAction: false,
+      effects: []
+    })
+  )
 ]);

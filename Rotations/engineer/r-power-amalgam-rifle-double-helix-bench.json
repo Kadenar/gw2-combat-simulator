@@ -81,8 +81,7 @@
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 601,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 601
     },
     "Overcharged Shot",
     {
@@ -338,8 +337,7 @@
     "Jump Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 600,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 600
     },
     "Blunderbuss",
     {
@@ -358,8 +356,7 @@
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 598,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 598
     },
     "Overcharged Shot",
     {

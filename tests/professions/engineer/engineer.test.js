@@ -1750,11 +1750,12 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
 
   assert.equal(burst.castTimeMs, 960);
   assert.equal(burst.quicknessCastTimeMs, 640);
+  assert.equal(burst.interruptCommitMs, 280);
   assert.deepEqual(
-    burst.effects.map((effect) => [effect.coefficient, effect.atMs]),
+    burst.effects.map((effect) => [effect.coefficient, effect.atMs, effect.interruptCommitMs]),
     [
-      [0.6, 318],
-      [0.8, 602]
+      [0.6, 320, 280],
+      [0.8, 600, 560]
     ]
   );
   assert.equal(burst.effects[0].comboFinishers[0].chance, 0.2);
@@ -1795,9 +1796,32 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
       .filter((event) => event.type === 'damage' && ['Rifle Burst', 'Rifle Burst Grenade'].includes(event.name))
       .map((event) => [event.name, event.at, event.coefficient]),
     [
-      ['Rifle Burst', 0.318, 0.6],
-      ['Rifle Burst Grenade', 0.602, 0.8]
+      ['Rifle Burst', 0.32, 0.6],
+      ['Rifle Burst Grenade', 0.6, 0.8]
     ]
+  );
+
+  const interruptedPackets = (interruptMs) =>
+    simulate(
+      'Mechanist',
+      [
+        { name: 'Rifle Burst', interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      { boons: { quickness: true } }
+    ).events.filter((event) => event.type === 'damage' && ['Rifle Burst', 'Rifle Burst Grenade'].includes(event.name));
+
+  assert.deepEqual(
+    interruptedPackets(279).map((event) => event.name),
+    []
+  );
+  assert.deepEqual(
+    interruptedPackets(280).map((event) => event.name),
+    ['Rifle Burst']
+  );
+  assert.deepEqual(
+    interruptedPackets(560).map((event) => event.name),
+    ['Rifle Burst', 'Rifle Burst Grenade']
   );
 });
 
@@ -2106,6 +2130,12 @@ test('Grenade Kit emits three explosive grenade packets', () => {
 
   const shrapnel = engineerCatalog.skillsByName.get('Shrapnel Grenade');
 
+  assert.equal(shrapnel.interruptCommitMs, 360);
+  assert.equal(shrapnel.comboFinishers, undefined);
+  for (const name of ['Poison Grenade', 'Freeze Grenade']) {
+    assert.equal(engineerCatalog.skillsByName.get(name).comboFinishers, undefined, name);
+  }
+
   assert.equal(
     shrapnel.effects[1].ticks.reduce((total, packet) => total + packet.stacks, 0),
     3
@@ -2133,6 +2163,16 @@ test('Grenade Kit emits three explosive grenade packets', () => {
       [0.44, 1, 7]
     ]
   );
+
+  const interruptedShrapnelPackets = (interruptMs) =>
+    simulate('Core', [
+      'Grenade Kit',
+      { name: 'Shrapnel Grenade', interruptMs },
+      { type: 'wait', durationMs: 1000 }
+    ]).events.filter((event) => event.type === 'damage' && event.name === 'Shrapnel Grenade');
+
+  assert.equal(interruptedShrapnelPackets(359).length, 0);
+  assert.equal(interruptedShrapnelPackets(360).length, 3);
 
   const grenade = simulate('Core', ['Grenade Kit', 'Grenade']);
 
@@ -3703,6 +3743,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
   assert.equal(grenadeBarrage.cooldown, 25);
   assert.equal(grenadeBarrage.effects[0].coefficient, 3.6);
   assert.equal(grenadeBarrage.effects[0].hits, 6);
+  assert.equal(grenadeBarrage.comboFinishers, undefined);
 
   const staticShock = mechanic('Static Shock');
 

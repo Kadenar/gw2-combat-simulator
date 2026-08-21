@@ -198,8 +198,7 @@
     {
       "name": "Dust Devil",
       "skillId": 5696,
-      "interruptMs": 241,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 241
     },
     {
       "name": "Earthquake",

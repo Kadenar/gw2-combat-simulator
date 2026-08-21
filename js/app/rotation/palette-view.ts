@@ -11,7 +11,7 @@
  * read current build and result state instead of retaining DOM-local state.
  */
 import { ammoDisplayView } from '../../platform/ui/ammo-display.js';
-import { openActivationEditor } from '../../platform/ui/activation-editor.js';
+import { activationDamageCommitMs, openActivationEditor } from '../../platform/ui/activation-editor.js';
 import { openDurationEditor, validateDurationMs } from '../../platform/ui/duration-editor.js';
 import {
   bindPaletteInteractions,
@@ -796,6 +796,7 @@ export function renderPalette(app: ProfessionAppState): void {
           interruptMs: suggestedInterruptMs,
           fullCastMs: Number(skill?.castTimeMs) || null,
           suggestedInterruptMs,
+          damageCommitMs: activationDamageCommitMs(skill),
           onApply(interruptMs) {
             app.addRotation(name, {
               ...identity,

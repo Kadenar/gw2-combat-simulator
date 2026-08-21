@@ -20,7 +20,6 @@ export interface EvtcRecordedRotationAction {
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
-  readonly replayPreserveEffectsAfterInterrupt?: boolean;
   readonly forceCompleteReplay?: boolean;
   readonly suppressFollowingWait?: boolean;
   // Profession reconstruction can recover a missing EVTC combat boundary from an action's effect packets.

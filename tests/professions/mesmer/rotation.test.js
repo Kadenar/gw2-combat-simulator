@@ -1470,7 +1470,10 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
 
 test('Well of Calamity uses its measured cast, pulse conditions, and ethereal field', () => {
   const result = simulateMesmer(
-    ['Well of Calamity', { name: '__wait', waitMs: 4000 }],
+    [
+      { name: 'Well of Calamity', interruptMs: 700 },
+      { name: '__wait', waitMs: 4000 }
+    ],
     defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] })
   );
   const conditions = result.resolvedEvents
@@ -1478,7 +1481,7 @@ test('Well of Calamity uses its measured cast, pulse conditions, and ethereal fi
     .map((event) => [event.condition, Math.round(event.at * 1000), event.stacks, event.duration]);
   const well = mesmerCatalog.skillsByName.get('Well of Calamity');
 
-  assert.equal(result.steps[0].end - result.steps[0].start, 800);
+  assert.equal(result.steps[0].end - result.steps[0].start, 700);
   assert.deepEqual(conditions, [
     ['Crippled', 559, 1, 2],
     ['Weakness', 559, 1, 2],
@@ -4450,6 +4453,40 @@ test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', 
     ['Flying Cutter', 'Unstable Bladestorm']
   );
   assert.equal(result.warnings.length, 0);
+});
+
+test('Unstable Bladestorm commits at its measured spawn and retains its packet train', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Sword'
+  });
+  const committed = simulateMesmer(
+    [
+      { name: 'Unstable Bladestorm', interruptMs: 200 },
+      { name: '__wait', waitMs: 5000 }
+    ],
+    config
+  );
+  const cancelled = simulateMesmer(
+    [
+      { name: 'Unstable Bladestorm', interruptMs: 199 },
+      { name: '__wait', waitMs: 5000 }
+    ],
+    config
+  );
+
+  assert.deepEqual(
+    committed.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
+      .map((event) => Number(event.at.toFixed(3))),
+    [1.16, 1.2, 2.16, 2.2, 3.16, 3.2, 4.16, 4.2]
+  );
+  assert.equal(
+    cancelled.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
+      .length,
+    0
+  );
 });
 
 test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {

@@ -236,38 +236,46 @@ test('validates Engineer cast completion from observed strike packets', () => {
     }),
     skill(5807, 'Shrapnel Grenade', {
       quicknessCastTimeMs: 680,
+      interruptCommitMs: 360,
       effects: [
         {
           type: 'strike',
           ticks: [{ atMs: 400 }, { atMs: 440 }, { atMs: 440 }],
           timingAnchor: 'castStart',
-          timingScale: 'fixed'
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true
         }
       ]
     }),
     skill(6003, 'Rifle Burst', {
       slot: 'Weapon_1',
       quicknessCastTimeMs: 640,
+      interruptCommitMs: 280,
       effects: [
         {
           type: 'strike',
           name: 'Rifle Burst',
-          atMs: 318,
+          atMs: 320,
           timingAnchor: 'castStart',
-          timingScale: 'fixed'
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true,
+          interruptCommitMs: 280
         },
         {
           type: 'strike',
           name: 'Rifle Burst Grenade',
-          atMs: 602,
+          atMs: 600,
           timingAnchor: 'castStart',
-          timingScale: 'fixed'
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true,
+          interruptCommitMs: 560
         }
       ]
     }),
     skill(6154, 'Overcharged Shot', {
       slot: 'Weapon_4',
       quicknessCastTimeMs: 400,
+      interruptCommitMs: 0,
       effects: [
         {
           type: 'strike',
@@ -347,8 +355,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
     {
       name: 'Shrapnel Grenade',
       skillId: 5807,
-      interruptMs: 435,
-      preserveEffectsAfterInterrupt: true
+      interruptMs: 435
     }
   );
 });

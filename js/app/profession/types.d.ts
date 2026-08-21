@@ -202,7 +202,6 @@ export interface BuildTemplateSelection {
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
   readonly interruptMs?: number | null;
-  readonly preserveEffectsAfterInterrupt?: boolean | null;
   readonly releaseAtCharges?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire' | null;
 }

@@ -552,6 +552,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.WILD_THROW]: {
     implemented: true,
+    interruptMode: 'per-packet',
     skillWeapon: 'Spear',
     effects: [
       {

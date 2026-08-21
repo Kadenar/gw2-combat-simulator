@@ -127,6 +127,69 @@ function contractProfession() {
             timingScale: 'fixed'
           }
         ]
+      },
+      {
+        id: 990008,
+        name: 'Staged Projectiles',
+        castTimeMs: 1000,
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 0,
+            atMs: 100,
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            persistsAfterInterrupt: true,
+            interruptCommitMs: 50,
+            metadata: { flatDamage: 1 }
+          },
+          {
+            type: 'strike',
+            coefficient: 0,
+            atMs: 800,
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            persistsAfterInterrupt: true,
+            interruptCommitMs: 400,
+            metadata: { flatDamage: 100 }
+          }
+        ]
+      },
+      {
+        id: 990009,
+        name: 'Default Commit Timeline',
+        castTimeMs: 1000,
+        effects: [
+          {
+            type: 'strike',
+            ticks: [
+              { atMs: 200, coefficient: 1 },
+              { atMs: 600, coefficient: 1 }
+            ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
+        ]
+      },
+      {
+        id: 990010,
+        name: 'Per-packet Channel',
+        castTimeMs: 1000,
+        interruptMode: 'per-packet',
+        effects: [
+          {
+            type: 'strike',
+            ticks: [
+              { atMs: 200, coefficient: 1 },
+              { atMs: 600, coefficient: 1 },
+              { atMs: 900, coefficient: 1 }
+            ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            persistsAfterInterrupt: true,
+            interruptCommitMs: 100
+          }
+        ]
       }
     ]
   });
@@ -311,6 +374,14 @@ test('interrupt persistence requires the declared commit point', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
+        generated: [{ id: 990098, name: 'Invalid Interrupt Mode', interruptMode: 'packets', effects: [] }]
+      }),
+    /interruptMode/
+  );
+
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
         generated: [
           {
             id: 990099,
@@ -338,7 +409,7 @@ test('interrupt persistence requires the declared commit point', () => {
       .filter((event) => event.skillName === 'Committed Channel')
       .filter((event) => event.type === 'damage')
       .map((event) => event.at),
-    [0.2]
+    []
   );
 
   const afterCommit = createScheduler({ profession }).run([
@@ -362,40 +433,53 @@ test('interrupt persistence requires the declared commit point', () => {
   assert.ok(resolved.resolvedEvents.some((event) => event.at === 0.9));
 });
 
-test('observed-packet replay preserves delayed effects without extending cast lockout', () => {
-  const ordinaryInterrupt = createScheduler({ profession }).run([
+test('interrupt modes distinguish whole-effect commits from per-packet channels', () => {
+  const committed = createScheduler({ profession }).run([{ name: 'Default Commit Timeline', interruptMs: 400 }]);
+  assert.deepEqual(
+    committed.events.filter((event) => event.type === 'damage').map((event) => event.at),
+    []
+  );
+
+  const channel = createScheduler({ profession }).run([{ name: 'Per-packet Channel', interruptMs: 600 }]);
+  assert.deepEqual(
+    channel.events.filter((event) => event.type === 'damage').map((event) => event.at),
+    [0.2, 0.6]
+  );
+});
+
+test('persistent effects require their own declared interrupt cutoffs', () => {
+  const beforeSecondLaunch = createScheduler({ profession }).run([
     {
-      name: 'Delayed Packet',
+      name: 'Staged Projectiles',
       interruptMs: 150
     },
     'Long Follow-up'
   ]);
 
   assert.deepEqual(
-    ordinaryInterrupt.events
-      .filter((event) => event.skillName === 'Delayed Packet')
+    beforeSecondLaunch.events
+      .filter((event) => event.skillName === 'Staged Projectiles')
       .filter((event) => event.type === 'damage')
       .map((event) => event.at),
     [0.1]
   );
 
-  const observedPacketReplay = createScheduler({ profession }).run([
+  const afterSecondLaunch = createScheduler({ profession }).run([
     {
-      name: 'Delayed Packet',
-      interruptMs: 150,
-      preserveEffectsAfterInterrupt: true
+      name: 'Staged Projectiles',
+      interruptMs: 400
     },
     'Long Follow-up'
   ]);
 
   assert.deepEqual(
-    observedPacketReplay.events
-      .filter((event) => event.skillName === 'Delayed Packet')
+    afterSecondLaunch.events
+      .filter((event) => event.skillName === 'Staged Projectiles')
       .filter((event) => event.type === 'damage')
       .map((event) => event.at),
     [0.1, 0.8]
   );
-  assert.equal(observedPacketReplay.stream.rotationEndTime, 2.15);
+  assert.equal(afterSecondLaunch.stream.rotationEndTime, 2.4);
 });
 
 test('event metadata cannot extend an unrelated condition', () => {

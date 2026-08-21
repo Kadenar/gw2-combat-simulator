@@ -39,6 +39,8 @@
  * milliseconds.
  * @property {number} [paletteInterruptMs] Suggested interruption point when
  * adding the skill through the rotation palette's interrupt action.
+ * @property {"commit"|"per-packet"} [interruptMode] Whether interruption
+ * requires a declared commit cutoff or preserves only packets already dealt.
  * @property {number} [interruptCommitMs] Minimum interrupted-cast duration
  * required for persistent effects to resolve.
  * @property {boolean} [retainsCastLockoutAfterInterrupt] Whether an interrupted

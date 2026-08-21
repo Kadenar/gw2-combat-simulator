@@ -586,11 +586,11 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
   assert.equal(
     interruptedDarkBarrage.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE)
       .length,
-    6
+    0
   );
   assert.equal(
-    interruptedDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage')?.total,
-    fullDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage')?.total
+    interruptedDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage'),
+    undefined
   );
   const ghastlyPackets = ghastlyClaws.events.filter(
     (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
@@ -604,7 +604,7 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
       .length,
     1
   );
-  assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 1);
+  assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 0);
 });
 
 test('Grasping Darkness commits at 120 ms and lands after combat starts', () => {
@@ -687,10 +687,10 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-        skill.effects.length ||
-        skill.lifeForceGain ||
-        skill.flipParentId != null ||
-        skill.type === 'Action'
+          skill.effects.length ||
+          skill.lifeForceGain ||
+          skill.flipParentId != null ||
+          skill.type === 'Action'
       ),
       true,
       `${skill.id} ${skill.name}`

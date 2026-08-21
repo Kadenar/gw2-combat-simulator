@@ -1261,7 +1261,7 @@ test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {
   );
   assert.equal(
     interrupted(233).events.filter((event) => event.type === 'damage' && event.skillId === ID.PRECISE_CUT).length,
-    1
+    0
   );
 });
 

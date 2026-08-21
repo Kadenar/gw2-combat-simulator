@@ -22,7 +22,7 @@ import {
   skillIdentity,
   type EvtcRotationCatalog
 } from './catalog.js';
-import { reconcileCastEffectPackets } from './effect-packets.js';
+import { missingInterruptCommitWarnings, reconcileCastEffectPackets } from './effect-packets.js';
 import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
 import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
 
@@ -672,7 +672,6 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     skillId?: string | number;
     offset?: number;
     interruptMs?: number;
-    preserveEffectsAfterInterrupt?: boolean;
     doubleEdgeOutcome?: 'success' | 'backfire';
   } = {
     name: action.name,
@@ -687,10 +686,6 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     (action.status === 'reduced' && actualDuration > 0 && actualDuration + 10 < runtimeDuration)
   ) {
     command.interruptMs = actualDuration;
-  }
-
-  if (action.replayPreserveEffectsAfterInterrupt === true) {
-    command.preserveEffectsAfterInterrupt = true;
   }
 
   if (action.doubleEdgeOutcome != null) {
@@ -756,7 +751,6 @@ function buildRotation(
       skillId?: string | number;
       offset?: number;
       interruptMs?: number;
-      preserveEffectsAfterInterrupt?: boolean;
       doubleEdgeOutcome?: 'success' | 'backfire';
     };
     const instant = entry.action.end <= entry.action.start && entry.action.replayCastEnd == null;
@@ -926,10 +920,10 @@ export function reconstructWithProfile(
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   };
-  const professionActions = reconcileCastEffectPackets(
-    professionContext,
-    reconstructProfessionActions(professionContext)
-  );
+  const reconstructedProfessionActions = reconstructProfessionActions(professionContext);
+  const professionActions = reconcileCastEffectPackets(professionContext, reconstructedProfessionActions);
+  // Keep the EVTC diagnostic separate from replay reconciliation so report-based imports never emit it.
+  const interruptCommitWarnings = missingInterruptCommitWarnings(professionContext, professionActions);
   if (options.includeCombatStart !== false && combatStart == null) {
     // A profession parser may recover a clipped opener's combat boundary from its first observed effect packet.
     combatStart =
@@ -984,6 +978,6 @@ export function reconstructWithProfile(
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: warningList(actions)
+    warnings: [...warningList(actions), ...interruptCommitWarnings]
   };
 }

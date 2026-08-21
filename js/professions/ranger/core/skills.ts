@@ -748,6 +748,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.RAPID_FIRE]: {
     implemented: true,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -1233,6 +1234,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.WHIRLING_DEFENSE]: {
     implemented: true,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',

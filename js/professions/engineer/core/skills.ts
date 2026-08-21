@@ -29,15 +29,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
+    // Poison Grenade is an explosion and does not perform a projectile combo finisher.
     effects: [
       {
         type: 'strike',
@@ -73,15 +65,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 5,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
+    // EVTC projectile creation occurs at about 360 ms; only launches at or after that cutoff retain impacts, and it is not a combo finisher.
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',
@@ -92,6 +77,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Shrapnel Grenade',
         actorType: 'player',
         metadata: {
@@ -107,6 +93,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ],
@@ -119,10 +106,12 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     effects: [
       {
         type: 'strike',
-        coefficient: 0.30000000000000004,
-        hits: 3,
-        atMs: 166.66666666666666,
-        intervalMs: 166.66666666666666,
+        // Each of the three packets has a 0.1 coefficient; explicit ticks avoid interpreting 0.1 as a split total.
+        ticks: [
+          { atMs: 166.66666666666666, coefficient: 0.1 },
+          { atMs: 333.3333333333333, coefficient: 0.1 },
+          { atMs: 500, coefficient: 0.1 }
+        ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Grenade',
@@ -145,15 +134,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
+    // Freeze Grenade is an explosion and does not perform a projectile combo finisher.
     effects: [
       {
         type: 'strike',
@@ -188,15 +169,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 25,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
+    // Grenade Barrage is an explosion and does not perform a projectile combo finisher.
     effects: [
       {
         type: 'strike',
@@ -1757,17 +1730,20 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
   },
   [ID.RIFLE_BURST]: {
     implemented: true,
-    // Use the measured quickness cadence so chained rifle actions finish on the live 640 ms cycle.
+    // EVTC shows separate 280 ms bullet and 560 ms grenade launches, so each packet uses its own commit cutoff.
     quicknessCastTimeMs: 640,
     cooldown: 0,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        atMs: 318,
+        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        interruptCommitMs: 280,
         name: 'Rifle Burst',
         actorType: 'player',
         comboFinishers: [
@@ -1787,9 +1763,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        atMs: 602,
+        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        interruptCommitMs: 560,
         name: 'Rifle Burst Grenade',
         actorType: 'player',
         metadata: {

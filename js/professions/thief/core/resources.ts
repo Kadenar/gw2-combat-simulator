@@ -105,6 +105,8 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
 
 export function completeThiefCoreResources(context: ThiefCastContext, skill: ThiefSkill): void {
   if (skill.id !== ID.UNLOAD) return;
+  // A default commit-mode interruption cannot award Unload's on-completion refund when its damage was cancelled.
+  if (context.action?.cancelled === true) return;
   const bullets = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
   if (!bullets || bullets.atMs == null) return;
   const finalBulletOffsetMs =

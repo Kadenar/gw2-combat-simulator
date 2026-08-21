@@ -702,13 +702,6 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
     errors.push('doubleEdgeOutcome must be success or backfire.');
   }
 
-  if (
-    Object.hasOwn(candidate, 'preserveEffectsAfterInterrupt') &&
-    typeof candidate.preserveEffectsAfterInterrupt !== 'boolean'
-  ) {
-    errors.push('preserveEffectsAfterInterrupt must be boolean.');
-  }
-
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'interruptAfterMs')) {
     errors.push('only cast commands may contain interruptAfterMs.');
   }
@@ -719,10 +712,6 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'doubleEdgeOutcome')) {
     errors.push('only cast commands may contain doubleEdgeOutcome.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'preserveEffectsAfterInterrupt')) {
-    errors.push('only cast commands may contain preserveEffectsAfterInterrupt.');
   }
 
   if (candidate.type === 'wait') {

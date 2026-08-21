@@ -2144,6 +2144,10 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
     cast: 920,
     packets: [440, 1440, 2440, 3440, 4440]
   });
+  assert.deepEqual(profile(cleansing, 'Cleansing Flame'), {
+    cast: 2600,
+    packets: [260, 520, 780, 1040, 1300, 1560, 1820, 2080, 2340, 2600]
+  });
   assert.equal(
     cleansing.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Cleansing Flame').length,
     10

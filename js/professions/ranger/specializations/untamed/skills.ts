@@ -223,6 +223,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RELENTLESS_WHIRL]: {
     implemented: true,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',

@@ -10,6 +10,7 @@ import {
   updateRotationEntry
 } from '../../platform/ui/timeline.js';
 import {
+  activationDamageCommitMs,
   closeActivationEditor,
   openActivationEditor,
   suggestedActivationInterruptMs
@@ -203,6 +204,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     interruptMs: item.interruptMs == null ? null : Number(item.interruptMs),
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
+    damageCommitMs: activationDamageCommitMs(skill),
     onApply(interruptMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
@@ -766,7 +768,9 @@ export function renderTimeline(app: ProfessionAppState): void {
           rowItems.push(renderOverlayProcMarker(marker));
         }
 
-        rowItems.push(rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length));
+        rowItems.push(
+          rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length)
+        );
         for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderHealthMarker(marker));
         }

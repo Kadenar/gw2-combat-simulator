@@ -123,6 +123,30 @@ test('Tempest mechanics execute through native hooks', () => {
   assert.equal(result.endState.profession.primaryAttunement, 'Fire');
 });
 
+test('Dust Devil retains its measured packet train only after the declared launch cutoff', () => {
+  const dustDevil = elementalistCatalog.skillsByName.get('Dust Devil');
+  const packetsAfterInterrupt = (interruptAfterMs) => {
+    const result = runNative({
+      lines: [['Earth'], ['Air'], ['Tempest']],
+      rotation: [
+        { type: 'cast', skillId: dustDevil.id, interruptAfterMs },
+        { type: 'wait', durationMs: 2400 }
+      ],
+      startAttunement: 'Earth',
+      weapons: ['Scepter', 'Dagger']
+    });
+
+    return result.events
+      .filter((event) => event.type === 'damage' && event.name === 'Dust Devil')
+      .map((event) => Math.round(event.at * 1000));
+  };
+
+  assert.equal(dustDevil.quicknessCastTimeMs, 320);
+  assert.equal(dustDevil.interruptCommitMs, 160);
+  assert.deepEqual(packetsAfterInterrupt(159), []);
+  assert.deepEqual(packetsAfterInterrupt(160), [160, 1160, 2160]);
+});
+
 test('Tempest overloads activate Relic of Fireworks as profession mechanics', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Tempest']],

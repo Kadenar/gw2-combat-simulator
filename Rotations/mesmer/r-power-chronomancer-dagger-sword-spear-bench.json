@@ -248,8 +248,7 @@
     {
       "name": "Unstable Bladestorm",
       "skillId": 62607,
-      "interruptMs": 334,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 334
     },
     {
       "name": "Swap Weapons",
@@ -266,8 +265,7 @@
     {
       "name": "Well of Calamity",
       "skillId": 30525,
-      "interruptMs": 700,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 700
     },
     {
       "name": "Split Second",
@@ -468,8 +466,7 @@
     {
       "name": "Unstable Bladestorm",
       "skillId": 62607,
-      "interruptMs": 267,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 267
     },
     {
       "name": "Swap Weapons",
@@ -676,8 +673,7 @@
     {
       "name": "Unstable Bladestorm",
       "skillId": 62607,
-      "interruptMs": 201,
-      "preserveEffectsAfterInterrupt": true
+      "interruptMs": 201
     },
     {
       "name": "Swap Weapons",

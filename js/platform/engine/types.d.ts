@@ -114,7 +114,11 @@ export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventTyp
 export type LegacySimulationEvent = SimulationEventBase<LegacySimulationEventType>;
 
 export type SimulationEvent =
-  DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent | LegacySimulationEvent;
+  | DamageEvent
+  | ConditionEvent
+  | CommonSimulationEvent
+  | CustomSimulationEvent
+  | LegacySimulationEvent;
 
 export interface SimulationEventInput {
   readonly type: string;
@@ -162,6 +166,8 @@ export interface CatalogSkill {
 
 export type SkillHandlerMode = 'augment' | 'replace';
 
+export type SkillInterruptMode = 'commit' | 'per-packet';
+
 export interface StrikeTick {
   readonly atMs: number;
   readonly coefficient: number;
@@ -186,6 +192,8 @@ export interface SkillEffectBase {
   readonly durationScale?: 'boon' | 'fixed';
   readonly applications?: number;
   readonly persistsAfterInterrupt?: boolean;
+  /** Effect-specific launch cutoff; falls back to the parent skill cutoff. */
+  readonly interruptCommitMs?: number;
   readonly source?: string;
   readonly sourceId?: SkillId;
   readonly actorType?: SimulationActorType;
@@ -311,6 +319,8 @@ export interface Skill extends CatalogSkill {
   readonly ammoCastLockout?: number;
   readonly defaultInterruptMs?: number;
   readonly paletteInterruptMs?: number;
+  /** Controls whether interruption preserves committed effects or only packets that have already occurred. */
+  readonly interruptMode?: SkillInterruptMode;
   readonly interruptCommitMs?: number;
   /** Keep the serial cast lane blocked through the original cast end. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
@@ -1095,23 +1105,22 @@ export interface ProfessionApplicationContract {
   readonly validateBuild: (build: SchedulerRecord) => BuildValidationResult;
 }
 
-export interface ProfessionFamilyContract<
-  TProfessionState extends object = SchedulerRecord
-> extends ProfessionApplicationContract {
+export interface ProfessionFamilyContract<TProfessionState extends object = SchedulerRecord>
+  extends ProfessionApplicationContract {
   readonly resolveRuntime: (
     config: Readonly<SchedulerConfig>
   ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
 
 export type ProfessionSource<TProfessionState extends object = SchedulerRecord> =
-  NormalizedProfessionContract<TProfessionState> | ProfessionFamilyContract;
+  | NormalizedProfessionContract<TProfessionState>
+  | ProfessionFamilyContract;
 
 export interface CastCommand {
   readonly type: 'cast';
   readonly skillId: SkillId;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
-  readonly preserveEffectsAfterInterrupt?: boolean;
   readonly releaseAtCharges?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
@@ -1137,7 +1146,6 @@ export interface LegacyRotationEntry {
   skillId?: SkillId | null;
   offset?: number;
   interruptMs?: number | null;
-  preserveEffectsAfterInterrupt?: boolean | null;
   releaseAtCharges?: number | null;
   doubleEdgeOutcome?: 'success' | 'backfire' | null;
   waitMs?: number;

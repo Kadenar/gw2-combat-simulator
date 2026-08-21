@@ -2438,6 +2438,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.PUNISHING_STRIKES]: {
     implemented: true,
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 760,
     cooldown: 0,
     initiativeCost: 0,
@@ -4241,6 +4242,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.FLAWLESS_EXECUTION]: {
     implemented: true,
+    interruptMode: 'per-packet',
     castTimeMs: 2100,
     cooldown: 0,
     initiativeCost: 4,

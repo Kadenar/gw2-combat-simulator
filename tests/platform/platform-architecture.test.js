@@ -480,7 +480,6 @@ test('normalized commands migrate legacy cast options', () => {
           name: 'Fixture Charge',
           offset: 100,
           interruptMs: 50,
-          preserveEffectsAfterInterrupt: true,
           releaseAtCharges: 3,
           doubleEdgeOutcome: 'backfire'
         },
@@ -497,7 +496,6 @@ test('normalized commands migrate legacy cast options', () => {
         skillId: 900002,
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
-        preserveEffectsAfterInterrupt: true,
         releaseAtCharges: 3,
         doubleEdgeOutcome: 'backfire'
       },
@@ -511,7 +509,6 @@ test('normalized commands migrate legacy cast options', () => {
         type: 'cast',
         skillId: 900002,
         interruptAfterMs: 50,
-        preserveEffectsAfterInterrupt: true,
         releaseAtCharges: 3,
         doubleEdgeOutcome: 'success'
       },
@@ -520,7 +517,6 @@ test('normalized commands migrate legacy cast options', () => {
     {
       name: 'Fixture Charge',
       interruptMs: 50,
-      preserveEffectsAfterInterrupt: true,
       releaseAtCharges: 3,
       doubleEdgeOutcome: 'success'
     }

@@ -89,9 +89,28 @@ function cancelledBeforeInterruptCommit<TProfessionState extends object>(
   fullEnd: number,
   effectiveEnd: number
 ): boolean {
-  if (skill.interruptCommitMs == null || effectiveEnd >= fullEnd - context.epsilon) return false;
+  if (skill.interruptMode === 'per-packet' || effectiveEnd >= fullEnd - context.epsilon) return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
-  return elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs);
+  const cutoffs = [skill.interruptCommitMs, ...(skill.effects || []).map((effect) => effect.interruptCommitMs)].filter(
+    (cutoff): cutoff is number => cutoff != null && Number.isFinite(Number(cutoff))
+  );
+  return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + context.epsilon * 1000 < Number(cutoff));
+}
+
+/** Returns whether an interrupted cast ended before this persistent effect launched. */
+function cancelledBeforeEffectCommit<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  skill: Skill,
+  effect: SkillEffect,
+  start: number,
+  fullEnd: number,
+  effectiveEnd: number
+): boolean {
+  if (effectiveEnd >= fullEnd - context.epsilon) return false;
+  const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
+  if (cutoff == null) return true;
+  const elapsedMs = (effectiveEnd - start) * 1000;
+  return elapsedMs + context.epsilon * 1000 < Number(cutoff);
 }
 
 /**
@@ -107,8 +126,6 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
   start: number,
   fullEnd: number,
   effectiveEnd: number,
-  cancelledBeforeCommit: boolean,
-  preserveEffectsAfterInterrupt: boolean,
   observeEffect: (event: SimulationEvent, effect: SkillEffect, effectIndex: number) => void = () => {}
 ): void {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
@@ -129,13 +146,13 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
         effect
       ) ?? effect;
     const firstAt = effectFirstAt(start, fullEnd, timing);
-    const cancelPendingEffects =
-      interrupted &&
-      !preserveEffectsAfterInterrupt &&
-      (cancelledBeforeCommit || effect.persistsAfterInterrupt !== true);
-    // An interrupt only suppresses effects that have not fired yet. Earlier
-    // ticks remain in the stream even when the full cast never completes.
-    // A committed channel can explicitly keep its remaining packets.
+    const perPacket = skill.interruptMode === 'per-packet';
+    const cancelledCommitEffect =
+      interrupted && !perPacket && cancelledBeforeEffectCommit(context, skill, effect, start, fullEnd, effectiveEnd);
+    if (cancelledCommitEffect) continue;
+    const cancelPendingEffects = interrupted && (perPacket || effect.persistsAfterInterrupt !== true);
+    // Per-packet channels keep only applications that occurred by the interrupt;
+    // committed effects may retain future packets only through explicit persistence.
     if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
       activationId,
@@ -163,9 +180,7 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       statusDuration: duration
     });
 
-    // An interrupt only suppresses applications that have not fired yet. Earlier
-    // ticks remain in the stream even when the full cast never completes; a
-    // committed channel can explicitly keep its remaining packets.
+    // Materialize first so a per-packet channel can retain its exact landed prefix.
     for (const application of applications) {
       if (cancelPendingEffects && application.at > effectiveEnd + context.epsilon) break;
       observeEffect(context.emit(application.event), effect, index);
@@ -1045,8 +1060,6 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         start,
         fullEnd,
         effectiveEnd,
-        cancelledBeforeCommit,
-        command.preserveEffectsAfterInterrupt === true,
         (event, effect, effectIndex) =>
           handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
             effect,

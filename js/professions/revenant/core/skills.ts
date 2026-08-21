@@ -1722,6 +1722,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   [ID.BLOODBANE_PATH]: {
     implemented: true,
+    interruptMode: 'per-packet',
     castTimeMs: 760,
     unaffectedByQuickness: true,
     cooldown: 3,

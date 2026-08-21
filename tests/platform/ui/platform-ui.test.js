@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  activationDamageCommitMs,
+  activationDamageCommitWarning,
   suggestedActivationInterruptMs,
   validateActivationInterruptMs
 } from '../../../js/platform/ui/activation-editor.js';
@@ -173,6 +175,21 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.equal(validateActivationInterruptMs('', 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+  assert.equal(
+    activationDamageCommitMs({
+      effects: [
+        { type: 'strike', persistsAfterInterrupt: true, interruptCommitMs: 560 },
+        { type: 'strike', persistsAfterInterrupt: true, interruptCommitMs: 280 }
+      ]
+    }),
+    280
+  );
+  assert.equal(activationDamageCommitMs({ effects: [], interruptCommitMs: 160 }), 160);
+  assert.equal(activationDamageCommitMs({ effects: [], interruptMode: 'per-packet' }), 0);
+  assert.equal(activationDamageCommitMs({ effects: [] }), null);
+  assert.match(activationDamageCommitWarning(159, 160), /contribute no damage.*at least 160 ms/);
+  assert.match(activationDamageCommitWarning(200, null), /No damage commit time is configured/);
+  assert.equal(activationDamageCommitWarning(160, 160), '');
 });
 
 test('duration editor validates and rounds millisecond values', () => {

@@ -16,6 +16,7 @@ export interface StrikePacketValidation {
   readonly lastObservedOffsetMs: number | null;
   readonly lastObservedExpectedOffsetMs: number | null;
   readonly lastObservedCancelableExpectedOffsetMs: number | null;
+  readonly observedPostInterruptWithoutCommit: boolean;
 }
 
 interface ExpectedStrikePacket {
@@ -23,6 +24,8 @@ interface ExpectedStrikePacket {
   readonly offsetMs: number;
   readonly timingExplicit: boolean;
   readonly persistsAfterInterrupt: boolean;
+  readonly interruptMode: Skill['interruptMode'];
+  readonly interruptCommitMs: number | null;
 }
 
 export interface StrikePacketMatcherOptions {
@@ -143,7 +146,9 @@ export function createStrikePacketMatcher(
             signalName,
             offsetMs,
             timingExplicit,
-            persistsAfterInterrupt: effect.persistsAfterInterrupt === true
+            persistsAfterInterrupt: effect.persistsAfterInterrupt === true,
+            interruptMode: skill.interruptMode,
+            interruptCommitMs: effect.interruptCommitMs ?? skill.interruptCommitMs ?? null
           }));
         })
       : [];
@@ -153,6 +158,7 @@ export function createStrikePacketMatcher(
     const observedCancelableExpectedOffsets: number[] = [];
     const observedExplicitTimings: boolean[] = [];
     const missingOffsets: number[] = [];
+    let observedPostInterruptWithoutCommit = false;
     for (const packet of packets) {
       const expectedTime = action.start + packet.offsetMs;
       const match = directEvents
@@ -176,9 +182,19 @@ export function createStrikePacketMatcher(
       }
 
       used.add(match.eventIndex);
-      observedOffsets.push(match.event.time - action.start);
+      const observedOffset = match.event.time - action.start;
+      observedOffsets.push(observedOffset);
       observedExpectedOffsets.push(packet.offsetMs);
       observedExplicitTimings.push(packet.timingExplicit);
+      if (
+        (action.status === 'interrupted' || action.status === 'reduced') &&
+        observedOffset >= Math.max(0, action.end - action.start) &&
+        packet.interruptMode !== 'per-packet' &&
+        packet.interruptCommitMs == null
+      ) {
+        observedPostInterruptWithoutCommit = true;
+      }
+
       if (!packet.persistsAfterInterrupt) {
         observedCancelableExpectedOffsets.push(packet.offsetMs);
       }
@@ -195,11 +211,32 @@ export function createStrikePacketMatcher(
       lastObservedExpectedOffsetMs: observedExpectedOffsets.length ? Math.max(...observedExpectedOffsets) : null,
       lastObservedCancelableExpectedOffsetMs: observedCancelableExpectedOffsets.length
         ? Math.max(...observedCancelableExpectedOffsets)
-        : null
+        : null,
+      observedPostInterruptWithoutCommit
     };
     cache.set(action, validation);
     return validation;
   };
+}
+
+/** Warns when an EVTC proves post-interrupt damage that static simulator metadata cannot retain. */
+export function missingInterruptCommitWarnings(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): string[] {
+  const validatePackets = createStrikePacketMatcher(context);
+  const missingBySkill = new Map<string, number>();
+  for (const action of actions) {
+    if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
+    const skill = skillForAction(context, action);
+    const name = skill?.name || action.canonicalName || action.rawName;
+    missingBySkill.set(name, (missingBySkill.get(name) || 0) + 1);
+  }
+
+  return [...missingBySkill.entries()].map(
+    ([name, count]) =>
+      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.`
+  );
 }
 
 export function committedActionsFromStrikePackets(
@@ -306,9 +343,8 @@ export function reconcileCastEffectPackets(
     }
 
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
-    let preserveEffectsAfterInterrupt = false;
-    let replayCastEnd = action.replayCastEnd;
-    let suppressFollowingWait = action.suppressFollowingWait;
+    const replayCastEnd = action.replayCastEnd;
+    const suppressFollowingWait = action.suppressFollowingWait;
     const lastCancelableEffectOffset = packets.lastObservedCancelableExpectedOffsetMs || 0;
     if (packets.allObserved && lastCancelableEffectOffset > actualDuration) {
       const nextSerialAction = sorted.find((candidate) => {
@@ -325,11 +361,6 @@ export function reconcileCastEffectPackets(
         nextSerialOffset + 75 >= runtimeDuration
       ) {
         replayDuration = runtimeDuration;
-      } else {
-        preserveEffectsAfterInterrupt = true;
-        if (runtimeDuration > 0 && nextSerialOffset <= runtimeDuration + 75) {
-          suppressFollowingWait = false;
-        }
       }
     }
 
@@ -346,7 +377,6 @@ export function reconcileCastEffectPackets(
         ...action,
         status: 'reduced' as const,
         replayInterruptMs: replayDuration,
-        replayPreserveEffectsAfterInterrupt: preserveEffectsAfterInterrupt,
         ...(replayCastEnd == null ? {} : { replayCastEnd }),
         ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
       };
@@ -366,7 +396,6 @@ export function reconcileCastEffectPackets(
           ...action,
           status: 'reduced' as const,
           replayInterruptMs: replayDuration,
-          replayPreserveEffectsAfterInterrupt: preserveEffectsAfterInterrupt,
           ...(replayCastEnd == null ? {} : { replayCastEnd }),
           ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
         }

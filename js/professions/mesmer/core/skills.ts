@@ -9,6 +9,7 @@ import type { MesmerSkill } from '../types.js';
 export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
     implemented: true,
+    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
@@ -540,6 +541,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
   },
   [ID.SPATIAL_SURGE]: {
     implemented: true,
+    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
@@ -1086,6 +1088,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
   },
   [ID.BLURRED_FRENZY]: {
     implemented: true,
+    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
@@ -1439,31 +1442,39 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     weapon: 'Dagger',
     specialization: '',
     environment: 'Terrestrial',
-    castTimeMs: 660,
+    quicknessCastTimeMs: 440,
     cooldown: 12,
     blade: true,
+    // The storm commits 200ms into a Quickness cast; its four pulse pairs then persist after interruption.
+    interruptCommitMs: 200,
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 4,
+        ticks: [
+          { atMs: 1160, coefficient: 0.25 },
+          { atMs: 2160, coefficient: 0.25 },
+          { atMs: 3160, coefficient: 0.25 },
+          { atMs: 4160, coefficient: 0.25 }
+        ],
         name: 'Storm pulses',
         actorType: 'player',
-        atMs: 1156,
-        intervalMs: 1000,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 4,
+        ticks: [
+          { atMs: 1200, coefficient: 0.5 },
+          { atMs: 2200, coefficient: 0.5 },
+          { atMs: 3200, coefficient: 0.5 },
+          { atMs: 4200, coefficient: 0.5 }
+        ],
         name: 'Launched blades',
         actorType: 'player',
-        atMs: 1198,
-        intervalMs: 1000,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

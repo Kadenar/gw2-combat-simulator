@@ -100,6 +100,7 @@ const EFFECT_FIELDS = new Set([
   'flatStrikeBase',
   'flatStrikePowerCoeff',
   'persistsAfterInterrupt',
+  'interruptCommitMs',
   'recipients',
   'affectsSelf',
   'affectsSummons',
@@ -319,6 +320,16 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
   if (normalizedEffect.durationScale != null && !DURATION_SCALES.has(String(normalizedEffect.durationScale))) {
     throw new TypeError('Effect durationScale must be boon or fixed.');
+  }
+
+  const interruptCommitMs =
+    normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
+  if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
+    throw new TypeError('Effect interruptCommitMs must be a non-negative finite number.');
+  }
+
+  if (interruptCommitMs != null && normalizedEffect.persistsAfterInterrupt !== true) {
+    throw new TypeError('Effect interruptCommitMs requires persistsAfterInterrupt.');
   }
 
   if (
@@ -545,6 +556,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
     ...normalizedEffect,
     ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
     ...(hasInterval ? { intervalMs: Number(normalizedEffect.intervalMs) } : {}),
+    ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
     ...(applications ? { applications } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
@@ -678,10 +690,21 @@ export function createCanonicalCatalog({
       throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
 
+    // Commit is the safe default; only explicitly classified channels retain packets individually.
+    const interruptMode = merged.interruptMode == null ? 'commit' : String(merged.interruptMode);
+    if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
+      throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
+    }
+
     const effects = Object.freeze((merged.effects || []).map(normalizeEffect));
-    // persistsAfterInterrupt effects schedule future packets at cast time; the
-    // scheduler needs interruptCommitMs to know when to stop honoring them.
-    if (effects.some((effect) => effect.persistsAfterInterrupt === true) && interruptCommitMs == null) {
+    // Every persistent effect needs an explicit launch cutoff, either on itself
+    // or inherited from the skill, before future packets may survive an interrupt.
+    if (
+      effects.some(
+        (effect) =>
+          effect.persistsAfterInterrupt === true && effect.interruptCommitMs == null && interruptCommitMs == null
+      )
+    ) {
       throw new TypeError(`Skill ${id} retains future packets but has no interruptCommitMs.`);
     }
 
@@ -706,6 +729,7 @@ export function createCanonicalCatalog({
       castTimeMs,
       ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
       ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
+      interruptMode,
       ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
       lockouts: normalizeLockouts(merged.lockouts, id)
     };

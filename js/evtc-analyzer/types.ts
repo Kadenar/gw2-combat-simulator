@@ -248,7 +248,6 @@ export interface EvtcRotationCommand {
   readonly skillId?: string | number;
   readonly offset?: number;
   readonly interruptMs?: number;
-  readonly preserveEffectsAfterInterrupt?: boolean;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 

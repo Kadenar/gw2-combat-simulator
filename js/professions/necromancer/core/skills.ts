@@ -17,6 +17,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.GHASTLY_CLAWS]: {
     implemented: true,
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 1440,
     effects: [
       {
@@ -2101,6 +2102,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.VICIOUS_SHOT]: {
     implemented: true,
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 600,
     comboFinishers: [
       {
@@ -2462,6 +2464,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.PERFORATE]: {
     implemented: true,
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 840,
     effects: [
       {

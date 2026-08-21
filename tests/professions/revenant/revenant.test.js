@@ -4464,7 +4464,7 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
 
   const earlyChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 419 }], config);
 
-  assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), [[280, 'Chilling Isolation — Packet 1', 0.8]]);
+  assert.deepEqual(damageTimeline(earlyChilling, 'Chilling Isolation'), []);
 
   const fullChilling = simulate('Conduit', [{ name: 'Chilling Isolation', interruptMs: 680 }], config);
 

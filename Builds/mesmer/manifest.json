@@ -6,14 +6,14 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "Builds/mesmer/b-power-chronomancer.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
-        "benchmarkDps": 43822,
+        "benchmarkDps": 43831,
         "referenceDps": 44179
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "Builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 44408,
+        "benchmarkDps": 44410,
         "referenceDps": 44458
       },
       {

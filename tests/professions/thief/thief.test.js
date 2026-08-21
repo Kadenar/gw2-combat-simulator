@@ -540,12 +540,11 @@ test('Unload grants 2 initiative when every bullet lands', () => {
 
   assert.deepEqual(
     safeBullets.map((event) => Math.round(event.at * 1000)),
-    [145, 290, 435, 580, 725, 870, 1015, 1160]
+    []
   );
   assert.equal(safelyInterrupted.steps[0].end - safelyInterrupted.steps[0].start, 1160);
   assert.equal(safelyInterrupted.steps[0].interrupted, true);
-  assert.equal(safeRefund.at, 1.16);
-  assert.equal(safeRefund.state.initiative, 3.16);
+  assert.equal(safeRefund, undefined);
 
   const interruptedBeforeFinalBullet = simulate('Core', [{ name: 'Unload', interruptMs: 1159 }], {
     initialInitiative: 3,
@@ -556,7 +555,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
   assert.equal(
     interruptedBeforeFinalBullet.events.filter((event) => event.type === 'damage' && event.skillName === 'Unload')
       .length,
-    7
+    0
   );
   assert.equal(
     interruptedBeforeFinalBullet.events.some(
@@ -1059,7 +1058,10 @@ test('Daredevil skills and endurance traits use configured values', () => {
 
   assert.equal(interruptedBackstab.steps[1].interrupted, true);
   assert.equal(interruptedBackstab.steps[1].end - interruptedBackstab.steps[1].start, 280);
-  assert.equal(interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab').hits, 1);
+  assert.equal(
+    interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab'),
+    undefined
+  );
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).castTimeMs, 800);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).quicknessCastTimeMs, undefined);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).unaffectedByQuickness, true);

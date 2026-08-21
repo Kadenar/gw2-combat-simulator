@@ -84,7 +84,6 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
 
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
-  const preserveEffectsAfterInterrupt = candidate.preserveEffectsAfterInterrupt === true;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
@@ -104,7 +103,6 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
       : {
           interruptAfterMs: finiteMilliseconds(interrupt, 'Interrupt duration')
         }),
-    ...(preserveEffectsAfterInterrupt ? { preserveEffectsAfterInterrupt: true } : {}),
     ...(releaseAtCharges == null
       ? {}
       : {
@@ -180,7 +178,6 @@ export function toLegacyRotationEntry(command: RotationCommand, catalog: Catalog
 
   if (command.concurrentOffsetMs != null) entry.offset = command.concurrentOffsetMs;
   if (command.interruptAfterMs != null) entry.interruptMs = command.interruptAfterMs;
-  if (command.preserveEffectsAfterInterrupt === true) entry.preserveEffectsAfterInterrupt = true;
   if (command.releaseAtCharges != null) entry.releaseAtCharges = command.releaseAtCharges;
   if (command.doubleEdgeOutcome != null) entry.doubleEdgeOutcome = command.doubleEdgeOutcome;
   return entry;

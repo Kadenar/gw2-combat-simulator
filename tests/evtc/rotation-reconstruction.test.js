@@ -183,7 +183,7 @@ const catalog = {
   ]
 };
 
-function expandedEvtcFixture() {
+function expandedEvtcFixture({ interruptedDamage = false } = {}) {
   const header = Buffer.alloc(16);
 
   header.write('EVTC20260815', 0, 'ascii');
@@ -214,7 +214,28 @@ function expandedEvtcFixture() {
   activation.writeUInt16LE(1, 40);
   activation[56] = 67;
 
-  return Buffer.concat([header, agentCount, agent, skillCount, skill, activation]);
+  if (!interruptedDamage) {
+    return Buffer.concat([header, agentCount, agent, skillCount, skill, activation]);
+  }
+
+  const animationStop = Buffer.alloc(64);
+
+  animationStop.writeBigUInt64LE(1_000n, 0);
+  animationStop.writeBigUInt64LE(PLAYER, 8);
+  animationStop.writeUInt32LE(1_000, 36);
+  animationStop.writeUInt16LE(1, 40);
+  animationStop[51] = 4;
+  animationStop[56] = 68;
+  const damage = Buffer.alloc(64);
+
+  damage.writeBigUInt64LE(1_350n, 0);
+  damage.writeBigUInt64LE(PLAYER, 8);
+  damage.writeBigUInt64LE(0x2000n, 16);
+  damage.writeInt32LE(100, 24);
+  damage.writeUInt32LE(1_000, 36);
+  damage.writeUInt16LE(1, 40);
+
+  return Buffer.concat([header, agentCount, agent, skillCount, skill, activation, animationStop, damage]);
 }
 
 test('registers an individual parser for every current profession specialization', () => {
@@ -353,14 +374,15 @@ test('uses observed strike packets to reconcile interrupted casts generically', 
     inferInstantCasts: false
   });
 
-  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.warnings, [
+    'EVTC observed 1 interrupted Mind Stab cast dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.'
+  ]);
   assert.equal(result.actions[0].status, 'reduced');
   assert.deepEqual(result.rotation, [
     {
       name: 'Mind Stab',
       skillId: 1_000,
-      interruptMs: 0,
-      preserveEffectsAfterInterrupt: true
+      interruptMs: 0
     }
   ]);
 });
@@ -2139,7 +2161,9 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
 
   const result = reconstructEvtcRotation(fixture, rotationCatalog);
 
-  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.warnings, [
+    'EVTC observed 1 interrupted Preparation Thrust cast dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.'
+  ]);
   assert.deepEqual(
     result.actions.map((action) => action.name),
     ['Swap Legends', 'Deathstrike', 'Preparation Thrust', 'Brutal Blade', "Razorclaw's Rage"]
@@ -2837,7 +2861,14 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
       [13_014, 'Steal', 'Profession', 'Profession_1', 0],
       [13_046, "Assassin's Signet", 'Utility', 'Utility', 0],
       [13_106, 'Death Blossom', 'Weapon', 'Weapon_3', 1_040],
-      [13_004, 'Dagger Strike', 'Weapon', 'Weapon_1', 400, [{ type: 'strike', atMs: 200 }]]
+      [
+        13_004,
+        'Dagger Strike',
+        'Weapon',
+        'Weapon_1',
+        400,
+        [{ type: 'strike', atMs: 200, persistsAfterInterrupt: true }]
+      ]
     ].map(([id, name, type, slot, castTimeMs, effects = []]) => ({
       id,
       name,
@@ -2846,6 +2877,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
       effects,
+      ...(id === 13_004 ? { interruptCommitMs: 0 } : {}),
       implemented: true
     }))
   };
@@ -2880,8 +2912,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     {
       name: 'Dagger Strike',
       skillId: 13_004,
-      interruptMs: 50,
-      preserveEffectsAfterInterrupt: true
+      interruptMs: 50
     }
   );
 });
@@ -3187,6 +3218,69 @@ test('the browser rotation importer reads compressed .zevtc files', async () => 
   assert.equal(imported.actionCount, 1);
   assert.deepEqual(imported.rotation, [{ name: 'Mind Stab', skillId: 1_000 }]);
   assert.match(imported.warnings[0], /no matching stop event/);
+
+  const interruptedBytes = zipEvtc(expandedEvtcFixture({ interruptedDamage: true }));
+  const interruptedImport = await readEvtcRotationFile(
+    {
+      name: 'interrupted.zevtc',
+      type: 'application/octet-stream',
+      arrayBuffer: async () =>
+        interruptedBytes.buffer.slice(
+          interruptedBytes.byteOffset,
+          interruptedBytes.byteOffset + interruptedBytes.byteLength
+        )
+    },
+    {
+      profession: { id: 'mesmer', name: 'Mesmer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      build: {},
+      activeCatalog: {
+        skills: catalog.skills.map((skill) =>
+          skill.id === 1_000
+            ? {
+                ...skill,
+                quicknessCastTimeMs: 540,
+                effects: [{ type: 'strike', atMs: 350, timingAnchor: 'castStart', timingScale: 'fixed' }]
+              }
+            : skill
+        )
+      }
+    }
+  );
+
+  assert.deepEqual(interruptedImport.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 0 }]);
+  assert.match(interruptedImport.warnings.join('\n'), /simulator catalog has no interruptCommitMs cutoff/);
+
+  const perPacketImport = await readEvtcRotationFile(
+    {
+      name: 'interrupted-channel.zevtc',
+      type: 'application/octet-stream',
+      arrayBuffer: async () =>
+        interruptedBytes.buffer.slice(
+          interruptedBytes.byteOffset,
+          interruptedBytes.byteOffset + interruptedBytes.byteLength
+        )
+    },
+    {
+      profession: { id: 'mesmer', name: 'Mesmer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      build: {},
+      activeCatalog: {
+        skills: catalog.skills.map((skill) =>
+          skill.id === 1_000
+            ? {
+                ...skill,
+                interruptMode: 'per-packet',
+                quicknessCastTimeMs: 540,
+                effects: [{ type: 'strike', atMs: 350, timingAnchor: 'castStart', timingScale: 'fixed' }]
+              }
+            : skill
+        )
+      }
+    }
+  );
+
+  assert.doesNotMatch(perPacketImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
 });
 
 test('every profession page exposes JSON and EVTC rotation files', async () => {

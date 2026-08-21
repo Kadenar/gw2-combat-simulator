@@ -19,7 +19,10 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.WHIRLING_WRATH]: {
     implemented: true,
+    interruptMode: 'per-packet',
     castTimeMs: 2200,
+    // Scale the channel packets to the measured Quickness duration.
+    quicknessCastTimeMs: 1480,
     effects: [
       strikeTimeline(
         [
@@ -98,7 +101,10 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.CLEANSING_FLAME]: {
     implemented: true,
+    interruptMode: 'per-packet',
     castTimeMs: 4000,
+    // Scale the channel packets to the measured Quickness duration.
+    quicknessCastTimeMs: 2600,
     effects: [
       {
         type: 'strike',

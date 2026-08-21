@@ -1,3 +1,5 @@
+import type { Skill } from '../engine/types.js';
+
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;
   readonly skillName: string;
@@ -5,6 +7,7 @@ export interface ActivationEditorOptions {
   readonly interruptMs?: number | null;
   readonly fullCastMs?: number | null;
   readonly suggestedInterruptMs?: number | null;
+  readonly damageCommitMs?: number | null;
   readonly onApply: (interruptMs: number | null) => void;
 }
 
@@ -14,7 +17,8 @@ export interface ActivationEditorHandle {
 }
 
 export type ActivationInterruptValidation =
-  { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
+  | { readonly valid: true; readonly value: number }
+  | { readonly valid: false; readonly error: string };
 
 let activeEditor: ActivationEditorHandle | null = null;
 
@@ -24,6 +28,43 @@ export function suggestedActivationInterruptMs(
 ): number {
   const duration = Number(fullCastMs) || Number(fallbackCastMs) || 0;
   return Math.max(1, Math.round(duration) - 1);
+}
+
+/** Returns zero for per-packet channels or the earliest cutoff that commits a damage or condition effect. */
+export function activationDamageCommitMs(
+  skill: Pick<Skill, 'effects' | 'interruptCommitMs' | 'interruptMode'> | null | undefined
+): number | null {
+  if (!skill) return null;
+  // Per-packet channels do not require a commit cutoff; each landed packet is independently valid.
+  if (skill.interruptMode === 'per-packet') return 0;
+  const damageEffects = (skill.effects || []).filter(
+    (effect) => effect.type === 'strike' || effect.type === 'condition'
+  );
+  const cutoffs = damageEffects
+    .map((effect) => effect.interruptCommitMs ?? skill.interruptCommitMs)
+    .filter((cutoff): cutoff is number => Number.isFinite(Number(cutoff)) && Number(cutoff) >= 0)
+    .map(Number);
+  if (cutoffs.length) return Math.min(...cutoffs);
+  const skillCutoff = Number(skill.interruptCommitMs);
+  return skill.interruptCommitMs != null && Number.isFinite(skillCutoff) && skillCutoff >= 0 ? skillCutoff : null;
+}
+
+/** Explains when an interrupted UI activation cannot reach any declared damage commit point. */
+export function activationDamageCommitWarning(
+  interruptMs: string | number,
+  damageCommitMs: number | null | undefined
+): string {
+  const cutoff = Number(damageCommitMs);
+  if (damageCommitMs == null || !Number.isFinite(cutoff) || cutoff < 0) {
+    return 'No damage commit time is configured. This interrupted skill will contribute no damage; configure interruptCommitMs before using interruption.';
+  }
+
+  const interrupt = Number(interruptMs);
+  if (Number.isFinite(interrupt) && interrupt < cutoff) {
+    return `This skill will contribute no damage before its ${cutoff} ms damage commit time. Enter at least ${cutoff} ms to use interruption.`;
+  }
+
+  return '';
 }
 
 export function validateActivationInterruptMs(
@@ -82,6 +123,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       <span>ms</span>
     </div>
     <div class="activation-editor-full-cast"></div>
+    <div class="activation-editor-warning" aria-live="polite" hidden></div>
     <div class="activation-editor-error" aria-live="polite"></div>
     <button class="activation-editor-reset" type="button">Reset to normal</button>
     <div class="activation-editor-actions">
@@ -97,6 +139,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const input = editor.querySelector<HTMLInputElement>('.activation-editor-input');
   const inputRow = editor.querySelector<HTMLElement>('.activation-editor-input-row');
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
+  const warning = editor.querySelector<HTMLElement>('.activation-editor-warning');
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
   const reset = editor.querySelector<HTMLButtonElement>('.activation-editor-reset');
   const cancel = editor.querySelector<HTMLButtonElement>('.activation-editor-cancel');
@@ -110,6 +153,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     !input ||
     !inputRow ||
     !fullCast ||
+    !warning ||
     !error ||
     !reset ||
     !cancel ||
@@ -134,11 +178,18 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   fullCast.textContent = fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
   fullCast.hidden = fullCastMs <= 0;
 
+  const updateDamageCommitWarning = (): void => {
+    const message = interruptRadio.checked ? activationDamageCommitWarning(input.value, options.damageCommitMs) : '';
+    warning.textContent = message;
+    warning.hidden = !message;
+  };
+
   const updateMode = (): void => {
     const interrupted = interruptRadio.checked;
     input.disabled = !interrupted;
     inputRow.classList.toggle('is-disabled', !interrupted);
     error.textContent = '';
+    updateDamageCommitWarning();
   };
 
   normalRadio.addEventListener('change', updateMode);
@@ -151,6 +202,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   });
   input.addEventListener('input', () => {
     error.textContent = '';
+    updateDamageCommitWarning();
   });
   updateMode();
 
