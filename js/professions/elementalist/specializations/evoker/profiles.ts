@@ -213,7 +213,8 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     rechargeMultiplier: 0.34
   }),
   trait(EVOKER_BALANCE_PROFILE_IDS.specializedElements, 'Specialized Elements', {
-    maximumStacks: 4
+    maximumStacks: 6,
+    playerStacks: 3
   }),
   variant(
     EVOKER_BALANCE_PROFILE_IDS.specializedElementsBasicRecharge,

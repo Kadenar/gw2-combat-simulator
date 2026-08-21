@@ -5,7 +5,7 @@ import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../../js/platform/gw2/trait-coverage.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette-view.js';
-import { renderStartResource } from '../../../js/app/rotation/resource-view.js';
+import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/resource-view.js';
 import {
   paletteActionSkills,
   rotationSelectedSlotSkills,
@@ -851,6 +851,74 @@ test('Evoker familiar palette availability follows current charges', () => {
   );
 });
 
+test('Evoker layers familiar charges beside F5', () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    evokerElement: 'Air',
+    specializations: [
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' },
+      { name: 'Evoker', traits: '1-1-1' }
+    ]
+  });
+  const professionState = {
+    element: 'Air',
+    charges: 4,
+    maximumCharges: 6,
+    empowered: 2
+  };
+  const context = {
+    build,
+    specialization: 'Evoker',
+    professionState,
+    catalog: elementalistCatalog
+  };
+  const familiar = elementalistProfession.ui
+    .paletteGroups(context)
+    .find((group) => group.id === 'elementalist-evoker-familiars');
+  const [charges] = elementalistProfession.ui.resourceViews(context);
+
+  assert.deepEqual(familiar.resourceIds, ['evoker-charges']);
+  assert.equal(familiar.resourcePlacement, 'beside');
+  assert.match(familiar.className, /elementalist-evoker-air/);
+  assert.equal(charges.pipStyle, 'elementalist-evoker-air-2');
+  assert.equal(charges.showValue, false);
+
+  const resourceHtml = activeResourceGroup({
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    results: { endState: { profession: professionState } }
+  });
+
+  assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
+  assert.match(resourceHtml, /data-resource-count="4"/);
+  assert.match(resourceHtml, /active-resource-pips elementalist-evoker-air-2/);
+  assert.doesNotMatch(resourceHtml, /<strong>4\/6<\/strong>/);
+
+  const basicReadyHtml = activeResourceGroup({
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    results: {
+      endState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
+    }
+  });
+  const empoweredReadyHtml = activeResourceGroup({
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    results: {
+      endState: { profession: { ...professionState, charges: 4, empowered: 3 } }
+    }
+  });
+
+  assert.match(basicReadyHtml, /data-resource-count="6"/);
+  assert.match(basicReadyHtml, /active-resource-pips elementalist-evoker-air-0-ready/);
+  assert.match(empoweredReadyHtml, /data-resource-count="4"/);
+  assert.match(empoweredReadyHtml, /active-resource-pips elementalist-evoker-air-3/);
+});
+
 test('Evoker familiar stays available when its element differs from the active attunement', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
@@ -1466,6 +1534,25 @@ test('Evoker weapon skills build familiar charges', () => {
   assert.equal(result.endState.profession.charges, 2);
 });
 
+test('Specialized Elements grants three familiar charges per matching weapon skill', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Evoker', '1-1-3']],
+    rotation: ['Flame Uprising'],
+    startAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger'],
+    evokerElement: 'Fire',
+    initialEvokerCharges: 0
+  });
+  const charge = result.events.find(
+    (event) => event.type === 'resource' && event.kind === 'evoker-charges' && event.source === 'Flame Uprising'
+  );
+
+  assert.equal(result.endState.profession.maximumCharges, 6);
+  assert.ok(charge);
+  assert.equal(charge.change, 3);
+  assert.equal(result.endState.profession.charges, 3);
+});
+
 test('Evoker can cast a basic familiar after configured start charges fill', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
@@ -1623,6 +1710,7 @@ test('Specialized Elements forces and locks the selected attunement', () => {
   });
 
   assert.equal(result.endState.profession.primaryAttunement, 'Air');
+  assert.equal(result.endState.profession.maximumCharges, 6);
   assert.equal(
     result.events.some((event) => event.type === 'elementalist.attunement'),
     false

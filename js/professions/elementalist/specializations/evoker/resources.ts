@@ -14,11 +14,13 @@ function hasTrait(context: unknown, trait: string): boolean {
 export function initialize(context: ElementalistSchedulerContext): void {
   const state = evokerState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  // Specialized Elements keeps the six-charge capacity but accelerates each
+  // matching weapon skill to three charges.
   state.maximumCharges = elementalistBalanceValue(
     context,
     hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources,
     'maximumStacks',
-    hasTrait(context, 'Specialized Elements') ? 4 : 6
+    6
   );
   state.charges = Math.min(state.maximumCharges, state.charges);
   // locks the core attunement system to the fixed element so core trait procs key off the right element
@@ -56,11 +58,14 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Evo
     return 0;
   }
 
-  // split-attunement skills (e.g. "Fire+Air") gain the higher playerStacks count when one of them matches the active element
+  // Split-attunement skills gain the matching-element amount; Specialized
+  // Elements raises that amount from two charges to three.
+  const specialized = hasTrait(context, 'Specialized Elements');
+  const profile = specialized ? PROFILE.specializedElements : PROFILE.resources;
   return String(skill.attunement || '')
     .split('+')
     .includes(state.element)
-    ? elementalistBalanceValue(context, PROFILE.resources, 'playerStacks', 2)
+    ? elementalistBalanceValue(context, profile, 'playerStacks', specialized ? 3 : 2)
     : elementalistBalanceValue(context, PROFILE.resources, 'allyStacks', 1);
 }
 

@@ -3141,6 +3141,158 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   align-items: stretch;
 }
 
+/* Evoker's supplied layers stay on their original canvases: outer pips become
+   the ready ring, while inner wedges become a top-layer familiar at three stacks. */
+.profession-palette-resource-group.resource-beside:has(.elementalist-evoker-familiar) {
+  align-items: center;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-']) {
+  padding-left: 0;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource-group:has([class*='elementalist-evoker-'])
+  > .pal-label {
+  display: none;
+}
+
+.profession-palette-resource-group:has(.elementalist-evoker-familiar)
+  .active-resource:has([class*='elementalist-evoker-']) {
+  min-width: 48px;
+  gap: 0;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0;
+  background-image: var(--evoker-inner-two, none), var(--evoker-inner-one, none), var(--evoker-outer-image, none);
+  background-position: center;
+  background-size:
+    20px 20px,
+    20px 20px,
+    48px 48px;
+  background-repeat: no-repeat;
+}
+
+.active-resource-pips[class*='elementalist-evoker-']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--evoker-familiar-image, none) center / 48px 48px no-repeat;
+  pointer-events: none;
+  content: '';
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  background-position: center;
+  background-size: 48px 48px;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  transform: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip.active {
+  display: block;
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(1) {
+  background-image: url('../assets/elementalist/evoker/Ring1.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(2) {
+  background-image: url('../assets/elementalist/evoker/Ring2.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(3) {
+  background-image: url('../assets/elementalist/evoker/Ring3.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(4) {
+  background-image: url('../assets/elementalist/evoker/Ring4.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(5) {
+  background-image: url('../assets/elementalist/evoker/Ring5.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'] .active-resource-pip:nth-child(6) {
+  background-image: url('../assets/elementalist/evoker/Ring6.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] {
+  --evoker-outer-image: var(--evoker-ready-ring);
+}
+
+.active-resource-pips[class*='elementalist-evoker-'][class*='-ready'] .active-resource-pip.active {
+  display: none;
+}
+
+.active-resource-pips[class*='elementalist-evoker-fire-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Fire.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarFire.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-water-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Water.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarWater.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-air-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Air.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarAir.png');
+}
+
+.active-resource-pips[class*='elementalist-evoker-earth-'] {
+  --evoker-ready-ring: url('../assets/elementalist/evoker/Earth.png');
+  --evoker-ready-familiar: url('../assets/elementalist/evoker/FamiliarEarth.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-1'],
+  [class*='elementalist-evoker-water-1'],
+  [class*='elementalist-evoker-air-1'],
+  [class*='elementalist-evoker-earth-1'],
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-one: url('../assets/elementalist/evoker/Charge1.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-2'],
+  [class*='elementalist-evoker-water-2'],
+  [class*='elementalist-evoker-air-2'],
+  [class*='elementalist-evoker-earth-2']
+) {
+  --evoker-inner-two: url('../assets/elementalist/evoker/Charge2.png');
+}
+
+.active-resource-pips:is(
+  [class*='elementalist-evoker-fire-3'],
+  [class*='elementalist-evoker-water-3'],
+  [class*='elementalist-evoker-air-3'],
+  [class*='elementalist-evoker-earth-3']
+) {
+  --evoker-familiar-image: var(--evoker-ready-familiar);
+}
+
 .profession-palette-resource-group > .pal-group,
 .profession-palette-resource-group > .active-resource-stack > .pal-group {
   border-radius: 0;

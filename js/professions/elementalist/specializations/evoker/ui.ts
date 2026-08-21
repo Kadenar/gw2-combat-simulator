@@ -130,35 +130,51 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
   },
   updateSkillBarSelection: updateFamiliarSelection,
   paletteSkillAvailability: familiarPaletteAvailability,
-  paletteGroups: (context: SchedulerRecord) => [
-    {
-      id: 'elementalist-evoker-familiars',
-      label: 'F5',
-      skillIds: [familiarSkillId(context)],
-      color: '#c85142',
-      resourceAnchor: true, // links this palette entry to the charge resource bar display
-      order: -10
-    }
-  ],
+  paletteGroups: (context: SchedulerRecord) => {
+    const element = selectedElement(context);
+    return [
+      {
+        id: 'elementalist-evoker-familiars',
+        label: 'F5',
+        skillIds: [familiarSkillId(context)],
+        color: '#c85142',
+        className: `elementalist-evoker-familiar elementalist-evoker-${element.toLowerCase()}`,
+        // Keep one layered dial beside F5 so basic pips can cycle around the
+        // familiar after three empowered charges replace the inner wedges.
+        resourceIds: ['evoker-charges'],
+        resourcePlacement: 'beside' as const,
+        order: -10
+      }
+    ];
+  },
   resourceViews: (context: SchedulerRecord): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build as SchedulerRecord | undefined;
     const maximum = Number(state.maximumCharges || 6);
+    const empowered = Math.max(
+      0,
+      Math.min(3, Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)))
+    );
+    const element = selectedElement(context).toLowerCase();
+    const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
+    const basicReady = charges >= maximum;
     return [
       {
         id: 'evoker-charges',
         singular: 'charge',
         plural: 'charges',
         maximum,
-        value: Number(state.charges ?? build?.initialEvokerCharges ?? maximum),
+        value: charges,
         startMaximum: maximum,
         startValue: Number(build?.initialEvokerCharges ?? maximum),
         canStart: true,
         buildKey: 'initialEvokerCharges',
         step: 1,
         displayMode: 'pips',
+        pipStyle: `elementalist-evoker-${element}-${empowered}${basicReady ? '-ready' : ''}`,
+        showValue: false,
         shortLabel: 'Charges',
-        statusLabel: `Empowered ${Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)}/3`
+        statusLabel: `Familiar (${empowered}/3 empowered)`
       }
     ];
   }

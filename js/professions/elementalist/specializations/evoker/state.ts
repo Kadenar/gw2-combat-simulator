@@ -46,8 +46,7 @@ export const evokerState = defineProfessionSpecializationState(
   'Evoker',
   (config: ElementalistConfig = {}): EvokerState => {
     // pre-simulation default; initialize() in resources.ts overwrites this from the balance profile once traits are resolved
-    const maximumCharges =
-      Array.isArray(config.selectedTraits) && config.selectedTraits.includes('Specialized Elements') ? 4 : 6;
+    const maximumCharges = 6;
     const element = ELEMENTALIST_ATTUNEMENTS.includes(config.evokerElement as ElementalistAttunement)
       ? (config.evokerElement as ElementalistAttunement)
       : 'Fire';
