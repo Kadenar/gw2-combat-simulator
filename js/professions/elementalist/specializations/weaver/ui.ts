@@ -124,7 +124,28 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   const state = uiState(context);
   const primary = String(state.primaryAttunement || 'Fire');
   const secondary = String(state.secondaryAttunement || primary);
-  return [{ id: 'elementalist-attunement', label: 'Attunement', value: `${primary}/${secondary}` }];
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [
+    { id: 'elementalist-attunement', label: 'Attunement', value: `${primary}/${secondary}` }
+  ];
+
+  // Surface only the stance window currently affecting the inspected rotation point,
+  // so Weave Self and its Perfect Weave follow-up are easy to time from the active-state bar.
+  for (const [id, label, expiresAt] of [
+    ['weave-self', 'Weave Self', Number(state.weaveSelfUntil || 0)],
+    ['perfect-weave', 'Perfect Weave', Number(state.perfectWeaveUntil || 0)]
+  ] as const) {
+    const remaining = expiresAt - at;
+    if (remaining <= 0) continue;
+    items.push({
+      id,
+      label,
+      value: `${remaining.toFixed(1)}s`,
+      title: `Time remaining in ${label}`
+    });
+  }
+
+  return items;
 }
 
 interface WeaverWeaponPaletteRow {

@@ -100,3 +100,44 @@ test('Weaver exposes primary and secondary starting attunements', () => {
     ]
   );
 });
+
+test('Weaver active state shows remaining Weave Self and Perfect Weave time', () => {
+  const snapshot = elementalistProfession.ui.rotationStateSnapshot({
+    specialization: 'Weaver',
+    professionState: {
+      primaryAttunement: 'Fire',
+      secondaryAttunement: 'Air',
+      weaveSelfUntil: 12.34,
+      perfectWeaveUntil: 8.26
+    },
+    atSeconds: 3
+  });
+
+  assert.deepEqual(
+    snapshot.filter(({ id }) => id === 'weave-self' || id === 'perfect-weave'),
+    [
+      {
+        id: 'weave-self',
+        label: 'Weave Self',
+        value: '9.3s',
+        title: 'Time remaining in Weave Self'
+      },
+      {
+        id: 'perfect-weave',
+        label: 'Perfect Weave',
+        value: '5.3s',
+        title: 'Time remaining in Perfect Weave'
+      }
+    ]
+  );
+
+  const expired = elementalistProfession.ui.rotationStateSnapshot({
+    specialization: 'Weaver',
+    professionState: { weaveSelfUntil: 3, perfectWeaveUntil: 3 },
+    atSeconds: 3
+  });
+  assert.equal(
+    expired.some(({ id }) => id === 'weave-self' || id === 'perfect-weave'),
+    false
+  );
+});
