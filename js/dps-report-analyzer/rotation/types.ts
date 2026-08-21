@@ -34,6 +34,7 @@ export interface DpsReportRecordedAction {
     | 'herald-opening'
     | 'conduit-opening'
     | 'harbinger-shroud'
+    | 'willbender-jurisdiction'
     | 'elementalist-aura'
     | 'elementalist-blinding-flash';
   readonly canonicalSkillId?: number;

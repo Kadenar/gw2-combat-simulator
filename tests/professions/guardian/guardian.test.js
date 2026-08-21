@@ -297,7 +297,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
   });
   assert.deepEqual(profile(quick, 'Symbol of Resolution'), {
     cast: 280,
-    ticks: [280, 1280, 2280, 3280, 4280],
+    ticks: [200, 1200, 2200, 3200, 4200],
     coefficient: 3.4
   });
   assert.deepEqual(profile(quick, 'Binding Blade'), {
@@ -886,6 +886,26 @@ test('Guardian timing applies Quickness, Alacrity, ammo, and trait recharge', ()
   assert.equal(ammo.endState.ammo['Hail of Justice'].charges, 0);
   assert.equal(ammo.steps[2].start, 11680);
   assert.deepEqual(ammo.warnings, []);
+});
+
+test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
+  const skillNames = ['Whirling Wrath', 'Leap of Faith', 'Symbol of Resolution', 'Binding Blade'];
+  const rechargeDurations = (selectedTraitIds) =>
+    skillNames.map((skillName) => {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: [skillName],
+        config: { ...config, primaryWeapon: 'Greatsword', selectedTraitIds }
+      });
+      const skill = guardianCatalog.skillsByName.get(skillName);
+      const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+      const rechargeStart = skill.rechargeAnchor === 'castStart' ? action.at : action.endsAt;
+
+      return Number((action.rechargeReadyAt - rechargeStart).toFixed(3));
+    });
+
+  assert.deepEqual(rechargeDurations([]), [8, 10, 12, 25]);
+  assert.deepEqual(rechargeDurations([GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]), [6.4, 8, 9.6, 20]);
 });
 
 test('Guardian measured Quickness cast times remain exact', () => {

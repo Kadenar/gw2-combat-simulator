@@ -499,20 +499,26 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     implemented: true,
     castTimeMs: 280,
     unaffectedByQuickness: true,
+    // EVTC places the initial impact ~200 ms after activation and shows recharge
+    // progressing from activation while the remaining symbol pulses continue.
+    rechargeAnchor: 'castStart',
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Symbol of Resolution — Initial'
       },
       {
         type: 'strike',
         coefficient: 2.6,
         hits: 4,
-        atMs: 1000,
+        atMs: 1200,
         intervalMs: 1000,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Symbol of Resolution'
       }

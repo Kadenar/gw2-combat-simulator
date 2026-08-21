@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 3,
+  "profession": "guardian",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Sinister",
+    "Ring1": "Sinister",
+    "Ring2": "Viper's",
+    "Accessory1": "Sinister",
+    "Accessory2": "Sinister",
+    "Back": "Sinister",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": ["Pistol", "Torch"],
+  "alternateWeapons": ["Scepter", "Pistol"],
+  "rune": "Balthazar",
+  "weaponSigils": [
+    ["Bursting", "Air"],
+    ["Bursting", "Torment"]
+  ],
+  "relic": "Fractal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Radiance",
+      "traits": "2-2-1"
+    },
+    {
+      "name": "Virtues",
+      "traits": "3-1-1"
+    },
+    {
+      "name": "Willbender",
+      "traits": "1-1-2"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "Litany of Wrath",
+    "Utility1": "Purging Flames",
+    "Utility2": "Whirling Light",
+    "Utility3": "Signet of Wrath",
+    "Elite": "Heaven's Palm"
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialTomePages": 5,
+  "startingWeaponSet": 2,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

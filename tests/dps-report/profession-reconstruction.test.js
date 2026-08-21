@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
 import { reconstructDpsReportRotation } from '../../js/dps-report-analyzer/rotation/index.js';
+import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
@@ -132,6 +133,45 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
   assert.equal(result.actions[0].inferred, true);
   assert.match(result.warnings.join('\n'), /Recovered setup:.*Harbinger Shroud/);
   assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
+});
+
+test('coalesces Willbender composite casts and recovers an opening Jurisdiction', () => {
+  const report = reportFixture(
+    'Willbender',
+    [
+      { id: 71818, skills: [{ castTime: -160, duration: 320, timeGained: 0 }] },
+      { id: 62668, skills: [{ castTime: 160, duration: 40, timeGained: 440 }] },
+      { id: 62624, skills: [{ castTime: 200, duration: 440, timeGained: 0 }] },
+      { id: 9090, skills: [{ castTime: 640, duration: 320, timeGained: 0 }] },
+      { id: 71817, skills: [{ castTime: 960, duration: 480, timeGained: 320 }] },
+      { id: 71818, skills: [{ castTime: 1440, duration: 320, timeGained: 0 }] },
+      { id: 72031, skills: [{ castTime: 1760, duration: 399, timeGained: 201 }] }
+    ],
+    {
+      s71818: { name: 'Fire Jurisdiction (Level 1)' },
+      s62668: { name: 'Rushing Justice' },
+      s62624: { name: 'Rushing Justice (Hit)' },
+      s9090: { name: 'Symbol of Punishment' },
+      s71817: { name: 'Jurisdiction' },
+      s72031: { name: 'Through the Heart', autoAttack: true }
+    },
+    5000
+  );
+
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+
+  assert.deepEqual(
+    result.rotation.map((command) => command.name),
+    ['Jurisdiction', '__combat_start', 'Rushing Justice', 'Symbol of Punishment', 'Jurisdiction', 'Through the Heart']
+  );
+  assert.deepEqual(result.rotation[1], { name: '__combat_start', offset: 640 });
+  assert.equal(result.actions.filter((action) => action.name === 'Rushing Justice').length, 1);
+  assert.equal(
+    result.actions.every((action) => action.supportedByCatalog),
+    true
+  );
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Jurisdiction/);
+  assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
 test('recovers alacrity Luminary opening state and retains only physical weapon swaps', () => {

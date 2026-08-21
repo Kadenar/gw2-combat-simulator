@@ -1,5 +1,6 @@
 import type { Skill } from '../../../platform/engine/types.js';
 import { reconstructLuminaryDpsReportActions } from './guardian/luminary.js';
+import { reconstructWillbenderDpsReportActions } from './guardian/willbender.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
@@ -7,7 +8,8 @@ import type {
 } from '../types.js';
 
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
-  ['luminary', reconstructLuminaryDpsReportActions]
+  ['luminary', reconstructLuminaryDpsReportActions],
+  ['willbender', reconstructWillbenderDpsReportActions]
 ]);
 
 function normalized(value: unknown): string {

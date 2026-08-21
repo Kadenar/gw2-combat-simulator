@@ -4,6 +4,7 @@ import {
   findRotationSkill,
   skillIdentity
 } from '../../evtc-analyzer/rotation/catalog.js';
+import { firstStrikePacketOffsetMs } from '../../evtc-analyzer/rotation/effect-packets.js';
 import type { EvtcRotationCatalog } from '../../evtc-analyzer/rotation/catalog.js';
 import type { EvtcRotationProfessionProfile } from '../../evtc-analyzer/rotation/profiles.js';
 import type { EvtcReconstructedCommand, EvtcRotationActionStatus } from '../../evtc-analyzer/types.js';
@@ -236,6 +237,9 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
   // Prefer an explicit simulator cast time when EI's nominal duration includes
   // a long aftercast; the modeled cast lane is the tighter commitment bound.
   const runtimeDurationMs = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
+  // Explicit packet timing is the precise commitment contract for attacks such as Guardian pistol's early projectile.
+  const firstStrikeOffsetMs = firstStrikePacketOffsetMs(action.skill, runtimeDurationMs, { explicitOnly: true });
+  if (firstStrikeOffsetMs != null) return action.end - action.start >= firstStrikeOffsetMs;
   const commitmentDurationMs =
     runtimeDurationMs > 0 ? Math.min(expectedDurationMs, runtimeDurationMs) : expectedDurationMs;
   return action.end - action.start >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;

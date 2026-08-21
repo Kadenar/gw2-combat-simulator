@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "log": "https://dps.report/gkj1-20260501-134125_golem",
+    "benchmarkDurationSeconds": 95.687,
+    "benchmarkDamage": 3964575,
+    "benchmarkDps": 41432.74425993082,
+    "simulatedDps": 42128.228671791854,
+    "timingSource": "Elite Insights cast summaries and weapon-swap timings from dps.report",
+    "note": "The opening Jurisdiction is recovered from its Fire Jurisdiction follow-up, split Jurisdiction and Rushing Justice animations are coalesced, and canceled weapon-1 casts are omitted."
+  },
+  "rotation": [
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    {
+      "name": "__combat_start",
+      "offset": 640
+    },
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Purging Flames",
+    "Symbol of Punishment",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 160
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Whirling Light",
+    "Peacekeeper",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 522
+    },
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Symbol of Ignition",
+    "Zealot's Fire",
+    "Peacekeeper",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 358
+    },
+    "Zealot's Fire",
+    "Swap Weapons",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    "Flowing Resolve",
+    "Hail of Justice",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Orb of Wrath",
+    "Orb of Wrath",
+    "Purging Flames",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Whirling Light",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 158
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    "Flowing Resolve",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 2475
+    },
+    "Zealot's Fire",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Through the Heart",
+    "Symbol of Ignition",
+    "Peacekeeper",
+    "Swap Weapons",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Orb of Wrath",
+    "Hail of Justice",
+    "Purging Flames",
+    "Whirling Light",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Orb of Wrath",
+    "Orb of Wrath",
+    "Symbol of Punishment",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 239
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    "Flowing Resolve",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 2032
+    },
+    "Zealot's Fire",
+    "Through the Heart",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Symbol of Ignition",
+    "Peacekeeper",
+    "Swap Weapons",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    "Flowing Resolve",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Hail of Justice",
+    "Orb of Wrath",
+    "Orb of Wrath",
+    "Purging Flames",
+    "Whirling Light",
+    "Symbol of Punishment",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Hail of Justice",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 163
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 1561
+    },
+    "Zealot's Fire",
+    "Through the Heart",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Symbol of Ignition",
+    "Peacekeeper",
+    "Swap Weapons",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    "Flowing Resolve",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Orb of Wrath",
+    "Hail of Justice",
+    "Purging Flames",
+    "Whirling Light",
+    "Orb of Wrath",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Orb of Wrath",
+    "Symbol of Punishment",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 241
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    "Flowing Resolve",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 1441
+    },
+    "Zealot's Fire",
+    "Through the Heart",
+    "Symbol of Ignition",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Peacekeeper",
+    "Swap Weapons",
+    "Symbol of Punishment",
+    "Hail of Justice",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Whirling Light",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Hail of Justice",
+    "Purging Flames",
+    "Orb of Wrath",
+    "Orb of Wrath",
+    "Symbol of Punishment",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Hail of Justice",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 123
+    },
+    "Peacekeeper",
+    "Zealot's Fire",
+    "Flowing Resolve",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "skillId": 9104,
+      "offset": 1278
+    },
+    "Zealot's Fire",
+    "Peacekeeper",
+    "Symbol of Ignition",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Whirling Light"
+  ]
+}
