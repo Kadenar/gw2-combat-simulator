@@ -1,0 +1,936 @@
+{
+  "metadata": {
+    "report": "https://dps.report/b5fG-20250214-121250_golem",
+    "benchmarkDurationSeconds": 123.284,
+    "benchmarkDamage": 3954045,
+    "benchmarkDps": 32073,
+    "simulatedDps": 31724.916651308704,
+    "timingSource": "Elite Insights cast summaries from dps.report",
+    "note": "Greatsword skill 5 is precast before the pull; Facet of Elements and Facet of Strength are reconstructed from their opening consume skills."
+  },
+  "rotation": [
+    {
+      "name": "Eternity's Requiem",
+      "skillId": 62929
+    },
+    {
+      "name": "Facet of Elements"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 334
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 84
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 198
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation",
+      "interruptMs": 420
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Facet of Strength",
+      "offset": 483
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 118
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Facet of Darkness",
+      "offset": 363
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 77
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Facet of Nature",
+      "offset": 77
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 330
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 159
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation",
+      "interruptMs": 480
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 82
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Facet of Darkness",
+      "offset": 322
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 80
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Facet of Nature",
+      "offset": 91
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Facet of Strength",
+      "offset": 166
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 176
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 161
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation",
+      "interruptMs": 480
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Facet of Strength",
+      "offset": 404
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 163
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Facet of Darkness",
+      "offset": 359
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 175
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Facet of Nature",
+      "offset": 283
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 320
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 235
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 193
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Facet of Darkness",
+      "offset": 285
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 35
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Facet of Nature",
+      "offset": 240
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Facet of Strength",
+      "offset": 231
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 193
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 184
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Facet of Strength",
+      "offset": 368
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 121
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Facet of Chaos",
+      "offset": 283
+    },
+    {
+      "name": "Facet of Darkness",
+      "offset": 37
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Mist Slash"
+    },
+    {
+      "name": "Arcing Mists"
+    },
+    {
+      "name": "Chaotic Release"
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Facet of Nature",
+      "offset": 245
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Mist Swing"
+    },
+    {
+      "name": "Facet of Strength"
+    },
+    {
+      "name": "Burst of Strength"
+    },
+    {
+      "name": "Facet of Elements",
+      "offset": 201
+    },
+    {
+      "name": "Elemental Blast"
+    },
+    {
+      "name": "Mist Unleashed"
+    },
+    {
+      "name": "Eternity's Requiem"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 239
+    },
+    {
+      "name": "Shackling Wave"
+    }
+  ]
+}
