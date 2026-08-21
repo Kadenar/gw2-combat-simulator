@@ -20,7 +20,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.ELIXIR_OF_RISK]: {
     implemented: true,
-    quicknessCastTimeMs: 540,
+    // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
+    quicknessCastTimeMs: 680,
     blightCost: 5,
     blightGain: 10,
     effects: [
@@ -215,7 +216,10 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     blightGain: 10,
     effects: [
       { type: 'strike', coefficient: 1, hits: 1 },
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }
+      // Anguish pairs enemy control with mobility; its empowered profile doubles these durations.
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5 },
+      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      { type: 'boon', boon: 'swiftness', stacks: 1, duration: 10 }
     ],
     handlerId: 'necromancer.elixir'
   },

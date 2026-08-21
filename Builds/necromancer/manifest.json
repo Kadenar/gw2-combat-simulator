@@ -55,13 +55,20 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-harbinger.json",
         "rotation": "Rotations/necromancer/r-power-harbinger-bench.json",
-        "benchmarkDps": 43303
+        "benchmarkDps": 43225
+      },
+      {
+        "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
+        "build": "Builds/necromancer/b-condi-quick-harbinger.json",
+        "rotation": "Rotations/necromancer/r-condi-quick-harbinger-bench.json",
+        "benchmarkDps": 36482,
+        "upToDate": true
       },
       {
         "label": "Condition (Pistol / Torch + Scepter / Dagger)",
         "build": "Builds/necromancer/b-condi-harbinger.json",
         "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
-        "benchmarkDps": 45310
+        "benchmarkDps": 42072
       }
     ]
   }

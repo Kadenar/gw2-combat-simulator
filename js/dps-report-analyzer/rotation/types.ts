@@ -33,6 +33,7 @@ export interface DpsReportRecordedAction {
     | 'renegade-warband'
     | 'herald-opening'
     | 'conduit-opening'
+    | 'harbinger-shroud'
     | 'elementalist-aura'
     | 'elementalist-blinding-flash';
   readonly canonicalSkillId?: number;

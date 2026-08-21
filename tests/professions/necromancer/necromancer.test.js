@@ -231,7 +231,7 @@ test('measured Quickness cast times remain exact', () => {
     [ID.CONSUME, 520],
     [ID.DEADLY_SLICE, 520],
     [ID.SINISTER_STAB, 560],
-    [ID.ELIXIR_OF_RISK, 540],
+    [ID.ELIXIR_OF_RISK, 680],
     [ID.LOCUST_SWARM, 440],
     [ID.VITAL_DRAW, 800],
     [ID.WAIL_OF_DOOM, 1000],
@@ -456,11 +456,32 @@ test('Necromancer single-hit skills use their configured offsets', () => {
   assert.equal(customOffset(devouringDarkness, 'Devouring Darkness', ID.DEVOURING_DARKNESS), 480);
   assert.equal(customOffset(essenceBlast, 'Essence Blast', ID.ESSENCE_BLAST), 560);
   assert.equal(customOffset(elixirs, 'Elixir of Promise', ID.ELIXIR_OF_PROMISE), 400);
-  assert.equal(customOffset(elixirs, 'Elixir of Risk', ID.ELIXIR_OF_RISK), 400);
+  assert.equal(customOffset(elixirs, 'Elixir of Risk', ID.ELIXIR_OF_RISK), 504);
   assert.equal(customOffset(elixirs, 'Elixir of Ambition', ID.ELIXIR_OF_AMBITION), 400);
   assert.equal(customOffset(blightSkills, 'Devouring Cut', ID.DEVOURING_CUT), 360);
   assert.equal(customOffset(blightSkills, 'Voracious Arc', ID.VORACIOUS_ARC), 800);
   assert.equal(customOffset(manifestShade, 'Manifest Sand Shade', ID.MANIFEST_SAND_SHADE), 440);
+});
+
+test('Elixir of Anguish applies Cripple and Swiftness for their exact durations', () => {
+  const base = simulate('Harbinger', ['Elixir of Anguish'], {
+    initialBlight: 0,
+    selectedSkills: ['Elixir of Anguish']
+  });
+  const empowered = simulate('Harbinger', ['Elixir of Anguish'], {
+    initialBlight: 5,
+    selectedSkills: ['Elixir of Anguish']
+  });
+  const durations = (result) => ({
+    cripple: result.resolvedEvents.find(
+      (event) => event.skillId === ID.ELIXIR_OF_ANGUISH && event.condition === 'Crippled'
+    )?.duration,
+    swiftness: result.events.find((event) => event.skillId === ID.ELIXIR_OF_ANGUISH && event.kind === 'swiftness')
+      ?.duration
+  });
+
+  assert.deepEqual(durations(base), { cripple: 5, swiftness: 10 });
+  assert.deepEqual(durations(empowered), { cripple: 10, swiftness: 20 });
 });
 
 test('Signet of Spite follows its live passive and active profile', () => {
@@ -687,10 +708,10 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-        skill.effects.length ||
-        skill.lifeForceGain ||
-        skill.flipParentId != null ||
-        skill.type === 'Action'
+          skill.effects.length ||
+          skill.lifeForceGain ||
+          skill.flipParentId != null ||
+          skill.type === 'Action'
       ),
       true,
       `${skill.id} ${skill.name}`

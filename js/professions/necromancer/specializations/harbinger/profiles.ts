@@ -248,10 +248,24 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       effects: [
         { type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
         {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 10,
+          actorType: 'player'
+        },
+        {
           type: 'boon',
           boon: 'quickness',
           stacks: 1,
           duration: 10,
+          actorType: 'player'
+        },
+        {
+          type: 'boon',
+          boon: 'swiftness',
+          stacks: 1,
+          duration: 20,
           actorType: 'player'
         }
       ]

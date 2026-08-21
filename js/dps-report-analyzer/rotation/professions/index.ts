@@ -2,6 +2,7 @@ import { reconstructEngineerDpsReportActions } from './engineer.js';
 import { reconstructElementalistDpsReportActions } from './elementalist.js';
 import { reconstructGuardianDpsReportActions } from './guardian.js';
 import { reconstructMesmerDpsReportActions } from './mesmer.js';
+import { reconstructNecromancerDpsReportActions } from './necromancer.js';
 import { reconstructRevenantDpsReportActions } from './revenant.js';
 import type {
   DpsReportProfessionActionReconstructor,
@@ -14,6 +15,7 @@ const reconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor
   ['engineer', reconstructEngineerDpsReportActions],
   ['guardian', reconstructGuardianDpsReportActions],
   ['mesmer', reconstructMesmerDpsReportActions],
+  ['necromancer', reconstructNecromancerDpsReportActions],
   ['revenant', reconstructRevenantDpsReportActions]
 ]);
 
