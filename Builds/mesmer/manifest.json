@@ -32,6 +32,13 @@
     "section": "Virtuoso",
     "presets": [
       {
+        "label": "Power (Spear / Greatsword)",
+        "build": "Builds/mesmer/b-power-virtuoso-spear-greatsword.json",
+        "rotation": "Rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
+        "benchmarkDps": 40491,
+        "referenceDps": 42191
+      },
+      {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-virtuoso.json",
         "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json",

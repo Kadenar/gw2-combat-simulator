@@ -1,0 +1,579 @@
+{
+  "rotation": [
+    {
+      "name": "Phantasmal Disenchanter",
+      "skillId": 10267
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 319
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 35
+    },
+    {
+      "name": "Mental Collapse",
+      "skillId": 72957
+    },
+    {
+      "name": "Thousand Cuts",
+      "offset": 41
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Rain of Swords"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Bladesong Sorrow"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Power Spike",
+      "skillId": 10212
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Dissonance",
+      "skillId": 62602
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Mind the Gap",
+      "skillId": 73093
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Imaginary Inversion"
+    },
+    {
+      "name": "Bladesong Distortion",
+      "offset": 84
+    },
+    {
+      "name": "Power Spike",
+      "offset": 201
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Mental Collapse"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Bladeturn Requiem",
+      "offset": 251
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 341
+    },
+    {
+      "name": "Imaginary Inversion",
+      "skillId": 73152
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Rain of Swords"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Bladesong Sorrow"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 363
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Dissonance",
+      "skillId": 62602
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Mind the Gap",
+      "skillId": 73093
+    },
+    {
+      "name": "Imaginary Inversion"
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 201
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Mental Collapse"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Bladeturn Requiem",
+      "offset": 83
+    },
+    {
+      "name": "Thousand Cuts",
+      "offset": 319
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 321
+    },
+    {
+      "name": "Imaginary Inversion",
+      "skillId": 73152
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Mirror Blade",
+      "skillId": 10333
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Rain of Swords"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Bladesong Sorrow"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 117
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Mind the Gap",
+      "skillId": 73093
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Imaginary Inversion"
+    },
+    {
+      "name": "Bladesong Distortion",
+      "offset": 42
+    },
+    {
+      "name": "Power Spike",
+      "offset": 236
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Mental Collapse"
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Psystrike"
+    },
+    {
+      "name": "Mind Pierce"
+    },
+    {
+      "name": "Psycut"
+    },
+    {
+      "name": "Bladeturn Requiem",
+      "offset": 125
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 360
+    },
+    {
+      "name": "Imaginary Inversion",
+      "skillId": 73152
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Mirror Blade",
+      "skillId": 10333
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Rain of Swords"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Bladesong Sorrow"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 118
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Bladesong Dissonance",
+      "skillId": 62602
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Lancer"
+    },
+    {
+      "name": "Mind the Gap",
+      "skillId": 73093
+    },
+    {
+      "name": "Bladesong Harmony"
+    },
+    {
+      "name": "Mental Collapse"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 373
+    },
+    {
+      "name": "Mind the Gap"
+    },
+    {
+      "name": "Imaginary Inversion"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 160
+    }
+  ]
+}

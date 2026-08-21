@@ -115,11 +115,27 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: [
       {
         type: 'strike',
-        coefficient: 6,
-        hits: 5,
+        // Rain begins after the ground-target delay observed in EVTC, then pulses once per second.
+        ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
+          atMs,
+          coefficient: 1.2
+        })),
         name: 'Damage',
         actorType: 'player',
-        weapon: 'utility'
+        weapon: 'utility',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 3,
+          duration: 10
+        })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },

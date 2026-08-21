@@ -117,11 +117,15 @@ export function createMirageActionController({
   const addAmbushVulnerability = (at: number, ambush: MesmerAmbushAttack) => {
     if (!ambush.vulnerability) return;
     addEvent({
-      type: 'buff',
+      type: 'condition',
       at,
-      kind: 'target-vulnerability',
+      condition: 'Vulnerability',
       stacks: ambush.vulnerability.stacks,
       duration: ambush.vulnerability.duration,
+      source: 'Player',
+      actorType: 'player',
+      skillId: ambush.id,
+      skillName: ambush.name,
       sourceSkill: ambush.name
     });
     addEvent({
@@ -270,11 +274,26 @@ export function createMirageActionController({
       blade: false
     };
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + Number(ambush.player.damageAtMs) / 1000;
-    addDamage(pseudo, impactAt, {
-      coefficient: ambush.player.coefficient,
-      hits: ambush.player.hits,
-      source: 'Player'
-    });
+    // Packetized ambushes resolve each hit and its repeated statuses at the measured beam timestamps.
+    const impactTimes = ambush.player.ticks?.length
+      ? ambush.player.ticks.map((tick) => castStart + tick.atMs / 1000)
+      : [impactAt];
+    if (ambush.player.ticks?.length) {
+      const coefficientPerHit = ambush.player.coefficient / Math.max(1, ambush.player.hits);
+      for (const packetAt of impactTimes) {
+        addDamage(pseudo, packetAt, {
+          coefficient: coefficientPerHit,
+          hits: 1,
+          source: 'Player'
+        });
+      }
+    } else {
+      addDamage(pseudo, impactAt, {
+        coefficient: ambush.player.coefficient,
+        hits: ambush.player.hits,
+        source: 'Player'
+      });
+    }
     for (const condition of ambush.player.conditions || []) {
       addCondition(ambush.name, impactAt, condition);
     }
@@ -296,7 +315,9 @@ export function createMirageActionController({
     }
 
     for (const boon of ambush.playerBoons || []) {
-      addBoon(impactAt, boon, ambush.name, 'player', ambush.id === ID.CHAOS_VORTEX ? 'party' : 'self');
+      for (const packetAt of impactTimes) {
+        addBoon(packetAt, boon, ambush.name, 'player', ambush.id === ID.CHAOS_VORTEX ? 'party' : 'self');
+      }
     }
 
     if (traits.has(TRAIT.MIRAGE_MANTLE)) {
@@ -313,7 +334,9 @@ export function createMirageActionController({
       addTraitProc('Mirage Mantle', impactAt, ambush.name, '4s alacrity');
     }
 
-    addAmbushVulnerability(impactAt, ambush);
+    for (const packetAt of impactTimes) {
+      addAmbushVulnerability(packetAt, ambush);
+    }
     if (ambush.createsClone) {
       queueResources(impactAt + epsilon, 1, weapon, ambush.name, {
         sourceSkillId: skill.id

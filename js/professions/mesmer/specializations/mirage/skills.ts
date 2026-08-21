@@ -165,7 +165,7 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
     effects: []
   },
   [ID.SPLIT_SURGE]: {
-    quicknessCastTimeMs: 940,
+    quicknessCastTimeMs: 960,
     cooldown: 0.5,
     ambush: true,
     implemented: true,

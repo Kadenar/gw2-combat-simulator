@@ -109,9 +109,9 @@ export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): Bal
       ...(attack.vulnerability
         ? [
             {
-              type: 'buff' as const,
+              type: 'condition' as const,
               name: 'Vulnerability',
-              kind: 'target-vulnerability',
+              condition: 'Vulnerability',
               duration: attack.vulnerability.duration,
               stacks: attack.vulnerability.stacks
             }
@@ -147,7 +147,7 @@ export function mesmerProfiledAmbush(
   const playerStrike = strikes.find((effect) => effect.source === 'Player');
   const cloneStrike = strikes.find((effect) => effect.source === 'Clone');
   const vulnerability = (profile?.effects || []).find(
-    (effect) => effect.type === 'buff' && effect.kind === 'target-vulnerability'
+    (effect) => effect.type === 'condition' && effect.condition === 'Vulnerability' && effect.source == null
   );
   return {
     ...attack,

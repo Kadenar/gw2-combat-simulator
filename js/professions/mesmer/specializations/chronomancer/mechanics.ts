@@ -91,8 +91,8 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     repeatSpawnAtMs: 2600
   },
   [ID.PHANTASMAL_LANCER]: {
-    repeatDamageAtMs: 1833.3333333,
-    repeatSpawnAtMs: 1833.3333333
+    repeatDamageAtMs: 3240,
+    repeatSpawnAtMs: 4080
   }
 });
 export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({

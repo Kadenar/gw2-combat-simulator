@@ -544,15 +544,15 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     weapon: 'Greatsword',
     specialization: '',
     environment: 'Terrestrial',
-    quicknessCastTimeMs: 750,
+    quicknessCastTimeMs: 760,
     cooldown: 0,
     effects: [
       {
         type: 'strike',
         ticks: [
-          { atMs: 366, coefficient: 0.2666666666666667 },
-          { atMs: 518, coefficient: 0.2666666666666667 },
-          { atMs: 684, coefficient: 0.2666666666666667 }
+          { atMs: 360, coefficient: 0.2666666666666667 },
+          { atMs: 520, coefficient: 0.2666666666666667 },
+          { atMs: 680, coefficient: 0.2666666666666667 }
         ],
         name: 'Minimum-range damage',
         actorType: 'player',
@@ -1858,6 +1858,13 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         hits: 1,
         name: 'Damage',
         actorType: 'player'
+      },
+      // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        duration: 8,
+        stacks: 5
       }
     ]
   },

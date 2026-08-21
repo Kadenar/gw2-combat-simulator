@@ -777,6 +777,7 @@ export interface MesmerAmbushStrike {
   readonly hits: number;
   readonly castTimeMs?: number;
   readonly damageAtMs?: number;
+  readonly ticks?: readonly MesmerAttackTimingTick[];
   readonly conditions?: readonly MesmerAttackStatus[];
 }
 

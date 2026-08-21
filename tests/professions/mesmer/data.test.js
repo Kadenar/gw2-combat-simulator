@@ -350,6 +350,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
     [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
     [ID.PHANTASMAL_DISENCHANTER]: [760, 1400, 1840, 3240, 3930],
     [ID.PHANTASMAL_DUELIST]: [560, 2283, 2880, 5380, 6010],
+    [ID.PHANTASMAL_LANCER]: [520, 1080, 1920, 3240, 4080],
     [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5040, 5290],
     [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3600, 5920, 7450],
     [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 12530, 14730],
@@ -546,11 +547,12 @@ test('Mirage ambush data uses current player and clone variants', () => {
   assert.equal(AMBUSH_ATTACKS.Spear.id, 73067);
   assert.deepEqual(AMBUSH_ATTACKS.Spear.player, {
     coefficient: 3.15,
-    hits: 7
+    hits: 7,
+    ticks: [{ atMs: 400 }, { atMs: 480 }, { atMs: 520 }, { atMs: 560 }, { atMs: 640 }, { atMs: 720 }, { atMs: 760 }]
   });
   assert.deepEqual(AMBUSH_ATTACKS.Spear.vulnerability, {
     duration: 6,
-    stacks: 7
+    stacks: 1
   });
   assert.deepEqual(
     AMBUSH_ATTACKS.Staff.player.conditions.map((condition) => condition.name),
@@ -773,7 +775,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   );
   assert.equal(AMBUSH_ATTACKS.Sword.player.coefficient, 3);
   assert.equal(AMBUSH_ATTACKS.Sword.clone.coefficient, 3);
-  assert.equal(AMBUSH_ATTACKS.Greatsword.player.coefficient, 3.19);
+  assert.equal(AMBUSH_ATTACKS.Greatsword.player.coefficient, 3.1875);
   assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
 
   const flyingCutter = normalized('Flying Cutter');

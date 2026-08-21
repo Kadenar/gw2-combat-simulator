@@ -84,11 +84,12 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     name: 'Split Surge',
     icon: 'https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png',
     description: 'Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.',
-    castTimeMs: 1500,
+    castTimeMs: 1440,
     cooldown: 0.5,
     player: {
-      coefficient: 3.19,
-      hits: 3
+      coefficient: 3.1875,
+      hits: 3,
+      ticks: [{ atMs: 360 }, { atMs: 520 }, { atMs: 680 }]
     },
     clone: {
       coefficient: 3.1875,
@@ -98,12 +99,12 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
       {
         name: 'Might',
         duration: 5,
-        stacks: 6
+        stacks: 2
       }
     ],
     vulnerability: {
       duration: 5,
-      stacks: 6
+      stacks: 2
     }
   },
   Rifle: {
@@ -175,11 +176,13 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     name: 'Fractured Glass',
     icon: 'https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png',
     description: 'Ambush. Pierce targets in front of you in a flurry of blows, leaving them vulnerable.',
-    castTimeMs: 1000,
+    castTimeMs: 1320,
     cooldown: 1,
     player: {
       coefficient: 3.15,
-      hits: 7
+      hits: 7,
+      // Fractured Glass applies one strike and one Vulnerability stack at each measured packet.
+      ticks: [{ atMs: 400 }, { atMs: 480 }, { atMs: 520 }, { atMs: 560 }, { atMs: 640 }, { atMs: 720 }, { atMs: 760 }]
     },
     clone: {
       coefficient: 3.15,
@@ -187,7 +190,7 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
     },
     vulnerability: {
       duration: 6,
-      stacks: 7
+      stacks: 1
     }
   },
   Staff: {

@@ -3421,7 +3421,7 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
     (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'might'
   );
   const vulnerability = result.events.filter(
-    (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'target-vulnerability'
+    (event) => event.type === 'condition' && event.skillName === 'Split Surge' && event.condition === 'Vulnerability'
   );
 
   assert.equal(cast.end - cast.start, 960);
@@ -3448,6 +3448,74 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
       [520, 2, 5],
       [680, 2, 5]
     ]
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'target-vulnerability'
+    ),
+    false
+  );
+});
+
+test('Fractured Glass resolves seven measured packets with per-hit Vulnerability', () => {
+  const result = simulateMesmer(
+    ['Dodge / Mirage Cloak', 'Fractured Glass', 'Sand through Glass', 'Fractured Glass'],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      selectedSkills: ['Sand through Glass'],
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      initialResource: 0,
+      boons: {
+        ...defaultSimulationConfig().boons,
+        alacrity: false
+      }
+    })
+  );
+  const casts = result.steps.filter((step) => step.skill === 'Fractured Glass');
+  const firstCastStart = casts[0].start / 1000;
+  const damage = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Fractured Glass' && event.source === 'Player'
+  );
+  const vulnerability = result.events.filter(
+    (event) =>
+      event.type === 'condition' && event.skillName === 'Fractured Glass' && event.condition === 'Vulnerability'
+  );
+
+  assert.equal(casts[0].end - casts[0].start, 880);
+  assert.equal(casts[1].start - casts[0].end, 1000);
+  assert.deepEqual(
+    damage.slice(0, 7).map((event) => [Math.round((event.at - firstCastStart) * 1000), event.coefficient]),
+    [
+      [400, 0.45],
+      [480, 0.45],
+      [520, 0.45],
+      [560, 0.45],
+      [640, 0.45],
+      [720, 0.45],
+      [760, 0.45]
+    ]
+  );
+  assert.deepEqual(
+    vulnerability
+      .slice(0, 7)
+      .map((event) => [Math.round((event.at - firstCastStart) * 1000), event.stacks, event.duration]),
+    [
+      [400, 1, 6],
+      [480, 1, 6],
+      [520, 1, 6],
+      [560, 1, 6],
+      [640, 1, 6],
+      [720, 1, 6],
+      [760, 1, 6]
+    ]
+  );
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === 'buff' && event.sourceSkill === 'Fractured Glass' && event.kind === 'target-vulnerability'
+    ),
+    false
   );
 });
 
@@ -4281,6 +4349,52 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
     Player: 1,
     Phantasm: 2.46
   });
+});
+
+test('Phantasmal Lancer converts after recovery and Chronophantasma repeats before final conversion', () => {
+  const rotation = ['Phantasmal Lancer', { name: '__wait', waitMs: 5000 }];
+  const baseConfig = {
+    initialResource: 0,
+    primaryWeapon: 'Spear',
+    secondaryWeapon: ''
+  };
+  const normal = simulateMesmer(
+    rotation,
+    defaultSimulationConfig({
+      ...baseConfig,
+      specialization: 'Virtuoso',
+      selectedTraits: []
+    })
+  );
+  const chronophantasma = simulateMesmer(
+    rotation,
+    defaultSimulationConfig({
+      ...baseConfig,
+      specialization: 'Chronomancer',
+      selectedTraits: ['Chronophantasma']
+    })
+  );
+  const normalCastEnd = normal.steps.find((step) => step.skill === 'Phantasmal Lancer').end / 1000;
+  const chronoCastEnd = chronophantasma.steps.find((step) => step.skill === 'Phantasmal Lancer').end / 1000;
+  const normalDamage = normal.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
+  );
+  const normalConversion = normal.events.find((event) => event.reason === 'Phantasmal Lancer phantasm conversion');
+  const resummon = chronophantasma.events.find(
+    (event) => event.type === 'mesmer.phantasm-resummoned' && event.name === 'Phantasmal Lancer'
+  );
+  const repeatDamage = chronophantasma.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.name === 'Phantasmal Lancer - Chronophantasma'
+  );
+  const chronoConversion = chronophantasma.events.find(
+    (event) => event.reason === 'Phantasmal Lancer phantasm conversion'
+  );
+
+  assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.08)) < 0.00001);
+  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 1.9201)) < 0.00001);
+  assert.ok(Math.abs(resummon.at - (chronoCastEnd + 1.92)) < 0.00001);
+  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.24)) < 0.00001);
+  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.0801)) < 0.00001);
 });
 
 test('Flying Cutter and Unstable Bladestorm remain available outside Virtuoso', () => {
