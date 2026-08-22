@@ -1,4 +1,4 @@
-import { createReadStream } from 'node:fs';
+import { createReadStream, readFileSync } from 'node:fs';
 import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
@@ -77,11 +77,41 @@ function serveRuntimeData() {
   };
 }
 
+// Inlines js/app/github-pages-redirect.js as a blocking <script> at the top of
+// each hosted page's <head> so it runs before first paint (zero flicker). Skips
+// patch-preview.html, which is a local-only authoring page and never hosted.
+function injectGithubPagesRedirect() {
+  const snippetPath = path.resolve('js', 'app', 'github-pages-redirect.js');
+
+  return {
+    name: 'inject-github-pages-redirect',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        const page = (ctx.filename || ctx.path || '').replace(/\\/g, '/');
+
+        if (page.endsWith('patch-preview.html')) return html;
+
+        return {
+          html,
+          tags: [
+            {
+              tag: 'script',
+              children: readFileSync(snippetPath, 'utf8'),
+              injectTo: 'head-prepend'
+            }
+          ]
+        };
+      }
+    }
+  };
+}
+
 // Vite configuration for building the site, including copying runtime data and serving it during development.
 export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,
-  plugins: [copyRuntimeData(), serveRuntimeData()],
+  plugins: [copyRuntimeData(), serveRuntimeData(), injectGithubPagesRedirect()],
   worker: {
     format: 'es'
   },
