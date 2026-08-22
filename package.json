@@ -10,6 +10,7 @@
     "build:dev": "npm run clean && npm run build:modules && npm run build:site -- --mode development",
     "build:modules": "tsc -p tsconfig.build.json",
     "build:site": "vite build",
+    "benchmarks:compare": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/analysis/compare-supported-build-dps.mjs",
     "prestart": "npm run build:dev",
     "start": "node server.mjs",
     "preauthor:patch-preview": "npm run build:dev",
