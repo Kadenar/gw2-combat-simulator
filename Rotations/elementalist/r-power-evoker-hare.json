@@ -1,689 +1,1359 @@
 {
   "rotation": [
-    "Rock Barrier",
-    "Fire Attunement",
     {
-      "name": "__wait",
-      "waitMs": 5500
+      "type": "cast",
+      "skillId": 5695
     },
-    "__combat_start",
-    "Dragon's Tooth",
-    "Elemental Procession",
-    "Rejuvenate",
     {
-      "name": "Zap",
-      "offset": 100
+      "type": "cast",
+      "skillId": 5492
     },
-    "Ring of Fire",
     {
-      "name": "Zap",
-      "offset": 444
+      "type": "wait",
+      "durationMs": 5500
     },
-    "Phoenix",
-    "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 164
+      "type": "combat-start"
     },
     {
-      "name": "Lightning Strike",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5692
     },
     {
-      "name": "Blinding Flash",
-      "offset": 320
+      "type": "cast",
+      "skillId": 76841
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 119
+      "type": "cast",
+      "skillId": 76634
     },
-    "Zap",
-    "Fox's Fury",
-    "Ride the Lightning",
-    "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 141
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
     },
-    "Earthquake",
     {
-      "name": "Hurl",
-      "offset": 255
+      "type": "cast",
+      "skillId": 5691
     },
-    "Dust Devil",
-    "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 444
     },
     {
-      "name": "Lightning Strike",
-      "offset": 838
+      "type": "cast",
+      "skillId": 5675
     },
-    "Glyph of Storms (Air)",
     {
-      "name": "Zap",
-      "offset": 281
+      "type": "cast",
+      "skillId": 5557
     },
     {
-      "name": "Blinding Flash",
-      "offset": 340
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 164
     },
     {
-      "name": "Water Attunement",
-      "offset": 523
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 320
     },
-    "Shatterstone",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Water Trident",
     {
-      "name": "Ice Shards",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 119
     },
-    "Shatterstone",
     {
-      "name": "Air Attunement",
-      "offset": 122
+      "type": "cast",
+      "skillId": 77370
     },
     {
-      "name": "Zap",
-      "offset": 279
+      "type": "cast",
+      "skillId": 76711
     },
-    "Lightning Strike",
-    "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 119
+      "type": "cast",
+      "skillId": 5529
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 156
+      "type": "cast",
+      "skillId": 77089
     },
-    "Fire Attunement",
-    "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 323
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 141
     },
-    "Ring of Fire",
-    "Lightning Blitz",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 119
+      "type": "cast",
+      "skillId": 5690
     },
     {
-      "name": "Lightning Strike",
-      "offset": 237
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 255
     },
     {
-      "name": "Zap",
-      "offset": 355
+      "type": "cast",
+      "skillId": 5696
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 43
+      "type": "cast",
+      "skillId": 5522
     },
-    "Blinding Flash",
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 880
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
-    "Earth Attunement",
-    "Earthquake",
-    "Rock Barrier",
     {
-      "name": "Zap",
-      "offset": 601
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 700
     },
-    "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 201
+      "type": "cast",
+      "skillId": 5737
     },
-    "Fox's Fury",
     {
-      "name": "Air Attunement",
-      "offset": 39
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Lightning Strike",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 340
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 999
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 500
     },
-    "Water Attunement",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5538
     },
-    "Zap",
-    "Shatterstone",
-    "Ice Shards",
-    "Lightning Blitz",
-    "Ice Shards",
-    "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 197
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
-    "Lightning Strike",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 43
+      "type": "cast",
+      "skillId": 5510
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 157
+      "type": "cast",
+      "skillId": 5693
     },
-    "Fire Attunement",
-    "Dragon's Tooth",
-    "Ring of Fire",
-    "Flamestrike",
-    "Zap",
     {
-      "name": "Flamestrike",
-      "interruptMs": 37
+      "type": "cast",
+      "skillId": 5693
     },
-    "Rejuvenate",
-    "Phoenix",
     {
-      "name": "Zap",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5510
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 36
+      "type": "cast",
+      "skillId": 5538
     },
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 122
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 122
     },
     {
-      "name": "Lightning Strike",
-      "offset": 242
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 279
     },
     {
-      "name": "Blinding Flash",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5561
     },
     {
-      "name": "Zap",
-      "offset": 477
+      "type": "cast",
+      "skillId": 5694
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 403
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 119
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 123
+      "type": "cast",
+      "skillId": 5529
     },
-    "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 237
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 156
     },
-    "Earthquake",
-    "Rock Barrier",
-    "Dust Devil",
-    "Churning Earth",
     {
-      "name": "Hurl",
-      "offset": 35
+      "type": "cast",
+      "skillId": 5492
     },
     {
-      "name": "Air Attunement",
-      "offset": 195
+      "type": "cast",
+      "skillId": 5692
     },
     {
-      "name": "Zap",
-      "offset": 314
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 323
     },
     {
-      "name": "Lightning Strike",
-      "offset": 477
+      "type": "cast",
+      "skillId": 5691
     },
     {
-      "name": "Blinding Flash",
-      "offset": 490
+      "type": "cast",
+      "skillId": 77089
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 762
+      "type": "cast",
+      "skillId": 5675
     },
-    "Water Attunement",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 242
+      "type": "cast",
+      "skillId": 5508
     },
-    "Zap",
-    "Shatterstone",
-    "Ice Shards",
-    "Water Trident",
     {
-      "name": "Air Attunement",
-      "offset": 203
+      "type": "cast",
+      "skillId": 5508
     },
     {
-      "name": "Lightning Strike",
-      "offset": 557
+      "type": "cast",
+      "skillId": 5508
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 162
+      "type": "cast",
+      "skillId": 5508
     },
-    "Fox's Fury",
     {
-      "name": "Fire Attunement",
-      "offset": 362
+      "type": "cast",
+      "skillId": 5508
     },
-    "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 203
+      "type": "cast",
+      "skillId": 5557
     },
-    "Ring of Fire",
-    "Lightning Blitz",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 158
+      "type": "cast",
+      "skillId": 5692
     },
     {
-      "name": "Lightning Strike",
-      "offset": 343
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 119
     },
     {
-      "name": "Blinding Flash",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 237
     },
     {
-      "name": "Zap",
-      "offset": 480
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 355
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 43
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1045
+      "type": "cast",
+      "skillId": 5694
     },
-    "Earth Attunement",
-    "Earthquake",
-    "Rock Barrier",
-    "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 198
+      "type": "cast",
+      "skillId": 5529
     },
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 880
     },
-    "Zap",
-    "Lightning Strike",
-    "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1001
+      "type": "cast",
+      "skillId": 5495
     },
-    "Water Attunement",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 198
+      "type": "cast",
+      "skillId": 5690
     },
-    "Zap",
-    "Shatterstone",
-    "Ice Shards",
-    "Lightning Blitz",
-    "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 202
+      "type": "cast",
+      "skillId": 5695
     },
     {
-      "name": "Lightning Strike",
-      "offset": 522
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 601
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 43
+      "type": "cast",
+      "skillId": 5696
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 201
     },
-    "Elemental Procession",
     {
-      "name": "Fire Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 76711
     },
-    "Dragon's Tooth",
-    "Ring of Fire",
-    "Fox's Fury",
-    "Flamestrike",
     {
-      "name": "Zap",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 39
     },
-    "Flamestrike",
-    "Glyph of Storms (Fire)",
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 241
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Lightning Strike",
-      "offset": 362
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 999
     },
     {
-      "name": "Blinding Flash",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5493
     },
     {
-      "name": "Zap",
-      "offset": 559
+      "type": "cast",
+      "skillId": 5510
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 879
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 240
     },
-    "Earth Attunement",
-    "Earthquake",
-    "Rock Barrier",
-    "Dust Devil",
-    "Churning Earth",
     {
-      "name": "Hurl",
-      "offset": 17
+      "type": "cast",
+      "skillId": 77370
     },
     {
-      "name": "Air Attunement",
-      "offset": 222
+      "type": "cast",
+      "skillId": 5538
     },
     {
-      "name": "Zap",
-      "offset": 298
+      "type": "cast",
+      "skillId": 5693
     },
     {
-      "name": "Lightning Strike",
-      "offset": 458
+      "type": "cast",
+      "skillId": 77089
     },
-    "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 677
+      "type": "cast",
+      "skillId": 5693
     },
-    "Water Attunement",
-    "Lightning Blitz",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 361
+      "type": "cast",
+      "skillId": 5693
     },
-    "Shatterstone",
-    "Ice Shards",
-    "Water Trident",
     {
-      "name": "Air Attunement",
-      "offset": 204
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 197
     },
     {
-      "name": "Zap",
-      "offset": 361
+      "type": "cast",
+      "skillId": 5561
     },
     {
-      "name": "Lightning Strike",
-      "offset": 643
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 43
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 43
+      "type": "cast",
+      "skillId": 5529
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 481
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 157
     },
-    "Fire Attunement",
-    "Dragon's Tooth",
-    "Ring of Fire",
     {
-      "name": "Zap",
-      "offset": 438
+      "type": "cast",
+      "skillId": 5492
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Fox's Fury",
     {
-      "name": "Flamestrike",
-      "interruptMs": 16
+      "type": "cast",
+      "skillId": 5692
     },
-    "Phoenix",
-    "Flamestrike",
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 117
+      "type": "cast",
+      "skillId": 5691
     },
     {
-      "name": "Lightning Strike",
-      "offset": 352
+      "type": "cast",
+      "skillId": 5508
     },
     {
-      "name": "Blinding Flash",
-      "offset": 352
+      "type": "cast",
+      "skillId": 77370
     },
     {
-      "name": "Zap",
-      "offset": 437
+      "type": "cast",
+      "skillId": 76634
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 42
+      "type": "cast",
+      "skillId": 5675
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 244
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 40
     },
-    "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5508
     },
-    "Earthquake",
-    "Rock Barrier",
-    "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 245
+      "type": "cast",
+      "skillId": 5508
     },
     {
-      "name": "Air Attunement",
-      "offset": 402
+      "type": "cast",
+      "skillId": 5508
     },
-    "Zap",
-    "Lightning Strike",
-    "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1042
+      "type": "cast",
+      "skillId": 5557
     },
-    "Water Attunement",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5692
     },
-    "Zap",
-    "Shatterstone",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 204
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 122
     },
     {
-      "name": "Lightning Strike",
-      "offset": 521
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 242
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 158
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
     },
-    "Glyph of Storms (Air)",
     {
-      "name": "Fire Attunement",
-      "offset": 241
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 403
     },
-    "Dragon's Tooth",
-    "Ring of Fire",
     {
-      "name": "Zap",
-      "offset": 365
+      "type": "cast",
+      "skillId": 5529
     },
-    "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 42
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 123
     },
-    "Lightning Blitz",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fox's Fury",
-    "Fire Grab",
-    "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 203
+      "type": "cast",
+      "skillId": 77089
     },
     {
-      "name": "Lightning Strike",
-      "offset": 361
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 237
     },
     {
-      "name": "Blinding Flash",
-      "offset": 361
+      "type": "cast",
+      "skillId": 5690
     },
     {
-      "name": "Zap",
-      "offset": 521
+      "type": "cast",
+      "skillId": 5695
     },
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 880
+      "type": "cast",
+      "skillId": 5696
     },
-    "Earth Attunement",
-    "Earthquake",
-    "Rock Barrier",
-    "Dust Devil",
-    "Churning Earth",
     {
-      "name": "Hurl",
-      "offset": 78
+      "type": "cast",
+      "skillId": 5522
     },
     {
-      "name": "Air Attunement",
-      "offset": 201
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 35
     },
     {
-      "name": "Zap",
-      "offset": 359
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 195
     },
     {
-      "name": "Lightning Strike",
-      "offset": 598
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 200
     },
-    "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 759
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
     },
-    "Water Attunement",
-    "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
     },
-    "Zap",
-    "Shatterstone",
-    "Ice Shards",
-    "Water Trident",
-    "Lightning Blitz",
     {
-      "name": "Air Attunement",
-      "offset": 118
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 762
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 78
+      "type": "cast",
+      "skillId": 5493
     },
-    "Lightning Strike",
-    "Blinding Flash",
-    "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 635
+      "type": "cast",
+      "skillId": 5510
     },
-    "Fire Attunement",
-    "Phoenix",
-    "Ring of Fire",
-    "Zap",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike"
+    {
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 242
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 203
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 162
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 362
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 203
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 158
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1045
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 198
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5694
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1001
+    },
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 198
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 202
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 76841
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 241
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 879
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 17
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 222
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 458
+    },
+    {
+      "type": "cast",
+      "skillId": 5694
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 677
+    },
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 361
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 204
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 361
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 481
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 438
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 16
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 117
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 352
+    },
+    {
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 42
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 500
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 245
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 402
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5694
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1042
+    },
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 204
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 158
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 241
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 365
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 203
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 880
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 78
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 201
+    },
+    {
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 359
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 5694
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 759
+    },
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 77089
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 118
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 78
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5694
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 635
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 77370
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    }
   ]
 }

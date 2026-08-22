@@ -254,7 +254,7 @@
         "build": "Builds/elementalist/b-power-evoker-hare.json",
         "rotation": "Rotations/elementalist/r-power-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/R5M5-20260414-134009_golem",
-        "benchmarkDps": 39379,
+        "benchmarkDps": 42094,
         "upToDate": true
       },
       {
