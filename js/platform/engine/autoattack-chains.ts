@@ -1,8 +1,10 @@
+/**
+ * Shared autoattack-chain helpers. Professions can either derive rooted
+ * weapon-slot-1 chains from canonical catalog metadata or provide explicit
+ * sequences, then index each skill's position within its chain using the same
+ * lookup shape.
+ */
 import type { AutoattackChainPosition, Skill, SkillId } from './types.js';
-
-// Shared autoattack-chain helpers. Professions can either derive chains from
-// catalog metadata or provide explicit sequences and index them with the same
-// lookup shape.
 
 /**
  * Freezes a chain after normalizing all skill ids to numbers.

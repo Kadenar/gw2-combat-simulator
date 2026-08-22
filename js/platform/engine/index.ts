@@ -1,4 +1,9 @@
-// Public surface for the profession-neutral engine layer.
+/**
+ * Barrel module for the profession-neutral engine layer. Re-exports the public
+ * surface (catalog, scheduler, resolver, effect builders, and supporting
+ * primitives) so consumers import from one entry point instead of reaching into
+ * individual implementation files.
+ */
 export * from './catalog.js';
 export * from './clock.js';
 export * from './collections.js';

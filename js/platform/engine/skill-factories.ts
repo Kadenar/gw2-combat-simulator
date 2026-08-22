@@ -1,4 +1,12 @@
 /**
+ * Skill-mechanics authoring factory. Documents the engine-recognized
+ * `SkillMechanicDefinition` shape and exposes `implemented()`, which marks a
+ * hand-authored skill-mechanics fragment as implemented while passing through
+ * profession-specific extensions untouched. Field validation happens later
+ * during canonical catalog assembly.
+ */
+
+/**
  * The shared, engine-recognized part of a skill-mechanics fragment.
  *
  * Every property is optional because mechanics are merged with generated

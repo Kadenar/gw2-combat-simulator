@@ -1,3 +1,8 @@
+/**
+ * Versioned scheduler-to-resolver handoff format. Builds the immutable,
+ * validated event stream the scheduler emits and the resolver (and fixtures)
+ * consume, and asserts an arbitrary value satisfies that contract before reuse.
+ */
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from './events.js';
 
 import type { ScheduledEventStream, SimulationEvent } from './types.js';

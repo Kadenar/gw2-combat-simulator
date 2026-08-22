@@ -1,3 +1,10 @@
+/**
+ * The shared declarative scheduler. Owns canonical rotation-command execution,
+ * cast/recharge timing, cooldown and ammo bookkeeping, effect materialization
+ * and event emission, and the scheduler-to-resolver handoff. Professions
+ * customize behavior through the profession contract and injected scheduler
+ * policy rather than forking this state machine.
+ */
 import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
 import { foldAvailability } from './availability.js';
 import { createEvent } from './events.js';

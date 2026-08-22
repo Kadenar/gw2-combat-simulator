@@ -1,3 +1,10 @@
+/**
+ * Declarative effect builders (`strike`, `condition`, `boon`, `control`,
+ * `custom`, and friends) used by profession mechanics and canonical catalogs.
+ * Each returns a normalized effect object with reserved fields stripped so
+ * declarative skill data stays compact while validating cleanly during catalog
+ * assembly.
+ */
 import type {
   ConditionEffect,
   ConditionTick,

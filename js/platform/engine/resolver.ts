@@ -1,3 +1,10 @@
+/**
+ * Minimal, handler-driven resolver for scheduled event streams. Drains the
+ * stream through a registered handler registry and accumulates canonical damage
+ * totals, per-source breakdowns, and resolver-side profession state. Shared GW2
+ * resolution layers build on this state shape rather than reimplementing queue
+ * management.
+ */
 import { assertScheduledEventStream } from './scheduled-event-stream.js';
 import { createEventQueue, StableEventQueue, takeNextEvent } from './event-queue.js';
 import { cloneProfessionState, resolveProfessionRuntime } from './profession.js';

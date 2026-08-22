@@ -1,3 +1,10 @@
+/**
+ * Skill-handler strategy contract. Defines the augment/replace modes and cast
+ * lifecycle phases a handler may own, with builders, validation, and
+ * normalization. Augmenting handlers keep declarative effects scheduler-owned;
+ * replacing handlers own the entire emitted profile and require no declarative
+ * effects; a mode resolver supports skills whose profile changes at runtime.
+ */
 import type { SchedulerRecord, Skill, SkillHandlerMode, SkillHandlerPhase, SkillHandlerStrategy } from './types.js';
 
 type SkillHandlerOptions<TContext extends object> = Omit<

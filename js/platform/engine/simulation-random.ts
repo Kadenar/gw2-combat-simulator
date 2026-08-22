@@ -1,3 +1,9 @@
+/**
+ * Reproducible simulation randomness. Provides a seeded RNG in deterministic or
+ * stochastic mode with independently keyed streams, so an unrelated trait
+ * starting or stopping its own proc rolls does not perturb critical rolls
+ * elsewhere in the same simulation.
+ */
 import type { SimulationRandom, SimulationRandomnessConfig } from './types.js';
 
 export const SIMULATION_RANDOMNESS_MODES = Object.freeze({

@@ -1,3 +1,9 @@
+/**
+ * The scheduler's private state-work queue. Ordered, cancellable, safety-limited
+ * tasks run internal mechanic bookkeeping and never enter the resolver event
+ * stream. Payloads must be serializable, and runaway zero-time loops are guarded
+ * by the shared safety limit.
+ */
 import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
 import { insertSorted } from './collections.js';
 import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from './types.js';

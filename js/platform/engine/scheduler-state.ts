@@ -1,3 +1,9 @@
+/**
+ * Constructs the profession-neutral mutable state the scheduler owns during a
+ * run: cooldowns, ammo, lockouts, skill-use counts, active weapon set, and
+ * pending events. Profession-specific resources are nested under
+ * `state.profession` via the profession contract.
+ */
 import type { SchedulerRecord, SchedulerState, SimulationEvent } from './types.js';
 
 interface SchedulerStateOptions<TProfessionState extends object> {

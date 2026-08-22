@@ -1,3 +1,8 @@
+/**
+ * Resolver observation-window policy. Normalizes the caller-owned policy
+ * (`rotation`, `tail`, or `absolute`) and, once the rotation timeline is known,
+ * resolves the concrete end time over which damage and effects are measured.
+ */
 import { EPSILON } from './clock.js';
 import type { NormalizedObservationPolicy, ObservationPolicy } from './types.js';
 

@@ -1,3 +1,9 @@
+/**
+ * Shared cooldown and ammo-charge recharge state machine. Owns the common
+ * between-cast lockout and charge bookkeeping (recharge timers, charge
+ * depletion, recharge reduction) so professions only override maximum ammo and
+ * recharge duration instead of reimplementing the mechanics.
+ */
 import { EPSILON } from './clock.js';
 import type { AmmoState, CooldownController, SchedulerState, Skill } from './types.js';
 

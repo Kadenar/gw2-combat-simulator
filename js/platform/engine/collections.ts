@@ -1,4 +1,10 @@
 /**
+ * Small collection utilities shared across the engine: normalizing a Map or
+ * plain-object record into uniform entry tuples, and stable sorted insertion
+ * that preserves arrival order among equal values.
+ */
+
+/**
  * Normalizes a Map or plain-object record into string-keyed entry tuples so
  * catalog and hook composition can treat both source shapes uniformly.
  */

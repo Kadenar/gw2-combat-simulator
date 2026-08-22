@@ -1,4 +1,10 @@
 /**
+ * Simulation config preparation. Defines the defaults, overrides, and prepared
+ * config shapes and merges caller overrides over defaults while preserving the
+ * nested `stats`, `boons`, and `target` boundaries that callers routinely patch.
+ */
+
+/**
  * Complete simulation defaults. The nested `stats`, `boons`, and `target`
  * boundaries are always present so merges never dereference `undefined`.
  */

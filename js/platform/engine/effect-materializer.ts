@@ -1,3 +1,9 @@
+/**
+ * Effect materialization. Expands one canonical skill effect (strike,
+ * condition, control, blind, boon/buff, or custom) into its ordered timed event
+ * applications, resolving per-tick timing against the cast start or end. Cast
+ * interruption and actual event emission remain scheduler concerns.
+ */
 import type {
   SchedulerRecord,
   SimulationActorType,

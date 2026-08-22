@@ -1,3 +1,8 @@
+/**
+ * Cast-availability folding. Combines the per-constraint availability outcomes
+ * a skill accumulates into a single verdict, so the scheduler learns whether a
+ * cast is ready, permanently blocked, or must wait until a retry timestamp.
+ */
 import type { AvailabilityResult } from './types.js';
 
 /**

@@ -1,3 +1,9 @@
+/**
+ * Registry for resolver event handlers. Keeps event-type ownership explicit and
+ * rejects duplicate registrations so shared GW2 handlers and profession handlers
+ * cannot silently shadow each other, and verifies required types are present
+ * before resolution dispatches events.
+ */
 export type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
 /**

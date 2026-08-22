@@ -1,4 +1,11 @@
 /**
+ * Timing primitives shared across the engine: the floating-point tolerance and
+ * iteration safety cap used everywhere, plus the near-equality and
+ * internal-cooldown-ready predicates the scheduler and resolver rely on for
+ * float-safe timeline math.
+ */
+
+/**
  * Shared floating-point tolerance for timeline comparisons inside the neutral
  * scheduler and resolver.
  */
