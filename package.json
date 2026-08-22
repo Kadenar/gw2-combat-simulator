@@ -22,9 +22,9 @@
     "update:profession-data": "node scripts/data/update-profession-api-data.mjs",
     "update:build-template-data": "node scripts/data/update-build-template-data.mjs",
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
-    "update:warrior-data": "node scripts/data/update-warrior-api-data.mjs && node scripts/data/generate-warrior-data.mjs",
-    "update:ranger-data": "node scripts/data/update-profession-api-data.mjs --profession Ranger && node scripts/data/generate-ranger-ids.mjs && node scripts/data/generate-ranger-pet-data.mjs && node scripts/data/generate-ranger-skill-mechanics.mjs",
-    "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs",
+    "update:warrior-data": "node scripts/data/update-warrior-data.mjs",
+    "update:ranger-data": "node scripts/data/update-ranger-data.mjs",
+    "generate:revenant-ids": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/data/generate-revenant-ids.mjs",
     "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview/patch-preview-report.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

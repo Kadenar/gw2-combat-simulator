@@ -21,7 +21,7 @@ export function parseProfession(args) {
 
 export async function updateProfessionApiData(
   professionName,
-  { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, log = console.log } = {}
+  { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, refreshCommand, log = console.log } = {}
 ) {
   const normalizedProfession = normalizeProfessionName(professionName);
   const config = snapshotConfig || {};
@@ -30,7 +30,7 @@ export async function updateProfessionApiData(
     ? path.resolve(requestedOutput)
     : path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        `../../js/professions/${id}/data/${id}-api-metadata.js`
+        `../../js/professions/${id}/data/${id}-api-metadata.ts`
       );
   const snapshot = await fetchProfessionSnapshot({
     professionName: normalizedProfession,
@@ -42,6 +42,7 @@ export async function updateProfessionApiData(
     output,
     professionName: normalizedProfession,
     snapshotDate,
+    refreshCommand,
     ...snapshot
   });
   const traitCount = snapshot.specializations.reduce(

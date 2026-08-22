@@ -17,6 +17,8 @@ async function exists(file) {
 }
 
 export async function resolve(specifier, context, nextResolve) {
+  // Redirect source-facing JavaScript specifiers to their compiled TypeScript
+  // outputs so tests and tools execute the exact modules produced by tsc.
   if ((specifier.startsWith('.') || specifier.startsWith('file:')) && context.parentURL) {
     const requestedUrl = new URL(specifier, context.parentURL);
 
@@ -30,24 +32,6 @@ export async function resolve(specifier, context, nextResolve) {
         if (await exists(built)) {
           return {
             url: pathToFileURL(built).href,
-            shortCircuit: true
-          };
-        }
-      }
-
-      const buildRelative = path.relative(buildRoot, requested);
-
-      if (
-        buildRelative &&
-        !buildRelative.startsWith('..') &&
-        !path.isAbsolute(buildRelative) &&
-        !(await exists(requested))
-      ) {
-        const source = path.join(sourceRoot, buildRelative);
-
-        if (await exists(source)) {
-          return {
-            url: pathToFileURL(source).href,
             shortCircuit: true
           };
         }

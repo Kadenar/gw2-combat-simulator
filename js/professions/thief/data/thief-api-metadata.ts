@@ -2,8 +2,14 @@
 // Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Thief to refresh.
 // Simulator mechanics are maintained under thief/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-07-28';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { ThiefSkill } from '../types.js';
+
+export type ThiefApiTrait = Gw2ApiTrait;
+export type ThiefApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-07-28';
+export const SPECIALIZATIONS: readonly ThiefApiSpecialization[] = [
   {
     id: 7,
     name: 'Daredevil',
@@ -1297,7 +1303,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly ThiefSkill[] = [
   {
     id: 1110,
     name: 'Throw Gunk',

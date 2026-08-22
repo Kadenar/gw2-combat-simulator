@@ -2,8 +2,14 @@
 // Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Necromancer to refresh.
 // Simulator mechanics are maintained under necromancer/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-07-25';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { NecromancerSkill } from '../types.js';
+
+export type NecromancerApiTrait = Gw2ApiTrait;
+export type NecromancerApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-07-25';
+export const SPECIALIZATIONS: readonly NecromancerApiSpecialization[] = [
   {
     id: 53,
     name: 'Spite',
@@ -1288,7 +1294,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly NecromancerSkill[] = [
   {
     id: 10527,
     name: 'Well of Blood',

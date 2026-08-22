@@ -2,8 +2,14 @@
 // Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Engineer to refresh.
 // Simulator mechanics are maintained under engineer/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-07-28';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { EngineerSkill } from '../types.js';
+
+export type EngineerApiTrait = Gw2ApiTrait;
+export type EngineerApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-07-28';
+export const SPECIALIZATIONS: readonly EngineerApiSpecialization[] = [
   {
     id: 6,
     name: 'Explosives',
@@ -1291,7 +1297,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly EngineerSkill[] = [
   {
     id: 5802,
     name: 'Med Kit',

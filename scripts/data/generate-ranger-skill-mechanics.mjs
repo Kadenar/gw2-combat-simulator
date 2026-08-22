@@ -1,6 +1,5 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { SKILLS } from '../../js/professions/ranger/data/ranger-api-metadata.js';
 
 const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -231,230 +230,233 @@ function ownerOf(skill, petIds) {
   return skill.specialization || 'Core';
 }
 
-const petIds = await fetchJson(`${API_ROOT}/pets?lang=en`);
-const pets = await fetchMany('pets', petIds);
-const petSkillIds = [...new Set(pets.flatMap((pet) => pet.skills.map((skill) => skill.id)))];
-const petSkills = await fetchMany('skills', petSkillIds);
-const petSet = new Set(petSkillIds);
-const identities = [...SKILLS, ...petSkills, ...SUPPLEMENTAL];
-const keyById = stableKeys(identities);
-const rawSkills = await fetchMany('skills', [...new Set([...SKILLS.map((skill) => skill.id), ...petSkillIds])]);
-const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
-const activations = await mapConcurrent(identities, 8, wikiActivation);
-const activationById = new Map(identities.map((skill, index) => [skill.id, activations[index]]));
+// Generates Ranger mechanics from the just-fetched API snapshot so refreshing
+// data remains a single process without an intermediate TypeScript build.
+export async function generateRangerSkillMechanics({ skills: apiSkills }) {
+  const petIds = await fetchJson(`${API_ROOT}/pets?lang=en`);
+  const pets = await fetchMany('pets', petIds);
+  const petSkillIds = [...new Set(pets.flatMap((pet) => pet.skills.map((skill) => skill.id)))];
+  const petSkills = await fetchMany('skills', petSkillIds);
+  const petSet = new Set(petSkillIds);
+  const identities = [...apiSkills, ...petSkills, ...SUPPLEMENTAL];
+  const keyById = stableKeys(identities);
+  const rawSkills = await fetchMany('skills', [...new Set([...apiSkills.map((skill) => skill.id), ...petSkillIds])]);
+  const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
+  const activations = await mapConcurrent(identities, 8, wikiActivation);
+  const activationById = new Map(identities.map((skill, index) => [skill.id, activations[index]]));
 
-const supplementalMechanics = new Map([
-  [31796, { castTimeMs: 500, effects: [] }],
-  [31406, { castTimeMs: 0, effects: [{ type: 'blind' }] }],
-  [31318, { castTimeMs: 750, effects: [{ type: 'control' }] }],
-  [
-    31894,
-    {
-      castTimeMs: 500,
-      effects: [{ type: 'boon', boon: 'might', duration: 10, stacks: 5 }]
-    }
-  ],
-  [
-    31503,
-    {
-      castTimeMs: 2500,
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 0.75,
-          hits: 4,
-          atMs: 0,
-          intervalMs: 500,
-          timingAnchor: 'castStart',
-          timingScale: 'fixed'
-        },
-        {
-          type: 'strike',
-          coefficient: 2,
-          hits: 1,
-          atMs: 2500,
-          timingAnchor: 'castStart',
-          timingScale: 'fixed'
-        },
-        { type: 'condition', condition: 'Immobilized', stacks: 4, duration: 2 },
-        { type: 'control' }
-      ]
-    }
-  ],
-  [
-    77183,
-    {
-      castTimeMs: 500,
-      effects: [{ type: 'strike', coefficient: 0.75, hits: 1 }],
-      arrowCost: 0
-    }
-  ],
-  [
-    76664,
-    {
-      castTimeMs: 1000,
-      effects: [{ type: 'strike', coefficient: 6.8, hits: 5 }],
-      arrowCost: 0,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ],
-  [
-    77319,
-    {
-      castTimeMs: 750,
-      effects: [{ type: 'strike', coefficient: 1.92, hits: 3 }],
-      arrowCost: 1,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ],
-  [
-    77012,
-    {
-      castTimeMs: 250,
-      effects: [
-        { type: 'strike', coefficient: 0.8, hits: 1 },
-        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4 }
-      ],
-      arrowCost: 1,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ],
-  [
-    77334,
-    {
-      castTimeMs: 500,
-      effects: [
-        { type: 'strike', coefficient: 2.5, hits: 1 },
-        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
-      ],
-      arrowCost: 2,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ],
-  [
-    76722,
-    {
-      castTimeMs: 500,
-      effects: [{ type: 'strike', coefficient: 2.5, hits: 1 }],
-      arrowCost: 1,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ],
-  [
-    77174,
-    {
-      castTimeMs: 1000,
-      effects: [{ type: 'strike', coefficient: 4, hits: 1 }, { type: 'control' }],
-      arrowCost: 3,
-      handlerId: 'ranger.cyclone-bow-skill'
-    }
-  ]
-]);
+  const supplementalMechanics = new Map([
+    [31796, { castTimeMs: 500, effects: [] }],
+    [31406, { castTimeMs: 0, effects: [{ type: 'blind' }] }],
+    [31318, { castTimeMs: 750, effects: [{ type: 'control' }] }],
+    [
+      31894,
+      {
+        castTimeMs: 500,
+        effects: [{ type: 'boon', boon: 'might', duration: 10, stacks: 5 }]
+      }
+    ],
+    [
+      31503,
+      {
+        castTimeMs: 2500,
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 0.75,
+            hits: 4,
+            atMs: 0,
+            intervalMs: 500,
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          },
+          {
+            type: 'strike',
+            coefficient: 2,
+            hits: 1,
+            atMs: 2500,
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          },
+          { type: 'condition', condition: 'Immobilized', stacks: 4, duration: 2 },
+          { type: 'control' }
+        ]
+      }
+    ],
+    [
+      77183,
+      {
+        castTimeMs: 500,
+        effects: [{ type: 'strike', coefficient: 0.75, hits: 1 }],
+        arrowCost: 0
+      }
+    ],
+    [
+      76664,
+      {
+        castTimeMs: 1000,
+        effects: [{ type: 'strike', coefficient: 6.8, hits: 5 }],
+        arrowCost: 0,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ],
+    [
+      77319,
+      {
+        castTimeMs: 750,
+        effects: [{ type: 'strike', coefficient: 1.92, hits: 3 }],
+        arrowCost: 1,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ],
+    [
+      77012,
+      {
+        castTimeMs: 250,
+        effects: [
+          { type: 'strike', coefficient: 0.8, hits: 1 },
+          { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4 }
+        ],
+        arrowCost: 1,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ],
+    [
+      77334,
+      {
+        castTimeMs: 500,
+        effects: [
+          { type: 'strike', coefficient: 2.5, hits: 1 },
+          { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
+        ],
+        arrowCost: 2,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ],
+    [
+      76722,
+      {
+        castTimeMs: 500,
+        effects: [{ type: 'strike', coefficient: 2.5, hits: 1 }],
+        arrowCost: 1,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ],
+    [
+      77174,
+      {
+        castTimeMs: 1000,
+        effects: [{ type: 'strike', coefficient: 4, hits: 1 }, { type: 'control' }],
+        arrowCost: 3,
+        handlerId: 'ranger.cyclone-bow-skill'
+      }
+    ]
+  ]);
 
-const overrides = new Map([
-  [31869, { castTimeMs: 0, effects: [], handlerId: 'ranger.celestial-avatar-enter' }],
-  [31411, { castTimeMs: 0, effects: [], handlerId: 'ranger.celestial-avatar-exit' }],
-  [42944, { castTimeMs: 0, effects: [], handlerId: 'ranger.beastmode-enter' }],
-  [43014, { castTimeMs: 0, effects: [], handlerId: 'ranger.beastmode-exit' }],
-  [45717, { castTimeMs: 0, effects: [], handlerId: 'ranger.one-wolf-pack' }],
-  [63147, { castTimeMs: 0, effects: [], handlerId: 'ranger.unleash-ranger' }],
-  [63344, { castTimeMs: 0, effects: [], handlerId: 'ranger.unleash-pet' }],
-  [76787, { castTimeMs: 0, effects: [], handlerId: 'ranger.cyclone-bow-enter' }],
-  [77213, { castTimeMs: 0, effects: [], handlerId: 'ranger.cyclone-bow-exit' }],
-  [76979, { arrowsRestored: 2, handlerId: 'ranger.galeshot-arrows' }]
-]);
+  const overrides = new Map([
+    [31869, { castTimeMs: 0, effects: [], handlerId: 'ranger.celestial-avatar-enter' }],
+    [31411, { castTimeMs: 0, effects: [], handlerId: 'ranger.celestial-avatar-exit' }],
+    [42944, { castTimeMs: 0, effects: [], handlerId: 'ranger.beastmode-enter' }],
+    [43014, { castTimeMs: 0, effects: [], handlerId: 'ranger.beastmode-exit' }],
+    [45717, { castTimeMs: 0, effects: [], handlerId: 'ranger.one-wolf-pack' }],
+    [63147, { castTimeMs: 0, effects: [], handlerId: 'ranger.unleash-ranger' }],
+    [63344, { castTimeMs: 0, effects: [], handlerId: 'ranger.unleash-pet' }],
+    [76787, { castTimeMs: 0, effects: [], handlerId: 'ranger.cyclone-bow-enter' }],
+    [77213, { castTimeMs: 0, effects: [], handlerId: 'ranger.cyclone-bow-exit' }],
+    [76979, { arrowsRestored: 2, handlerId: 'ranger.galeshot-arrows' }]
+  ]);
 
-const declarations = {
-  Core: [],
-  Druid: [],
-  Soulbeast: [],
-  Untamed: [],
-  Galeshot: []
-};
-
-function normalizeCastTiming(mechanics) {
-  if (mechanics.castTimeMs == null || mechanics.quicknessCastTimeMs == null) {
-    return mechanics;
-  }
-
-  const castTimeMs = Number(mechanics.castTimeMs);
-  const quicknessCastTimeMs = Number(mechanics.quicknessCastTimeMs);
-
-  if (castTimeMs === quicknessCastTimeMs) {
-    const { quicknessCastTimeMs: _quicknessCastTimeMs, ...normalized } = mechanics;
-
-    return castTimeMs > 0 ? { ...normalized, unaffectedByQuickness: true } : normalized;
-  }
-
-  const scale = (quicknessCastTimeMs * 1.5) / castTimeMs;
-  const scaleTiming = (value) => Number((Number(value) * scale).toFixed(12));
-  const effects = mechanics.effects?.map((effect) => {
-    if (effect.timingScale !== 'cast') return effect;
-
-    return {
-      ...effect,
-      ...(Array.isArray(effect.ticks)
-        ? {
-            ticks: effect.ticks.map((tick) => ({
-              ...tick,
-              atMs: scaleTiming(tick.atMs)
-            }))
-          }
-        : {}),
-      ...(effect.atMs == null ? {} : { atMs: scaleTiming(effect.atMs) }),
-      ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
-        ? {}
-        : { intervalMs: scaleTiming(effect.intervalMs) })
-    };
-  });
-  const { castTimeMs: _castTimeMs, ...normalized } = mechanics;
-
-  return effects ? { ...normalized, effects } : normalized;
-}
-
-for (const identity of identities) {
-  const raw = rawById.get(identity.id) || identity;
-  const petSkill = petSet.has(identity.id);
-  const castTimeMs = activationById.get(identity.id) || (petSkill ? 500 : identity.type === 'Profession' ? 0 : 500);
-  const base = supplementalMechanics.get(identity.id) || {
-    castTimeMs,
-    effects: effectsFor(raw, petSkill)
+  const declarations = {
+    Core: [],
+    Druid: [],
+    Soulbeast: [],
+    Untamed: [],
+    Galeshot: []
   };
-  const mechanics = normalizeCastTiming({
-    implemented: true,
-    ...base,
-    ...(castTimeMs > 0 ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) } : {}),
-    ...(petSkill ? { petSkill: true } : {}),
-    ...(overrides.get(identity.id) || {})
-  });
 
-  declarations[ownerOf(identity, petSet)].push({
-    key: keyById.get(identity.id),
-    mechanics
-  });
-}
+  function normalizeCastTiming(mechanics) {
+    if (mechanics.castTimeMs == null || mechanics.quicknessCastTimeMs == null) {
+      return mechanics;
+    }
 
-const constants = {
-  Core: 'RANGER_CORE_BASE_SKILL_MECHANICS',
-  Druid: 'DRUID_BASE_SKILL_MECHANICS',
-  Soulbeast: 'SOULBEAST_BASE_SKILL_MECHANICS',
-  Untamed: 'UNTAMED_BASE_SKILL_MECHANICS',
-  Galeshot: 'GALESHOT_BASE_SKILL_MECHANICS'
-};
-const directories = {
-  Core: 'core',
-  Druid: 'specializations/druid',
-  Soulbeast: 'specializations/soulbeast',
-  Untamed: 'specializations/untamed',
-  Galeshot: 'specializations/galeshot'
-};
+    const castTimeMs = Number(mechanics.castTimeMs);
+    const quicknessCastTimeMs = Number(mechanics.quicknessCastTimeMs);
 
-for (const [owner, entries] of Object.entries(declarations)) {
-  const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
-  const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
-  const extraSource =
-    owner === 'Core'
-      ? `
+    if (castTimeMs === quicknessCastTimeMs) {
+      const { quicknessCastTimeMs: _quicknessCastTimeMs, ...normalized } = mechanics;
+
+      return castTimeMs > 0 ? { ...normalized, unaffectedByQuickness: true } : normalized;
+    }
+
+    const scale = (quicknessCastTimeMs * 1.5) / castTimeMs;
+    const scaleTiming = (value) => Number((Number(value) * scale).toFixed(12));
+    const effects = mechanics.effects?.map((effect) => {
+      if (effect.timingScale !== 'cast') return effect;
+
+      return {
+        ...effect,
+        ...(Array.isArray(effect.ticks)
+          ? {
+              ticks: effect.ticks.map((tick) => ({
+                ...tick,
+                atMs: scaleTiming(tick.atMs)
+              }))
+            }
+          : {}),
+        ...(effect.atMs == null ? {} : { atMs: scaleTiming(effect.atMs) }),
+        ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
+          ? {}
+          : { intervalMs: scaleTiming(effect.intervalMs) })
+      };
+    });
+    const { castTimeMs: _castTimeMs, ...normalized } = mechanics;
+
+    return effects ? { ...normalized, effects } : normalized;
+  }
+
+  for (const identity of identities) {
+    const raw = rawById.get(identity.id) || identity;
+    const petSkill = petSet.has(identity.id);
+    const castTimeMs = activationById.get(identity.id) || (petSkill ? 500 : identity.type === 'Profession' ? 0 : 500);
+    const base = supplementalMechanics.get(identity.id) || {
+      castTimeMs,
+      effects: effectsFor(raw, petSkill)
+    };
+    const mechanics = normalizeCastTiming({
+      implemented: true,
+      ...base,
+      ...(castTimeMs > 0 ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) } : {}),
+      ...(petSkill ? { petSkill: true } : {}),
+      ...(overrides.get(identity.id) || {})
+    });
+
+    declarations[ownerOf(identity, petSet)].push({
+      key: keyById.get(identity.id),
+      mechanics
+    });
+  }
+
+  const constants = {
+    Core: 'RANGER_CORE_BASE_SKILL_MECHANICS',
+    Druid: 'DRUID_BASE_SKILL_MECHANICS',
+    Soulbeast: 'SOULBEAST_BASE_SKILL_MECHANICS',
+    Untamed: 'UNTAMED_BASE_SKILL_MECHANICS',
+    Galeshot: 'GALESHOT_BASE_SKILL_MECHANICS'
+  };
+  const directories = {
+    Core: 'core',
+    Druid: 'specializations/druid',
+    Soulbeast: 'specializations/soulbeast',
+    Untamed: 'specializations/untamed',
+    Galeshot: 'specializations/galeshot'
+  };
+
+  for (const [owner, entries] of Object.entries(declarations)) {
+    const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
+    const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
+    const extraSource =
+      owner === 'Core'
+        ? `
 
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
@@ -538,8 +540,8 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     effects: [],
   },
 ]);`
-      : '';
-  const source = `/** Explicit PvE skill mechanics owned by the ${owner} Ranger module. */
+        : '';
+    const source = `/** Explicit PvE skill mechanics owned by the ${owner} Ranger module. */
 import { RANGER_SKILL_IDS as ID } from ${JSON.stringify(importPath)};
 import type { ${owner === 'Core' ? 'Skill, ' : ''}SkillFragment } from ${JSON.stringify(typePath)};
 
@@ -547,8 +549,11 @@ export const ${constants[owner]}: Readonly<Record<number, SkillFragment>> = Obje
 ${entries.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, null, 2).replace(/\n/g, '\n  ')},`).join('\n')}
 });${extraSource}
 `;
-  const target = fileURLToPath(new URL(`../../js/professions/ranger/${directories[owner]}/skills.ts`, import.meta.url));
+    const target = fileURLToPath(
+      new URL(`../../js/professions/ranger/${directories[owner]}/skills.ts`, import.meta.url)
+    );
 
-  await writeFile(target, source, 'utf8');
-  console.log(`Wrote ${entries.length} ${owner} Ranger skill mechanics.`);
+    await writeFile(target, source, 'utf8');
+    console.log(`Wrote ${entries.length} ${owner} Ranger skill mechanics.`);
+  }
 }

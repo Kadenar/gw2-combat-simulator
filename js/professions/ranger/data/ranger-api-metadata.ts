@@ -1,9 +1,15 @@
 // Generated Guild Wars 2 API metadata for ranger.
-// Snapshot: 2026-08-08. Run scripts/data/update-profession-api-data.mjs --profession Ranger to refresh.
+// Snapshot: 2026-08-08. Run npm run update:ranger-data to refresh.
 // Simulator mechanics are maintained under ranger/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-08-08';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { RangerSkill } from '../types.js';
+
+export type RangerApiTrait = Gw2ApiTrait;
+export type RangerApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-08-08';
+export const SPECIALIZATIONS: readonly RangerApiSpecialization[] = [
   {
     id: 5,
     name: 'Druid',
@@ -1293,7 +1299,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly RangerSkill[] = [
   {
     id: 12466,
     name: 'Ricochet',

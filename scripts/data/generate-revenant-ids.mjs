@@ -1,8 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { SKILLS, SPECIALIZATIONS } from '../js/professions/revenant/data/revenant-api-metadata.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '../js/professions/revenant/data/revenant-supplemental-skills.js';
+import { SKILLS, SPECIALIZATIONS } from '../../js/professions/revenant/data/revenant-api-metadata.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '../../js/professions/revenant/data/revenant-supplemental-skills.js';
 
 function constantName(value) {
   return String(value || '')
@@ -80,6 +80,8 @@ const output = [
   ''
 ].join('\n');
 
-const target = fileURLToPath(new URL('../../js/professions/revenant/data/ids.js', import.meta.url));
+// Writes TypeScript ID constants after the package command compiles and loads
+// the generated snapshot through the standard test/tooling resolver.
+const target = fileURLToPath(new URL('../../js/professions/revenant/data/ids.ts', import.meta.url));
 
 await writeFile(target, output, 'utf8');

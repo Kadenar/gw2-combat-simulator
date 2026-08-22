@@ -1,11 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { SKILLS, SPECIALIZATIONS } from '../../js/professions/warrior/data/warrior-api-metadata.js';
 
 const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
-const SPECIALIZATION_BY_ID = new Map(SPECIALIZATIONS.map((specialization) => [specialization.id, specialization.name]));
-const CANONICAL_SKILLS = Object.freeze(SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))));
 const SUPPLEMENTAL_NAMES = Object.freeze([
   'Swift Cut',
   'Steel Divide',
@@ -373,12 +370,12 @@ function effectsFor(raw) {
   return effects;
 }
 
-function ownerOf(identity, raw) {
+function ownerOf(identity, raw, specializationById) {
   if (identity.type === 'Weapon' || identity.type === 'Bundle') {
     return identity.type === 'Bundle' ? 'Bladesworn' : 'Core';
   }
 
-  return SPECIALIZATION_BY_ID.get(Number(raw.specialization)) || identity.specialization || 'Core';
+  return specializationById.get(Number(raw.specialization)) || identity.specialization || 'Core';
 }
 
 function handlerId(identity, raw) {
@@ -409,291 +406,302 @@ function handlerId(identity, raw) {
   return '';
 }
 
-const supplementalWikitext = await mapConcurrent(SUPPLEMENTAL_NAMES, 6, wikiWikitext);
-const supplementalIds = supplementalWikitext.map((wikitext, index) => ({
-  id: infoboxId(wikitext),
-  name: SUPPLEMENTAL_NAMES[index]
-}));
+// Generates Warrior mechanics and IDs from the freshly fetched snapshot so
+// refreshes do not need to compile and reload the generated metadata module.
+export async function generateWarriorData({ skills: apiSkills, specializations: apiSpecializations }) {
+  const specializationById = new Map(
+    apiSpecializations.map((specialization) => [specialization.id, specialization.name])
+  );
+  const canonicalSkills = Object.freeze(apiSkills.filter((skill) => !/^\(\(/.test(String(skill.name || ''))));
+  const supplementalWikitext = await mapConcurrent(SUPPLEMENTAL_NAMES, 6, wikiWikitext);
+  const supplementalIds = supplementalWikitext.map((wikitext, index) => ({
+    id: infoboxId(wikitext),
+    name: SUPPLEMENTAL_NAMES[index]
+  }));
 
-for (const skill of supplementalIds) {
-  if (!skill.id) throw new Error(`Could not resolve ${skill.name} from the Guild Wars 2 Wiki.`);
-}
+  for (const skill of supplementalIds) {
+    if (!skill.id) throw new Error(`Could not resolve ${skill.name} from the Guild Wars 2 Wiki.`);
+  }
 
-const rawSkills = await fetchMany('skills', [...new Set(CANONICAL_SKILLS.map((skill) => skill.id))]);
-const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
-const supplemental = supplementalIds.map((identity) => normalizeRawSkill(rawById.get(identity.id), identity));
-const identities = [...CANONICAL_SKILLS, ...supplemental];
-const entries = stableEntries(identities);
-const keyById = new Map(entries.map((entry) => [entry.id, entry.key]));
-const wikitext = await mapConcurrent(identities, 8, (skill) => wikiWikitext(skill.name));
-const activationById = new Map(
-  identities.map((skill, index) => [skill.id, activationFromWikitext(wikitext[index], skill.id)])
-);
+  const rawSkills = await fetchMany('skills', [...new Set(canonicalSkills.map((skill) => skill.id))]);
+  const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
+  const supplemental = supplementalIds.map((identity) => normalizeRawSkill(rawById.get(identity.id), identity));
+  const identities = [...canonicalSkills, ...supplemental];
+  const entries = stableEntries(identities);
+  const keyById = new Map(entries.map((entry) => [entry.id, entry.key]));
+  const wikitext = await mapConcurrent(identities, 8, (skill) => wikiWikitext(skill.name));
+  const activationById = new Map(
+    identities.map((skill, index) => [skill.id, activationFromWikitext(wikitext[index], skill.id)])
+  );
 
-const skillMechanicOverrides = new Map([
-  [
-    62697,
-    {
-      ammo: 0,
-      ammoRecharge: 0,
-      cooldown: 15,
-      effects: [
-        { type: 'strike', coefficient: 0.9, hits: 1 },
-        {
-          type: 'condition',
-          condition: 'Vulnerability',
-          stacks: 5,
-          duration: 8
-        },
-        { type: 'boon', boon: 'aegis', duration: 3, stacks: 1 }
-      ]
-    }
-  ],
-  [62800, { effects: [] }],
-  [
-    62960,
-    {
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 1.5,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        {
-          type: 'condition',
-          condition: 'Crippled',
-          stacks: 1,
-          duration: 5
-        },
-        {
-          type: 'condition',
-          condition: 'Bleeding',
-          stacks: 3,
-          duration: 6
-        }
-      ]
-    }
-  ],
-  [
-    62967,
-    {
-      effects: [
-        { type: 'boon', boon: 'fury', duration: 8, stacks: 1 },
-        { type: 'buff', kind: 'positive-flow', duration: 8, stacks: 2 }
-      ]
-    }
-  ],
-  [68085, { effects: [] }],
-  [
-    62966,
-    {
-      effects: [
-        {
-          type: 'strike',
-          name: 'Swift Cut — Blade',
-          coefficient: 0.9,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        {
-          type: 'strike',
-          name: 'Swift Cut — Shot',
-          coefficient: 0.75 * 0.34,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        }
-      ]
-    }
-  ],
-  [
-    62772,
-    {
-      effects: [
-        {
-          type: 'strike',
-          name: 'Steel Divide — Blade',
-          coefficient: 1.1,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        {
-          type: 'strike',
-          name: 'Steel Divide — Shot',
-          coefficient: 0.75 * 0.34,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        }
-      ]
-    }
-  ],
-  [
-    62918,
-    {
-      effects: [
-        {
-          type: 'strike',
-          name: 'Explosive Thrust — Blade',
-          coefficient: 1.35,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        {
-          type: 'strike',
-          name: 'Explosive Thrust — Explosion',
-          coefficient: 1.2 * 0.34,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        }
-      ]
-    }
-  ],
-  [
-    62930,
-    {
-      effects: [
-        {
-          type: 'strike',
-          name: 'Blooming Fire — Blade',
-          coefficient: 0.8,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        {
-          type: 'strike',
-          name: 'Blooming Fire — Explosion',
-          coefficient: 1.2,
-          hits: 3,
-          metadata: { damageKind: 'explosion' }
-        }
-      ]
-    }
-  ],
-  [62732, { effects: [] }],
-  [
-    62789,
-    {
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 2.5,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        { type: 'boon', boon: 'aegis', duration: 3, stacks: 1 }
-      ]
-    }
-  ],
-  [
-    62885,
-    {
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 0.5,
-          hits: 1,
-          metadata: { damageKind: 'explosion' }
-        },
-        { type: 'boon', boon: 'fury', duration: 5, stacks: 1 }
-      ]
-    }
-  ],
-  [
-    62797,
-    {
-      effects: [],
-      dragonSlashMinimumCoefficient: 1.16,
-      dragonSlashMaximumCoefficient: 20.4
-    }
-  ],
-  [
-    62980,
-    {
-      effects: [],
-      dragonSlashMinimumCoefficient: 0.92,
-      dragonSlashMaximumCoefficient: 16.3
-    }
-  ],
-  [
-    62951,
-    {
-      effects: [],
-      dragonSlashMinimumCoefficient: 0.56,
-      dragonSlashMaximumCoefficient: 10.21
-    }
-  ],
-  [62926, { effects: [], dragonTriggerSkill: true, shadowstepSkill: true }],
-  [
-    62893,
-    {
-      effects: [{ type: 'boon', boon: 'aegis', duration: 2, stacks: 1 }],
-      dragonTriggerSkill: true
-    }
-  ]
-]);
+  const skillMechanicOverrides = new Map([
+    [
+      62697,
+      {
+        ammo: 0,
+        ammoRecharge: 0,
+        cooldown: 15,
+        effects: [
+          { type: 'strike', coefficient: 0.9, hits: 1 },
+          {
+            type: 'condition',
+            condition: 'Vulnerability',
+            stacks: 5,
+            duration: 8
+          },
+          { type: 'boon', boon: 'aegis', duration: 3, stacks: 1 }
+        ]
+      }
+    ],
+    [62800, { effects: [] }],
+    [
+      62960,
+      {
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 1.5,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          {
+            type: 'condition',
+            condition: 'Crippled',
+            stacks: 1,
+            duration: 5
+          },
+          {
+            type: 'condition',
+            condition: 'Bleeding',
+            stacks: 3,
+            duration: 6
+          }
+        ]
+      }
+    ],
+    [
+      62967,
+      {
+        effects: [
+          { type: 'boon', boon: 'fury', duration: 8, stacks: 1 },
+          { type: 'buff', kind: 'positive-flow', duration: 8, stacks: 2 }
+        ]
+      }
+    ],
+    [68085, { effects: [] }],
+    [
+      62966,
+      {
+        effects: [
+          {
+            type: 'strike',
+            name: 'Swift Cut — Blade',
+            coefficient: 0.9,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          {
+            type: 'strike',
+            name: 'Swift Cut — Shot',
+            coefficient: 0.75 * 0.34,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          }
+        ]
+      }
+    ],
+    [
+      62772,
+      {
+        effects: [
+          {
+            type: 'strike',
+            name: 'Steel Divide — Blade',
+            coefficient: 1.1,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          {
+            type: 'strike',
+            name: 'Steel Divide — Shot',
+            coefficient: 0.75 * 0.34,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          }
+        ]
+      }
+    ],
+    [
+      62918,
+      {
+        effects: [
+          {
+            type: 'strike',
+            name: 'Explosive Thrust — Blade',
+            coefficient: 1.35,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          {
+            type: 'strike',
+            name: 'Explosive Thrust — Explosion',
+            coefficient: 1.2 * 0.34,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          }
+        ]
+      }
+    ],
+    [
+      62930,
+      {
+        effects: [
+          {
+            type: 'strike',
+            name: 'Blooming Fire — Blade',
+            coefficient: 0.8,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          {
+            type: 'strike',
+            name: 'Blooming Fire — Explosion',
+            coefficient: 1.2,
+            hits: 3,
+            metadata: { damageKind: 'explosion' }
+          }
+        ]
+      }
+    ],
+    [62732, { effects: [] }],
+    [
+      62789,
+      {
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 2.5,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          { type: 'boon', boon: 'aegis', duration: 3, stacks: 1 }
+        ]
+      }
+    ],
+    [
+      62885,
+      {
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 0.5,
+            hits: 1,
+            metadata: { damageKind: 'explosion' }
+          },
+          { type: 'boon', boon: 'fury', duration: 5, stacks: 1 }
+        ]
+      }
+    ],
+    [
+      62797,
+      {
+        effects: [],
+        dragonSlashMinimumCoefficient: 1.16,
+        dragonSlashMaximumCoefficient: 20.4
+      }
+    ],
+    [
+      62980,
+      {
+        effects: [],
+        dragonSlashMinimumCoefficient: 0.92,
+        dragonSlashMaximumCoefficient: 16.3
+      }
+    ],
+    [
+      62951,
+      {
+        effects: [],
+        dragonSlashMinimumCoefficient: 0.56,
+        dragonSlashMaximumCoefficient: 10.21
+      }
+    ],
+    [62926, { effects: [], dragonTriggerSkill: true, shadowstepSkill: true }],
+    [
+      62893,
+      {
+        effects: [{ type: 'boon', boon: 'aegis', duration: 2, stacks: 1 }],
+        dragonTriggerSkill: true
+      }
+    ]
+  ]);
 
-const declarations = {
-  Core: [],
-  Berserker: [],
-  Spellbreaker: [],
-  Bladesworn: [],
-  Paragon: []
-};
-
-for (const identity of identities) {
-  const raw = rawById.get(identity.id) || identity;
-  const castTimeMs = activationById.get(identity.id) || (identity.type === 'Profession' ? 0 : 500);
-  const burst =
-    identity.categories?.some((category) => /burst/i.test(category)) || /Burst\./.test(identity.description || '');
-  const cost = [30185, 30435].includes(identity.id) ? 30 : burst && !identity.name.startsWith('Dragon Slash') ? 10 : 0;
-  const adrenalineGain = Math.max(0, Number(fact(raw, 'Adrenaline', 'Number')?.value || 0));
-  const flowGain = Math.max(0, Number(fact(raw, 'Flow', 'Number')?.value || 0));
-  const handler = handlerId(identity, raw);
-  const unaffectedByQuickness = QUICKNESS_UNAFFECTED_SKILL_IDS.has(identity.id);
-  const mechanics = {
-    implemented: true,
-    ...(unaffectedByQuickness
-      ? { castTimeMs, unaffectedByQuickness: true }
-      : castTimeMs > 0
-        ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
-        : { castTimeMs: 0 }),
-    effects: skillMechanicOverrides.get(identity.id)?.effects || effectsFor(raw),
-    ...(cost > 0 ? { adrenalineCost: cost, burstTier: Math.max(1, Math.ceil(cost / 10)) } : {}),
-    ...(adrenalineGain > 0 ? { adrenalineGain } : {}),
-    ...(flowGain > 0 ? { flowGain } : {}),
-    ...(burst ? { burst: true } : {}),
-    ...(identity.categories?.includes('PrimalBurst') ? { primalBurst: true } : {}),
-    ...(identity.type === 'Bundle' ? { gunsaberSkill: true, skillWeapon: 'Gunsaber' } : {}),
-    ...(identity.name.startsWith('Dragon Slash') ? { dragonSlash: true } : {}),
-    ...(skillMechanicOverrides.get(identity.id) || {}),
-    ...(handler ? { handlerId: handler } : {})
+  const declarations = {
+    Core: [],
+    Berserker: [],
+    Spellbreaker: [],
+    Bladesworn: [],
+    Paragon: []
   };
 
-  declarations[ownerOf(identity, raw)].push({
-    key: keyById.get(identity.id),
-    mechanics
-  });
-}
+  for (const identity of identities) {
+    const raw = rawById.get(identity.id) || identity;
+    const castTimeMs = activationById.get(identity.id) || (identity.type === 'Profession' ? 0 : 500);
+    const burst =
+      identity.categories?.some((category) => /burst/i.test(category)) || /Burst\./.test(identity.description || '');
+    const cost = [30185, 30435].includes(identity.id)
+      ? 30
+      : burst && !identity.name.startsWith('Dragon Slash')
+        ? 10
+        : 0;
+    const adrenalineGain = Math.max(0, Number(fact(raw, 'Adrenaline', 'Number')?.value || 0));
+    const flowGain = Math.max(0, Number(fact(raw, 'Flow', 'Number')?.value || 0));
+    const handler = handlerId(identity, raw);
+    const unaffectedByQuickness = QUICKNESS_UNAFFECTED_SKILL_IDS.has(identity.id);
+    const mechanics = {
+      implemented: true,
+      ...(unaffectedByQuickness
+        ? { castTimeMs, unaffectedByQuickness: true }
+        : castTimeMs > 0
+          ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
+          : { castTimeMs: 0 }),
+      effects: skillMechanicOverrides.get(identity.id)?.effects || effectsFor(raw),
+      ...(cost > 0 ? { adrenalineCost: cost, burstTier: Math.max(1, Math.ceil(cost / 10)) } : {}),
+      ...(adrenalineGain > 0 ? { adrenalineGain } : {}),
+      ...(flowGain > 0 ? { flowGain } : {}),
+      ...(burst ? { burst: true } : {}),
+      ...(identity.categories?.includes('PrimalBurst') ? { primalBurst: true } : {}),
+      ...(identity.type === 'Bundle' ? { gunsaberSkill: true, skillWeapon: 'Gunsaber' } : {}),
+      ...(identity.name.startsWith('Dragon Slash') ? { dragonSlash: true } : {}),
+      ...(skillMechanicOverrides.get(identity.id) || {}),
+      ...(handler ? { handlerId: handler } : {})
+    };
 
-const roots = {
-  Core: 'core',
-  Berserker: 'specializations/berserker',
-  Spellbreaker: 'specializations/spellbreaker',
-  Bladesworn: 'specializations/bladesworn',
-  Paragon: 'specializations/paragon'
-};
-const constants = {
-  Core: 'WARRIOR_CORE_SKILL_MECHANICS',
-  Berserker: 'BERSERKER_SKILL_MECHANICS',
-  Spellbreaker: 'SPELLBREAKER_SKILL_MECHANICS',
-  Bladesworn: 'BLADESWORN_SKILL_MECHANICS',
-  Paragon: 'PARAGON_SKILL_MECHANICS'
-};
+    declarations[ownerOf(identity, raw, specializationById)].push({
+      key: keyById.get(identity.id),
+      mechanics
+    });
+  }
 
-for (const [owner, owned] of Object.entries(declarations)) {
-  const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
-  const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
-  const source = `/** Explicit PvE skill mechanics owned by the ${owner} Warrior module. */
+  const roots = {
+    Core: 'core',
+    Berserker: 'specializations/berserker',
+    Spellbreaker: 'specializations/spellbreaker',
+    Bladesworn: 'specializations/bladesworn',
+    Paragon: 'specializations/paragon'
+  };
+  const constants = {
+    Core: 'WARRIOR_CORE_SKILL_MECHANICS',
+    Berserker: 'BERSERKER_SKILL_MECHANICS',
+    Spellbreaker: 'SPELLBREAKER_SKILL_MECHANICS',
+    Bladesworn: 'BLADESWORN_SKILL_MECHANICS',
+    Paragon: 'PARAGON_SKILL_MECHANICS'
+  };
+
+  for (const [owner, owned] of Object.entries(declarations)) {
+    const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
+    const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
+    const source = `/** Explicit PvE skill mechanics owned by the ${owner} Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from ${JSON.stringify(importPath)};
 import type { SkillFragment } from ${JSON.stringify(typePath)};
 
@@ -701,47 +709,54 @@ export const ${constants[owner]}: Readonly<Record<number, SkillFragment>> = Obje
 ${owned.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, null, 2).replace(/\n/g, '\n  ')},`).join('\n')}
 });
 `;
-  const target = fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url));
+    const target = fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url));
 
-  await mkdir(fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/`, import.meta.url)), {
-    recursive: true
-  });
-  await writeFile(target, source, 'utf8');
-  console.log(`Wrote ${owned.length} ${owner} Warrior skill mechanics.`);
-}
+    await mkdir(fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/`, import.meta.url)), {
+      recursive: true
+    });
+    await writeFile(target, source, 'utf8');
+    console.log(`Wrote ${owned.length} ${owner} Warrior skill mechanics.`);
+  }
 
-function declaration(name, values, prefix = []) {
-  return [
-    `export const ${name} = Object.freeze({`,
-    ...prefix.map((line) => `  ${line}`),
-    ...values.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
-    '});'
+  function declaration(name, values, prefix = []) {
+    return [
+      `export const ${name} = Object.freeze({`,
+      ...prefix.map((line) => `  ${line}`),
+      ...values.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
+      '});'
+    ].join('\n');
+  }
+
+  const traits = stableEntries(
+    apiSpecializations.flatMap((specialization) => [
+      ...specialization.minorTraits,
+      ...specialization.majorTraits.flat()
+    ])
+  );
+  const specializationEntries = apiSpecializations.map((specialization) => ({
+    key: constantName(specialization.name),
+    id: specialization.id,
+    name: specialization.name
+  }));
+  const idsSource = [
+    '// Generated by scripts/data/generate-warrior-data.mjs.',
+    '// Committed constants keep mechanic references independent from metadata loading.',
+    '',
+    declaration('WARRIOR_SKILL_IDS', entries, ['DODGE: -5,', 'SWAP_WEAPONS: -3,']),
+    '',
+    declaration('WARRIOR_TRAIT_IDS', traits),
+    '',
+    declaration('WARRIOR_SPECIALIZATION_IDS', specializationEntries),
+    ''
   ].join('\n');
-}
 
-const traits = stableEntries(
-  SPECIALIZATIONS.flatMap((specialization) => [...specialization.minorTraits, ...specialization.majorTraits.flat()])
-);
-const specializationEntries = SPECIALIZATIONS.map((specialization) => ({
-  key: constantName(specialization.name),
-  id: specialization.id,
-  name: specialization.name
-}));
-const idsSource = [
-  '// Generated by scripts/data/generate-warrior-data.mjs.',
-  '// Committed constants keep mechanic references independent from metadata loading.',
-  '',
-  declaration('WARRIOR_SKILL_IDS', entries, ['DODGE: -5,', 'SWAP_WEAPONS: -3,']),
-  '',
-  declaration('WARRIOR_TRAIT_IDS', traits),
-  '',
-  declaration('WARRIOR_SPECIALIZATION_IDS', specializationEntries),
-  ''
-].join('\n');
+  await writeFile(
+    fileURLToPath(new URL('../../js/professions/warrior/data/ids.ts', import.meta.url)),
+    idsSource,
+    'utf8'
+  );
 
-await writeFile(fileURLToPath(new URL('../../js/professions/warrior/data/ids.ts', import.meta.url)), idsSource, 'utf8');
-
-const supplementalSource = `// Generated by scripts/data/generate-warrior-data.mjs.
+  const supplementalSource = `// Generated by scripts/data/generate-warrior-data.mjs.
 import type { Skill } from "../../../platform/engine/types.js";
 
 export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
@@ -749,12 +764,13 @@ export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
 );
 `;
 
-await writeFile(
-  fileURLToPath(new URL('../../js/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)),
-  supplementalSource,
-  'utf8'
-);
-console.log(
-  `Wrote ${entries.length} skill, ${traits.length} trait, and ${specializationEntries.length} specialization IDs.`
-);
-console.log(`Wrote ${supplemental.length} supplemental Bladesworn skills.`);
+  await writeFile(
+    fileURLToPath(new URL('../../js/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)),
+    supplementalSource,
+    'utf8'
+  );
+  console.log(
+    `Wrote ${entries.length} skill, ${traits.length} trait, and ${specializationEntries.length} specialization IDs.`
+  );
+  console.log(`Wrote ${supplemental.length} supplemental Bladesworn skills.`);
+}

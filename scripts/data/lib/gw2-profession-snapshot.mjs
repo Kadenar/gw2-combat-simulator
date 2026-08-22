@@ -309,18 +309,26 @@ export async function fetchProfessionSnapshot({
   });
 }
 
-// Creates a TypeScript declaration for a profession snapshot, including the snapshot date, specializations, and skills.
-export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills }) {
+// Creates a checked TypeScript module for a profession snapshot while keeping
+// the large generated arrays widened to their public contracts.
+export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills, refreshCommand }) {
   const id = professionName.toLowerCase();
+  const command = refreshCommand || `node scripts/data/update-profession-api-data.mjs --profession ${professionName}`;
 
   return [
     `// Generated Guild Wars 2 API metadata for ${id}.`,
-    `// Snapshot: ${snapshotDate}. Run scripts/data/update-profession-api-data.mjs --profession ${professionName} to refresh.`,
+    `// Snapshot: ${snapshotDate}. Run ${command} to refresh.`,
     `// Simulator mechanics are maintained under ${id}/mechanics/.`,
     '',
-    `export const DATA_SNAPSHOT = ${JSON.stringify(snapshotDate)};`,
-    `export const SPECIALIZATIONS = ${JSON.stringify(specializations, null, 2)};`,
-    `export const SKILLS = ${JSON.stringify(skills, null, 2)};`,
+    `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "../../../platform/gw2/api-metadata-types.js";`,
+    `import type { ${professionName}Skill } from "../types.js";`,
+    '',
+    `export type ${professionName}ApiTrait = Gw2ApiTrait;`,
+    `export type ${professionName}ApiSpecialization = Gw2ApiSpecialization;`,
+    '',
+    `export const DATA_SNAPSHOT: string = ${JSON.stringify(snapshotDate)};`,
+    `export const SPECIALIZATIONS: readonly ${professionName}ApiSpecialization[] = ${JSON.stringify(specializations, null, 2)};`,
+    `export const SKILLS: readonly ${professionName}Skill[] = ${JSON.stringify(skills, null, 2)};`,
     ''
   ].join('\n');
 }
@@ -331,13 +339,15 @@ export async function writeProfessionSnapshot({
   professionName,
   snapshotDate = new Date().toISOString().slice(0, 10),
   specializations,
-  skills
+  skills,
+  refreshCommand
 }) {
   const source = serializeProfessionSnapshot({
     professionName,
     snapshotDate,
     specializations,
-    skills
+    skills,
+    refreshCommand
   });
 
   await mkdir(path.dirname(output), { recursive: true });

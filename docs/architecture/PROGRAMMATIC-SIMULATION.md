@@ -1,8 +1,7 @@
 # Programmatic simulation API
 
-Use the simulator without opening or configuring the browser UI by calling
-`simulateGw2` directly. This is the same headless path used by profession tests
-such as `tests/professions/engineer/engineer.test.js`.
+Use the simulator without opening or configuring the browser UI by calling `simulateGw2` directly. This is the same
+headless path used by profession tests such as `tests/professions/engineer/engineer.test.js`.
 
 The programmatic API accepts four inputs:
 
@@ -13,16 +12,14 @@ simulateGw2({ profession, rotation, config, observationPolicy });
 - `profession` is an executable profession contract.
 - `rotation` is an ordered array of skill casts and simulator commands.
 - `config` contains final attributes and combat assumptions.
-- `observationPolicy` is an optional caller-owned resolution boundary. It
-  defaults to the entered rotation timeline.
+- `observationPolicy` is an optional caller-owned resolution boundary. It defaults to the entered rotation timeline.
 
-The call is synchronous and returns the complete simulation result. It does not
-read browser state, local storage, form controls, or equipment selections.
+The call is synchronous and returns the complete simulation result. It does not read browser state, local storage, form
+controls, or equipment selections.
 
 ## Run a standalone script
 
-Node.js 20 or newer is required. Install dependencies and compile the
-TypeScript modules first:
+Node.js 20 or newer is required. Install dependencies and compile the TypeScript modules first:
 
 ```powershell
 npm install
@@ -32,19 +29,13 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import { prepareSimulationConfig } from "./js/platform/engine/prepare-config.js";
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import { skillBreakdownRows } from "./js/platform/ui/result-tables.js";
-import { engineerProfession } from "./js/professions/engineer/definition.js";
+import { prepareSimulationConfig } from './js/platform/engine/prepare-config.js';
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
+import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: [
-    "Healing Turret",
-    "Grenade Kit",
-    "Throw Mine",
-    "Rifle Turret",
-    "Supply Crate",
-  ],
+  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -52,43 +43,39 @@ const baseConfig = Object.freeze({
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
-    vitality: 1000,
+    vitality: 1000
   },
   boons: {},
   target: {
     armor: 2597,
-    conditions: { Vulnerability: 25 },
-  },
+    conditions: { Vulnerability: 25 }
+  }
 });
 
 function simulate(specialization, rotation, overrides = {}) {
   const config = prepareSimulationConfig(baseConfig, {
     ...overrides,
-    specialization,
+    specialization
   });
 
   return simulateGw2({
     profession: engineerProfession,
     rotation,
-    config,
+    config
   });
 }
 
-const result = simulate(
-  "Core",
-  ["Grenade Kit", "Grenade", { type: "wait", durationMs: 1000 }],
-  {
-    stats: { power: 2500 },
-    boons: { might: 25, fury: true, quickness: true },
-  },
-);
+const result = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 1000 }], {
+  stats: { power: 2500 },
+  boons: { might: 25, fury: true, quickness: true }
+});
 
 console.table({
   duration: result.duration,
   totalDamage: Math.round(result.totalDamage),
   dps: Math.round(result.dps),
   strikeDamage: Math.round(result.strikeDamage),
-  conditionDamage: Math.round(result.conditionDamage),
+  conditionDamage: Math.round(result.conditionDamage)
 });
 
 console.table(
@@ -97,12 +84,12 @@ console.table(
     casts: row.casts,
     hits: row.hits,
     damage: Math.round(row.total),
-    dps: Math.round(row.dps),
-  })),
+    dps: Math.round(row.dps)
+  }))
 );
 
 if (result.warnings.length > 0) {
-  console.warn("Simulation warnings:", result.warnings);
+  console.warn('Simulation warnings:', result.warnings);
 }
 ```
 
@@ -116,16 +103,13 @@ Run `npm run build` again after changing simulator source.
 
 ## Why the loader is required
 
-Tests import source-looking `.js` paths and register a loader that redirects
-compiled TypeScript modules into `dist/js`. It also redirects imports back to
-`js` when a dependency is a JavaScript-only source module that is not copied
-into `dist`.
+Tests import source-looking `.js` paths and register a loader that redirects compiled TypeScript modules into `dist/js`.
 
 For that reason, a headless script should use source-looking imports:
 
 ```js
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import { engineerProfession } from "./js/professions/engineer/definition.js";
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { engineerProfession } from './js/professions/engineer/definition.js';
 ```
 
 Run it after building:
@@ -134,14 +118,13 @@ Run it after building:
 node --import ./scripts/testing/register-dist-loader.mjs ./run-engineer.mjs
 ```
 
-Importing `dist/js/platform/gw2/simulate.js` directly is not sufficient. The
-compiled module graph still references JavaScript-only modules, and Node needs
-the loader to resolve those files from the source tree.
+Using the loader keeps headless scripts aligned with the source-facing imports used by tests while executing compiled
+modules from `dist/js`.
 
 ## The reusable wrapper pattern
 
-Profession tests define a base config once and merge small overrides for each
-simulation. `prepareSimulationConfig` provides the shared version of that merge:
+Profession tests define a base config once and merge small overrides for each simulation. `prepareSimulationConfig`
+provides the shared version of that merge:
 
 ```js
 function simulate(specialization, rotation, overrides = {}) {
@@ -150,16 +133,15 @@ function simulate(specialization, rotation, overrides = {}) {
     rotation,
     config: prepareSimulationConfig(baseConfig, {
       ...overrides,
-      specialization,
-    }),
+      specialization
+    })
   });
 }
 ```
 
-It merges `stats`, `boons`, and `target` independently. When an override
-explicitly supplies `target.conditions`, that condition set replaces the base
-set. This prevents an ordinary override such as `{ stats: { power: 2500 } }`
-from deleting every other base stat.
+It merges `stats`, `boons`, and `target` independently. When an override explicitly supplies `target.conditions`, that
+condition set replaces the base set. This prevents an ordinary override such as `{ stats: { power: 2500 } }` from
+deleting every other base stat.
 
 The manual merge used in `engineer.test.js` remains valid:
 
@@ -173,24 +155,22 @@ config: {
 }
 ```
 
-Use an explicit merge for other nested profession-specific values, such as
-Thief `deterministicChoices`, when individual keys should inherit from the base
-config.
+Use an explicit merge for other nested profession-specific values, such as Thief `deterministicChoices`, when individual
+keys should inherit from the base config.
 
 ## Rotation format
 
-The rotation is processed from beginning to end. Each entry can use a compact
-skill name or a canonical command:
+The rotation is processed from beginning to end. Each entry can use a compact skill name or a canonical command:
 
 ```js
 const rotation = [
-  "Grenade Kit", // cast by skill name
+  'Grenade Kit', // cast by skill name
   5882, // cast by numeric skill ID
-  { type: "cast", skillId: 5882 }, // explicit cast
-  { type: "cast", skillId: 62797, releaseAtCharges: 3 }, // charged release target
-  { type: "wait", durationMs: 1000 }, // explicit delay
-  { type: "combat-start" }, // DPS/display reference marker
-  { type: "cooldown-reset" }, // reset for isolated experiments
+  { type: 'cast', skillId: 5882 }, // explicit cast
+  { type: 'cast', skillId: 62797, releaseAtCharges: 3 }, // charged release target
+  { type: 'wait', durationMs: 1000 }, // explicit delay
+  { type: 'combat-start' }, // DPS/display reference marker
+  { type: 'cooldown-reset' } // reset for isolated experiments
 ];
 ```
 
@@ -206,60 +186,52 @@ An explicit cast can also include:
 }
 ```
 
-`doubleEdgeOutcome` is consulted only when an Antiquary Double Edge skill is
-recast while recharging. Ready casts always succeed, and an omitted outcome
-defaults to `"success"`.
+`doubleEdgeOutcome` is consulted only when an Antiquary Double Edge skill is recast while recharging. Ready casts always
+succeed, and an omitted outcome defaults to `"success"`.
 
-Names are convenient, but IDs are safer for long-lived scripts. Inspect the
-active catalog when finding IDs:
+Names are convenient, but IDs are safer for long-lived scripts. Inspect the active catalog when finding IDs:
 
 ```js
-console.table(
-  engineerProfession.catalog.skills.map(({ id, name }) => ({ id, name })),
-);
+console.table(engineerProfession.catalog.skills.map(({ id, name }) => ({ id, name })));
 ```
 
-Unknown, unavailable, or mistimed skills can produce warnings instead of the
-result the caller expected. Always inspect `result.warnings`.
+Unknown, unavailable, or mistimed skills can produce warnings instead of the result the caller expected. Always inspect
+`result.warnings`.
 
 ## Observation policy
 
-Rotation duration and observation duration are separate. By default, the
-resolver stops at the end of the entered commands:
+Rotation duration and observation duration are separate. By default, the resolver stops at the end of the entered
+commands:
 
 ```js
 observationPolicy: {
-  kind: "rotation";
+  kind: 'rotation';
 }
 ```
 
-Use a finite tail to observe delayed packets, conditions, fields, summons, or
-upkeep after the final command without adding a player action:
+Use a finite tail to observe delayed packets, conditions, fields, summons, or upkeep after the final command without
+adding a player action:
 
 ```js
 observationPolicy: { kind: "tail", durationMs: 5000 }
 ```
 
-Use an absolute simulation-clock boundary when the caller is intentionally
-requesting a fixed-clock simulation:
+Use an absolute simulation-clock boundary when the caller is intentionally requesting a fixed-clock simulation:
 
 ```js
 observationPolicy: { kind: "absolute", endTimeMs: 97_450 }
 ```
 
-The absolute timestamp cannot precede rotation end. Durations and timestamps
-must be finite and non-negative. Target death clips every mode. An explicit
-`wait` remains part of the player-command timeline and increases `duration`;
-an observation tail does not.
+The absolute timestamp cannot precede rotation end. Durations and timestamps must be finite and non-negative. Target
+death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `duration`; an
+observation tail does not.
 
-Saved benchmark or imported-log metadata must not choose an observation
-policy. Logs and saved benchmark metrics are comparison targets. Benchmark
-runners use the default rotation boundary, matching the interactive simulator.
+Saved benchmark or imported-log metadata must not choose an observation policy. Logs and saved benchmark metrics are
+comparison targets. Benchmark runners use the default rotation boundary, matching the interactive simulator.
 
 ## Common configuration fields
 
-The direct API consumes resolved combat values. It does not calculate stats
-from armor, upgrades, runes, or infusions.
+The direct API consumes resolved combat values. It does not calculate stats from armor, upgrades, runes, or infusions.
 
 | Field                                      | Purpose                                                                                           |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
@@ -276,45 +248,40 @@ from armor, upgrades, runes, or infusions.
 | `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                                       |
 | `randomness`                               | Deterministic or seeded stochastic resolution                                                     |
 
-Professions also accept their own resource and loadout fields. Existing tests
-are the most direct examples:
+Professions also accept their own resource and loadout fields. Existing tests are the most direct examples:
 
 - Engineer: `selectedMorphSkillIds`
 - Mesmer: `initialResource`
 - Necromancer: initial Life Force and specialization resources
 - Revenant: `selectedLegends`, `startingLegend`, and `initialEnergy`
-- Thief: `initialInitiative`, `initialShadowForce`, and
-  `deterministicChoices`
+- Thief: `initialInitiative`, `initialShadowForce`, and `deterministicChoices`
 
-Start with the base config near the top of the relevant profession test, then
-remove fields your scenario does not use.
+Start with the base config near the top of the relevant profession test, then remove fields your scenario does not use.
 
 ## Loading a profession dynamically
 
-Use the registry when the profession is selected by a command-line argument or
-configuration file:
+Use the registry when the profession is selected by a command-line argument or configuration file:
 
 ```js
-import { loadProfession } from "./js/app/profession/registry.js";
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
+import { loadProfession } from './js/app/profession/registry.js';
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
 
-const profession = await loadProfession("engineer");
-if (!profession) throw new Error("Unknown profession");
+const profession = await loadProfession('engineer');
+if (!profession) throw new Error('Unknown profession');
 
 const result = simulateGw2({
   profession,
-  rotation: ["Grenade Kit", "Grenade"],
+  rotation: ['Grenade Kit', 'Grenade'],
   config: {
-    specialization: "Core",
+    specialization: 'Core',
     stats: { power: 2000, precision: 1500, ferocity: 500 },
-    target: { armor: 2597 },
-  },
+    target: { armor: 2597 }
+  }
 });
 ```
 
-Registered IDs are `elementalist`, `mesmer`, `necromancer`, `ranger`, `thief`,
-`engineer`, `guardian`, `warrior`, and `revenant`. Each profession still needs an
-appropriate config; loading the contract does not create a build or copy UI
+Registered IDs are `elementalist`, `mesmer`, `necromancer`, `ranger`, `thief`, `engineer`, `guardian`, `warrior`, and
+`revenant`. Each profession still needs an appropriate config; loading the contract does not create a build or copy UI
 defaults.
 
 ## Reading the result
@@ -336,18 +303,16 @@ The commonly useful result fields are:
 | `endState`                                  | Ending time, cooldowns, ammo, weapon set, and profession resources |
 | `randomness`                                | Actual resolution mode and seed                                    |
 
-Use `skillBreakdownRows(result)` for a stable per-skill table instead of
-reimplementing aggregation over raw events.
+Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
 
-`dpsWindow` ends at target death or the selected observation boundary, so an
-explicit observation tail can make it longer than `duration`.
+`dpsWindow` ends at target death or the selected observation boundary, so an explicit observation tail can make it
+longer than `duration`.
 
-For UI-equivalent formatted data, the existing transforms are also callable
-headlessly:
+For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { resultSummaryMetrics } from "./js/app/rotation/result-model.js";
-import { simulationEventLogRows } from "./js/app/rotation/event-log.js";
+import { resultSummaryMetrics } from './js/app/rotation/result-model.js';
+import { simulationEventLogRows } from './js/app/rotation/event-log.js';
 
 console.table(resultSummaryMetrics(result));
 console.table(simulationEventLogRows(result, null, engineerProfession));
@@ -367,13 +332,11 @@ For a reproducible sampled run:
 randomness: { mode: "stochastic", seed: 42 }
 ```
 
-One stochastic run is not a distribution. Scripts that compare random outcomes
-should run multiple seeds and summarize their results, as done by
-`js/app/simulation/random-distribution.ts`.
+One stochastic run is not a distribution. Scripts that compare random outcomes should run multiple seeds and summarize
+their results, as done by `js/app/simulation/random-distribution.ts`.
 
 ## Current API status
 
-This repository is marked `private` and does not publish a package export for
-the simulator. The module paths above are internal repository paths, so scripts
-using them should be kept with or pinned to a compatible simulator revision.
-No web server is required for headless execution.
+This repository is marked `private` and does not publish a package export for the simulator. The module paths above are
+internal repository paths, so scripts using them should be kept with or pinned to a compatible simulator revision. No
+web server is required for headless execution.

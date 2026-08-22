@@ -1,6 +1,5 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { SKILLS } from '../../js/professions/ranger/data/ranger-api-metadata.js';
 
 const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -234,54 +233,57 @@ function constantName(value) {
     .toUpperCase();
 }
 
-const usedNames = new Set();
-const keyById = new Map();
+// Generates pet records against the same fetched skill snapshot used by the
+// rest of the Ranger refresh, avoiding an import of uncompiled TypeScript.
+export async function generateRangerPetData({ skills: apiSkills }) {
+  const usedNames = new Set();
+  const keyById = new Map();
 
-function keyFor(skill) {
-  const override = SIMULATED_SKILL_KEY_OVERRIDES.get(Number(skill.id));
-  const base = override || constantName(skill.name);
-  const key = usedNames.has(base) ? `${base}_ID_${skill.id}` : base;
+  function keyFor(skill) {
+    const override = SIMULATED_SKILL_KEY_OVERRIDES.get(Number(skill.id));
+    const base = override || constantName(skill.name);
+    const key = usedNames.has(base) ? `${base}_ID_${skill.id}` : base;
 
-  usedNames.add(base);
-  keyById.set(skill.id, key);
+    usedNames.add(base);
+    keyById.set(skill.id, key);
 
-  return key;
-}
+    return key;
+  }
 
-for (const skill of SKILLS) keyFor(skill);
+  for (const skill of apiSkills) keyFor(skill);
 
-const petIds = await fetchJson('/pets');
-const pets = await fetchMany('pets', petIds);
-const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
-const petSkillIds = [
-  ...new Set([
-    ...pets.flatMap((pet) => pet.skills.map((skill) => skill.id)),
-    ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
-  ])
-];
-const fetchedSkills = await fetchMany('skills', petSkillIds);
-const fetchedSkillById = new Map(fetchedSkills.map((skill) => [skill.id, skill]));
-const skills = petSkillIds
-  .map((id) => {
-    const skill = fetchedSkillById.get(id) || SIMULATED_SKILL_FALLBACKS.get(id);
-    const override = SIMULATED_SKILL_OVERRIDES.get(id);
+  const petIds = await fetchJson('/pets');
+  const pets = await fetchMany('pets', petIds);
+  const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
+  const petSkillIds = [
+    ...new Set([
+      ...pets.flatMap((pet) => pet.skills.map((skill) => skill.id)),
+      ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
+    ])
+  ];
+  const fetchedSkills = await fetchMany('skills', petSkillIds);
+  const fetchedSkillById = new Map(fetchedSkills.map((skill) => [skill.id, skill]));
+  const skills = petSkillIds
+    .map((id) => {
+      const skill = fetchedSkillById.get(id) || SIMULATED_SKILL_FALLBACKS.get(id);
+      const override = SIMULATED_SKILL_OVERRIDES.get(id);
 
-    return skill ? { ...skill, ...override } : null;
-  })
-  .filter(Boolean);
+      return skill ? { ...skill, ...override } : null;
+    })
+    .filter(Boolean);
 
-for (const skill of skills) keyFor(skill);
-const skillById = new Map(skills.map((skill) => [skill.id, skill]));
+  for (const skill of skills) keyFor(skill);
+  const skillById = new Map(skills.map((skill) => [skill.id, skill]));
 
-const skillLines = skills.map((skill) => {
-  const recharge = skill.recharge || skill.facts?.find((fact) => fact.type === 'Recharge')?.value || 0;
-  const petNames =
-    skill.petNames ||
-    pets
-      .filter((pet) => pet.skills.some((candidate) => candidate.id === skill.id))
-      .map((pet) => pet.name.replace(/^Juvenile\s+/, ''));
+  const skillLines = skills.map((skill) => {
+    const recharge = skill.recharge || skill.facts?.find((fact) => fact.type === 'Recharge')?.value || 0;
+    const petNames =
+      skill.petNames ||
+      pets
+        .filter((pet) => pet.skills.some((candidate) => candidate.id === skill.id))
+        .map((pet) => pet.name.replace(/^Juvenile\s+/, ''));
 
-  return `  {
+    return `  {
     id: ID.${keyById.get(skill.id)},
     name: ${JSON.stringify(skill.name)},
     description: ${JSON.stringify(skill.description || '')},
@@ -297,23 +299,23 @@ const skillLines = skills.map((skill) => {
     petAutonomousSkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},
     petNames: ${JSON.stringify(petNames)},
   },`;
-});
-const petLines = pets.map((pet, index) => {
-  const name = pet.name.replace(/^Juvenile\s+/, '');
-  const metadata = wikiMetadata[index];
-  const family = String(SOULBEAST_PET_FAMILY_OVERRIDES[name] || metadata.family).toLowerCase();
-  const archetypeKey = metadata.archetype.toLowerCase();
-  const archetype = archetypeKey ? `${archetypeKey[0].toUpperCase()}${archetypeKey.slice(1)}` : '';
-  const beastmodeSkillIds = [
-    ...(SOULBEAST_FAMILY_SKILL_IDS[family] || []),
-    SOULBEAST_ARCHETYPE_SKILL_IDS[archetypeKey]
-  ].filter((id) => keyById.has(id));
+  });
+  const petLines = pets.map((pet, index) => {
+    const name = pet.name.replace(/^Juvenile\s+/, '');
+    const metadata = wikiMetadata[index];
+    const family = String(SOULBEAST_PET_FAMILY_OVERRIDES[name] || metadata.family).toLowerCase();
+    const archetypeKey = metadata.archetype.toLowerCase();
+    const archetype = archetypeKey ? `${archetypeKey[0].toUpperCase()}${archetypeKey.slice(1)}` : '';
+    const beastmodeSkillIds = [
+      ...(SOULBEAST_FAMILY_SKILL_IDS[family] || []),
+      SOULBEAST_ARCHETYPE_SKILL_IDS[archetypeKey]
+    ].filter((id) => keyById.has(id));
 
-  if (beastmodeSkillIds.length !== 3) {
-    console.warn(`Expected three Soulbeast skills for ${name}; received ${beastmodeSkillIds.join(', ') || 'none'}.`);
-  }
+    if (beastmodeSkillIds.length !== 3) {
+      console.warn(`Expected three Soulbeast skills for ${name}; received ${beastmodeSkillIds.join(', ') || 'none'}.`);
+    }
 
-  return `  {
+    return `  {
     id: ${pet.id},
     name: ${JSON.stringify(name)},
     icon: ${JSON.stringify(pet.icon || '')},
@@ -325,9 +327,9 @@ const petLines = pets.map((pet, index) => {
       .join(', ')}],
     beastmodeSkillIds: [${beastmodeSkillIds.map((id) => `ID.${keyById.get(id)}`).join(', ')}],
   },`;
-});
+  });
 
-const source = `// Generated by scripts/data/generate-ranger-pet-data.mjs.
+  const source = `// Generated by scripts/data/generate-ranger-pet-data.mjs.
 // Pet identities are absent from the profession skill endpoint and are committed here.
 import { RANGER_SKILL_IDS as ID } from "./ids.js";
 import type { RangerPetDefinition, RangerSkill } from "../types.js";
@@ -341,7 +343,8 @@ ${petLines.join('\n')}
 ]);
 `;
 
-const target = fileURLToPath(new URL('../../js/professions/ranger/data/ranger-pet-data.ts', import.meta.url));
+  const target = fileURLToPath(new URL('../../js/professions/ranger/data/ranger-pet-data.ts', import.meta.url));
 
-await writeFile(target, source, 'utf8');
-console.log(`Wrote ${skills.length} Ranger pet skills and ${pets.length} pets.`);
+  await writeFile(target, source, 'utf8');
+  console.log(`Wrote ${skills.length} Ranger pet skills and ${pets.length} pets.`);
+}

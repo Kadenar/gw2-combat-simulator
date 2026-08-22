@@ -1,11 +1,11 @@
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-import { readFile, writeFile } from 'node:fs/promises';
 import { updateProfessionApiData } from './update-profession-api-data.mjs';
 
 export async function updateWarriorApiData(options = {}) {
   const result = await updateProfessionApiData('Warrior', {
     ...options,
+    refreshCommand: 'npm run update:warrior-data',
     snapshotConfig: {
       excludedIds: [62857],
       skillOverrides: {
@@ -17,16 +17,6 @@ export async function updateWarriorApiData(options = {}) {
       ...(options.snapshotConfig || {})
     }
   });
-  const source = await readFile(result.output, 'utf8');
-
-  await writeFile(
-    result.output,
-    source.replace(
-      'Run scripts/data/update-profession-api-data.mjs --profession Warrior to refresh.',
-      'Run npm run update:warrior-data to refresh.'
-    ),
-    'utf8'
-  );
 
   return result;
 }

@@ -9,7 +9,7 @@ simulateGw2({
   profession,
   rotation,
   config,
-  observationPolicy,
+  observationPolicy
 });
 ```
 
@@ -17,13 +17,13 @@ This uses the same scheduler and combat resolver as the interactive simulator.
 
 Headless simulation is useful for:
 
-* comparing rotations or build assumptions;
-* writing profession and mechanic tests;
-* running parameter sweeps;
-* analyzing damage programmatically;
-* replaying saved simulator builds;
-* running benchmark regressions;
-* generating simulation data for other tools.
+- comparing rotations or build assumptions;
+- writing profession and mechanic tests;
+- running parameter sweeps;
+- analyzing damage programmatically;
+- replaying saved simulator builds;
+- running benchmark regressions;
+- generating simulation data for other tools.
 
 No web server, DOM, local storage, or browser is required.
 
@@ -44,7 +44,7 @@ Headless scripts should import the normal source-looking module paths and run th
 node --import ./scripts/testing/register-dist-loader.mjs ./simulate.mjs
 ```
 
-The loader redirects compiled TypeScript imports into `dist/js` while preserving JavaScript-only source dependencies.
+The loader redirects source-facing JavaScript specifiers to compiled TypeScript modules in `dist/js`.
 
 Rebuild after changing simulator source.
 
@@ -57,50 +57,40 @@ For controlled experiments, import a profession contract and call `simulateGw2()
 Create `simulate.mjs` in the repository root:
 
 ```js
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import { engineerProfession } from "./js/professions/engineer/definition.js";
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const result = simulateGw2({
   profession: engineerProfession,
 
-  rotation: [
-    "Grenade Kit",
-    "Grenade",
-    { type: "wait", durationMs: 1000 },
-  ],
+  rotation: ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 1000 }],
 
   config: {
-    specialization: "Core",
+    specialization: 'Core',
 
-    selectedSkills: [
-      "Healing Turret",
-      "Grenade Kit",
-      "Throw Mine",
-      "Rifle Turret",
-      "Supply Crate",
-    ],
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
 
     stats: {
       power: 2500,
       precision: 1500,
       ferocity: 500,
       conditionDamage: 1000,
-      expertise: 0,
+      expertise: 0
     },
 
     boons: {
       might: 25,
       fury: true,
-      quickness: true,
+      quickness: true
     },
 
     target: {
       armor: 2597,
       conditions: {
-        Vulnerability: 25,
-      },
-    },
-  },
+        Vulnerability: 25
+      }
+    }
+  }
 });
 
 console.log({
@@ -108,7 +98,7 @@ console.log({
   damage: Math.round(result.totalDamage),
   dps: Math.round(result.dps),
   strike: Math.round(result.strikeDamage),
-  condition: Math.round(result.conditionDamage),
+  condition: Math.round(result.conditionDamage)
 });
 
 if (result.warnings.length) {
@@ -133,80 +123,63 @@ A common headless use case is running the same scenario repeatedly with small ch
 `prepareSimulationConfig()` makes it convenient to define shared assumptions once and override individual values.
 
 ```js
-import { prepareSimulationConfig } from "./js/platform/engine/prepare-config.js";
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import { engineerProfession } from "./js/professions/engineer/definition.js";
+import { prepareSimulationConfig } from './js/platform/engine/prepare-config.js';
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const baseConfig = {
-  specialization: "Core",
+  specialization: 'Core',
 
-  selectedSkills: [
-    "Healing Turret",
-    "Grenade Kit",
-    "Throw Mine",
-    "Rifle Turret",
-    "Supply Crate",
-  ],
+  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
 
   stats: {
     power: 2500,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
-    expertise: 0,
+    expertise: 0
   },
 
   boons: {
     might: 25,
     fury: true,
-    quickness: true,
+    quickness: true
   },
 
   target: {
     armor: 2597,
     conditions: {
-      Vulnerability: 25,
-    },
-  },
+      Vulnerability: 25
+    }
+  }
 };
 
 function run(rotation, overrides = {}) {
   return simulateGw2({
     profession: engineerProfession,
     rotation,
-    config: prepareSimulationConfig(baseConfig, overrides),
+    config: prepareSimulationConfig(baseConfig, overrides)
   });
 }
 
-const baseline = run([
-  "Grenade Kit",
-  "Grenade",
-  "Grenade",
-]);
+const baseline = run(['Grenade Kit', 'Grenade', 'Grenade']);
 
-const variant = run([
-  "Grenade Kit",
-  "Grenade",
-  "Throw Mine",
-  "Grenade",
-]);
+const variant = run(['Grenade Kit', 'Grenade', 'Throw Mine', 'Grenade']);
 
 console.table([
   {
-    scenario: "Baseline",
+    scenario: 'Baseline',
     damage: Math.round(baseline.totalDamage),
-    dps: Math.round(baseline.dps),
+    dps: Math.round(baseline.dps)
   },
   {
-    scenario: "Variant",
+    scenario: 'Variant',
     damage: Math.round(variant.totalDamage),
-    dps: Math.round(variant.dps),
-  },
+    dps: Math.round(variant.dps)
+  }
 ]);
 
-console.log(
-  `DPS difference: ${Math.round(variant.dps - baseline.dps)}`,
-);
+console.log(`DPS difference: ${Math.round(variant.dps - baseline.dps)}`);
 ```
 
 The same pattern can be used to sweep stats, traits, target assumptions, or entire rotations.
@@ -215,38 +188,36 @@ For example:
 
 ```js
 for (const power of [2000, 2250, 2500, 2750, 3000]) {
-  const result = run(["Grenade Kit", "Grenade"], {
-    stats: { power },
+  const result = run(['Grenade Kit', 'Grenade'], {
+    stats: { power }
   });
 
   console.log(power, Math.round(result.dps));
 }
 ```
 
-`prepareSimulationConfig()` preserves the other nested `stats`, `boons`, and `target` values while applying the supplied overrides.
+`prepareSimulationConfig()` preserves the other nested `stats`, `boons`, and `target` values while applying the supplied
+overrides.
 
 ---
 
 ## Simulate a saved build without the UI
 
-If you want to reproduce what the interactive application would simulate, use the profession's application adapter rather than manually recreating its final stats.
+If you want to reproduce what the interactive application would simulate, use the profession's application adapter
+rather than manually recreating its final stats.
 
 This is the same general path used by the repository's preset benchmark tests.
 
 ```js
-import { readFile } from "node:fs/promises";
+import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from "./js/app/profession/registry.js";
+import { loadProfessionAppAdapter } from './js/app/profession/registry.js';
 
-const professionId = "engineer";
+const professionId = 'engineer';
 
-const savedBuild = JSON.parse(
-  await readFile("./build.json", "utf8"),
-);
+const savedBuild = JSON.parse(await readFile('./build.json', 'utf8'));
 
-const savedRotation = JSON.parse(
-  await readFile("./rotation.json", "utf8"),
-);
+const savedRotation = JSON.parse(await readFile('./rotation.json', 'utf8'));
 
 const adapter = await loadProfessionAppAdapter(professionId);
 
@@ -256,7 +227,7 @@ if (!adapter) {
 
 const build = adapter.toApplicationBuild({
   ...savedBuild,
-  rotation: savedRotation.rotation ?? savedRotation,
+  rotation: savedRotation.rotation ?? savedRotation
 });
 
 const app = {
@@ -265,7 +236,7 @@ const app = {
   profession: adapter.profession,
   skillByName: adapter.profession.catalog.skillsByName,
   skillById: adapter.profession.catalog.skillsById,
-  attributeWeaponSet: 1,
+  attributeWeaponSet: 1
 };
 
 // Reproduce the application's derived attributes and profession assumptions.
@@ -273,16 +244,13 @@ adapter.recalculate(app);
 
 const config = adapter.simulationConfig(app);
 
-const result = adapter.simulateBuild(
-  build.rotation,
-  config,
-);
+const result = adapter.simulateBuild(build.rotation, config);
 
 console.log({
   profession: adapter.profession.name,
   damage: Math.round(result.totalDamage),
   dps: Math.round(result.dps),
-  duration: result.duration,
+  duration: result.duration
 });
 
 if (result.warnings.length) {
@@ -292,12 +260,12 @@ if (result.warnings.length) {
 
 This approach is preferable when working with exported simulator builds because the application adapter handles:
 
-* equipment-derived attributes;
-* selected traits and skills;
-* weapon sets;
-* profession resources;
-* specialization-specific assumptions;
-* other configuration normally assembled by the UI.
+- equipment-derived attributes;
+- selected traits and skills;
+- weapon sets;
+- profession resources;
+- specialization-specific assumptions;
+- other configuration normally assembled by the UI.
 
 Use direct `simulateGw2()` calls when you intentionally want to provide resolved combat values yourself.
 
@@ -310,20 +278,13 @@ A rotation is an ordered list of skills and simulator commands.
 The simplest form uses skill names:
 
 ```js
-const rotation = [
-  "Grenade Kit",
-  "Grenade",
-  "Throw Mine",
-];
+const rotation = ['Grenade Kit', 'Grenade', 'Throw Mine'];
 ```
 
 Numeric skill IDs can also be used:
 
 ```js
-const rotation = [
-  5882,
-  5806,
-];
+const rotation = [5882, 5806];
 ```
 
 IDs are generally safer for long-lived scripts because skill names can change.
@@ -332,13 +293,13 @@ Common explicit commands include:
 
 ```js
 const rotation = [
-  { type: "cast", skillId: 5882 },
+  { type: 'cast', skillId: 5882 },
 
-  { type: "wait", durationMs: 1000 },
+  { type: 'wait', durationMs: 1000 },
 
-  { type: "combat-start" },
+  { type: 'combat-start' },
 
-  { type: "cooldown-reset" },
+  { type: 'cooldown-reset' }
 ];
 ```
 
@@ -359,12 +320,13 @@ You can inspect a profession's available skills programmatically:
 console.table(
   engineerProfession.catalog.skills.map(({ id, name }) => ({
     id,
-    name,
-  })),
+    name
+  }))
 );
 ```
 
-Always inspect `result.warnings`; unavailable, invalid, or mistimed actions may otherwise produce a result different from what the caller intended.
+Always inspect `result.warnings`; unavailable, invalid, or mistimed actions may otherwise produce a result different
+from what the caller intended.
 
 ---
 
@@ -374,7 +336,8 @@ By default, simulation resolution ends at the rotation boundary.
 
 That is normally what you want for benchmark-style comparisons.
 
-Sometimes you may want to observe delayed damage, conditions, summons, fields, or other effects after the final player action.
+Sometimes you may want to observe delayed damage, conditions, summons, fields, or other effects after the final player
+action.
 
 Use an observation tail:
 
@@ -384,9 +347,9 @@ const result = simulateGw2({
   rotation,
   config,
   observationPolicy: {
-    kind: "tail",
-    durationMs: 5000,
-  },
+    kind: 'tail',
+    durationMs: 5000
+  }
 });
 ```
 
@@ -433,7 +396,7 @@ The most commonly useful fields are:
 For a ready-to-use per-skill breakdown:
 
 ```js
-import { skillBreakdownRows } from "./js/platform/ui/result-tables.js";
+import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
 
 const rows = skillBreakdownRows(result);
 
@@ -443,8 +406,8 @@ console.table(
     casts: row.casts,
     hits: row.hits,
     damage: Math.round(row.total),
-    dps: Math.round(row.dps),
-  })),
+    dps: Math.round(row.dps)
+  }))
 );
 ```
 
@@ -480,9 +443,9 @@ const samples = [];
 for (let seed = 1; seed <= 500; seed += 1) {
   const result = run(rotation, {
     randomness: {
-      mode: "stochastic",
-      seed,
-    },
+      mode: 'stochastic',
+      seed
+    }
   });
 
   samples.push(result.dps);
@@ -490,15 +453,13 @@ for (let seed = 1; seed <= 500; seed += 1) {
 
 samples.sort((a, b) => a - b);
 
-const mean =
-  samples.reduce((sum, value) => sum + value, 0) /
-  samples.length;
+const mean = samples.reduce((sum, value) => sum + value, 0) / samples.length;
 
 console.log({
   trials: samples.length,
   mean: Math.round(mean),
   minimum: Math.round(samples[0]),
-  maximum: Math.round(samples.at(-1)),
+  maximum: Math.round(samples.at(-1))
 });
 ```
 
@@ -511,10 +472,10 @@ This makes the headless API suitable for custom RNG analysis as well as determin
 Scripts that accept a profession as input can use the shared registry:
 
 ```js
-import { loadProfession } from "./js/app/profession/registry.js";
-import { simulateGw2 } from "./js/platform/gw2/simulate.js";
+import { loadProfession } from './js/app/profession/registry.js';
+import { simulateGw2 } from './js/platform/gw2/simulate.js';
 
-const professionId = process.argv[2] || "engineer";
+const professionId = process.argv[2] || 'engineer';
 
 const profession = await loadProfession(professionId);
 
@@ -525,7 +486,7 @@ if (!profession) {
 const result = simulateGw2({
   profession,
   rotation,
-  config,
+  config
 });
 ```
 
@@ -543,7 +504,8 @@ warrior
 revenant
 ```
 
-Loading a profession contract does not automatically create a build or derive equipment stats. Use its application adapter when you need UI-equivalent build processing.
+Loading a profession contract does not automatically create a build or derive equipment stats. Use its application
+adapter when you need UI-equivalent build processing.
 
 ---
 
@@ -553,15 +515,17 @@ The programmatic simulator consumes **resolved simulation configuration**.
 
 A direct `simulateGw2()` call does not:
 
-* read local storage;
-* inspect browser form controls;
-* calculate a build from the UI;
-* automatically derive equipment attributes.
+- read local storage;
+- inspect browser form controls;
+- calculate a build from the UI;
+- automatically derive equipment attributes.
 
 For low-level experiments, provide the required combat configuration directly.
 
 For saved builds and UI-equivalent simulation, use the profession application adapter.
 
-The project is not published as a reusable npm package. `package.json` is marked `private`, and these module paths are internal repository APIs. Headless scripts should therefore live alongside the repository or be pinned to a compatible revision.
+The project is not published as a reusable npm package. `package.json` is marked `private`, and these module paths are
+internal repository APIs. Headless scripts should therefore live alongside the repository or be pinned to a compatible
+revision.
 
 No browser or web server is required.

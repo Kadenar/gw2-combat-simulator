@@ -2,8 +2,14 @@
 // Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Mesmer to refresh.
 // Simulator mechanics are maintained under mesmer/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-07-25';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { MesmerSkill } from '../types.js';
+
+export type MesmerApiTrait = Gw2ApiTrait;
+export type MesmerApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-07-25';
+export const SPECIALIZATIONS: readonly MesmerApiSpecialization[] = [
   {
     id: 10,
     name: 'Domination',
@@ -1046,7 +1052,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly MesmerSkill[] = [
   {
     id: 10168,
     name: 'Confusing Images',

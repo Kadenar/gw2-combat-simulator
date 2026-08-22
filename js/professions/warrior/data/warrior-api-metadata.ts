@@ -2,8 +2,14 @@
 // Snapshot: 2026-08-08. Run npm run update:warrior-data to refresh.
 // Simulator mechanics are maintained under warrior/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-08-08';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { WarriorSkill } from '../types.js';
+
+export type WarriorApiTrait = Gw2ApiTrait;
+export type WarriorApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-08-08';
+export const SPECIALIZATIONS: readonly WarriorApiSpecialization[] = [
   {
     id: 4,
     name: 'Strength',
@@ -1288,7 +1294,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly WarriorSkill[] = [
   {
     id: 14353,
     name: 'Eviscerate',

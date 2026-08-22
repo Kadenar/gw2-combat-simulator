@@ -2899,7 +2899,7 @@ test('declarative professions use the standard mechanics module roles', async ()
     assert.doesNotMatch(family, /from\s+["'][^"']*catalog\.js["']/);
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
 
-    const metadata = await readFile(path.join(root, profession, 'data', `${profession}-api-metadata.js`), 'utf8');
+    const metadata = await readFile(path.join(root, profession, 'data', `${profession}-api-metadata.ts`), 'utf8');
 
     assert.doesNotMatch(metadata, /apiDamage|apiConditions|"facts"|"coefficient"|dmg_multiplier/);
 

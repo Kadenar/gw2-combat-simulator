@@ -1,8 +1,15 @@
 // Generated Guild Wars 2 API metadata for guardian.
-// Snapshot: 2026-07-25. This file is not a source of simulation mechanics.
+// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Guardian to refresh.
+// Simulator mechanics are maintained under guardian/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-07-25';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { GuardianSkill } from '../types.js';
+
+export type GuardianApiTrait = Gw2ApiTrait;
+export type GuardianApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-07-25';
+export const SPECIALIZATIONS: readonly GuardianApiSpecialization[] = [
   {
     id: 42,
     name: 'Zeal',
@@ -1288,7 +1295,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly GuardianSkill[] = [
   {
     id: 9080,
     name: 'Leap of Faith',

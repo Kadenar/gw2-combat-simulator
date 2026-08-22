@@ -1,9 +1,15 @@
 // Generated Guild Wars 2 API metadata for elementalist.
-// Snapshot: 2026-08-12. Run scripts/data/update-profession-api-data.mjs --profession Elementalist to refresh.
+// Snapshot: 2026-08-12. Run npm run update:elementalist-data to refresh.
 // Simulator mechanics are maintained under elementalist/mechanics/.
 
-export const DATA_SNAPSHOT = '2026-08-12';
-export const SPECIALIZATIONS = [
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { ElementalistSkill } from '../types.js';
+
+export type ElementalistApiTrait = Gw2ApiTrait;
+export type ElementalistApiSpecialization = Gw2ApiSpecialization;
+
+export const DATA_SNAPSHOT: string = '2026-08-12';
+export const SPECIALIZATIONS: readonly ElementalistApiSpecialization[] = [
   {
     id: 17,
     name: 'Water',
@@ -1290,7 +1296,7 @@ export const SPECIALIZATIONS = [
     ]
   }
 ];
-export const SKILLS = [
+export const SKILLS: readonly ElementalistSkill[] = [
   {
     id: 5487,
     name: 'Frozen Burst',

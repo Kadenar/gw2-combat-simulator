@@ -1016,7 +1016,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     true
   );
   const directory = await mkdtemp(path.join(tmpdir(), 'gw2-profession-snapshot-'));
-  const output = path.join(directory, 'warrior-api-metadata.js');
+  const output = path.join(directory, 'warrior-api-metadata.ts');
 
   try {
     const result = await updateProfessionApiData('warrior', {
@@ -1030,7 +1030,10 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     const source = await readFile(output, 'utf8');
 
     assert.match(source, /Generated Guild Wars 2 API metadata for warrior/);
-    assert.match(source, /export const DATA_SNAPSHOT = "2026-07-27"/);
+    assert.match(source, /import type \{ Gw2ApiSpecialization, Gw2ApiTrait \}/);
+    assert.match(source, /export const DATA_SNAPSHOT: string = "2026-07-27"/);
+    assert.match(source, /export const SPECIALIZATIONS: readonly WarriorApiSpecialization\[]/);
+    assert.match(source, /export const SKILLS: readonly WarriorSkill\[]/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
