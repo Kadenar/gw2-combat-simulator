@@ -5,6 +5,7 @@ import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
     implemented: true,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
@@ -237,6 +238,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.SPLITBLADE]: {
     implemented: true,
+    interruptCommitMs: 480,
     effects: [
       {
         type: 'strike',
@@ -350,6 +352,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.WINTERS_BITE]: {
     implemented: true,
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',
@@ -408,7 +411,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 520
   },
   [ID.FROST_TRAP]: {
-    interruptCommitMs: 0,
+    interruptCommitMs: 440,
     implemented: true,
     effects: [
       {
@@ -1193,7 +1196,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 333
   },
   [ID.PATH_OF_SCARS]: {
-    interruptCommitMs: 0,
+    interruptCommitMs: 360,
     implemented: true,
     // Both range variants share the same weapon-slot recharge after completion.
     mechanicTriggers: [
@@ -1621,6 +1624,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.HAMMER_STRIKE]: {
     implemented: true,
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',
@@ -1632,7 +1636,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 480
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
-    interruptCommitMs: 0,
+    interruptCommitMs: 520,
     implemented: true,
     effects: [
       {
@@ -1682,6 +1686,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.UNLEASHED_THUMP]: {
     implemented: true,
+    interruptCommitMs: 800,
     effects: [
       {
         type: 'strike',
@@ -1712,6 +1717,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.HAMMER_SLAM]: {
     implemented: true,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
@@ -1724,6 +1730,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.UNLEASHED_WILD_SWING]: {
     implemented: true,
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -1737,6 +1744,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.HEAVY_SMASH]: {
     implemented: true,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
@@ -1814,6 +1822,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.OVERBEARING_SMASH]: {
     implemented: true,
+    interruptCommitMs: 240,
     effects: [
       {
         type: 'strike',
@@ -3896,7 +3905,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     id: ID.PATH_OF_SCARS_MAX_RANGE,
-    interruptCommitMs: 0,
+    interruptCommitMs: 360,
     name: 'Path of Scars (Max Range)',
     description: 'Throw your axe from maximum range so its returning strike lands later.',
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',

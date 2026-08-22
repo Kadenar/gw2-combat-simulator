@@ -1211,6 +1211,69 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
   assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_STRIKE);
 });
 
+test('Power Soulbeast EVTC damage cutoffs preserve interrupted packets', () => {
+  const hammerConfig = {
+    primaryWeapon: 'Hammer',
+    selectedHammerSkillIds: [
+      ID.UNLEASHED_WILD_SWING,
+      ID.OVERBEARING_SMASH,
+      ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+      ID.UNLEASHED_THUMP
+    ]
+  };
+  const cases = [
+    { skillId: ID.FROST_TRAP, cutoffMs: 440, prefix: [], config: {} },
+    { skillId: ID.RICOCHET, cutoffMs: 320, prefix: [], config: { primaryWeapon: 'Axe' } },
+    { skillId: ID.SPLITBLADE, cutoffMs: 480, prefix: [], config: { primaryWeapon: 'Axe' } },
+    { skillId: ID.WINTERS_BITE, cutoffMs: 360, prefix: [], config: { primaryWeapon: 'Axe' } },
+    {
+      skillId: ID.PATH_OF_SCARS,
+      cutoffMs: 360,
+      prefix: [],
+      config: { primaryWeapon: 'Axe', secondaryWeapon: 'Axe' }
+    },
+    {
+      skillId: ID.PATH_OF_SCARS_MAX_RANGE,
+      cutoffMs: 360,
+      prefix: [],
+      config: { primaryWeapon: 'Axe', secondaryWeapon: 'Axe' }
+    },
+    { skillId: ID.HAMMER_STRIKE, cutoffMs: 360, prefix: [], config: hammerConfig },
+    { skillId: ID.UNLEASHED_SAVAGE_SHOCK_WAVE, cutoffMs: 520, prefix: [], config: hammerConfig },
+    { skillId: ID.UNLEASHED_THUMP, cutoffMs: 800, prefix: [], config: hammerConfig },
+    { skillId: ID.HAMMER_SLAM, cutoffMs: 320, prefix: [ID.HAMMER_STRIKE], config: hammerConfig },
+    {
+      skillId: ID.UNLEASHED_WILD_SWING,
+      cutoffMs: 400,
+      prefix: [],
+      config: hammerConfig
+    },
+    {
+      skillId: ID.HEAVY_SMASH,
+      cutoffMs: 320,
+      prefix: [ID.HAMMER_STRIKE, ID.HAMMER_SLAM],
+      config: hammerConfig
+    },
+    { skillId: ID.OVERBEARING_SMASH, cutoffMs: 240, prefix: [], config: hammerConfig },
+    { skillId: ID.WORLDLY_IMPACT, cutoffMs: 520, prefix: [], config: { selectedPet: 'Pig' } },
+    { skillId: ID.MAUL_ID_41406, cutoffMs: 400, prefix: [], config: { selectedPet: 'Pig' } }
+  ];
+
+  for (const { skillId, cutoffMs, prefix, config } of cases) {
+    const skill = rangerCatalog.skillsById.get(skillId);
+    const damageCount = (interruptMs) =>
+      simulate(
+        'Soulbeast',
+        [...prefix, { name: skill.name, skillId, interruptMs }, { type: 'wait', durationMs: 6000 }],
+        config
+      ).events.filter((event) => event.type === 'damage' && event.skillId === skillId).length;
+
+    assert.equal(skill.interruptCommitMs, cutoffMs, skill.name);
+    assert.equal(damageCount(cutoffMs - 1), 0, `${skill.name} before commit`);
+    assert.ok(damageCount(cutoffMs) > 0, `${skill.name} at commit`);
+  }
+});
+
 test('Selected unleashed Hammer skills remain castable after Overbearing Smash', () => {
   const selectedHammerSkillIds = [
     ID.UNLEASHED_WILD_SWING,

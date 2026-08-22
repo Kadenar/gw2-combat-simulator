@@ -12,7 +12,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6000000000000001,
+        coefficient: 0.6,
         hits: 6
       },
       {
@@ -80,7 +80,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'strike',
-        coefficient: 1.2000000000000002,
+        coefficient: 1.2,
         hits: 3
       },
       {
@@ -105,6 +105,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.WORLDLY_IMPACT]: {
     implemented: true,
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
@@ -134,6 +135,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.MAUL_ID_41406]: {
     implemented: true,
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
