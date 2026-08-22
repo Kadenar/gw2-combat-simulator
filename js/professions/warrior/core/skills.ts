@@ -499,6 +499,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.HAMMER_SMASH]: {
     implemented: true,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',
@@ -513,6 +514,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.FIERCE_BLOW]: {
     implemented: true,
+    interruptCommitMs: 600,
     cooldown: 6,
     effects: [
       {
@@ -1616,6 +1618,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.CRUSHING_BLOW]: {
     implemented: true,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
@@ -2000,6 +2003,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KEEN_STRIKE]: {
     implemented: true,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
@@ -2113,6 +2117,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.BREACHING_STRIKE]: {
     implemented: true,
+    interruptCommitMs: 758,
     skillWeapon: 'Dagger',
     comboFinishers: [
       {
@@ -2213,6 +2218,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.BREACHING_STRIKE_ID_69433]: {
     implemented: true,
+    interruptCommitMs: 758,
     skillWeapon: 'Dagger',
     comboFinishers: [
       {

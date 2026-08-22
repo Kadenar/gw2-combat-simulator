@@ -127,6 +127,65 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
   assert.equal(strike(ID.RUPTURING_SMASH).comboFinishers[0].finisherType, 'Blast');
 });
 
+test('recorded interrupt commit cutoffs preserve landed warrior packets', () => {
+  const cases = [
+    {
+      skillId: ID.HAMMER_SMASH,
+      cutoffMs: 320,
+      prefix: [ID.HAMMER_SWING, ID.HAMMER_BASH],
+      config: { primaryWeapon: 'Hammer' }
+    },
+    {
+      skillId: ID.FIERCE_BLOW,
+      cutoffMs: 600,
+      prefix: [],
+      config: { primaryWeapon: 'Hammer' }
+    },
+    {
+      skillId: ID.CRUSHING_BLOW,
+      cutoffMs: 440,
+      prefix: [],
+      config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace' }
+    },
+    {
+      skillId: ID.KEEN_STRIKE,
+      cutoffMs: 280,
+      prefix: [ID.PRECISE_CUT, ID.FOCUSED_SLASH],
+      config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace' }
+    },
+    {
+      skillId: ID.BREACHING_STRIKE,
+      cutoffMs: 758,
+      prefix: [],
+      config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
+    },
+    {
+      skillId: ID.BREACHING_STRIKE_ID_69297,
+      cutoffMs: 760,
+      prefix: [],
+      config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
+    },
+    {
+      skillId: ID.BREACHING_STRIKE_ID_69433,
+      cutoffMs: 758,
+      prefix: [],
+      config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Mace', initialResource: 10 }
+    }
+  ];
+
+  for (const { skillId, cutoffMs, prefix, config } of cases) {
+    const skill = warriorCatalog.skillsById.get(skillId);
+    const damageCount = (interruptMs) =>
+      simulate('Spellbreaker', [...prefix, { name: skill.name, skillId, interruptMs }], config).events.filter(
+        (event) => event.type === 'damage' && event.skillId === skillId
+      ).length;
+
+    assert.equal(skill.interruptCommitMs, cutoffMs, skill.name);
+    assert.equal(damageCount(cutoffMs - 1), 0, `${skill.name} before commit`);
+    assert.equal(damageCount(cutoffMs), 1, `${skill.name} at commit`);
+  }
+});
+
 test('hammer cooldowns, conditional damage, recharge, and Defense traits work', () => {
   for (const [skillId, cooldown] of [
     [ID.FIERCE_BLOW, 6],

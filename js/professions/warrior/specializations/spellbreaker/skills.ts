@@ -419,6 +419,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.BREACHING_STRIKE_ID_69297]: {
     implemented: true,
+    interruptCommitMs: 760,
     skillWeapon: 'Dagger',
     comboFinishers: [
       {
