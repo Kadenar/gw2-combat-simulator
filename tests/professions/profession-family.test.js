@@ -701,7 +701,7 @@ test('Necromancer modules contain complete vertical slices', () => {
     'obsolete aggregate handler-mechanics table'
   );
   for (const relative of [
-    'specializations/reaper/shroud.ts',
+    'specializations/reaper/combos.ts',
     'specializations/reaper/resolver.ts',
     'specializations/scourge/shades.ts',
     'specializations/scourge/resolver.ts',

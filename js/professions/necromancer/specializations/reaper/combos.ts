@@ -1,3 +1,4 @@
+/** Reaper-specific combo field assumptions and summon-owned finisher resolution. */
 import { enqueueGw2OwnedComboFinisher } from '../../../../platform/gw2/resolver/combo-resolution.js';
 import type {
   NecromancerResolverContext,

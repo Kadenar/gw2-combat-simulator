@@ -2,7 +2,7 @@ import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { onResolvedPlayerCriticalHit } from '../../../../platform/gw2/native-profession.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { resolveSummonOwnedComboFinisher } from './shroud.js';
+import { resolveSummonOwnedComboFinisher } from './combos.js';
 import { applyTraitCondition, queueTraitCoefficientDamage, targetIsChilled } from '../../core/traits.js';
 import type {
   NecromancerResolverContext,

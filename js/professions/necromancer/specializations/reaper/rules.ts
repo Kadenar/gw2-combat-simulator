@@ -12,7 +12,7 @@ import {
   necromancerEventSkill,
   necromancerTargetChilled
 } from '../../core/rules.js';
-import { ensurePermanentIceFieldAssumption } from './shroud.js';
+import { ensurePermanentIceFieldAssumption } from './combos.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
