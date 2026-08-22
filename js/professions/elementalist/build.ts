@@ -11,7 +11,6 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { elementalistCatalog } from './catalog.js';
-import { LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS } from './data/legacy-skill-ids.js';
 import type { Gw2ApplicationBuild } from '../../platform/gw2/types.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import type { ElementalistApplicationBuild, ElementalistCanonicalBuild } from './types.js';
@@ -28,18 +27,6 @@ const SNAPSHOT_SELECTED_SKILL_SLOTS = Object.freeze({
   util3: 'Utility3',
   elite: 'Elite'
 });
-const SNAPSHOT_BOON_ASSUMPTIONS = Object.freeze({
-  Might: 'might',
-  Fury: 'fury',
-  Protection: 'protection',
-  Resolution: 'resolution',
-  Alacrity: 'alacrity',
-  Quickness: 'quickness',
-  Regeneration: 'regeneration',
-  Vigor: 'vigor',
-  Swiftness: 'swiftness'
-});
-const TARGET_CONDITION_NAMES = Object.freeze(Object.keys(createDefaultTargetConditions()));
 
 export { createDefaultTargetConditions };
 
@@ -108,58 +95,11 @@ function pistolBullets(value: unknown): Record<'Fire' | 'Water' | 'Air' | 'Earth
   };
 }
 
-/**
- * Rewrites every legacy synthetic identity before the shared codec resolves
- * rotation commands against the stable-ID catalog.
- */
-function migrateLegacyElementalistSkillId(value: unknown): unknown {
-  const numeric =
-    typeof value === 'number' ? value : typeof value === 'string' && /^1100\d{3}$/.test(value) ? Number(value) : null;
-  return numeric == null ? value : (LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS.get(numeric) ?? value);
-}
-
-function migrateElementalistV3ToV4(saved: SchedulerRecord): SchedulerRecord {
-  const rotation = Array.isArray(saved.rotation)
-    ? saved.rotation.map((entry) => {
-        if (typeof entry === 'number' || typeof entry === 'string') {
-          return migrateLegacyElementalistSkillId(entry);
-        }
-
-        if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-          return entry;
-        }
-
-        const command = entry as SchedulerRecord;
-        return {
-          ...command,
-          ...(Object.hasOwn(command, 'skillId')
-            ? {
-                skillId: migrateLegacyElementalistSkillId(command.skillId)
-              }
-            : {}),
-          ...(Object.hasOwn(command, 'id') ? { id: migrateLegacyElementalistSkillId(command.id) } : {})
-        };
-      })
-    : saved.rotation;
-  const selectedSkillIds = Array.isArray(saved.selectedSkillIds)
-    ? saved.selectedSkillIds.map(migrateLegacyElementalistSkillId)
-    : saved.selectedSkillIds;
-  return {
-    ...saved,
-    schemaVersion: 4,
-    ...(rotation == null ? {} : { rotation }),
-    ...(selectedSkillIds == null ? {} : { selectedSkillIds })
-  };
-}
-
 const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
   professionId: ELEMENTALIST_PROFESSION_ID,
   schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
   catalog: elementalistCatalog,
   createDefaults: createElementalistBuildDefaults,
-  migrations: {
-    3: migrateElementalistV3ToV4
-  },
   normalizeExtra(build, { saved }) {
     const assumptions = normalizeProfessionAssumptions(
       normalizeSimulationRandomnessAssumptions(build.assumptions),
@@ -241,29 +181,10 @@ function migrateSnapshotSelectedSkills(value: unknown): SchedulerRecord {
   );
 }
 
-function migrateSnapshotAssumptions(value: unknown, current: unknown): SchedulerRecord {
-  const assumptions = record(current);
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return assumptions;
-  }
-
-  const permaBoons = value as SchedulerRecord;
-  const targetConditions = Object.fromEntries(
-    TARGET_CONDITION_NAMES.filter((name) => Object.hasOwn(permaBoons, name)).map((name) => [name, permaBoons[name]])
-  );
-  const boonAssumptions = Object.fromEntries(
-    Object.entries(SNAPSHOT_BOON_ASSUMPTIONS).map(([savedName, assumptionName]) => [
-      assumptionName,
-      savedName === 'Might' ? Number(permaBoons[savedName]) || 0 : Boolean(permaBoons[savedName])
-    ])
-  );
-  return {
-    ...assumptions,
-    ...boonAssumptions,
-    targetConditions
-  };
-}
-
+/**
+ * Preserves the remaining standalone snapshot fields while requiring
+ * simulation assumptions to use the current nested build schema.
+ */
 function normalizeSavedBuild(candidate: unknown): unknown {
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
     return candidate;
@@ -293,7 +214,7 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       : {}),
     ...(Object.hasOwn(snapshotFields, 'pistolBullets') ? { pistolBullets: snapshotFields.pistolBullets } : {}),
     assumptions: {
-      ...migrateSnapshotAssumptions(snapshotFields.permaBoons, build.assumptions),
+      ...record(build.assumptions),
       ...(Object.hasOwn(snapshotFields, 'hitboxSize') ? { hitboxSize: snapshotFields.hitboxSize } : {})
     }
   };

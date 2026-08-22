@@ -21,7 +21,6 @@ import {
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/professions/elementalist/data/ids.js';
-import { LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS } from '../../../js/professions/elementalist/data/legacy-skill-ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/professions/elementalist/core/elemental-profile.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
@@ -249,53 +248,21 @@ test('Elementalist build defaults and saved snapshots migrate explicitly', () =>
   );
 });
 
-test('Elementalist schema 3 synthetic skill IDs migrate to stable identities', () => {
-  const migrated = migrateElementalistBuild({
-    schemaVersion: 3,
-    profession: 'elementalist',
-    specializations: [
-      { name: 'Fire', traits: '1-3-1' },
-      { name: 'Air', traits: '3-3-2' },
-      { name: 'Tempest', traits: '3-1-1' }
-    ],
-    selectedSkillIds: [1100138, 1100139, 1100122, 1100126, 1100276],
-    rotation: [1100001, { type: 'cast', skillId: 1100122 }, { type: 'cast', id: '1100264' }]
-  });
-
-  assert.equal(migrated.schemaVersion, ELEMENTALIST_BUILD_SCHEMA_VERSION);
-  assert.deepEqual(migrated.selectedSkills, {
-    Heal: 'Wash the Pain Away!',
-    Utility1: 'Feel the Burn!',
-    Utility2: 'Glyph of Storms (Fire)',
-    Utility3: 'Signet of Fire',
-    Elite: 'Glyph of Elementals'
-  });
-  assert.deepEqual(
-    migrated.rotation.map((command) => command.skillId),
-    [ID.FIRE_ATTUNEMENT, ID.GLYPH_OF_STORMS_FIRE, ID.AERIAL_AGILITY_CHAIN]
-  );
-  assert.equal(Object.hasOwn(migrated, 'selectedSkillIds'), false);
-});
-
-test('the Elementalist legacy inventory completely targets the stable catalog', () => {
-  assert.equal(LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS.size, 284);
-  assert.ok(
-    [...LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS.values()].every((id) => elementalistCatalog.skillsById.has(id))
-  );
-  assert.equal(
-    elementalistCatalog.skills.some(
-      (skill) => typeof skill.id === 'number' && skill.id >= 1_100_000 && skill.id < 1_101_000
-    ),
-    false
-  );
-  assert.equal(new Set(elementalistCatalog.skills.map((skill) => skill.id)).size, elementalistCatalog.skills.length);
-});
-
 test('standalone Elementalist snapshot fields migrate into the native schema', () => {
   const defaults = createElementalistBuildDefaults();
   const snapshot = {
     build: {
       ...defaults,
+      assumptions: {
+        ...defaults.assumptions,
+        might: 17,
+        fury: true,
+        quickness: false,
+        targetConditions: {
+          Burning: true,
+          Vulnerability: 12
+        }
+      },
       profession: undefined,
       schemaVersion: undefined
     },
@@ -311,12 +278,6 @@ test('standalone Elementalist snapshot fields migrate into the native schema', (
     evokerElement: 'Air',
     evokerStartCharges: 4,
     evokerStartEmpowered: 2,
-    permaBoons: {
-      Might: 17,
-      Fury: true,
-      Burning: true,
-      Vulnerability: 12
-    },
     rotation: [
       'Fire Attunement',
       { name: '__wait', waitMs: 420 },
@@ -382,6 +343,7 @@ test('all Elementalist build and rotation assets migrate through the native code
     });
     const validation = validateElementalistBuild(build);
 
+    assert.equal(savedBuild.schemaVersion, ELEMENTALIST_BUILD_SCHEMA_VERSION, `${preset.section}: ${preset.label}`);
     assert.equal(validation.valid, true, `${preset.section}: ${preset.label}: ${validation.errors.join('; ')}`);
     assert.equal(
       Object.hasOwn(savedBuild.assumptions, 'elementalSimulationProfile'),
