@@ -1052,16 +1052,14 @@ test('Daredevil skills and endurance traits use configured values', () => {
     [backstabStrike.atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
     [200, 'castStart', 'fixed']
   );
+  assert.equal(thiefCatalog.skillsById.get(ID.BACKSTAB).interruptCommitMs, 200);
   const interruptedBackstab = simulate('Daredevil', ['Cloak and Dagger', { name: 'Backstab', interruptMs: 280 }], {
     stats: { precision: 5000 }
   });
 
   assert.equal(interruptedBackstab.steps[1].interrupted, true);
   assert.equal(interruptedBackstab.steps[1].end - interruptedBackstab.steps[1].start, 280);
-  assert.equal(
-    interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab'),
-    undefined
-  );
+  assert.equal(interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab').hits, 1);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).castTimeMs, 800);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).quicknessCastTimeMs, undefined);
   assert.equal(thiefCatalog.skillsById.get(ID.DODGE).unaffectedByQuickness, true);
@@ -1768,6 +1766,25 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     shadowShot.events.find((event) => event.type === 'blind' && event.skillName === 'Shadow Shot').duration,
     5
   );
+});
+
+test('Wild Strike commits its strike and bleeding before its remaining animation is interrupted', () => {
+  const wildEffects = (interruptMs) =>
+    simulate('Core', ['Double Strike', { name: 'Wild Strike', interruptMs }], {
+      boons: { quickness: true }
+    }).events.filter(
+      (event) => event.skillName === 'Wild Strike' && (event.type === 'damage' || event.type === 'condition')
+    );
+
+  assert.deepEqual(wildEffects(159), []);
+  assert.deepEqual(
+    wildEffects(160).map((event) => [event.type, Math.round(event.at * 1000)]),
+    [
+      ['damage', 520],
+      ['condition', 520]
+    ]
+  );
+  assert.equal(wildEffects(240).length, 2);
 });
 
 test('Lotus Strike commits its strike and poison before a later animation interrupt', () => {

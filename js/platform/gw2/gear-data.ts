@@ -1473,8 +1473,19 @@ export const RELIC_DATA = {
     trigger: 'Use weapon skill with CD or resource cost',
     cooldown: 0,
     icon: 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png'
+  },
+  Warrior: {
+    trigger: 'Reduce weapon swap recharge by 25%',
+    cooldown: 0,
+    weaponSwapRechargeMultiplier: 0.75
   }
 };
+
+/** Resolves an equipped relic's shared weapon-swap timing modifier. */
+export function relicWeaponSwapRechargeMultiplier(relicName: string | undefined): number {
+  const relic = RELIC_DATA[relicName as keyof typeof RELIC_DATA];
+  return relic && 'weaponSwapRechargeMultiplier' in relic ? Number(relic.weaponSwapRechargeMultiplier) : 1;
+}
 
 function derivedProfessionWielding(catalog: CanonicalCatalog, weapon: string, fallback: string): string {
   const explicit = catalog?.weaponHands?.get?.(weapon);
@@ -1546,6 +1557,6 @@ export const RELIC_GROUPS = [
   },
   {
     label: 'Hybrid',
-    items: ['Nourys', 'Peitha']
+    items: ['Nourys', 'Peitha', 'Warrior']
   }
 ];

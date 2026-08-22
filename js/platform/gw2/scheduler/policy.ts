@@ -34,6 +34,7 @@ import {
   remainingDurationStackSeconds
 } from '../boon-state.js';
 import { clamp } from '../numeric.js';
+import { relicWeaponSwapRechargeMultiplier } from '../gear-data.js';
 import { gw2StatsForWeaponSet } from '../runtime-rules.js';
 import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skill-timing.js';
 import type {
@@ -64,6 +65,7 @@ type CastBoundTimingContext = SchedulerContext &
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends']);
+const WEAPON_SWAP_SKILL = 'Swap Weapons';
 
 function baseCastDurationMs(skill: Skill): number {
   return Math.max(0, Number(skill.castTimeMs || 0));
@@ -307,6 +309,12 @@ export function createGw2SchedulerPolicy(
       const at = Number(context.at ?? context.effectiveEnd ?? context.start ?? 0);
       if (OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) && !materializer.isCombatActive()) {
         return 0;
+      }
+
+      // Weapon swap ignores Alacrity; an equipped relic modifier instead changes
+      // its base recharge directly so rotations use the game's actual timing.
+      if (skill.name === WEAPON_SWAP_SKILL) {
+        return baseDuration * relicWeaponSwapRechargeMultiplier(config.relic);
       }
 
       const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');

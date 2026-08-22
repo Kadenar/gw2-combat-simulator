@@ -763,6 +763,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 320,
+    interruptCommitMs: 200,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
@@ -1788,6 +1789,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.WILD_STRIKE]: {
     implemented: true,
     quicknessCastTimeMs: 400,
+    // Wild Strike commits its strike and bleeding on the ~160 ms impact before the chain animation ends.
+    interruptCommitMs: 160,
     cooldown: 0,
     initiativeCost: 0,
     resourceGain: 10,

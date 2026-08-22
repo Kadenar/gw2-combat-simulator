@@ -42,7 +42,7 @@ test('shared relics are grouped by their damage effect', () => {
     },
     {
       label: 'Hybrid',
-      items: ['Nourys', 'Peitha']
+      items: ['Nourys', 'Peitha', 'Warrior']
     }
   ]);
 });

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  activationDamageCommitLabel,
   activationDamageCommitMs,
   activationDamageCommitWarning,
   suggestedActivationInterruptMs,
@@ -187,6 +188,8 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.equal(activationDamageCommitMs({ effects: [], interruptCommitMs: 160 }), 160);
   assert.equal(activationDamageCommitMs({ effects: [], interruptMode: 'per-packet' }), 0);
   assert.equal(activationDamageCommitMs({ effects: [] }), null);
+  assert.equal(activationDamageCommitLabel(160), 'Damage commit cutoff: 160 ms minimum');
+  assert.equal(activationDamageCommitLabel(null), '');
   assert.match(activationDamageCommitWarning(159, 160), /contribute no damage.*at least 160 ms/);
   assert.match(activationDamageCommitWarning(200, null), /No damage commit time is configured/);
   assert.equal(activationDamageCommitWarning(160, 160), '');
