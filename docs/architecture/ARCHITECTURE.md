@@ -139,8 +139,9 @@ Every native profession otherwise uses the same source roles:
   reason.
 - `data/traits-data.ts` is the only module that exports the flattened runtime `TRAITS` collection; it derives that view
   from specialization metadata.
-- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts`. A root
-  `mechanics/skill-mechanics.ts` may remain only as inert composition for the complete application catalog.
+- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts`. Tests that need a
+  profession-wide inventory compose those owner-local fragments under `tests/`; production does not expose a root
+  skill-mechanics aggregate.
 - Triggered effects and state machines live in owner-local `mechanics.ts` files; families do not use mixed
   profession-wide runtime aggregates.
 - `catalog-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.

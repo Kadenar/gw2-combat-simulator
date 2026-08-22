@@ -20,10 +20,10 @@ import { DATA_SNAPSHOT } from '../../../js/professions/engineer/data/engineer-ap
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../../../js/professions/engineer/data/trait-coverage.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../js/professions/engineer/data/ids.js';
-import { ENGINEER_SKILL_MECHANICS } from '../../../js/professions/engineer/mechanics/skill-mechanics.js';
 import { engineerProfession } from '../../../js/professions/engineer/definition.js';
 import { engineerCoreModule } from '../../../js/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_SKILL_MECHANICS } from '../../../js/professions/engineer/core/skills.js';
 import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '../../../js/professions/engineer/core/turrets.js';
 import { amalgamModule } from '../../../js/professions/engineer/specializations/amalgam/module.js';
 import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/amalgam/profiles.js';
@@ -124,7 +124,7 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   );
   assert.equal(engineerCatalog.skillsById.has(6175), false);
   assert.equal(engineerCatalog.skillsById.has(58090), false);
-  const poisonGrenade = ENGINEER_SKILL_MECHANICS[5806];
+  const poisonGrenade = ENGINEER_CORE_SKILL_MECHANICS[5806];
 
   assert.equal(poisonGrenade.castTimeMs, undefined);
   assert.equal(poisonGrenade.quicknessCastTimeMs, 680);

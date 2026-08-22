@@ -55,7 +55,6 @@ import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '.
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../../js/professions/mesmer/data/trait-coverage.js';
-import { MECHANIC_SKILLS } from '../../js/professions/mesmer/mechanics/skill-mechanics.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
@@ -2587,11 +2586,11 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
     }
   }
 
-  assert.ok(
-    Object.values(MECHANIC_SKILLS)
-      .flat()
-      .every((skillId) => mesmerCatalog.skillsById.has(skillId))
+  const mechanicSkillIds = ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'].flatMap((specialization) =>
+    mesmerProfession.ui.skillBarGroups({ specialization }).flatMap((group) => group.skillIds)
   );
+
+  assert.ok(mechanicSkillIds.every((skillId) => mesmerCatalog.skillsById.has(skillId)));
   assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
   assert.ok(
     Object.keys(mesmerProfession.resolveRuntime({ specialization: 'Chronomancer' }).taskHandlers).every((type) =>
@@ -2768,16 +2767,14 @@ test('native registry loaders do not pull another profession module graph', asyn
   }
 });
 
-test('declarative professions use the standard mechanics module roles', async () => {
+test('declarative professions keep skill ownership in runtime modules', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
 
   for (const profession of professionRegistry.map((entry) => entry.id)) {
-    const mechanicsRoot = path.join(root, profession, 'mechanics');
-    const prefix = profession.toUpperCase();
-    const mechanics = await readSourceModule(path.join(mechanicsRoot, 'skill-mechanics.js'));
-
-    assert.match(mechanics, new RegExp(`export const ${prefix}_SKILL_MECHANICS\\b`));
-    assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
+    await assert.rejects(
+      access(path.join(root, profession, 'mechanics', 'skill-mechanics.ts')),
+      (error) => error?.code === 'ENOENT'
+    );
 
     if (profession === 'necromancer') {
       const localMechanics = await Promise.all(
@@ -2806,7 +2803,6 @@ test('declarative professions use the standard mechanics module roles', async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
 
-      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === 'guardian') {
@@ -2832,7 +2828,6 @@ test('declarative professions use the standard mechanics module roles', async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
 
-      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === 'mesmer') {
@@ -2857,7 +2852,6 @@ test('declarative professions use the standard mechanics module roles', async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
 
-      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === 'revenant') {
@@ -2883,7 +2877,6 @@ test('declarative professions use the standard mechanics module roles', async ()
       assert.match(heraldMechanics, /export const HERALD_MECHANICS\b/);
       assert.doesNotMatch(heraldMechanics, /HANDLER_MECHANICS/);
       assert.ok(authorableSlices.every((source) => /BALANCE_PROFILES\b/.test(source)));
-      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     }

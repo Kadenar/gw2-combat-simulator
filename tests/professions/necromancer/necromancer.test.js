@@ -20,7 +20,6 @@ import {
 import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '../../../js/professions/necromancer/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/necromancer/data/necromancer-api-metadata.js';
 import { necromancerProfession } from '../../../js/professions/necromancer/definition.js';
-import { NECROMANCER_QUICKNESS_CAST_TIMES_MS } from '../../../js/professions/necromancer/mechanics/skill-mechanics.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT
@@ -277,7 +276,9 @@ test('measured Quickness cast times remain exact', () => {
 
   assert.deepEqual(
     new Map(
-      Object.entries(NECROMANCER_QUICKNESS_CAST_TIMES_MS).map(([skillId, duration]) => [Number(skillId), duration])
+      necromancerCatalog.skills.flatMap((skill) =>
+        skill.quicknessCastTimeMs == null ? [] : [[Number(skill.id), Number(skill.quicknessCastTimeMs)]]
+      )
     ),
     expected
   );
@@ -708,10 +709,10 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-          skill.effects.length ||
-          skill.lifeForceGain ||
-          skill.flipParentId != null ||
-          skill.type === 'Action'
+        skill.effects.length ||
+        skill.lifeForceGain ||
+        skill.flipParentId != null ||
+        skill.type === 'Action'
       ),
       true,
       `${skill.id} ${skill.name}`

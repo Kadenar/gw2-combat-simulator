@@ -1,24 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import { SKILLS, SPECIALIZATIONS } from '../../../js/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '../../../js/professions/guardian/data/guardian-api-metadata.js';
 import { TRAITS } from '../../../js/professions/mesmer/data/traits-data.js';
 import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
-import {
-  MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS,
-  AMBUSH_SKILLS,
-  MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
-  MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH,
-  MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
-  MECHANIC_SKILLS,
-  PHANTASM_ATTACK_TIMINGS,
-  MESMER_EXTRA_SKILLS as PSEUDO_SKILLS,
-  MESMER_SKILL_MECHANICS,
-  MESMER_SUPPLEMENTAL_SKILL_MECHANICS,
-  SHATTERS,
-  TRAIT_DAMAGE
-} from '../../../js/professions/mesmer/mechanics/skill-mechanics.js';
 import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
 import { MESMER_SKILL_IDS as ID } from '../../../js/professions/mesmer/data/ids.js';
@@ -29,23 +16,141 @@ import {
   MESMER_CORE_SHATTER_PROFILE_IDS,
   mesmerProfiledShatters
 } from '../../../js/professions/mesmer/core/profiles.js';
+import {
+  MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
+  MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
+  MESMER_CORE_SHATTERS,
+  MESMER_CORE_TRAIT_DAMAGE,
+  MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH
+} from '../../../js/professions/mesmer/core/mechanics.js';
+import {
+  MESMER_CORE_EXTRA_SKILLS,
+  MESMER_CORE_SKILL_MECHANICS,
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../../../js/professions/mesmer/core/skills.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/chronomancer/profiles.js';
+import {
+  MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
+  MESMER_CHRONOMANCER_SHATTERS,
+  MESMER_CHRONOMANCER_TRAIT_DAMAGE
+} from '../../../js/professions/mesmer/specializations/chronomancer/mechanics.js';
+import {
+  MESMER_CHRONOMANCER_EXTRA_SKILLS,
+  MESMER_CHRONOMANCER_SKILL_MECHANICS,
+  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../../../js/professions/mesmer/specializations/chronomancer/skills.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
   MIRAGE_BALANCE_PROFILE_IDS,
   mesmerProfiledAmbush
 } from '../../../js/professions/mesmer/specializations/mirage/profiles.js';
+import { MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS } from '../../../js/professions/mesmer/specializations/mirage/mechanics.js';
+import {
+  MESMER_MIRAGE_EXTRA_SKILLS,
+  MESMER_MIRAGE_SKILL_MECHANICS,
+  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../../../js/professions/mesmer/specializations/mirage/skills.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/virtuoso/profiles.js';
+import {
+  MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
+  MESMER_VIRTUOSO_SHATTERS,
+  MESMER_VIRTUOSO_TRAIT_DAMAGE
+} from '../../../js/professions/mesmer/specializations/virtuoso/mechanics.js';
+import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '../../../js/professions/mesmer/specializations/virtuoso/skills.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
 } from '../../../js/professions/mesmer/specializations/troubadour/profiles.js';
 import {
+  MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
+  MESMER_TROUBADOUR_TRAIT_DAMAGE
+} from '../../../js/professions/mesmer/specializations/troubadour/mechanics.js';
+import {
+  MESMER_TROUBADOUR_EXTRA_SKILLS,
+  MESMER_TROUBADOUR_SKILL_MECHANICS,
+  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../../../js/professions/mesmer/specializations/troubadour/skills.js';
+import {
   defaultMesmerSkillIdForDuplicateName,
   MESMER_DUPLICATE_SKILL_NAMES,
   resolveMesmerSkillIdFromDuplicateName
 } from '../../../js/professions/mesmer/data/duplicate-skill-names.js';
+
+const MECHANIC_SKILLS = Object.freeze({
+  Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
+  Chronomancer: Object.freeze([ID.SPLIT_SECOND, ID.REWINDER, ID.TIME_SINK, ID.DISTORTION, ID.CONTINUUM_SPLIT]),
+  Mirage: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
+  Virtuoso: Object.freeze([
+    ID.BLADESONG_HARMONY,
+    ID.BLADESONG_SORROW,
+    ID.BLADESONG_DISSONANCE,
+    ID.BLADESONG_DISTORTION,
+    ID.BLADETURN_REQUIEM
+  ]),
+  Troubadour: Object.freeze([
+    ID.LIVELY_LUTE,
+    ID.FLUSTERING_FLUTE,
+    ID.DEAFENING_DRUM,
+    ID.HARMONIOUS_HARP_ALTERNATE,
+    ID.CRESCENDO
+  ])
+});
+
+const SHATTERS = Object.freeze({
+  ...MESMER_CORE_SHATTERS,
+  ...MESMER_CHRONOMANCER_SHATTERS,
+  ...MESMER_VIRTUOSO_SHATTERS
+});
+
+const MESMER_SKILL_MECHANICS = composeSkillMechanics('Mesmer', [
+  MESMER_CORE_SKILL_MECHANICS,
+  MESMER_CHRONOMANCER_SKILL_MECHANICS,
+  MESMER_MIRAGE_SKILL_MECHANICS,
+  MESMER_VIRTUOSO_SKILL_MECHANICS,
+  MESMER_TROUBADOUR_SKILL_MECHANICS
+]);
+
+const MESMER_SUPPLEMENTAL_SKILL_MECHANICS = composeSkillMechanics('Mesmer supplemental', [
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
+  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
+  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
+]);
+
+const PSEUDO_SKILLS = Object.freeze([
+  ...MESMER_CORE_EXTRA_SKILLS,
+  ...MESMER_CHRONOMANCER_EXTRA_SKILLS,
+  ...MESMER_MIRAGE_EXTRA_SKILLS,
+  ...MESMER_TROUBADOUR_EXTRA_SKILLS
+]);
+
+const AMBUSH_SKILLS = Object.freeze(MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush));
+
+const phantasmTimingIds = new Set([
+  ...Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS),
+  ...Object.keys(MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS),
+  ...Object.keys(MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS)
+]);
+const PHANTASM_ATTACK_TIMINGS = Object.freeze(
+  Object.fromEntries(
+    [...phantasmTimingIds].map((id) => [
+      Number(id),
+      {
+        ...MESMER_CORE_PHANTASM_ATTACK_TIMINGS[Number(id)],
+        ...MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[Number(id)],
+        ...MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS[Number(id)]
+      }
+    ])
+  )
+);
+
+const TRAIT_DAMAGE = Object.freeze({
+  ...MESMER_CORE_TRAIT_DAMAGE,
+  ...MESMER_CHRONOMANCER_TRAIT_DAMAGE,
+  ...MESMER_VIRTUOSO_TRAIT_DAMAGE,
+  ...MESMER_TROUBADOUR_TRAIT_DAMAGE
+});
 
 const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
 const profileEffects = (skill) => (skill.effects.length > 0 ? skill.effects : skill.mesmerEffects || []);

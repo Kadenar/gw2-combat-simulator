@@ -8,9 +8,31 @@ import {
 import { ELEMENTALIST_SKILL_IDS as ID } from './data/ids.js';
 import { ELEMENTALIST_API_SKILL_ID_OVERRIDES, ELEMENTALIST_LOADOUT_SKILL_IDS } from './data/skill-identities.js';
 import { TRAITS } from './data/traits-data.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from './core/skills.js';
+import { CATALYST_SKILL_MECHANICS } from './specializations/catalyst/skills.js';
+import { EVOKER_SKILL_MECHANICS } from './specializations/evoker/skills.js';
+import { TEMPEST_SKILL_MECHANICS } from './specializations/tempest/skills.js';
+import { WEAVER_SKILL_MECHANICS } from './specializations/weaver/skills.js';
 import type { CatalogEntity, SchedulerRecord, Skill, SkillEffect, SkillFragment } from '../../platform/engine/types.js';
 import type { ElementalistCastContext } from './types.js';
-import { ELEMENTALIST_SKILL_MECHANICS } from './mechanics/skill-mechanics.js';
+
+// Catalog generation needs the complete module-owned declaration set, and the
+// duplicate check prevents one module from silently overwriting another.
+const elementalistMechanicsEntries = [
+  ELEMENTALIST_CORE_SKILL_MECHANICS,
+  TEMPEST_SKILL_MECHANICS,
+  WEAVER_SKILL_MECHANICS,
+  CATALYST_SKILL_MECHANICS,
+  EVOKER_SKILL_MECHANICS
+].flatMap((fragment) => Object.entries(fragment));
+
+if (new Set(elementalistMechanicsEntries.map(([skillId]) => skillId)).size !== elementalistMechanicsEntries.length) {
+  throw new TypeError('Duplicate Elementalist skill-mechanics ownership.');
+}
+
+const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze(
+  Object.fromEntries(elementalistMechanicsEntries)
+);
 
 const ELEMENTALIST_FALLBACK_ICON =
   'data:image/svg+xml,' +

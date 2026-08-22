@@ -14,12 +14,12 @@ import { createResolverState } from '../../js/platform/engine/resolver.js';
 import { createScheduler } from '../../js/platform/engine/scheduler.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
+import { composeSkillMechanics } from '../helpers/skill-mechanics.js';
 import { ENGINEER_ELITE_SPECIALIZATIONS, engineerCatalog } from '../../js/professions/engineer/catalog.js';
 import { engineerProfession } from '../../js/professions/engineer/definition.js';
 import { engineerCoreModule } from '../../js/professions/engineer/core/module.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '../../js/professions/engineer/core/skills.js';
 import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '../../js/professions/engineer/data/ids.js';
-import { ENGINEER_SKILL_MECHANICS } from '../../js/professions/engineer/mechanics/skill-mechanics.js';
 import { amalgamModule } from '../../js/professions/engineer/specializations/amalgam/module.js';
 import { AMALGAM_SKILL_MECHANICS } from '../../js/professions/engineer/specializations/amalgam/skills.js';
 import { holosmithModule } from '../../js/professions/engineer/specializations/holosmith/module.js';
@@ -1616,6 +1616,7 @@ test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
     MECHANIST_SKILL_MECHANICS,
     AMALGAM_SKILL_MECHANICS
   ];
+  const aggregate = composeSkillMechanics('Engineer', fragments);
   const owners = new Map();
 
   for (const [fragmentIndex, fragment] of fragments.entries()) {
@@ -1631,7 +1632,7 @@ test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
 
   assert.deepEqual(
     [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
-    Object.keys(ENGINEER_SKILL_MECHANICS).sort((left, right) => Number(left) - Number(right))
+    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right))
   );
 });
 

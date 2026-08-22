@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import {
   currentAutoattackSkill,
   paletteActionSkills,
@@ -33,15 +34,20 @@ import { RANGER_PETS } from '../../../js/professions/ranger/data/ranger-pet-data
 import { RANGER_TRAIT_COVERAGE } from '../../../js/professions/ranger/data/trait-coverage.js';
 import { rangerProfession } from '../../../js/professions/ranger/definition.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/core/skills.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/druid/profiles.js';
+import { DRUID_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/specializations/druid/skills.js';
 import { druidAttributeRules } from '../../../js/professions/ranger/specializations/druid/rules.js';
 import { DRUID_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/druid/state.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/soulbeast/profiles.js';
+import { SOULBEAST_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/specializations/soulbeast/skills.js';
 import { SOULBEAST_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/soulbeast/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/untamed/profiles.js';
+import { UNTAMED_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/specializations/untamed/skills.js';
 import { UNTAMED_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/untamed/state.js';
 import { GALESHOT_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/specializations/galeshot/profiles.js';
+import { GALESHOT_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/specializations/galeshot/skills.js';
 import { GALESHOT_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '../../../js/professions/ranger/core/pets.js';
 import {
@@ -49,7 +55,6 @@ import {
   rangerCoreCastRules,
   rangerCoreModifierRules
 } from '../../../js/professions/ranger/core/rules.js';
-import { RANGER_SKILL_MECHANICS } from '../../../js/professions/ranger/mechanics/skill-mechanics.js';
 import {
   soulbeastAttributeRules,
   soulbeastCastRules,
@@ -63,6 +68,14 @@ import {
   recalculate,
   runSimulation
 } from '../../../js/professions/ranger/app/app-definition.js';
+
+const RANGER_SKILL_MECHANICS = composeSkillMechanics('Ranger', [
+  RANGER_CORE_BASE_SKILL_MECHANICS,
+  DRUID_BASE_SKILL_MECHANICS,
+  SOULBEAST_BASE_SKILL_MECHANICS,
+  UNTAMED_BASE_SKILL_MECHANICS,
+  GALESHOT_BASE_SKILL_MECHANICS
+]);
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

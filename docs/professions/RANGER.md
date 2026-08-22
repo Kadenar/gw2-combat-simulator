@@ -14,8 +14,8 @@ elite is assembled into a given runtime.
   API-omitted actions in `data/ranger-supplemental-skills.ts`.
 - Refresh: `npm run update:ranger-data` (changes generated identity/presentation
   metadata only).
-- Authoritative combat fields live in owner-local `skills.ts` fragments; the
-  root `mechanics/skill-mechanics.ts` is an inert application-catalog aggregate.
+- Authoritative combat fields live in owner-local `skills.ts` fragments, and
+  the application catalog is assembled from those module contributions.
 
 ## Implemented systems
 

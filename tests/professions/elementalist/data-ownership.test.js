@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
+import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { elementalistCoreModule } from '../../../js/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/professions/elementalist/core/skills.js';
 import {
@@ -11,7 +12,6 @@ import {
 } from '../../../js/professions/elementalist/data/ids.js';
 import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '../../../js/professions/elementalist/data/elementalist-api-metadata.js';
 import { TRAITS } from '../../../js/professions/elementalist/data/traits-data.js';
-import { ELEMENTALIST_SKILL_MECHANICS } from '../../../js/professions/elementalist/mechanics/skill-mechanics.js';
 import { catalystModule } from '../../../js/professions/elementalist/specializations/catalyst/module.js';
 import { CATALYST_JADE_SPHERE_EFFECTS } from '../../../js/professions/elementalist/specializations/catalyst/jade-sphere-effects.js';
 import { CATALYST_SKILL_MECHANICS } from '../../../js/professions/elementalist/specializations/catalyst/skills.js';
@@ -34,6 +34,11 @@ const slices = [
   ['specializations/catalyst', catalystModule, CATALYST_SKILL_MECHANICS],
   ['specializations/evoker', evokerModule, EVOKER_SKILL_MECHANICS]
 ];
+
+const ELEMENTALIST_SKILL_MECHANICS = composeSkillMechanics(
+  'Elementalist',
+  slices.map(([, , mechanics]) => mechanics)
+);
 
 const weaponFragmentOwners = [
   ['core', ELEMENTALIST_CORE_SKILL_MECHANICS],

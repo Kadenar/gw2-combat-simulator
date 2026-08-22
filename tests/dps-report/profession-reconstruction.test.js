@@ -831,3 +831,48 @@ test('recovers Conduit opening state from dependencies without assuming one benc
     ['__combat_start', 'Impossible Odds', 'Preparation Thrust', 'Swap Legends']
   );
 });
+
+test('maps Conduit Cosmic Wisdom variants and split Mace animations to player inputs', () => {
+  const report = reportFixture(
+    'Conduit',
+    [
+      { id: 78191, skills: [{ castTime: 0, duration: 440, timeGained: 0 }] },
+      { id: 78587, skills: [{ castTime: 440, duration: 440, timeGained: 0 }] },
+      { id: 78203, skills: [{ castTime: 880, duration: 800, timeGained: 0 }] },
+      { id: 78351, skills: [{ castTime: 1680, duration: 920, timeGained: 0 }] },
+      { id: 28029, skills: [{ castTime: 2600, duration: 320, timeGained: 0 }] },
+      { id: 26923, skills: [{ castTime: 2920, duration: 640, timeGained: 0 }] }
+    ],
+    {
+      s78191: { name: 'Embrace the Darkness (Cosmic Wisdom)' },
+      s78587: { name: 'Banish Enchantment (Cosmic Wisdom)' },
+      s78203: { name: 'Call to Anguish (Cosmic Wisdom)' },
+      s78351: { name: 'Unyielding Impact (Cosmic Wisdom)' },
+      s28029: { name: 'Frigid Blitz' },
+      s26923: { name: 'Frigid Blitz' }
+    }
+  );
+  const catalog = {
+    skills: [
+      skill(28287, 'Embrace the Darkness', { type: 'elite', quicknessCastTimeMs: 440 }),
+      skill(27505, 'Banish Enchantment', { type: 'utility', quicknessCastTimeMs: 440 }),
+      skill(27917, 'Call to Anguish', { type: 'utility', quicknessCastTimeMs: 800 }),
+      skill(76503, 'Unyielding Impact', { type: 'utility', quicknessCastTimeMs: 920 }),
+      skill(28029, 'Frigid Blitz', { type: 'weapon', quicknessCastTimeMs: 960 })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.actions.map((action) => [action.name, action.skillId]),
+    [
+      ['Embrace the Darkness', 28287],
+      ['Banish Enchantment', 27505],
+      ['Call to Anguish', 27917],
+      ['Unyielding Impact', 76503],
+      ['Frigid Blitz', 28029]
+    ]
+  );
+  assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
+});

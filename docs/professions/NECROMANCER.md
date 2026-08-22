@@ -14,8 +14,8 @@ elite's skills/traits/state/handlers are present in a given runtime.
   adding API-omitted Death Shroud, Lich Form, Ritualist innervate, and
   simulator actions (kept in `data/necromancer-supplemental-skills.js`).
 - Refresh: `npm run update:necromancer-data` (API metadata only). Simulator
-  timing/behavior live in module `skills.js` fragments; the
-  `mechanics/skill-mechanics.js` facade composes the application catalog.
+  timing/behavior live in module `skills.js` fragments, and the application
+  catalog is assembled from those module contributions.
 
 ## Implemented systems
 

@@ -10,8 +10,8 @@ elite (Chronomancer, Mirage, Virtuoso, or Troubadour) is present in a given runt
   traits).
 - Refresh: `npm run update:mesmer-data`, which regenerates the metadata-only `data/mesmer-api-metadata.ts`.
 - PvE coefficients, activation times, cooldowns, strike counts, and condition durations come from the Wiki, with
-  supplied benchmark logs taking precedence for the rows they cover. Simulation-affecting fields live in
-  `mechanics/skill-mechanics.ts`. Runtime simulation is network-free.
+  supplied benchmark logs taking precedence for the rows they cover. Simulation-affecting fields live in owner-local
+  Core and specialization `skills.ts` and `mechanics.ts` files. Runtime simulation is network-free.
 
 ## Architecture notes
 

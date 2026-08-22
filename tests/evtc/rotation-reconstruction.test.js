@@ -2274,6 +2274,113 @@ test('reconstructs Herald initial facets and later facet activations', () => {
   );
 });
 
+test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 79,
+        character: 'Fixture Conduit'
+      }
+    ],
+    skills: [
+      { id: 77234, name: 'Legendary Entity Stance' },
+      { id: 27928, name: 'Legendary Demon Stance' },
+      { id: 76559, name: 'Cosmic Wisdom' },
+      { id: 77243, name: 'Hex-Eater Vortex' },
+      { id: 76968, name: 'Twin Moon Sweep' },
+      { id: 78191, name: 'Embrace the Darkness' },
+      { id: 76818, name: 'Form of the Dervish' },
+      { id: 77116, name: 'Form of the Dervish' },
+      { id: 28029, name: 'Frigid Blitz' },
+      { id: 26923, name: 'Frigid Blitz' }
+    ],
+    events: [
+      event({
+        time: 1000,
+        target: PLAYER,
+        skillId: 77234,
+        value: 2_147_483_647,
+        buffDamage: 2_147_483_647,
+        buff: 18,
+        stateChange: 18
+      }),
+      event({ time: 1076, skillId: 77243, value: 518, activation: 3 }),
+      event({ time: 1076, skillId: 76968, value: 921, activation: 1 }),
+      event({ time: 1156, target: PLAYER, skillId: 76559, value: 7000, buff: 1 }),
+      event({
+        time: 1318,
+        target: PLAYER,
+        skillId: 27928,
+        value: 2_147_483_647,
+        buff: 1
+      }),
+      event({ time: 1997, skillId: 76968, value: 921, activation: 3 }),
+      event({ time: 1997, skillId: 78191, value: 440, activation: 1 }),
+      event({ time: 2100, target: 0x2000n, skillId: 76818, value: 1000 }),
+      event({ time: 2200, target: 0x2000n, skillId: 77116, value: 1000 }),
+      event({ time: 2437, skillId: 78191, value: 440, activation: 3 }),
+      event({ time: 3000, skillId: 28029, value: 320, activation: 1 }),
+      event({ time: 3320, skillId: 28029, value: 320, activation: 3 }),
+      event({ time: 3320, skillId: 26923, value: 641, activation: 1 }),
+      event({ time: 3961, skillId: 26923, value: 641, activation: 3 }),
+      event({ time: 3961, skillId: 27066, value: 440, activation: 1 }),
+      event({ time: 4118, skillId: 27066, value: 157, activation: 3 }),
+      event({ time: 4200, source: 0x2000n, target: 0n, stateChange: 4 }),
+      event({ time: 4300, skillId: 27066, value: 440, activation: 1 }),
+      event({ time: 4740, skillId: 27066, value: 440, activation: 5 })
+    ]
+  });
+  const rotationCatalog = {
+    skills: [
+      [-4, 'Swap Legends', 'Profession', 'Profession_1', 0],
+      [77371, 'Cosmic Wisdom', 'Profession', 'Profession_2', 0],
+      [77243, 'Hex-Eater Vortex', 'Utility', 'Utility', 518],
+      [76968, 'Twin Moon Sweep', 'Elite', 'Elite', 921],
+      [28287, 'Embrace the Darkness', 'Elite', 'Elite', 440],
+      [76818, 'Form of the Dervish', 'Action', 'Action', 0],
+      [77116, 'Form of the Dervish (Elite)', 'Action', 'Action', 0],
+      [28029, 'Frigid Blitz', 'Weapon', 'Weapon_3', 961],
+      [27066, 'Misery Swipe', 'Weapon', 'Weapon_1', 440]
+    ].map(([id, name, type, slot, quicknessCastTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects: id === 27066 ? [{ type: 'strike', atMs: 280 }] : [],
+      implemented: true
+    }))
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog);
+
+  assert.equal(result.combatStartTimestampMs, 442);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__wait').map((command) => command.name),
+    [
+      'Hex-Eater Vortex',
+      '__combat_start',
+      'Twin Moon Sweep',
+      'Cosmic Wisdom',
+      'Swap Legends',
+      'Embrace the Darkness',
+      'Frigid Blitz'
+    ]
+  );
+  assert.equal(result.actions.filter((action) => action.name === 'Frigid Blitz').length, 1);
+  assert.equal(
+    result.actions.some((action) => action.name.startsWith('Form of the Dervish') || action.name === 'Misery Swipe'),
+    false
+  );
+  assert.equal(
+    result.actions.every((action) => action.supportedByCatalog),
+    true
+  );
+});
+
 test('recovers a truncated Spiritcrush precast for non-Herald Revenants', () => {
   const fixture = log({
     agents: [

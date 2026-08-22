@@ -26,7 +26,7 @@ import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
 } from '../../../js/professions/thief/data/ids.js';
-import { THIEF_SKILL_MECHANICS } from '../../../js/professions/thief/mechanics/skill-mechanics.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/professions/thief/core/skills.js';
 import {
   recalculate,
   runSimulation,
@@ -97,11 +97,11 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(thiefCatalog.skillsById.has(40436), true);
   assert.equal(thiefCatalog.skillsById.has(80278), false);
   assert.equal(thiefCatalog.skillsByName.get('Death Blossom').initiativeCost, 4);
-  assert.equal(THIEF_SKILL_MECHANICS[13006].castTimeMs, undefined);
-  assert.equal(THIEF_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
+  assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
+  assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
   assert.deepEqual(
-    THIEF_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
+    THIEF_CORE_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
       [560, 0.21],
       [640, 0.21],
@@ -109,7 +109,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
     ]
   );
   assert.deepEqual(
-    THIEF_SKILL_MECHANICS[13006].effects[1].ticks.map(({ atMs, condition, stacks, duration }) => [
+    THIEF_CORE_SKILL_MECHANICS[13006].effects[1].ticks.map(({ atMs, condition, stacks, duration }) => [
       atMs,
       condition,
       stacks,

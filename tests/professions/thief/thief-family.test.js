@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
+import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import {
   THIEF_ELITE_SPECIALIZATIONS,
@@ -11,7 +12,6 @@ import {
 import { thiefCoreModule } from '../../../js/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/professions/thief/core/skills.js';
 import { thiefProfession } from '../../../js/professions/thief/definition.js';
-import { THIEF_SKILL_MECHANICS } from '../../../js/professions/thief/mechanics/skill-mechanics.js';
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -135,9 +135,9 @@ test('Thief modules own vertical source slices', () => {
   assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
   assert.equal(existsSync(new URL('../../../js/professions/thief/core/events.ts', import.meta.url)), false);
   assert.equal(existsSync(new URL('../../../js/professions/thief/state.ts', import.meta.url)), true);
-  assert.doesNotMatch(
-    readFileSync(new URL('../../../js/professions/thief/mechanics/skill-mechanics.ts', import.meta.url), 'utf8'),
-    /\[ID\./
+  assert.equal(
+    existsSync(new URL('../../../js/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)),
+    false
   );
 });
 
@@ -150,6 +150,10 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
     ['Antiquary', ANTIQUARY_SKILL_MECHANICS]
   ];
   const catalogById = new Map(thiefCatalog.skills.map((skill) => [String(skill.id), skill]));
+  const aggregate = composeSkillMechanics(
+    'Thief',
+    fragments.map(([, mechanics]) => mechanics)
+  );
   const seen = new Set();
   const rawOwnerById = new Map();
 
@@ -166,7 +170,7 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
 
   assert.deepEqual(
     [...seen].sort((left, right) => Number(left) - Number(right)),
-    Object.keys(THIEF_SKILL_MECHANICS).sort((left, right) => Number(left) - Number(right))
+    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right))
   );
   for (const id of [
     ID.FORGED_SURFER_DASH,
