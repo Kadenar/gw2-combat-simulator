@@ -8,6 +8,7 @@ const REDUCED_CAST_TOLERANCE_MS = 50;
 
 const SPLIT_ANIMATION_PAIRS = new Map<number, number>([
   [27074, 28625],
+  [28029, 26923],
   [62895, 62713]
 ]);
 
@@ -46,7 +47,7 @@ function cancelFireAtActionEnd(
     (event) =>
       event.source === context.playerAddress &&
       event.skillId === action.rawSkillId &&
-      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
+      (event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP) &&
       event.activation === EVTC_ACTIVATION.CANCEL_FIRE &&
       Math.abs(event.time - action.end) <= SIGNAL_DEDUPLICATION_WINDOW_MS
   );

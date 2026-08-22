@@ -19,6 +19,7 @@ const SONG_OF_THE_MISTS_SIGNAL = /^call of the (alliance|assassin|centaur|demon|
 const ABYSSAL_BLITZ_CHILD_SIGNAL = /^blitz mines \((drop|detonation)\)$/;
 const COMPOSITE_CASTS = [
   [27074, 28625],
+  [28029, 26923],
   [62895, 62713]
 ] as const;
 

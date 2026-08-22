@@ -40,12 +40,16 @@ interface RevenantActionAssembly {
 
 export function legendSwapActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   return context.log.events.flatMap((event, eventIndex) => {
+    // ArcDPS revisions use either the explicit BUFF_APPLY state change or a
+    // normal buff packet for the same stance-gain signal.
+    const buffApplication =
+      event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
       event.buff === 0 ||
       event.buffRemove !== 0 ||
-      event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY ||
+      !buffApplication ||
       !LEGEND_STANCE_NAME.test(rawSkillName(context, event.skillId))
     ) {
       return [];
@@ -57,13 +61,16 @@ export function legendSwapActions(context: EvtcProfessionReconstructionContext):
 
 function upkeepActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   return context.log.events.flatMap((event, eventIndex) => {
+    // Keep upkeep recovery compatible with both normal and explicit buff-apply packets.
+    const buffApplication =
+      event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
       event.skillId !== IMPOSSIBLE_ODDS_BUFF ||
       event.buff === 0 ||
       event.buffRemove !== 0 ||
-      event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY
+      !buffApplication
     ) {
       return [];
     }

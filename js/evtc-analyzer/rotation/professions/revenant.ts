@@ -1,4 +1,5 @@
 import { reconstructCommonRevenantActions } from './revenant/common.js';
+import { reconstructConduitActions } from './revenant/conduit.js';
 import { reconstructHeraldActions } from './revenant/herald.js';
 import { normalizeRevenantCastPackets } from './revenant/normalization.js';
 import { reconstructRenegadeActions } from './revenant/renegade.js';
@@ -9,6 +10,7 @@ import type {
 } from './types.js';
 
 const specializationReconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
+  ['conduit', reconstructConduitActions],
   ['herald', reconstructHeraldActions],
   ['renegade', reconstructRenegadeActions]
 ]);

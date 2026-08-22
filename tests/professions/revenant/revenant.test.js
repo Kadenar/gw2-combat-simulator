@@ -44,10 +44,9 @@ import {
 } from '../../../js/professions/revenant/data/ids.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../../js/professions/revenant/data/trait-coverage.js';
 import {
-  REVENANT_IMPLEMENTED_SKILL_IDS,
-  REVENANT_SKILL_MECHANICS
-} from '../../../js/professions/revenant/mechanics/skill-mechanics.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/revenant/core/skills.js';
+  REVENANT_CORE_BALANCE_PROFILE_IDS,
+  REVENANT_CORE_BASE_SKILL_MECHANICS
+} from '../../../js/professions/revenant/core/skills.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '../../../js/professions/revenant/specializations/conduit/skills.js';
 import { revenantProfession } from '../../../js/professions/revenant/definition.js';
 import {
@@ -132,8 +131,8 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
       .includes('Shackling Wave'),
     true
   );
-  assert.equal(REVENANT_SKILL_MECHANICS[28406].castTimeMs, 1000);
-  assert.equal(REVENANT_SKILL_MECHANICS[28406].effects[1].condition, 'Vulnerability');
+  assert.equal(REVENANT_CORE_BASE_SKILL_MECHANICS[28406].castTimeMs, 1000);
+  assert.equal(REVENANT_CORE_BASE_SKILL_MECHANICS[28406].effects[1].condition, 'Vulnerability');
   const echoingEruption = revenantCatalog.skillsById.get(SKILL.ECHOING_ERUPTION);
 
   assert.equal(echoingEruption.cooldown, 8);
@@ -258,12 +257,6 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.match(revenantCatalog.skillsById.get(-5).icon, /\/Dodge\.png$/);
   assert.equal(SKILL.JADE_WINDS, 28406);
   assert.deepEqual(
-    [...REVENANT_IMPLEMENTED_SKILL_IDS].sort((a, b) => a - b),
-    Object.keys(REVENANT_SKILL_MECHANICS)
-      .map(Number)
-      .sort((a, b) => a - b)
-  );
-  assert.deepEqual(
     [...revenantCatalog.skillHandlers.keys()].sort(),
     [...new Set(revenantCatalog.skills.map((skill) => skill.handlerId).filter(Boolean))].sort()
   );
@@ -273,7 +266,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
     5
   );
   assert.ok(
-    Object.values(REVENANT_SKILL_MECHANICS).every(
+    revenantCatalog.skills.every(
       (skill) => !Object.hasOwn(skill, 'upkeepEffects') && !Object.hasOwn(skill, 'dodgeEffects')
     )
   );
@@ -708,9 +701,8 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
 });
 
 test('Revenant modules preserve the declarative authoring contract', async () => {
-  const [ids, skillMechanics, coreSkills, renegadeSkills, catalog, modules] = await Promise.all([
+  const [ids, coreSkills, renegadeSkills, catalog, modules] = await Promise.all([
     readFile(new URL('../../../js/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/professions/revenant/mechanics/skill-mechanics.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../../js/professions/revenant/core/skills.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../../js/professions/revenant/specializations/renegade/skills.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../../js/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
@@ -719,8 +711,6 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
 
   assert.doesNotMatch(ids, /^import\b/m);
   assert.match(ids, /REVENANT_SKILL_IDS = Object\.freeze/);
-  assert.match(skillMechanics, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
-  assert.match(skillMechanics, /REVENANT_IMPLEMENTED_SKILL_IDS/);
   assert.match(coreSkills, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
   assert.match(coreSkills, /REVENANT_CORE_BALANCE_PROFILES/);
   assert.match(renegadeSkills, /RENEGADE_PROFILE_IDS/);

@@ -1,7 +1,7 @@
 /**
  * API-omitted skill identity and display metadata.
  *
- * Combat coefficients, costs, timing, and effects belong in skill-mechanics.js.
+ * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
  */
 import type { Skill } from '../../../platform/engine/types.js';
 
