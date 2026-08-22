@@ -1,11 +1,12 @@
 import { isDpsReportData, parseDpsReport } from '../../dps-report-analyzer/parser.js';
 import { fetchDpsReport } from '../../dps-report-analyzer/url.js';
+import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
 import type { ParsedDpsReport } from '../../dps-report-analyzer/types.js';
-import type { LegacyRotationItem } from '../../platform/engine/types.js';
+import type { RotationCommand } from '../../platform/engine/types.js';
 import type { ProfessionAppState } from '../profession/types.js';
 
 export interface ImportedDpsReportRotation {
-  readonly rotation: readonly LegacyRotationItem[];
+  readonly rotation: readonly RotationCommand[];
   readonly actionCount: number;
   readonly warnings: readonly string[];
   readonly playerLabel: string;
@@ -19,9 +20,7 @@ function reconstructionOptions(app: ProfessionAppState): {
 } {
   return {
     selectedSkillNames: Object.values(app.build.selectedSkills || {}),
-    selectedSkillIds: [
-      ...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])
-    ],
+    selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
     professionConfig: app.adapter.simulationConfig?.(app) || {}
   };
 }
@@ -40,8 +39,7 @@ export async function readDpsReportRotationData(
   const activeSpecialization = app.adapter.eliteSpecialization(app.build).trim().toLowerCase();
   const players = rotationModule.detectDpsReportRotationPlayers(report);
   const matchingPlayers = players.filter(
-    (player) =>
-      player.professionId === app.profession.id && player.specializationId === activeSpecialization
+    (player) => player.professionId === app.profession.id && player.specializationId === activeSpecialization
   );
   if (!matchingPlayers.length) {
     const recorded = players
@@ -53,10 +51,7 @@ export async function readDpsReportRotationData(
     );
   }
 
-  if (
-    matchingPlayers.length > 1 &&
-    matchingPlayers[0].recordedActionCount === matchingPlayers[1].recordedActionCount
-  ) {
+  if (matchingPlayers.length > 1 && matchingPlayers[0].recordedActionCount === matchingPlayers[1].recordedActionCount) {
     throw new Error('Multiple matching players have the same recorded action count. Select a single-player report.');
   }
 
@@ -66,7 +61,8 @@ export async function readDpsReportRotationData(
     ...reconstructionOptions(app)
   });
   return {
-    rotation: result.rotation as readonly LegacyRotationItem[],
+    // Reconstruction still emits the interchange shape; normalize before it reaches application state.
+    rotation: normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
     actionCount: result.actions.length,
     warnings: result.warnings,
     playerLabel: `${selected.character} (${selected.account || `player ${selected.index}`})`,

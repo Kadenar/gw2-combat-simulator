@@ -22,7 +22,10 @@ test('in-game build import replaces selections without discarding gear or rotati
   const current = elementalistAppAdapter.toApplicationBuild({});
 
   current.gear.Head = "Viper's";
-  current.rotation = ['Fireball', { name: '__wait', waitMs: 250 }];
+  current.rotation = [
+    { type: 'cast', skillId: 'Fireball' },
+    { type: 'wait', durationMs: 250 }
+  ];
   let changedCalls = 0;
   const app = {
     adapter: elementalistAppAdapter,

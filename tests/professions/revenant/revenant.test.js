@@ -2027,7 +2027,10 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
 });
 
 test('legend swaps use the destination legend icon', () => {
-  const rotation = ['Phase Traversal', 'Swap Legends', 'Banish Enchantment', 'Swap Legends'];
+  const rotation = ['Phase Traversal', 'Swap Legends', 'Banish Enchantment', 'Swap Legends'].map((name) => ({
+    type: 'cast',
+    skillId: revenantCatalog.skillsByName.get(name).id
+  }));
   const build = {
     ...baseConfig,
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -2038,7 +2041,9 @@ test('legend swaps use the destination legend icon', () => {
       entry: rotation[index],
       index,
       rotation,
-      build
+      build,
+      catalog: revenantCatalog,
+      skill: revenantCatalog.skillsById.get(rotation[index].skillId)
     });
   const icon = (legendId) => REVENANT_LEGENDS.find((legend) => legend.id === legendId).icon;
 
@@ -4161,13 +4166,13 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     }),
     [
       {
-        name: 'Preparation Thrust',
+        type: 'cast',
         skillId: SKILL.PREPARATION_THRUST
       },
       {
-        name: 'Dodge',
+        type: 'cast',
         skillId: -5,
-        offset: 0
+        concurrentOffsetMs: 0
       }
     ]
   );
@@ -4175,45 +4180,45 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   assert.deepEqual(firstInsertion, [
     {
-      name: 'Preparation Thrust',
+      type: 'cast',
       skillId: SKILL.PREPARATION_THRUST
     },
     {
-      name: 'Dodge',
+      type: 'cast',
       skillId: -5,
-      offset: 0
+      concurrentOffsetMs: 0
     }
   ]);
   assert.equal(insertRotationItems(app, firstInsertion), true);
   assert.deepEqual(app.build.rotation, [
     {
-      name: 'Preparation Thrust',
+      type: 'cast',
       skillId: SKILL.PREPARATION_THRUST
     },
     {
-      name: 'Dodge',
+      type: 'cast',
       skillId: -5,
-      offset: 0
+      concurrentOffsetMs: 0
     }
   ]);
   assert.equal(changeCount, 1);
 
-  app.build.rotation = ['Tail'];
+  app.build.rotation = [{ type: 'cast', skillId: 'Tail' }];
   app.rotationInsertionIndex = 0;
   const secondInsertion = resolvePaletteDropItem(app, VINDICATOR_DODGE_AUTO_ACTION);
 
   assert.equal(insertRotationItems(app, secondInsertion), true);
   assert.deepEqual(app.build.rotation, [
     {
-      name: 'Preparation Thrust',
+      type: 'cast',
       skillId: SKILL.PREPARATION_THRUST
     },
     {
-      name: 'Dodge',
+      type: 'cast',
       skillId: -5,
-      offset: 0
+      concurrentOffsetMs: 0
     },
-    'Tail'
+    { type: 'cast', skillId: 'Tail' }
   ]);
   assert.equal(app.rotationInsertionIndex, 2);
   assert.equal(changeCount, 2);

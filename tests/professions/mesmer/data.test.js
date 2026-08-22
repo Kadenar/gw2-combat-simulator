@@ -42,10 +42,10 @@ import {
   mesmerProfiledInstrument
 } from '../../../js/professions/mesmer/specializations/troubadour/profiles.js';
 import {
-  defaultMesmerLegacySkillId,
+  defaultMesmerSkillIdForDuplicateName,
   MESMER_DUPLICATE_SKILL_NAMES,
-  resolveMesmerLegacySkillId
-} from '../../../js/professions/mesmer/data/legacy-skill-resolver.js';
+  resolveMesmerSkillIdFromDuplicateName
+} from '../../../js/professions/mesmer/data/duplicate-skill-names.js';
 
 const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
 const profileEffects = (skill) => (skill.effects.length > 0 ? skill.effects : skill.mesmerEffects || []);
@@ -902,7 +902,7 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
   assert.ok(replacing.mesmerEffects.length > 0);
 });
 
-test('legacy duplicate Mesmer names resolve explicitly by specialization', () => {
+test('duplicate Mesmer skill names resolve explicitly by specialization', () => {
   assert.deepEqual(MESMER_DUPLICATE_SKILL_NAMES, [
     'Axes of Symmetry',
     'Lingering Thoughts',
@@ -922,13 +922,17 @@ test('legacy duplicate Mesmer names resolve explicitly by specialization', () =>
   ];
 
   for (const [name, specialization, expectedId] of specializationCases) {
-    assert.equal(resolveMesmerLegacySkillId(name, { specialization }), expectedId, `${specialization} ${name}`);
+    assert.equal(
+      resolveMesmerSkillIdFromDuplicateName(name, { specialization }),
+      expectedId,
+      `${specialization} ${name}`
+    );
   }
 
   for (const name of ['Axes of Symmetry', 'Lingering Thoughts', 'Lively Lute', 'Harmonious Harp']) {
-    assert.equal(resolveMesmerLegacySkillId(name), null, name);
+    assert.equal(resolveMesmerSkillIdFromDuplicateName(name), null, name);
     assert.equal(
-      resolveMesmerLegacySkillId(name, {
+      resolveMesmerSkillIdFromDuplicateName(name, {
         specialization: 'Chronomancer'
       }),
       null,
@@ -936,14 +940,14 @@ test('legacy duplicate Mesmer names resolve explicitly by specialization', () =>
     );
   }
 
-  assert.equal(resolveMesmerLegacySkillId('Bladecall'), ID.BLADECALL);
+  assert.equal(resolveMesmerSkillIdFromDuplicateName('Bladecall'), ID.BLADECALL);
   assert.equal(
-    resolveMesmerLegacySkillId('Mind Stab', {
+    resolveMesmerSkillIdFromDuplicateName('Mind Stab', {
       specialization: 'Mirage'
     }),
     undefined
   );
   for (const name of MESMER_DUPLICATE_SKILL_NAMES) {
-    assert.ok(Number.isInteger(defaultMesmerLegacySkillId(name)), name);
+    assert.ok(Number.isInteger(defaultMesmerSkillIdForDuplicateName(name)), name);
   }
 });

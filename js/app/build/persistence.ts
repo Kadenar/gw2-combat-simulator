@@ -1,7 +1,4 @@
-import type {
-  Gw2AppAdapter,
-  ProfessionApplicationBuild,
-} from "../profession/types.js";
+import type { Gw2AppAdapter, ProfessionApplicationBuild } from '../profession/types.js';
 
 /**
  * Validates and returns an application state adapter.
@@ -11,17 +8,13 @@ import type {
  * @throws {TypeError} When the adapter lacks a profession or storage key.
  */
 function resolveAdapter(adapter: unknown): Gw2AppAdapter {
-  if (!adapter || typeof adapter !== "object" || Array.isArray(adapter)) {
-    throw new TypeError("Application state requires a profession app adapter.");
+  if (!adapter || typeof adapter !== 'object' || Array.isArray(adapter)) {
+    throw new TypeError('Application state requires a profession app adapter.');
   }
 
   const candidate = adapter as Partial<Gw2AppAdapter>;
-  if (
-    !candidate.profession ||
-    !candidate.storageKey ||
-    typeof candidate.toApplicationBuild !== "function"
-  ) {
-    throw new TypeError("Application state requires a profession app adapter.");
+  if (!candidate.profession || !candidate.storageKey || typeof candidate.toApplicationBuild !== 'function') {
+    throw new TypeError('Application state requires a profession app adapter.');
   }
 
   return candidate as Gw2AppAdapter;
@@ -34,9 +27,7 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
  * @returns {ProfessionApplicationBuild} Default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function createDefaultBuild(
-  adapter: Gw2AppAdapter,
-): ProfessionApplicationBuild {
+export function createDefaultBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(resolved.profession.createBuildDefaults());
 }
@@ -54,12 +45,8 @@ export function createDefaultBuild(
 export function loadBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
   const resolved = resolveAdapter(adapter);
   try {
-    const saved = JSON.parse(
-      localStorage.getItem(resolved.storageKey) || "null",
-    );
-    return resolved.toApplicationBuild(
-      saved || resolved.profession.createBuildDefaults(),
-    );
+    const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || 'null');
+    return resolved.toApplicationBuild(saved || resolved.profession.createBuildDefaults());
   } catch {
     return createDefaultBuild(resolved);
   }
@@ -73,10 +60,7 @@ export function loadBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
  * @returns {void}
  * @throws {TypeError} When the adapter is invalid.
  */
-export function saveBuild(
-  build: ProfessionApplicationBuild,
-  adapter: Gw2AppAdapter,
-): void {
+export function saveBuild(build: ProfessionApplicationBuild, adapter: Gw2AppAdapter): void {
   const resolved = resolveAdapter(adapter);
   const persisted = resolved.profession.migrateBuild(build);
   localStorage.setItem(resolved.storageKey, JSON.stringify(persisted));
@@ -90,10 +74,7 @@ export function saveBuild(
  * @returns {ProfessionApplicationBuild} Converted application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function replaceBuild(
-  saved: unknown,
-  adapter: Gw2AppAdapter,
-): ProfessionApplicationBuild {
+export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): ProfessionApplicationBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(saved);
 }
@@ -115,21 +96,19 @@ export function replaceBuild(
 export function replaceBuildConfiguration(
   saved: unknown,
   currentBuild: ProfessionApplicationBuild | null | undefined,
-  adapter: Gw2AppAdapter,
+  adapter: Gw2AppAdapter
 ): ProfessionApplicationBuild {
   const build = replaceBuild(saved, adapter);
-  build.rotation = Array.isArray(currentBuild?.rotation)
-    ? currentBuild.rotation
-    : [];
+  build.rotation = Array.isArray(currentBuild?.rotation) ? currentBuild.rotation : [];
   return build;
 }
 
 /**
  * Replaces a build's rotation through the profession codec.
  *
- * Preset rotations can contain legacy display names that are ambiguous across
- * specializations. Normalizing the combined build lets the profession resolve
- * those names with the selected specialization before the first simulation.
+ * Rotations can contain display names that are ambiguous across specializations.
+ * Normalizing the combined build lets the profession resolve those names with
+ * the selected specialization before the first simulation.
  *
  * @param {readonly unknown[]} rotation Rotation entries to install.
  * @param {ProfessionApplicationBuild} currentBuild Build supplying specialization context.
@@ -139,13 +118,13 @@ export function replaceBuildConfiguration(
 export function replaceBuildRotation(
   rotation: readonly unknown[],
   currentBuild: ProfessionApplicationBuild,
-  adapter: Gw2AppAdapter,
+  adapter: Gw2AppAdapter
 ): ProfessionApplicationBuild {
   return replaceBuild(
     {
       ...currentBuild,
-      rotation: Array.isArray(rotation) ? rotation : [],
+      rotation: Array.isArray(rotation) ? rotation : []
     },
-    adapter,
+    adapter
   );
 }

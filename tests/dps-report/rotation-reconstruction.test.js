@@ -226,7 +226,7 @@ test('the app importer accepts raw EI JSON and fetched dps.report data', async (
   assert.equal(imported.playerLabel, 'Fixture Amalgam (Fixture.1234)');
   assert.equal(imported.phaseLabel, 'Full Fight');
   assert.equal(
-    imported.rotation.some((command) => command.name === 'Stow Bomb Kit'),
+    imported.rotation.some((command) => command.type === 'cast' && command.skillId === 6111),
     true
   );
 

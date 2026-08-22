@@ -1,12 +1,17 @@
 import { MESMER_SKILL_IDS as ID } from './ids.js';
 
-interface DuplicateFamily {
+interface DuplicateSkillNameFamily {
   readonly defaultId: number;
   readonly bySpecialization: Readonly<Record<string, number>>;
   readonly requiresSpecialization?: boolean;
 }
 
-const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> = Object.freeze({
+/**
+ * Current Mesmer skills that share a display name but have distinct stable IDs.
+ * Name-based rotations need the active specialization to select the same skill
+ * that an ID-based rotation identifies directly.
+ */
+const DUPLICATE_SKILL_NAME_FAMILIES: Readonly<Record<string, DuplicateSkillNameFamily>> = Object.freeze({
   'Axes of Symmetry': Object.freeze({
     defaultId: ID.TROUBADOUR_AXES_OF_SYMMETRY,
     bySpecialization: Object.freeze({
@@ -47,24 +52,26 @@ const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> = Object.fre
 });
 
 /**
- * Resolves only Mesmer's duplicate legacy display-name families.
- *
- * `undefined` means the name is not duplicated. `null` means it is duplicated
- * but the supplied build context cannot select a safe variant.
+ * Resolves a duplicated Mesmer display name with specialization context.
+ * `undefined` means the name is unique; `null` means it is duplicated but the
+ * supplied specialization cannot safely select a variant.
  */
-export function resolveMesmerLegacySkillId(
+export function resolveMesmerSkillIdFromDuplicateName(
   name: string,
   { specialization = '' }: { specialization?: string } = {}
 ): number | null | undefined {
-  const family = DUPLICATE_FAMILIES[String(name || '')];
+  const family = DUPLICATE_SKILL_NAME_FAMILIES[String(name || '')];
   if (!family) return undefined;
   const specialized = family.bySpecialization[specialization];
   if (specialized != null) return specialized;
   return family.requiresSpecialization ? null : family.defaultId;
 }
 
-export function defaultMesmerLegacySkillId(name: string): number | undefined {
-  return DUPLICATE_FAMILIES[String(name || '')]?.defaultId;
+/** Supplies the deterministic catalog fallback for a duplicated display name. */
+export function defaultMesmerSkillIdForDuplicateName(name: string): number | undefined {
+  return DUPLICATE_SKILL_NAME_FAMILIES[String(name || '')]?.defaultId;
 }
 
-export const MESMER_DUPLICATE_SKILL_NAMES: readonly string[] = Object.freeze(Object.keys(DUPLICATE_FAMILIES));
+export const MESMER_DUPLICATE_SKILL_NAMES: readonly string[] = Object.freeze(
+  Object.keys(DUPLICATE_SKILL_NAME_FAMILIES)
+);

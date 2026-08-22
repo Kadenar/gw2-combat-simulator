@@ -1025,42 +1025,54 @@ test('palette controls delegate neutral control identities', () => {
   assert.equal(activated, 'profession-resource:one');
 });
 
-test('timeline canonical entries update, simplify, insert, and reject invalid moves', () => {
-  assert.equal(rotationEntryName('One'), 'One');
-  assert.equal(rotationEntryName({ name: 'Two', offset: 50 }), 'Two');
-  assert.deepEqual(updateRotationEntry('One', { offset: 100 }), {
-    name: 'One',
-    offset: 100
+test('timeline canonical entries update, insert, and reject invalid moves', () => {
+  assert.equal(rotationEntryName({ type: 'cast', skillId: 'One' }), 'One');
+  assert.equal(rotationEntryName({ type: 'wait', durationMs: 50 }), '__wait');
+  assert.deepEqual(updateRotationEntry({ type: 'cast', skillId: 'One' }, { concurrentOffsetMs: 100 }), {
+    type: 'cast',
+    skillId: 'One',
+    concurrentOffsetMs: 100
   });
-  assert.equal(removeRotationEntryOptions({ name: 'One', offset: 100 }, ['offset']), 'One');
-  assert.equal(
+  assert.deepEqual(
+    removeRotationEntryOptions({ type: 'cast', skillId: 'One', concurrentOffsetMs: 100 }, ['concurrentOffsetMs']),
+    { type: 'cast', skillId: 'One' }
+  );
+  assert.deepEqual(
     updateRotationEntry(
-      { name: 'One', interruptMs: 250 },
+      { type: 'cast', skillId: 'One', interruptAfterMs: 250 },
       {
-        interruptMs: undefined
+        interruptAfterMs: undefined
       }
     ),
-    'One'
+    { type: 'cast', skillId: 'One' }
   );
 
-  const rotation = ['A', 'B', 'C'];
+  const command = (skillId) => ({ type: 'cast', skillId });
+  const rotation = [command('A'), command('B'), command('C')];
 
   assert.equal(moveRotationEntry(rotation, 0, 3), true);
-  assert.deepEqual(rotation, ['B', 'C', 'A']);
+  assert.deepEqual(rotation, [command('B'), command('C'), command('A')]);
   assert.equal(moveRotationEntry(rotation, 1, 2), false);
   assert.equal(moveRotationEntry(rotation, -1, 1), false);
   assert.equal(moveRotationEntry(rotation, 0, 1.5), false);
-  assert.equal(insertRotationEntry(rotation, 'D', 1), true);
-  assert.deepEqual(rotation, ['B', 'D', 'C', 'A']);
-  assert.equal(insertRotationEntries(rotation, ['Macro A', 'Macro B'], 2), true);
-  assert.deepEqual(rotation, ['B', 'D', 'Macro A', 'Macro B', 'C', 'A']);
+  assert.equal(insertRotationEntry(rotation, command('D'), 1), true);
+  assert.deepEqual(rotation, [command('B'), command('D'), command('C'), command('A')]);
+  assert.equal(insertRotationEntries(rotation, [command('Macro A'), command('Macro B')], 2), true);
+  assert.deepEqual(rotation, [
+    command('B'),
+    command('D'),
+    command('Macro A'),
+    command('Macro B'),
+    command('C'),
+    command('A')
+  ]);
   assert.equal(insertRotationEntries(rotation, [], 0), false);
 });
 
 test('timeline binding inserts palette entries and drop positions use tile halves', () => {
   let dragState = { source: 'palette', name: 'New', skillId: 12345 };
   let changes = 0;
-  const rotation = ['A'];
+  const rotation = [{ type: 'cast', skillId: 'A' }];
   const root = {
     classList: { add() {}, remove() {} },
     querySelectorAll: () => []
@@ -1072,9 +1084,9 @@ test('timeline binding inserts palette entries and drop positions use tile halve
       dragState = value;
     },
     resolvePaletteEntry: (name, drag) => ({
-      name,
+      type: 'cast',
       skillId: drag.skillId,
-      waitMs: 100
+      interruptAfterMs: 100
     }),
     onChanged: () => {
       changes += 1;
@@ -1082,7 +1094,10 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   });
 
   assert.equal(binding.applyDrop(1), true);
-  assert.deepEqual(rotation, ['A', { name: 'New', skillId: 12345, waitMs: 100 }]);
+  assert.deepEqual(rotation, [
+    { type: 'cast', skillId: 'A' },
+    { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
+  ]);
   assert.equal(dragState, null);
   assert.equal(changes, 1);
 
@@ -1094,8 +1109,8 @@ test('timeline binding inserts palette entries and drop positions use tile halve
       dragState = value;
     },
     resolvePaletteEntry: () => [
-      { name: 'Auto', skillId: 10 },
-      { name: 'Dodge', skillId: -5, offset: 0 }
+      { type: 'cast', skillId: 10 },
+      { type: 'cast', skillId: -5, concurrentOffsetMs: 0 }
     ],
     onChanged: () => {
       changes += 1;
@@ -1104,10 +1119,10 @@ test('timeline binding inserts palette entries and drop positions use tile halve
 
   assert.equal(macroBinding.applyDrop(1), true);
   assert.deepEqual(rotation, [
-    'A',
-    { name: 'Auto', skillId: 10 },
-    { name: 'Dodge', skillId: -5, offset: 0 },
-    { name: 'New', skillId: 12345, waitMs: 100 }
+    { type: 'cast', skillId: 'A' },
+    { type: 'cast', skillId: 10 },
+    { type: 'cast', skillId: -5, concurrentOffsetMs: 0 },
+    { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
   ]);
   assert.equal(dragState, null);
   assert.equal(changes, 2);

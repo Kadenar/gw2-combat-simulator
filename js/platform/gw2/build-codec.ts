@@ -1,4 +1,4 @@
-import { normalizeRotation, toLegacyRotationEntry } from '../engine/rotation-commands.js';
+import { normalizeRotation } from '../engine/rotation-commands.js';
 import {
   FOOD_NAMES,
   GEAR_SLOTS,
@@ -222,10 +222,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function toApplicationBuild(build: unknown): Gw2ApplicationBuild {
     const migrated = migrateBuild(build);
-    return {
-      ...migrated,
-      rotation: migrated.rotation.map((command) => toLegacyRotationEntry(command, catalog))
-    };
+    // Application state now shares the canonical command model produced by migration.
+    return migrated;
   }
 
   return Object.freeze({

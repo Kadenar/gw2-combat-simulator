@@ -1,4 +1,4 @@
-import type { LegacyRotationItem } from '../../platform/engine/types.js';
+import type { RotationCommand } from '../../platform/engine/types.js';
 import type { ProfessionAppState } from '../profession/types.js';
 
 /**
@@ -16,16 +16,17 @@ import type { ProfessionAppState } from '../profession/types.js';
 const HISTORY_LIMIT = 100;
 
 interface RotationHistory {
-  undo: LegacyRotationItem[][];
-  redo: LegacyRotationItem[][];
-  current: LegacyRotationItem[];
+  undo: RotationCommand[][];
+  redo: RotationCommand[][];
+  current: RotationCommand[];
 }
 
-function cloneRotation(rotation: readonly LegacyRotationItem[]): LegacyRotationItem[] {
-  return rotation.map((item) => (item !== null && typeof item === 'object' ? { ...item } : item));
+function cloneRotation(rotation: readonly RotationCommand[]): RotationCommand[] {
+  // Commands are shallow immutable value objects, so cloning each object isolates history snapshots.
+  return rotation.map((command) => ({ ...command }));
 }
 
-function sameRotation(left: readonly LegacyRotationItem[], right: readonly LegacyRotationItem[]): boolean {
+function sameRotation(left: readonly RotationCommand[], right: readonly RotationCommand[]): boolean {
   return left.length === right.length && JSON.stringify(left) === JSON.stringify(right);
 }
 

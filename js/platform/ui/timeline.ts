@@ -1,8 +1,8 @@
-import type { LegacyRotationItem, SchedulerRecord, SchedulerStep, SimulationEvent } from '../engine/types.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep, SimulationEvent } from '../engine/types.js';
 import type { Gw2SimulationResult } from '../gw2/types.js';
 import type { TimelineInteractionOptions } from './types.js';
 
-export type TimelineRotationEntry = LegacyRotationItem | SchedulerRecord;
+export type TimelineRotationEntry = RotationCommand;
 
 export interface TimelineCastOrdinal {
   readonly matchingIndex: number;
@@ -270,32 +270,28 @@ export function moveRotationEntry(rotation: TimelineRotationEntry[], fromIndex: 
 }
 
 export function rotationEntryName(entry: TimelineRotationEntry): string {
-  return entry && typeof entry === 'object' ? String(entry.name || '') : String(entry || '');
+  // Preserve the established UI action keys while deriving them from canonical command discriminants.
+  if (entry.type === 'cast') return String(entry.skillId);
+  if (entry.type === 'wait') return '__wait';
+  if (entry.type === 'combat-start') return '__combat_start';
+  return '__cooldown_reset';
 }
 
 export function updateRotationEntry(
   entry: TimelineRotationEntry,
   changes: SchedulerRecord = {}
 ): TimelineRotationEntry {
-  // Promote a primitive to an object only while it carries additional options.
-  const updated: SchedulerRecord = entry && typeof entry === 'object' ? { ...entry } : { name: String(entry || '') };
+  // Canonical commands always remain objects; undefined changes remove optional command settings.
+  const updated: SchedulerRecord = { ...entry };
   for (const [key, value] of Object.entries(changes || {})) {
-    if (key === 'name') {
-      updated.name = String(value || '');
-    } else if (value === undefined) {
+    if (value === undefined) {
       delete updated[key];
     } else {
       updated[key] = value;
     }
   }
 
-  const keys = Object.keys(updated);
-  // Compact back to a primitive after the last option is removed.
-  if (keys.length === 1 && keys[0] === 'name') {
-    return typeof updated.name === 'number' ? updated.name : String(updated.name || '');
-  }
-
-  return updated;
+  return updated as unknown as TimelineRotationEntry;
 }
 
 export function removeRotationEntryOptions(

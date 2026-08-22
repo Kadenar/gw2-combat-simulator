@@ -290,15 +290,20 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
 });
 
 test('rotation skill highlights group occurrences by displayed skill', () => {
-  assert.equal(rotationSkillHighlightKey('Whirling Axe'), 'skill:Whirling Axe');
-  assert.equal(rotationSkillHighlightKey({ name: 'Whirling Axe', interruptMs: 500 }), 'skill:Whirling Axe');
-  assert.equal(rotationSkillHighlightKey('Dodge'), 'skill:Dodge');
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: 123 }), 'skill:123');
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: 123, interruptAfterMs: 500 }), 'skill:123');
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: -5 }), 'skill:-5');
 });
 
 test('palette additions insert at an armed cursor and advance it', () => {
   let changeCount = 0;
   const app = {
-    build: { rotation: ['First', 'Last'] },
+    build: {
+      rotation: [
+        { type: 'cast', skillId: 'First' },
+        { type: 'cast', skillId: 'Last' }
+      ]
+    },
     rotationInsertionIndex: 1,
     skillById: new Map(),
     skillByName: new Map(),
@@ -308,9 +313,18 @@ test('palette additions insert at an armed cursor and advance it', () => {
   };
 
   addRotation(app, 'Second');
-  insertRotationItems(app, ['Third', 'Fourth']);
+  insertRotationItems(app, [
+    { type: 'cast', skillId: 'Third' },
+    { type: 'cast', skillId: 'Fourth' }
+  ]);
 
-  assert.deepEqual(app.build.rotation, ['First', 'Second', 'Third', 'Fourth', 'Last']);
+  assert.deepEqual(app.build.rotation, [
+    { type: 'cast', skillId: 'First' },
+    { type: 'cast', skillId: 'Second' },
+    { type: 'cast', skillId: 'Third' },
+    { type: 'cast', skillId: 'Fourth' },
+    { type: 'cast', skillId: 'Last' }
+  ]);
   assert.equal(app.rotationInsertionIndex, 4);
   assert.equal(changeCount, 2);
 });
@@ -418,13 +432,15 @@ test('rotation items preserve default interrupts when options contain nullish va
     skillByName: new Map([[skill.name, skill]])
   };
 
-  assert.deepEqual(createRotationItem(app, skill.name, { interruptMs: undefined }), {
-    name: skill.name,
-    interruptMs: 120
+  assert.deepEqual(createRotationItem(app, skill.name, { interruptAfterMs: undefined }), {
+    type: 'cast',
+    skillId: skill.name,
+    interruptAfterMs: 120
   });
-  assert.deepEqual(createRotationItem(app, skill.name, { interruptMs: null }), {
-    name: skill.name,
-    interruptMs: 120
+  assert.deepEqual(createRotationItem(app, skill.name, { interruptAfterMs: null }), {
+    type: 'cast',
+    skillId: skill.name,
+    interruptAfterMs: 120
   });
 });
 
@@ -1590,10 +1606,17 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     'https://render.guildwars2.com/file/' + '5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png'
   );
   assert.deepEqual(
-    timelineWeaponRows(['Grenade Kit', 'Swap Weapons', 'Blunderbuss'], {
-      startingWeaponSet: 1,
-      weaponSwapChangesSet: false
-    }).map((row) => row.weaponSet),
+    timelineWeaponRows(
+      ['Grenade Kit', 'Swap Weapons', 'Blunderbuss'].map((name) => ({
+        type: 'cast',
+        skillId: engineer.skillByName.get(name).id
+      })),
+      {
+        startingWeaponSet: 1,
+        weaponSwapChangesSet: false,
+        skillName: (entry) => engineer.skillById.get(entry.skillId)?.name || ''
+      }
+    ).map((row) => row.weaponSet),
     [1, 1]
   );
   const flips = rotationUtilityFlipByParent(engineer);
@@ -1617,7 +1640,7 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
   const adapter = await loadProfessionAppAdapter('engineer');
   const build = createEngineerBuildDefaults();
   const skillByName = adapter.profession.catalog.skillsByName;
-  const rotation = [
+  const rotationNames = [
     'Grenade Kit',
     'Shrapnel Grenade',
     'Flamethrower',
@@ -1625,15 +1648,17 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
     'Stow Flamethrower',
     'Blunderbuss'
   ];
+  const rotation = rotationNames.map((name) => ({ type: 'cast', skillId: skillByName.get(name).id }));
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet: 1,
     weaponSwapChangesSet: false,
+    skillName: (entry) => adapter.profession.catalog.skillsById.get(entry.skillId)?.name || '',
     weaponLineTransition(entry, current) {
-      const name = typeof entry === 'string' ? entry : entry.name;
+      const skill = adapter.profession.catalog.skillsById.get(entry.skillId);
 
       return adapter.profession.ui.timelineWeaponLineTransition({
-        entry: { name },
-        skill: skillByName.get(name),
+        entry,
+        skill,
         build,
         ...current
       });

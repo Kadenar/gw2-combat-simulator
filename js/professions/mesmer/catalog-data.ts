@@ -4,7 +4,7 @@ import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from './data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from './data/ids.js';
-import { defaultMesmerLegacySkillId, MESMER_DUPLICATE_SKILL_NAMES } from './data/legacy-skill-resolver.js';
+import { defaultMesmerSkillIdForDuplicateName, MESMER_DUPLICATE_SKILL_NAMES } from './data/duplicate-skill-names.js';
 import { TRAITS } from './data/traits-data.js';
 import { MESMER_FLIP_PARENT_BY_CHILD_ID, prepareMesmerSkillForCatalog } from './mechanics/handler-mechanics.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
@@ -54,7 +54,7 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
   skillNameOverrides: Object.freeze(
     Object.fromEntries(
       MESMER_DUPLICATE_SKILL_NAMES.flatMap((name) => {
-        const id = defaultMesmerLegacySkillId(name);
+        const id = defaultMesmerSkillIdForDuplicateName(name);
 
         return id == null ? [] : [[name, id]];
       })

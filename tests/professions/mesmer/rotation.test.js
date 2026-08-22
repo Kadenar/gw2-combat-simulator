@@ -2798,7 +2798,12 @@ test('weapon swap only starts its cooldown in combat', () => {
 });
 
 test('weapon swaps start new weapon-set rows in the rotation timeline', () => {
-  const rows = timelineWeaponRows(['Bladecall', 'Swap Weapons', 'Psycut', 'Swap Weapons', 'Bladecall']);
+  const rows = timelineWeaponRows(
+    ['Bladecall', 'Swap Weapons', 'Psycut', 'Swap Weapons', 'Bladecall'].map((skillId) => ({
+      type: 'cast',
+      skillId
+    }))
+  );
 
   assert.deepEqual(
     rows.map((row) => row.weaponSet),
@@ -2818,9 +2823,15 @@ test('shroud and forge transitions start a new row on the current weapon set', (
     ["Ritualist's Shroud", "Exit Ritualist's Shroud"],
     ['Enter Radiant Forge', 'Exit Radiant Forge']
   ]) {
-    const rows = timelineWeaponRows(['Before', enter, 'During', exit, 'After', 'Swap Weapons', 'Other set'], {
-      startingWeaponSet: 2
-    });
+    const rows = timelineWeaponRows(
+      ['Before', enter, 'During', exit, 'After', 'Swap Weapons', 'Other set'].map((skillId) => ({
+        type: 'cast',
+        skillId
+      })),
+      {
+        startingWeaponSet: 2
+      }
+    );
 
     assert.deepEqual(
       rows.map((row) => row.weaponSet),
@@ -2836,7 +2847,7 @@ test('shroud and forge transitions start a new row on the current weapon set', (
 });
 
 test('a final weapon swap remains on its originating weapon-set row', () => {
-  const rows = timelineWeaponRows(['Bladecall', 'Swap Weapons']);
+  const rows = timelineWeaponRows(['Bladecall', 'Swap Weapons'].map((skillId) => ({ type: 'cast', skillId })));
 
   assert.deepEqual(
     rows.map((row) => row.weaponSet),
@@ -2849,19 +2860,20 @@ test('a final weapon swap remains on its originating weapon-set row', () => {
 });
 
 test('rotation drag reordering respects before and after insertion positions', () => {
-  const rotation = ['Bladecall', 'Mirror Blade', 'Mind Spike'];
+  const command = (skillId) => ({ type: 'cast', skillId });
+  const rotation = [command('Bladecall'), command('Mirror Blade'), command('Mind Spike')];
 
   assert.equal(moveRotationEntry(rotation, 0, 2), true);
-  assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
 
   assert.equal(moveRotationEntry(rotation, 2, 0), true);
-  assert.deepEqual(rotation, ['Mind Spike', 'Mirror Blade', 'Bladecall']);
+  assert.deepEqual(rotation, [command('Mind Spike'), command('Mirror Blade'), command('Bladecall')]);
 
   assert.equal(moveRotationEntry(rotation, 0, rotation.length), true);
-  assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
 
   assert.equal(moveRotationEntry(rotation, 1, 2), false);
-  assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
+  assert.deepEqual(rotation, [command('Mirror Blade'), command('Bladecall'), command('Mind Spike')]);
 });
 
 test('shift-queued Mirror Images after an instant action still grants clones', () => {

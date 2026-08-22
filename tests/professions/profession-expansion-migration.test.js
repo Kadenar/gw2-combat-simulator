@@ -793,7 +793,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
       rotation: [{ type: 'cast', skillId: firstSkill.id }]
     });
 
-    assert.equal(applicationBuild.rotation[0].name, firstSkill.name);
+    assert.deepEqual(applicationBuild.rotation[0], { type: 'cast', skillId: firstSkill.id });
   }
 });
 

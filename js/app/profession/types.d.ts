@@ -1,10 +1,10 @@
 import type {
   CatalogEntity,
   CanonicalCatalog,
-  LegacyRotationItem,
   ObservationPolicy,
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationCommand,
   SchedulerRecord,
   Skill,
   SkillId
@@ -80,7 +80,7 @@ export interface ProfessionModifierComparison {
 
 export interface ModifierContributionRequest {
   readonly professionId: string;
-  readonly rotation: readonly LegacyRotationItem[];
+  readonly rotation: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly comparisons: readonly ProfessionModifierComparison[];
 }
@@ -94,7 +94,7 @@ export interface ModifierContribution {
 
 export interface RandomDistributionRequest {
   readonly professionId?: string;
-  readonly rotation: readonly LegacyRotationItem[];
+  readonly rotation: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly trials?: number;
   readonly seedStart?: number;
@@ -107,7 +107,7 @@ export interface RandomDistributionJobRequest extends RandomDistributionRequest 
 
 export interface RelicComparisonJobRequest {
   readonly professionId: string;
-  readonly rotation: readonly LegacyRotationItem[];
+  readonly rotation: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly opponentRelic: string;
   readonly comparisonRelic: string;
@@ -201,9 +201,11 @@ export interface BuildTemplateSelection {
 
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
-  readonly interruptMs?: number | null;
+  readonly concurrentOffsetMs?: number | null;
+  readonly interruptAfterMs?: number | null;
   readonly releaseAtCharges?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire' | null;
+  readonly durationMs?: number | null;
 }
 
 export interface ProfessionAssumptionOption {
@@ -364,9 +366,9 @@ export interface ProfessionAppState {
   _skillSortCol?: string | null;
   _skillSortDir?: 'asc' | 'desc' | null;
   _rotationHistory?: {
-    undo: LegacyRotationItem[][];
-    redo: LegacyRotationItem[][];
-    current: LegacyRotationItem[];
+    undo: RotationCommand[][];
+    redo: RotationCommand[][];
+    current: RotationCommand[];
   };
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
@@ -466,7 +468,7 @@ export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {
 
 export interface ProfessionRuntimeApi {
   simulateBuild(
-    rotation: readonly unknown[],
+    rotation: readonly RotationCommand[],
     config: Gw2Config,
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult;

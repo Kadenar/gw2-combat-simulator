@@ -352,10 +352,7 @@ test('standalone Elementalist snapshot fields migrate into the native schema', (
       .filter((command) => command.type === 'cast')
       .every((command) => elementalistCatalog.skillsById.has(command.skillId))
   );
-  assert.deepEqual(
-    toApplicationBuild(snapshot).rotation.map((entry) => (typeof entry === 'string' ? entry : entry.name)),
-    ['Fire Attunement', '__wait', '__combat_start', 'Arcane Blast']
-  );
+  assert.deepEqual(toApplicationBuild(snapshot).rotation, migrated.rotation);
 });
 
 test('all Elementalist build and rotation assets migrate through the native codec', async () => {

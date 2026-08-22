@@ -49,10 +49,10 @@ import {
 } from './palette-model.js';
 import { activeResourceGroup, paletteSkillResourceView } from './resource-view.js';
 import type {
-  LegacyRotationItem,
-  ProfessionPaletteSkillRenderOptions,
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
+  ProfessionPaletteSkillRenderOptions,
+  RotationCommand,
   SchedulerRecord,
   Skill
 } from '../../platform/engine/types.js';
@@ -101,7 +101,7 @@ function resolveProfessionPaletteAction(
   app: ProfessionAppState,
   name: string,
   skillId: number | null
-): LegacyRotationItem | LegacyRotationItem[] | null | undefined {
+): RotationCommand | RotationCommand[] | null | undefined {
   const resolveAction = app.profession.ui?.resolvePaletteAction;
   return typeof resolveAction === 'function' ? resolveAction(paletteActionContext(app), { name, skillId }) : undefined;
 }
@@ -117,7 +117,7 @@ export function resolvePaletteDropItem(
   app: ProfessionAppState,
   name: string,
   skillId: number | null = null
-): LegacyRotationItem | LegacyRotationItem[] | null {
+): RotationCommand | RotationCommand[] | null {
   if (!name) return null;
   const professionAction = resolveProfessionPaletteAction(app, name, skillId);
   if (professionAction !== undefined) return professionAction;
@@ -736,7 +736,7 @@ export function renderPalette(app: ProfessionAppState): void {
           label: 'Duration',
           value: 1000,
           onApply(waitMs) {
-            app.addRotation(name, { waitMs });
+            app.addRotation(name, { durationMs: waitMs });
           }
         });
 
@@ -785,7 +785,7 @@ export function renderPalette(app: ProfessionAppState): void {
       if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
         app.addRotation(name, {
           ...identity,
-          offset: CONCURRENT_OFFSET_MS
+          concurrentOffsetMs: CONCURRENT_OFFSET_MS
         });
       } else if (event.ctrlKey && !instant) {
         const suggestedInterruptMs = suggestedPaletteInterruptMs(skill);
@@ -800,7 +800,7 @@ export function renderPalette(app: ProfessionAppState): void {
           onApply(interruptMs) {
             app.addRotation(name, {
               ...identity,
-              ...(interruptMs == null ? {} : { interruptMs })
+              ...(interruptMs == null ? {} : { interruptAfterMs: interruptMs })
             });
           }
         });

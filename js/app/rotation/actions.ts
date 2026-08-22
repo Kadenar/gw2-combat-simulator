@@ -1,32 +1,51 @@
-import type { LegacyRotationItem, Skill, SkillId } from '../../platform/engine/types.js';
+import type { RotationCommand, Skill, SkillId } from '../../platform/engine/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../profession/types.js';
 import { normalizeRotationInsertionIndex } from '../../platform/ui/insertion-cursor.js';
 
 export function resolveEntrySkill(
   app: ProfessionAppState,
-  item: { readonly name: SkillId; readonly skillId?: unknown }
+  item: RotationCommand | { readonly name: SkillId; readonly skillId?: unknown }
 ): Skill | undefined {
-  const skillId = item.skillId == null ? null : Number(item.skillId);
+  if ('type' in item && item.type !== 'cast') return undefined;
+  const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
+  const skillId = identity == null ? null : Number(identity);
   return skillId !== null && Number.isFinite(skillId)
     ? app.skillById.get(skillId)
-    : app.skillByName.get(String(item.name));
+    : app.skillByName.get(String(identity));
 }
 
 export function createRotationItem(
   app: ProfessionAppState,
   name: string,
   options: RotationActionOptions = {}
-): LegacyRotationItem {
+): RotationCommand {
+  // Translate palette identities directly into the canonical discriminated command model.
+  if (name === '__cooldown_reset') return { type: 'cooldown-reset' };
+  if (name === '__combat_start') {
+    return options.concurrentOffsetMs == null
+      ? { type: 'combat-start' }
+      : { type: 'combat-start', concurrentOffsetMs: options.concurrentOffsetMs };
+  }
+
+  if (name === '__wait') {
+    return { type: 'wait', durationMs: Number(options.durationMs) || 0 };
+  }
+
   const skill = resolveEntrySkill(app, { name, skillId: options.skillId });
   const defaultInterruptMs = skill?.defaultInterruptMs;
-  const resolvedOptions =
-    defaultInterruptMs != null && options.interruptMs == null
-      ? { ...options, interruptMs: defaultInterruptMs }
-      : options;
-  return Object.keys(resolvedOptions).length ? { name, ...resolvedOptions } : name;
+  const interruptAfterMs =
+    defaultInterruptMs != null && options.interruptAfterMs == null ? defaultInterruptMs : options.interruptAfterMs;
+  return {
+    type: 'cast',
+    skillId: skill?.id ?? options.skillId ?? name,
+    ...(options.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: options.concurrentOffsetMs }),
+    ...(interruptAfterMs == null ? {} : { interruptAfterMs }),
+    ...(options.releaseAtCharges == null ? {} : { releaseAtCharges: options.releaseAtCharges }),
+    ...(options.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: options.doubleEdgeOutcome })
+  };
 }
 
-export function insertRotationItems(app: ProfessionAppState, items: readonly LegacyRotationItem[]): boolean {
+export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
   if (!items.length) return false;
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
   if (insertionIndex === null) {

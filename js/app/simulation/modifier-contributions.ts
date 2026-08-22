@@ -4,7 +4,7 @@ import type {
   ProfessionModifierComparison
 } from '../profession/types.js';
 import type { Gw2Config } from '../../platform/gw2/types.js';
-import type { LegacyRotationItem } from '../../platform/engine/types.js';
+import type { RotationCommand } from '../../platform/engine/types.js';
 
 export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
 
@@ -37,7 +37,7 @@ export function mergeModifierContributions(
   return values.flat().sort((left, right) => right.dpsIncrease - left.dpsIncrease);
 }
 
-type SimulateForContribution = (rotation: readonly LegacyRotationItem[], config: Gw2Config) => { readonly dps: number };
+type SimulateForContribution = (rotation: readonly RotationCommand[], config: Gw2Config) => { readonly dps: number };
 
 /**
  * Calculates the DPS contribution of each modifier by comparing a baseline

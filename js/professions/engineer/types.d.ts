@@ -2,6 +2,7 @@ import type {
   CanonicalCatalog,
   CastContext,
   CastLifecycleContext,
+  RotationCommand,
   SchedulerContext,
   SchedulerRecord,
   SchedulerState,
@@ -249,9 +250,7 @@ export interface EngineerUiContext extends SchedulerRecord {
   readonly initialHeat?: number;
   readonly skill?: EngineerSkill;
   readonly weaponLine?: string | null;
-  readonly entry?: {
-    readonly name?: string;
-  };
+  readonly entry?: RotationCommand;
 }
 
 export interface EngineerUiSelection extends SchedulerRecord {

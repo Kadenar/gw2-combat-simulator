@@ -2,7 +2,6 @@ import { escapeHtml as esc } from '../../platform/ui/html.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from './files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from './persistence.js';
 
-import type { LegacyRotationItem } from '../../platform/engine/types.js';
 import type {
   BuildTemplatePreset,
   BuildTemplateSection,

@@ -5,6 +5,7 @@ import {
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
+  rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
   updateRotationEntry
@@ -60,28 +61,38 @@ import {
   timelineStepsWithChargeFills,
   timelineWeaponRows
 } from './timeline-model.js';
-import type { LegacyRotationItem, SchedulerRecord, SchedulerStep } from '../../platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '../../platform/engine/types.js';
 import type { Gw2ProcStep } from '../../platform/gw2/types.js';
 import type { TimelineInteractionOptions } from '../../platform/ui/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../profession/types.js';
 
 type TimelineItem = SchedulerRecord & {
+  command: RotationCommand;
+  type: RotationCommand['type'];
   name: string;
-  skillId?: unknown;
-  offset?: unknown;
-  interruptMs?: unknown;
+  skillId?: SkillId;
+  concurrentOffsetMs?: number;
+  interruptAfterMs?: number;
   releaseAtCharges?: unknown;
   doubleEdgeOutcome?: unknown;
-  waitMs?: unknown;
+  durationMs?: number;
 };
 
-// Normalizes legacy string rotation entries (bare skill names) into object shape.
-function timelineItem(entry: LegacyRotationItem | SchedulerRecord): TimelineItem {
-  if (entry && typeof entry === 'object') {
-    return entry as TimelineItem;
+// Projects canonical commands into the uniform fields needed by timeline rendering.
+function timelineItem(command: RotationCommand): TimelineItem {
+  if (command.type === 'cast') {
+    return { ...command, command, name: String(command.skillId) };
   }
 
-  return { name: String(entry || '') };
+  if (command.type === 'wait') {
+    return { ...command, command, name: '__wait' };
+  }
+
+  return {
+    ...command,
+    command,
+    name: command.type === 'combat-start' ? '__combat_start' : '__cooldown_reset'
+  };
 }
 
 // Merges new proc keys into the visible set. New procs auto-show; previously
@@ -96,15 +107,15 @@ export function syncProcVisibility(app: ProfessionAppState, procSteps: readonly 
 }
 
 // Shared editor for two distinct duration fields:
-//   offset  — ms from start of preceding cast to start this cast (concurrent/overlapping skills)
-//   waitMs  — explicit idle gap inserted between skills
+//   concurrentOffsetMs — ms from start of preceding cast to start this cast
+//   durationMs         — explicit idle gap inserted between skills
 // Anchor falls back to a DOM query so the editor can be opened programmatically (e.g. keyboard).
 // onApply re-reads the rotation entry rather than closing over `entry` to guard against
 // rotation mutations between the editor opening and the user confirming.
 function editRotationDuration(
   app: ProfessionAppState,
   index: number,
-  key: 'offset' | 'waitMs',
+  key: 'concurrentOffsetMs' | 'durationMs',
   event?: Event
 ): boolean {
   const entry = app.build.rotation[index];
@@ -114,12 +125,12 @@ function editRotationDuration(
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(
-      `#rotation-timeline .${key === 'offset' ? 'rot-offset-badge' : 'rot-wait-badge'}[data-idx="${index}"]`
+      `#rotation-timeline .${key === 'concurrentOffsetMs' ? 'rot-offset-badge' : 'rot-wait-badge'}[data-idx="${index}"]`
     );
   if (!anchor) return false;
 
-  const skill = resolveEntrySkill(app, item);
-  const isWait = key === 'waitMs';
+  const skill = resolveEntrySkill(app, item.command);
+  const isWait = key === 'durationMs';
   openDurationEditor({
     anchor,
     heading: isWait ? 'Edit wait' : 'Edit offset',
@@ -134,7 +145,7 @@ function editRotationDuration(
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         [key]: durationMs
-      }) as LegacyRotationItem;
+      });
       app.changed(false);
     }
   });
@@ -149,7 +160,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const skill = resolveEntrySkill(app, item);
+  const skill = resolveEntrySkill(app, item.command);
   if (!skill?.dragonSlash) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
@@ -167,7 +178,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         releaseAtCharges
-      }) as LegacyRotationItem;
+      });
       app.changed(false);
     }
   });
@@ -179,13 +190,12 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
 // simulation result because traits/haste can extend the catalog cast time; falls
 // back to catalog value when no sim result exists yet. The anchor is the whole
 // .rot-skill card rather than the edit button so the popover positions correctly.
-// interruptMs null → no interrupt configured; onApply passes undefined (not null)
-// to remove the field from the rotation entry cleanly.
+// interruptAfterMs omitted means no interruption; the editor removes it with undefined.
 function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const skill = resolveEntrySkill(app, item);
+  const skill = resolveEntrySkill(app, item.command);
   if (!skill) return false;
 
   const step = app.results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
@@ -202,7 +212,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     anchor,
     skillName: String(skill.displayName || skill.name),
     icon: anchor.querySelector<HTMLImageElement>('img')?.getAttribute('src') || skill.icon || undefined,
-    interruptMs: item.interruptMs == null ? null : Number(item.interruptMs),
+    interruptMs: item.interruptAfterMs == null ? null : Number(item.interruptAfterMs),
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
@@ -210,8 +220,8 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        interruptMs: interruptMs ?? undefined
-      }) as LegacyRotationItem;
+        interruptAfterMs: interruptMs ?? undefined
+      });
       app.changed(false);
     }
   });
@@ -225,7 +235,7 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const skill = resolveEntrySkill(app, item);
+  const skill = resolveEntrySkill(app, item.command);
   if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
@@ -242,7 +252,7 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         doubleEdgeOutcome: outcome
-      }) as LegacyRotationItem;
+      });
       app.changed(false);
     }
   });
@@ -292,7 +302,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
           icon: WAIT_ICON,
           label: 'Duration',
           value: 1000,
-          onApply: (waitMs) => insert({ waitMs })
+          onApply: (durationMs) => insert({ durationMs })
         });
         return null;
       }
@@ -335,11 +345,11 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
-    onEditOffset: (index, event) => editRotationDuration(app, index, 'offset', event),
+    onEditOffset: (index, event) => editRotationDuration(app, index, 'concurrentOffsetMs', event),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),
     onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
-    onEditWait: (index, event) => editRotationDuration(app, index, 'waitMs', event)
+    onEditWait: (index, event) => editRotationDuration(app, index, 'durationMs', event)
   };
 }
 
@@ -413,11 +423,12 @@ export function renderTimeline(app: ProfessionAppState): void {
     startingWeaponLine,
     weaponSwapChangesSet: app.profession.ui.weaponSwapChangesSet !== false && Boolean(app.build.alternateWeapons?.[0]),
     weaponLineEndIndexes: automaticTomeStowIndexes,
+    skillName: (entry) => resolveEntrySkill(app, entry)?.name || rotationEntryName(entry),
     weaponLineTransition: (entry, current) => {
       const item = timelineItem(entry);
-      const skill = resolveEntrySkill(app, item);
+      const skill = resolveEntrySkill(app, item.command);
       return app.profession.ui.timelineWeaponLineTransition({
-        entry: item,
+        entry: item.command,
         skill,
         build: app.build,
         specialization,
@@ -621,31 +632,32 @@ export function renderTimeline(app: ProfessionAppState): void {
 
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
-        const skill = resolveEntrySkill(app, item);
+        const skill = resolveEntrySkill(app, item.command);
         const step = steps.get(index);
         const invalid = Boolean(step?.invalid);
         const display =
-          item.name === '__wait'
+          item.type === 'wait'
             ? 'Wait'
-            : item.name === '__combat_start'
+            : item.type === 'combat-start'
               ? 'Combat Start'
-              : item.name === '__cooldown_reset'
+              : item.type === 'cooldown-reset'
                 ? 'Cooldown Reset'
-                : item.name;
+                : String(skill?.displayName || skill?.name || item.name);
         const defaultIcon =
-          item.name === '__wait'
+          item.type === 'wait'
             ? WAIT_ICON
-            : item.name === '__combat_start'
+            : item.type === 'combat-start'
               ? COMBAT_START_ICON
-              : item.name === '__cooldown_reset'
+              : item.type === 'cooldown-reset'
                 ? COOLDOWN_RESET_ICON
                 : skill?.icon || (skill?.name ? ACTION_ICONS[skill.name] : '') || PLACEHOLDER_ICON;
         const icon =
           app.profession.ui.timelineSkillIcon?.({
-            entry: item,
+            entry: item.command,
             index,
             rotation: app.build.rotation,
             build: app.build,
+            catalog: app.activeCatalog,
             skill,
             defaultIcon
           }) || defaultIcon;
@@ -693,21 +705,19 @@ export function renderTimeline(app: ProfessionAppState): void {
             ]
           : [];
         const skillTooltip =
-          step &&
-          !invalid &&
-          item.name !== '__wait' &&
-          item.name !== '__combat_start' &&
-          item.name !== '__cooldown_reset'
+          step && !invalid && item.type === 'cast'
             ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, chargeOutcomeDetails)
             : display;
         const titleSuffix = invalid
           ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`
-          : step && (item.name === '__wait' || item.name === '__combat_start' || item.name === '__cooldown_reset')
+          : step && item.type !== 'cast'
             ? `\n${formatTimelineCastDetails(step, formatTime)}`
             : '';
         const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
-        const concurrentLabel = item.offset != null ? formatConcurrentTimelineBadge(item.offset, time) : '';
-        const interruptLabel = item.interruptMs != null ? formatInterruptTimelineBadge(item.interruptMs, time) : '';
+        const concurrentLabel =
+          item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
+        const interruptLabel =
+          item.interruptAfterMs != null ? formatInterruptTimelineBadge(item.interruptAfterMs, time) : '';
         const chargeReleaseLabel = skill?.dragonSlash
           ? `⚡${item.releaseAtCharges == null ? 'Max' : Number(item.releaseAtCharges)}${time ? `\n${time}` : ''}`
           : '';
@@ -716,12 +726,13 @@ export function renderTimeline(app: ProfessionAppState): void {
         const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
         const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
         // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
-        const canEditActivation = item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
+        const canEditActivation =
+          item.type === 'cast' && (item.interruptAfterMs != null || fullCastMs > 0 || catalogCastMs > 0);
         rowItems.push(
           rotationTimelineEntryHtml(
             index,
             app.rotationInsertionIndex ?? app.build.rotation.length,
-            `<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
+            `<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
@@ -739,17 +750,17 @@ export function renderTimeline(app: ProfessionAppState): void {
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
                         : ''
                     }
-                    ${time && item.offset == null && item.interruptMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
+                    ${time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
                     ${
-                      item.offset != null
+                      item.concurrentOffsetMs != null
                         ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${index}"
-                        title="Delay ${item.offset}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>`
+                        title="Delay ${item.concurrentOffsetMs}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>`
                         : ''
                     }
                     ${
-                      item.interruptMs != null
+                      item.interruptAfterMs != null
                         ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Interrupt after ${item.interruptMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>`
+                        data-idx="${index}" title="Interrupt after ${item.interruptAfterMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>`
                         : ''
                     }
                     ${
@@ -764,7 +775,7 @@ export function renderTimeline(app: ProfessionAppState): void {
                         data-idx="${index}" title="Risky recast: ${esc(doubleEdgeOutcomeLabel(doubleEdgeOutcome))}">${esc(doubleEdgeLabel)}</span>`
                         : ''
                     }
-                    ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ''}
+                    ${item.durationMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.durationMs}ms</span>` : ''}
                 </div>`
           )
         );

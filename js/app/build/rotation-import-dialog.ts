@@ -2,9 +2,9 @@ import { getRotationItems, readJsonFile } from './files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from './evtc-rotation-import.js';
 import { readDpsReportRotationData, readDpsReportRotationUrl } from './dps-report-rotation-import.js';
 import { isDpsReportData } from '../../dps-report-analyzer/parser.js';
+import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
 import { errorMessage } from '../../platform/ui/dom.js';
 
-import type { LegacyRotationItem } from '../../platform/engine/types.js';
 import type { ProfessionAppState } from '../profession/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
@@ -33,7 +33,8 @@ export async function importRotationFile(file: File, app: ProfessionAppState): P
     const imported = await readJsonFile(file);
     const rotation = getRotationItems(imported);
     if (rotation) {
-      app.build.rotation = rotation as LegacyRotationItem[];
+      // JSON rotations may use any historical interchange shape; app state stays canonical.
+      app.build.rotation = normalizeRotation(rotation, app.activeCatalog, { strict: true });
       app.changed(false);
       return {
         actionCount: rotation.length,

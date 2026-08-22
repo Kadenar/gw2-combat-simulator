@@ -5,6 +5,8 @@ import { ModifierContributionRunner } from '../../js/app/simulation/modifier-con
 import { RandomDistributionRunner } from '../../js/app/simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from '../../js/app/simulation/relic-comparison-runner.js';
 
+const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
+
 function runTimersImmediately(t) {
   t.mock.method(globalThis, 'setTimeout', (callback) => {
     callback();
@@ -21,7 +23,7 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
     modifierContributionsStale: false
   };
   const app = {
-    build: { rotation: ['Strike'] },
+    build: { rotation: STRIKE_ROTATION },
     results,
     adapter: {
       modifierContributionRequest() {
@@ -83,7 +85,7 @@ test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   let renderCount = 0;
   const results = {};
   const app = {
-    build: { rotation: ['Strike'] },
+    build: { rotation: STRIKE_ROTATION },
     results,
     adapter: {
       randomDistributionRequest() {
@@ -120,13 +122,13 @@ test('relic comparison scheduling publishes availability without simulating', ()
   const results = minimalResult(4000);
   let simulated = 0;
   const app = {
-    build: { rotation: ['Strike'], relic: 'Fractal' },
+    build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
     results,
     adapter: {
       relicComparisonRequest() {
         return {
           professionId: 'engineer',
-          rotation: ['Strike'],
+          rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
           comparisonRelic: 'Thorns'
@@ -154,13 +156,13 @@ test('relic comparison run simulates Thorns once and stores the break-even model
   const simulatedRelics = [];
   const results = minimalResult(4000);
   const app = {
-    build: { rotation: ['Strike'], relic: 'Fractal' },
+    build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
     results,
     adapter: {
       relicComparisonRequest() {
         return {
           professionId: 'engineer',
-          rotation: ['Strike'],
+          rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
           comparisonRelic: 'Thorns'
@@ -193,13 +195,13 @@ test('relic comparison run surfaces simulation failures', (t) => {
   runTimersImmediately(t);
   const results = minimalResult(4000);
   const app = {
-    build: { rotation: ['Strike'], relic: 'Akeem' },
+    build: { rotation: STRIKE_ROTATION, relic: 'Akeem' },
     results,
     adapter: {
       relicComparisonRequest() {
         return {
           professionId: 'engineer',
-          rotation: ['Strike'],
+          rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Akeem' },
           opponentRelic: 'Akeem',
           comparisonRelic: 'Thorns'

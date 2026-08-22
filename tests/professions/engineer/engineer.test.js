@@ -485,9 +485,9 @@ test('Amalgam protocol IDs survive application build conversion', () => {
   });
 
   assert.deepEqual(application.rotation, [
-    { name: 'Offensive Protocol: Shred', skillId: 77103 },
-    { name: 'Defensive Protocol: Thorns', skillId: 77104 },
-    { name: 'Offensive Protocol: Obliterate', skillId: 76705 }
+    { type: 'cast', skillId: 77103 },
+    { type: 'cast', skillId: 77104 },
+    { type: 'cast', skillId: 76705 }
   ]);
 
   const legacyApplication = toApplicationBuild({

@@ -3,12 +3,13 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { boundedNumber } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
+import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
 import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
 import { mesmerCatalog } from './catalog.js';
-import { resolveMesmerLegacySkillId } from './data/legacy-skill-resolver.js';
+import { resolveMesmerSkillIdFromDuplicateName } from './data/duplicate-skill-names.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import type { MesmerCanonicalBuild } from './types.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
@@ -18,8 +19,9 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
  *
  * This module supplies Mesmer defaults and configures the shared GW2 build
  * codec for migration, normalization, validation, and app-facing conversion.
- * It includes the explicit legacy migrations for sigils and target-condition
- * assumptions and constrains the initial clone, blade, or note resource.
+ * It preserves the original unversioned target-condition assumptions while
+ * the shared codec handles common legacy fields such as sigils. It also
+ * constrains the initial clone, blade, or note resource.
  */
 
 export const BUILD_SCHEMA_VERSION = 3;
@@ -71,41 +73,21 @@ function plainObject(value: unknown): SchedulerRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : {};
 }
 
-function migrateV0ToV1(saved: SchedulerRecord): SchedulerRecord {
-  const migrated: SchedulerRecord = {
-    ...saved,
-    schemaVersion: 1,
-    profession: PROFESSION_ID
-  };
-  if (!Array.isArray(migrated.weaponSigils) && Array.isArray(migrated.sigils)) {
-    migrated.weaponSigils = [migrated.sigils, migrated.sigils];
-  }
-
-  return migrated;
-}
-
-function migrateV1ToV2(saved: SchedulerRecord): SchedulerRecord {
-  const migrated: SchedulerRecord = { ...saved, schemaVersion: 2 };
-  const assumptions = plainObject(migrated.assumptions);
-  if (assumptions.targetConditions == null && assumptions.vulnerability != null) {
+function normalizeMesmerAssumptions(build: SchedulerRecord, saved: unknown): SchedulerRecord {
+  const assumptions = normalizeSimulationRandomnessAssumptions(build);
+  const savedAssumptions = plainObject(saved);
+  // Preserve settings from original unversioned Mesmer saves without pretending
+  // that the intermediate schema versions were independently persisted formats.
+  if (savedAssumptions.targetConditions == null && savedAssumptions.vulnerability != null) {
     assumptions.targetConditions = {
       ...createDefaultTargetConditions(),
-      Vulnerability: assumptions.vulnerability
+      Vulnerability: savedAssumptions.vulnerability
     };
   }
 
   delete assumptions.vulnerability;
   delete assumptions.targetHealthAbove50;
-  migrated.assumptions = assumptions;
-  return migrated;
-}
-
-function migrateV2ToV3(saved: SchedulerRecord): SchedulerRecord {
-  return {
-    ...saved,
-    schemaVersion: 3,
-    profession: PROFESSION_ID
-  };
+  return assumptions;
 }
 
 const mesmerBuildCodec = createGw2BuildCodec({
@@ -113,15 +95,11 @@ const mesmerBuildCodec = createGw2BuildCodec({
   schemaVersion: BUILD_SCHEMA_VERSION,
   catalog: mesmerCatalog,
   createDefaults: createMesmerBuildDefaults,
-  migrations: {
-    0: migrateV0ToV1,
-    1: migrateV1ToV2,
-    2: migrateV2ToV3
-  },
   normalizeExtra(build, { saved }) {
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
+      assumptions: normalizeMesmerAssumptions(build.assumptions, saved.assumptions),
+      rotation: normalizeRotation(disambiguateMesmerRotationSkillNames(saved), mesmerCatalog),
       initialResource: boundedNumber(saved.initialResource ?? 5, 0, 0, 5)
     };
   },
@@ -153,13 +131,17 @@ function configuredSpecialization(candidate: unknown = {}): string {
   );
 }
 
-function resolveLegacyRotation(candidate: unknown = {}): unknown[] {
+/**
+ * Uses the selected specialization to disambiguate only duplicated names.
+ * Stable-ID entries and unique names pass through to shared normalization.
+ */
+function disambiguateMesmerRotationSkillNames(candidate: unknown = {}): unknown[] {
   const saved = plainObject(candidate);
   const specialization = configuredSpecialization(saved);
   const rotation = Array.isArray(saved.rotation) ? saved.rotation : [];
   return rotation.map((entry: unknown) => {
     if (typeof entry === 'string') {
-      const resolved = resolveMesmerLegacySkillId(entry, { specialization });
+      const resolved = resolveMesmerSkillIdFromDuplicateName(entry, { specialization });
       return resolved === undefined
         ? entry
         : resolved == null
@@ -172,7 +154,7 @@ function resolveLegacyRotation(candidate: unknown = {}): unknown[] {
       return entry;
     }
 
-    const resolved = resolveMesmerLegacySkillId(String(record.name || ''), {
+    const resolved = resolveMesmerSkillIdFromDuplicateName(String(record.name || ''), {
       specialization
     });
     if (resolved === undefined) return entry;
@@ -183,15 +165,6 @@ function resolveLegacyRotation(candidate: unknown = {}): unknown[] {
   });
 }
 
-export function migrateMesmerBuild(saved: unknown): MesmerCanonicalBuild {
-  const source = plainObject(saved);
-  return mesmerBuildCodec.migrateBuild({
-    ...source,
-    rotation: resolveLegacyRotation(source)
-  });
-}
-
+export const migrateMesmerBuild = mesmerBuildCodec.migrateBuild;
 export const validateMesmerBuild = mesmerBuildCodec.validateBuild;
-export function toApplicationBuild(saved: unknown) {
-  return mesmerBuildCodec.toApplicationBuild(migrateMesmerBuild(saved));
-}
+export const toApplicationBuild = mesmerBuildCodec.toApplicationBuild;

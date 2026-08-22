@@ -1,7 +1,8 @@
-// Rotation normalization utilities. They keep the scheduler focused on one
-// canonical command format while the app layer and importers continue to feed
-// legacy names and convenience shorthands.
-import type { CatalogLookup, LegacyRotationEntry, RotationCommand } from './types.js';
+/**
+ * Rotation normalization utilities keep legacy files and shorthand inputs at
+ * the boundary while the scheduler and application use canonical commands.
+ */
+import type { CatalogLookup, RotationCommand } from './types.js';
 
 function finiteMilliseconds(
   value: unknown,
@@ -141,44 +142,4 @@ export function normalizeRotation(
   }
 
   return commands;
-}
-
-/**
- * Converts a canonical command back into the app's legacy persisted shape.
- *
- * @param {RotationCommand} command
- * @param {CatalogLookup|null} catalog
- * @returns {LegacyRotationEntry}
- */
-export function toLegacyRotationEntry(command: RotationCommand, catalog: CatalogLookup | null): LegacyRotationEntry {
-  if (command.type === 'cooldown-reset') {
-    return { name: '__cooldown_reset' };
-  }
-
-  if (command.type === 'combat-start') {
-    const entry: LegacyRotationEntry = { name: '__combat_start' };
-    if (command.concurrentOffsetMs != null) {
-      entry.offset = command.concurrentOffsetMs;
-    }
-
-    return entry;
-  }
-
-  if (command.type === 'wait') {
-    return { name: '__wait', waitMs: command.durationMs };
-  }
-
-  const skill = catalog?.skillsById?.get(command.skillId);
-  const entry: LegacyRotationEntry = {
-    name: skill?.name ?? command.skillId
-  };
-  if (skill && catalog?.skills?.some((candidate) => candidate.id !== skill.id && candidate.name === skill.name)) {
-    entry.skillId = command.skillId;
-  }
-
-  if (command.concurrentOffsetMs != null) entry.offset = command.concurrentOffsetMs;
-  if (command.interruptAfterMs != null) entry.interruptMs = command.interruptAfterMs;
-  if (command.releaseAtCharges != null) entry.releaseAtCharges = command.releaseAtCharges;
-  if (command.doubleEdgeOutcome != null) entry.doubleEdgeOutcome = command.doubleEdgeOutcome;
-  return entry;
 }

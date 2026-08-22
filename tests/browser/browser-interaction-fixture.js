@@ -61,6 +61,16 @@ frame.addEventListener('load', async () => {
     originalBuild = structuredClone(app.build);
     app.build = createDefaultBuild(app.adapter);
     app.changed();
+    const castCommand = (name) => ({
+      type: 'cast',
+      skillId: app.skillByName.get(name)?.id || name
+    });
+    const rotationNames = () =>
+      app.build.rotation.map((command) =>
+        command.type === 'cast'
+          ? app.skillById.get(Number(command.skillId))?.name || String(command.skillId)
+          : command.type
+      );
 
     const workspaceTab = document.querySelector('[data-simulator-view="workspace"]');
     const analysisTab = document.querySelector('[data-simulator-view="analysis"]');
@@ -163,7 +173,7 @@ frame.addEventListener('load', async () => {
     );
 
     assert(icon(document, alternateSkill.name), 'palette did not switch to alternate weapon skills');
-    app.build.rotation = ['Bladecall', 'Swap Weapons', 'Psycut'];
+    app.build.rotation = ['Bladecall', 'Swap Weapons', 'Psycut'].map(castCommand);
     app.changed(false);
     const weaponRows = [...document.querySelectorAll('#rotation-timeline .rot-row:not(.rot-procs-row)')];
 
@@ -174,7 +184,7 @@ frame.addEventListener('load', async () => {
       'weapon timeline rows do not identify their weapon sets'
     );
 
-    app.build.rotation = ['Bladecall', 'Mirror Blade', 'Mind Spike'];
+    app.build.rotation = ['Bladecall', 'Mirror Blade', 'Mind Spike'].map(castCommand);
     app.changed(false);
     let timelineSkills = [...document.querySelectorAll('#rotation-timeline .rot-skill')];
     const movedSkill = timelineSkills[0];
@@ -198,7 +208,7 @@ frame.addEventListener('load', async () => {
     );
     movedSkill.dispatchEvent(dragEvent(window, 'dragend', reorderTransfer));
     assert(
-      app.build.rotation.join('|') === 'Mirror Blade|Mind Spike|Bladecall',
+      rotationNames().join('|') === 'Mirror Blade|Mind Spike|Bladecall',
       'forward timeline drag reordered to the wrong index'
     );
 
@@ -217,7 +227,8 @@ frame.addEventListener('load', async () => {
     paletteSkill.dispatchEvent(dragEvent(window, 'dragend', paletteTransfer));
     assert(
       app.build.rotation.length === 1 &&
-        (app.build.rotation[0].name || app.build.rotation[0]) === 'Bladecall' &&
+        app.build.rotation[0].type === 'cast' &&
+        app.skillById.get(Number(app.build.rotation[0].skillId))?.name === 'Bladecall' &&
         Number.isInteger(Number(app.build.rotation[0].skillId)),
       'palette drag did not insert an ID-based skill into the empty timeline'
     );
@@ -242,7 +253,7 @@ frame.addEventListener('load', async () => {
     draggedWaitEditor.querySelector('.activation-editor-input').value = '600';
     draggedWaitEditor.querySelector('.activation-editor-apply').click();
     assert(
-      app.build.rotation[0]?.name === '__wait' && app.build.rotation[0]?.waitMs === 600,
+      app.build.rotation[0]?.type === 'wait' && app.build.rotation[0]?.durationMs === 600,
       'duration editor did not insert the dragged wait'
     );
 
@@ -341,7 +352,7 @@ frame.addEventListener('load', async () => {
         shiftKey: true
       })
     );
-    assert(app.build.rotation[1].offset === 100, 'Shift+click did not create concurrent command');
+    assert(app.build.rotation[1].concurrentOffsetMs === 100, 'Shift+click did not create concurrent command');
     assert(app.results.steps[1].start === 100, 'concurrent command did not start at 100ms');
     const concurrentBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-offset-badge');
 
@@ -358,7 +369,10 @@ frame.addEventListener('load', async () => {
     );
     durationEditor.querySelector('.activation-editor-input').value = '250';
     durationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[1].offset === 250, 'offset duration editor did not update the concurrent command');
+    assert(
+      app.build.rotation[1].concurrentOffsetMs === 250,
+      'offset duration editor did not update the concurrent command'
+    );
 
     app.build.rotation = [];
     app.changed(false);
@@ -371,7 +385,7 @@ frame.addEventListener('load', async () => {
     durationEditor.querySelector('.activation-editor-input').value = '750';
     durationEditor.querySelector('.activation-editor-apply').click();
     assert(
-      app.build.rotation[0]?.name === '__wait' && app.build.rotation[0]?.waitMs === 750,
+      app.build.rotation[0]?.type === 'wait' && app.build.rotation[0]?.durationMs === 750,
       'wait duration editor did not add the wait'
     );
     const waitBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-wait-badge');
@@ -380,7 +394,7 @@ frame.addEventListener('load', async () => {
     durationEditor = document.querySelector('.rotation-duration-editor');
     durationEditor.querySelector('.activation-editor-input').value = '900';
     durationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[0].waitMs === 900, 'wait duration editor did not update the wait');
+    assert(app.build.rotation[0].durationMs === 900, 'wait duration editor did not update the wait');
 
     app.build.rotation = [];
     app.changed(false);
@@ -393,9 +407,12 @@ frame.addEventListener('load', async () => {
     );
     paletteActivationEditor.querySelector('.activation-editor-input').value = '120';
     paletteActivationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[0].interruptMs === 120, 'palette activation editor did not add a manual interruption');
+    assert(
+      app.build.rotation[0].interruptAfterMs === 120,
+      'palette activation editor did not add a manual interruption'
+    );
 
-    app.build.rotation = ['Bladecall'];
+    app.build.rotation = [castCommand('Bladecall')];
     app.changed(false);
     const editActivation = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-edit-activation');
 
@@ -412,7 +429,7 @@ frame.addEventListener('load', async () => {
     activationEditor.querySelector('input[value="interrupt"]').click();
     activationEditor.querySelector('.activation-editor-input').value = '120';
     activationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[0].interruptMs === 120, 'activation editor did not add a manual interruption');
+    assert(app.build.rotation[0].interruptAfterMs === 120, 'activation editor did not add a manual interruption');
     let interruptBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-interrupt-badge');
 
     assert(
@@ -428,7 +445,9 @@ frame.addEventListener('load', async () => {
     activationEditor.querySelector('input[value="normal"]').click();
     activationEditor.querySelector('.activation-editor-apply').click();
     assert(
-      typeof app.build.rotation[0] === 'string' && app.build.rotation[0] === 'Bladecall',
+      app.build.rotation[0].type === 'cast' &&
+        app.skillById.get(Number(app.build.rotation[0].skillId))?.name === 'Bladecall' &&
+        app.build.rotation[0].interruptAfterMs === undefined,
       'normal cast did not remove the interruption override'
     );
 
@@ -488,7 +507,7 @@ frame.addEventListener('load', async () => {
       'Counterspell did not replace Illusionary Counter'
     );
     icon(document, 'Counterspell').click();
-    app.build.rotation.push({ name: '__wait', waitMs: 1000 });
+    app.build.rotation.push({ type: 'wait', durationMs: 1000 });
     app.changed(false);
     assert(app.results.endState.profession.resource === 1, 'Counterspell did not generate one clone/blade');
     assert(

@@ -1040,7 +1040,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
   startingWeaponSet: number;
   targetHealth: number;
   targetArmor: number;
-  rotation: import('../engine/types.js').LegacyRotationItem[];
+  rotation: import('../engine/types.js').RotationCommand[];
 }
 
 export interface Gw2BuildCodec<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {

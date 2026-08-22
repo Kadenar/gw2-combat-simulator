@@ -21,6 +21,7 @@ import {
   partitionModifierComparisons
 } from '../../../js/app/simulation/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '../../../js/platform/gw2/weapon-sigils.js';
+import { MESMER_SKILL_IDS } from '../../../js/professions/mesmer/data/ids.js';
 
 const calcAttributes = calculateMesmerAttributes;
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
@@ -470,4 +471,21 @@ test('legacy target assumptions migrate to target health and conditions', () => 
   assert.equal(migrated.assumptions.targetConditions.Vulnerability, 12);
   assert.equal('targetHealthAbove50' in migrated.assumptions, false);
   assert.equal('vulnerability' in migrated.assumptions, false);
+});
+
+test('Mesmer rotations accept names and stable IDs while disambiguating duplicate names', () => {
+  const specializations = [
+    { name: 'Dueling', traits: '1-3-1' },
+    { name: 'Illusions', traits: '1-2-1' },
+    { name: 'Troubadour', traits: '3-3-3' }
+  ];
+  const migrated = replaceBuild({
+    specializations,
+    rotation: ['Bladecall', { type: 'cast', skillId: MESMER_SKILL_IDS.MIND_STAB }]
+  });
+
+  assert.deepEqual(migrated.rotation, [
+    { type: 'cast', skillId: MESMER_SKILL_IDS.TROUBADOUR_BLADECALL },
+    { type: 'cast', skillId: MESMER_SKILL_IDS.MIND_STAB }
+  ]);
 });

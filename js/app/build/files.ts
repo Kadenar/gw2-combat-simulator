@@ -1,10 +1,6 @@
 // File I/O utilities for import/export of builds and rotations.
 
-import type { LegacyRotationItem } from "../../platform/engine/types.js";
-import type {
-  BuildTemplatePreset,
-  ProfessionApplicationBuild,
-} from "../profession/types.js";
+import type { BuildTemplatePreset, ProfessionApplicationBuild } from '../profession/types.js';
 
 interface FetchJsonAssetOptions {
   readonly optional?: boolean;
@@ -12,7 +8,7 @@ interface FetchJsonAssetOptions {
 
 interface PresetBundle {
   readonly buildData: unknown;
-  readonly rotationItems: LegacyRotationItem[] | undefined;
+  readonly rotationItems: unknown[] | undefined;
 }
 
 /**
@@ -24,10 +20,10 @@ interface PresetBundle {
  */
 export function downloadJson(filename: string, payload: unknown): void {
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
+    type: 'application/json'
   });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const link = document.createElement('a');
   link.href = url;
   link.download = filename;
   link.click();
@@ -46,14 +42,13 @@ export function readJsonFile(file: File): Promise<unknown> {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        if (typeof reader.result !== "string") {
-          throw new Error("File contents are not text.");
+        if (typeof reader.result !== 'string') {
+          throw new Error('File contents are not text.');
         }
 
         resolve(JSON.parse(reader.result));
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error ? error.message : String(error);
         reject(new Error(`Invalid JSON: ${message}`));
       }
     };
@@ -77,7 +72,7 @@ export function readJsonFile(file: File): Promise<unknown> {
  */
 export async function fetchJsonAsset(
   path: string,
-  { optional = false }: FetchJsonAssetOptions = {},
+  { optional = false }: FetchJsonAssetOptions = {}
 ): Promise<unknown | null> {
   const response = await fetch(`${path}?t=${Date.now()}`);
   if (!response.ok) {
@@ -94,11 +89,9 @@ export async function fetchJsonAsset(
  * @param {unknown} payload Imported rotation data.
  * @returns {unknown[] | undefined} Rotation items when present.
  */
-export function getRotationItems(
-  payload: unknown,
-): unknown[] | undefined {
+export function getRotationItems(payload: unknown): unknown[] | undefined {
   if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return undefined;
+  if (!payload || typeof payload !== 'object') return undefined;
   const rotation = (payload as { rotation?: unknown }).rotation;
   return Array.isArray(rotation) ? rotation : undefined;
 }
@@ -110,9 +103,7 @@ export function getRotationItems(
  * @returns {Omit<ProfessionApplicationBuild, "rotation">} Shallow copy of the
  * build without the `rotation` property.
  */
-export function getBuildExportPayload(
-  build: ProfessionApplicationBuild,
-): Omit<ProfessionApplicationBuild, "rotation"> {
+export function getBuildExportPayload(build: ProfessionApplicationBuild): Omit<ProfessionApplicationBuild, 'rotation'> {
   const { rotation: _rotation, ...payload } = build;
   return payload;
 }
@@ -126,21 +117,19 @@ export function getBuildExportPayload(
  * @param {BuildTemplatePreset} preset Preset asset paths.
  * @returns {Promise<{
  *   buildData: unknown,
- *   rotationItems: LegacyRotationItem[] | undefined,
+ *   rotationItems: unknown[] | undefined,
  * }>} Loaded build data and any valid rotation items.
  */
-export async function loadPresetBundle(
-  preset: BuildTemplatePreset,
-): Promise<PresetBundle> {
+export async function loadPresetBundle(preset: BuildTemplatePreset): Promise<PresetBundle> {
   const buildData = await fetchJsonAsset(preset.build);
-  let rotationItems: LegacyRotationItem[] | undefined;
+  let rotationItems: unknown[] | undefined;
   if (preset.rotation) {
     const rotationData = await fetchJsonAsset(preset.rotation, {
-      optional: true,
+      optional: true
     });
     const items = getRotationItems(rotationData);
     if (Array.isArray(items)) {
-      rotationItems = items as LegacyRotationItem[];
+      rotationItems = items;
     }
   }
 

@@ -1,3 +1,9 @@
+/**
+ * Ambient TypeScript type declarations for the profession-neutral engine layer.
+ * Central home for the shared shapes consumed across the engine — skills and
+ * catalog entities, simulation events, profession contracts and hooks, and
+ * scheduler/resolver state — so the runtime modules stay implementation-only.
+ */
 export type SkillId = string | number;
 
 export type ObservationPolicy =
@@ -906,7 +912,7 @@ export interface ProfessionUiContract {
   readonly resolvePaletteAction: (
     context: SchedulerRecord,
     action: ProfessionPaletteActionIdentity
-  ) => LegacyRotationItem | LegacyRotationItem[] | null | undefined;
+  ) => RotationCommand | RotationCommand[] | null | undefined;
   /** Applies a profession-owned palette control action to mutable build state. */
   readonly updatePaletteControl: (context: SchedulerRecord, controlId: string) => boolean;
   readonly resourceView: (context: SchedulerRecord) => ProfessionResourceView | null;
@@ -1142,18 +1148,6 @@ export interface CooldownResetCommand {
 }
 
 export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
-
-export interface LegacyRotationEntry {
-  name: SkillId;
-  skillId?: SkillId | null;
-  offset?: number;
-  interruptMs?: number | null;
-  releaseAtCharges?: number | null;
-  doubleEdgeOutcome?: 'success' | 'backfire' | null;
-  waitMs?: number;
-}
-
-export type LegacyRotationItem = SkillId | LegacyRotationEntry;
 
 export interface QueuedEvent {
   readonly at?: number;

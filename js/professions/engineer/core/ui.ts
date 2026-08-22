@@ -303,7 +303,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       return skill.kitName || skill.name;
     }
 
-    if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && context.entry?.name === 'Swap Weapons')) {
+    if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
       return null;
     }
 

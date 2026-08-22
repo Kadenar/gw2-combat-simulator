@@ -71,7 +71,12 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   });
   let previewCount = 0;
   const app = {
-    build: { rotation: ['First', 'Second'] },
+    build: {
+      rotation: [
+        { type: 'cast', skillId: 'First' },
+        { type: 'cast', skillId: 'Second' }
+      ]
+    },
     rotationInsertionIndex: 1,
     results: { endState: finalState },
     adapter: {
@@ -119,7 +124,10 @@ test('native insertion previews project weapon set and cooldown state', async ()
   build.weapons = ['Greatsword', ''];
   build.alternateWeapons = ['Sword', 'Sword'];
   build.startingWeaponSet = 1;
-  build.rotation = ['Phantasmal Berserker', 'Swap Weapons', 'Blurred Frenzy'];
+  build.rotation = ['Phantasmal Berserker', 'Swap Weapons', 'Blurred Frenzy'].map((name) => ({
+    type: 'cast',
+    skillId: adapter.profession.catalog.skillsByName.get(name).id
+  }));
   const app = {
     adapter,
     build,

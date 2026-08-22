@@ -36,23 +36,25 @@ function effectiveEnergyCost(context: RevenantUiContext, skill: RevenantSkill): 
   );
 }
 
-function rotationEntryName(entry: unknown): string {
-  if (typeof entry === 'string') return entry;
-  if (entry && typeof entry === 'object' && 'name' in entry) {
-    return String(entry.name || '');
-  }
-
-  return '';
+function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
+  // Timeline icon projection resolves canonical skill IDs through the active catalog.
+  if (!entry || typeof entry !== 'object' || !('type' in entry)) return '';
+  if (entry.type !== 'cast' || !('skillId' in entry)) return String(entry.type || '');
+  const skillId = entry.skillId;
+  const catalog = context.catalog as SchedulerRecord | undefined;
+  const skillsById = catalog?.skillsById;
+  return skillsById instanceof Map ? String(skillsById.get(skillId)?.name || skillId) : String(skillId);
 }
 
 export function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
-  if (rotationEntryName(context.entry) !== 'Swap Legends') return '';
+  const skill = context.skill as RevenantSkill | undefined;
+  if (skill?.name !== 'Swap Legends') return '';
   const selected = context.build?.selectedLegends || [];
   if (selected.length !== 2) return '';
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
   const priorSwaps = (context.rotation || [])
     .slice(0, Math.max(0, Number(context.index || 0)))
-    .filter((entry) => rotationEntryName(entry) === 'Swap Legends').length;
+    .filter((entry) => rotationEntryName(entry, context) === 'Swap Legends').length;
   const destination = selected[(startingIndex + priorSwaps + 1) % 2];
   return revenantLegend(destination || '')?.icon || '';
 }

@@ -8,7 +8,7 @@ import { RELIC_COMPARISON_TARGET, relicComparisonAvailable } from '../simulation
 import { FOOD_DATA } from '../../platform/gw2/gear-data.js';
 import { SIMULATION_RANDOMNESS_MODES } from '../../platform/engine/simulation-random.js';
 import { simulateGw2 } from '../../platform/gw2/simulate.js';
-import type { ObservationPolicy, Skill } from '../../platform/engine/types.js';
+import type { ObservationPolicy, RotationCommand, Skill } from '../../platform/engine/types.js';
 import type { Gw2Config, Gw2ProfessionContract, Gw2SimulationResult } from '../../platform/gw2/types.js';
 import type {
   ModifierContributionRequest,
@@ -56,7 +56,7 @@ export function createProfessionRuntime({
   isContributionTrait = () => true
 }: ProfessionRuntimeOptions): ProfessionRuntimeApi {
   const simulateBuild = (
-    rotation: readonly unknown[],
+    rotation: readonly RotationCommand[],
     config: Gw2Config,
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult =>

@@ -1,9 +1,9 @@
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
 import { revenantUiState } from '../../core/ui.js';
 import type {
-  LegacyRotationItem,
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,
+  RotationCommand,
   RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
@@ -41,19 +41,19 @@ export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill
   };
 }
 
-export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, offsetMs = 0): LegacyRotationItem[] {
+export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, offsetMs = 0): RotationCommand[] {
   const autoattack = activeAutoattack(context);
   if (!autoattack) return [];
   return [
     {
-      name: autoattack.name,
+      type: 'cast',
       skillId: autoattack.id
     },
     {
-      name: 'Dodge',
+      type: 'cast',
       skillId: SKILL.DODGE,
       // offsetMs positions the dodge relative to the auto; clamped to 0 so a negative offset is ignored.
-      offset: Math.max(0, Math.round(Number(offsetMs) || 0))
+      concurrentOffsetMs: Math.max(0, Math.round(Number(offsetMs) || 0))
     }
   ];
 }
@@ -72,7 +72,7 @@ function vindicatorPaletteActionSkills(context: SchedulerRecord, skills: readonl
 function resolveVindicatorPaletteAction(
   context: SchedulerRecord,
   action: ProfessionPaletteActionIdentity
-): LegacyRotationItem[] | undefined {
+): RotationCommand[] | undefined {
   // Return undefined for unrecognized actions so the platform can try other resolvers.
   return action.name === VINDICATOR_DODGE_AUTO_ACTION ? vindicatorDodgeAutoRotationEntries(context) : undefined;
 }

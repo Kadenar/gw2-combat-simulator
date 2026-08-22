@@ -3216,7 +3216,7 @@ test('the browser rotation importer reads compressed .zevtc files', async () => 
 
   assert.equal(imported.playerLabel, 'Fixture Chronomancer (:Fixture.1234)');
   assert.equal(imported.actionCount, 1);
-  assert.deepEqual(imported.rotation, [{ name: 'Mind Stab', skillId: 1_000 }]);
+  assert.deepEqual(imported.rotation, [{ type: 'cast', skillId: 1_000 }]);
   assert.match(imported.warnings[0], /no matching stop event/);
 
   const interruptedBytes = zipEvtc(expandedEvtcFixture({ interruptedDamage: true }));
@@ -3248,7 +3248,7 @@ test('the browser rotation importer reads compressed .zevtc files', async () => 
     }
   );
 
-  assert.deepEqual(interruptedImport.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 0 }]);
+  assert.deepEqual(interruptedImport.rotation, [{ type: 'cast', skillId: 1_000, interruptAfterMs: 0 }]);
   assert.match(interruptedImport.warnings.join('\n'), /simulator catalog has no interruptCommitMs cutoff/);
 
   const perPacketImport = await readEvtcRotationFile(

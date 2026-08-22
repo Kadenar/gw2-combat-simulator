@@ -1,4 +1,4 @@
-import type { LegacyRotationItem, SchedulerRecord, SchedulerStep } from '../../platform/engine/types.js';
+import type { RotationCommand, SchedulerStep } from '../../platform/engine/types.js';
 import type { Gw2ProcStep, Gw2SimulationResult } from '../../platform/gw2/types.js';
 import {
   eventTimelineMarkers,
@@ -144,8 +144,9 @@ export function relicProcExpirationTimelineMarkers(
   return expired.sort((left, right) => left.start - right.start);
 }
 
-export function rotationSkillHighlightKey(entry: LegacyRotationItem | SchedulerRecord): string {
-  return `skill:${rotationEntryName(entry)}`;
+export function rotationSkillHighlightKey(entry: RotationCommand): string {
+  // Canonical identities keep duplicate display names and special commands from sharing highlights.
+  return `skill:${entry.type === 'cast' ? String(entry.skillId) : entry.type}`;
 }
 
 export function procStackLabel(proc: Gw2ProcStep): string {
@@ -189,20 +190,22 @@ export interface TimelineWeaponRowOptions {
   readonly startingWeaponLine?: string | null;
   readonly weaponSwapChangesSet?: boolean;
   readonly weaponLineEndIndexes?: ReadonlySet<number>;
+  readonly skillName?: (entry: RotationCommand) => string;
   readonly weaponLineTransition?: (
-    entry: LegacyRotationItem,
+    entry: RotationCommand,
     current: { weaponSet: number; weaponLine: string | null },
     index: number
   ) => string | null | undefined;
 }
 
 export function timelineWeaponRows(
-  rotation: readonly LegacyRotationItem[] = [],
+  rotation: readonly RotationCommand[] = [],
   {
     startingWeaponSet = 1,
     startingWeaponLine = null,
     weaponSwapChangesSet = true,
     weaponLineEndIndexes = new Set<number>(),
+    skillName = rotationEntryName,
     weaponLineTransition = () => undefined
   }: TimelineWeaponRowOptions = {}
 ) {
@@ -210,14 +213,14 @@ export function timelineWeaponRows(
     startingWeaponSet,
     startingWeaponLine,
     isWeaponSwap(entry) {
-      return weaponSwapChangesSet && rotationEntryName(entry) === 'Swap Weapons';
+      return weaponSwapChangesSet && skillName(entry) === 'Swap Weapons';
     },
     isWeaponSetRefresh(entry) {
-      const name = rotationEntryName(entry);
+      const name = skillName(entry);
       return (!weaponSwapChangesSet && name === 'Swap Weapons') || WEAPON_SET_REFRESH_SKILLS.has(name);
     },
     weaponLineTransition(entry, current, index) {
-      const authoredTransition = weaponLineTransition(entry as LegacyRotationItem, current, index);
+      const authoredTransition = weaponLineTransition(entry, current, index);
       // Simulated automatic exits close a named lane after the matching
       // authored entry without requiring a synthetic rotation command.
       return authoredTransition !== undefined

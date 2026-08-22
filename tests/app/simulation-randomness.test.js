@@ -269,7 +269,10 @@ test('RNG trials partition across available worker cores without changing seeds'
 test('RNG analysis is available while detailed Engineer results stay deterministic', () => {
   const build = createEngineerBuildDefaults();
 
-  build.rotation = ['Grenade Kit', 'Grenade'];
+  build.rotation = ['Grenade Kit', 'Grenade'].map((name) => ({
+    type: 'cast',
+    skillId: engineerProfession.catalog.skillsByName.get(name).id
+  }));
   const app = {
     adapter: engineerAppAdapter,
     profession: engineerProfession,

@@ -1,4 +1,4 @@
-import type { ProfessionPaletteGroup, LegacyRotationItem, SchedulerRecord, SkillId } from '../engine/types.js';
+import type { ProfessionPaletteGroup, RotationCommand, SchedulerRecord, SkillId } from '../engine/types.js';
 
 export interface AmmoView {
   readonly current?: number;
@@ -130,14 +130,14 @@ export interface RotationDragState extends SchedulerRecord {
 }
 
 export interface TimelineInteractionOptions {
-  readonly rotation: Array<LegacyRotationItem | SchedulerRecord>;
+  readonly rotation: RotationCommand[];
   readonly getDragState: () => RotationDragState | null | undefined;
   readonly setDragState: (value: RotationDragState | null) => void;
   readonly resolvePaletteEntry?: (
     name: string,
     drag: RotationDragState | null | undefined,
     insertAt: number
-  ) => LegacyRotationItem | SchedulerRecord | Array<LegacyRotationItem | SchedulerRecord> | null | undefined;
+  ) => RotationCommand | RotationCommand[] | null | undefined;
   readonly onChanged?: () => void;
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;

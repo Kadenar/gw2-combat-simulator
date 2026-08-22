@@ -22,7 +22,7 @@ import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events.js';
 import { HandlerRegistry } from '../../js/platform/engine/handler-registry.js';
 import { defineProfession } from '../../js/platform/engine/profession.js';
 import { resolveScheduledStream } from '../../js/platform/engine/resolver.js';
-import { normalizeRotation, toLegacyRotationEntry } from '../../js/platform/engine/rotation-commands.js';
+import { normalizeRotation } from '../../js/platform/engine/rotation-commands.js';
 import { createSchedulerState } from '../../js/platform/engine/scheduler-state.js';
 import { createScheduler } from '../../js/platform/engine/scheduler.js';
 import { buildScheduledEventStream } from '../../js/platform/engine/scheduled-event-stream.js';
@@ -502,24 +502,6 @@ test('normalized commands migrate legacy cast options', () => {
       { type: 'cooldown-reset' },
       { type: 'combat-start' }
     ]
-  );
-  assert.deepEqual(
-    toLegacyRotationEntry(
-      {
-        type: 'cast',
-        skillId: 900002,
-        interruptAfterMs: 50,
-        releaseAtCharges: 3,
-        doubleEdgeOutcome: 'success'
-      },
-      testProfession.catalog
-    ),
-    {
-      name: 'Fixture Charge',
-      interruptMs: 50,
-      releaseAtCharges: 3,
-      doubleEdgeOutcome: 'success'
-    }
   );
   assert.throws(
     () =>

@@ -11,6 +11,7 @@ import {
   templateSpecializations,
   undoTemplateLoad
 } from '../../js/app/build/presets.js';
+import { normalizeRotation } from '../../js/platform/engine/rotation-commands.js';
 import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/professions/mesmer/data/ids.js';
 
@@ -20,12 +21,15 @@ function createApp() {
       id: 'mesmer',
       profession: {},
       storageKey: 'test-build',
-      toApplicationBuild: (build) => structuredClone(build)
+      toApplicationBuild: (build) => ({
+        ...structuredClone(build),
+        rotation: normalizeRotation(Array.isArray(build.rotation) ? build.rotation : [], null, { strict: true })
+      })
     },
     build: {
       profession: 'mesmer',
       marker: 'current',
-      rotation: ['Current rotation']
+      rotation: [{ type: 'cast', skillId: 'Current rotation' }]
     },
     changedCalls: [],
     changed(...args) {
@@ -190,27 +194,27 @@ test('template actions load paired or partial state and support undo', async (t)
 
   await loadTemplateAction(templateApp, preset, 'template', createButton());
   assert.equal(templateApp.build.marker, 'template');
-  assert.deepEqual(templateApp.build.rotation, ['Template rotation']);
+  assert.deepEqual(templateApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
   assert.deepEqual(templateApp.changedCalls, [[]]);
   assert.equal(templateApp.currentTemplate.build, preset.build);
 
   undoTemplateLoad(templateApp);
   assert.equal(templateApp.build.marker, 'current');
-  assert.deepEqual(templateApp.build.rotation, ['Current rotation']);
+  assert.deepEqual(templateApp.build.rotation, [{ type: 'cast', skillId: 'Current rotation' }]);
   assert.deepEqual(templateApp.changedCalls, [[], []]);
 
   const buildOnlyApp = createApp();
 
   await loadTemplateAction(buildOnlyApp, preset, 'build', createButton());
   assert.equal(buildOnlyApp.build.marker, 'template');
-  assert.deepEqual(buildOnlyApp.build.rotation, ['Current rotation']);
+  assert.deepEqual(buildOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Current rotation' }]);
   assert.deepEqual(buildOnlyApp.changedCalls, [[]]);
 
   const rotationOnlyApp = createApp();
 
   await loadTemplateAction(rotationOnlyApp, preset, 'rotation', createButton());
   assert.equal(rotationOnlyApp.build.marker, 'current');
-  assert.deepEqual(rotationOnlyApp.build.rotation, ['Template rotation']);
+  assert.deepEqual(rotationOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
   assert.deepEqual(rotationOnlyApp.changedCalls, [[false]]);
 });
 
