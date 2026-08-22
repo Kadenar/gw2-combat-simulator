@@ -135,6 +135,21 @@ export function createCooldownController<TProfessionState extends object>({
     return { ammo, reducedBy };
   };
 
+  /** Reduces either an active ammo recharge or an ordinary skill cooldown without passing its ready time. */
+  const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
+    const requested = Math.max(0, Number(reduction) || 0);
+    if (requested <= 0) return 0;
+    if (state.ammo.has(skill.id)) {
+      return reduceAmmoRecharge(skill, requested, at).reducedBy;
+    }
+
+    const readyAt = Number(state.cooldowns.get(skill.id) || 0);
+    if (readyAt <= at + epsilon) return 0;
+    const reducedBy = Math.min(requested, readyAt - at);
+    state.cooldowns.set(skill.id, readyAt - reducedBy);
+    return reducedBy;
+  };
+
   /**
    * Applies the short between-cast recharge independently from count recharge.
    */
@@ -150,6 +165,7 @@ export function createCooldownController<TProfessionState extends object>({
     ammoMaximum,
     ensureAmmo,
     reduceAmmoRecharge,
+    reduceSkillRecharge,
     refreshAmmo,
     setAmmoLockout,
     spendAmmo

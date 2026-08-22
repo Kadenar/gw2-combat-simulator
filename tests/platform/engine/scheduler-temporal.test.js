@@ -55,6 +55,29 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   });
 });
 
+test('skill recharge reduction routes ordinary and ammo skills through one capped contract', () => {
+  const ordinary = { id: 980010 };
+  const ammo = { id: 980011, ammo: 2, ammoRecharge: 12 };
+  const state = {
+    time: 0,
+    ammo: new Map(),
+    cooldowns: new Map([[ordinary.id, 10]])
+  };
+  const controller = createCooldownController({
+    state,
+    rechargeDuration: () => 12
+  });
+
+  controller.spendAmmo(ammo, 0);
+
+  assert.equal(controller.reduceSkillRecharge(ordinary, 3, 4), 3);
+  assert.equal(state.cooldowns.get(ordinary.id), 7);
+  assert.equal(controller.reduceSkillRecharge(ordinary, 10, 4), 3);
+  assert.equal(state.cooldowns.get(ordinary.id), 4);
+  assert.equal(controller.reduceSkillRecharge(ammo, 5, 4), 5);
+  assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7);
+});
+
 function temporalCatalog() {
   return createCanonicalCatalog({
     generated: [

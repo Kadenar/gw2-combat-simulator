@@ -325,16 +325,7 @@ export function handleMercurialTendencies(
   for (const skillId of trackedIds) {
     const skill = context.catalog.skillsById.get(skillId);
     if (skill?.name !== 'Evolve') continue;
-    if (context.state.ammo.has(skillId)) {
-      reducedBy += context.cooldownController.reduceAmmoRecharge(skill, rechargeReduction, at).reducedBy;
-      continue;
-    }
-
-    const cooldown = Number(context.state.cooldowns.get(skillId) || 0);
-    if (cooldown <= at + context.epsilon) continue;
-    const reduction = Math.min(rechargeReduction, cooldown - at);
-    context.state.cooldowns.set(skillId, cooldown - reduction);
-    reducedBy += reduction;
+    reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
   }
 
   if (!(reducedBy > 0)) return;

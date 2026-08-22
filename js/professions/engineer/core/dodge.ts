@@ -6,21 +6,6 @@ import { isEngineerToolbeltSkill } from './traits.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
-// ammo and cooldown skills use different reduction APIs — ammo tracks charges, not a single timestamp
-function reduceCooldown(context: EngineerCastContext, skill: EngineerSkill, seconds: number, at: number): number {
-  const ammo = context.state.ammo.get(skill.id);
-  if (ammo) {
-    return context.cooldownController.reduceAmmoRecharge(skill, seconds, at).reducedBy;
-  }
-
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  // skill already ready — nothing to reduce, avoid mutating the map unnecessarily
-  if (readyAt <= at + context.epsilon) return 0;
-  const reduced = Math.min(seconds, readyAt - at);
-  context.state.cooldowns.set(skill.id, readyAt - reduced);
-  return reduced;
-}
-
 // a skill lives in exactly one of the two maps (ammo OR cooldowns, never both); scan both to catch all
 function reduceMatchingCooldowns(
   context: EngineerCastContext,
@@ -33,7 +18,7 @@ function reduceMatchingCooldowns(
   for (const skillId of ids) {
     const skill = context.catalog.skillsById.get(skillId);
     if (skill && predicate(skill)) {
-      reducedBy += reduceCooldown(context, skill, seconds, at);
+      reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
     }
   }
 

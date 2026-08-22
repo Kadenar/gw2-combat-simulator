@@ -1614,6 +1614,26 @@ test('Specialized Elements grants three familiar charges per matching weapon ski
   assert.equal(result.endState.profession.charges, 3);
 });
 
+test('Specialized Elements familiar casts reduce active weapon recharge', () => {
+  const simulate = (traits) =>
+    runNative({
+      lines: [['Fire'], ['Air'], ['Evoker', traits]],
+      rotation: ['Flame Uprising', 'Ignite'],
+      startAttunement: 'Fire',
+      weapons: ['Sword', 'Dagger'],
+      evokerElement: 'Fire'
+    });
+  const baseline = simulate('1-1-1');
+  const specialized = simulate('1-1-3');
+
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(specialized.warnings, []);
+  assert.equal(
+    baseline.endState.cooldowns['Flame Uprising'].readyAt - specialized.endState.cooldowns['Flame Uprising'].readyAt,
+    512
+  );
+});
+
 test('Evoker can cast a basic familiar after configured start charges fill', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],

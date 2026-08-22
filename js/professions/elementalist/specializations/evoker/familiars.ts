@@ -292,12 +292,7 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, mu
     if (candidate.type !== 'Weapon') continue;
     const rechargeDuration = context.rechargeDurationFor(candidate, at);
     const reduction = rechargeDuration * Math.max(0, 1 - multiplier);
-    const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
-    if (readyAt > at) {
-      context.state.cooldowns.set(candidate.id, Math.max(at, readyAt - reduction));
-    }
-
-    context.cooldownController.reduceAmmoRecharge(candidate, reduction, at);
+    context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
   }
 }
 

@@ -643,21 +643,9 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
   return true;
 }
 
-function reduceSkillRecharge(context: WarriorCastContext, skill: WarriorSkill, at: number): number {
-  const reduction = Number(warriorBalanceProfile(context, PROFILE.lushForest)?.rechargeReduction ?? 0.75);
-  if (context.state.ammo.has(skill.id)) {
-    return context.cooldownController.reduceAmmoRecharge(skill, reduction, at).reducedBy;
-  }
-
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt <= at + context.epsilon) return 0;
-  const reducedBy = Math.min(reduction, readyAt - at);
-  context.state.cooldowns.set(skill.id, readyAt - reducedBy);
-  return reducedBy;
-}
-
 function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSkill, at: number): void {
   let cooldownReduction = 0;
+  const rechargeReduction = Number(warriorBalanceProfile(context, PROFILE.lushForest)?.rechargeReduction ?? 0.75);
   const skillIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of skillIds) {
     const skill = context.catalog.skillsById.get(skillId);
@@ -665,7 +653,7 @@ function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSki
       continue;
     }
 
-    cooldownReduction += reduceSkillRecharge(context, skill, at);
+    cooldownReduction += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
   }
 
   context.emit({

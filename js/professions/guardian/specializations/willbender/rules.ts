@@ -158,27 +158,6 @@ function isActiveWeaponSkill(
   return Boolean(skill?.type === 'Weapon' && (!weaponNames.size || weaponNames.has(String(skill.weapon || ''))));
 }
 
-function reduceWeaponCooldown(
-  context: GuardianSchedulerContext,
-  skill: GuardianSkill,
-  at: number,
-  reduction?: number
-): number {
-  const reductionAmount =
-    reduction ?? Number(guardianBalanceProfile(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25);
-  // Ammo skills track remaining charges separately, so reduction must go through the
-  // ammo-aware controller path rather than directly mutating the cooldown timestamp.
-  if (context.state.ammo.has(skill.id)) {
-    return context.cooldownController.reduceAmmoRecharge(skill, reductionAmount, at).reducedBy;
-  }
-
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt <= at + context.epsilon) return 0; // already ready; nothing to reduce
-  const reducedBy = Math.min(reductionAmount, readyAt - at);
-  context.state.cooldowns.set(skill.id, readyAt - reducedBy);
-  return reducedBy;
-}
-
 function queueInFlightWeaponCooldownReduction(
   context: GuardianSchedulerContext,
   weaponNames: ReadonlySet<string>,
@@ -221,11 +200,14 @@ function queueInFlightWeaponCooldownReduction(
 function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: number): number {
   const weaponNames = activeWeaponNames(context);
   const activeIds = new Set<SkillId>([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
+  const rechargeReduction = Number(
+    guardianBalanceProfile(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25
+  );
   let reducedBy = 0;
   for (const skillId of activeIds) {
     const skill = context.catalog.skillsById.get(skillId) as GuardianSkill | undefined;
     if (isActiveWeaponSkill(skill, weaponNames)) {
-      reducedBy += reduceWeaponCooldown(context, skill, at);
+      reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
     }
   }
 
@@ -242,7 +224,7 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
   // future casts if the skill's own recharge changed between the queue and cast-complete.
   delete state.pendingWeaponCooldownReduction[activationId];
   if (pending <= context.epsilon || skill.type !== 'Weapon') return;
-  reduceWeaponCooldown(context, skill, context.effectiveEnd, pending);
+  context.cooldownController.reduceSkillRecharge(skill, pending, context.effectiveEnd);
 }
 
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {

@@ -532,6 +532,7 @@ export interface CooldownController {
   ammoMaximum(skill: Skill): number;
   ensureAmmo(skill: Skill, at?: number): AmmoState | null;
   reduceAmmoRecharge(skill: Skill, reduction: number, at?: number): { ammo: AmmoState | null; reducedBy: number };
+  reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   setAmmoLockout(skill: Skill, readyAt: number, at?: number): AmmoState | null;
   spendAmmo(skill: Skill, at: number): AmmoState | false;
