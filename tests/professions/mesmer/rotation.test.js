@@ -2407,11 +2407,15 @@ test('Relic of the Claw records activation and refresh procs', () => {
   assert.deepEqual(
     claw.procSteps
       .filter((proc) => proc.skill === 'Relic of the Claw')
-      .map((proc) => ({ sourceSkill: proc.sourceSkill, detail: proc.detail })),
+      .map((proc) => ({
+        sourceSkill: proc.sourceSkill,
+        detail: proc.detail,
+        durationMs: proc.expiresAt - proc.start
+      })),
     [
-      { sourceSkill: 'Signet of Domination', detail: 'activated' },
-      { sourceSkill: 'Diversion', detail: 'refreshed' },
-      { sourceSkill: 'Signet of Domination', detail: 'activated' }
+      { sourceSkill: 'Signet of Domination', detail: 'activated', durationMs: 8000 },
+      { sourceSkill: 'Diversion', detail: 'refreshed', durationMs: 8000 },
+      { sourceSkill: 'Signet of Domination', detail: 'activated', durationMs: 8000 }
     ]
   );
 });
@@ -2432,10 +2436,14 @@ test('Relic of Fireworks records activation and refresh procs', () => {
   assert.deepEqual(
     fireworks.procSteps
       .filter((proc) => proc.skill === 'Relic of Fireworks')
-      .map((proc) => ({ sourceSkill: proc.sourceSkill, detail: proc.detail })),
+      .map((proc) => ({
+        sourceSkill: proc.sourceSkill,
+        detail: proc.detail,
+        durationMs: proc.expiresAt - proc.start
+      })),
     [
-      { sourceSkill: 'Chaos Storm', detail: 'activated' },
-      { sourceSkill: 'Phantasmal Mage', detail: 'refreshed' }
+      { sourceSkill: 'Chaos Storm', detail: 'activated', durationMs: 6000 },
+      { sourceSkill: 'Phantasmal Mage', detail: 'refreshed', durationMs: 6000 }
     ]
   );
 });

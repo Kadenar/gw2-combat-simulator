@@ -194,7 +194,18 @@ function recordTimedBuffProc(
 ): void {
   const wasActive = Number(state.buffUntil || 0) > event.at;
   state.buffUntil = Math.max(Number(state.buffUntil || 0), event.at + duration);
-  ctx.recordProc('relic', name, event.at, event.skillName, detail ?? (wasActive ? 'refreshed' : 'activated'));
+  // Preserve the authoritative effect deadline so the timeline can distinguish
+  // a true expiry from a refresh that keeps the same relic window active.
+  ctx.recordProc(
+    'relic',
+    name,
+    event.at,
+    event.skillName,
+    detail ?? (wasActive ? 'refreshed' : 'activated'),
+    '',
+    null,
+    Number(state.buffUntil)
+  );
 }
 
 /**
@@ -268,7 +279,10 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
           'Relic of Aristocracy',
           activation.at,
           activation.event.skillName,
-          `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`
+          `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
+          '',
+          null,
+          activation.expiresAt
         );
       }
     },
@@ -350,7 +364,16 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       state.stacks = 0;
       state.expiresAt = 0;
       state.buffUntil = event.at + 8;
-      ctx.recordProc('relic', 'Relic of Bloodstone', event.at, event.skillName, 'Bloodstone Fervor');
+      ctx.recordProc(
+        'relic',
+        'Relic of Bloodstone',
+        event.at,
+        event.skillName,
+        'Bloodstone Fervor',
+        '',
+        null,
+        Number(state.buffUntil)
+      );
       const explosionAt = event.at + 0.68;
       enqueueOrdered(ctx.queue, {
         type: 'damage',
@@ -402,7 +425,16 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
       state.readyAt = event.at + 8;
       state.buffUntil = event.at + 4;
-      ctx.recordProc('relic', 'Relic of the Brawler', event.at, event.skillName, 'activated');
+      ctx.recordProc(
+        'relic',
+        'Relic of the Brawler',
+        event.at,
+        event.skillName,
+        'activated',
+        '',
+        null,
+        Number(state.buffUntil)
+      );
     },
     strikeMultiplier: timedStrikeBuff(1.1)
   }),
@@ -586,7 +618,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
         if (stacks >= NOURYS_STACKS_NEEDED) {
           stacks = 0;
-          ctx.recordProc('relic', 'Relic of Nourys', at, 'Nourys', 'activated');
+          ctx.recordProc('relic', 'Relic of Nourys', at, 'Nourys', 'activated', '', null, at + NOURYS_BUFF_DURATION);
           at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
         } else {
           at += NOURYS_STACK_INTERVAL;
@@ -613,7 +645,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         triggerAt < combatStart ? combatStart : triggerAt + Math.max(0, Number(event.projectileDelay || 0));
       state.buffFrom = impactAt;
       state.buffUntil = impactAt + 4;
-      ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName);
+      ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));
       applyCondition(ctx, {
         type: 'condition',
         at: impactAt,
@@ -709,7 +741,16 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
       state.stacks = Math.min(5, Number(state.stacks || 0) + 1);
       state.expiresAt = event.at + 6;
-      ctx.recordProc('relic', 'Relic of the Thief', event.at, event.skillName, `${state.stacks}/5 stacks`);
+      ctx.recordProc(
+        'relic',
+        'Relic of the Thief',
+        event.at,
+        event.skillName,
+        `${state.stacks}/5 stacks`,
+        '',
+        null,
+        Number(state.expiresAt)
+      );
     },
     // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
     strikeMultiplier(_ctx, state, event) {

@@ -4507,6 +4507,38 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   border-style: dotted;
 }
 
+.rot-proc-overlay[data-skill-highlight-key] {
+  cursor: pointer;
+}
+
+/* Crossed relic cards mark the exact end of a timed effect window. */
+.proc-expired-cross {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.proc-expired-cross::before,
+.proc-expired-cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12%;
+  width: 124%;
+  height: 3px;
+  background: #f02e2e;
+  box-shadow: 0 0 0 1px rgba(30, 5, 5, 0.9);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.proc-expired-cross::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
 .rot-proc-overlay .proc-count {
   top: 8px;
 }

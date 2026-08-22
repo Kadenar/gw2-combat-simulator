@@ -73,13 +73,15 @@ export function createGw2ResolverRuntimeState({
       sourceSkill = '',
       detail = '',
       icon = '',
-      cooldownReduction: number | null = null
+      cooldownReduction: number | null = null,
+      expiresAt: number | null = null
     ): void {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
       const reducedBy = Number(cooldownReduction);
+      const expiry = Math.round(Number(expiresAt) * 1000);
       this.procSteps.push({
         ri: -1,
         type: `${type}_proc`,
@@ -88,6 +90,7 @@ export function createGw2ResolverRuntimeState({
         detail,
         icon,
         ...(Number.isFinite(reducedBy) && reducedBy > 0 ? { cooldownReduction: reducedBy } : {}),
+        ...(Number.isFinite(expiry) && expiry > start ? { expiresAt: expiry } : {}),
         start,
         end: start
       });

@@ -51,6 +51,7 @@ import {
   procFilterKey,
   procFilterLabel,
   procStackLabel,
+  relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
   rotationSkillHighlightKey,
   shatterResourceSpends,
@@ -444,7 +445,8 @@ export function renderTimeline(app: ProfessionAppState): void {
   const procVisibility = procSteps.length ? syncProcVisibility(app, procSteps) : new Set<string>();
   const overlayProcMarkers = [
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(app.results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(app.results, app.build.rotation.length) : [])
+    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(app.results, app.build.rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(app.results, app.build.rotation.length) : [])
   ].sort((left, right) => left.start - right.start);
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
@@ -548,12 +550,16 @@ export function renderTimeline(app: ProfessionAppState): void {
     const time = formatTime(marker.start);
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
     const isRelic = marker.type === 'relic_proc';
+    const expired = marker.expired === true;
     const type = isRelic ? 'Relic' : 'Sigil';
     const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
-    const badgeLabel = procBadgeLabel(marker.activations);
-    const detail =
-      count === 1
+    const badgeLabel = expired ? '' : procBadgeLabel(marker.activations);
+    const detail = expired
+      ? [marker.skill, `Relic effect expired at ${time}`, count > 1 ? `After ${count} activations or refreshes` : '']
+          .filter(Boolean)
+          .join('\n')
+      : count === 1
         ? [
             marker.skill,
             `${type} proc at ${time}`,
@@ -575,9 +581,10 @@ export function renderTimeline(app: ProfessionAppState): void {
                 .join(' - ')
             )
           ].join('\n');
-    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? 'rot-relic-proc' : 'rot-sigil-proc'}" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
+    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? 'rot-relic-proc' : 'rot-sigil-proc'}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
             <img src="${esc(icon)}" alt="" />
+            ${expired ? '<span class="proc-expired-cross" aria-hidden="true"></span>' : ''}
             ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
             <span class="rot-injected-badge">${type.toUpperCase()}</span>
             <span class="rot-time">${time}</span>
@@ -946,6 +953,12 @@ export function renderTimeline(app: ProfessionAppState): void {
         const key = input.dataset.procKey || '';
         if (input.checked) activeProcVisibility.add(key);
         else activeProcVisibility.delete(key);
+
+        if (!input.checked && app.rotationSkillHighlightKey === key) {
+          app.rotationSkillHighlightKey = null;
+          applySkillHighlight();
+        }
+
         app.procFilterOpen = true;
         procElement.querySelectorAll('.proc-icon[data-proc-key]').forEach((procIcon) => {
           if (!(procIcon instanceof HTMLElement)) return;

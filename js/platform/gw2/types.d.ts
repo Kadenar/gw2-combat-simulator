@@ -236,7 +236,8 @@ export interface Gw2RelicContext extends SchedulerRecord {
     sourceSkill?: string,
     detail?: string,
     icon?: string,
-    cooldownReduction?: number | null
+    cooldownReduction?: number | null,
+    expiresAt?: number | null
   ): unknown;
   addBreakdown(name: string, amount: number, kind: string, hits?: unknown): unknown;
 }
@@ -597,6 +598,8 @@ export interface Gw2ProcStep {
   start: number;
   end: number;
   cooldownReduction?: number;
+  /** Absolute effect-expiry time in milliseconds when the proc starts a timed state. */
+  expiresAt?: number;
 }
 
 export interface Gw2ResolverHelpers extends SchedulerRecord {
@@ -655,7 +658,8 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
     sourceSkill?: string,
     detail?: string,
     icon?: string,
-    cooldownReduction?: number | null
+    cooldownReduction?: number | null,
+    expiresAt?: number | null
   ): void;
   addBreakdown(
     name: string,

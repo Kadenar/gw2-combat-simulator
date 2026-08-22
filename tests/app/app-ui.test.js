@@ -34,6 +34,7 @@ import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
   procFilterLabel,
+  relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
   rotationSkillHighlightKey,
   shatterResourceSpends,
@@ -215,6 +216,77 @@ test('equipment proc timeline markers follow their simulated activation times', 
     [{ skill: 'Relic of Fireworks', insertionIndex: 2 }]
   );
   assert.equal(procFilterLabel(result.procSteps[0]), 'Sigil of Air (Sigil)');
+});
+
+test('timed relic expiration markers merge refreshes and stay within the rotation', () => {
+  const result = {
+    duration: 12,
+    steps: [
+      { ri: 0, skill: 'Opening Strike', start: 0, end: 500 },
+      { ri: 1, skill: 'Follow-up', start: 6000, end: 6500 },
+      { ri: 2, skill: 'Finisher', start: 11500, end: 12000 }
+    ],
+    procSteps: [
+      {
+        type: 'relic_proc',
+        skill: 'Relic of Fireworks',
+        sourceSkill: 'Opening Strike',
+        start: 1000,
+        end: 1000,
+        expiresAt: 7000
+      },
+      {
+        type: 'relic_proc',
+        skill: 'Relic of Fireworks',
+        sourceSkill: 'Follow-up',
+        start: 5000,
+        end: 5000,
+        expiresAt: 11000
+      },
+      {
+        type: 'relic_proc',
+        skill: 'Relic of the Claw',
+        sourceSkill: 'Control',
+        start: 2000,
+        end: 2000,
+        expiresAt: 10000
+      },
+      {
+        type: 'relic_proc',
+        skill: 'Relic of Peitha',
+        sourceSkill: 'Shadowstep',
+        start: 9000,
+        end: 9000,
+        expiresAt: 13000
+      }
+    ]
+  };
+
+  assert.deepEqual(
+    relicProcExpirationTimelineMarkers(result, 3).map((marker) => ({
+      skill: marker.skill,
+      start: marker.start,
+      insertionIndex: marker.insertionIndex,
+      activations: marker.activations.length,
+      expired: marker.expired
+    })),
+    [
+      {
+        skill: 'Relic of the Claw',
+        start: 10000,
+        insertionIndex: 2,
+        activations: 1,
+        expired: true
+      },
+      {
+        skill: 'Relic of Fireworks',
+        start: 11000,
+        insertionIndex: 2,
+        activations: 2,
+        expired: true
+      }
+    ]
+  );
 });
 
 test('rotation skill highlights group occurrences by displayed skill', () => {

@@ -41,6 +41,11 @@ export function procFilterLabel(proc: Gw2ProcStep): string {
 export interface ProcTimelineMarker extends Gw2ProcStep {
   readonly insertionIndex: number;
   readonly activations: readonly Gw2ProcStep[];
+  readonly expired?: boolean;
+}
+
+function procMarkerInsertionIndex(steps: readonly SchedulerStep[], start: number, rotationLength: number): number {
+  return steps.find((step) => step.start > start)?.ri ?? rotationLength;
 }
 
 function matchingProcTimelineMarkers(
@@ -65,10 +70,9 @@ function matchingProcTimelineMarkers(
       const proc = activations[0] as Gw2ProcStep;
       // A proc at cast start belongs after that cast. Later procs are placed
       // immediately before the next command that has not started yet.
-      const next = steps.find((step) => step.start > proc.start);
       return {
         ...proc,
-        insertionIndex: next?.ri ?? rotationLength,
+        insertionIndex: procMarkerInsertionIndex(steps, proc.start, rotationLength),
         activations
       };
     })
@@ -87,6 +91,57 @@ export function relicProcTimelineMarkers(
   rotationLength = 0
 ): ProcTimelineMarker[] {
   return matchingProcTimelineMarkers(result, 'relic_proc', rotationLength);
+}
+
+/**
+ * Emits one marker at the true end of each continuous timed-relic window.
+ * Activations at or before the current deadline are refreshes, so their window
+ * is merged and no misleading crossed icon is shown at the earlier deadline.
+ */
+export function relicProcExpirationTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0
+): ProcTimelineMarker[] {
+  const steps = (result?.steps || [])
+    .filter((step) => step.ri >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+  const effectiveEnd = result?.deathTime == null ? Number(result?.duration || 0) : Number(result.deathTime);
+  const rotationEnd = Math.round(effectiveEnd * 1000);
+  const windows = new Map<string, { proc: Gw2ProcStep; expiresAt: number; activations: Gw2ProcStep[] }>();
+  const expired: ProcTimelineMarker[] = [];
+
+  const appendExpiration = (window: { proc: Gw2ProcStep; expiresAt: number; activations: Gw2ProcStep[] }): void => {
+    if (window.expiresAt > rotationEnd) return;
+    expired.push({
+      ...window.proc,
+      start: window.expiresAt,
+      end: window.expiresAt,
+      expiresAt: window.expiresAt,
+      insertionIndex: procMarkerInsertionIndex(steps, window.expiresAt, rotationLength),
+      activations: window.activations,
+      expired: true
+    });
+  };
+
+  for (const proc of [...(result?.procSteps || [])]
+    .filter((step) => step.type === 'relic_proc' && Number(step.expiresAt) > step.start)
+    .sort((left, right) => left.start - right.start)) {
+    const key = procFilterKey(proc);
+    const expiresAt = Number(proc.expiresAt);
+    const window = windows.get(key);
+    if (window && proc.start <= window.expiresAt) {
+      window.proc = proc;
+      window.expiresAt = Math.max(window.expiresAt, expiresAt);
+      window.activations.push(proc);
+      continue;
+    }
+
+    if (window) appendExpiration(window);
+    windows.set(key, { proc, expiresAt, activations: [proc] });
+  }
+
+  for (const window of windows.values()) appendExpiration(window);
+  return expired.sort((left, right) => left.start - right.start);
 }
 
 export function rotationSkillHighlightKey(entry: LegacyRotationItem | SchedulerRecord): string {
