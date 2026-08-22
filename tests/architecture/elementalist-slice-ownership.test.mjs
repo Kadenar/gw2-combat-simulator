@@ -10,46 +10,70 @@ const ELITE_TRAIT_NAMES = SPECIALIZATIONS.filter((specialization) => specializat
   [specialization.minorTraits, specialization.majorTraits].flat(3).map((trait) => trait.name)
 );
 
+// Recurses through owner-local data folders so structural checks cannot miss split skill declarations.
+async function typeScriptFiles(root) {
+  const entries = await readdir(root, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const target = path.join(root, entry.name);
+      return entry.isDirectory() ? typeScriptFiles(target) : entry.name.endsWith('.ts') ? [target] : [];
+    })
+  );
+  return files.flat().sort();
+}
+
+async function skillDeclarationFiles(root) {
+  const files = [path.join(root, 'skills.ts')];
+  try {
+    files.push(...(await typeScriptFiles(path.join(root, 'skill-data'))));
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+
+  return files;
+}
+
 async function specializationSkillTokens() {
   const tokens = new Set();
   for (const name of ELITE_NAMES) {
-    const source = await readFile(
-      path.resolve(CORE_ROOT, `../specializations/${name.toLowerCase()}/skills.ts`),
-      'utf8'
-    );
-    for (const match of source.matchAll(/\[ID\.([A-Z0-9_]+)\]/g)) tokens.add(match[1]);
+    const root = path.resolve(CORE_ROOT, `../specializations/${name.toLowerCase()}`);
+    for (const file of await skillDeclarationFiles(root)) {
+      const source = await readFile(file, 'utf8');
+      for (const match of source.matchAll(/\[ID\.([A-Z0-9_]+)\]/g)) tokens.add(match[1]);
+    }
   }
 
   return [...tokens];
 }
 
 test('Elementalist Core does not own elite-specialization policy', async () => {
-  const files = (await readdir(CORE_ROOT)).filter((name) => name.endsWith('.ts')).sort();
+  const files = await typeScriptFiles(CORE_ROOT);
   const violations = [];
   const eliteSkillTokens = await specializationSkillTokens();
 
   for (const file of files) {
-    const source = await readFile(path.join(CORE_ROOT, file), 'utf8');
+    const source = await readFile(file, 'utf8');
+    const relative = path.relative(CORE_ROOT, file);
 
     if (/from\s+["'][^"']*specializations\//.test(source)) {
-      violations.push(`${file} imports a specialization slice`);
+      violations.push(`${relative} imports a specialization slice`);
     }
 
     for (const name of ELITE_NAMES) {
       if (new RegExp(`\\b${name}\\b`).test(source)) {
-        violations.push(`${file} names ${name}`);
+        violations.push(`${relative} names ${name}`);
       }
     }
 
     for (const trait of ELITE_TRAIT_NAMES) {
       if (source.includes(`'${trait}'`) || source.includes(`"${trait}"`)) {
-        violations.push(`${file} names elite trait ${trait}`);
+        violations.push(`${relative} names elite trait ${trait}`);
       }
     }
 
     for (const token of eliteSkillTokens) {
       if (new RegExp(`\\b${token}\\b`).test(source)) {
-        violations.push(`${file} references elite skill token ${token}`);
+        violations.push(`${relative} references elite skill token ${token}`);
       }
     }
   }

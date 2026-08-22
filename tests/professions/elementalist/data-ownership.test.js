@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { elementalistCoreModule } from '../../../js/professions/elementalist/core/module.js';
@@ -35,6 +35,38 @@ const slices = [
   ['specializations/evoker', evokerModule, EVOKER_SKILL_MECHANICS]
 ];
 
+const weaponFragmentOwners = [
+  ['core', ELEMENTALIST_CORE_SKILL_MECHANICS],
+  ['specializations/weaver', WEAVER_SKILL_MECHANICS]
+];
+
+function weaponSlug(value) {
+  return String(value)
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+// Loads every owner-local weapon fragment so the aggregate contract proves a disjoint, no-loss composition.
+async function weaponFragments(directory) {
+  const sourceDirectory = new URL(`../../../js/professions/elementalist/${directory}/skill-data/`, import.meta.url);
+  return Promise.all(
+    readdirSync(sourceDirectory)
+      .filter((filename) => filename.endsWith('.ts'))
+      .sort()
+      .map(async (filename) => {
+        const source = readFileSync(new URL(filename, sourceDirectory), 'utf8');
+        assert.match(source, /ELEMENTALIST_SKILL_IDS\s+as\s+ID/);
+        assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
+        const module = await import(new URL(filename.replace(/\.ts$/, '.js'), sourceDirectory));
+        const exports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
+        assert.equal(exports.length, 1, `${directory}/${filename}`);
+        return [filename.replace(/\.ts$/, ''), exports[0][1]];
+      })
+  );
+}
+
 test('Elementalist skill mechanics have disjoint module ownership', () => {
   assert.equal(
     existsSync(new URL('../../../js/professions/elementalist/data/native-skill-data.ts', import.meta.url)),
@@ -69,6 +101,30 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
 
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
+  }
+});
+
+test('Elementalist weapon skill-data fragments compose without duplicates or omissions', async () => {
+  for (const [directory, aggregate] of weaponFragmentOwners) {
+    const owners = new Map();
+    for (const [filename, mechanics] of await weaponFragments(directory)) {
+      for (const [skillId, skill] of Object.entries(mechanics)) {
+        assert.equal(skill.type, 'Weapon', `${directory}/${filename}:${skillId}`);
+        assert.equal(weaponSlug(skill.weapon), filename, `${directory}/${filename}:${skillId}`);
+        assert.equal(owners.has(skillId), false, `${directory}:${skillId}`);
+        assert.equal(aggregate[skillId], skill, `${directory}:${skillId}`);
+        owners.set(skillId, filename);
+      }
+    }
+
+    const aggregateWeaponIds = Object.entries(aggregate)
+      .filter(([, skill]) => skill.type === 'Weapon' && skill.weapon)
+      .map(([skillId]) => skillId)
+      .sort((left, right) => Number(left) - Number(right));
+    assert.deepEqual(
+      [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
+      aggregateWeaponIds
+    );
   }
 });
 
@@ -124,6 +180,7 @@ test('Specialized Elements models percentage recharge changes as multipliers', (
   assert.equal(empowered.rechargeMultiplier, 0.67);
 });
 
+// Declaration-level timing assertions use the authored Quickness timeline; scheduler tests cover runtime projection.
 test('Arc Lightning models its three coefficient stages across ten attacks', () => {
   const arcLightning = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.ARC_LIGHTNING];
 
@@ -131,16 +188,16 @@ test('Arc Lightning models its three coefficient stages across ten attacks', () 
   assert.deepEqual(
     arcLightning.effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
-      [660, 0.35],
-      [1020, 0.35],
-      [1440, 0.35],
-      [1800, 0.4],
-      [2160, 0.4],
-      [2580, 0.4],
-      [2940, 0.45],
-      [3300, 0.45],
-      [3720, 0.45],
-      [4080, 0.45]
+      [440, 0.35],
+      [680, 0.35],
+      [960, 0.35],
+      [1200, 0.4],
+      [1440, 0.4],
+      [1720, 0.4],
+      [1960, 0.45],
+      [2200, 0.45],
+      [2480, 0.45],
+      [2720, 0.45]
     ]
   );
 });
@@ -152,8 +209,8 @@ test("Drake's Breath models strikes and burning as parallel tick sequences", () 
   assert.deepEqual(
     drakesBreath.effects.map((effect) => effect.ticks.map((tick) => tick.atMs)),
     [
-      [780, 1140, 1500, 1860],
-      [780, 1140, 1500, 1860]
+      [520, 760, 1000, 1240],
+      [520, 760, 1000, 1240]
     ]
   );
   assert.deepEqual(
@@ -174,8 +231,8 @@ test('Burning Speed shares its field tick timing across damage and burning', () 
   assert.deepEqual(
     fieldTicks.map((effect) => effect.ticks.map((tick) => tick.atMs)),
     [
-      [240, 1740, 3240, 4740, 6240],
-      [240, 1740, 3240, 4740, 6240]
+      [160, 1160, 2160, 3160, 4160],
+      [160, 1160, 2160, 3160, 4160]
     ]
   );
   assert.ok(fieldTicks[0].ticks.every((tick) => tick.coefficient === 0.2 && tick.metadata.damageKind === 'field-tick'));
@@ -186,7 +243,7 @@ test('Burning Speed shares its field tick timing across damage and burning', () 
 
 test('Flamewall shares its tick timing across damage and burning', () => {
   const flamewall = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.FLAMEWALL];
-  const expectedOffsets = [840, 2340, 3840, 5340, 6840, 8340, 9840, 11340, 12840];
+  const expectedOffsets = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560];
 
   assert.deepEqual(
     flamewall.effects.map((effect) => effect.ticks.map((tick) => tick.atMs)),
@@ -204,21 +261,21 @@ test('Flamewall shares its tick timing across damage and burning', () => {
 
 test('Core repeated packets use compact tick sequences', () => {
   const sharedOffsets = [
-    [ELEMENTALIST_SKILL_IDS.WILDFIRE, [2340, 3840, 5340, 6840, 8340, 9840, 11340], 2],
-    [ELEMENTALIST_SKILL_IDS.DUST_STORM, [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960], 2],
-    [ELEMENTALIST_SKILL_IDS.FROST_VOLLEY, [540, 1020, 1500, 1980, 2460], 2],
+    [ELEMENTALIST_SKILL_IDS.WILDFIRE, [1560, 2560, 3560, 4560, 5560, 6560, 7560], 2],
+    [ELEMENTALIST_SKILL_IDS.DUST_STORM, [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640], 2],
+    [ELEMENTALIST_SKILL_IDS.FROST_VOLLEY, [360, 680, 1000, 1320, 1640], 2],
     [
       ELEMENTALIST_SKILL_IDS.GLYPH_OF_STORMS_FIRE,
-      [1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320],
+      [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880],
       2
     ],
     [
       ELEMENTALIST_SKILL_IDS.GLYPH_OF_STORMS_EARTH,
-      [1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320],
+      [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880],
       2
     ],
-    [ELEMENTALIST_SKILL_IDS.FIRESTORM, [780, 2280, 3780, 5280, 6780, 8280, 9780, 11280, 12780], 1],
-    [ELEMENTALIST_SKILL_IDS.VOLCANO, [2340, 2700, 3180, 3600, 3960, 4380, 4860, 5220, 5640, 6060, 6480, 6960], 1]
+    [ELEMENTALIST_SKILL_IDS.FIRESTORM, [520, 1520, 2520, 3520, 4520, 5520, 6520, 7520, 8520], 1],
+    [ELEMENTALIST_SKILL_IDS.VOLCANO, [1560, 1800, 2120, 2400, 2640, 2920, 3240, 3480, 3760, 4040, 4320, 4640], 1]
   ];
 
   for (const [skillId, expectedOffsets, expectedSequenceCount] of sharedOffsets) {
@@ -239,7 +296,7 @@ test('Core repeated packets use compact tick sequences', () => {
 
   assert.deepEqual(
     dustStorm.effects.filter((effect) => effect.type === 'blind').map((effect) => effect.atMs),
-    [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960]
+    [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640]
   );
 
   const frostVolley = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.FROST_VOLLEY];

@@ -1,0 +1,810 @@
+/** Sword weapon-skill mechanics owned by the Core Elementalist module. */
+
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
+import { elementalistPacketEffects } from '../skill-effects.js';
+import type { SkillFragment } from '../../../../platform/engine/types.js';
+
+export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [ID.FIRE_STRIKE]: {
+    name: 'Fire Strike',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.FIRE_SWIPE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 1
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.FIRE_SWIPE]: {
+    name: 'Fire Swipe',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.SEARING_SLASH,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 1.1
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.SEARING_SLASH]: {
+    name: 'Searing Slash',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.FIRE_STRIKE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1.8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 480,
+            condition: 'Burning',
+            stacks: 1,
+            duration: 4
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.FLAME_UPRISING]: {
+    name: 'Flame Uprising',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: 'Sword',
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 720,
+    cooldown: 8,
+    comboFields: [
+      {
+        ownerId: 'elementalist',
+        fieldType: 'Fire',
+        duration: 2,
+        startAnchor: 'castEnd'
+      }
+    ],
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 2,
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: 'Leap',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ],
+            metadata: {}
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 600,
+            condition: 'Burning',
+            stacks: 1,
+            duration: 4
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 1600,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: 'field-tick'
+            }
+          },
+          {
+            atMs: 2600,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: 'field-tick'
+            }
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.CAUTERIZING_STRIKE]: {
+    name: 'Cauterizing Strike',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    weapon: 'Sword',
+    attunement: 'Fire',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 15,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 440,
+            coefficient: 2.91
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 440,
+            condition: 'Burning',
+            stacks: 1,
+            duration: 8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.SEICHE]: {
+    name: 'Seiche',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Water',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CLAPOTIS,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 0.8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.CLAPOTIS]: {
+    name: 'Clapotis',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Water',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.BREAKING_WAVE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 0.9
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.BREAKING_WAVE]: {
+    name: 'Breaking Wave',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Water',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.SEICHE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1.1
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.RIPTIDE]: {
+    name: 'Riptide',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: 'Sword',
+    attunement: 'Water',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 1080,
+    cooldown: 12,
+    comboFields: [
+      {
+        ownerId: 'elementalist',
+        fieldType: 'Water',
+        duration: 4,
+        startAnchor: 'castEnd'
+      }
+    ],
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 40,
+            coefficient: 0.33
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'boon',
+        boon: 'Regeneration',
+        stacks: 1,
+        duration: 5,
+        durationScale: 'boon',
+        atMs: 40,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.AQUA_SIPHON]: {
+    name: 'Aqua Siphon',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    weapon: 'Sword',
+    attunement: 'Water',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 680,
+    cooldown: 15,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 0.75
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'boon',
+        boon: 'Regeneration',
+        stacks: 1,
+        duration: 5,
+        durationScale: 'boon',
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.CHARGED_STRIKE]: {
+    name: 'Charged Strike',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.POLARIC_SLASH,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 0.9
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.POLARIC_SLASH]: {
+    name: 'Polaric Slash',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CALL_LIGHTNING,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 1
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'boon',
+        boon: 'Swiftness',
+        stacks: 1,
+        duration: 2,
+        durationScale: 'boon',
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.CALL_LIGHTNING]: {
+    name: 'Call Lightning',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 760,
+    cooldown: 0,
+    nextChainId: ID.CHARGED_STRIKE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 560,
+            coefficient: 1.2
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 760,
+            coefficient: 0.32
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 960,
+            coefficient: 0.32
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 1160,
+            coefficient: 0.32
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.POLARIC_LEAP]: {
+    name: 'Polaric Leap',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: 'Sword',
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 15,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 0.66,
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: 'Leap',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ],
+            metadata: {}
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        canCrit: true
+      },
+      {
+        type: 'boon',
+        boon: 'Superspeed',
+        stacks: 1,
+        duration: 3,
+        durationScale: 'boon',
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 280,
+            condition: 'Weakness',
+            stacks: 1,
+            duration: 3
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'control',
+        atMs: 280,
+        applications: 1,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {
+          controlKind: 'crowd-control'
+        }
+      }
+    ]
+  },
+  [ID.QUANTUM_STRIKE]: {
+    name: 'Quantum Strike',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    weapon: 'Sword',
+    attunement: 'Air',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 680,
+    cooldown: 16,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [600, 0.5],
+        [800, 0.425],
+        [1000, 0.425],
+        [1200, 0.425],
+        [1400, 0.425],
+        [1600, 0.425],
+        [1800, 0.425],
+        [2000, 0.425],
+        [2200, 0.425]
+      ],
+      { condition: { condition: 'Vulnerability', stacks: 1, duration: 8 } }
+    )
+  },
+  [ID.CRYSTAL_SLASH]: {
+    name: 'Crystal Slash',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CRYSTALLINE_STRIKE,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 0.8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 280,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 4
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.CRYSTALLINE_STRIKE]: {
+    name: 'Crystalline Strike',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CRYSTALLINE_SUNDER,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 0.9
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 360,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 4
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.CRYSTALLINE_SUNDER]: {
+    name: 'Crystalline Sunder',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.CRYSTAL_SLASH,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1.4
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 480,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 480,
+            condition: 'Cripple',
+            stacks: 1,
+            duration: 3
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.EARTHEN_VORTEX]: {
+    name: 'Earthen Vortex',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: 'Sword',
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 1000,
+    cooldown: 10,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 1.8,
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: 'Blast',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ],
+            metadata: {}
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 720,
+            condition: 'Bleeding',
+            stacks: 2,
+            duration: 8
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      },
+      {
+        type: 'condition',
+        ticks: [
+          {
+            atMs: 720,
+            condition: 'Cripple',
+            stacks: 1,
+            duration: 3
+          }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: {}
+      }
+    ]
+  },
+  [ID.RUST_FRENZY]: {
+    name: 'Rust Frenzy',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    weapon: 'Sword',
+    attunement: 'Earth',
+    categories: ['Weapon skill'],
+    quicknessCastTimeMs: 1400,
+    cooldown: 15,
+    skillFamily: 'Weapon skill',
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [360, 0.33],
+        [360, 0.33],
+        [600, 0.33],
+        [640, 0.33],
+        [840, 0.33],
+        [840, 0.33],
+        [1080, 0.33],
+        [1120, 0.33]
+      ],
+      { condition: { condition: 'Bleeding', stacks: 1, duration: 4 } }
+    )
+  }
+});

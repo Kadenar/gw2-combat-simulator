@@ -6,198 +6,28 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
+import { ENGINEER_MED_KIT_SKILL_MECHANICS } from './skill-data/med-kit.js';
+import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from './skill-data/grenade-kit.js';
+import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from './skill-data/bomb-kit.js';
+import { ENGINEER_TOOL_KIT_SKILL_MECHANICS } from './skill-data/tool-kit.js';
+import { ENGINEER_FLAMETHROWER_SKILL_MECHANICS } from './skill-data/flamethrower.js';
+import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from './skill-data/elixir-gun.js';
+import {
+  ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS,
+  ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS
+} from './skill-data/elite-mortar-kit.js';
 
 export { ENGINEER_TURRET_ATTACK_SKILLS } from './turrets.js';
 
-// Grenade Kit projectiles launch together about 360 ms into a quickened cast, so their later impacts survive aftercast truncation.
-const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
-
+// Composes kit fragments with physical weapons, utilities, toolbelt actions, and synthetic Core skills.
 export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
-  [ID.MED_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Med Kit'
-  },
-  [ID.GRENADE_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Grenade Kit'
-  },
-  [ID.POISON_GRENADE]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    cooldown: 20,
-    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        name: 'Poison Grenade',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion',
-          projectile: true
-        }
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Poisoned', stacks: 3, duration: 8 },
-          { atMs: 440, condition: 'Poisoned', stacks: 3, duration: 8 },
-          { atMs: 440, condition: 'Poisoned', stacks: 3, duration: 8 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Grenade Kit'
-  },
-  [ID.SHRAPNEL_GRENADE]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    cooldown: 5,
-    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.63 },
-          { atMs: 440, coefficient: 0.63 },
-          { atMs: 440, coefficient: 0.63 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        name: 'Shrapnel Grenade',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Bleeding', stacks: 1, duration: 7 },
-          { atMs: 440, condition: 'Bleeding', stacks: 1, duration: 7 },
-          { atMs: 440, condition: 'Bleeding', stacks: 1, duration: 7 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Grenade Kit'
-  },
-  [ID.FLASH_GRENADE]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        // Each of the three packets has a 0.1 coefficient; explicit ticks avoid interpreting 0.1 as a split total.
-        ticks: [
-          { atMs: 120, coefficient: 0.1 },
-          { atMs: 240, coefficient: 0.1 },
-          { atMs: 360, coefficient: 0.1 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Flash Grenade',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'blind',
-        actorType: 'player',
-        metadata: {
-          duration: 5
-        }
-      }
-    ],
-    kit: 'Grenade Kit'
-  },
-  [ID.FREEZE_GRENADE]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    cooldown: 20,
-    // Freeze Grenade is an explosion and does not perform a projectile combo finisher.
-    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        name: 'Freeze Grenade',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Chilled', stacks: 1, duration: 2 },
-          { atMs: 440, condition: 'Chilled', stacks: 1, duration: 2 },
-          { atMs: 440, condition: 'Chilled', stacks: 1, duration: 2 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Grenade Kit'
-  },
-  [ID.GRENADE_BARRAGE]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    cooldown: 25,
-    // Grenade Barrage is an explosion and does not perform a projectile combo finisher.
-    effects: [
-      {
-        type: 'strike',
-        // Six grenades at 0.6 coefficient each.
-        coefficient: 3.6,
-        hits: 6,
-        atMs: 112.88,
-        intervalMs: 112.88,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Grenade Barrage',
-        weapon: 'Profession mechanic',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      }
-    ],
-    toolbeltParentName: 'Grenade Kit'
-  },
+  ...ENGINEER_MED_KIT_SKILL_MECHANICS,
+  ...ENGINEER_GRENADE_KIT_SKILL_MECHANICS,
+  ...ENGINEER_BOMB_KIT_SKILL_MECHANICS,
+  ...ENGINEER_TOOL_KIT_SKILL_MECHANICS,
+  ...ENGINEER_FLAMETHROWER_SKILL_MECHANICS,
+  ...ENGINEER_ELIXIR_GUN_SKILL_MECHANICS,
+  ...ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS,
   [ID.PERSONAL_BATTERING_RAM]: {
     implemented: true,
     castTimeMs: 250,
@@ -220,57 +50,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         }
       }
     ]
-  },
-  [ID.BOMB_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Bomb Kit'
-  },
-  [ID.BIG_OL_BOMB]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    quicknessCastTimeMs: 600,
-    cooldown: 20,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Blast',
-        successfulCombos: 2,
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        atMs: 2760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: "Big Ol' Bomb",
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 2760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'knockdown',
-          duration: 3
-        }
-      }
-    ],
-    kit: 'Bomb Kit'
   },
   [ID.JUMP_SHOT_ID_5817]: {
     implemented: true,
@@ -351,128 +130,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         stacks: 1
       }
     ]
-  },
-  [ID.GALVANIC_BOMB]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    quicknessCastTimeMs: 600,
-    cooldown: 16,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Blast',
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Galvanic Bomb',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'condition',
-        condition: 'Confusion',
-        stacks: 6,
-        duration: 8,
-        actorType: 'player',
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'daze',
-          duration: 1
-        }
-      }
-    ],
-    kit: 'Bomb Kit'
-  },
-  [ID.FIRE_BOMB]: {
-    implemented: true,
-    quicknessCastTimeMs: 600,
-    interruptCommitMs: 400,
-    cooldown: 8,
-    comboFields: [
-      {
-        ownerId: 'engineer',
-        fieldType: 'Fire',
-        duration: 3,
-        startAnchor: 'castEnd',
-        inclusiveExpiry: true
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 4,
-        atMs: 760,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Fire Bomb',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 5,
-        actorType: 'player',
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        applications: 3,
-        atMs: 1760,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
-      }
-    ],
-    kit: 'Bomb Kit'
-  },
-  [ID.SMOKE_BOMB_ENGINEER_SKILL]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'blind',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Bomb Kit'
   },
   [ID.SLICK_SHOES]: {
     implemented: true,
@@ -765,29 +422,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.BOMB]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Bomb',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
-      }
-    ],
-    kit: 'Bomb Kit'
-  },
   [ID.HEALING_TURRET]: {
     implemented: true,
     handlerId: 'engineer.arm-flip',
@@ -909,40 +543,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.GRENADE]: {
-    implemented: true,
-    quicknessCastTimeMs: 680,
-    cooldown: 0,
-    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.33 },
-          { atMs: 440, coefficient: 0.33 },
-          { atMs: 440, coefficient: 0.33 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        name: 'Grenade',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        }
-      }
-    ],
-    kit: 'Grenade Kit'
-  },
   [ID.THUMP]: {
     implemented: true,
     castTimeMs: 0,
@@ -999,36 +599,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         actorType: 'player'
       }
     ]
-  },
-  [ID.TOOL_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Tool Kit'
-  },
-  [ID.PRY_BAR]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        name: 'Pry Bar',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Confusion',
-        stacks: 5,
-        duration: 5,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Tool Kit'
   },
   [ID.ROCKET_BOOTS]: {
     implemented: true,
@@ -1089,233 +659,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.FLAMETHROWER]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Flamethrower'
-  },
-  [ID.FLAME_JET]: {
-    implemented: true,
-    castTimeMs: 2570,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 10,
-        atMs: 172,
-        intervalMs: 172,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Flame Jet',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Flamethrower'
-  },
-  [ID.NAPALM]: {
-    implemented: true,
-    quicknessCastTimeMs: 1760,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'strike',
-        // The EVTC records five visual volleys as ten damage packets. Each
-        // packet has a 0.5 coefficient and a matching Burning application.
-        ticks: [
-          { atMs: 280, coefficient: 0.5 },
-          { atMs: 441, coefficient: 0.5 },
-          { atMs: 560, coefficient: 0.5 },
-          { atMs: 679, coefficient: 0.5 },
-          { atMs: 842, coefficient: 0.5 },
-          { atMs: 955, coefficient: 0.5 },
-          { atMs: 1077, coefficient: 0.5 },
-          { atMs: 1240, coefficient: 0.5 },
-          { atMs: 1361, coefficient: 0.5 },
-          { atMs: 1482, coefficient: 0.5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Napalm',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 280, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 441, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 560, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 679, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 842, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 955, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1077, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1240, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1361, condition: 'Burning', stacks: 1, duration: 3.25 },
-          { atMs: 1482, condition: 'Burning', stacks: 1, duration: 3.25 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
-    ],
-    kit: 'Flamethrower'
-  },
-  [ID.AIR_BLAST]: {
-    implemented: true,
-    quicknessCastTimeMs: 360,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        metadata: {
-          controlKind: 'knockback',
-          duration: 400
-        }
-      }
-    ],
-    kit: 'Flamethrower'
-  },
-  [ID.FLAME_BLAST]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    quicknessCastTimeMs: 800,
-    measuredCancelMs: 480,
-    cooldown: 6,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.3,
-        hits: 1,
-        name: 'Flame Blast',
-        actorType: 'player',
-        metadata: {
-          damageKind: 'explosion'
-        },
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player',
-        persistsAfterInterrupt: true
-      }
-    ],
-    kit: 'Flamethrower'
-  },
-  [ID.ELIXIR_GUN]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Elixir Gun'
-  },
-  [ID.TRANQUILIZER_DART]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        name: 'Tranquilizer Dart',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elixir Gun'
-  },
-  [ID.GLOB_SHOT]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 8,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: 'Glob Shot',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    kit: 'Elixir Gun'
-  },
-  [ID.ACID_BOMB]: {
-    implemented: true,
-    castTimeMs: 250,
-    cooldown: 12,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
-        name: 'Acid Bomb — Packet 1',
-        actorType: 'player'
-      },
-      {
-        type: 'strike',
-        coefficient: 1.35,
-        hits: 1,
-        name: 'Initial Damage',
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elixir Gun'
-  },
-  [ID.SUPER_ELIXIR]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 16,
-    effects: [],
-    kit: 'Elixir Gun'
-  },
   [ID.DETONATE_RIFLE_TURRET]: {
     implemented: true,
     handlerId: 'engineer.consume-flip',
@@ -1363,53 +706,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         actorType: 'player'
       }
     ]
-  },
-  [ID.FUMIGATE]: {
-    implemented: true,
-    castTimeMs: 2250,
-    cooldown: 12,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 5,
-        atMs: 304,
-        intervalMs: 304,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Fumigate',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 5,
-        duration: 2,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 6,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elixir Gun'
-  },
-  [ID.HEALING_MIST]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 10,
-        stacks: 1
-      }
-    ],
-    toolbeltParentName: 'Elixir Gun'
   },
   [ID.TOSS_ELIXIR_B]: {
     implemented: true,
@@ -1592,151 +888,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         actorType: 'player'
       }
     ]
-  },
-  [ID.SMACK]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        name: 'Smack',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Tool Kit'
-  },
-  [ID.WHACK]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        name: 'Whack',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Tool Kit'
-  },
-  [ID.THWACK]: {
-    implemented: true,
-    castTimeMs: 1000,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
-        name: 'Thwack',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Tool Kit'
-  },
-  [ID.BOX_OF_NAILS]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 10,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Tool Kit'
-  },
-  [ID.MAGNET]: {
-    implemented: true,
-    castTimeMs: 1250,
-    cooldown: 15,
-    effects: [],
-    kit: 'Tool Kit'
-  },
-  [ID.GEAR_SHIELD]: {
-    implemented: true,
-    castTimeMs: 2000,
-    cooldown: 15,
-    effects: [],
-    kit: 'Tool Kit'
-  },
-  [ID.THROW_WRENCH]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'Throw Wrench',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 5,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Tool Kit'
   },
   [ID.RIFLE_BURST]: {
     implemented: true,
@@ -2083,67 +1234,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.SUPER_ELIXIR_CHAIN_SKILL]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Elixir Gun'
-  },
-  [ID.STOW_MED_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Med Kit'
-  },
-  [ID.STOW_GRENADE_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Grenade Kit'
-  },
-  [ID.STOW_BOMB_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Bomb Kit'
-  },
-  [ID.STOW_TOOL_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Tool Kit'
-  },
-  [ID.STOW_FLAMETHROWER]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Flamethrower'
-  },
-  [ID.STOW_ELIXIR_GUN]: {
-    implemented: true,
-    handlerId: 'engineer.kit-stow',
-    paletteFlip: false,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kit: 'Elixir Gun'
-  },
   [ID.DETONATE_ELIXIR_H]: {
     implemented: true,
     castTimeMs: 0,
@@ -2248,18 +1338,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         }
       }
     ]
-  },
-  [ID.SMOKE_VENT]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'blind',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Flamethrower'
   },
   [ID.THROW_MINE]: {
     implemented: true,
@@ -3025,20 +2103,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.BANDAGE_BLAST]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 8,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 3,
-        stacks: 1
-      }
-    ],
-    kit: 'Med Kit'
-  },
   [ID.UTILITY_GOGGLES_ID_29591]: {
     implemented: true,
     castTimeMs: 0,
@@ -3105,14 +2169,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     cooldown: 0,
     effects: [],
     toolbeltParentName: 'Elixir X (underwater)'
-  },
-  [ID.BANDAGE_SELF]: {
-    implemented: true,
-    castTimeMs: 1000,
-    cooldown: 17,
-    effects: [],
-    toolbeltParentName: 'Med Kit',
-    mechanicSlot: 1
   },
   [ID.NEGATIVE_BASH]: {
     implemented: true,
@@ -3231,13 +2287,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.ELIXIR_SHELL]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 24,
-    effects: [],
-    kit: 'Elite Mortar Kit'
-  },
   [ID.ELECTRO_WHIRL]: {
     implemented: true,
     castTimeMs: 1000,
@@ -3265,25 +2314,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         }
       }
     ]
-  },
-  [ID.FLASH_SHELL]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Flash Shell',
-        actorType: 'player'
-      },
-      {
-        type: 'blind',
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elite Mortar Kit'
   },
   [ID.BANDAGE_TRAIT_SKILL]: {
     implemented: true,
@@ -3327,28 +2357,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     cooldown: 1,
     effects: []
   },
-  [ID.ENDOTHERMIC_SHELL]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 15,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Endothermic Shell',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elite Mortar Kit'
-  },
   [ID.THROW_MINE_ID_30337]: {
     implemented: true,
     castTimeMs: 500,
@@ -3370,21 +2378,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         }
       }
     ]
-  },
-  [ID.MORTAR_SHOT]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Mortar Shot',
-        actorType: 'player'
-      }
-    ],
-    kit: 'Elite Mortar Kit'
   },
   [ID.EQUALIZING_BLOW]: {
     implemented: true,
@@ -3447,36 +2440,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         timingScale: 'fixed'
       }
     ]
-  },
-  [ID.MED_BLASTER]: {
-    implemented: true,
-    castTimeMs: 1250,
-    cooldown: 0,
-    effects: [],
-    kit: 'Med Kit'
-  },
-  [ID.ORBITAL_STRIKE]: {
-    implemented: true,
-    castTimeMs: 750,
-    cooldown: 40,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Blast',
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
-        name: 'Orbital Strike',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Elite Mortar Kit',
-    mechanicSlot: 5
   },
   [ID.ROCKET_CHARGE]: {
     implemented: true,
@@ -3574,14 +2537,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     toolbeltParentName: 'Elixir X',
     mechanicSlot: 5
   },
-  [ID.ELITE_MORTAR_KIT]: {
-    implemented: true,
-    handlerId: 'engineer.kit-equip',
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [],
-    kitName: 'Elite Mortar Kit'
-  },
   [ID.SLICK_SHOES_ID_30828]: {
     implemented: true,
     castTimeMs: 0,
@@ -3602,44 +2557,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     castTimeMs: 750,
     cooldown: 24,
     effects: []
-  },
-  [ID.POISON_GAS_SHELL]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    quicknessCastTimeMs: 520,
-    cooldown: 10,
-    comboFields: [
-      {
-        ownerId: 'engineer',
-        fieldType: 'Poison',
-        duration: 5,
-        startAnchor: 'castEnd',
-        inclusiveExpiry: true
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Poison Gas Shell',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
-      }
-    ],
-    kit: 'Elite Mortar Kit'
   },
   [ID.DEPLOY_MINE_ID_30893]: {
     implemented: true,
@@ -3732,51 +2649,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.CLEANSING_FIELD]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 15,
-    effects: [],
-    kit: 'Med Kit'
-  },
-  [ID.VITAL_BURST]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 20,
-    effects: [],
-    kit: 'Med Kit'
-  },
   [ID.LESSER_ELIXIR_C]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 10,
     effects: []
-  },
-  [ID.INFUSION_BOMB]: {
-    implemented: true,
-    castTimeMs: 500,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 10,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 10,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 10,
-        stacks: 1
-      }
-    ],
-    kit: 'Med Kit'
   },
   [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]: {
     implemented: true,
@@ -4423,87 +3300,10 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     quicknessCastTimeMs: 520,
     cooldown: 1,
     effects: []
-  },
-  [ID.STOKE_THE_FLAMES]: {
-    implemented: true,
-    quicknessCastTimeMs: 440,
-    cooldown: 20,
-    comboFields: [
-      {
-        ownerId: 'engineer',
-        fieldType: 'Fire',
-        duration: 1,
-        startAnchor: 'castEnd',
-        inclusiveExpiry: true
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        name: 'Stoke the Flames',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 8
-      }
-    ],
-    kit: 'Flamethrower'
-  },
-  [ID.MAGNETIC_BOMB]: {
-    interruptCommitMs: 0,
-    implemented: true,
-    quicknessCastTimeMs: 600,
-    cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 1760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Magnetic Bomb',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        metadata: {
-          damageKind: 'explosion'
-        }
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 1760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {
-          controlKind: 'pull',
-          duration: 300
-        }
-      }
-    ],
-    kit: 'Bomb Kit'
   }
 });
 const extraSkills: Skill[] = [
+  ...ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS,
   {
     id: ID.DODGE,
     name: 'Dodge',
@@ -4513,22 +3313,6 @@ const extraSkills: Skill[] = [
     slot: 'Action',
     handlerId: 'engineer.dodge',
     castTimeMs: 800,
-    cooldown: 0,
-    implemented: true,
-    effects: []
-  },
-  {
-    id: ID.STOW_ELITE_MORTAR_KIT,
-    name: 'Stow Elite Mortar Kit',
-    description: 'Stow the elite mortar kit and return to equipped weapons.',
-    icon: 'https://render.guildwars2.com/file/' + '7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
-    type: 'Elite',
-    slot: 'Elite',
-    handlerId: 'engineer.kit-stow',
-    kit: 'Elite Mortar Kit',
-    paletteFlip: false,
-    slotSelectable: false,
-    castTimeMs: 0,
     cooldown: 0,
     implemented: true,
     effects: []
