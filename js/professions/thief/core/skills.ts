@@ -1890,6 +1890,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.LOTUS_STRIKE]: {
     implemented: true,
     quicknessCastTimeMs: 440,
+    interruptCommitMs: 280,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
