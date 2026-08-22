@@ -1,3 +1,13 @@
+/**
+ * Shared Professions / Workspace / Analysis view navigation for simulator pages.
+ *
+ * The three views are a single-page toggle driven by the URL hash: tab clicks
+ * push the hash and swap the active view without a page load, and `hashchange` /
+ * `popstate` mirror browser navigation back into the active view. Each view
+ * remembers its scroll position so switching back restores where the user was.
+ * `mountSimulatorNavigation` is the entry point; the rest are its DOM helpers.
+ */
+
 import { resetRotationWorkspace } from '../../platform/ui/rotation-workspace.js';
 import { embedRoute, isEmbedded } from '../embed.js';
 
@@ -11,6 +21,7 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   analysis: '#analysis'
 };
 
+/** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
   if (normalized === VIEW_HASHES.professions) return 'professions';
@@ -18,11 +29,13 @@ export function simulatorViewFromHash(hash: string): SimulatorView {
   return 'workspace';
 }
 
+/** Builds a same-page href (`<file>#<view>`) for the given view from a pathname. */
 export function simulatorViewHref(pathname: string, view: SimulatorView): string {
   const route = pathname.split('/').pop() || pathname || 'index.html';
   return `${route}${VIEW_HASHES[view]}`;
 }
 
+/** Creates a tab anchor, tagging it with `data-simulator-view` when a view is given. */
 function createNavigationLink(root: Document, label: string, href: string, view?: SimulatorView): HTMLAnchorElement {
   const link = root.createElement('a');
   link.className = 'simulator-view-tab';
@@ -32,6 +45,7 @@ function createNavigationLink(root: Document, label: string, href: string, view?
   return link;
 }
 
+/** Inserts the analysis-view heading and DPS-summary mirror before the results block (idempotent). */
 function mountAnalysisHeading(root: Document): void {
   const results = root.getElementById('rotation-results');
   if (!results || root.getElementById('analysis-view-title')) return;
@@ -68,6 +82,7 @@ function mountHeaderBrand(root: Document, header: HTMLElement): void {
   if (snapshot) brand.append(snapshot);
 }
 
+/** Inserts the profession-browser section (card grid host) after the header/snapshot (idempotent). */
 function mountProfessionBrowser(root: Document, header: HTMLElement): void {
   if (root.querySelector('.profession-browser-view')) return;
 
@@ -87,6 +102,10 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
   else header.after(section);
 }
 
+/**
+ * Applies a view: sets `body[data-simulator-view]`, resets the rotation
+ * workspace when leaving it, and marks the matching tab active/`aria-current`.
+ */
 function updateActiveView(root: Document, view: SimulatorView): void {
   if (!root.body) return;
   root.body.dataset.simulatorView = view;
@@ -100,6 +119,7 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   }
 }
 
+/** Reads the current viewport scroll offset, falling back to the scrolling element. */
 function viewportScrollPosition(root: Document): ScrollPosition {
   const view = root.defaultView;
   const scrollingElement = root.scrollingElement;
@@ -109,7 +129,13 @@ function viewportScrollPosition(root: Document): ScrollPosition {
   };
 }
 
-/** Mounts the shared Professions / Workspace / Analysis navigation. */
+/**
+ * Mounts the shared Professions / Workspace / Analysis navigation into the
+ * simulator header. No-op unless the header exists, a profession is set, and the
+ * tabs are not already mounted. Mounts the brand block, browser section, and
+ * analysis heading, builds the three tabs, and
+ * wires hash/history-driven view switching with per-view scroll restoration.
+ */
 export function mountSimulatorNavigation(root: Document = document): void {
   const body = root.body;
   const header = root.querySelector<HTMLElement>('#app > header');
@@ -125,6 +151,8 @@ export function mountSimulatorNavigation(root: Document = document): void {
   const pathname = root.defaultView?.location.pathname || 'index.html';
   let activeView = simulatorViewFromHash(root.defaultView?.location.hash || '');
   const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(root)]]);
+  // Restore twice (now + next frame) so layout that settles after the view swap
+  // doesn't clobber the scroll; bail if the view changed again in between.
   const restoreScrollPosition = (view: SimulatorView, position: ScrollPosition): void => {
     const restore = (): void => {
       if (view !== activeView) return;
@@ -139,6 +167,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
     root.defaultView?.requestAnimationFrame(restore);
   };
 
+  // Switches to a view, saving the outgoing scroll and restoring the incoming.
   const showView = (view: SimulatorView): void => {
     if (view === activeView) {
       updateActiveView(root, view);
@@ -152,7 +181,6 @@ export function mountSimulatorNavigation(root: Document = document): void {
     restoreScrollPosition(view, position);
   };
 
-  header.querySelector('.profession-picker')?.remove();
   mountHeaderBrand(root, header);
   mountProfessionBrowser(root, header);
   for (const view of ['professions', 'workspace', 'analysis'] as const) {

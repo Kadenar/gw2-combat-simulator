@@ -15,7 +15,6 @@ import { mountRotationWorkspace } from '../../platform/ui/rotation-workspace.js'
 import { mountSimulatorTutorial } from '../tutorial.js';
 import { mountSimulatorNavigation } from './navigation.js';
 import {
-  getProfessionEntry,
   professionGroups,
   type ProfessionRegistryEntry,
   PROFESSION_ROUTES,
@@ -123,37 +122,6 @@ function mountStickyProfessionHeader(root: Document): void {
   }
 }
 
-function activeProfessionId(root: Document, select: HTMLSelectElement): string {
-  return root.body?.dataset.profession || select.dataset.activeProfession || '';
-}
-
-function populateProfessionSelector(select: HTMLSelectElement, active: string): void {
-  const owner = select.ownerDocument || document;
-  select.replaceChildren();
-  if (!active) {
-    const placeholder = owner.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Select a simulator…';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    select.append(placeholder);
-  }
-
-  for (const group of professionGroups) {
-    const optgroup = owner.createElement('optgroup');
-    optgroup.label = group.label;
-    for (const entry of group.entries) {
-      const option = owner.createElement('option');
-      option.value = entry.id;
-      option.textContent = entry.name;
-      option.selected = entry.id === active;
-      optgroup.append(option);
-    }
-
-    select.append(optgroup);
-  }
-}
-
 function renderProfessionCards(root: Document): void {
   const grid = root.querySelector('[data-profession-grid]');
   if (!grid) return;
@@ -219,9 +187,9 @@ function renderProfessionGroupCards(root: Document, grid: Element, entries: read
 /**
  * Binds profession navigation within a document-like root.
  *
- * The active profession comes from `body[data-profession]`, then from the
- * selector's `data-active-profession`. Missing selector and card-grid elements
- * are allowed so the same entry point can run on landing and simulator pages.
+ * Mounts the shared simulator chrome and renders the profession card grid when
+ * present. A missing card grid is allowed so the same entry point can run on
+ * landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
   mountGw2IconFallback(root);
@@ -232,25 +200,7 @@ export function bindProfessionSelector(root: Document = document): void {
   mountSimulatorTutorial(root);
   mountSimulatorNavigation(root);
   mountStickyProfessionHeader(root);
-  const select = root.getElementById('profession-select') as HTMLSelectElement | null;
   renderProfessionCards(root);
-  if (!select) return;
-
-  const active = activeProfessionId(root, select);
-  const entry = getProfessionEntry(active);
-  if (entry?.themeClass && root.body) {
-    root.body.classList.add(entry.themeClass);
-  }
-
-  populateProfessionSelector(select, entry?.id || '');
-
-  select.addEventListener('change', () => {
-    const route = professionRoute(select.value);
-    const current = globalThis.location?.pathname?.split('/').pop() || 'index.html';
-    if (current !== route) {
-      globalThis.location.assign(isEmbedded() ? embedRoute(route) : route);
-    }
-  });
 }
 
 if (typeof document !== 'undefined') {

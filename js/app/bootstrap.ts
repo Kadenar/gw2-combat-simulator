@@ -2,8 +2,7 @@ import { ProfessionApp } from './profession-app.js';
 import { loadProfessionAppAdapter } from './profession/registry.js';
 
 export async function bootstrapProfessionApp(root: Document = document): Promise<ProfessionApp> {
-  const professionId =
-    root.body.dataset.profession || root.getElementById('profession-select')?.dataset.activeProfession;
+  const professionId = root.body.dataset.profession;
   if (!professionId) {
     throw new Error('Profession page is missing data-profession.');
   }
