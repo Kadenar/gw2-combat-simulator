@@ -192,10 +192,15 @@
   box-shadow: 0 0 0 1px rgba(157, 123, 208, 0.35);
 }
 
-.activation-editor-full-cast {
+.activation-editor-full-cast,
+.activation-editor-damage-commit {
   margin: 7px 0 0 23px;
   color: var(--text-dim, #888899);
   font-size: 10px;
+}
+
+.activation-editor-damage-commit {
+  margin-top: 3px;
 }
 
 .activation-editor-warning {

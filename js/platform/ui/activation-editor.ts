@@ -17,8 +17,7 @@ export interface ActivationEditorHandle {
 }
 
 export type ActivationInterruptValidation =
-  | { readonly valid: true; readonly value: number }
-  | { readonly valid: false; readonly error: string };
+  { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
 
 let activeEditor: ActivationEditorHandle | null = null;
 
@@ -47,6 +46,14 @@ export function activationDamageCommitMs(
   if (cutoffs.length) return Math.min(...cutoffs);
   const skillCutoff = Number(skill.interruptCommitMs);
   return skill.interruptCommitMs != null && Number.isFinite(skillCutoff) && skillCutoff >= 0 ? skillCutoff : null;
+}
+
+/** Keeps the configured cutoff visible so users can choose a damage-preserving interruption time up front. */
+export function activationDamageCommitLabel(damageCommitMs: number | null | undefined): string {
+  const cutoff = Number(damageCommitMs);
+  return damageCommitMs != null && Number.isFinite(cutoff) && cutoff >= 0
+    ? `Damage commit cutoff: ${cutoff} ms minimum`
+    : '';
 }
 
 /** Explains when an interrupted UI activation cannot reach any declared damage commit point. */
@@ -123,6 +130,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       <span>ms</span>
     </div>
     <div class="activation-editor-full-cast"></div>
+    <div class="activation-editor-damage-commit"></div>
     <div class="activation-editor-warning" aria-live="polite" hidden></div>
     <div class="activation-editor-error" aria-live="polite"></div>
     <button class="activation-editor-reset" type="button">Reset to normal</button>
@@ -139,6 +147,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const input = editor.querySelector<HTMLInputElement>('.activation-editor-input');
   const inputRow = editor.querySelector<HTMLElement>('.activation-editor-input-row');
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
+  const damageCommit = editor.querySelector<HTMLElement>('.activation-editor-damage-commit');
   const warning = editor.querySelector<HTMLElement>('.activation-editor-warning');
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
   const reset = editor.querySelector<HTMLButtonElement>('.activation-editor-reset');
@@ -153,6 +162,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     !input ||
     !inputRow ||
     !fullCast ||
+    !damageCommit ||
     !warning ||
     !error ||
     !reset ||
@@ -177,6 +187,8 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   if (fullCastMs > 1) input.max = String(fullCastMs - 1);
   fullCast.textContent = fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
   fullCast.hidden = fullCastMs <= 0;
+  damageCommit.textContent = activationDamageCommitLabel(options.damageCommitMs);
+  damageCommit.hidden = !damageCommit.textContent;
 
   const updateDamageCommitWarning = (): void => {
     const message = interruptRadio.checked ? activationDamageCommitWarning(input.value, options.damageCommitMs) : '';
