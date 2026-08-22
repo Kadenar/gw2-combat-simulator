@@ -1015,6 +1015,44 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
   assert.ok(stormPackets.every((event) => event.damageKind === 'explosion'));
 });
 
+test('Holosmith benchmark projectiles retain packets only after their observed launch cutoffs', () => {
+  const brightSlash = engineerCatalog.skillsById.get(ID.BRIGHT_SLASH_STORM);
+
+  assert.equal(brightSlash.interruptCommitMs, 280);
+  assert.equal(brightSlash.effects[0].atMs, 320);
+  assert.equal(brightSlash.effects[0].persistsAfterInterrupt, true);
+
+  const interruptedBrightSlash = (interruptMs) =>
+    simulate(
+      'Holosmith',
+      [
+        'Engage Photon Forge',
+        ID.LIGHT_STRIKE_STORM,
+        { name: 'Bright Slash—Storm', skillId: ID.BRIGHT_SLASH_STORM, interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      { selectedTraitIds: [TRAIT.CRYSTAL_CONFIGURATION_STORM] }
+    ).events.filter((event) => event.type === 'damage' && event.name === 'Bright Slash—Storm');
+
+  assert.equal(interruptedBrightSlash(279).length, 0);
+  assert.equal(interruptedBrightSlash(280).length, 1);
+
+  const staticShock = engineerCatalog.skillsById.get(ID.STATIC_SHOCK);
+
+  assert.equal(staticShock.interruptCommitMs, 480);
+  assert.ok(staticShock.effects.every((effect) => effect.atMs === 480));
+
+  const interruptedStaticShock = (interruptMs) =>
+    simulate(
+      'Holosmith',
+      [{ name: 'Static Shock', skillId: ID.STATIC_SHOCK, interruptMs }, { type: 'wait', durationMs: 1000 }],
+      { selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'] }
+    ).events.filter((event) => event.type === 'damage' && event.name === 'Static Shock');
+
+  assert.equal(interruptedStaticShock(479).length, 0);
+  assert.equal(interruptedStaticShock(480).length, 1);
+});
+
 test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () => {
   const vented = simulate('Holosmith', ['Dodge'], {
     initialHeat: 50,
@@ -2128,9 +2166,30 @@ test('Grenade Kit emits three explosive grenade packets', () => {
     }
   }
 
+  const committedGrenades = ['Grenade', 'Shrapnel Grenade', 'Freeze Grenade', 'Poison Grenade'];
+
+  for (const name of committedGrenades) {
+    const grenadeSkill = engineerCatalog.skillsByName.get(name);
+
+    assert.equal(grenadeSkill.interruptCommitMs, 360, name);
+    assert.ok(
+      grenadeSkill.effects.every((effect) => effect.persistsAfterInterrupt === true),
+      name
+    );
+
+    const interruptedPackets = (interruptMs) =>
+      simulate('Core', [
+        'Grenade Kit',
+        { name, interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ]).events.filter((event) => event.type === 'damage' && event.name === name);
+
+    assert.equal(interruptedPackets(359).length, 0, name);
+    assert.equal(interruptedPackets(360).length, 3, name);
+  }
+
   const shrapnel = engineerCatalog.skillsByName.get('Shrapnel Grenade');
 
-  assert.equal(shrapnel.interruptCommitMs, 360);
   assert.equal(shrapnel.comboFinishers, undefined);
   for (const name of ['Poison Grenade', 'Freeze Grenade']) {
     assert.equal(engineerCatalog.skillsByName.get(name).comboFinishers, undefined, name);
@@ -2164,16 +2223,6 @@ test('Grenade Kit emits three explosive grenade packets', () => {
     ]
   );
 
-  const interruptedShrapnelPackets = (interruptMs) =>
-    simulate('Core', [
-      'Grenade Kit',
-      { name: 'Shrapnel Grenade', interruptMs },
-      { type: 'wait', durationMs: 1000 }
-    ]).events.filter((event) => event.type === 'damage' && event.name === 'Shrapnel Grenade');
-
-  assert.equal(interruptedShrapnelPackets(359).length, 0);
-  assert.equal(interruptedShrapnelPackets(360).length, 3);
-
   const grenade = simulate('Core', ['Grenade Kit', 'Grenade']);
 
   assert.deepEqual(
@@ -2185,12 +2234,6 @@ test('Grenade Kit emits three explosive grenade packets', () => {
       [0.44, 0.33],
       [0.44, 0.33]
     ]
-  );
-  const cancelled = simulate('Core', ['Grenade Kit', { name: 'Grenade', interruptMs: 281 }]);
-
-  assert.equal(
-    cancelled.events.some((event) => event.type === 'damage' && event.name === 'Grenade'),
-    false
   );
 });
 

@@ -336,6 +336,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     quicknessCastTimeMs: 520,
     cooldown: 0,
     heatGain: 3,
+    interruptCommitMs: 280,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -350,6 +351,10 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Bright Slash—Storm',
         actorType: 'player',
         metadata: {

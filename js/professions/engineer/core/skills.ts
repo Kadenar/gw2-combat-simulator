@@ -8,6 +8,10 @@ import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 
 export { ENGINEER_TURRET_ATTACK_SKILLS } from './turrets.js';
+
+// Grenade Kit projectiles launch together about 360 ms into a quickened cast, so their later impacts survive aftercast truncation.
+const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
+
 export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.MED_KIT]: {
     implemented: true,
@@ -29,7 +33,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    // Poison Grenade is an explosion and does not perform a projectile combo finisher.
+    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     effects: [
       {
         type: 'strike',
@@ -40,6 +44,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Poison Grenade',
         actorType: 'player',
         metadata: {
@@ -56,6 +61,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ],
@@ -65,8 +71,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 5,
-    // EVTC projectile creation occurs at about 360 ms; only launches at or after that cutoff retain impacts, and it is not a combo finisher.
-    interruptCommitMs: 360,
+    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     effects: [
       {
         type: 'strike',
@@ -135,6 +140,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     quicknessCastTimeMs: 680,
     cooldown: 20,
     // Freeze Grenade is an explosion and does not perform a projectile combo finisher.
+    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     effects: [
       {
         type: 'strike',
@@ -145,6 +151,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Freeze Grenade',
         actorType: 'player',
         metadata: {
@@ -160,6 +167,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ],
@@ -905,6 +913,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 0,
+    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     comboFinishers: [
       {
         ownerId: 'engineer',
@@ -924,6 +933,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Grenade',
         actorType: 'player',
         metadata: {
@@ -2932,17 +2942,24 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
+    interruptCommitMs: 480,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Static Shock',
         weapon: 'Profession mechanic',
         actorType: 'player'
       },
       {
         type: 'control',
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         actorType: 'player',
         metadata: {
           controlKind: 'daze',
