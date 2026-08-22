@@ -52,6 +52,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   [ID.MANIFEST_TOXIN]: {
     implemented: true,
     quicknessCastTimeMs: 560,
+    interruptCommitMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -231,6 +232,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   [ID.MISERY_SWIPE]: {
     implemented: true,
     quicknessCastTimeMs: 440,
+    interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -1753,6 +1755,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     implemented: true,
     castTimeMs: 480,
     unaffectedByQuickness: true,
+    interruptCommitMs: 400,
     cooldown: 0,
     energyCost: 0,
     comboFinishers: [

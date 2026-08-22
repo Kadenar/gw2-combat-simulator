@@ -1192,6 +1192,66 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   );
 });
 
+test('Condition Quickness Herald weapon packets use their measured interrupt commit cutoffs', () => {
+  const baseHeraldConfig = {
+    selectedLegends: [LEGEND.DRAGON, LEGEND.DEMON],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 100,
+    boons: { quickness: true }
+  };
+  const cases = [
+    {
+      skillId: SKILL.MISERY_SWIPE,
+      castTimeMs: 440,
+      commitMs: 280,
+      rotation: (interruptMs) => [{ name: 'Misery Swipe', interruptMs }],
+      config: { primaryWeapon: 'Mace', secondaryWeapon: 'Axe' },
+      packetCount: 1
+    },
+    {
+      skillId: SKILL.MANIFEST_TOXIN,
+      castTimeMs: 560,
+      commitMs: 440,
+      rotation: (interruptMs) => ['Misery Swipe', 'Anguish Swipe', { name: 'Manifest Toxin', interruptMs }],
+      config: { primaryWeapon: 'Mace', secondaryWeapon: 'Axe' },
+      packetCount: 1
+    },
+    {
+      skillId: SKILL.SEARING_FISSURE,
+      castTimeMs: 600,
+      commitMs: 480,
+      rotation: (interruptMs) => [{ name: 'Searing Fissure', interruptMs }],
+      config: { primaryWeapon: 'Mace', secondaryWeapon: 'Axe' },
+      packetCount: 4
+    },
+    {
+      skillId: SKILL.SHATTERSHOT,
+      castTimeMs: 480,
+      commitMs: 400,
+      rotation: (interruptMs) => [{ name: 'Shattershot', interruptMs }],
+      config: { primaryWeapon: 'Shortbow', secondaryWeapon: '' },
+      packetCount: 1
+    }
+  ];
+
+  // Each cutoff models projectile launch: an earlier cancel loses the skill, while the exact boundary retains it.
+  for (const { skillId, castTimeMs, commitMs, rotation, config, packetCount } of cases) {
+    const skill = revenantCatalog.skillsById.get(skillId);
+    const damageCount = (interruptMs) =>
+      simulate(
+        'Herald',
+        rotation(interruptMs),
+        { ...baseHeraldConfig, ...config },
+        observationTail(4000)
+      ).events.filter((event) => event.type === 'damage' && event.skillId === skillId).length;
+
+    assert.equal(skill.quicknessCastTimeMs ?? skill.castTimeMs, castTimeMs, `${skill.name} cast`);
+    assert.equal(skill.interruptCommitMs, commitMs, `${skill.name} commit`);
+    assert.equal(damageCount(commitMs - 1), 0, `${skill.name} before commit`);
+    assert.equal(damageCount(commitMs), packetCount, `${skill.name} at commit`);
+  }
+});
+
 test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
   const result = simulate('Core', ['Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike'], {
     primaryWeapon: 'Spear',
