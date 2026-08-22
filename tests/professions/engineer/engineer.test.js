@@ -932,6 +932,23 @@ test('Photon Blitz gains two heat for each completed projectile', () => {
   assert.equal(full.endState.profession.heat, 19.96);
 });
 
+test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
+  const result = simulate('Holosmith', [
+    'Engage Photon Forge',
+    { name: 'Light Strike', skillId: ID.LIGHT_STRIKE, interruptMs: 80 },
+    'Light Strike'
+  ]);
+  const lightStrikeSteps = result.steps.filter((step) => step.skill === 'Light Strike');
+  const lightStrikePackets = result.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(lightStrikeSteps.length, 2);
+  assert.equal(lightStrikeSteps[0].interrupted, true);
+  assert.ok(lightStrikeSteps.every((step) => step.invalid !== true));
+  assert.equal(lightStrikePackets.length, 1);
+  assert.equal(result.endState.profession.autoattackChains[ID.LIGHT_STRIKE], ID.BRIGHT_SLASH);
+});
+
 test('Photon Forge overheats at its trait-adjusted maximum', () => {
   const core = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }], {
     initialHeat: 90
@@ -1045,7 +1062,10 @@ test('Holosmith benchmark projectiles retain packets only after their observed l
   const interruptedStaticShock = (interruptMs) =>
     simulate(
       'Holosmith',
-      [{ name: 'Static Shock', skillId: ID.STATIC_SHOCK, interruptMs }, { type: 'wait', durationMs: 1000 }],
+      [
+        { name: 'Static Shock', skillId: ID.STATIC_SHOCK, interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
       { selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'] }
     ).events.filter((event) => event.type === 'damage' && event.name === 'Static Shock');
 
@@ -2178,11 +2198,9 @@ test('Grenade Kit emits three explosive grenade packets', () => {
     );
 
     const interruptedPackets = (interruptMs) =>
-      simulate('Core', [
-        'Grenade Kit',
-        { name, interruptMs },
-        { type: 'wait', durationMs: 1000 }
-      ]).events.filter((event) => event.type === 'damage' && event.name === name);
+      simulate('Core', ['Grenade Kit', { name, interruptMs }, { type: 'wait', durationMs: 1000 }]).events.filter(
+        (event) => event.type === 'damage' && event.name === name
+      );
 
     assert.equal(interruptedPackets(359).length, 0, name);
     assert.equal(interruptedPackets(360).length, 3, name);

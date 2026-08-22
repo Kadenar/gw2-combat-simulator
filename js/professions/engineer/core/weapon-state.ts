@@ -3,6 +3,8 @@ import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
 export function updateEngineerWeaponState(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
+  // A pre-commit cancellation did not land, so it must not advance or reset weapon-chain state.
+  if (context.action?.cancelled === true) return;
   const chain = typeof skill.id === 'number' ? context.catalog.autoattackChainPositions.get(skill.id) : undefined;
   if (chain) {
     // chain.next == null means this was the last hit — delete the key so the next cast starts at root
