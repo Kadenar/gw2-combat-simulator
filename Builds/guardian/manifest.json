@@ -22,7 +22,7 @@
         "label": "Condition (Scepter / Pistol + Pistol / Torch)",
         "build": "Builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "Rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
-        "benchmarkDps": 42128,
+        "benchmarkDps": 42385,
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true

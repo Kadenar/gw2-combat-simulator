@@ -264,7 +264,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
       cast: Math.round((action.endsAt - action.at) * 1000),
       ticks: result.resolvedEvents
         .filter((event) => event.type === 'damage' && event.skillName === skillName)
-        .map((event) => Math.round((event.at - action.at) * 1000)),
+        .map((event) => Number(((event.at - action.at) * 1000).toFixed(6))),
       coefficient: Number(
         result.resolvedEvents
           .filter((event) => event.type === 'damage' && event.skillName === skillName)
@@ -420,8 +420,13 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
         ];
       })
     );
-  const normal = profiles(simulate(false));
-  const quick = profiles(simulate(true));
+  const normalResult = simulate(false);
+  const quickResult = simulate(true);
+  const normal = profiles(normalResult);
+  const quick = profiles(quickResult);
+  const swordAction = quickResult.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Sword of Justice'
+  );
 
   assert.deepEqual(
     skillNames.map((name) => normal[name].cast),
@@ -436,6 +441,30 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
     ticks: [650, 1050, 1450, 1850],
     coefficient: 3.2
   });
+  assert.deepEqual(
+    quickResult.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'condition' && event.skillName === 'Sword of Justice' && event.condition === 'Vulnerability'
+      )
+      .map((event) => [Math.round((event.at - swordAction.at) * 1000), event.stacks, event.duration]),
+    [
+      [650, 3, 8],
+      [1050, 3, 8],
+      [1450, 3, 8],
+      [1850, 3, 8]
+    ]
+  );
+  const swordRecharge = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Sword of Justice', 'Sword of Justice', 'Sword of Justice', 'Sword of Justice'],
+    config: { ...config, boons: { quickness: true } }
+  });
+
+  assert.deepEqual(
+    swordRecharge.steps.map((step) => step.start),
+    [0, 1600, 3200, 15600]
+  );
   assert.deepEqual(quick['Procession of Blades'], {
     cast: 440,
     ticks: [1280, 1560, 1840, 2120, 2400, 2680, 2960, 3240, 3520, 3800],
@@ -621,6 +650,20 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
     GUARDIAN_SKILL_IDS.RESOLVE,
     GUARDIAN_SKILL_IDS.COURAGE
   ]);
+});
+
+test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge to 7.5 seconds', () => {
+  const swapStarts = (extraConfig) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['__combat_start', 'Swap Weapons', 'Swap Weapons'],
+      config: { ...config, ...extraConfig }
+    })
+      .steps.filter((step) => step.skill === 'Swap Weapons')
+      .map((step) => step.start);
+
+  assert.deepEqual(swapStarts({ boons: { alacrity: true } }), [0, 10000]);
+  assert.deepEqual(swapStarts({ boons: { alacrity: true }, relic: 'Warrior' }), [0, 7500]);
 });
 
 test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () => {
@@ -2252,6 +2295,94 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
         ) < 1e-9
     ),
     true
+  );
+});
+
+test('Guardian scepter skills use reference cast times and Symbol of Punishment packets', () => {
+  const scepterConfig = {
+    ...config,
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Pistol',
+    boons: { quickness: true }
+  };
+  const baseline = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Punishment', 'Orb of Wrath', { type: 'wait', durationMs: 5000 }],
+    config: scepterConfig
+  });
+  const writ = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Punishment', { type: 'wait', durationMs: 7000 }],
+    config: {
+      ...scepterConfig,
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE]
+    }
+  });
+  const recharge = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Punishment', 'Symbol of Punishment'],
+    config: scepterConfig
+  });
+  const symbolAction = baseline.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Symbol of Punishment'
+  );
+  const orbAction = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Orb of Wrath');
+  const symbolDamage = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Symbol of Punishment');
+  const baseDamage = symbolDamage(baseline);
+  const writDamage = symbolDamage(writ);
+  const baseBreakdown = baseline.breakdown.find((entry) => entry.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT);
+  const writBreakdown = writ.breakdown.find((entry) => entry.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT);
+  const symbolMight = baseline.events.filter(
+    (event) => event.type === 'buff' && event.skillName === 'Symbol of Punishment' && event.kind === 'might'
+  );
+  const symbolField = baseline.events.find(
+    (event) => event.type === 'combo_field' && event.skillName === 'Symbol of Punishment'
+  );
+
+  assert.equal(Math.round((symbolAction.endsAt - symbolAction.at) * 1000), 320);
+  assert.equal(Math.round((orbAction.endsAt - orbAction.at) * 1000), 440);
+  assert.equal(
+    baseline.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Orb of Wrath').coefficient,
+    0.6
+  );
+  assert.deepEqual(
+    baseDamage.map((event) => Math.round((event.at - symbolAction.at) * 1000)),
+    [240, 760, 1240, 1240, 1760, 2240, 2240, 2760, 3240, 3240, 3760, 4240]
+  );
+  assert.ok(Math.abs(baseDamage.reduce((sum, event) => sum + event.coefficient, 0) - 3.6) < 1e-9);
+  assert.equal(baseBreakdown.hits, 12);
+  assert.equal(writDamage.length, 18);
+  assert.ok(Math.abs(writDamage.reduce((sum, event) => sum + event.coefficient, 0) - 5.4) < 1e-9);
+  assert.equal(writBreakdown.hits, 18);
+  assert.equal(symbolMight.length, 5);
+  assert.equal(
+    symbolMight.every((event) => event.stacks === 4 && event.duration === 5),
+    true
+  );
+  assert.equal(symbolField.fieldType, 'Light');
+  assert.equal(Math.round((symbolField.at - symbolAction.at) * 1000), 240);
+  assert.equal(symbolField.expiresAt - symbolField.at, 4);
+  assert.equal(
+    writ.events.filter(
+      (event) => event.type === 'buff' && event.skillName === 'Symbol of Punishment' && event.kind === 'might'
+    ).length,
+    7
+  );
+  assert.deepEqual(
+    writ.events
+      .filter((event) => event.type === 'combo_field' && event.skillName === 'Symbol of Punishment')
+      .map((event) => [event.at, event.expiresAt]),
+    [
+      [0.24, 4.24],
+      [4.24, 6.24]
+    ]
+  );
+  assert.deepEqual(
+    recharge.events
+      .filter((event) => event.type === 'action' && event.skillName === 'Symbol of Punishment')
+      .map((event) => event.at),
+    [0, 10.32]
   );
 });
 

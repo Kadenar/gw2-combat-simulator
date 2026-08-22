@@ -14,6 +14,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   indomitableCourage: TRAIT.INDOMITABLE_COURAGE,
   furiousFocus: TRAIT.FURIOUS_FOCUS,
   masterOfConsecrations: TRAIT.MASTER_OF_CONSECRATIONS,
+  writOfPersistence: TRAIT.WRIT_OF_PERSISTENCE,
   symbolOfIgnition: 'guardian.core.symbol-of-ignition-field',
   symbolicExposure: TRAIT.SYMBOLIC_EXPOSURE,
   symbolicAvenger: TRAIT.SYMBOLIC_AVENGER,
@@ -184,6 +185,43 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  }),
+  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.writOfPersistence, 'Writ of Persistence', {
+    effects: [
+      {
+        type: 'strike',
+        // Writ adds four more spatial Smite packets during its two-second symbol extension.
+        ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'strike',
+        ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 4,
+        duration: 5,
+        applications: 2,
+        atMs: 5240,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'buff',
+        name: 'symbol-duration-extension',
+        duration: 2,
         actorType: 'player'
       }
     ]

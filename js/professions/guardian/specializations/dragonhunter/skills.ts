@@ -114,10 +114,10 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 4.4,
-        hits: 10,
-        atMs: 1280,
-        intervalMs: 280,
+        ticks: [1280, 1560, 1840, 2120, 2400, 2680, 2960, 3240, 3520, 3800].map((atMs) => ({
+          atMs,
+          coefficient: 0.44
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

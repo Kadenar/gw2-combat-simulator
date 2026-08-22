@@ -155,6 +155,76 @@ function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: Guar
 
 export function updateGuardianTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   const at = context.effectiveEnd;
+  if (
+    skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT &&
+    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE)
+  ) {
+    const profile = guardianBalanceProfile(context, PROFILE.writOfPersistence);
+    const extension = Number(guardianBalanceProfileEffect(profile, 'buff')?.duration || 2);
+    const field = skill.comboFields?.[0];
+    const fieldStart = context.start + Number(field?.startMs || 0) / 1000;
+    const fieldEnd = fieldStart + Number(field?.duration || 0);
+    const strikePackets = (profile?.effects || [])
+      .filter((effect) => effect.type === 'strike')
+      .flatMap((effect) =>
+        (effect.ticks || []).map((tick) => ({
+          atMs: Number(tick.atMs),
+          coefficient: Number(tick.coefficient)
+        }))
+      );
+    const might = guardianBalanceProfileEffect(profile, 'boon');
+
+    // Writ adds a contiguous field segment because the original field is already active when cast-state hooks run.
+    context.emit({
+      type: 'combo_field',
+      at: fieldEnd,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      activationId: context.action.activationId,
+      fieldId: `guardian:${String(context.action.activationId)}:writ-extension`,
+      fieldType: field?.fieldType || 'Light',
+      expiresAt: fieldEnd + extension,
+      ownerId: field?.ownerId || 'guardian',
+      ownerActorType: 'player',
+      triggeredBy: 'Writ of Persistence'
+    });
+    for (let index = 0; index < strikePackets.length; index += 1) {
+      const packet = strikePackets[index];
+      context.emit(
+        buildGuardianStrike({
+          at: context.start + packet.atMs / 1000,
+          sourceId: skill.id,
+          skillId: skill.id,
+          skillName: skill.name,
+          name: skill.name,
+          coefficient: packet.coefficient,
+          skillWeapon: 'Scepter',
+          hitIndex: 13 + index,
+          totalHits: 12 + strikePackets.length,
+          isSymbol: true,
+          triggeredBy: 'Writ of Persistence'
+        })
+      );
+    }
+    for (let index = 0; index < Number(might?.applications || 2); index += 1) {
+      emitGuardianBuff(
+        context,
+        skill,
+        context.start + (Number(might?.atMs || 5240) + index * Number(might?.intervalMs || 1000)) / 1000,
+        'might',
+        Number(might?.duration || 5),
+        {
+          stacks: Number(might?.stacks || 4),
+          recipients: 'party',
+          triggeredBy: 'Writ of Persistence'
+        }
+      );
+    }
+  }
+
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
     const field = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.symbolOfIgnition), 'buff');
     const duration = Number(field?.duration || 4);

@@ -4,7 +4,7 @@
     "benchmarkDurationSeconds": 95.687,
     "benchmarkDamage": 3964575,
     "benchmarkDps": 41432.74425993082,
-    "simulatedDps": 42128.228671791854,
+    "simulatedDps": 42385.1111659382,
     "timingSource": "Elite Insights cast summaries and weapon-swap timings from dps.report",
     "note": "The opening Jurisdiction is recovered from its Fire Jurisdiction follow-up, split Jurisdiction and Rushing Justice animations are coalesced, and canceled weapon-1 casts are omitted."
   },

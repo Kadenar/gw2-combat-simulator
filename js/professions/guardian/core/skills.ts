@@ -25,19 +25,20 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     effects: [
       strikeTimeline(
         [
-          { atMs: 105.618181818182, coefficient: 0.35 },
-          { atMs: 211.236363636364, coefficient: 0.275 },
-          { atMs: 316.854545454545, coefficient: 0.35 },
-          { atMs: 422.472727272727, coefficient: 0.275 },
-          { atMs: 528.090909090909, coefficient: 0.35 },
-          { atMs: 633.709090909091, coefficient: 0.275 },
-          { atMs: 739.327272727273, coefficient: 0.35 },
-          { atMs: 845.618181818182, coefficient: 0.275 },
-          { atMs: 951.236363636364, coefficient: 0.35 },
-          { atMs: 1056.854545454545, coefficient: 0.275 },
-          { atMs: 1162.472727272727, coefficient: 0.35 },
-          { atMs: 1268.090909090909, coefficient: 0.275 },
-          { atMs: 1373.709090909091, coefficient: 0.35 },
+          // Packet offsets use nearest-millisecond timing instead of retaining fractional interpolation artifacts.
+          { atMs: 106, coefficient: 0.35 },
+          { atMs: 211, coefficient: 0.275 },
+          { atMs: 317, coefficient: 0.35 },
+          { atMs: 422, coefficient: 0.275 },
+          { atMs: 528, coefficient: 0.35 },
+          { atMs: 634, coefficient: 0.275 },
+          { atMs: 739, coefficient: 0.35 },
+          { atMs: 846, coefficient: 0.275 },
+          { atMs: 951, coefficient: 0.35 },
+          { atMs: 1057, coefficient: 0.275 },
+          { atMs: 1162, coefficient: 0.35 },
+          { atMs: 1268, coefficient: 0.275 },
+          { atMs: 1374, coefficient: 0.35 },
           { atMs: 1480, coefficient: 0.275 }
         ],
         {
@@ -148,17 +149,48 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SYMBOL_OF_PUNISHMENT]: {
     implemented: true,
-    castTimeMs: 250,
+    quicknessCastTimeMs: 320,
+    cooldown: 10,
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: 'Light',
+        duration: 4,
+        startMs: 240,
+        startAnchor: 'castStart'
+      }
+    ],
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 5,
-        atMs: 250,
-        intervalMs: 1000,
+        // Model all eight spatial Smite opportunities as hits at their observed cadence.
+        ticks: [240, 760, 1240, 1760, 2240, 2760, 3240, 3760].map((atMs) => ({
+          atMs,
+          coefficient: 0.2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      }
+      },
+      {
+        type: 'strike',
+        // Main symbol damage begins one second after the initial boon pulse and lands once per second.
+        ticks: [1240, 2240, 3240, 4240].map((atMs) => ({
+          atMs,
+          coefficient: 0.5
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      ...[240, 1240, 2240, 3240, 4240].map((atMs) => ({
+        type: 'boon' as const,
+        boon: 'might',
+        stacks: 4,
+        duration: 5,
+        recipients: 'party',
+        atMs,
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const
+      }))
     ]
   },
   [ID.SHIELD_OF_ABSORPTION]: {
@@ -209,11 +241,11 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.ORB_OF_WRATH]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.666,
+        coefficient: 0.6,
         hits: 1
       }
     ]
@@ -664,16 +696,29 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SWORD_OF_JUSTICE]: {
     implemented: true,
-    castTimeMs: 900,
-    cooldown: 20,
+    // Store the measured Quickness cast and derive the 900ms unquickened baseline.
+    quicknessCastTimeMs: 600,
+    cooldown: 1,
     ammo: 3,
+    ammoRecharge: 15,
+    ammoCastLockout: 1,
     effects: [
       {
         type: 'strike',
-        coefficient: 3.2,
-        hits: 4,
-        atMs: 650,
-        intervalMs: 400,
+        // Preserve the measured four-packet spirit cadence explicitly from cast start.
+        ticks: [650, 1050, 1450, 1850].map((atMs) => ({ atMs, coefficient: 0.8 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        // Every sword packet applies its own Vulnerability at the matching impact time.
+        ticks: [650, 1050, 1450, 1850].map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 3,
+          duration: 8
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
