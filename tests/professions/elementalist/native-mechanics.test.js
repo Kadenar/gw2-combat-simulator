@@ -1595,6 +1595,54 @@ test('Evoker weapon skills build familiar charges', () => {
   assert.equal(result.endState.profession.charges, 2);
 });
 
+test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent 5-second cooldowns', () => {
+  const simulate = (evokerElement) =>
+    runNative({
+      lines: [
+        ['Fire', '1-1-2'],
+        ['Earth', '2-1-2'],
+        ['Evoker', '1-1-1']
+      ],
+      rotation: [
+        'Raging Ricochet',
+        'Earth Attunement',
+        'Fire Attunement',
+        'Water Attunement',
+        'Fire Attunement',
+        'Air Attunement'
+      ],
+      startAttunement: 'Fire',
+      weapons: ['Pistol', 'Dagger'],
+      evokerElement
+    });
+  const attempts = (result, direction) =>
+    result.events.filter(
+      (event) =>
+        event.type === 'elementalist.attunement' &&
+        (direction === 'enter' ? event.to === 'Fire' : event.from === 'Fire')
+    );
+  const procs = (result, skillName) =>
+    result.events.filter((event) => event.type === 'damage' && event.skillName === skillName);
+  const fire = simulate('Fire');
+  const fireEntries = attempts(fire, 'enter');
+  const fireExits = attempts(fire, 'exit');
+
+  assert.deepEqual(fire.warnings, []);
+  assert.equal(fireEntries.length, 2);
+  assert.equal(fireExits.length, 3);
+  assert.ok(fireEntries.at(-1).at - fireEntries[0].at < 5);
+  assert.ok(fireExits.at(-1).at - fireExits[0].at < 5);
+  assert.equal(procs(fire, 'Sunspot').length, 1);
+  assert.equal(procs(fire, 'Flame Expulsion').length, 1);
+  // Independent timers allow the first Sunspot while Flame Expulsion is already cooling down.
+  assert.ok(procs(fire, 'Sunspot')[0].at - procs(fire, 'Flame Expulsion')[0].at < 5);
+
+  const nonFire = simulate('Water');
+
+  assert.equal(procs(nonFire, 'Sunspot').length, attempts(nonFire, 'enter').length);
+  assert.equal(procs(nonFire, 'Flame Expulsion').length, attempts(nonFire, 'exit').length);
+});
+
 test('Specialized Elements grants three familiar charges per matching weapon skill', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker', '1-1-3']],

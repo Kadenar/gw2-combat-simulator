@@ -1,16 +1,5 @@
 {
   "rotation": [
-    "Shattering Stone",
-    "Water Attunement",
-    "Frigid Flurry",
-    "Air Attunement",
-    "Dazing Discharge",
-    "Fire Attunement",
-    {
-      "name": "__wait",
-      "waitMs": 4000
-    },
-    "__combat_start",
     "Rejuvenate",
     {
       "name": "Flame Barrage",

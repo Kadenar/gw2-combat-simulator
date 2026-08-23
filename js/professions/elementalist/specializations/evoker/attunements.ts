@@ -113,7 +113,8 @@ export function triggerSpecializedElementEntry(
     to: element
   });
   if (element === 'Fire') {
-    if (hasTrait(context, 'Sunspot') && procReady(String(CORE_PROFILE.sunspot))) {
+    // Core owns the Fire-specialized Evoker cooldown so normal and familiar entry paths share one Sunspot timer.
+    if (hasTrait(context, 'Sunspot')) {
       triggerElementalistSunspot(context as never, at, skill.id);
     }
   } else if (element === 'Air') {

@@ -33,6 +33,24 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
+function consumeFireEvokerAttunementTraitCooldown(
+  context: ElementalistSchedulerContext,
+  at: number,
+  traitProfileId: Skill['id']
+): boolean {
+  const specialization = context.state.profession.specialization;
+  if (specialization.kind !== 'Evoker' || specialization.state.element !== 'Fire') return true;
+
+  const readyAt = Number(specialization.state.attunementTraitProcReadyAt[String(traitProfileId)] || 0);
+  if (readyAt > at + context.epsilon) return false;
+
+  // Fire-specialized Evokers share each trait's timer across normal attunement
+  // entries and familiar-triggered entries, while Sunspot and Flame Expulsion remain independent.
+  specialization.state.attunementTraitProcReadyAt[String(traitProfileId)] =
+    at + elementalistBalanceValue(context, TRAIT.EVOCATION, 'internalCooldown', 5);
+  return true;
+}
+
 export function triggerElementalistSunspot(
   context: ElementalistSchedulerContext,
   at: number,
@@ -41,6 +59,7 @@ export function triggerElementalistSunspot(
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) {
     return;
   }
+  if (!consumeFireEvokerAttunementTraitCooldown(context, at, PROFILE.sunspot)) return;
 
   const applySunspotAura = () =>
     applyElementalistAura(context, {
@@ -83,6 +102,7 @@ export function triggerElementalistFlameExpulsion(
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) {
     return;
   }
+  if (!consumeFireEvokerAttunementTraitCooldown(context, at, PROFILE.pyromancersPuissance)) return;
 
   const cappedMight = Math.min(
     elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
