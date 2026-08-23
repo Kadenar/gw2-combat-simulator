@@ -3804,9 +3804,9 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   body[data-profession]:not(.elementalist-theme) .rotation-mid {
     display: grid;
     grid-template-areas:
-      'label size dead-time start'
-      'buttons buttons buttons buttons';
-    grid-template-columns: max-content max-content max-content minmax(0, 1fr);
+      'label size start'
+      'buttons buttons buttons';
+    grid-template-columns: max-content max-content minmax(0, 1fr);
     align-items: center;
   }
 
@@ -3816,10 +3816,6 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
   body[data-profession]:not(.elementalist-theme) .rotation-size-control {
     grid-area: size;
-  }
-
-  body[data-profession]:not(.elementalist-theme) .rotation-dead-time-control {
-    grid-area: dead-time;
   }
 
   body[data-profession]:not(.elementalist-theme) .start-att-selector {
@@ -4740,34 +4736,6 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   overflow-y: auto;
   padding: 8px 10px 10px;
   border-top: 1px solid var(--border);
-}
-
-.proc-overlay-toggles {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.proc-overlay-toggle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 20px;
-  color: var(--text);
-  font-size: 10px;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-}
-
-.proc-overlay-toggle:has(input:disabled) {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.proc-overlay-toggle input {
-  margin: 0;
 }
 
 .proc-icons-row {
@@ -9795,8 +9763,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   .rotation-mid {
     display: grid;
     grid-template-areas:
-      'label label'
-      'size dead-time'
+      'label size'
       'start start'
       'buttons buttons';
     grid-template-columns: max-content minmax(0, 1fr);
@@ -9810,11 +9777,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
   .rotation-size-control {
     grid-area: size;
-  }
-
-  .rotation-dead-time-control {
-    grid-area: dead-time;
-    justify-self: start;
   }
 
   .start-att-selector {

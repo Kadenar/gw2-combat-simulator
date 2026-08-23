@@ -1,5 +1,4 @@
-.rotation-size-control,
-.rotation-dead-time-control {
+.rotation-size-control {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -8,20 +7,9 @@
   white-space: nowrap;
 }
 
-.rotation-size-control span,
-.rotation-dead-time-control span {
+.rotation-size-control span {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.rotation-dead-time-control {
-  cursor: pointer;
-  user-select: none;
-}
-
-.rotation-dead-time-control input {
-  margin: 0;
-  accent-color: var(--accent);
 }
 
 .rotation-size-control select {

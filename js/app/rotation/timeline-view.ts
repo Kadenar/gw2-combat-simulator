@@ -871,16 +871,6 @@ export function renderTimeline(app: ProfessionAppState): void {
       procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? ' open' : ''}>
             <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? '' : 's'})</summary>
             <div class="rotation-procs-content">
-                <div class="proc-overlay-toggles">
-                    <label class="proc-overlay-toggle" title="Show sigil activations at their simulated positions in the rotation">
-                        <input type="checkbox" data-overlay-proc-type="sigil"${app.overlaySigilProcs ? ' checked' : ''}${procSteps.some((proc) => proc.type === 'sigil_proc') ? '' : ' disabled'}>
-                        <span>Overlay sigils</span>
-                    </label>
-                    <label class="proc-overlay-toggle" title="Show relic activations at their simulated positions in the rotation">
-                        <input type="checkbox" data-overlay-proc-type="relic"${app.overlayRelicProcs ? ' checked' : ''}${procSteps.some((proc) => proc.type === 'relic_proc') ? '' : ' disabled'}>
-                        <span>Overlay relics</span>
-                    </label>
-                </div>
                 <details class="proc-filter"${app.procFilterOpen ? ' open' : ''}>
                     <summary title="Choose which proc types are shown">Visible <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
                     <div class="proc-filter-menu">
@@ -940,17 +930,6 @@ export function renderTimeline(app: ProfessionAppState): void {
   applySkillHighlight();
 
   const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
-  procElement?.querySelectorAll<HTMLInputElement>('input[data-overlay-proc-type]').forEach((procOverlayToggle) => {
-    procOverlayToggle.addEventListener('change', () => {
-      if (procOverlayToggle.dataset.overlayProcType === 'relic') {
-        app.overlayRelicProcs = procOverlayToggle.checked;
-      } else {
-        app.overlaySigilProcs = procOverlayToggle.checked;
-      }
-
-      renderTimeline(app);
-    });
-  });
   const activeProcVisibility = app.procVisibility || new Set();
   if (procFilter && procElement) {
     procFilter.addEventListener('toggle', () => {

@@ -34,7 +34,7 @@ function storeSize(root: Document, size: RotationTimelineSize): void {
   }
 }
 
-function readStoredDeadTimeVisibility(root: Document): boolean {
+export function readStoredRotationDeadTimeVisibility(root: Document): boolean {
   try {
     return normalizeRotationDeadTimeVisibility(root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY));
   } catch {
@@ -50,6 +50,20 @@ function storeDeadTimeVisibility(root: Document, visible: boolean): void {
   }
 }
 
+export function rotationDeadTimeVisibility(root: Document): boolean {
+  const panel = root.getElementById('rotation-timeline')?.closest<HTMLElement>('.rotation-panel');
+  return panel?.dataset.showDeadTime === undefined
+    ? readStoredRotationDeadTimeVisibility(root)
+    : normalizeRotationDeadTimeVisibility(panel.dataset.showDeadTime);
+}
+
+/** Applies and persists dead-time visibility without treating it as a simulation configuration change. */
+export function setRotationDeadTimeVisibility(root: Document, visible: boolean): void {
+  const panel = root.getElementById('rotation-timeline')?.closest<HTMLElement>('.rotation-panel');
+  if (panel) panel.dataset.showDeadTime = String(visible);
+  storeDeadTimeVisibility(root, visible);
+}
+
 export function mountRotationTimelineSize(root: Document = document): void {
   const timeline = root.getElementById('rotation-timeline');
   const toolbar = timeline?.closest<HTMLElement>('.rotation-panel')?.querySelector<HTMLElement>('.rotation-mid');
@@ -57,7 +71,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
   if (!timeline || !toolbar || !panel) return;
 
   const storedSize = readStoredSize(root);
-  const showDeadTime = readStoredDeadTimeVisibility(root);
+  const showDeadTime = readStoredRotationDeadTimeVisibility(root);
   panel.dataset.rotationSize = storedSize;
   panel.dataset.showDeadTime = String(showDeadTime);
 
@@ -95,32 +109,4 @@ export function mountRotationTimelineSize(root: Document = document): void {
     const startState = toolbar.querySelector('.start-att-selector');
     toolbar.insertBefore(control, startState || toolbar.querySelector('.rotation-btns'));
   }
-
-  const existingDeadTimeToggle = root.getElementById('rotation-show-dead-time');
-  if (existingDeadTimeToggle?.tagName === 'INPUT') {
-    (existingDeadTimeToggle as HTMLInputElement).checked = showDeadTime;
-    return;
-  }
-
-  const deadTimeControl = root.createElement('label');
-  deadTimeControl.className = 'rotation-dead-time-control';
-  deadTimeControl.htmlFor = 'rotation-show-dead-time';
-  deadTimeControl.title = 'Show time between skills when no skill cast is active';
-
-  const deadTimeToggle = root.createElement('input');
-  deadTimeToggle.type = 'checkbox';
-  deadTimeToggle.id = 'rotation-show-dead-time';
-  deadTimeToggle.checked = showDeadTime;
-  deadTimeToggle.addEventListener('change', () => {
-    panel.dataset.showDeadTime = String(deadTimeToggle.checked);
-    storeDeadTimeVisibility(root, deadTimeToggle.checked);
-  });
-  deadTimeControl.append(deadTimeToggle);
-
-  const deadTimeLabel = root.createElement('span');
-  deadTimeLabel.textContent = 'Dead time';
-  deadTimeControl.append(deadTimeLabel);
-
-  const startState = toolbar.querySelector('.start-att-selector');
-  toolbar.insertBefore(deadTimeControl, startState || toolbar.querySelector('.rotation-btns'));
 }

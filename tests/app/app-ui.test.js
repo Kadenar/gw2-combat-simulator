@@ -573,10 +573,7 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 
   assert.match(css, /body:not\(\[data-rotation-focus\]\) \.rotation-panel\s*\{\s*max-height: none;/);
-  assert.match(
-    css,
-    /grid-template-areas:\s*['"]label label['"]\s*['"]size dead-time['"]\s*['"]start start['"]\s*['"]buttons buttons['"];/
-  );
+  assert.match(css, /grid-template-areas:\s*['"]label size['"]\s*['"]start start['"]\s*['"]buttons buttons['"];/);
   assert.match(
     css,
     /body\[data-rotation-focus\] \.rotation-section\s*\{\s*display: block;\s*padding: 6px;\s*overflow-x: hidden;\s*overflow-y: auto;/
@@ -600,6 +597,21 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
     css,
     /body\[data-rotation-focus\] \.rotation-results \.res-breakpoint-grid\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
   );
+});
+
+test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
+  const [displayControls, timelineView, timelineSize] = await Promise.all([
+    readFile(new URL('../../js/app/rotation/display-controls.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/rotation/timeline-view.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/platform/ui/rotation-timeline-size.ts', import.meta.url), 'utf8')
+  ]);
+
+  assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);
+  assert.match(displayControls, /id: 'rotation-show-dead-time'/);
+  assert.match(displayControls, /id: 'rotation-overlay-sigil-procs'/);
+  assert.match(displayControls, /id: 'rotation-overlay-relic-procs'/);
+  assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
+  assert.doesNotMatch(timelineSize, /rotation-dead-time-control/);
 });
 
 test('shared profession palettes preserve utility rows before wrapping combat tools', async () => {

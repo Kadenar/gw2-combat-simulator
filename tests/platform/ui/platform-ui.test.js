@@ -40,6 +40,9 @@ import {
 import {
   normalizeRotationDeadTimeVisibility,
   normalizeRotationTimelineSize,
+  ROTATION_DEAD_TIME_STORAGE_KEY,
+  rotationDeadTimeVisibility,
+  setRotationDeadTimeVisibility,
   ROTATION_TIMELINE_SIZE_OPTIONS
 } from '../../../js/platform/ui/rotation-timeline-size.js';
 import {
@@ -90,6 +93,26 @@ test('rotation timeline sizes expose two larger display options', () => {
   assert.equal(normalizeRotationDeadTimeVisibility(true), true);
   assert.equal(normalizeRotationDeadTimeVisibility('false'), false);
   assert.equal(normalizeRotationDeadTimeVisibility(null), false);
+});
+
+test('rotation dead-time visibility applies to the timeline and persists', () => {
+  const stored = new Map();
+  const panel = { dataset: {} };
+  const root = {
+    defaultView: {
+      localStorage: {
+        getItem: (key) => stored.get(key) ?? null,
+        setItem: (key, value) => stored.set(key, value)
+      }
+    },
+    getElementById: () => ({ closest: () => panel })
+  };
+
+  setRotationDeadTimeVisibility(root, true);
+
+  assert.equal(panel.dataset.showDeadTime, 'true');
+  assert.equal(stored.get(ROTATION_DEAD_TIME_STORAGE_KEY), 'true');
+  assert.equal(rotationDeadTimeVisibility(root), true);
 });
 
 test('rotation workspace keeps simulation config in a drawer in normal and focus modes', () => {

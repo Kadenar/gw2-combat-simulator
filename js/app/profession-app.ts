@@ -8,11 +8,13 @@ import { normalizeSelectedSkills } from './build/selection.js';
 import { renderSkills } from './build/skills-panel.js';
 import { renderTraits } from './build/traits-panel.js';
 import { addRotation } from './rotation/actions.js';
+import { mountRotationDisplayControls } from './rotation/display-controls.js';
 import { recordRotationHistory } from './rotation/history.js';
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/gear-data.js';
+import { readStoredRotationProcOverlayVisibility } from '../platform/ui/rotation-proc-overlays.js';
 import { mountPatchPreviewControls } from './simulation/patch-preview-view.js';
 
 import type {
@@ -82,8 +84,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.results = null;
     this.dragState = null;
     this.rotationInsertionIndex = null;
-    this.overlaySigilProcs = false;
-    this.overlayRelicProcs = false;
+    // Restore timeline display preferences independently from the saved build and simulation configuration.
+    this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
+    this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;
@@ -103,7 +106,7 @@ export class ProfessionApp implements ProfessionAppState {
     renderTraits(this);
     renderAttributes(this);
     renderSkills(this);
-    renderAssumptions(this);
+    this.renderAssumptions();
     await templatesReady;
     // Commit the asynchronously inserted templates under the loading overlay.
     await new Promise<void>((resolve) => {
@@ -122,7 +125,7 @@ export class ProfessionApp implements ProfessionAppState {
       renderTraits(this);
       renderAttributes(this);
       renderSkills(this);
-      renderAssumptions(this);
+      this.renderAssumptions();
     }
 
     updateTemplateSelection(this);
@@ -177,6 +180,7 @@ export class ProfessionApp implements ProfessionAppState {
 
   renderAssumptions(): void {
     renderAssumptions(this);
+    mountRotationDisplayControls(this);
   }
 
   runRandomDistribution(): void {
