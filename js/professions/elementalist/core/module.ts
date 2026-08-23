@@ -12,12 +12,12 @@ import {
   elementalistCoreSkillMechanicHandlers
 } from './rules.js';
 import { projectElementalistEndState } from '../state.js';
-import { applyElementalistResolverAttunement } from '../state.js';
 import { createElementalistCoreState } from './state.js';
 import { bindElementalistCoreUi } from './ui.js';
 import { ELEMENTALIST_CORE_EXTRA_SKILLS, ELEMENTALIST_CORE_SKILL_MECHANICS } from './skills.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from './profiles.js';
 import {
+  applyElementalistResolverAttunement,
   applyElementalistResolverAura,
   applyElementalistResolverSignetFire,
   applyElementalistResolvedCondition,

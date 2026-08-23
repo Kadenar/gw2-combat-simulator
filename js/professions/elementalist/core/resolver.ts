@@ -10,7 +10,8 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime
 } from '../../../platform/gw2/types.js';
-import type { ElementalistAuraState, ElementalistCoreState } from './state.js';
+import type { ElementalistResolverContext, ElementalistResolverEvent } from '../types.js';
+import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
@@ -52,6 +53,23 @@ function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
     core?: ElementalistCoreState;
   } & SchedulerRecord;
   return profession.core || (profession as unknown as ElementalistCoreState);
+}
+
+/** Routes attunement events to Core and to an active specialization that owns a secondary attunement. */
+export function applyElementalistResolverAttunement(
+  context: ElementalistResolverContext,
+  event: ElementalistResolverEvent
+): void {
+  const core = coreState(context);
+  if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
+  core.attunementEnteredAt = event.at;
+
+  const specialization = context.profession.specialization.state as SchedulerRecord;
+  if (Object.hasOwn(specialization, 'secondaryAttunement')) {
+    specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
+      ? event.secondaryAttunement
+      : null;
+  }
 }
 
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {

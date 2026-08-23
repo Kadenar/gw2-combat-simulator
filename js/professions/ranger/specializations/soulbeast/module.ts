@@ -7,7 +7,7 @@ import {
 } from '../../../../platform/gw2/native-profession.js';
 import { createRangerModuleData } from '../../catalog-data.js';
 import { soulbeastSkillHandlers } from './handlers.js';
-import { soulbeastAttributeRules, soulbeastCastRules } from './rules.js';
+import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './rules.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from './skills.js';
 import { soulbeastState } from './state.js';
 import { bindSoulbeastUi } from './ui.js';
@@ -20,7 +20,6 @@ import {
   soulbeastEventHandlers
 } from './resolver.js';
 import { SOULBEAST_BALANCE_PROFILES } from './profiles.js';
-import { soulbeastSchedulerHooks } from './scheduler.js';
 
 export const soulbeastModule = defineNativeModule({
   id: 'Soulbeast',

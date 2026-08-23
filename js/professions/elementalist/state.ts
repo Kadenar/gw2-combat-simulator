@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../platform/engine/profession.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import { ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {
@@ -11,13 +11,7 @@ import {
   TEMPEST_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from './specializations/tempest/state.js';
 import { WEAVER_PUBLIC_END_STATE_KEYS, WEAVER_PUBLIC_INACTIVE_STATE_DEFAULTS } from './specializations/weaver/state.js';
-import { isElementalistAttunement } from './core/state.js';
-import type {
-  ElementalistEndStateProjectionOptions,
-  ElementalistResolverContext,
-  ElementalistResolverEvent,
-  ElementalistState
-} from './types.js';
+import type { ElementalistEndStateProjectionOptions, ElementalistState } from './types.js';
 
 // The family boundary composes public state fragments declared by their semantic owners.
 export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -46,21 +40,4 @@ export function projectElementalistEndState({
       structuredClone(Object.hasOwn(state, key) ? state[key] : ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
     ])
   );
-}
-
-/** Routes attunement events to Core and to an active specialization that owns a secondary attunement. */
-export function applyElementalistResolverAttunement(
-  context: ElementalistResolverContext,
-  event: ElementalistResolverEvent
-): void {
-  const core = professionCoreState(context);
-  if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
-  core.attunementEnteredAt = event.at;
-
-  const specialization = context.profession.specialization.state as SchedulerRecord;
-  if (Object.hasOwn(specialization, 'secondaryAttunement')) {
-    specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
-      ? event.secondaryAttunement
-      : null;
-  }
 }
