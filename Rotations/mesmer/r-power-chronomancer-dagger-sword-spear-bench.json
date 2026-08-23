@@ -16,7 +16,7 @@
     "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
     "combatStartTimestampMs": 3120,
     "warnings": [
-      "37 instant casts were inferred from direct skill effects.",
+      "38 instant casts were inferred from direct skill effects.",
       "3 interrupted casts are preserved with their recorded duration."
     ],
     "benchmarkDurationSeconds": 89.462,
@@ -828,6 +828,11 @@
     {
       "name": "Phantasmal Swordsman",
       "skillId": 10174
+    },
+    {
+      "name": "Time Sink",
+      "skillId": 56873,
+      "offset": 167
     },
     {
       "name": "Signet of the Ether",
