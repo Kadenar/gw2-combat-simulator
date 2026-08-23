@@ -796,7 +796,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         weapon: 'sword'
       }
     ],
-    defaultInterruptMs: 120
+    defaultInterruptMs: 120,
+    interruptCommitMs: 100
   },
   [ID.PHANTASMAL_WARDEN]: {
     implemented: true,
@@ -1377,6 +1378,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     castTimeMs: 660,
+    interruptCommitMs: 380,
     cooldown: 0,
     blade: true,
     effects: [
