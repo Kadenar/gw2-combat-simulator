@@ -1094,6 +1094,33 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
 
   assert.equal(chaosStorm.steps[0].end - chaosStorm.steps[0].start, 480);
 
+  const inversion = simulateMesmer(
+    ['Imaginary Inversion'],
+    defaultSimulationConfig({
+      ...coreConfig,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: ''
+    })
+  );
+
+  assert.equal(inversion.steps[0].end - inversion.steps[0].start, 680);
+  const inversionHit = inversion.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Imaginary Inversion'
+  );
+
+  assert.equal(Math.round((inversionHit.at - inversion.steps[0].start / 1000) * 1000), 600);
+
+  const gravityWell = simulateMesmer(
+    ['Gravity Well'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 0,
+      selectedSkills: ['Gravity Well']
+    })
+  );
+
+  assert.equal(gravityWell.steps[0].end - gravityWell.steps[0].start, 1080);
+
   const scepterChain = simulateMesmer(
     ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
     defaultSimulationConfig({
@@ -1501,6 +1528,47 @@ test('Well of Calamity uses its measured cast, pulse conditions, and ethereal fi
       startAnchor: 'castStart'
     }
   ]);
+});
+
+test('Well of Action keeps all measured pulses after its first pulse commits an interrupted cast', () => {
+  const result = simulateMesmer(
+    [
+      { name: 'Well of Action', interruptMs: 600 },
+      { name: '__wait', waitMs: 3000 }
+    ],
+    defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkills: ['Well of Action'] })
+  );
+  const packets = result.resolvedEvents
+    .filter((event) => event.type === 'damage' && event.skillName === 'Well of Action')
+    .map((event) => Math.round(event.at * 1000));
+  const well = mesmerCatalog.skillsByName.get('Well of Action');
+
+  assert.equal(result.steps[0].end - result.steps[0].start, 600);
+  assert.deepEqual(packets, [518, 1519, 2520]);
+  assert.deepEqual(well.comboFields, [
+    {
+      ownerId: 'mesmer',
+      fieldType: 'Ethereal',
+      duration: 3,
+      startMs: 518,
+      startAnchor: 'castStart'
+    }
+  ]);
+});
+
+test('Chronomancer wells use their measured Quickness cast times', () => {
+  // Exercise the scheduler so these measurements remain the actual runtime durations, not just catalog metadata.
+  const result = simulateMesmer(
+    ['Well of Action', 'Well of Eternity'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      selectedSkills: ['Well of Action', 'Well of Eternity']
+    })
+  );
+  const durations = Object.fromEntries(result.steps.map((step) => [step.skill, step.end - step.start]));
+
+  assert.equal(durations['Well of Action'], 800);
+  assert.equal(durations['Well of Eternity'], 400);
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -2377,6 +2445,33 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
   );
 });
 
+test('Time Catches Up buffs only shatter damage against movement-impaired targets', () => {
+  const rotation = ['Split Second', 'Phantasmal Mage', { name: '__wait', waitMs: 6000 }];
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    selectedTraits: ['Maim the Disillusioned'],
+    initialResource: 3,
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Torch',
+    relic: '',
+    modifiers: { strike: 1, condition: 1 }
+  });
+  const baseline = simulateMesmer(rotation, config);
+  const boosted = simulateMesmer(rotation, {
+    ...config,
+    selectedTraits: ['Maim the Disillusioned', 'Time Catches Up']
+  });
+  const damage = (result, type, shatter) =>
+    result.resolvedEvents
+      .filter((event) => event.type === type && Boolean(event.shatter) === shatter)
+      .reduce((sum, event) => sum + Number(event.damage || 0), 0);
+
+  assert.ok(Math.abs(damage(boosted, 'damage', true) / damage(baseline, 'damage', true) - 1.1) < 1e-12);
+  assert.ok(Math.abs(damage(boosted, 'condition', true) / damage(baseline, 'condition', true) - 1.1) < 1e-12);
+  assert.equal(damage(boosted, 'damage', false), damage(baseline, 'damage', false));
+  assert.equal(damage(boosted, 'condition', false), damage(baseline, 'condition', false));
+});
+
 test('Relic of the Claw can trigger from a non-damaging control skill and expires', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -3140,6 +3235,60 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
   assert.equal(swapped.endState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BOLT);
 });
 
+test('utility casts preserve spear autoattack-chain progress', () => {
+  const result = simulateMesmer(
+    ['Psycut', 'Well of Eternity', 'Psystrike'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 0,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      selectedSkills: ['Well of Eternity']
+    })
+  );
+
+  assert.deepEqual(
+    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    ['Psycut', 'Well of Eternity', 'Psystrike']
+  );
+});
+
+test('an interrupted spear autoattack leaves the same chain step active', () => {
+  const result = simulateMesmer(
+    ['Psycut', { type: 'cast', skillId: ID.PSYSTRIKE, interruptAfterMs: 132 }, 'Psystrike'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 0,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: ''
+    })
+  );
+
+  assert.deepEqual(
+    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    ['Psycut', 'Psystrike', 'Psystrike']
+  );
+  assert.equal(result.steps[1].interrupted, true);
+});
+
+test('a long utility cast resets ordinary spear autoattack-chain progress', () => {
+  const result = simulateMesmer(
+    ['Psycut', 'Well of Calamity', 'Psycut'],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 0,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      selectedSkills: ['Well of Calamity']
+    })
+  );
+
+  assert.deepEqual(
+    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    ['Psycut', 'Well of Calamity', 'Psycut']
+  );
+});
+
 test('sword, scepter, axe, and spear auto chains cast as separate attacks', () => {
   const chain = [
     'Mind Slash',
@@ -3474,6 +3623,32 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
       weapon
     );
   }
+});
+
+test('a weapon swap after Fractured Glass packets keeps the spear ambush', () => {
+  const result = simulateMesmer(
+    [
+      'Dodge / Mirage Cloak',
+      { name: '__wait', waitMs: 200 },
+      'Fractured Glass',
+      { name: '__wait', waitMs: 171 },
+      'Swap Weapons'
+    ],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      initialResource: 0,
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      weaponSet2Primary: 'Spear',
+      weaponSet2Secondary: '',
+      startingWeaponSet: 2
+    })
+  );
+
+  assert.equal(
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Fractured Glass').length,
+    7
+  );
 });
 
 test('Split Surge resolves its three beam packets with per-hit Might and Vulnerability', () => {
@@ -3859,7 +4034,7 @@ test('Mirage support and cloak traits emit their current effects', () => {
   assert.ok(result.procSteps.some((proc) => proc.skill === 'Elusive Mind'));
 });
 
-test("Nomad's Endurance and Phantom Pain exclude phantasm strikes but retain owner-resolved conditions", () => {
+test("Nomad's Endurance and Phantom Pain add together while excluding phantasm strikes", () => {
   const run = (selectedTraits) =>
     simulateMesmer(
       ['Mind Wrack', 'Phantasmal Mage', { name: '__wait', waitMs: 4000 }],
@@ -5749,6 +5924,33 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
   assert.equal(result.steps[0].end, 840);
   assert.equal(result.steps[1].start, 100);
   assert.equal(result.steps[3].start, result.steps[2].end);
+});
+
+test('a cooldown-delayed Continuum Split still excludes a skill that remains in flight', () => {
+  const result = simulateMesmer(
+    [
+      'Continuum Split',
+      { name: '__wait', waitMs: 1 },
+      'Continuum Shift',
+      { name: '__wait', waitMs: 69199 },
+      'Phantasmal Swordsman',
+      { name: 'Continuum Split', offset: 100 },
+      'Continuum Shift',
+      'Phantasmal Swordsman'
+    ],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      initialResource: 3,
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword'
+    })
+  );
+  const delayedSplit = result.steps.find((step) => step.ri === 5);
+  const firstSwordsman = result.steps.find((step) => step.ri === 4);
+  const restoredSwordsman = result.steps.find((step) => step.ri === 7);
+
+  assert.equal(delayedSplit.start, 70001);
+  assert.equal(restoredSwordsman.start, firstSwordsman.end);
 });
 
 test('Mind the Gap grants its clone before a concurrent two-clone Continuum Split snapshot', () => {

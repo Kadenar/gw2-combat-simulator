@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
+import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -137,11 +138,22 @@ function direct(skillId, time) {
   return event({ time, target: TARGET, value: 100, skillId });
 }
 
+function cloneDeath(source, time, sourceInstance = 20) {
+  return event({
+    time,
+    source,
+    sourceInstance,
+    sourceMasterInstance: 7,
+    stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD
+  });
+}
+
 function names(result, name) {
   return result.actions.filter((action) => action.name === name);
 }
 
 test('reconstructs Chronomancer shatters and Continuum transitions', () => {
+  const cloneAddresses = [0x3000n, 0x3001n];
   const skills = [
     skill(56930, 'Split Second'),
     skill(56928, 'Rewinder'),
@@ -149,36 +161,43 @@ test('reconstructs Chronomancer shatters and Continuum transitions', () => {
     skill(29830, 'Continuum Split'),
     skill(-4, 'Continuum Shift')
   ];
-  const fixture = mesmerLog(40, skills, [
-    guidMapping(GUIDS.splitSecond, 101),
-    guidMapping(GUIDS.rewinder, 102),
-    guidMapping(GUIDS.timeSink, 103),
-    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
-    direct(56925, 11_000),
-    direct(56925, 11_100),
-    direct(56925, 12_000),
-    effect(102, 13_000),
-    effect(102, 13_250),
-    effect(102, 14_100),
-    effect(103, 15_000),
-    effect(103, 15_500),
-    event({
-      time: 16_000,
-      target: PLAYER,
-      value: 4_500,
-      skillId: 30136,
-      buff: 1
-    }),
-    event({
-      time: 17_000,
-      target: PLAYER,
-      value: 500,
-      buffDamage: 500,
-      skillId: 30136,
-      buff: 1,
-      buffRemove: 3
-    })
-  ]);
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      guidMapping(GUIDS.rewinder, 102),
+      guidMapping(GUIDS.timeSink, 103),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      direct(56925, 11_000),
+      direct(56925, 11_100),
+      direct(56925, 12_000),
+      effect(102, 13_000),
+      effect(102, 13_250),
+      cloneDeath(cloneAddresses[0], 13_250),
+      effect(102, 14_100),
+      effect(103, 15_000),
+      effect(103, 15_500),
+      cloneDeath(cloneAddresses[1], 15_500, 21),
+      event({
+        time: 16_000,
+        target: PLAYER,
+        value: 4_500,
+        skillId: 30136,
+        buff: 1
+      }),
+      event({
+        time: 17_000,
+        target: PLAYER,
+        value: 500,
+        buffDamage: 500,
+        skillId: 30136,
+        buff: 1,
+        buffRemove: 3
+      })
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
@@ -190,21 +209,395 @@ test('reconstructs Chronomancer shatters and Continuum transitions', () => {
   assert.equal(names(result, 'Continuum Shift').length, 1);
 });
 
-test('splits Chronomancer effect packets after four shatter sources', () => {
-  const skills = [skill(56930, 'Split Second')];
+test('anchors Continuum Split at the recorded cast boundary', () => {
+  const skills = [
+    skill(73093, 'Mind the Gap', {
+      type: 'Weapon',
+      slot: 'Weapon_2',
+      castTimeMs: 900,
+      quicknessCastTimeMs: 600
+    }),
+    skill(29830, 'Continuum Split')
+  ];
   const fixture = mesmerLog(40, skills, [
-    guidMapping(GUIDS.splitSecond, 101),
     event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
-    effect(101, 11_000),
-    effect(101, 11_100),
-    effect(101, 11_200),
-    effect(101, 11_300),
-    effect(101, 11_400)
+    event({ skillId: 73093, value: 900, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+    event({
+      time: 10_600,
+      skillId: 73093,
+      value: 600,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    }),
+    event({ time: 10_600, target: PLAYER, value: 3_000, skillId: 30136, buff: 1 })
   ]);
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
+  assert.deepEqual(result.rotation, [
+    { name: '__combat_start' },
+    { name: 'Mind the Gap', skillId: 73093 },
+    { name: 'Continuum Split', skillId: 29830, offset: 600 }
+  ]);
+});
+
+test('separates a second shatter after three clone detonations', () => {
+  const cloneAddresses = [0x3000n, 0x3001n, 0x3002n];
+  const skills = [skill(56930, 'Split Second')];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      effect(101, 11_000),
+      effect(101, 11_100),
+      cloneDeath(cloneAddresses[0], 11_100),
+      effect(101, 11_200),
+      cloneDeath(cloneAddresses[1], 11_200, 21),
+      effect(101, 11_300),
+      cloneDeath(cloneAddresses[2], 11_300, 22),
+      effect(101, 11_400)
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
   assert.equal(names(result, 'Split Second').length, 2);
+});
+
+test('does not collapse rapid Time Sink fallback packets into one shatter', () => {
+  const skills = [skill(56873, 'Time Sink')];
+  const fixture = mesmerLog(40, skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    direct(56873, 11_000),
+    direct(56873, 13_000)
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    names(result, 'Time Sink').map((action) => action.timestampMs),
+    [1_000, 3_000]
+  );
+});
+
+test('preserves an interrupted Mesmer autoattack so replay can apply its chain state', () => {
+  const psystrike = skill(73066, 'Psystrike', {
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    castTimeMs: 900,
+    quicknessCastTimeMs: 600,
+    effects: [{ type: 'strike', coefficient: 1, hits: 1, name: 'Psystrike', actorType: 'player' }]
+  });
+  const powerSpike = skill(10212, 'Power Spike', { type: 'Utility', slot: 'Utility_1' });
+  const fixture = mesmerLog(
+    40,
+    [psystrike, powerSpike],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 11_000, value: 900, skillId: 73066, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 11_200,
+        value: 200,
+        skillId: 73066,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL
+      }),
+      direct(10212, 12_000)
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [psystrike, powerSpike] });
+
+  assert.equal(names(result, 'Psystrike').length, 1);
+  assert.equal(names(result, 'Psystrike')[0].status, 'interrupted');
+  assert.equal(result.rotation.find((command) => command.name === 'Psystrike')?.interruptMs, 200);
+});
+
+test('does not commit a Mesmer autoattack from a clone packet with the same skill id', () => {
+  const clone = 0x3000n;
+  const mindPierce = skill(73095, 'Mind Pierce', {
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    castTimeMs: 840,
+    quicknessCastTimeMs: 560,
+    effects: [{ type: 'strike', coefficient: 1.5, hits: 1, name: 'Mind Pierce', actorType: 'player' }]
+  });
+  const powerSpike = skill(10212, 'Power Spike', { type: 'Utility', slot: 'Utility_1' });
+  const fixture = mesmerLog(
+    40,
+    [mindPierce, powerSpike],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 11_000, value: 840, skillId: 73095, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 11_560,
+        value: 560,
+        skillId: 73095,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({
+        time: 11_560,
+        source: clone,
+        target: TARGET,
+        value: 100,
+        skillId: 73095,
+        sourceInstance: 8,
+        sourceMasterInstance: 7
+      }),
+      direct(10212, 12_000)
+    ],
+    [agent(clone, 0, 'Illusionary Spear')]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [mindPierce, powerSpike] });
+
+  assert.equal(names(result, 'Mind Pierce').length, 0);
+});
+
+test('recovers a Winds of Chaos cast from an unmatched player bounce pair', () => {
+  const winds = skill(10273, 'Winds of Chaos', {
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    quicknessCastTimeMs: 760,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 533, coefficient: 0.3 },
+          { atMs: 623, coefficient: 0.3 }
+        ],
+        name: 'Winds of Chaos',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  });
+  const powerSpike = skill(10212, 'Power Spike', { type: 'Utility', slot: 'Utility_1' });
+  const fixture = mesmerLog(
+    40,
+    [winds, powerSpike],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      direct(10273, 10_533),
+      direct(10273, 10_623),
+      direct(10212, 12_000)
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [winds, powerSpike] });
+
+  assert.equal(names(result, 'Winds of Chaos').length, 1);
+  assert.equal(names(result, 'Winds of Chaos')[0].timestampMs, 0);
+});
+
+test('recovers a Mesmer phantasm precast whose animation start predates combat', () => {
+  const swordsman = skill(10174, 'Phantasmal Swordsman', {
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    castTimeMs: 1300,
+    quicknessCastTimeMs: 867,
+    phantasm: true,
+    effects: [{ type: 'strike', coefficient: 1, hits: 1, actorType: 'player' }]
+  });
+  const powerSpike = skill(10212, 'Power Spike', { type: 'Utility', slot: 'Utility_1' });
+  const fixture = mesmerLog(
+    40,
+    [swordsman, powerSpike],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      direct(10174, 10_634),
+      event({
+        time: 10_750,
+        value: 867,
+        skillId: 10174,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({ time: 12_000, value: 800, skillId: 10212, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 12_800,
+        value: 800,
+        skillId: 10212,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [swordsman, powerSpike] });
+
+  assert.equal(names(result, 'Phantasmal Swordsman').length, 1);
+  assert.equal(names(result, 'Phantasmal Swordsman')[0].timestampMs, 0);
+});
+
+test('does not duplicate a clipped phantasm precast already represented by initial summon state', () => {
+  const phantasm = 0x3000n;
+  const swordsman = skill(10174, 'Phantasmal Swordsman', {
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    castTimeMs: 1300,
+    quicknessCastTimeMs: 867,
+    phantasm: true,
+    effects: [{ type: 'strike', coefficient: 1, hits: 1, actorType: 'player' }]
+  });
+  const powerSpike = skill(10212, 'Power Spike', { type: 'Utility', slot: 'Utility_1' });
+  const fixture = mesmerLog(
+    40,
+    [swordsman, powerSpike],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        source: phantasm,
+        target: phantasm,
+        sourceInstance: 8,
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+      }),
+      direct(10174, 10_634),
+      event({
+        time: 10_750,
+        value: 867,
+        skillId: 10174,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({ time: 12_000, value: 800, skillId: 10212, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 12_800,
+        value: 800,
+        skillId: 10212,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      })
+    ],
+    [agent(phantasm, 6487, 'Illusionary Swordsman')]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [swordsman, powerSpike] });
+
+  assert.equal(names(result, 'Phantasmal Swordsman').length, 1);
+  assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'initial-state');
+});
+
+test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across Continuum Split', () => {
+  const cloneAddresses = Array.from({ length: 4 }, (_, index) => 0x3000n + BigInt(index));
+  const skills = [
+    skill(56930, 'Split Second'),
+    skill(56928, 'Rewinder'),
+    skill(56873, 'Time Sink'),
+    skill(29830, 'Continuum Split'),
+    skill(-4, 'Continuum Shift')
+  ];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      guidMapping(GUIDS.rewinder, 102),
+      guidMapping(GUIDS.timeSink, 103),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 10_500, target: PLAYER, value: 3_000, skillId: 30136, buff: 1 }),
+      effect(101, 11_000),
+      effect(101, 11_080),
+      cloneDeath(cloneAddresses[0], 11_080),
+      effect(101, 11_200),
+      cloneDeath(cloneAddresses[1], 11_200, 21),
+      effect(101, 11_600),
+      effect(102, 11_700),
+      effect(103, 11_800),
+      effect(102, 12_200),
+      cloneDeath(cloneAddresses[2], 12_200, 22),
+      effect(103, 12_800),
+      cloneDeath(cloneAddresses[3], 12_800, 23),
+      event({ time: 13_000, value: 1_000, skillId: 30136, buff: 1, buffRemove: 3 }),
+      effect(101, 13_100),
+      effect(102, 13_200),
+      effect(103, 13_300)
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    names(result, 'Split Second').map((action) => action.timestampMs),
+    [1_000, 1_600, 3_100]
+  );
+  assert.equal(names(result, 'Rewinder').length, 2);
+  assert.deepEqual(
+    names(result, 'Time Sink').map((action) => action.timestampMs),
+    [1_800, 3_300]
+  );
+  assert.equal(names(result, 'Continuum Split').length, 1);
+  assert.equal(names(result, 'Continuum Shift').length, 1);
+
+  const replay = simulateMesmer(result.rotation, {
+    specialization: 'Chronomancer',
+    selectedTraits: ['Shatter Storm'],
+    initialResource: 3
+  });
+  const replayedSplits = replay.steps.filter((step) => step.skill === 'Split Second');
+
+  assert.deepEqual(
+    replayedSplits.map((step) => step.start),
+    [1_000, 1_600, 3_100]
+  );
+  assert.ok(replayedSplits.every((step) => !step.invalid));
+});
+
+test('preserves a shatter cast when a clone detonates at the same timestamp', () => {
+  const cloneAddresses = [0x3100n, 0x3101n, 0x3102n];
+  const skills = [skill(56930, 'Split Second')];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      effect(101, 11_000),
+      effect(101, 11_000),
+      event({
+        time: 11_000,
+        source: cloneAddresses[0],
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.EXIT_COMBAT
+      }),
+      event({
+        time: 11_000,
+        source: cloneAddresses[0],
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD
+      }),
+      effect(101, 11_050),
+      event({
+        time: 11_050,
+        source: cloneAddresses[1],
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD
+      }),
+      effect(101, 11_200),
+      event({
+        time: 11_200,
+        source: cloneAddresses[2],
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD
+      }),
+      effect(101, 11_600)
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    names(result, 'Split Second').map((action) => action.timestampMs),
+    [1_000, 1_600]
+  );
 });
 
 test('recovers a Chronomancer Mirror Images use suppressed at clone cap', () => {
@@ -289,6 +682,14 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
       skillId: 40408,
       buff: 1
     }),
+    direct(44677, 12_500),
+    event({
+      time: 12_500,
+      target: PLAYER,
+      value: 800,
+      skillId: 40408,
+      buff: 1
+    }),
     event({
       time: 13_000,
       target: PLAYER,
@@ -316,7 +717,7 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
 
   assert.equal(result.parserId, 'mesmer:mirage');
   assert.equal(names(result, 'Dodge / Mirage Cloak').length, 2);
-  assert.equal(names(result, 'Pick Up Mirage Mirror').length, 1);
+  assert.equal(names(result, 'Pick Up Mirage Mirror').length, 2);
   assert.equal(names(result, 'Mind Wrack').length, 2);
   assert.equal(names(result, 'Cry of Frustration').length, 1);
   assert.equal(names(result, 'Diversion').length, 1);

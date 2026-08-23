@@ -264,7 +264,9 @@ export function createMirageActionController({
 
   // Executes a player ambush attack at the specified time
   const executePlayerAmbush = (skill: MesmerSkill, at: number, castStart = at) => {
-    const weapon = activePrimaryWeapon();
+    // The ambush keeps the weapon selected when its cast began, even if the
+    // rotation swaps weapons before completion mechanics are dispatched.
+    const weapon = skill.weapon || activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
     const pseudo = {

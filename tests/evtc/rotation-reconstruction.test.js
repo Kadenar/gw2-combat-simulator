@@ -183,7 +183,7 @@ const catalog = {
   ]
 };
 
-function expandedEvtcFixture({ interruptedDamage = false } = {}) {
+function expandedEvtcFixture({ interruptedDamage = false, secondActivation = false } = {}) {
   const header = Buffer.alloc(16);
 
   header.write('EVTC20260815', 0, 'ascii');
@@ -214,8 +214,20 @@ function expandedEvtcFixture({ interruptedDamage = false } = {}) {
   activation.writeUInt16LE(1, 40);
   activation[56] = 67;
 
+  const laterActivation = Buffer.from(activation);
+
+  laterActivation.writeBigUInt64LE(3_000n, 0);
+
   if (!interruptedDamage) {
-    return Buffer.concat([header, agentCount, agent, skillCount, skill, activation]);
+    return Buffer.concat([
+      header,
+      agentCount,
+      agent,
+      skillCount,
+      skill,
+      activation,
+      ...(secondActivation ? [laterActivation] : [])
+    ]);
   }
 
   const animationStop = Buffer.alloc(64);
@@ -3325,6 +3337,28 @@ test('the browser rotation importer reads compressed .zevtc files', async () => 
   assert.equal(imported.actionCount, 1);
   assert.deepEqual(imported.rotation, [{ type: 'cast', skillId: 1_000 }]);
   assert.match(imported.warnings[0], /no matching stop event/);
+
+  const idleGapBytes = zipEvtc(expandedEvtcFixture({ secondActivation: true }));
+  const idleGapImport = await readEvtcRotationFile(
+    {
+      name: 'idle-gap.zevtc',
+      type: 'application/octet-stream',
+      arrayBuffer: async () =>
+        idleGapBytes.buffer.slice(idleGapBytes.byteOffset, idleGapBytes.byteOffset + idleGapBytes.byteLength)
+    },
+    {
+      profession: { id: 'mesmer', name: 'Mesmer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      build: {},
+      activeCatalog: catalog
+    }
+  );
+
+  assert.deepEqual(idleGapImport.rotation, [
+    { type: 'cast', skillId: 1_000 },
+    { type: 'wait', durationMs: 1_200 },
+    { type: 'cast', skillId: 1_000 }
+  ]);
 
   const interruptedBytes = zipEvtc(expandedEvtcFixture({ interruptedDamage: true }));
   const interruptedImport = await readEvtcRotationFile(

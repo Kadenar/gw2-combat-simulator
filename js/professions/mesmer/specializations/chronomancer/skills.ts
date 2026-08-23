@@ -198,16 +198,34 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     weapon: '',
     specialization: 'Chronomancer',
     environment: 'Terrestrial',
-    castTimeMs: 1200,
+    // Store the measured Quickness duration so the catalog derives the corresponding base cast consistently.
+    quicknessCastTimeMs: 800,
     cooldown: 20,
+    // The first pulse commits the well before its animation can be shortened by a shatter or another instant action.
+    interruptCommitMs: 518,
+    comboFields: [
+      {
+        ownerId: 'mesmer',
+        fieldType: 'Ethereal',
+        duration: 3,
+        startMs: 518,
+        startAnchor: 'castStart'
+      }
+    ],
     effects: [
       {
         type: 'strike',
-        coefficient: 4.5,
-        hits: 3,
+        ticks: [
+          { atMs: 518, coefficient: 1.5 },
+          { atMs: 1519, coefficient: 1.5 },
+          { atMs: 2520, coefficient: 1.5 }
+        ],
         name: 'Pulse damage',
         actorType: 'player',
-        weapon: 'utility'
+        weapon: 'utility',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

@@ -178,7 +178,8 @@ export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       conditionPerStack: 0.05
     } as Readonly<Record<string, number>>,
     amount: (context, target, parameters) => {
-      // Phantasm conditions use their owner's condition modifiers, but phantasm strikes use summon ownership.
+      // Phantom Pain joins other additive outgoing-damage bonuses; phantasm
+      // conditions use owner modifiers, but phantasm strikes use summon ownership.
       if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
       return (
         timedStacks(context, 'phantom-pain', parameters.duration, parameters.maximumStacks) *

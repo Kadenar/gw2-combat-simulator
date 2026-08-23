@@ -1825,6 +1825,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 600,
     cooldown: 10,
     effects: [
       {
@@ -1833,7 +1834,10 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         hits: 1,
         name: 'Damage',
         actorType: 'player',
-        weapon: 'spear'
+        weapon: 'spear',
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

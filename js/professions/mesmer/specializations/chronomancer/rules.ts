@@ -3,6 +3,7 @@ import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { EPSILON } from '../../../../platform/engine/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { targetHasCondition } from '../../../../platform/gw2/target-state.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -55,6 +56,20 @@ export const chronomancerCastRules = Object.freeze({
 });
 
 export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'mesmer.time-catches-up',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'multiply',
+    factor: 1.1,
+    order: 100,
+    // Time Catches Up affects only shatter packets against a movement-impaired target.
+    when: (context) =>
+      hasTrait(context, TRAIT.TIME_CATCHES_UP) &&
+      Boolean(context.event?.shatter) &&
+      ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) =>
+        targetHasCondition(context.config || {}, condition, context.time, context.runtime)
+      )
+  },
   {
     id: 'mesmer.flow-of-time-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

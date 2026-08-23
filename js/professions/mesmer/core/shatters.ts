@@ -64,10 +64,17 @@ export function resolveCloneShatter(
     const confusion = runtime.traits.has(TRAIT.CRY_OF_PAIN)
       ? conditionFromProfile(context, TRAIT.CRY_OF_PAIN, baseConfusion)
       : baseConfusion;
-    runtime.addCondition(skill.name, at, {
-      ...confusion,
-      stacks: sources * Number(confusion.stacks || 1)
-    });
+    runtime.addCondition(
+      skill.name,
+      at,
+      {
+        ...confusion,
+        stacks: sources * Number(confusion.stacks || 1)
+      },
+      'Player',
+      '',
+      { shatter: true }
+    );
 
     if (runtime.traits.has(TRAIT.BLINDING_DISSIPATION)) {
       runtime.addEvent({
