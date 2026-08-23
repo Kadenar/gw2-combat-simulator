@@ -2445,31 +2445,59 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
   );
 });
 
-test('Time Catches Up buffs only shatter damage against movement-impaired targets', () => {
-  const rotation = ['Split Second', 'Phantasmal Mage', { name: '__wait', waitMs: 6000 }];
+test('Split Second shatter traits affect only the first strike from each source', () => {
+  const rotation = ['Split Second', { name: '__wait', waitMs: 2000 }];
   const config = defaultSimulationConfig({
     specialization: 'Chronomancer',
-    selectedTraits: ['Maim the Disillusioned'],
     initialResource: 3,
-    primaryWeapon: 'Scepter',
-    secondaryWeapon: 'Torch',
     relic: '',
     modifiers: { strike: 1, condition: 1 }
   });
   const baseline = simulateMesmer(rotation, config);
-  const boosted = simulateMesmer(rotation, {
+  const timeCatchesUp = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Maim the Disillusioned', 'Time Catches Up']
+    selectedTraits: ['Time Catches Up']
   });
-  const damage = (result, type, shatter) =>
-    result.resolvedEvents
-      .filter((event) => event.type === type && Boolean(event.shatter) === shatter)
-      .reduce((sum, event) => sum + Number(event.damage || 0), 0);
+  const mentalAnguish = simulateMesmer(rotation, {
+    ...config,
+    selectedTraits: ['Mental Anguish']
+  });
+  const maim = simulateMesmer(rotation, {
+    ...config,
+    selectedTraits: ['Maim the Disillusioned']
+  });
+  const packets = (result) =>
+    Object.values(
+      result.resolvedEvents
+        .filter((event) => event.type === 'damage' && event.skillName === 'Split Second')
+        .reduce((groups, event) => {
+          groups[event.at] ||= { at: event.at, damage: 0, traitEligible: Boolean(event.shatterTraitEligible) };
+          groups[event.at].damage += event.damage;
+          return groups;
+        }, {})
+    ).sort((left, right) => left.at - right.at);
+  const baselinePackets = packets(baseline);
+  const timeCatchesUpPackets = packets(timeCatchesUp);
+  const mentalAnguishPackets = packets(mentalAnguish);
+  const torment = maim.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Split Second' && event.condition === 'Torment'
+  );
 
-  assert.ok(Math.abs(damage(boosted, 'damage', true) / damage(baseline, 'damage', true) - 1.1) < 1e-12);
-  assert.ok(Math.abs(damage(boosted, 'condition', true) / damage(baseline, 'condition', true) - 1.1) < 1e-12);
-  assert.equal(damage(boosted, 'damage', false), damage(baseline, 'damage', false));
-  assert.equal(damage(boosted, 'condition', false), damage(baseline, 'condition', false));
+  assert.deepEqual(
+    baselinePackets.map((packet) => ({ at: packet.at, traitEligible: packet.traitEligible })),
+    [
+      { at: 0, traitEligible: true },
+      { at: 1, traitEligible: false }
+    ]
+  );
+  assert.ok(Math.abs(timeCatchesUpPackets[0].damage / baselinePackets[0].damage - 1.1) < 1e-12);
+  assert.equal(timeCatchesUpPackets[1].damage, baselinePackets[1].damage);
+  assert.ok(Math.abs(mentalAnguishPackets[0].damage / baselinePackets[0].damage - 1.25) < 1e-12);
+  assert.equal(mentalAnguishPackets[1].damage, baselinePackets[1].damage);
+  assert.equal(torment.length, 1);
+  assert.equal(torment[0].at, baselinePackets[0].at);
+  assert.equal(torment[0].stacks, 4);
+  assert.equal(torment[0].shatterTraitEligible, true);
 });
 
 test('Relic of the Claw can trigger from a non-damaging control skill and expires', () => {
@@ -4875,14 +4903,17 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
         initialResource: 5
       })
     );
-    const hitTimes = result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === skillName)
-      .map((event) => Number(event.at.toFixed(3)));
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName);
+    const hitTimes = hits.map((event) => Number(event.at.toFixed(3)));
     const torment = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === skillName && event.condition === 'Torment'
     );
 
     assert.ok(hitTimes.length > 0, skillName);
+    assert.ok(
+      hits.every((event) => event.shatterTraitEligible === true),
+      skillName
+    );
     assert.deepEqual(
       torment.map((event) => Number(event.at.toFixed(3))),
       hitTimes,
@@ -4890,6 +4921,32 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
     );
     assert.ok(
       torment.every((event) => event.stacks === 1 && event.duration === 6),
+      skillName
+    );
+  }
+});
+
+test('Mental Anguish improves every damaging Virtuoso bladesong hit', () => {
+  const skills = ['Bladesong Harmony', 'Bladesong Sorrow', 'Bladesong Dissonance', 'Bladeturn Requiem'];
+  const damageEvents = (result, skillName) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName);
+
+  for (const skillName of skills) {
+    const rotation = [skillName, { name: '__wait', waitMs: 5000 }];
+    const config = defaultSimulationConfig({ initialResource: 5 });
+    const baseline = damageEvents(simulateMesmer(rotation, config), skillName);
+    const boosted = damageEvents(
+      simulateMesmer(rotation, { ...config, selectedTraits: ['Mental Anguish'] }),
+      skillName
+    );
+
+    assert.equal(boosted.length, baseline.length, skillName);
+    assert.ok(
+      boosted.every((event) => event.shatterTraitEligible === true),
+      skillName
+    );
+    assert.ok(
+      boosted.every((event, index) => Math.abs(event.damage / baseline[index].damage - 1.25) < 1e-12),
       skillName
     );
   }

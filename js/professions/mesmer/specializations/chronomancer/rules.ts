@@ -58,14 +58,14 @@ export const chronomancerCastRules = Object.freeze({
 export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'mesmer.time-catches-up',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.1,
     order: 100,
-    // Time Catches Up affects only shatter packets against a movement-impaired target.
+    // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
     when: (context) =>
       hasTrait(context, TRAIT.TIME_CATCHES_UP) &&
-      Boolean(context.event?.shatter) &&
+      Boolean(context.event?.shatterTraitEligible) &&
       ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) =>
         targetHasCondition(context.config || {}, condition, context.time, context.runtime)
       )

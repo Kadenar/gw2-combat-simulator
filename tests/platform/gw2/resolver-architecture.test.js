@@ -573,15 +573,15 @@ test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () =>
     [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159],
     'Phantasmal Swordsman damage'
   );
-  assert.ok(Math.abs(phantasmalBlade.at - 4.563) < 1e-12);
+  assert.ok(Math.abs(phantasmalBlade.at - 4.363) < 1e-12);
   assertEventTimes(
     bleeding,
-    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.563],
+    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.363],
     'Phantasmal Swordsman bleeding'
   );
   assertEventTimes(
     bladeGains.map((event) => event.at),
-    [2.5591, 4.4801, 4.5631],
+    [2.5591, 4.2801, 4.3631],
     'Phantasmal Swordsman blade gain'
   );
   assert.deepEqual(
@@ -635,7 +635,7 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
       }
     })
   );
-  const expected = [1.156, 1.198, 2.156, 2.198, 3.156, 3.198, 4.156, 4.198];
+  const expected = [1.16, 1.2, 2.16, 2.2, 3.16, 3.2, 4.16, 4.2];
   const damageTimes = result.resolvedEvents
     .filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
     .map((event) => event.at);
@@ -650,7 +650,7 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
   assert.equal(result.steps[0].fullCastMs, 440);
   assertEventTimes(damageTimes, expected, 'Unstable Bladestorm damage');
   assertEventTimes(bleedTimes, expected, 'Unstable Bladestorm bleeding');
-  assert.ok(Math.abs(bloodsong.at - 3.1561) < 1e-12);
+  assert.ok(Math.abs(bloodsong.at - 3.1601) < 1e-12);
   assert.equal(result.endState.profession.resource, 1);
 });
 

@@ -310,6 +310,10 @@ export interface MesmerEventExtra extends SchedulerRecord {
   readonly sourceId?: SkillId;
   readonly skillId?: SkillId | null;
   readonly actorType?: SimulationActorType;
+  /** Identifies damage or conditions produced by a shatter skill. */
+  readonly shatter?: boolean;
+  /** Marks packets that may receive shatter traits; clone repeat strikes can opt out while every blade opts in. */
+  readonly shatterTraitEligible?: boolean;
 }
 
 export type MesmerSkillEffect =
@@ -498,7 +502,7 @@ export type MesmerCastContext = MesmerPrecastContext & {
   readonly reservationId: string;
 };
 
-/** One group of shatter hits used by shared traits such as Maim the Disillusioned. */
+/** One group of first shatter strikes used by shared traits such as Maim the Disillusioned. */
 export interface MesmerShatterTraitHit {
   readonly at: number;
   readonly count: number;
@@ -851,6 +855,7 @@ export interface MesmerShatter {
   readonly consumesResources?: boolean;
   readonly resetBySignetOfIllusions?: boolean;
   readonly hitsPerSource?: number;
+  readonly strikeIntervalMs?: number;
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
   readonly damageAtMs?: number;

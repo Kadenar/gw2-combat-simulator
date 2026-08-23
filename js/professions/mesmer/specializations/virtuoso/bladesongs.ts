@@ -44,7 +44,7 @@ export function resolveBladesong(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true, blade: true }
+      { shatter: true, shatterTraitEligible: true, blade: true }
     );
 
   if (shatter.kind === 'blade-power') {
@@ -93,7 +93,7 @@ export function resolveBladesong(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true, blade: true }
+      { shatter: true, shatterTraitEligible: true, blade: true }
     );
     return [{ at: damageAt, count: 1 }];
   }

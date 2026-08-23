@@ -178,7 +178,7 @@ export function createProfessionActionController({
           { ...maim, stacks: maim.stacks * hit.count },
           'Player',
           `${skill.name} — Maim the Disillusioned`,
-          { shatter: true }
+          { shatter: true, shatterTraitEligible: true }
         );
       }
 

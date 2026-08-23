@@ -92,12 +92,12 @@ test('rotation timeline sizes expose two larger display options', () => {
   assert.equal(normalizeRotationDeadTimeVisibility(null), false);
 });
 
-test('rotation workspace keeps the normal config visible and scopes its sheet to focus mode', () => {
+test('rotation workspace keeps simulation config in a drawer in normal and focus modes', () => {
   assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, {
     configOpen: false,
     focus: false
   });
-  assert.equal(isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE), true);
+  assert.equal(isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE), false);
 
   const configOpen = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-config');
 

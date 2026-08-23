@@ -22,38 +22,49 @@ function conditionFromProfile(
   };
 }
 
-/** Resolves clone-based Core and Chronomancer shatter packets while reporting their shared-trait hit count. */
+/** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
 export function resolveCloneShatter(
   context: MesmerCastContext,
   { skill, shatter, at, spent }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerRuntimeFor(context);
   const sources = spent + 1;
-  const hits = sources * Number(shatter.hitsPerSource ?? 1);
+  const strikesPerSource = Math.max(1, Number(shatter.hitsPerSource ?? 1));
+
+  const addStrikePackets = (): void => {
+    const coefficient = Number(shatter.coefficients[spent] || 0) / strikesPerSource;
+    const interval = Number(shatter.strikeIntervalMs || 0) / 1000;
+
+    // Each source contributes one hit to every packet, but shatter traits are
+    // attached only to the first packet as required by repeat-strike shatters.
+    for (let strikeIndex = 0; strikeIndex < strikesPerSource; strikeIndex += 1) {
+      runtime.addDamage(
+        skill,
+        at + strikeIndex * interval,
+        {
+          coefficient,
+          hits: sources,
+          source: 'Player',
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        },
+        { shatter: true, shatterTraitEligible: strikeIndex === 0 }
+      );
+    }
+  };
 
   if (shatter.kind === 'power') {
-    runtime.addDamage(
-      skill,
-      at,
-      {
-        coefficient: shatter.coefficients[spent],
-        hits,
-        source: 'Player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { shatter: true }
-    );
+    addStrikePackets();
   } else if (shatter.kind === 'confusion') {
     runtime.addDamage(
       skill,
       at,
       {
         coefficient: shatter.coefficients[spent],
-        hits,
+        hits: sources,
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true }
+      { shatter: true, shatterTraitEligible: true }
     );
 
     const baseConfusion = conditionFromProfile(context, shatter.balanceProfileId || skill.id, {
@@ -73,7 +84,7 @@ export function resolveCloneShatter(
       },
       'Player',
       '',
-      { shatter: true }
+      { shatter: true, shatterTraitEligible: true }
     );
 
     if (runtime.traits.has(TRAIT.BLINDING_DISSIPATION)) {
@@ -92,11 +103,11 @@ export function resolveCloneShatter(
       at,
       {
         coefficient: shatter.coefficients[spent],
-        hits,
+        hits: sources,
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true }
+      { shatter: true, shatterTraitEligible: true }
     );
   } else if (shatter.kind !== 'control') {
     throw new Error(`Unsupported clone shatter kind: ${shatter.kind}.`);

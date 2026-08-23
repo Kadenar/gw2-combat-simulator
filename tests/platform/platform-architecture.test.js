@@ -3007,7 +3007,14 @@ test('application shell uses feature-owned modules without legacy facades', asyn
     .map((entry) => entry.name)
     .sort();
 
-  assert.deepEqual(topLevelFiles, ['app.ts', 'bootstrap.ts', 'embed.ts', 'profession-app.ts']);
+  assert.deepEqual(topLevelFiles, [
+    'app.ts',
+    'bootstrap.ts',
+    'embed.ts',
+    'github-pages-redirect.js',
+    'profession-app.ts',
+    'tutorial.ts'
+  ]);
 
   const directories = new Set(entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name));
 
