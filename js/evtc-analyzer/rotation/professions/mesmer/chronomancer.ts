@@ -1,3 +1,4 @@
+import { EVTC_STATE_CHANGE } from '../../../types.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   MESMER_EFFECT_GUIDS,
@@ -7,6 +8,7 @@ import {
   directSkillSignals,
   effectSignals,
   hasNearbyAction,
+  playerInstance,
   type MesmerActionIdentity,
   type MesmerSignal
 } from './shared.js';
@@ -27,10 +29,13 @@ const MIRROR_IMAGES = Object.freeze({ name: 'Mirror Images', skillId: 10202 });
 
 const TIME_ANCHORED_BUFF = 30136;
 const MAXIMUM_SHATTER_SOURCES = 4;
+const PRIMARY_EFFECT_DUPLICATE_WINDOW_MS = 10;
+const CLONE_EFFECT_LIFECYCLE_WINDOW_MS = 2;
 
 interface ShatterSignalSet {
   readonly signals: readonly MesmerSignal[];
   readonly maximumClusterSize?: number;
+  readonly effectEvidence: boolean;
 }
 
 const RESOURCE_SHATTER_IDS: ReadonlySet<number> = new Set([
@@ -47,16 +52,103 @@ function shatterSignals(
 ): ShatterSignalSet {
   const direct = directSkillSignals(context, new Set(fallbackIds));
   const effects = effectSignals(context, guid);
-  return effects.length ? { signals: effects, maximumClusterSize: MAXIMUM_SHATTER_SOURCES } : { signals: direct };
+  return effects.length
+    ? { signals: effects, maximumClusterSize: MAXIMUM_SHATTER_SOURCES, effectEvidence: true }
+    : { signals: direct, effectEvidence: false };
+}
+
+function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[][] {
+  const sorted = [...signalSet.signals].sort(
+    (left, right) => left.event.time - right.event.time || left.eventIndex - right.eventIndex
+  );
+  const groups: MesmerSignal[][] = [];
+  let previousTime = Number.NEGATIVE_INFINITY;
+  for (const signal of sorted) {
+    const current = groups.at(-1);
+    if (
+      !current ||
+      signal.event.time - previousTime > gapMs ||
+      current.length >= (signalSet.maximumClusterSize ?? Number.POSITIVE_INFINITY)
+    ) {
+      groups.push([]);
+    }
+
+    groups.at(-1)!.push(signal);
+    previousTime = signal.event.time;
+  }
+
+  return groups;
+}
+
+function effectsWithoutCloneLifecycleEnds(
+  context: EvtcProfessionReconstructionContext,
+  signals: readonly MesmerSignal[]
+): MesmerSignal[] {
+  const ownerInstance = playerInstance(context);
+  if (ownerInstance == null) return [...signals];
+  const cloneAddresses = new Set(
+    context.log.agents.filter((agent) => agent.character.trim().toLowerCase() === 'clone').map((agent) => agent.address)
+  );
+  const cloneLifecycleEnds = context.log.events
+    .filter(
+      (event) =>
+        cloneAddresses.has(event.source) &&
+        event.sourceMasterInstance === ownerInstance &&
+        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
+    )
+    .sort((left, right) => left.time - right.time)
+    .filter(
+      (event, index, events) =>
+        !events
+          .slice(0, index)
+          .some(
+            (earlier) =>
+              earlier.source === event.source && Math.abs(earlier.time - event.time) <= CLONE_EFFECT_LIFECYCLE_WINDOW_MS
+          )
+    );
+  const removed = new Set<number>();
+  for (const lifecycleEnd of cloneLifecycleEnds) {
+    const match = signals
+      .map((signal, index) => ({ signal, index }))
+      .filter(
+        ({ signal, index }) =>
+          !removed.has(index) && Math.abs(signal.event.time - lifecycleEnd.time) <= CLONE_EFFECT_LIFECYCLE_WINDOW_MS
+      )
+      .sort(
+        (left, right) =>
+          Math.abs(left.signal.event.time - lifecycleEnd.time) -
+            Math.abs(right.signal.event.time - lifecycleEnd.time) || right.index - left.index
+      )[0];
+    if (match) removed.add(match.index);
+  }
+
+  return signals.filter((_, index) => !removed.has(index));
+}
+
+/** Removes clone packets using their lifetime-end events, leaving one trait-independent shatter cast signal. */
+function shatterCastSignals(
+  context: EvtcProfessionReconstructionContext,
+  signalSet: ShatterSignalSet,
+  gapMs: number
+): MesmerSignal[] {
+  if (!signalSet.effectEvidence) {
+    return signalGroups(signalSet, gapMs).map((signals) => signals[0]);
+  }
+
+  const primarySignals = effectsWithoutCloneLifecycleEnds(context, signalSet.signals);
+  if (primarySignals.length) return clusterSignals(primarySignals, PRIMARY_EFFECT_DUPLICATE_WINDOW_MS);
+
+  return signalGroups(signalSet, gapMs).map((signals) => signals[0]);
 }
 
 function actionsFromSignals(
+  context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
   identity: MesmerActionIdentity,
   signalSet: ShatterSignalSet,
   gapMs: number
 ): EvtcRecordedRotationAction[] {
-  return clusterSignals(signalSet.signals, gapMs, signalSet.maximumClusterSize).flatMap((signal) =>
+  return shatterCastSignals(context, signalSet, gapMs).flatMap((signal) =>
     hasNearbyAction(actions, identity, signal.event.time, 100)
       ? []
       : [canonicalAction(signal.eventIndex, signal.event.time, identity, signal.event.skillId, 'effect')]
@@ -164,6 +256,7 @@ export function reconstructChronomancerActions(
   const actions = [...recordedActions];
   actions.push(
     ...actionsFromSignals(
+      context,
       actions,
       SPLIT_SECOND,
       shatterSignals(context, MESMER_EFFECT_GUIDS.chronomancerSplitSecond, [56925, 56930]),
@@ -172,6 +265,7 @@ export function reconstructChronomancerActions(
   );
   actions.push(
     ...actionsFromSignals(
+      context,
       actions,
       REWINDER,
       shatterSignals(context, MESMER_EFFECT_GUIDS.chronomancerRewinder, [REWINDER.skillId]),
@@ -180,10 +274,11 @@ export function reconstructChronomancerActions(
   );
   actions.push(
     ...actionsFromSignals(
+      context,
       actions,
       TIME_SINK,
       shatterSignals(context, MESMER_EFFECT_GUIDS.chronomancerTimeSink, [TIME_SINK.skillId]),
-      5500
+      750
     )
   );
   actions.push(...continuumActions(context, actions));

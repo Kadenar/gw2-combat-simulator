@@ -1,4 +1,5 @@
 import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { findRotationSkill } from '../../catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   MESMER_EFFECT_GUIDS,
@@ -139,6 +140,17 @@ function chaosArmorActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const isMirage = context.profile.specializationId === 'mirage';
+  // A non-Staff Chronomancer can only gain Chaos Armor from a combo; do not turn that aura into an unavailable cast.
+  const observedStaffAction = actions.some(
+    (action) =>
+      findRotationSkill(
+        action.canonicalSkillId ?? action.rawSkillId,
+        action.canonicalName ?? action.rawName,
+        context.catalog,
+        context.profile
+      )?.weapon === 'Staff'
+  );
+  if (!isMirage && !observedStaffAction) return [];
   const phaseTimes = phaseRetreatSignals(context).map((signal) => signal.event.time);
   const chaosStormTimes = effectSignals(context, MESMER_EFFECT_GUIDS.chaosStorm).map((signal) => signal.event.time);
   // Mirage logs expose a precast Chaos Armor as initial aura state, then may repeat that aura packet;

@@ -71,10 +71,12 @@ function mirageCloakActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const mirrorSignals = effectSignals(context, MESMER_EFFECT_GUIDS.mirageMirror);
-  if (!mirrorSignals.length) {
-    mirrorSignals.push(...directSkillSignals(context, new Set([MIRAGE_MIRROR_DAMAGE])));
-  }
+  // Modern logs can mix mirror-creation effects with direct pickup damage, so merge both channels before deciding
+  // whether a cloak gain spent endurance or consumed a mirror.
+  const mirrorSignals = [
+    ...effectSignals(context, MESMER_EFFECT_GUIDS.mirageMirror),
+    ...directSkillSignals(context, new Set([MIRAGE_MIRROR_DAMAGE]))
+  ];
 
   return buffGainSignals(context, MIRAGE_CLOAK_BUFF, true)
     .filter(

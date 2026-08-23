@@ -22,7 +22,11 @@ import {
   skillIdentity,
   type EvtcRotationCatalog
 } from './catalog.js';
-import { missingInterruptCommitWarnings, reconcileCastEffectPackets } from './effect-packets.js';
+import {
+  EFFECT_PACKET_TOLERANCE_MS,
+  missingInterruptCommitWarnings,
+  reconcileCastEffectPackets
+} from './effect-packets.js';
 import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
 import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
 
@@ -230,6 +234,9 @@ function pairAnimationEvents(
   const firstPlayerEventTime = Math.min(
     ...log.events.filter((event) => selectedPlayerEvent(event, address) && event.time > 0).map((event) => event.time)
   );
+  const combatStartTime = log.events.find(
+    (event) => selectedPlayerEvent(event, address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
+  )?.time;
   const starts: Array<{
     readonly event: ParsedEvtcEvent;
     readonly eventIndex: number;
@@ -268,7 +275,21 @@ function pairAnimationEvents(
       const inferredStart = end.event.time - end.event.value;
       const truncatedAtLogStart =
         inferTruncatedPrecast && Number.isFinite(firstPlayerEventTime) && inferredStart < firstPlayerEventTime;
-      if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !truncatedAtLogStart)) {
+      // Modern arcdps can omit an animation start that happened just before combat while still recording its stop.
+      const crossesCombatStart =
+        combatStartTime != null && inferredStart <= combatStartTime && end.event.time >= combatStartTime;
+      const hasCommitEvidence = log.events.some(
+        (event) =>
+          event.source === address &&
+          event.skillId === end.event.skillId &&
+          event.time >= inferredStart &&
+          event.time <= end.event.time + EFFECT_PACKET_TOLERANCE_MS &&
+          event.stateChange === 0 &&
+          event.buffRemove === 0 &&
+          (event.value > 0 || event.buffDamage > 0)
+      );
+      const precast = truncatedAtLogStart || (crossesCombatStart && hasCommitEvidence);
+      if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !precast)) {
         continue;
       }
 
@@ -281,7 +302,7 @@ function pairAnimationEvents(
         evidence,
         status: activationStatus(end.event.activation),
         eventIndex: end.eventIndex,
-        precast: truncatedAtLogStart
+        precast
       });
       continue;
     }
@@ -755,9 +776,17 @@ function buildRotation(
     };
     const instant = entry.action.end <= entry.action.start && entry.action.replayCastEnd == null;
     const independent = entry.action.skill?.independentCast === true;
+    // Continuum Split must stay anchored at its recorded cast boundary so its cooldown snapshot uses the EVTC order.
+    const boundaryTransition =
+      instant &&
+      entry.action.evidence === 'buff-transition' &&
+      entry.action.name === 'Continuum Split' &&
+      previousCastStart != null &&
+      at >= previousCastStart &&
+      at <= activeCastEnd + TIMING_TOLERANCE_MS;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = at - previousCastStart;
-    } else if (previousCastStart != null && overlapping) {
+    } else if (previousCastStart != null && (overlapping || boundaryTransition)) {
       command.offset = Math.max(0, at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
@@ -943,7 +972,18 @@ export function reconstructWithProfile(
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   );
-  const recorded = [...initialSummons, ...professionActions];
+  const replayActions = [...professionActions];
+  // A clipped precast and BUFF_INITIAL can describe the same already-active summon; keep the initial-state action once.
+  for (const initialSummon of initialSummons) {
+    const duplicateIndex = replayActions.findIndex(
+      (action) =>
+        action.precast === true &&
+        Number(action.canonicalSkillId ?? action.rawSkillId) === Number(initialSummon.rawSkillId)
+    );
+    if (duplicateIndex >= 0) replayActions.splice(duplicateIndex, 1);
+  }
+
+  const recorded = [...initialSummons, ...replayActions];
   let resolved = recorded.map((action) => resolveAction(action, catalog, profile));
   if (options.inferInstantCasts !== false) {
     resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));
