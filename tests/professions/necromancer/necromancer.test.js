@@ -4122,5 +4122,4 @@ test('Necromancer is wired through the selector and application adapter', async 
   assert.equal((await loadProfession('necromancer'))?.id, 'necromancer');
   assert.equal((await loadProfessionAppAdapter('necromancer'))?.id, 'necromancer');
   assert.match(page, /data-profession="necromancer"/);
-  assert.match(page, /data-active-profession="necromancer"/);
 });

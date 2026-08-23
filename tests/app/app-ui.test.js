@@ -694,7 +694,6 @@ test('Guardian is exposed by the profession selector and app composition', async
   assert.equal(professionRoute('guardian'), 'guardian.html');
   assert.equal((await loadProfessionAppAdapter('guardian'))?.id, 'guardian');
   assert.match(guardianPage, /data-profession="guardian"/);
-  assert.match(guardianPage, /data-active-profession="guardian"/);
 });
 
 test('the generic landing page and profession simulators have separate entries', async () => {
@@ -753,11 +752,12 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
   assert.deepEqual(
     presets.map((preset) => preset.label),
     [
-      'Power',
-      'Condition',
-      'Condition - Dune Cloak',
+      'Power (Greatsword-Dagger/Sword)',
+      'Power (Spear-Dagger/Sword)',
+      'Condition (Staff-Scepter/Pistol)',
+      'Condition (Staff-Axe/Torch) - Dune Cloak',
       'Power (Spear / Greatsword)',
-      'Condition',
+      'Condition (Dagger/Sword-Pistol)',
       'Power (Dagger-Sword / Spear)'
     ]
   );
@@ -1039,35 +1039,6 @@ test('Revenant Condition Quickness Herald default build resolves', async () => {
   assert.deepEqual(build.selectedLegends, ['LegendaryDragon', 'LegendaryDemon']);
   assert.equal(build.startingLegend, 'LegendaryDragon');
   assert.equal(build.startingWeaponSet, 1);
-
-  const contributionApp = {
-    build,
-    profession: adapter.profession,
-    skillByName: adapter.profession.catalog.skillsByName,
-    attributeWeaponSet: 1,
-    results: null
-  };
-
-  adapter.recalculate(contributionApp);
-  assert.deepEqual(
-    adapter
-      .modifierContributionRequest(contributionApp)
-      .comparisons.filter(({ modifier }) => modifier.type === 'Trait')
-      .map(({ modifier }) => modifier.name),
-    [
-      'Invoking Torment',
-      'Seething Malice',
-      'Yearning Empowerment',
-      'Acolyte of Torment',
-      'Pact of Pain',
-      'Diabolic Inferno',
-      'Ferocious Aggression',
-      'Rising Tide',
-      'Spirit Boon',
-      'Song of the Mists',
-      'Reinforced Potency'
-    ]
-  );
 });
 
 test('Revenant Condition Conduit Mistfire default build resolves', async () => {

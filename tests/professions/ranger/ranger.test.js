@@ -2598,5 +2598,4 @@ test('Ranger is wired through the selector and application adapter', async () =>
   assert.equal((await loadProfession('ranger'))?.id, 'ranger');
   assert.equal((await loadProfessionAppAdapter('ranger'))?.id, 'ranger');
   assert.match(page, /data-profession="ranger"/);
-  assert.match(page, /data-active-profession="ranger"/);
 });

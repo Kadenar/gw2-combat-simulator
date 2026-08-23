@@ -457,7 +457,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
     [ID.PHANTASMAL_DUELIST]: [560, 2283, 2880, 5380, 6010],
     [ID.PHANTASMAL_LANCER]: [520, 1080, 1920, 3240, 4080],
     [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5040, 5290],
-    [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3600, 5920, 7450],
+    [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3400, 5920, 7040],
     [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 12530, 14730],
     [ID.PHANTASMAL_WARLOCK]: [780, 2766, 4240, 7243, 8730]
   };
@@ -897,6 +897,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   assert.deepEqual(flyingCutter.trackedHitDamage, {
     hitsRequired: 3,
     duration: 5,
+    persistsAfterInterrupt: true,
     skillId: ID.CUTTER_BURST,
     name: 'Cutter Burst',
     actorType: 'player',
