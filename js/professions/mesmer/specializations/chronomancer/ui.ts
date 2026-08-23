@@ -5,6 +5,7 @@ import {
   mesmerResourceViews,
   mesmerUiState
 } from '../../core/ui.js';
+import { timedBuffAt } from '../../../../app/rotation/state-snapshot-view.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
@@ -13,6 +14,7 @@ import type {
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
+import type { Gw2SimulationResult } from '../../../../platform/gw2/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '../../types.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
@@ -49,20 +51,32 @@ function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: S
   };
 }
 
-/** Shows the restorable Continuum Split window using the projected millisecond duration. */
+/** Shows the active Continuum Split and Danger Time windows at the inspected rotation point. */
 function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
-  const remaining = Number(state.continuumRemaining || 0) / 1000;
-  return state.continuumActive && remaining > 0
-    ? [
-        {
-          id: 'chronomancer-continuum-split',
-          label: 'Continuum Split',
-          value: `${remaining.toFixed(1)}s`,
-          title: 'Time remaining before Continuum Split restores its snapshot'
-        }
-      ]
-    : [];
+  const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const continuumRemaining = Number(state.continuumRemaining || 0) / 1000;
+  if (state.continuumActive && continuumRemaining > 0) {
+    items.push({
+      id: 'chronomancer-continuum-split',
+      label: 'Continuum Split',
+      value: `${continuumRemaining.toFixed(1)}s`,
+      title: 'Time remaining before Continuum Split restores its snapshot'
+    });
+  }
+
+  const dangerTime = timedBuffAt(context.result as Gw2SimulationResult | null | undefined, 'danger-time', at);
+  if (dangerTime) {
+    items.push({
+      id: 'chronomancer-danger-time',
+      label: 'Danger Time',
+      value: `${dangerTime.remaining.toFixed(1)}s`,
+      title: 'Danger Time critical-damage window remaining'
+    });
+  }
+
+  return items;
 }
 
 export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({

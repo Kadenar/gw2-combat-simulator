@@ -114,11 +114,22 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
       mesmerProfession,
       'Chronomancer',
       { clarityRemaining: 3500, continuumActive: true, continuumRemaining: 4200 },
-      10
+      10,
+      {
+        events: [{ type: 'buff', kind: 'danger-time', at: 8, duration: 10, stacks: 1 }]
+      }
     )
   );
   assert.equal(mesmer['mesmer-clarity'], '3.5s');
   assert.equal(mesmer['chronomancer-continuum-split'], '4.2s');
+  assert.equal(mesmer['chronomancer-danger-time'], '8.0s');
+
+  const expiredDangerTime = valuesById(
+    snapshot(mesmerProfession, 'Chronomancer', {}, 19, {
+      events: [{ type: 'buff', kind: 'danger-time', at: 8, duration: 10, stacks: 1 }]
+    })
+  );
+  assert.equal(expiredDangerTime['chronomancer-danger-time'], undefined);
 
   const harbinger = valuesById(snapshot(necromancerProfession, 'Harbinger', { blight: 12, meltdownUntil: 9 }, 6));
   assert.equal(harbinger['harbinger-meltdown'], '3.0s');
