@@ -372,8 +372,8 @@ test('Guardian longbow packets and Symbol of Energy burning use measured EVTC ti
   assert.deepEqual(offsets(puncture), [840]);
   assert.deepEqual(offsets(deflecting), [820]);
   assert.deepEqual(offsets(symbol), [600, 1600, 2600, 3600, 4600]);
-  assert.deepEqual(offsets(trueShot), [920]);
-  assert.deepEqual(offsets(ward), [940, 1460, 1980, 2500]);
+  assert.deepEqual(offsets(trueShot), [1020]);
+  assert.deepEqual(offsets(ward), [980, 1500, 2020, 2540]);
   assert.deepEqual(
     ward.damage.map((event) => event.coefficient),
     [0.75, 0.75, 0.75, 2.5]

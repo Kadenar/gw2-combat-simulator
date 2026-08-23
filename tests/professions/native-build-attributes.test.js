@@ -25,9 +25,10 @@ import { revenantProfession } from '../../js/professions/revenant/definition.js'
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../../js/professions/revenant/data/ids.js';
 import { createThiefBuildDefaults } from '../../js/professions/thief/build.js';
 import { calculateAttributes as calculateThiefAttributes } from '../../js/professions/thief/app/app-definition.js';
+import { thiefProfession } from '../../js/professions/thief/definition.js';
 import { THIEF_TRAIT_IDS } from '../../js/professions/thief/data/ids.js';
-import { createThiefCoreState } from '../../js/professions/thief/core/state.js';
 import { resolveAttributeEffects } from '../../js/platform/gw2/attributes.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { createWarriorBuildDefaults } from '../../js/professions/warrior/build.js';
 import { calculateAttributes as calculateWarriorAttributes } from '../../js/professions/warrior/app/app-definition.js';
 
@@ -223,13 +224,22 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(revenantDirect, 1.15);
   assert.equal(revenantBrowser, revenantDirect);
 
-  const thiefDirect = createThiefCoreState({
-    traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
+  // Marauder's Resilience is Daredevil-owned, so compare provenance after the composed runtime initializes.
+  const simulateDaredevil = (config) =>
+    simulateGw2({
+      profession: thiefProfession,
+      rotation: [],
+      config: {
+        ...config,
+        specialization: 'Daredevil',
+        traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE]
+      }
+    }).endState.profession;
+  const thiefDirect = simulateDaredevil({
     stats: { vitality: 1000, power: 1000 }
   });
-  const thiefBrowser = createThiefCoreState({
+  const thiefBrowser = simulateDaredevil({
     ...applied,
-    traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
     stats: { vitality: 1070, power: 1000 }
   });
 

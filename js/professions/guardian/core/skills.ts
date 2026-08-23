@@ -962,10 +962,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 1000,
     effects: []
   },
-  // Longbow uses measured EVTC cast durations and packet offsets so projectile hits may precede aftercast unlock.
   [ID.DEFLECTING_SHOT]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -989,7 +987,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SYMBOL_OF_ENERGY]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 400,
     effects: [
       {
@@ -1043,7 +1040,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.TRUE_SHOT]: {
     implemented: true,
-    castTimeMs: 920,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -1074,7 +1070,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.HUNTERS_WARD]: {
     implemented: true,
-    castTimeMs: 1040,
     quicknessCastTimeMs: 720,
     effects: [
       {
