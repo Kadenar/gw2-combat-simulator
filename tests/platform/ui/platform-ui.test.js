@@ -31,6 +31,7 @@ import {
 } from '../../../js/platform/ui/insertion-cursor.js';
 import { targetHealthBreakpointSnapshots } from '../../../js/platform/ui/result-transform.js';
 import {
+  dismissResultMetricDetails,
   mountRotationWarnings,
   mountRotationResults,
   nextResultSortState,
@@ -854,6 +855,36 @@ test('summary metrics render a clickable and escaped contributor disclosure', ()
   assert.match(container.innerHTML, /Idle time between skills/);
   assert.match(container.innerHTML, /Skill cancelled '&lt;Mind Stab&gt;'/);
   assert.doesNotMatch(container.innerHTML, /Skill cancelled '<Mind Stab>'/);
+});
+
+test('summary metric disclosures stay open for internal clicks and dismiss on click away', () => {
+  const inside = {};
+  const outside = {};
+  const clickedDetails = { open: true, contains: (target) => target === inside };
+  const otherDetails = { open: true, contains: () => false };
+  const root = {
+    querySelectorAll: () => [clickedDetails, otherDetails]
+  };
+
+  dismissResultMetricDetails(root, inside);
+  assert.equal(clickedDetails.open, true);
+  assert.equal(otherDetails.open, false);
+
+  dismissResultMetricDetails(root, outside);
+  assert.equal(clickedDetails.open, false);
+});
+
+test('summary metric click-away dismissal binds before the native details click toggle', () => {
+  const eventTypes = [];
+  const ownerDocument = {
+    addEventListener: (type) => eventTypes.push(type),
+    querySelectorAll: () => []
+  };
+  const container = { ...inertContainer(), ownerDocument };
+
+  mountRotationResults(container, { metrics: [] });
+
+  assert.deepEqual(eventTypes, ['pointerdown']);
 });
 
 test('skill damage rows group player damage before owned entities', () => {

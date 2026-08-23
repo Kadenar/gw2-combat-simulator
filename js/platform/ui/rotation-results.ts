@@ -9,6 +9,8 @@ export { mountRotationWarnings } from './rotation-warnings.js';
 const DAMAGE_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`;
 const CONDITIONS_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
 
+const metricDetailsDismissalRoots = new WeakSet<Document>();
+
 export interface ResultRow {
   readonly name: string;
   readonly total?: unknown;
@@ -394,6 +396,22 @@ function resultMetricDetailsHtml(metric: ResultMetric): string {
   </details>`;
 }
 
+/** Closes open metric disclosures unless the click occurred inside that same disclosure. */
+export function dismissResultMetricDetails(root: ParentNode, target: EventTarget | null): void {
+  for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open]')) {
+    if (target && details.contains(target as Node)) continue;
+    details.open = false;
+  }
+}
+
+/** Uses pointerdown before the native details click toggle so the opening interaction cannot dismiss itself. */
+function bindResultMetricDetailsDismissal(container: HTMLElement): void {
+  const root = container.ownerDocument;
+  if (!root || metricDetailsDismissalRoots.has(root)) return;
+  metricDetailsDismissalRoots.add(root);
+  root.addEventListener('pointerdown', (event) => dismissResultMetricDetails(root, event.target));
+}
+
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
   model: RotationResultsModel = {},
@@ -403,6 +421,7 @@ export function mountRotationResults(
   readonly renderSortedRows: () => void;
 } | null {
   if (!container) return null;
+  bindResultMetricDetailsDismissal(container);
   const metrics = model.metrics || [];
   const summaryPlaceholder = model.summaryPlaceholder === true;
   const showSummary = model.showSummary !== false;
