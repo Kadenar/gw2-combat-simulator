@@ -4,6 +4,12 @@ export interface ResultSummaryMetric {
   readonly label: string;
   readonly value: string;
   readonly className: string;
+  readonly details?: readonly ResultSummaryMetricDetail[];
+}
+
+export interface ResultSummaryMetricDetail {
+  readonly label: string;
+  readonly value: string;
 }
 
 export interface TargetHealthBreakpointSnapshot {

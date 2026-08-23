@@ -47,6 +47,8 @@ const EFFECT_COLORS: Readonly<Record<string, string>> = {
   Chilled: "#69a8d7",
   Cripple: "#a66e73",
   Immobilize: "#8d5c38",
+  Fear: "#5d7f5b",
+  Taunt: "#a45d6e",
   Burning: "#ed6b38",
   Bleeding: "#c84848",
   Torment: "#8f62c2",

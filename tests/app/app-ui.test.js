@@ -552,15 +552,22 @@ test('grouped options can disable items without losing the selection', () => {
 });
 
 test('shared app metadata owns common attributes and target conditions', () => {
+  const defaultTargetConditions = createMesmerBuildDefaults().assumptions.targetConditions;
+
   assert.equal(PRIMARY_ATTRIBUTES.includes('Condition Damage'), true);
   assert.equal(PERMANENT_TARGET_CONDITIONS.includes('Vulnerability'), true);
+  assert.equal(Object.hasOwn(defaultTargetConditions, 'Fear'), false);
+  assert.equal(Object.hasOwn(defaultTargetConditions, 'Taunt'), false);
   assert.equal(STACKING_TARGET_CONDITIONS.has('Vulnerability'), true);
   assert.equal(STACKING_TARGET_CONDITIONS.has('Burning'), false);
   assert.deepEqual(
     TARGET_CONDITION_GROUPS.map((group) => [group.label, [...group.conditions]]),
     [
       ['Damaging', ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned']],
-      ['Control', ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Cripple', 'Immobilize']]
+      [
+        'Control',
+        ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Cripple', 'Immobilize', 'Fear', 'Taunt']
+      ]
     ]
   );
   assert.deepEqual(

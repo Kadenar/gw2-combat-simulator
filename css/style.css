@@ -4939,10 +4939,17 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 }
 
 .res-stat {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 80px;
+}
+
+.res-label-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .res-label {
@@ -4950,6 +4957,122 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-dim);
+}
+
+.res-metric-info {
+  position: relative;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.res-metric-info > summary {
+  display: grid;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  place-items: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  list-style: none;
+}
+
+.res-metric-info > summary::-webkit-details-marker {
+  display: none;
+}
+
+.res-metric-info > summary:hover,
+.res-metric-info > summary:focus-visible,
+.res-metric-info[open] > summary {
+  color: var(--accent);
+}
+
+.res-metric-info > summary:focus-visible {
+  border-radius: 50%;
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+.res-metric-info > summary svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.res-metric-info-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 7px);
+  left: 50%;
+  width: max-content;
+  min-width: 230px;
+  max-width: min(340px, 80vw);
+  max-height: 260px;
+  padding: 10px 12px;
+  overflow-y: auto;
+  color: var(--text);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+  transform: translateX(-50%);
+}
+
+.res-metric-info-panel > strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-bright);
+  font-size: 12px;
+}
+
+.res-metric-info-panel dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.res-metric-info-panel dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 11px;
+}
+
+.res-metric-info-panel dt,
+.res-metric-info-panel dd {
+  margin: 0;
+}
+
+.res-metric-info-panel dt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.res-metric-info-panel dd {
+  flex: 0 0 auto;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* The live summary sits at the clipped panel's bottom, so its disclosure opens upward into visible timeline space. */
+.rotation-dps-summary .res-metric-info-panel {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+@media (max-width: 700px) {
+  .res-stat:nth-child(even) .res-metric-info-panel {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
 }
 
 .res-val {

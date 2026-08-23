@@ -38,6 +38,12 @@ export interface ResultMetric {
   readonly label: string;
   readonly value: unknown;
   readonly className?: string;
+  readonly details?: readonly ResultMetricDetail[];
+}
+
+export interface ResultMetricDetail {
+  readonly label: string;
+  readonly value: unknown;
 }
 
 export interface ResultBreakpoint {
@@ -363,6 +369,31 @@ function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSort
     .join('');
 }
 
+/** Renders an accessible native disclosure beside a metric label when contributor details are available. */
+function resultMetricDetailsHtml(metric: ResultMetric): string {
+  const details = metric.details || [];
+  if (!details.length) return '';
+  const title = `${metric.label} breakdown`;
+  return `<details class="res-metric-info">
+    <summary aria-label="${escapeHtml(`Show ${title}`)}" title="${escapeHtml(`Show ${title}`)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" x2="12" y1="11" y2="17"/><line x1="12" x2="12.01" y1="7" y2="7"/></svg>
+    </summary>
+    <div class="res-metric-info-panel">
+      <strong>${escapeHtml(title)}</strong>
+      <dl>
+        ${details
+          .map(
+            (detail) => `<div>
+          <dt>${escapeHtml(detail.label)}</dt>
+          <dd>${escapeHtml(detail.value)}</dd>
+        </div>`
+          )
+          .join('')}
+      </dl>
+    </div>
+  </details>`;
+}
+
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
   model: RotationResultsModel = {},
@@ -435,7 +466,10 @@ export function mountRotationResults(
     ${metrics
       .map(
         (metric) => `<div class="res-stat">
-      <span class="res-label">${escapeHtml(metric.label)}</span>
+      <div class="res-label-row">
+        <span class="res-label">${escapeHtml(metric.label)}</span>
+        ${resultMetricDetailsHtml(metric)}
+      </div>
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}">${escapeHtml(metric.value)}</span>
     </div>`
       )

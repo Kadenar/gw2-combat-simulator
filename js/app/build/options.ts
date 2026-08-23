@@ -50,6 +50,8 @@ export const TARGET_CONDITION_GROUPS = Object.freeze([
       "Chilled",
       "Cripple",
       "Immobilize",
+      "Fear",
+      "Taunt",
     ]),
   }),
 ]);

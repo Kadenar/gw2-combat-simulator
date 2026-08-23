@@ -8,6 +8,7 @@ import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
 import { defineProfession } from '../../../js/platform/engine/profession.js';
 import { createScheduler } from '../../../js/platform/engine/scheduler.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -445,6 +446,31 @@ test('interrupt modes distinguish whole-effect commits from per-packet channels'
     channel.events.filter((event) => event.type === 'damage').map((event) => event.at),
     [0.2, 0.6]
   );
+});
+
+test('dead time classifies missing interrupt commits but excludes explicit commits and channels', () => {
+  const missingCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Default Commit Timeline', interruptMs: 400 }],
+    config: fixtureConfig()
+  });
+  const explicitCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Committed Channel', interruptMs: 200 }],
+    config: fixtureConfig()
+  });
+  const channel = simulateGw2({
+    profession,
+    rotation: [{ name: 'Per-packet Channel', interruptMs: 100 }],
+    config: fixtureConfig()
+  });
+
+  assert.deepEqual(
+    timelineDeadTimeMarkers(missingCommit.steps, missingCommit.resolvedEvents).map((marker) => marker.durationMs),
+    [400]
+  );
+  assert.deepEqual(timelineDeadTimeMarkers(explicitCommit.steps, explicitCommit.resolvedEvents), []);
+  assert.deepEqual(timelineDeadTimeMarkers(channel.steps, channel.resolvedEvents), []);
 });
 
 test('persistent effects require their own declared interrupt cutoffs', () => {

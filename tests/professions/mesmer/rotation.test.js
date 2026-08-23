@@ -6110,7 +6110,54 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
   assert.deepEqual(metrics[1], {
     label: 'Total Dead Time',
     value: '250ms',
-    className: ''
+    className: '',
+    details: [{ label: 'Idle time between skills', value: '250ms' }]
+  });
+});
+
+test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
+  const metrics = resultSummaryMetrics({
+    duration: 1,
+    deathTime: null,
+    events: [],
+    resolvedEvents: [],
+    steps: [
+      {
+        ri: 0,
+        skill: 'Opening Skill',
+        start: 0,
+        end: 100,
+        activationId: 'cast:1'
+      },
+      {
+        ri: 1,
+        skill: 'Interrupted Skill',
+        start: 300,
+        end: 700,
+        activationId: 'cast:2',
+        interrupted: true,
+        missingInterruptCommit: true
+      },
+      {
+        ri: 2,
+        skill: 'Interrupted Skill',
+        start: 700,
+        end: 800,
+        activationId: 'cast:3',
+        interrupted: true,
+        missingInterruptCommit: true
+      }
+    ]
+  });
+
+  assert.deepEqual(metrics[1], {
+    label: 'Total Dead Time',
+    value: '700ms',
+    className: '',
+    details: [
+      { label: 'Idle time between skills', value: '200ms' },
+      { label: "Skill cancelled 'Interrupted Skill' (2 casts)", value: '500ms' }
+    ]
   });
 });
 

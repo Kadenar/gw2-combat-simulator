@@ -8,6 +8,7 @@ import {
   skillDamageKeyByIdentity
 } from '../../platform/ui/result-tables.js';
 import { resultSummaryMetrics as transformResultSummaryMetrics } from '../../platform/ui/result-transform.js';
+import type { ResultSummaryMetricDetail } from '../../platform/ui/result-transform.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from './timeline-model.js';
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {
@@ -87,6 +88,34 @@ const BOON_EFFECTS = new Set([
   'vigor'
 ]);
 
+/** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
+function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {
+  const legitimateMs = markers
+    .filter((marker) => marker.reason !== 'zero-damage-cast')
+    .reduce((total, marker) => total + marker.durationMs, 0);
+  const cancellations = new Map<string, { count: number; durationMs: number }>();
+  for (const marker of markers) {
+    if (marker.reason !== 'zero-damage-cast') continue;
+    const skill = marker.skill || 'Unknown skill';
+    const current = cancellations.get(skill) || { count: 0, durationMs: 0 };
+    current.count += 1;
+    current.durationMs += marker.durationMs;
+    cancellations.set(skill, current);
+  }
+
+  const details: ResultSummaryMetricDetail[] = [];
+  if (legitimateMs > 0) {
+    details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
+  }
+  for (const [skill, cancellation] of cancellations) {
+    details.push({
+      label: `Skill cancelled '${skill}'${cancellation.count > 1 ? ` (${cancellation.count} casts)` : ''}`,
+      value: formatTimelineDuration(cancellation.durationMs)
+    });
+  }
+  return details.length ? details : [{ label: 'No dead time', value: formatTimelineDuration(0) }];
+}
+
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
   // independent from the explicit marker used as timeline display zero.
@@ -101,15 +130,18 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
         };
   const metrics = transformResultSummaryMetrics(normalizedResult);
 
-  // Match the timeline's charge-aware gap markers so the strip reports only
-  // time when no cast, explicit wait, or charging window occupied the player.
-  const deadTimeMs = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result))
-  ).reduce((total, marker) => total + marker.durationMs, 0);
+  // Match the timeline's charge-aware markers so the strip includes both idle
+  // gaps and zero-damage cast time caused specifically by missing interrupt commits.
+  const deadTimeMarkers = timelineDeadTimeMarkers(
+    timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result)),
+    result.resolvedEvents || []
+  );
+  const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   metrics.splice(1, 0, {
     label: 'Total Dead Time',
     value: formatTimelineDuration(deadTimeMs),
-    className: ''
+    className: '',
+    details: deadTimeBreakdownDetails(deadTimeMarkers)
   });
   return metrics;
 }

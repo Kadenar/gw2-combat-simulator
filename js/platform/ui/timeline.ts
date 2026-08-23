@@ -32,6 +32,8 @@ export interface TimelineDeadTimeMarker {
   readonly start: number;
   readonly end: number;
   readonly durationMs: number;
+  readonly reason?: 'zero-damage-cast';
+  readonly skill?: string;
 }
 
 interface TimelineDeadTimeStep extends SchedulerStep {
@@ -121,7 +123,11 @@ export function timelineSkillCastOrdinals(steps: readonly SchedulerStep[] = []):
   );
 }
 
-export function timelineDeadTimeMarkers(steps: readonly TimelineDeadTimeStep[] = []): TimelineDeadTimeMarker[] {
+/** Reports idle gaps plus interrupted cast time wasted solely because damage had no commit cutoff. */
+export function timelineDeadTimeMarkers(
+  steps: readonly TimelineDeadTimeStep[] = [],
+  resolvedEvents: readonly SimulationEvent[] = []
+): TimelineDeadTimeMarker[] {
   const intervals: Array<{
     start: number;
     end: number;
@@ -192,7 +198,29 @@ export function timelineDeadTimeMarkers(steps: readonly TimelineDeadTimeStep[] =
     previousContainsSkill ||= next.containsSkill;
   }
 
-  return markers;
+  const damagingActivations = new Set(
+    resolvedEvents
+      .filter((event) => event.activationId && Number(event.damage) > 0)
+      .map((event) => String(event.activationId))
+  );
+  for (const step of steps) {
+    if (!isTimelineSkillStep(step) || step.missingInterruptCommit !== true || !step.activationId) continue;
+    if (damagingActivations.has(step.activationId)) continue;
+    const start = Math.round(Number(step.start));
+    const end = Math.round(Number(step.end));
+    const durationMs = end - start;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || durationMs <= 0) continue;
+    markers.push({
+      insertionIndex: Number(step.ri),
+      start,
+      end,
+      durationMs,
+      reason: 'zero-damage-cast',
+      skill: step.skill
+    });
+  }
+
+  return markers.sort((left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex);
 }
 
 export function formatTimelineDuration(durationMs: unknown): string {

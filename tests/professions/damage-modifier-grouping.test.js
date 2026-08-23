@@ -230,6 +230,63 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
   assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1.05), 1.42);
 });
 
+test('Superiority Complex accepts Fear or Taunt while generic disabled requires a non-defiant target', () => {
+  const defiant = modifierContext({
+    traits: [MESMER.SUPERIORITY_COMPLEX],
+    config: {
+      target: {
+        defiant: true,
+        disabled: true,
+        health: 100
+      }
+    }
+  });
+  const nonDefiant = modifierContext({
+    traits: [MESMER.SUPERIORITY_COMPLEX],
+    config: {
+      target: {
+        defiant: false,
+        disabled: true,
+        health: 100
+      }
+    }
+  });
+
+  assertClose(mesmerRules('Core').modifyCriticalDamage(defiant, 2), 2 * 1.15);
+  assertClose(mesmerRules('Core').modifyCriticalDamage(nonDefiant, 2), 2 * 1.25);
+  for (const condition of ['Fear', 'Taunt']) {
+    assertClose(
+      mesmerRules('Core').modifyCriticalDamage(
+        {
+          ...defiant,
+          config: {
+            ...defiant.config,
+            target: {
+              ...defiant.config.target,
+              conditions: { [condition]: true }
+            }
+          }
+        },
+        2
+      ),
+      2 * 1.25
+    );
+  }
+  assertClose(
+    mesmerRules('Core').modifyCriticalDamage(
+      {
+        ...defiant,
+        runtime: {
+          ...defiant.runtime,
+          totals: { strike: 60, condition: 0 }
+        }
+      },
+      2
+    ),
+    2 * 1.25
+  );
+});
+
 test('Mesmer Lute Playing damage excludes illusion attacks', () => {
   const shared = {
     config: { specialization: 'Troubadour' },

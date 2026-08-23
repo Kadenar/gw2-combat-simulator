@@ -660,9 +660,12 @@ export interface SchedulerStep {
   readonly skill: string;
   readonly start: number;
   readonly end: number;
+  readonly activationId?: string;
   readonly actualStart?: number;
   readonly fullCastMs?: number;
   readonly interrupted?: boolean;
+  /** Identifies interrupted commit-mode casts whose damage had no commit cutoff and can therefore be reported as wasted time. */
+  readonly missingInterruptCommit?: boolean;
   readonly invalid?: boolean;
   readonly invalidReason?: string;
 }

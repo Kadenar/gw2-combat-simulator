@@ -293,6 +293,59 @@ test('timeline dead time excludes explicit waits, concurrent casts, and gap-fill
   assert.equal(formatTimelineDuration(100_000), '100s');
 });
 
+test('timeline dead time includes only zero-damage casts interrupted without a commit cutoff', () => {
+  const markers = timelineDeadTimeMarkers(
+    [
+      {
+        ri: 0,
+        skill: 'Missing Commit',
+        start: 0,
+        end: 400,
+        activationId: 'cast:1',
+        interrupted: true,
+        missingInterruptCommit: true
+      },
+      {
+        ri: 1,
+        skill: 'Missing Commit With Damage',
+        start: 400,
+        end: 700,
+        activationId: 'cast:2',
+        interrupted: true,
+        missingInterruptCommit: true
+      },
+      {
+        ri: 2,
+        skill: 'Explicit Commit',
+        start: 700,
+        end: 900,
+        activationId: 'cast:3',
+        interrupted: true
+      },
+      {
+        ri: 3,
+        skill: 'Per-packet Channel',
+        start: 900,
+        end: 1000,
+        activationId: 'cast:4',
+        interrupted: true
+      }
+    ],
+    [{ type: 'damage', at: 0.5, source: 'fixture', sourceId: 2, activationId: 'cast:2', damage: 10 }]
+  );
+
+  assert.deepEqual(markers, [
+    {
+      insertionIndex: 0,
+      start: 0,
+      end: 400,
+      durationMs: 400,
+      reason: 'zero-damage-cast',
+      skill: 'Missing Commit'
+    }
+  ]);
+});
+
 test('timeline skill tooltips include matching and global cast ordinals', () => {
   const steps = [
     { ri: 0, skill: 'Well of Darkness', start: 1000, end: 1481 },
@@ -778,6 +831,29 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.deepEqual(resolved, ['High', 'Low']);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test('summary metrics render a clickable and escaped contributor disclosure', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    metrics: [
+      {
+        label: 'Total Dead Time',
+        value: '650ms',
+        details: [
+          { label: 'Idle time between skills', value: '250ms' },
+          { label: "Skill cancelled '<Mind Stab>'", value: '400ms' }
+        ]
+      }
+    ]
+  });
+
+  assert.match(container.innerHTML, /<details class="res-metric-info">/);
+  assert.match(container.innerHTML, /aria-label="Show Total Dead Time breakdown"/);
+  assert.match(container.innerHTML, /Idle time between skills/);
+  assert.match(container.innerHTML, /Skill cancelled '&lt;Mind Stab&gt;'/);
+  assert.doesNotMatch(container.innerHTML, /Skill cancelled '<Mind Stab>'/);
 });
 
 test('skill damage rows group player damage before owned entities', () => {

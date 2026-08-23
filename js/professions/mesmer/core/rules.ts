@@ -1139,6 +1139,7 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
 });
 
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
+import { targetHasCondition } from '../../../platform/gw2/target-state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import type {
   Gw2ModifierContext,
@@ -1209,6 +1210,14 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
 
 const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
 
+function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolean {
+  return ['Fear', 'Taunt'].some((condition) =>
+    context.query?.targetHasCondition
+      ? context.query.targetHasCondition(condition, context.time, context.runtime)
+      : targetHasCondition(context.config || {}, condition, context.time, context.runtime)
+  );
+}
+
 function superiorityComplexFactor(
   context: Gw2ModifierContext,
   _target: string,
@@ -1216,7 +1225,12 @@ function superiorityComplexFactor(
 ): number {
   const targetHealth = Number(context.config?.target?.health || 0);
   const totalDamage = resolvedTotalDamage(context);
-  return context.config?.target?.disabled || (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
+  const target = context.config?.target;
+  // Generic disables apply only to non-defiant targets, while configured Fear
+  // or Taunt remains an explicit control condition on defiant targets.
+  return (target?.disabled && !target.defiant) ||
+    superiorityComplexTargetControlled(context) ||
+    (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
     ? parameters.lowHealthOrDisabledFactor
     : parameters.highHealthFactor;
 }

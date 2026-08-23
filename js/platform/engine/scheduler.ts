@@ -86,6 +86,13 @@ function baseDurationSeconds(skill: Skill): number {
   return Math.max(0, Number(skill.castTimeMs || 0)) / 1000;
 }
 
+/** Collects every explicit cutoff that can preserve an interrupted commit-mode skill effect. */
+function interruptCommitCutoffs(skill: Skill): number[] {
+  return [skill.interruptCommitMs, ...(skill.effects || []).map((effect) => effect.interruptCommitMs)].filter(
+    (cutoff): cutoff is number => cutoff != null && Number.isFinite(Number(cutoff))
+  );
+}
+
 /**
  * @template {object} TProfessionState
  */
@@ -98,9 +105,7 @@ function cancelledBeforeInterruptCommit<TProfessionState extends object>(
 ): boolean {
   if (skill.interruptMode === 'per-packet' || effectiveEnd >= fullEnd - context.epsilon) return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
-  const cutoffs = [skill.interruptCommitMs, ...(skill.effects || []).map((effect) => effect.interruptCommitMs)].filter(
-    (cutoff): cutoff is number => cutoff != null && Number.isFinite(Number(cutoff))
-  );
+  const cutoffs = interruptCommitCutoffs(skill);
   return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + context.epsilon * 1000 < Number(cutoff));
 }
 
@@ -945,6 +950,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // fullEnd for those skills.
     const castLockoutEnd = interrupted && skill.retainsCastLockoutAfterInterrupt === true ? fullEnd : effectiveEnd;
     const cancelledBeforeCommit = cancelledBeforeInterruptCommit(context, skill, start, fullEnd, effectiveEnd);
+    // Distinguish missing commit metadata from an explicit cutoff that the cast
+    // simply failed to reach; only the former represents reportable wasted cast time.
+    const missingInterruptCommit =
+      interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
     const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
       ...castContext,
       fullEnd,
@@ -1093,9 +1102,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       skill: skill.name,
       start: Math.round(start * 1000),
       end: Math.round(effectiveEnd * 1000),
+      activationId: reservationId,
       actualStart: Math.round(start * 1000),
       fullCastMs: Math.round((fullEnd - start) * 1000),
-      interrupted
+      interrupted,
+      ...(missingInterruptCommit ? { missingInterruptCommit: true } : {})
     });
     latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);
     if (independent) {

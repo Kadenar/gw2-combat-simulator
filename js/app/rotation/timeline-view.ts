@@ -438,7 +438,10 @@ export function renderTimeline(app: ProfessionAppState): void {
   });
   const combatReferenceMs = resultCombatReferenceMs(app.results);
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs);
-  const deadTimes = timelineDeadTimeMarkers(timelineStepsWithChargeFills(resultSteps, resourceSpends));
+  const deadTimes = timelineDeadTimeMarkers(
+    timelineStepsWithChargeFills(resultSteps, resourceSpends),
+    app.results?.resolvedEvents || []
+  );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
@@ -545,10 +548,17 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
     const duration = formatTimelineDuration(marker.durationMs);
-    const detail = [
-      `Dead time: ${duration} wasted`,
-      `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
-    ].join('\n');
+    const detail =
+      marker.reason === 'zero-damage-cast'
+        ? [
+            `Dead time: ${duration} wasted`,
+            `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
+            'No interruptCommitMs is configured'
+          ].join('\n')
+        : [
+            `Dead time: ${duration} wasted`,
+            `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
+          ].join('\n');
     return `<div class="rot-skill rot-injected rot-dead-time" role="note"
             aria-label="${esc(detail)}" title="${esc(detail)}">
             <span class="rot-dead-time-label">Dead</span>
