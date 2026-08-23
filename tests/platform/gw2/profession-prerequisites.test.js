@@ -14,7 +14,7 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../js/platfo
 import { createGw2TimelineIndex } from '../../../js/platform/gw2/timeline-index.js';
 import { canonicalTargetConditionName } from '../../../js/platform/gw2/target-state.js';
 import { hasTrait } from '../../../js/platform/gw2/trait-state.js';
-import { validateTraitCoverageManifest } from '../../../js/platform/gw2/trait-coverage.js';
+import { validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
 import { defaultWeaponSkillMatchesSet } from '../../../js/platform/gw2/weapon-skill-matcher.js';
 import { isGw2WeaponSkillEquipped } from '../../../js/platform/gw2/scheduler/policy.js';
 import { engineerProfession } from '../../../js/professions/engineer/definition.js';
