@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { TRAIT_COVERAGE_STATUSES } from '../../../js/platform/gw2/trait-coverage.js';
+import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette-view.js';
 import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/resource-view.js';
@@ -21,7 +21,7 @@ import { elementalistCatalog } from '../../../js/professions/elementalist/catalo
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 import { elementalistCoreModifierRules } from '../../../js/professions/elementalist/core/modifiers.js';
 import { weaverModifierRules } from '../../../js/professions/elementalist/specializations/weaver/modifiers.js';
-import { ELEMENTALIST_TRAIT_COVERAGE } from '../../../js/professions/elementalist/data/trait-coverage.js';
+import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
 test('all native Elementalist specializations use one weapon set', () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);

@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { necromancerCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { necromancerCatalog } from '../../../js/professions/necromancer/catalog.js';
 
 const IMPLEMENTED = new Set([
   "Reaper's Might",
@@ -93,7 +92,7 @@ const IMPLEMENTED = new Set([
   'Soul Twisting'
 ]);
 
-const OUT_OF_MODEL_REASON_BY_NAME: Readonly<Record<string, string>> = Object.freeze({
+const OUT_OF_MODEL_REASON_BY_NAME = Object.freeze({
   'Path of Corruption':
     'Enemy boon identities and boon-to-condition conversion are not represented by the configured single-target state.',
   'Parasitic Contagion': 'Player healing and incoming damage are outside the outgoing single-target damage model.',

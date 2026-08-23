@@ -1056,38 +1056,6 @@ export interface Gw2BuildValidationOptions {
   readonly slotLoadout?: Gw2SlotLoadout | null;
 }
 
-export type Gw2TraitCoverageStatus = 'implemented' | 'out-of-model' | 'pending';
-
-export interface Gw2TraitCoverageEffectInput extends SchedulerRecord {
-  readonly description?: unknown;
-  readonly status?: unknown;
-  readonly reason?: unknown;
-}
-
-export interface Gw2TraitCoverageEntryInput extends SchedulerRecord {
-  readonly traitId?: unknown;
-  readonly status?: unknown;
-  readonly effects?: unknown;
-  readonly reason?: unknown;
-}
-
-export interface Gw2TraitCoverageEffect {
-  readonly description: string;
-  readonly status: Gw2TraitCoverageStatus;
-  readonly reason: string | null;
-}
-
-export interface Gw2TraitCoverageEntry {
-  readonly traitId: number;
-  readonly status: Gw2TraitCoverageStatus;
-  readonly effects: readonly Gw2TraitCoverageEffect[];
-  readonly reason: string | null;
-}
-
-export interface Gw2TraitCoverageCatalog {
-  readonly traits?: readonly import('../engine/types.js').CatalogEntity[];
-}
-
 export interface Gw2AttributeCommonContext {
   conversionPool: Gw2NumericAttributes;
   conversionPoolNoFood: Gw2NumericAttributes;

@@ -458,7 +458,6 @@ export interface ProfessionRuntimeConfigContext {
 export interface ProfessionRuntimeOverrides {
   readonly buildConfigInputs?: (app: ProfessionAppState, context: ProfessionRuntimeConfigContext) => SchedulerRecord;
   readonly buildConfigExtras?: (app: ProfessionAppState) => SchedulerRecord;
-  readonly isContributionTrait?: (trait: CatalogEntity, app: ProfessionAppState) => boolean;
 }
 
 export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {

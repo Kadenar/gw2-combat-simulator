@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { guardianCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { guardianCatalog } from '../../../js/professions/guardian/catalog.js';
 
 const IMPLEMENTED = new Set([
   "Zealot's Resolution",
@@ -77,8 +76,8 @@ const REASONS = Object.freeze({
     'The API presentation text lacks the authoritative numeric coefficient, duration, threshold, or proc cadence required for deterministic simulation.'
 });
 
-/** @param {CatalogEntity} trait */
-function outOfModelReason(trait: CatalogEntity): string {
+/** Returns the documented reason a trait remains outside the simulator model. */
+function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
   if (/ally|allies|reviv|nearby/.test(description)) return REASONS.ally;
   if (/heal|barrier|incoming|block|damage reduction|aegis/.test(description)) {
@@ -89,7 +88,6 @@ function outOfModelReason(trait: CatalogEntity): string {
   return REASONS.missingMechanics;
 }
 
-/** @param {CatalogEntity} trait */
 const manifest = guardianCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;

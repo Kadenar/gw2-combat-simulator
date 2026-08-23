@@ -41,9 +41,6 @@ import type {
  *   `adjustConditionDurationBonus`).
  * - `buildConfigExtras(app)` returns extra fields merged *onto* the resulting
  *   config (e.g. Guardian's `initialTomePages`, Necromancer's `initialBlight`).
- * - `isContributionTrait(trait, app)` can exclude structural traits whose
- *   removal is not a valid simulation counterfactual.
- *
  * @param {ProfessionRuntimeOptions} options
  * @returns {ProfessionRuntimeApi} Runtime functions shared by the
  * profession app adapter.
@@ -52,8 +49,7 @@ export function createProfessionRuntime({
   profession,
   calculateAttributes,
   buildConfigInputs,
-  buildConfigExtras,
-  isContributionTrait = () => true
+  buildConfigExtras
 }: ProfessionRuntimeOptions): ProfessionRuntimeApi {
   const simulateBuild = (
     rotation: readonly RotationCommand[],
@@ -256,7 +252,6 @@ export function createProfessionRuntime({
     }
 
     for (const trait of app.attributeData?.activeTraits || []) {
-      if (!isContributionTrait(trait, app)) continue;
       candidates.push({
         id: `Trait:${trait.name}`,
         type: 'Trait',

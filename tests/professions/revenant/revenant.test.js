@@ -29,7 +29,10 @@ import {
   migrateRevenantBuild,
   validateRevenantBuild
 } from '../../../js/professions/revenant/build.js';
-import { calculateAttributes as calculateRevenantAttributes } from '../../../js/professions/revenant/app/app-definition.js';
+import {
+  calculateAttributes as calculateRevenantAttributes,
+  modifierCandidates
+} from '../../../js/professions/revenant/app/app-definition.js';
 import { revenantCatalog } from '../../../js/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
@@ -42,7 +45,7 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../../js/professions/revenant/data/ids.js';
-import { REVENANT_TRAIT_COVERAGE } from '../../../js/professions/revenant/data/trait-coverage.js';
+import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.js';
 import {
   REVENANT_CORE_BALANCE_PROFILE_IDS,
   REVENANT_CORE_BASE_SKILL_MECHANICS
@@ -279,6 +282,23 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
     ),
     { coefficient: 3.3, hits: 1 }
   );
+});
+
+test('modifier contribution candidates include every active Revenant trait', () => {
+  const build = createRevenantBuildDefaults();
+  const app = {
+    build,
+    attributeData: calculateRevenantAttributes(build, []),
+    attributeWeaponSet: 1,
+    skillByName: revenantCatalog.skillsByName
+  };
+  const activeTraitNames = app.attributeData.activeTraits.map((trait) => trait.name).sort();
+  const candidateNames = modifierCandidates(app)
+    .filter((candidate) => candidate.type === 'Trait')
+    .map((candidate) => candidate.name)
+    .sort();
+
+  assert.deepEqual(candidateNames, activeTraitNames);
 });
 
 test('Core Revenant mechanics expose patch-authorable declarations', () => {

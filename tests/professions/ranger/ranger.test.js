@@ -31,7 +31,7 @@ import {
   RANGER_TRAIT_IDS as TRAIT
 } from '../../../js/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '../../../js/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_TRAIT_COVERAGE } from '../../../js/professions/ranger/data/trait-coverage.js';
+import { RANGER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/ranger.js';
 import { rangerProfession } from '../../../js/professions/ranger/definition.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/ranger/core/profiles.js';
 import { RANGER_CORE_BASE_SKILL_MECHANICS } from '../../../js/professions/ranger/core/skills.js';

@@ -10,7 +10,7 @@ import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
 import { MESMER_SKILL_IDS as ID } from '../../../js/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '../../../js/professions/mesmer/data/mesmer-supplemental-skills.js';
-import { MESMER_TRAIT_COVERAGE } from '../../../js/professions/mesmer/data/trait-coverage.js';
+import { MESMER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/mesmer.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS,
   MESMER_CORE_SHATTER_PROFILE_IDS,

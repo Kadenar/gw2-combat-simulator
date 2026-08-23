@@ -26,7 +26,6 @@ export * from './scheduler/index.js';
 export * from './simulate.js';
 export * from './target-state.js';
 export * from './timeline-index.js';
-export * from './trait-coverage.js';
 export * from './trait-state.js';
 export * from './weapon-sigils.js';
 export * from './weapon-skill-matcher.js';

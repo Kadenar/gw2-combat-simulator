@@ -20,7 +20,7 @@ import {
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from '../../../js/professions/thief/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '../../../js/professions/thief/data/thief-supplemental-skills.js';
-import { THIEF_TRAIT_COVERAGE } from '../../../js/professions/thief/data/trait-coverage.js';
+import { THIEF_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/thief.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,

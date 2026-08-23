@@ -1,9 +1,8 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { mesmerCatalog } from '../catalog.js';
-import { MESMER_TRAIT_IDS as TRAIT } from './ids.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
 
-const IMPLEMENTED: ReadonlySet<number> = new Set([
+const IMPLEMENTED = new Set([
   TRAIT.ALTERED_CHORD,
   TRAIT.CALL_AND_RESPONSE,
   TRAIT.BLINDING_DISSIPATION,

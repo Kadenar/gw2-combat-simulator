@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { thiefCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { thiefCatalog } from '../../../js/professions/thief/catalog.js';
 
 const IMPLEMENTED = new Set([
   "Serpent's Touch",

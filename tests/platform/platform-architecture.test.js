@@ -54,7 +54,7 @@ import { GW2_SKILL_FLAGS } from '../../scripts/data/lib/gw2-profession-snapshot.
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '../../js/professions/mesmer/build.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
-import { MESMER_TRAIT_COVERAGE } from '../../js/professions/mesmer/data/trait-coverage.js';
+import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';

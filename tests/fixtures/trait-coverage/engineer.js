@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { engineerCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { engineerCatalog } from '../../../js/professions/engineer/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Explosive Entrance',
@@ -89,7 +88,7 @@ const OUT_OF_MODEL_REASONS = Object.freeze({
     'The API presentation text lacks the numeric coefficient, duration, threshold, or proc cadence required for deterministic simulation evidence.'
 });
 
-function outOfModelReason(trait: CatalogEntity): string {
+function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
   if (/ally|allies|reviv|nearby/.test(description)) {
     return OUT_OF_MODEL_REASONS.ally;

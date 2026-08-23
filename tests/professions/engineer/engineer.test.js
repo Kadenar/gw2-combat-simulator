@@ -18,7 +18,7 @@ import {
 import { engineerCatalog } from '../../../js/professions/engineer/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/professions/engineer/data/engineer-supplemental-skills.js';
-import { ENGINEER_TRAIT_COVERAGE } from '../../../js/professions/engineer/data/trait-coverage.js';
+import { ENGINEER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/engineer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../js/professions/engineer/data/ids.js';
 import { engineerProfession } from '../../../js/professions/engineer/definition.js';
 import { engineerCoreModule } from '../../../js/professions/engineer/core/module.js';

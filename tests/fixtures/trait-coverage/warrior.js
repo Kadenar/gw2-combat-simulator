@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { warriorCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Reckless Dodge',
@@ -84,7 +83,7 @@ const REASONS = Object.freeze({
   missing: 'The public skill data does not provide enough deterministic numeric detail for this effect.'
 });
 
-function outOfModelReason(trait: CatalogEntity): string {
+function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
   if (/ally|allies|nearby|reviv/.test(description)) return REASONS.ally;
   if (/heal|barrier|incoming|block|condition.*remove|damage.*reduced/.test(description)) return REASONS.defensive;

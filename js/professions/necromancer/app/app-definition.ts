@@ -22,8 +22,7 @@ export const necromancerApp = defineProfessionApp({
     buildConfigExtras: (app) => ({
       initialBlight: app.build.initialBlight,
       initialCascadingCorruptionStacks: app.build.initialCascadingCorruptionStacks
-    }),
-    isContributionTrait: (trait) => trait.name !== 'Dark Disciple'
+    })
   },
   isSkillAvailable(skill, context = {}) {
     if (skill.implemented === false || skill.simulatorExcluded) return false;

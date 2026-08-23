@@ -1,7 +1,6 @@
 import { defineNativeProfession } from '../../platform/gw2/native-profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild, validateNecromancerBuild } from './build.js';
-import './data/trait-coverage.js';
 import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';

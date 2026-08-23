@@ -1,6 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { elementalistCatalog } from '../catalog.js';
-import type { CatalogEntity } from '../../../platform/engine/types.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Empowering Flame',
@@ -93,7 +92,7 @@ const IMPLEMENTED = new Set([
   'Specialized Elements'
 ]);
 
-function outOfModelReason(trait: CatalogEntity): string {
+function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
   if (/ally|allies|share|revive/.test(description)) {
     return "This allied or revival payload cannot change the simulator's deterministic single-target damage output.";

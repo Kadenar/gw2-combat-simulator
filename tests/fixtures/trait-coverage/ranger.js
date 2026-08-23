@@ -1,5 +1,5 @@
-import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
-import { rangerCatalog } from '../catalog.js';
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
+import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Tail Wind',
