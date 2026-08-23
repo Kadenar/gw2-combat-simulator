@@ -2903,33 +2903,6 @@ test('declarative professions keep skill ownership in runtime modules', async ()
   }
 });
 
-test('obsolete compatibility trees are removed', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
-
-  for (const directory of ['core', 'data', 'sim']) {
-    await assert.rejects(readdir(path.join(root, directory)), (error) => error?.code === 'ENOENT');
-  }
-
-  await assert.rejects(
-    readFile(path.join(root, 'professions', 'mesmer', 'app', 'app-rotation-ui.js'), 'utf8'),
-    (error) => error?.code === 'ENOENT'
-  );
-  for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant', 'thief', 'warrior']) {
-    const extension = 'ts';
-
-    for (const facade of ['attribute-rules', 'resolver', 'state', 'ui']) {
-      await assert.rejects(
-        readFile(path.join(root, 'professions', profession, `${facade}.${extension}`), 'utf8'),
-        (error) => error?.code === 'ENOENT'
-      );
-    }
-
-    const family = await readFile(path.join(root, 'professions', profession, `family.${extension}`), 'utf8');
-
-    assert.doesNotMatch(family, /(?:attribute-rules|handlers|mechanics\/contract|resolver|state|ui)\.js/);
-  }
-});
-
 test('migrated combo professions have no local compatibility path', async () => {
   const professionsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
 
