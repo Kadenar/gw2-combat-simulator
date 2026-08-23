@@ -143,6 +143,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.DARK_BARRAGE]: {
     implemented: true,
     quicknessCastTimeMs: 920,
+    // All six strike and Torment packets resolve by 800 ms, so interrupting the remaining aftercast keeps them.
+    interruptCommitMs: 800,
     effects: [
       {
         type: 'strike',

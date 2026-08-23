@@ -550,16 +550,6 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
       primaryWeapon: 'Greatsword'
     }
   );
-  const fullDarkBarrage = simulate('Harbinger', ['Harbinger Shroud', 'Dark Barrage'], {
-    boons: { quickness: true }
-  });
-  const interruptedDarkBarrage = simulate(
-    'Harbinger',
-    ['Harbinger Shroud', { name: 'Dark Barrage', interruptAfterMs: 800 }],
-    {
-      boons: { quickness: true }
-    }
-  );
   const ghastlyClaws = simulate('Core', ['Ghastly Claws'], {
     boons: { quickness: true },
     primaryWeapon: 'Axe'
@@ -600,20 +590,6 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
     graspingDarkness.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS).length,
     1
   );
-  assert.equal(fullDarkBarrage.steps[1].end, 920);
-  assert.equal(fullDarkBarrage.steps[1].interrupted, false);
-  assert.equal(interruptedDarkBarrage.steps[1].end, 800);
-  assert.equal(interruptedDarkBarrage.steps[1].fullCastMs, 920);
-  assert.equal(interruptedDarkBarrage.steps[1].interrupted, true);
-  assert.equal(
-    interruptedDarkBarrage.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE)
-      .length,
-    0
-  );
-  assert.equal(
-    interruptedDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage'),
-    undefined
-  );
   const ghastlyPackets = ghastlyClaws.events.filter(
     (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
   );
@@ -627,6 +603,27 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
     1
   );
   assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 0);
+});
+
+test('Dark Barrage retains every packet when interrupted at its 800 ms commit', () => {
+  const run = (interruptMs) =>
+    simulate('Harbinger', ['Harbinger Shroud', { name: 'Dark Barrage', interruptMs }], {
+      boons: { quickness: true }
+    });
+  const beforeCommit = run(799);
+  const committed = run(800);
+  const skill = necromancerCatalog.skillsById.get(ID.DARK_BARRAGE);
+  const packets = (result, type) =>
+    result.events.filter((event) => event.type === type && event.skillId === ID.DARK_BARRAGE);
+
+  assert.equal(skill.interruptCommitMs, 800);
+  assert.equal(committed.steps[1].end, 800);
+  assert.equal(committed.steps[1].fullCastMs, 920);
+  assert.equal(committed.steps[1].interrupted, true);
+  assert.equal(packets(beforeCommit, 'damage').length, 0);
+  assert.equal(packets(beforeCommit, 'condition').length, 0);
+  assert.equal(packets(committed, 'damage').length, 6);
+  assert.equal(packets(committed, 'condition').length, 6);
 });
 
 test('Grasping Darkness commits at 120 ms and lands after combat starts', () => {
@@ -3406,7 +3403,7 @@ test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
   assert.equal(withTrait.endState.profession.lifeForce, 15);
 });
 
-test('modifier candidates exclude structural traits', () => {
+test('modifier candidates include every active Necromancer trait', () => {
   const build = createNecromancerBuildDefaults();
   const app = {
     build,
@@ -3417,13 +3414,13 @@ test('modifier candidates exclude structural traits', () => {
   recalculate(app);
 
   const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
-  const candidateNames = new Set(modifierCandidates(app).map((candidate) => candidate.name));
+  const candidateNames = new Set(
+    modifierCandidates(app)
+      .filter((candidate) => candidate.type === 'Trait')
+      .map((candidate) => candidate.name)
+  );
 
-  assert.equal(activeTraitNames.has('Dark Disciple'), true);
-  assert.equal(activeTraitNames.has('Corrupted Talent'), true);
-  assert.equal(candidateNames.has('Dark Disciple'), false);
-  assert.equal(candidateNames.has('Corrupted Talent'), true);
-  assert.equal(candidateNames.has('Gluttony'), true);
+  assert.deepEqual(candidateNames, activeTraitNames);
 });
 
 test('signet passives and Soul Battery are profession-owned resources', () => {
