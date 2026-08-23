@@ -81,6 +81,53 @@ test('Elemental Empowerment chart series includes emitted stacks and caps at ten
   );
 });
 
+test('timed relic proc chart series shows binary uptime across refreshes', () => {
+  const series = buildChartSeries(
+    {
+      duration: 8,
+      dpsStartTime: 1,
+      procSteps: [
+        {
+          type: 'relic_proc',
+          skill: 'Relic of Fireworks',
+          start: 500,
+          end: 500,
+          expiresAt: 3500
+        },
+        {
+          type: 'relic_proc',
+          skill: 'Relic of Fireworks',
+          start: 2500,
+          end: 2500,
+          expiresAt: 6000
+        },
+        {
+          type: 'trait_proc',
+          skill: 'Timed Trait',
+          start: 1000,
+          end: 1000,
+          expiresAt: 7000
+        },
+        {
+          type: 'relic_proc',
+          skill: 'Relic without duration',
+          start: 1000,
+          end: 1000
+        }
+      ]
+    },
+    1000
+  );
+
+  assert.deepEqual(
+    series.effects['Relic of Fireworks'].map((point) => point.v),
+    [1, 1, 1, 1, 1, 0, 0, 0]
+  );
+  assert.equal(series.effectTypes['Relic of Fireworks'], 'buff');
+  assert.equal(series.effects['Timed Trait'], undefined);
+  assert.equal(series.effects['Relic without duration'], undefined);
+});
+
 test('chart series classify boons, conditions, and profession buffs', () => {
   const series = buildChartSeries(
     {

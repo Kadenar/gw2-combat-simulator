@@ -164,6 +164,10 @@ export function buildChartSeries(result: Gw2SimulationResult, sampleStepMs = 250
     effectType: (kind, event) =>
       event.type === 'condition' ? 'condition' : BOON_EFFECTS.has(String(kind || '').toLowerCase()) ? 'boon' : 'buff',
     replacementGroup: (kind) => (kind === 'guardian-radiant-armaments' ? String(kind) : ''),
+    // Relic activation records are the authoritative source for temporary
+    // relic state, including refreshes that extend the active window.
+    timedProcEffect: (proc) =>
+      proc.type === 'relic_proc' && proc.expiresAt != null ? { name: proc.skill, type: 'buff' } : null,
     stackCaps: EFFECT_STACK_CAPS,
     durationStackCaps: DURATION_STACK_CAPS,
     skillKey: (event) =>

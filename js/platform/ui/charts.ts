@@ -1,4 +1,4 @@
-import type { Gw2ResolverEvent, Gw2ResolverResult } from '../gw2/types.js';
+import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '../gw2/types.js';
 import { remainingDurationStackSeconds } from '../gw2/boon-state.js';
 import { escapeHtml } from './html.js';
 
@@ -56,6 +56,7 @@ export interface BuildChartSeriesOptions {
   readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
   readonly effectType?: (value: unknown, event: Gw2ResolverEvent) => ChartEffectType;
   readonly replacementGroup?: (value: unknown, event: Gw2ResolverEvent) => string;
+  readonly timedProcEffect?: (proc: Gw2ProcStep) => { readonly name: string; readonly type?: ChartEffectType } | null;
   readonly stackCaps?: Readonly<Record<string, number>>;
   readonly durationStackCaps?: Readonly<Record<string, number>>;
   // Attributes a resolved damage/condition event to a skill breakdown row key
@@ -146,6 +147,7 @@ export function buildChartSeries(
     effectName = (value) => String(value || ''),
     effectType = (_value, event) => (event.type === 'condition' ? 'condition' : 'buff'),
     replacementGroup = () => '',
+    timedProcEffect,
     stackCaps = {},
     durationStackCaps = {},
     skillKey,
@@ -233,6 +235,26 @@ export function buildChartSeries(
       stacks: Number(event.stacks || 1),
       replacementGroup: replacementGroup(event.kind, event)
     });
+  }
+
+  // Timed proc records describe state windows that do not necessarily emit a
+  // buff event. Treat refreshes as replacements so the chart reports binary
+  // uptime instead of counting overlapping activation records as stacks.
+  if (timedProcEffect) {
+    for (const proc of result.procSteps || []) {
+      const effect = timedProcEffect(proc);
+      const start = Number(proc.start) - dpsStartMs;
+      const end = Number(proc.expiresAt) - dpsStartMs;
+      if (!effect?.name || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) continue;
+      applications.push({
+        name: effect.name,
+        type: effect.type || 'buff',
+        start,
+        end,
+        stacks: 1,
+        replacementGroup: `timed-proc:${effect.name}`
+      });
+    }
   }
 
   const effects: Record<string, ChartPoint[]> = {};
