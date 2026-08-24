@@ -1,5 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../../app/rotation/state-snapshot/model.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../../platform/gw2/result-state.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,

@@ -1,6 +1,6 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../app/rotation/state-snapshot/model.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../platform/gw2/result-state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {

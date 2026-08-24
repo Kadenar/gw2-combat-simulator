@@ -17,6 +17,7 @@ export * from './native-profession.js';
 export * from './numeric.js';
 export * from './query.js';
 export * from './relic-rules.js';
+export * from './result-state.js';
 export * from './runtime-rules.js';
 export * from './runtime-query.js';
 export * from './sigil-rules.js';

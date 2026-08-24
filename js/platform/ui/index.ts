@@ -7,6 +7,7 @@ export * from './event-log.js';
 export * from './html.js';
 export * from './palette.js';
 export * from './rotation-results.js';
+export * from './state-snapshot.js';
 export * from './result-tables.js';
 export * from './result-transform.js';
 export * from './timeline.js';
