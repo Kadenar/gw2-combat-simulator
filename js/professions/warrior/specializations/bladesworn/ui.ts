@@ -1,5 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../../app/rotation/state-snapshot-view.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../../app/rotation/state-snapshot/model.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,

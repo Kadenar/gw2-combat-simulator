@@ -6,7 +6,7 @@ import {
   formatResultTimelineTime,
   formatTimelineTime,
   resultCombatReferenceMs
-} from '../../js/app/rotation/result-model.js';
+} from '../../js/app/rotation/result/model.js';
 
 test('timeline times can reuse a precomputed combat reference', () => {
   const result = {

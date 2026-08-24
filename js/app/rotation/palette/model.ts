@@ -1,10 +1,10 @@
-import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '../../platform/engine/types.js';
-import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/weapon-skill-matcher.js';
-import { paletteView } from '../../platform/ui/palette.js';
-import type { NormalizedPaletteGroup } from '../../platform/ui/types.js';
-import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '../profession/types.js';
-import { groupWeaponSkillsByAttunement } from '../profession/weapon-attunement-groups.js';
-import { activeSpecialization, paletteEndState, paletteProfessionState } from './context.js';
+import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
+import { paletteView } from '../../../platform/ui/palette.js';
+import type { NormalizedPaletteGroup } from '../../../platform/ui/types.js';
+import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '../../profession/types.js';
+import { groupWeaponSkillsByAttunement } from '../../profession/weapon-attunement-groups.js';
+import { activeSpecialization, paletteEndState, paletteProfessionState } from '../shared/context.js';
 
 const PALETTE_ACTION_ORDER = new Map<string, number>([
   ['Dodge', 0],

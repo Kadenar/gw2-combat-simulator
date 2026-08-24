@@ -1,8 +1,8 @@
-import type { SchedulerStep } from '../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
-import type { ProfessionAppState } from '../profession/types.js';
-import { mountRotationWarnings } from '../../platform/ui/rotation-warnings.js';
-import { formatResultTimelineTime } from './result-model.js';
+import type { SchedulerStep } from '../../../platform/engine/types.js';
+import type { Gw2SimulationResult } from '../../../platform/gw2/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
+import { mountRotationWarnings } from '../../../platform/ui/rotation-warnings.js';
+import { formatResultTimelineTime } from './model.js';
 
 export interface RotationWarningItem {
   readonly message: string;

@@ -7,11 +7,11 @@ import { professionRoute } from '../../../js/app/profession/selector.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
-import { buildChartSeries } from '../../../js/app/rotation/result-model.js';
-import { formatResourceValue } from '../../../js/app/rotation/resource-view.js';
-import { simulationEventLogRows } from '../../../js/app/rotation/event-log.js';
-import { weaponSkills } from '../../../js/app/rotation/palette-model.js';
-import { renderPalette } from '../../../js/app/rotation/palette-view.js';
+import { buildChartSeries } from '../../../js/app/rotation/result/model.js';
+import { formatResourceValue } from '../../../js/app/rotation/palette/resource-view.js';
+import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
+import { weaponSkills } from '../../../js/app/rotation/palette/model.js';
+import { renderPalette } from '../../../js/app/rotation/palette/view.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,

@@ -1,8 +1,10 @@
 # Rotation active-state snapshot
 
-The **Active state** bar above the rotation timeline shows combat state at the point in the rotation currently being inspected.
+The **Active state** bar above the rotation timeline shows combat state at the point in the rotation currently being
+inspected.
 
-By default, it represents the end of the rotation. When an insertion cursor is selected, it represents the state **between those rotation entries**.
+By default, it represents the end of the rotation. When an insertion cursor is selected, it represents the state
+**between those rotation entries**.
 
 For example:
 
@@ -14,30 +16,27 @@ Rotation:
  0    1    2    3
 ```
 
-* insertion index `0` = before `A`
-* insertion index `1` = after `A`, before `B`
-* insertion index `2` = after `B`, before `C`
-* insertion index `3` = after `C`, equivalent to the final rotation state
+- insertion index `0` = before `A`
+- insertion index `1` = after `A`, before `B`
+- insertion index `2` = after `B`, before `C`
+- insertion index `3` = after `C`, equivalent to the final rotation state
 
-The bar is intended for values that change during combat and therefore cannot be represented accurately by the static Attributes panel, such as:
+The bar is intended for values that change during combat and therefore cannot be represented accurately by the static
+Attributes panel, such as:
 
-* profession resources;
-* active profession modes;
-* temporary damage buffs;
-* trait stacks;
-* transformation timers;
-* target debuffs;
-* critical strike chance;
-* other state that depends on the current rotation position.
+- profession resources;
+- active profession modes;
+- temporary damage buffs;
+- trait stacks;
+- transformation timers;
+- target debuffs;
+- critical strike chance;
+- other state that depends on the current rotation position.
 
 The relevant UI container is:
 
 ```html
-<div
-  id="rotation-active-buffs"
-  class="rotation-active-buffs"
-  hidden
-></div>
+<div id="rotation-active-buffs" class="rotation-active-buffs" hidden></div>
 ```
 
 All current native profession pages already include it.
@@ -46,24 +45,29 @@ All current native profession pages already include it.
 
 ## How the snapshot gets its state
 
-The snapshot renderer lives in:
+The snapshot model and renderer live in:
 
 ```text
-js/app/rotation/state-snapshot-view.ts
+js/app/rotation/state-snapshot/model.ts
+js/app/rotation/state-snapshot/view.ts
 ```
 
-It uses `paletteEndState(app)` to obtain the state associated with the current rotation position.
+The model uses `paletteEndState(app)` to obtain the state associated with the current rotation position. The view only
+renders that prepared snapshot.
 
 At the end of the rotation, the existing simulation result is reused.
 
-At an insertion point, the application evaluates the rotation prefix up to that insertion index through `rotationEndStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and profession-resource displays.
+At an insertion point, the application evaluates the rotation prefix up to that insertion index through
+`rotationEndStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and
+profession-resource displays.
 
-**Snapshot hooks should never run their own simulation.** The application provides the state and inspection time to the hook.
+**Snapshot hooks should never run their own simulation.** The application provides the state and inspection time to the
+hook.
 
 The profession hook receives:
 
 ```ts
-rotationStateSnapshot(context)
+rotationStateSnapshot(context);
 ```
 
 with the following useful fields:
@@ -146,7 +150,7 @@ Do you want to display a new value?
         |
         +-- Is it generic state shared by every profession?
         |       |
-        |       +-- YES → Add it in state-snapshot-view.ts
+        |       +-- YES → Add it in state-snapshot/model.ts
         |
         +-- Is the value not tracked anywhere?
                 |
@@ -167,8 +171,8 @@ This is the simplest case.
 Suppose a specialization already tracks:
 
 ```ts
-berserkActive
-berserkUntil
+berserkActive;
+berserkUntil;
 ```
 
 and those fields are available through `context.professionState`.
@@ -217,9 +221,7 @@ remaining = expiresAt - context.atSeconds;
 For example:
 
 ```ts
-const remaining =
-  Number(state.someBuffUntil || 0) -
-  Number(context.atSeconds || 0);
+const remaining = Number(state.someBuffUntil || 0) - Number(context.atSeconds || 0);
 ```
 
 Hide expired values:
@@ -245,15 +247,16 @@ js/professions/warrior/core/state.ts
 using:
 
 ```ts
-WARRIOR_PUBLIC_END_STATE_KEYS
+WARRIOR_PUBLIC_END_STATE_KEYS;
 ```
 
-If a runtime field exists but the snapshot cannot see it, first determine whether it is missing from the profession's public end-state projection.
+If a runtime field exists but the snapshot cannot see it, first determine whether it is missing from the profession's
+public end-state projection.
 
 For a hypothetical timer:
 
 ```ts
-battleFocusUntil
+battleFocusUntil;
 ```
 
 the complete flow would be:
@@ -283,7 +286,7 @@ For a whitelist-style projection:
 ```ts
 export const WARRIOR_PUBLIC_END_STATE_KEYS = Object.freeze([
   // ...
-  "battleFocusUntil",
+  'battleFocusUntil'
 ]);
 ```
 
@@ -292,14 +295,14 @@ If the projection requires inactive defaults, add one:
 ```ts
 const INACTIVE_DEFAULTS = Object.freeze({
   // ...
-  battleFocusUntil: 0,
+  battleFocusUntil: 0
 });
 ```
 
 Now the value can reach:
 
 ```ts
-context.professionState
+context.professionState;
 ```
 
 at both the end of the rotation and an insertion checkpoint.
@@ -352,12 +355,13 @@ Not every temporary effect should be duplicated into profession state.
 
 If the simulator already emits the effect into its event timeline, derive the snapshot from the event timeline instead.
 
-This is the preferred approach for many temporary buffs because it keeps the display tied to the same data that combat calculations use.
+This is the preferred approach for many temporary buffs because it keeps the display tied to the same data that combat
+calculations use.
 
 Two shared helpers are available in:
 
 ```text
-js/app/rotation/state-snapshot-view.ts
+js/app/rotation/state-snapshot/model.ts
 ```
 
 ## Timed buff
@@ -365,7 +369,7 @@ js/app/rotation/state-snapshot-view.ts
 Use:
 
 ```ts
-timedBuffAt(result, kind, atSeconds)
+timedBuffAt(result, kind, atSeconds);
 ```
 
 to find an active timed buff and its remaining duration.
@@ -373,9 +377,7 @@ to find an active timed buff and its remaining duration.
 Example:
 
 ```ts
-import {
-  timedBuffAt,
-} from "../../../app/rotation/state-snapshot-view.js";
+import { timedBuffAt } from '../../../app/rotation/state-snapshot/model.js';
 ```
 
 Then:
@@ -402,9 +404,9 @@ rotationStateSnapshot: (context) => {
 
 This does **not** require:
 
-* a new profession-state field;
-* a public end-state projection;
-* a second timer maintained only for the UI.
+- a new profession-state field;
+- a public end-state projection;
+- a second timer maintained only for the UI.
 
 The event timeline remains the source of truth.
 
@@ -415,30 +417,23 @@ The event timeline remains the source of truth.
 For effects where each application contributes stacks independently, use:
 
 ```ts
-timedBuffStacksAt(result, kind, atSeconds)
+timedBuffStacksAt(result, kind, atSeconds);
 ```
 
 For example:
 
 ```ts
-const stacks = Math.min(
-  5,
-  timedBuffStacksAt(
-    context.result,
-    "signet-mastery",
-    context.atSeconds,
-  ),
-);
+const stacks = Math.min(5, timedBuffStacksAt(context.result, 'signet-mastery', context.atSeconds));
 
 if (stacks <= 0) return [];
 
 return [
   {
-    id: "signet-mastery",
-    label: "Signet Mastery",
+    id: 'signet-mastery',
+    label: 'Signet Mastery',
     value: `${stacks}/5`,
-    title: `+${stacks * 100} ferocity`,
-  },
+    title: `+${stacks * 100} ferocity`
+  }
 ];
 ```
 
@@ -463,9 +458,7 @@ Count entries that are still active at the inspected time:
 ```ts
 const at = warriorSnapshotAt(context);
 
-const stacks = (state.attackerInsightExpiries || []).filter(
-  (expiresAt) => Number(expiresAt) > at,
-).length;
+const stacks = (state.attackerInsightExpiries || []).filter((expiresAt) => Number(expiresAt) > at).length;
 ```
 
 Then:
@@ -475,10 +468,10 @@ if (!stacks) return [];
 
 return [
   {
-    id: "attackers-insight",
+    id: 'attackers-insight',
     label: "Attacker's Insight",
-    value: String(stacks),
-  },
+    value: String(stacks)
+  }
 ];
 ```
 
@@ -488,19 +481,15 @@ For structured windows:
 [
   {
     startedAt: 12,
-    expiresAt: 17,
-  },
-]
+    expiresAt: 17
+  }
+];
 ```
 
 find the window containing the inspection point:
 
 ```ts
-const current = windows.find(
-  (window) =>
-    window.startedAt <= at &&
-    window.expiresAt > at,
-);
+const current = windows.find((window) => window.startedAt <= at && window.expiresAt > at);
 ```
 
 The important rule is:
@@ -514,10 +503,10 @@ The important rule is:
 Values that are not profession-specific belong in:
 
 ```text
-js/app/rotation/state-snapshot-view.ts
+js/app/rotation/state-snapshot/model.ts
 ```
 
-The shared `snapshotItems()` function already receives the insertion-aware generic end state:
+The shared `rotationStateSnapshot()` function already receives the insertion-aware generic end state:
 
 ```ts
 const state = paletteEndState(app);
@@ -527,22 +516,21 @@ const timeMs = Number(state?.time || 0);
 For example, to expose the currently active weapon set globally:
 
 ```ts
-const activeWeaponSet =
-  Number(state?.activeWeaponSet || 1);
+const activeWeaponSet = Number(state?.activeWeaponSet || 1);
 
 items.push({
-  id: "active-weapon-set",
-  label: "Weapon set",
-  value: String(activeWeaponSet),
+  id: 'active-weapon-set',
+  label: 'Weapon set',
+  value: String(activeWeaponSet)
 });
 ```
 
 This automatically works at:
 
-* rotation start;
-* any insertion point;
-* rotation end;
-* every profession.
+- rotation start;
+- any insertion point;
+- rotation end;
+- every profession.
 
 Generic state should be added here rather than copied into every profession UI module.
 
@@ -556,18 +544,18 @@ The snapshot system is a **view of simulation state**, not a second state-manage
 
 If the value you want is not available in:
 
-* `endState`;
-* profession state;
-* `result.events`;
-* `result.resolvedEvents`;
-* or another existing simulation result;
+- `endState`;
+- profession state;
+- `result.events`;
+- `result.resolvedEvents`;
+- or another existing simulation result;
 
 then the simulation needs to model it first.
 
 Do not calculate an independent approximation solely inside:
 
 ```ts
-rotationStateSnapshot()
+rotationStateSnapshot();
 ```
 
 Instead:
@@ -604,7 +592,7 @@ This means a Core hook can display state common to every specialization:
 
 ```ts
 export const warriorCoreUi = {
-  rotationStateSnapshot: warriorCoreStateSnapshot,
+  rotationStateSnapshot: warriorCoreStateSnapshot
 };
 ```
 
@@ -612,7 +600,7 @@ while Berserker can add:
 
 ```ts
 export const berserkerUi = {
-  rotationStateSnapshot: berserkerStateSnapshot,
+  rotationStateSnapshot: berserkerStateSnapshot
 };
 ```
 
@@ -620,11 +608,12 @@ Both lists appear in the same Active state bar.
 
 Use:
 
-* **Core UI** for mechanics shared by the profession;
-* **specialization UI** for mechanics that only exist on one elite specialization;
-* **shared application code** for profession-neutral state.
+- **Core UI** for mechanics shared by the profession;
+- **specialization UI** for mechanics that only exist on one elite specialization;
+- **shared application code** for profession-neutral state.
 
-Snapshot item IDs must be unique among the composed profession UI slices. Duplicate IDs are treated as an error rather than silently replacing one another.
+Snapshot item IDs must be unique among the composed profession UI slices. Duplicate IDs are treated as an error rather
+than silently replacing one another.
 
 Also avoid IDs owned by generic shell items, such as:
 
@@ -643,17 +632,17 @@ Snapshot values are presentation strings.
 Examples:
 
 ```ts
-value: "4.2s"
-value: "3"
-value: "3/5"
-value: "62%"
-value: "Fire/Air"
+value: '4.2s';
+value: '3';
+value: '3/5';
+value: '62%';
+value: 'Fire/Air';
 ```
 
 For timers, use an existing profession helper such as:
 
 ```ts
-formatSecondsRemaining(remaining)
+formatSecondsRemaining(remaining);
 ```
 
 when available.
@@ -685,32 +674,32 @@ Example:
 const RESULT = {
   events: [
     {
-      type: "buff",
-      kind: "example-buff",
+      type: 'buff',
+      kind: 'example-buff',
       at: 1,
-      duration: 5,
-    },
-  ],
+      duration: 5
+    }
+  ]
 };
 
 const items = professionUi.rotationStateSnapshot({
   result: RESULT,
-  atSeconds: 3,
+  atSeconds: 3
 });
 
-assert.equal(items[0].id, "example-buff");
-assert.equal(items[0].value, "3.0s");
+assert.equal(items[0].id, 'example-buff');
+assert.equal(items[0].value, '3.0s');
 ```
 
 Useful cases to cover are:
 
-* before the effect begins;
-* while the effect is active;
-* exactly around expiration;
-* after expiration;
-* stack caps;
-* trait/build gating;
-* specialization gating.
+- before the effect begins;
+- while the effect is active;
+- exactly around expiration;
+- after expiration;
+- stack caps;
+- trait/build gating;
+- specialization gating.
 
 For projected profession state, also verify that the field exists in the simulation's `endState.profession`.
 
@@ -722,16 +711,16 @@ Insertion behavior itself is shared infrastructure and does not need to be reimp
 
 When adding a new Active state value:
 
-* [ ] Decide whether the value comes from profession state, generic state, or simulation events.
-* [ ] If it is new simulation state, implement and test the mechanic first.
-* [ ] If it exists only in runtime profession state, expose it through the profession's public end-state projection.
-* [ ] Add `rotationStateSnapshot` to the appropriate Core or specialization UI slice.
-* [ ] Evaluate timers and windows against `context.atSeconds`.
-* [ ] Prefer existing simulation events over duplicate UI-only state.
-* [ ] Return nothing when the value is inactive unless showing zero is meaningful.
-* [ ] Use a stable snapshot `id`.
-* [ ] Keep the displayed `value` concise.
-* [ ] Add a focused snapshot test.
+- [ ] Decide whether the value comes from profession state, generic state, or simulation events.
+- [ ] If it is new simulation state, implement and test the mechanic first.
+- [ ] If it exists only in runtime profession state, expose it through the profession's public end-state projection.
+- [ ] Add `rotationStateSnapshot` to the appropriate Core or specialization UI slice.
+- [ ] Evaluate timers and windows against `context.atSeconds`.
+- [ ] Prefer existing simulation events over duplicate UI-only state.
+- [ ] Return nothing when the value is inactive unless showing zero is meaningful.
+- [ ] Use a stable snapshot `id`.
+- [ ] Keep the displayed `value` concise.
+- [ ] Add a focused snapshot test.
 
 No additional rendering, insertion-cursor, or timeline wiring is required for an existing native profession.
 

@@ -3,7 +3,7 @@ import { createDefaultBuild, replaceBuildConfiguration } from './persistence.js'
 import { bindRotationImportDialog } from './rotation-import-dialog.js';
 import { bindBuildTemplateImportDialog } from './build-template-import-dialog.js';
 export { importBuildTemplateCode } from './build-template-import.js';
-import { redoRotation, undoRotation } from '../rotation/history.js';
+import { redoRotation, undoRotation } from '../rotation/editing/history.js';
 import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../platform/ui/dom.js';
 
 import type { ProfessionAppState } from '../profession/types.js';

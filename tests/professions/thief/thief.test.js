@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
 import { assumptionControlsForSpecialization } from '../../../js/app/profession/assumptions.js';
-import { weaponPaletteRows, weaponSkills } from '../../../js/app/rotation/palette-model.js';
+import { weaponPaletteRows, weaponSkills } from '../../../js/app/rotation/palette/model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import { createGw2CombatQuery } from '../../../js/platform/gw2/query.js';

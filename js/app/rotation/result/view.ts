@@ -1,11 +1,11 @@
-import { mountRotationResults, SKILL_COLS } from '../../platform/ui/rotation-results.js';
-import { syncRotationFocusResults, updateFloatingDps } from '../../platform/ui/rotation-workspace.js';
-import { targetHealthBreakpointSnapshots } from '../../platform/ui/result-transform.js';
-import type { ProfessionAppState } from '../profession/types.js';
-import { PLACEHOLDER_ICON, resultSkillIcon } from './icons.js';
-import { renderPatchComparison } from '../simulation/patch-preview-view.js';
-import type { ResultIconRow } from './icons.js';
-import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from './result-model.js';
+import { mountRotationResults, SKILL_COLS } from '../../../platform/ui/rotation-results.js';
+import { syncRotationFocusResults, updateFloatingDps } from '../../../platform/ui/rotation-workspace.js';
+import { targetHealthBreakpointSnapshots } from '../../../platform/ui/result-transform.js';
+import type { ProfessionAppState } from '../../profession/types.js';
+import { PLACEHOLDER_ICON, resultSkillIcon } from '../shared/icons.js';
+import { renderPatchComparison } from '../../simulation/patch-preview-view.js';
+import type { ResultIconRow } from '../shared/icons.js';
+import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from './model.js';
 import { analyzeRotationLoops } from './loop-analysis.js';
 import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from './loop-analysis-view.js';
 

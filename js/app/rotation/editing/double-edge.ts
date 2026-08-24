@@ -1,4 +1,4 @@
-import type { CastCommand, Skill } from '../../platform/engine/types.js';
+import type { CastCommand, Skill } from '../../../platform/engine/types.js';
 
 export type DoubleEdgeOutcome = NonNullable<CastCommand['doubleEdgeOutcome']>;
 

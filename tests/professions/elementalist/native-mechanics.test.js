@@ -3,14 +3,14 @@ import test from 'node:test';
 
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
-import { timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
-import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette-view.js';
-import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/resource-view.js';
+import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
+import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
+import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/palette/resource-view.js';
 import {
   paletteActionSkills,
   rotationSelectedSlotSkills,
   weaponPaletteRows
-} from '../../../js/app/rotation/palette-model.js';
+} from '../../../js/app/rotation/palette/model.js';
 import {
   calculateAttributes,
   elementalistAppAdapter,

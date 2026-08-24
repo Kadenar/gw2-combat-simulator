@@ -3,9 +3,9 @@ import test from 'node:test';
 
 import { createDefaultBuild } from '../../js/app/build/persistence.js';
 import { loadProfessionAppAdapter, professionRegistry } from '../../js/app/profession/registry.js';
-import { paletteEndState, paletteProfessionState } from '../../js/app/rotation/context.js';
-import { paletteSkillView } from '../../js/app/rotation/palette-view.js';
-import { criticalChanceAt, criticalChanceTooltip } from '../../js/app/rotation/state-snapshot-view.js';
+import { paletteEndState, paletteProfessionState } from '../../js/app/rotation/shared/context.js';
+import { paletteSkillView } from '../../js/app/rotation/palette/view.js';
+import { criticalChanceAt, criticalChanceTooltip } from '../../js/app/rotation/state-snapshot/model.js';
 
 function endState(overrides = {}) {
   return {

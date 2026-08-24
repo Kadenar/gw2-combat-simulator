@@ -1,7 +1,7 @@
 import { RELIC_NAMES, WEAPON_DATA, createProfessionWeaponData } from '../../platform/gw2/gear-data.js';
 import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/weapon-skill-matcher.js';
 import { renderRotationBuilder } from '../rotation/index.js';
-import { renderResults } from '../rotation/result-view.js';
+import { renderResults } from '../rotation/result/view.js';
 import type {
   Gw2AppAdapter,
   Gw2AppAdapterOptions,

@@ -7,10 +7,10 @@ import { initBuildTemplates, updateTemplateSelection } from './build/presets.js'
 import { normalizeSelectedSkills } from './build/selection.js';
 import { renderSkills } from './build/skills-panel.js';
 import { renderTraits } from './build/traits-panel.js';
-import { addRotation } from './rotation/actions.js';
-import { mountRotationDisplayControls } from './rotation/display-controls.js';
-import { mountRotationClipboard } from './rotation/clipboard.js';
-import { recordRotationHistory } from './rotation/history.js';
+import { addRotation } from './rotation/editing/actions.js';
+import { mountRotationClipboard } from './rotation/editing/clipboard.js';
+import { recordRotationHistory } from './rotation/editing/history.js';
+import { mountRotationDisplayControls } from './rotation/timeline/display-controls.js';
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';

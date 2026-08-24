@@ -4,25 +4,26 @@ This document is a **code ownership guide** for the Guild Wars 2 combat simulato
 
 Use it when you know what you want to change but are unsure **which module or directory should own that change**.
 
-For the reasoning behind the architecture, simulation phases, dependency rules, and profession contracts, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+For the reasoning behind the architecture, simulation phases, dependency rules, and profession contracts, see
+[ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Repository map
 
-| Path | Purpose |
-| --- | --- |
-| `js/app/` | Profession-neutral browser application and UI orchestration |
-| `js/platform/engine/` | Generic scheduler, event queue, state, and simulation primitives |
-| `js/platform/gw2/` | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and profession infrastructure |
-| `js/platform/ui/` | Shared UI/view-model primitives |
-| `js/professions/` | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI |
-| `js/evtc-analyzer/` | ArcDPS EVTC parsing, analysis, and rotation reconstruction |
-| `js/dps-report-analyzer/` | Elite Insights / dps.report analysis and rotation reconstruction |
-| `js/app/patch-preview/` | Local patch-preview authoring UI |
-| `js/patches/` | Active balance-preview manifest |
-| `Builds/` | Saved simulator build presets |
-| `Rotations/` | Saved simulator rotation presets |
-| `tests/` | Unit, integration, architecture, browser, and regression tests |
-| `scripts/` | Build, data generation, analysis, audit, and authoring tools |
+| Path                      | Purpose                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `js/app/`                 | Profession-neutral browser application and UI orchestration                                     |
+| `js/platform/engine/`     | Generic scheduler, event queue, state, and simulation primitives                                |
+| `js/platform/gw2/`        | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and profession infrastructure |
+| `js/platform/ui/`         | Shared UI/view-model primitives                                                                 |
+| `js/professions/`         | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI            |
+| `js/evtc-analyzer/`       | ArcDPS EVTC parsing, analysis, and rotation reconstruction                                      |
+| `js/dps-report-analyzer/` | Elite Insights / dps.report analysis and rotation reconstruction                                |
+| `js/app/patch-preview/`   | Local patch-preview authoring UI                                                                |
+| `js/patches/`             | Active balance-preview manifest                                                                 |
+| `Builds/`                 | Saved simulator build presets                                                                   |
+| `Rotations/`              | Saved simulator rotation presets                                                                |
+| `tests/`                  | Unit, integration, architecture, browser, and regression tests                                  |
+| `scripts/`                | Build, data generation, analysis, audit, and authoring tools                                    |
 
 At a high level:
 
@@ -50,36 +51,37 @@ shared application views
 
 Use this table as the first place to look.
 
-| You're adding or changing... | Usually belongs in... |
-| --- | --- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Profession `skills.ts` |
-| Shared mechanic data used by several skills | Profession `profiles.ts` |
-| Profession runtime resource or state | Profession `state.ts` |
-| Skill availability rule | `availability.ts` or `rules.ts` |
-| Resource gain/spend/regeneration | `resources.ts`, `rules.ts`, or mechanic-specific file |
-| Cast lifecycle behavior | `rules.ts`, `handlers.ts`, or mechanic-specific file |
-| Declarative trait modifier | `rules.ts` |
-| Complex trait proc or imperative behavior | `traits.ts` |
-| Scheduler-specific skill implementation | `handlers.ts` |
-| Custom scheduled event definitions | `events.ts` or mechanic-specific file |
-| Resolver reaction or custom resolved event | `resolver.ts` |
-| Profession UI, palette, skill-bar, or active-state display | `ui.ts` |
-| Shared code used by several files within one profession | `shared.ts` |
-| New reusable GW2 mechanic | `js/platform/gw2/` |
-| Generic scheduling primitive unrelated to GW2 | `js/platform/engine/` |
-| Browser-only behavior | `js/app/` |
-| Shared presentation/view-model behavior | `js/platform/ui/` |
-| EVTC parsing or reconstruction | `js/evtc-analyzer/` |
-| dps.report / Elite Insights reconstruction | `js/dps-report-analyzer/` |
-| Upcoming balance changes | Patch-preview system |
-| Build migration/default/validation | Profession `build.ts` |
-| New profession page/registry entry | `js/app/profession/registry.ts` |
+| You're adding or changing...                                          | Usually belongs in...                                 |
+| --------------------------------------------------------------------- | ----------------------------------------------------- |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Profession `skills.ts`                                |
+| Shared mechanic data used by several skills                           | Profession `profiles.ts`                              |
+| Profession runtime resource or state                                  | Profession `state.ts`                                 |
+| Skill availability rule                                               | `availability.ts` or `rules.ts`                       |
+| Resource gain/spend/regeneration                                      | `resources.ts`, `rules.ts`, or mechanic-specific file |
+| Cast lifecycle behavior                                               | `rules.ts`, `handlers.ts`, or mechanic-specific file  |
+| Declarative trait modifier                                            | `rules.ts`                                            |
+| Complex trait proc or imperative behavior                             | `traits.ts`                                           |
+| Scheduler-specific skill implementation                               | `handlers.ts`                                         |
+| Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
+| Resolver reaction or custom resolved event                            | `resolver.ts`                                         |
+| Profession UI, palette, skill-bar, or active-state display            | `ui.ts`                                               |
+| Shared code used by several files within one profession               | `shared.ts`                                           |
+| New reusable GW2 mechanic                                             | `js/platform/gw2/`                                    |
+| Generic scheduling primitive unrelated to GW2                         | `js/platform/engine/`                                 |
+| Browser-only behavior                                                 | `js/app/`                                             |
+| Shared presentation/view-model behavior                               | `js/platform/ui/`                                     |
+| EVTC parsing or reconstruction                                        | `js/evtc-analyzer/`                                   |
+| dps.report / Elite Insights reconstruction                            | `js/dps-report-analyzer/`                             |
+| Upcoming balance changes                                              | Patch-preview system                                  |
+| Build migration/default/validation                                    | Profession `build.ts`                                 |
+| New profession page/registry entry                                    | `js/app/profession/registry.ts`                       |
 
 The main rule is:
 
 > Put behavior with the layer that owns the underlying game concept.
 
-Do not move profession-specific mechanics into shared platform code simply because multiple files need them. Likewise, do not duplicate shared GW2 behavior inside individual professions.
+Do not move profession-specific mechanics into shared platform code simply because multiple files need them. Likewise,
+do not duplicate shared GW2 behavior inside individual professions.
 
 ---
 
@@ -106,15 +108,16 @@ Examples include:
 
 ## Main application files
 
-| Module | Responsibility |
-| --- | --- |
-| `app.ts` | Browser entry point |
-| `bootstrap.ts` | Resolves the active profession and starts the application |
-| `profession-app.ts` | Shared application lifecycle and state coordinator |
-| `embed.ts` | Embedded simulator entry/support |
-| `tutorial.ts` | Interactive application tutorial |
+| Module              | Responsibility                                            |
+| ------------------- | --------------------------------------------------------- |
+| `app.ts`            | Browser entry point                                       |
+| `bootstrap.ts`      | Resolves the active profession and starts the application |
+| `profession-app.ts` | Shared application lifecycle and state coordinator        |
+| `embed.ts`          | Embedded simulator entry/support                          |
+| `tutorial.ts`       | Interactive application tutorial                          |
 
-`ProfessionApp` coordinates the browser application but delegates profession-specific behavior to the active profession adapter.
+`ProfessionApp` coordinates the browser application but delegates profession-specific behavior to the active profession
+adapter.
 
 ---
 
@@ -122,14 +125,14 @@ Examples include:
 
 Shared profession application composition.
 
-| Module | Responsibility |
-| --- | --- |
-| `registry.ts` | Lazy registry of every profession |
-| `create-adapter.ts` | Creates the browser adapter around a profession |
-| `create-runtime.ts` | Connects application builds to `simulateGw2()` |
-| `define-app.ts` | Composes native profession application definitions |
-| `assumptions.ts` | Shared assumption-control contracts |
-| `slot-loadout.ts` | Shared heal/utility/elite loadout behavior |
+| Module              | Responsibility                                     |
+| ------------------- | -------------------------------------------------- |
+| `registry.ts`       | Lazy registry of every profession                  |
+| `create-adapter.ts` | Creates the browser adapter around a profession    |
+| `create-runtime.ts` | Connects application builds to `simulateGw2()`     |
+| `define-app.ts`     | Composes native profession application definitions |
+| `assumptions.ts`    | Shared assumption-control contracts                |
+| `slot-loadout.ts`   | Shared heal/utility/elite loadout behavior         |
 
 The registry is also where a completely new profession would be exposed to the application.
 
@@ -164,20 +167,16 @@ The shared rotation-builder application.
 
 Important modules include:
 
-| Module | Responsibility |
-| --- | --- |
-| `index.ts` | Rotation-builder orchestration |
-| `actions.ts` | Rotation mutations |
-| `palette-model.ts` | Rotation palette state |
-| `palette-view.ts` | Palette rendering |
-| `timeline-model.ts` | Timeline data model |
-| `timeline-view.ts` | Timeline rendering and interaction |
-| `state-snapshot-view.ts` | Active-state snapshot at the current rotation position |
-| `event-log.ts` | Event-log transformation |
-| `warnings.ts` | Simulation warnings |
-| `result-model.ts` | Result/chart/breakdown transformations |
-| `result-view.ts` | Result rendering |
-| `context.ts` | Shared insertion-aware application context helpers |
+| Module            | Responsibility                                                  |
+| ----------------- | --------------------------------------------------------------- |
+| `index.ts`        | Rotation-builder orchestration                                  |
+| `editing/`        | Rotation mutations, clipboard state, history, and entry editors |
+| `input/`          | Hotkeys and GW2 keybind import                                  |
+| `palette/`        | Palette state, resources, rendering, and interaction            |
+| `timeline/`       | Timeline model, rendering, interaction, and display controls    |
+| `state-snapshot/` | Insertion-aware state queries and active-state rendering        |
+| `result/`         | Results, loop analysis, event log, and warnings                 |
+| `shared/`         | Cross-feature context and icon helpers                          |
 
 Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here.
 
@@ -210,7 +209,8 @@ They should not own profession mechanics.
 
 Local balance-patch authoring UI.
 
-This subsystem reads patch-authoring metadata exposed by native professions and lets developers author the active preview without manually editing most of the patch manifest.
+This subsystem reads patch-authoring metadata exposed by native professions and lets developers author the active
+preview without manually editing most of the patch manifest.
 
 See [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 
@@ -236,21 +236,21 @@ Examples include:
 
 Important modules include:
 
-| Module | Responsibility |
-| --- | --- |
-| `scheduler.ts` | Declarative scheduler and profession-hook dispatch |
-| `scheduler-state.ts` | Profession-neutral scheduler state |
-| `task-queue.ts` | Ordered delayed state work |
-| `event-queue.ts` | Stable event ordering |
-| `scheduled-event-stream.ts` | Scheduler-to-resolver event boundary |
-| `cooldown-controller.ts` | Cooldown and ammo state machine |
-| `effect-factories.ts` | Canonical effect constructors |
-| `effect-materializer.ts` | Converts effects into scheduled events |
-| `skill-factories.ts` | Shared skill constructors |
-| `autoattack-chains.ts` | Autoattack-chain indexing |
-| `profession.ts` | Core + specialization contract composition |
-| `ui-combinators.ts` | Composition helpers for profession UI slices |
-| `types.d.ts` | Shared engine contracts |
+| Module                      | Responsibility                                     |
+| --------------------------- | -------------------------------------------------- |
+| `scheduler.ts`              | Declarative scheduler and profession-hook dispatch |
+| `scheduler-state.ts`        | Profession-neutral scheduler state                 |
+| `task-queue.ts`             | Ordered delayed state work                         |
+| `event-queue.ts`            | Stable event ordering                              |
+| `scheduled-event-stream.ts` | Scheduler-to-resolver event boundary               |
+| `cooldown-controller.ts`    | Cooldown and ammo state machine                    |
+| `effect-factories.ts`       | Canonical effect constructors                      |
+| `effect-materializer.ts`    | Converts effects into scheduled events             |
+| `skill-factories.ts`        | Shared skill constructors                          |
+| `autoattack-chains.ts`      | Autoattack-chain indexing                          |
+| `profession.ts`             | Core + specialization contract composition         |
+| `ui-combinators.ts`         | Composition helpers for profession UI slices       |
+| `types.d.ts`                | Shared engine contracts                            |
 
 If a new abstraction would still make sense in a non-GW2 simulator, it probably belongs here.
 
@@ -279,20 +279,20 @@ Examples include:
 
 Important modules include:
 
-| Module | Responsibility |
-| --- | --- |
-| `simulate.ts` | Canonical `simulateGw2()` entry point |
-| `native-profession.ts` | Native profession/module authoring layer |
-| `modifier-rules.ts` | Declarative scalar modifier system |
-| `attributes.ts` | Shared attribute calculations |
-| `damage.ts` | Strike and condition damage formulas |
-| `weapon-strength.ts` | Weapon-strength profiles |
-| `weapon-sigils.ts` | Shared sigil behavior |
-| `gear-data.ts` | Shared equipment/consumable/relic lookup data |
-| `target-state.ts` | Target assumptions |
-| `trait-state.ts` | Shared selected-trait lookup |
-| `event-ownership.ts` | Player/summon/effect ownership rules |
-| `skill-patch.ts` | Balance-preview overlay grammar |
+| Module                 | Responsibility                                |
+| ---------------------- | --------------------------------------------- |
+| `simulate.ts`          | Canonical `simulateGw2()` entry point         |
+| `native-profession.ts` | Native profession/module authoring layer      |
+| `modifier-rules.ts`    | Declarative scalar modifier system            |
+| `attributes.ts`        | Shared attribute calculations                 |
+| `damage.ts`            | Strike and condition damage formulas          |
+| `weapon-strength.ts`   | Weapon-strength profiles                      |
+| `weapon-sigils.ts`     | Shared sigil behavior                         |
+| `gear-data.ts`         | Shared equipment/consumable/relic lookup data |
+| `target-state.ts`      | Target assumptions                            |
+| `trait-state.ts`       | Shared selected-trait lookup                  |
+| `event-ownership.ts`   | Player/summon/effect ownership rules          |
+| `skill-patch.ts`       | Balance-preview overlay grammar               |
 
 Subdirectories such as:
 
@@ -423,7 +423,7 @@ defineNativeModule({
   data,
   state,
   mechanics,
-  presentation,
+  presentation
 });
 ```
 
@@ -522,13 +522,13 @@ Profession-owned UI behavior.
 Usually:
 
 ```ts
-presentation: berserkerUi
+presentation: berserkerUi;
 ```
 
 or for UI that requires the completed catalog:
 
 ```ts
-presentation: bindWarriorCoreUi
+presentation: bindWarriorCoreUi;
 ```
 
 Presentation can contribute things such as:
@@ -620,27 +620,27 @@ Example:
 
 ```ts
 export const berserkerModule = defineNativeModule({
-  id: "Berserker",
+  id: 'Berserker',
 
-  data: createWarriorModuleData("Berserker", {
+  data: createWarriorModuleData('Berserker', {
     skillMechanics: BERSERKER_SKILL_MECHANICS,
     balanceProfiles: BERSERKER_BALANCE_PROFILES,
-    handlers: berserkerSkillHandlers,
+    handlers: berserkerSkillHandlers
   }),
 
   state: {
     scheduler: berserkerState.create,
-    resolver: berserkerState.create,
+    resolver: berserkerState.create
   },
 
   mechanics: {
     modifiers: berserkerAttributeRules,
     castRules: berserkerCastRules,
     schedulerHooks: berserkerSchedulerHooks,
-    reactions: berserkerReactions,
+    reactions: berserkerReactions
   },
 
-  presentation: berserkerUi,
+  presentation: berserkerUi
 });
 ```
 
@@ -706,7 +706,8 @@ Common responsibilities include:
 - state transitions;
 - trait-independent mechanic rules.
 
-`rules.ts` does not need to own every rule in a large module. Split focused concerns into files such as `availability.ts` or `resources.ts` when useful.
+`rules.ts` does not need to own every rule in a large module. Split focused concerns into files such as
+`availability.ts` or `resources.ts` when useful.
 
 ---
 
@@ -872,7 +873,7 @@ export const warriorNativeModules = Object.freeze([
   berserkerModule,
   spellbreakerModule,
   bladeswornModule,
-  paragonModule,
+  paragonModule
 ] as const);
 ```
 
@@ -890,17 +891,17 @@ Example:
 
 ```ts
 export const warriorProfession = defineNativeProfession({
-  id: "warrior",
-  name: "Warrior",
+  id: 'warrior',
+  name: 'Warrior',
 
   build: {
     createBuildDefaults: createWarriorBuildDefaults,
     migrateBuild: migrateWarriorBuild,
-    validateBuild: validateWarriorBuild,
+    validateBuild: validateWarriorBuild
   },
 
   modules: warriorNativeModules,
-  patchPreview: activePatchPreview,
+  patchPreview: activePatchPreview
 });
 ```
 
@@ -922,13 +923,11 @@ come together.
 For example:
 
 ```ts
-export {
-  warriorProfession,
-  warriorProfession as default,
-} from "./family.js";
+export { warriorProfession, warriorProfession as default } from './family.js';
 ```
 
-Engine/headless callers can import the profession through this stable boundary without loading the browser application adapter.
+Engine/headless callers can import the profession through this stable boundary without loading the browser application
+adapter.
 
 ---
 
@@ -953,7 +952,7 @@ Keep it separate from the engine-facing `definition.ts`.
 This separation allows:
 
 ```ts
-import { warriorProfession } from "./js/professions/warrior/definition.js";
+import { warriorProfession } from './js/professions/warrior/definition.js';
 ```
 
 to work for headless simulation without loading browser UI/storage code.
@@ -988,7 +987,8 @@ root catalog
 module
 ```
 
-Instead, owner-local modules contribute data upward and receive the completed catalog only through supported composition/presentation boundaries where required.
+Instead, owner-local modules contribute data upward and receive the completed catalog only through supported
+composition/presentation boundaries where required.
 
 ---
 
@@ -1053,7 +1053,8 @@ js/dps-report-analyzer/
 
 Owns behavior related to Elite Insights / dps.report data.
 
-It is separate from raw EVTC parsing because Elite Insights exposes a different, already-processed representation with different information loss and inference requirements.
+It is separate from raw EVTC parsing because Elite Insights exposes a different, already-processed representation with
+different information loss and inference requirements.
 
 Do not add dps.report-specific parsing logic to profession simulator modules.
 
@@ -1113,7 +1114,8 @@ platform/ui
 app
 ```
 
-Profession presentation reaches the application through explicit UI hooks rather than by importing application modules into platform code.
+Profession presentation reaches the application through explicit UI hooks rather than by importing application modules
+into platform code.
 
 ---
 
@@ -1167,7 +1169,8 @@ damage/condition/result reaction
 
 Prefer extending existing state/events/profiles rather than creating parallel copies.
 
-For example, if a timed buff already exists in the simulation event timeline, UI should read that timeline rather than maintaining a duplicate UI timer.
+For example, if a timed buff already exists in the simulation event timeline, UI should read that timeline rather than
+maintaining a duplicate UI timer.
 
 ---
 
@@ -1185,11 +1188,11 @@ At minimum, the module needs to provide:
 
 ```ts
 defineNativeModule({
-  id: "New Specialization",
+  id: 'New Specialization',
   data,
   state,
   mechanics,
-  presentation,
+  presentation
 });
 ```
 
@@ -1201,7 +1204,8 @@ js/professions/<profession>/modules.ts
 
 after Core.
 
-The exact files inside the specialization directory should follow the mechanic's complexity rather than a fixed template.
+The exact files inside the specialization directory should follow the mechanic's complexity rather than a fixed
+template.
 
 Also update:
 

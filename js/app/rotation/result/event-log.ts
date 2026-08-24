@@ -1,15 +1,15 @@
-import type { SchedulerRecord, SimulationEvent } from '../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
+import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
+import type { Gw2SimulationResult } from '../../../platform/gw2/types.js';
 import {
   EVENT_LOG_ORDER,
   eventLogCsv,
   mountEventLog,
   normalizeEventLogDescriptor
-} from '../../platform/ui/event-log.js';
-import type { EventLogRow } from '../../platform/ui/types.js';
-import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../profession/types.js';
-import { professionEndState } from './context.js';
-import { effectName, resultCombatReferenceMs } from './result-model.js';
+} from '../../../platform/ui/event-log.js';
+import type { EventLogRow } from '../../../platform/ui/types.js';
+import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../../profession/types.js';
+import { professionEndState } from '../shared/context.js';
+import { effectName, resultCombatReferenceMs } from './model.js';
 
 type OrderedEventLogRow = EventLogRow & { readonly order: number };
 

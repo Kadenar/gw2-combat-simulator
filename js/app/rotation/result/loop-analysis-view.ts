@@ -1,6 +1,6 @@
-import { escapeHtml } from '../../platform/ui/html.js';
-import type { ProfessionAppState } from '../profession/types.js';
-import { resultSkillIcon } from './icons.js';
+import { escapeHtml } from '../../../platform/ui/html.js';
+import type { ProfessionAppState } from '../../profession/types.js';
+import { resultSkillIcon } from '../shared/icons.js';
 import type {
   DetectedRotationLoop,
   RotationLoopAnalysis,

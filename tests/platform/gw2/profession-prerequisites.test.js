@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulationEventLogRows } from '../../../js/app/rotation/event-log.js';
+import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { createFixedSlotLoadout } from '../../../js/app/profession/slot-loadout.js';
 import {
   createProfessionAssumptionControls,

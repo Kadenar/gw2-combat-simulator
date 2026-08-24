@@ -28,7 +28,7 @@ import {
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows
-} from '../../js/app/rotation/palette-model.js';
+} from '../../js/app/rotation/palette/model.js';
 import { dragonChargeReleaseProjection } from '../../js/professions/warrior/specializations/bladesworn/charge-release.js';
 import {
   groupConsecutiveProcSteps,
@@ -41,12 +41,12 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows
-} from '../../js/app/rotation/timeline-model.js';
-import { addRotation, createRotationItem, insertRotationItems } from '../../js/app/rotation/actions.js';
-import { parseWaitDurationMs } from '../../js/app/rotation/palette-view.js';
-import { syncProcVisibility } from '../../js/app/rotation/timeline-view.js';
-import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/icons.js';
-import { renderResults } from '../../js/app/rotation/result-view.js';
+} from '../../js/app/rotation/timeline/model.js';
+import { addRotation, createRotationItem, insertRotationItems } from '../../js/app/rotation/editing/actions.js';
+import { parseWaitDurationMs } from '../../js/app/rotation/palette/view.js';
+import { syncProcVisibility } from '../../js/app/rotation/timeline/view.js';
+import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/shared/icons.js';
+import { renderResults } from '../../js/app/rotation/result/view.js';
 import {
   PREFIXES,
   PREFIX_GROUPS,
@@ -608,8 +608,8 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
 
 test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
   const [displayControls, timelineView, timelineSize] = await Promise.all([
-    readFile(new URL('../../js/app/rotation/display-controls.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/rotation/timeline-view.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/platform/ui/rotation-timeline-size.ts', import.meta.url), 'utf8')
   ]);
 
@@ -646,7 +646,7 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   const summaryMirror = { innerHTML: 'stale summary' };
   const previousDocument = globalThis.document;
 
-  globalThis.document = {
+  const mockDocument = {
     getElementById: (id) =>
       id === 'rotation-results'
         ? results
@@ -656,6 +656,9 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
             ? summaryMirror
             : null
   };
+  // Mirror the ownerDocument relationship that real result containers expose.
+  results.ownerDocument = mockDocument;
+  globalThis.document = mockDocument;
   try {
     renderResults({ build: { rotation: [] }, results: null });
   } finally {

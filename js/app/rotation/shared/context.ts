@@ -1,6 +1,6 @@
-import type { SchedulerRecord } from '../../platform/engine/types.js';
-import type { ProfessionAppResult, ProfessionAppState } from '../profession/types.js';
-import { normalizeRotationInsertionIndex } from '../../platform/ui/insertion-cursor.js';
+import type { SchedulerRecord } from '../../../platform/engine/types.js';
+import type { ProfessionAppResult, ProfessionAppState } from '../../profession/types.js';
+import { normalizeRotationInsertionIndex } from '../../../platform/ui/insertion-cursor.js';
 
 type RotationEndState = ProfessionAppResult['endState'];
 

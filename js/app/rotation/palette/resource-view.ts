@@ -11,12 +11,12 @@
  * counter. This is the supported hook for profession-specific visuals such as
  * Mesmer notes and Revenant affinity emblems.
  */
-import type { ProfessionResourceView, SkillId } from '../../platform/engine/types.js';
-import type { ProfessionAppState } from '../profession/types.js';
-import type { PaletteResourceView } from '../../platform/ui/types.js';
-import { resourceDisplayViews } from '../../platform/ui/resource-display.js';
-import { escapeHtml as esc } from '../../platform/ui/html.js';
-import { activeSpecialization, paletteProfessionState, professionEndState } from './context.js';
+import type { ProfessionResourceView, SkillId } from '../../../platform/engine/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
+import type { PaletteResourceView } from '../../../platform/ui/types.js';
+import { resourceDisplayViews } from '../../../platform/ui/resource-display.js';
+import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { activeSpecialization, paletteProfessionState, professionEndState } from '../shared/context.js';
 
 /** Formats a finite resource value with at most three decimal places. */
 export function formatResourceValue(value: unknown): string {

@@ -1,7 +1,8 @@
-import { eventCausalOrder } from '../../platform/engine/events.js';
-import type { SchedulerStep, SimulationEvent, Skill, SkillId } from '../../platform/engine/types.js';
-import { createGw2TimelineIndex } from '../../platform/gw2/timeline-index.js';
-import type { ProfessionAppState } from '../profession/types.js';
+import { eventCausalOrder } from '../../../platform/engine/events.js';
+import type { SchedulerStep, SimulationEvent, Skill, SkillId } from '../../../platform/engine/types.js';
+import { createGw2TimelineIndex } from '../../../platform/gw2/timeline-index.js';
+import type { ProfessionAppState } from '../../profession/types.js';
+import { activeSpecialization } from '../shared/context.js';
 
 const MIN_LOOP_TOKENS = 4;
 const MIN_STRUCTURAL_LOOP_TOKENS = 3;
@@ -13,6 +14,14 @@ const MAX_BOUNDARY_ANCHOR_STEPS = 4;
 const MAX_BOUNDARY_GUIDE_STEPS = 8;
 const FALLBACK_ANCHOR_SIZE = 3;
 const MAX_FALLBACK_PERIOD = 64;
+const MIN_ENGINEER_MACRO_TOKENS = 10;
+const MAX_ENGINEER_MACRO_TOKENS = 80;
+const MAX_ENGINEER_MACRO_PHASES = 3;
+const MIN_ENGINEER_PHASE_SIMILARITY = 0.55;
+const MIN_ENGINEER_PHASE_GAIN = 0.025;
+const ENGINEER_PHASE_PREFIX_TOKENS = 6;
+const MIN_ENGINEER_PHASE_PREFIX_GAIN = 0.12;
+const MIN_ENGINEER_PHASE_DISCRIMINATION = 0.75;
 
 export type RotationLoopConfidence = 'high' | 'medium' | 'low';
 
@@ -70,6 +79,8 @@ interface NormalizedAction {
   readonly rotationIndex: number | null;
   readonly weaponSet: number;
   readonly attunement: string;
+  readonly weaponLine: string;
+  readonly weaponLineDestination: string | null | undefined;
   readonly cancelled: boolean;
 }
 
@@ -195,6 +206,15 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
     );
   const actions: NormalizedAction[] = [];
   let activeAttunement = String(app.build.startAttunement || 'Fire');
+  const specialization = activeSpecialization(app);
+  const initialWeaponLine = app.profession.ui.timelineWeaponLineTransition({
+    initial: true,
+    build: app.build,
+    specialization,
+    weaponSet: app.build.startingWeaponSet,
+    weaponLine: null
+  });
+  let activeWeaponLine = typeof initialWeaponLine === 'string' ? initialWeaponLine : '';
   for (const event of events) {
     const activationId = String(event.activationId || '');
     const step = activationId ? stepByActivationId.get(activationId) : undefined;
@@ -206,6 +226,19 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
     const rotationIndex = step && step.ri >= 0 ? step.ri : null;
     const skill = actionSkill(app, skillId);
     const name = actionSkillName(app, event, skillId);
+    const weaponSet = timeline.activeWeaponSetAt(Number(event.at || 0));
+    const cancelled = event.cancelled === true;
+    const weaponLineDestination =
+      rotationIndex != null && !cancelled
+        ? app.profession.ui.timelineWeaponLineTransition({
+            entry: app.build.rotation[rotationIndex],
+            skill,
+            build: app.build,
+            specialization,
+            weaponSet,
+            weaponLine: activeWeaponLine || null
+          })
+        : undefined;
     actions.push({
       sequenceIndex: actions.length,
       skillId,
@@ -215,12 +248,15 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
       startMs: Number(step?.start ?? eventStartMs),
       endMs: Number(step?.end ?? eventEndMs),
       rotationIndex,
-      weaponSet: timeline.activeWeaponSetAt(Number(event.at || 0)),
+      weaponSet,
       attunement: activeAttunement,
-      cancelled: event.cancelled === true
+      weaponLine: activeWeaponLine,
+      weaponLineDestination,
+      cancelled
     });
     const destination = attunementDestination(name);
-    if (destination && event.cancelled !== true) activeAttunement = destination;
+    if (destination && !cancelled) activeAttunement = destination;
+    if (weaponLineDestination !== undefined) activeWeaponLine = weaponLineDestination || '';
   }
   // A lone cancelled-before-commit attempt is noise rather than an authored
   // loop step. Repeated cancellations remain visible because they may be an
@@ -389,6 +425,7 @@ function structuralSegments(
     append(false);
     return segments;
   }
+  if (app.build.profession === 'engineer') return engineerMacroSegments(app, actions, autoattackChains);
   if (!physicalWeaponSwapEnabled(app)) return [];
   const segments: RotationSegment[] = [];
   let pending: NormalizedAction[] = [];
@@ -436,6 +473,146 @@ function sequenceEditDistance(left: readonly LoopToken[], right: readonly LoopTo
 function sequenceSimilarity(left: readonly LoopToken[], right: readonly LoopToken[]): number {
   const length = Math.max(left.length, right.length);
   return length ? 1 - sequenceEditDistance(left, right) / length : 1;
+}
+
+function meanLagSimilarity(segments: readonly RotationSegment[], lag: number): number {
+  const similarities: number[] = [];
+  for (let index = 0; index + lag < segments.length; index += 1) {
+    similarities.push(sequenceSimilarity(segments[index].tokens, segments[index + lag].tokens));
+  }
+  return similarities.length
+    ? similarities.reduce((total, similarity) => total + similarity, 0) / similarities.length
+    : 0;
+}
+
+function meanLagPrefixSimilarity(segments: readonly RotationSegment[], lag: number): number {
+  const similarities: number[] = [];
+  for (let index = 0; index + lag < segments.length; index += 1) {
+    similarities.push(
+      sequenceSimilarity(
+        segments[index].tokens.slice(0, ENGINEER_PHASE_PREFIX_TOKENS),
+        segments[index + lag].tokens.slice(0, ENGINEER_PHASE_PREFIX_TOKENS)
+      )
+    );
+  }
+  return similarities.length
+    ? similarities.reduce((total, similarity) => total + similarity, 0) / similarities.length
+    : 0;
+}
+
+function engineerPhaseDiscrimination(segments: readonly RotationSegment[], phaseCount: number): number {
+  const phaseSegments = Array.from({ length: phaseCount }, () => [] as RotationSegment[]);
+  segments.forEach((segment, index) => phaseSegments[index % phaseCount].push(segment));
+  if (phaseSegments.some((phase) => phase.length < 2)) return 0;
+  const keys = new Set(segments.flatMap((segment) => segment.tokens.map((token) => token.key)));
+  let strongestDifference = 0;
+  for (const key of keys) {
+    const supports = phaseSegments.map(
+      (phase) => phase.filter((segment) => segment.tokens.some((token) => token.key === key)).length / phase.length
+    );
+    const difference = Math.max(...supports) - Math.min(...supports);
+    const stable = supports.every((support) => support <= 0.25 || support >= 0.75);
+    if (stable) strongestDifference = Math.max(strongestDifference, difference);
+  }
+  return strongestDifference;
+}
+
+function engineerMacroPhaseCount(segments: readonly RotationSegment[]): number {
+  const baseline = meanLagSimilarity(segments, 1);
+  const baselinePrefix = meanLagPrefixSimilarity(segments, 1);
+  let bestPhaseCount = 1;
+  let bestQuality = baseline + baselinePrefix * 0.25;
+  for (
+    let phaseCount = 2;
+    phaseCount <= Math.min(MAX_ENGINEER_MACRO_PHASES, Math.floor(segments.length / 2));
+    phaseCount += 1
+  ) {
+    if (segments.length - phaseCount < 2) continue;
+    const similarity = meanLagSimilarity(segments, phaseCount);
+    const prefixSimilarity = meanLagPrefixSimilarity(segments, phaseCount);
+    const discrimination = engineerPhaseDiscrimination(segments, phaseCount);
+    const separatesPhases =
+      similarity >= baseline + MIN_ENGINEER_PHASE_GAIN ||
+      prefixSimilarity >= baselinePrefix + MIN_ENGINEER_PHASE_PREFIX_GAIN ||
+      discrimination >= MIN_ENGINEER_PHASE_DISCRIMINATION;
+    const quality = similarity + prefixSimilarity * 0.25 + discrimination * 0.25;
+    if (similarity >= MIN_ENGINEER_PHASE_SIMILARITY && separatesPhases && quality > bestQuality) {
+      bestPhaseCount = phaseCount;
+      bestQuality = quality;
+    }
+  }
+  return bestPhaseCount;
+}
+
+/** Uses recurring base-weapon skills as macro boundaries while preserving kit and transform actions inside each loop. */
+function engineerMacroSegments(
+  app: ProfessionAppState,
+  actions: readonly NormalizedAction[],
+  autoattackChains: ReadonlyMap<string, readonly SkillId[]>
+): RotationSegment[] {
+  const autoattackSkillIds = new Set(
+    [...autoattackChains.values()].flatMap((chain) => chain.map((skillId) => String(skillId)))
+  );
+  const positionsByAnchor = new Map<string, number[]>();
+  for (const [index, action] of actions.entries()) {
+    const skill = actionSkill(app, action.skillId);
+    if (
+      action.weaponLine ||
+      action.weaponLineDestination !== undefined ||
+      skill?.type !== 'Weapon' ||
+      autoattackSkillIds.has(String(action.skillId))
+    ) {
+      continue;
+    }
+    const key = skillKey(action.skillId);
+    const positions = positionsByAnchor.get(key) || [];
+    positions.push(index);
+    positionsByAnchor.set(key, positions);
+  }
+
+  let best: { readonly score: number; readonly segments: readonly RotationSegment[] } | null = null;
+  for (const positions of positionsByAnchor.values()) {
+    if (positions.length < 4) continue;
+    // When a rotation has a preamble, reserve the first observed macro pass as
+    // opener evidence and begin displayed loops at the next recurring anchor.
+    const firstInterval = positions[0] >= MIN_STRUCTURAL_LOOP_TOKENS ? 1 : 0;
+    const intervals: RotationSegment[] = [];
+    for (let intervalIndex = firstInterval; intervalIndex < positions.length; intervalIndex += 1) {
+      const start = positions[intervalIndex];
+      const end = positions[intervalIndex + 1] ?? actions.length;
+      const intervalActions = actions.slice(start, end);
+      const tokens = tokenizeActions(intervalActions, autoattackChains);
+      if (tokens.length < MIN_STRUCTURAL_LOOP_TOKENS) continue;
+      intervals.push({
+        sourceIndex: intervals.length,
+        laneKey: 'engineer-macro',
+        label: 'Core Loop',
+        complete: intervalIndex < positions.length - 1,
+        tokens,
+        actions: intervalActions
+      });
+    }
+    const completeIntervals = intervals.filter((segment) => segment.complete);
+    if (completeIntervals.length < 2) continue;
+    const typicalLength = median(completeIntervals.map((segment) => segment.tokens.length));
+    if (typicalLength < MIN_ENGINEER_MACRO_TOKENS || typicalLength > MAX_ENGINEER_MACRO_TOKENS) continue;
+    const lengthDeviation =
+      completeIntervals.reduce((total, segment) => total + Math.abs(segment.tokens.length - typicalLength), 0) /
+      completeIntervals.length;
+    const lengthRegularity = clamp01(1 - lengthDeviation / Math.max(1, typicalLength));
+    const phaseCount = engineerMacroPhaseCount(intervals);
+    const patternSimilarity = meanLagSimilarity(intervals, phaseCount);
+    if (patternSimilarity < MIN_BOUNDARY_COHORT_SIMILARITY) continue;
+    const score =
+      Math.pow(typicalLength, 1.4) * completeIntervals.length * lengthRegularity * (0.5 + patternSimilarity);
+    const phasedSegments = intervals.map((segment, index) => ({
+      ...segment,
+      laneKey: `engineer-macro:${index % phaseCount}`,
+      label: phaseCount > 1 ? `Loop ${(index % phaseCount) + 1}` : 'Core Loop'
+    }));
+    if (!best || score > best.score) best = { score, segments: phasedSegments };
+  }
+  return best ? [...best.segments] : [];
 }
 
 function medoidOf(segments: readonly RotationSegment[]): RotationSegment {
@@ -499,14 +676,22 @@ function boundaryClusters(segments: readonly RotationSegment[]): SegmentCluster[
   }
 
   const clusters: SegmentCluster[] = [];
-  for (const laneSegments of byLane.values()) {
-    const best = bestSimilarCluster(laneSegments);
-    if (!best) continue;
-    clusters.push({
-      ...best,
-      boundaryDriven: true,
-      label: best.medoid.label
-    });
+  for (const [laneKey, laneSegments] of byLane) {
+    let remaining = laneSegments;
+    const maximumVariants = laneKey.startsWith('weapon-set:') ? 2 : 1;
+    // Physical weapon lanes can alternate between two real cooldown variants;
+    // attunement and macro lanes retain one representative cluster per lane.
+    for (let variant = 0; variant < maximumVariants; variant += 1) {
+      const best = bestSimilarCluster(remaining);
+      if (!best) break;
+      clusters.push({
+        ...best,
+        boundaryDriven: true,
+        label: best.medoid.label
+      });
+      const claimed = new Set(best.segments);
+      remaining = remaining.filter((segment) => !claimed.has(segment));
+    }
   }
   return clusters;
 }
@@ -1132,18 +1317,25 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
   let detectedLoops: DetectedRotationLoop[] = [];
   if (segments.length) {
     const normalClusters = boundaryClusters(segments);
-    const normalLoops = normalClusters
-      .map(clusterToDetectedLoop)
-      .filter((loop): loop is DetectedRotationLoop => Boolean(loop));
+    const normalMatches: Array<{ readonly cluster: SegmentCluster; readonly loop: DetectedRotationLoop }> = [];
+    normalClusters.forEach((cluster, index) => {
+      const loop = clusterToDetectedLoop(cluster, index);
+      if (loop) normalMatches.push({ cluster, loop });
+    });
     const guideLoops = boundaryGuideClusters(segments)
-      .map((cluster, index) => clusterToBoundaryGuide(cluster, normalLoops.length + index))
+      .map((cluster, index) => clusterToBoundaryGuide(cluster, normalMatches.length + index))
       .filter((loop): loop is DetectedRotationLoop => Boolean(loop));
-    const guideByLabel = new Map(guideLoops.map((loop) => [loop.label, loop]));
     // Medium/low consensus tends to overstate variable middle actions. Prefer
-    // a stable boundary guide for that lane, while high-confidence loops keep
-    // their full inferred sequence.
-    detectedLoops = normalLoops.map((loop) =>
-      loop.confidence === 'high' ? loop : guideByLabel.get(loop.label) || loop
+    // an exact-variant guide, except when two separately recurring variants
+    // validate that the medium sequence is a real alternate weapon cycle.
+    const normalLabelCounts = new Map<string, number>();
+    for (const { loop } of normalMatches) {
+      normalLabelCounts.set(loop.label, (normalLabelCounts.get(loop.label) || 0) + 1);
+    }
+    detectedLoops = normalMatches.map(({ cluster, loop }, index) =>
+      loop.confidence === 'high' || (loop.confidence === 'medium' && (normalLabelCounts.get(loop.label) || 0) > 1)
+        ? loop
+        : clusterToBoundaryGuide(cluster, index) || loop
     );
     const resolvedLabels = new Set(detectedLoops.map((loop) => loop.label));
     detectedLoops.push(...guideLoops.filter((loop) => !resolvedLabels.has(loop.label)));

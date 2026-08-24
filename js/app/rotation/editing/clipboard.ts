@@ -1,7 +1,7 @@
-import { normalizeRotationInsertionIndex } from '../../platform/ui/insertion-cursor.js';
+import { normalizeRotationInsertionIndex } from '../../../platform/ui/insertion-cursor.js';
 
-import type { RotationCommand } from '../../platform/engine/types.js';
-import type { ProfessionAppState, RotationSelectionRange } from '../profession/types.js';
+import type { RotationCommand } from '../../../platform/engine/types.js';
+import type { ProfessionAppState, RotationSelectionRange } from '../../profession/types.js';
 
 export type RotationSelectionClickResult = 'ignored' | 'pending' | 'copied';
 

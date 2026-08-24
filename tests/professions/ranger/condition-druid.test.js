@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
+import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { migrateRangerBuild } from '../../../js/professions/ranger/build.js';
 import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';

@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession.js';
-import { timedBuffAt } from '../../../../app/rotation/state-snapshot-view.js';
+import { timedBuffAt } from '../../../../app/rotation/state-snapshot/model.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   formatSecondsRemaining,

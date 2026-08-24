@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { displayedFlipSkills } from '../../js/app/rotation/palette-model.js';
+import { displayedFlipSkills } from '../../js/app/rotation/palette/model.js';
 import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';

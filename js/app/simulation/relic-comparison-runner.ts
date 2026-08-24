@@ -1,4 +1,4 @@
-import { buildChartSeries } from '../rotation/result-model.js';
+import { buildChartSeries } from '../rotation/result/model.js';
 import { buildRelicComparisonModel } from './relic-comparison.js';
 import type { ProfessionAppState } from '../profession/types.js';
 

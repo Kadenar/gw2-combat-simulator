@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '../../../js/app/rotation/palette-view.js';
+import { renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { paletteView } from '../../../js/platform/ui/palette.js';
 import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';

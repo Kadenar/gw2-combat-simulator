@@ -5,7 +5,7 @@ import {
   mesmerResourceViews,
   mesmerUiState
 } from '../../core/ui.js';
-import { timedBuffAt } from '../../../../app/rotation/state-snapshot-view.js';
+import { timedBuffAt } from '../../../../app/rotation/state-snapshot/model.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,

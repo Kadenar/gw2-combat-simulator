@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { loadProfession, professionOptions } from '../../js/app/profession/registry.js';
-import { displayedSkillTiles } from '../../js/app/rotation/palette-model.js';
-import { paletteSkillView } from '../../js/app/rotation/palette-view.js';
+import { displayedSkillTiles } from '../../js/app/rotation/palette/model.js';
+import { paletteSkillView } from '../../js/app/rotation/palette/view.js';
 
 function projectionApp(
   profession,

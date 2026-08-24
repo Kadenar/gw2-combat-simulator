@@ -9,22 +9,22 @@ import {
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
   updateRotationEntry
-} from '../../platform/ui/timeline.js';
+} from '../../../platform/ui/timeline.js';
 import {
   activationDamageCommitMs,
   closeActivationEditor,
   openActivationEditor,
   suggestedActivationInterruptMs
-} from '../../platform/ui/activation-editor.js';
-import { closeChargeReleaseEditor } from '../../platform/ui/charge-release-editor.js';
-import { closeDurationEditor, openDurationEditor } from '../../platform/ui/duration-editor.js';
-import { escapeHtml as esc } from '../../platform/ui/html.js';
+} from '../../../platform/ui/activation-editor.js';
+import { closeChargeReleaseEditor } from '../../../platform/ui/charge-release-editor.js';
+import { closeDurationEditor, openDurationEditor } from '../../../platform/ui/duration-editor.js';
+import { escapeHtml as esc } from '../../../platform/ui/html.js';
 import {
   mountRotationInsertionCursor,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
-} from '../../platform/ui/insertion-cursor.js';
-import { activeSpecialization, professionEndState } from './context.js';
+} from '../../../platform/ui/insertion-cursor.js';
+import { activeSpecialization, professionEndState } from '../shared/context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,
@@ -32,19 +32,23 @@ import {
   PLACEHOLDER_ICON,
   WAIT_ICON,
   resolveProcIcon
-} from './icons.js';
-import { renderPalette, resolvePaletteDropItem } from './palette-view.js';
-import { renderRotationStateSnapshot } from './state-snapshot-view.js';
-import { createRotationItem, resolveEntrySkill } from './actions.js';
-import { clearRotationSelection, handleRotationSelectionClick, syncRotationClipboardView } from './clipboard.js';
-import { openDragonSlashReleaseEditor } from './charge-release.js';
+} from '../shared/icons.js';
+import { renderPalette, resolvePaletteDropItem } from '../palette/view.js';
+import { renderRotationStateSnapshot } from '../state-snapshot/view.js';
+import { createRotationItem, resolveEntrySkill } from '../editing/actions.js';
+import {
+  clearRotationSelection,
+  handleRotationSelectionClick,
+  syncRotationClipboardView
+} from '../editing/clipboard.js';
+import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
 import {
   closeDoubleEdgeEditor,
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
-} from './double-edge.js';
-import { formatTimelineTime, resultCombatReferenceMs } from './result-model.js';
+} from '../editing/double-edge.js';
+import { formatTimelineTime, resultCombatReferenceMs } from '../result/model.js';
 import {
   automaticTomeStowTimelineMarkers,
   continuumEndTimelineMarkers,
@@ -61,11 +65,11 @@ import {
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
   timelineWeaponRows
-} from './timeline-model.js';
-import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '../../platform/engine/types.js';
-import type { Gw2ProcStep } from '../../platform/gw2/types.js';
-import type { TimelineInteractionOptions } from '../../platform/ui/types.js';
-import type { ProfessionAppState, RotationActionOptions } from '../profession/types.js';
+} from './model.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '../../../platform/engine/types.js';
+import type { Gw2ProcStep } from '../../../platform/gw2/types.js';
+import type { TimelineInteractionOptions } from '../../../platform/ui/types.js';
+import type { ProfessionAppState, RotationActionOptions } from '../../profession/types.js';
 
 type TimelineItem = SchedulerRecord & {
   command: RotationCommand;

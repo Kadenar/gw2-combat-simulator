@@ -2,9 +2,9 @@ import {
   openChargeReleaseEditor,
   type ChargeReleaseEditorHandle,
   type ChargeReleaseEditorRow
-} from '../../platform/ui/charge-release-editor.js';
-import type { SchedulerRecord, Skill } from '../../platform/engine/types.js';
-import type { ProfessionAppState } from '../profession/types.js';
+} from '../../../platform/ui/charge-release-editor.js';
+import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
   if (!Array.isArray(value)) return [];

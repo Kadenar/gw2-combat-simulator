@@ -1,3 +1,4 @@
+/** Converts GW2's exported keybind XML into rotation-builder hotkey bindings. */
 import type { RotationHotkeyAction, RotationHotkeyBindings } from './hotkeys.js';
 
 export interface Gw2HotkeyImportResult {

@@ -19,17 +19,17 @@ import {
   formatResultTimelineTime,
   resultSummaryMetrics,
   skillBreakdownRows
-} from '../../../js/app/rotation/result-model.js';
-import { activeResourceGroup } from '../../../js/app/rotation/resource-view.js';
-import { displayedWeaponSkills } from '../../../js/app/rotation/palette-model.js';
-import { paletteSkillView } from '../../../js/app/rotation/palette-view.js';
+} from '../../../js/app/rotation/result/model.js';
+import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-view.js';
+import { displayedWeaponSkills } from '../../../js/app/rotation/palette/model.js';
+import { paletteSkillView } from '../../../js/app/rotation/palette/view.js';
 import {
   continuumEndTimelineMarkers,
   shatterResourceSpends,
   timelineWeaponRows
-} from '../../../js/app/rotation/timeline-model.js';
-import { simulationEventLogCsv, simulationEventLogRows } from '../../../js/app/rotation/event-log.js';
-import { rotationWarningItems } from '../../../js/app/rotation/warnings.js';
+} from '../../../js/app/rotation/timeline/model.js';
+import { simulationEventLogCsv, simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
+import { rotationWarningItems } from '../../../js/app/rotation/result/warnings.js';
 import { RELIC_DATA } from '../../../js/platform/gw2/gear-data.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
