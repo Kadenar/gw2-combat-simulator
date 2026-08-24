@@ -773,10 +773,11 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     weapon: 'Scepter',
     specialization: '',
     environment: 'Terrestrial',
-    quicknessCastTimeMs: 1333.333333333,
+    quicknessCastTimeMs: 1200,
     cooldown: 6,
     effects: [],
-    defaultInterruptMs: 120
+    defaultInterruptMs: 120,
+    interruptCommitMs: 120
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
     implemented: true,
