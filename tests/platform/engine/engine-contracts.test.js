@@ -6,6 +6,7 @@ import {
   assertScheduledEventStream,
   buildScheduledEventStream
 } from '../../../js/platform/engine/scheduled-event-stream.js';
+import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engine/state-snapshots.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.throws(
@@ -98,4 +99,35 @@ test('typed event and stream constructors return immutable envelopes', () => {
       }),
     /Invalid scheduled event stream/
   );
+});
+
+test('state snapshot emission removes only matching adjacent synchronization checkpoints', () => {
+  const events = [];
+  const context = {
+    events,
+    emit(event) {
+      const emitted = createEvent(event);
+      events.push(emitted);
+      return emitted;
+    }
+  };
+  const event = (sourceId, state) => ({
+    type: 'fixture.state',
+    at: 1,
+    source: 'fixture',
+    sourceId,
+    actorType: 'player',
+    state
+  });
+
+  assert.equal(sameSnapshotValue({ values: [Number.NaN, -0] }, { values: [Number.NaN, -0] }), true);
+  assert.ok(emitStateSnapshot(context, event('fixture.state.first', { resource: 10 })));
+  assert.equal(emitStateSnapshot(context, event('fixture.state.first', { resource: 10 })), null);
+  assert.ok(emitStateSnapshot(context, event('fixture.state.second', { resource: 10 })));
+  assert.equal(
+    emitStateSnapshot(context, event('fixture.state.third', { resource: 10 }), { dedupeAcrossSourceIds: true }),
+    null
+  );
+  assert.ok(emitStateSnapshot(context, event('fixture.state.third', { resource: 9 })));
+  assert.equal(events.length, 3);
 });

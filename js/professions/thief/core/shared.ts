@@ -1,10 +1,11 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
+import { emitStateSnapshot } from '../../../platform/engine/state-snapshots.js';
 import { snapshotThiefState } from '../state.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ThiefSchedulerContext, ThiefEmissionContext, ThiefSkill } from '../types.js';
 
 export function emitThiefState(context: ThiefSchedulerContext, at: number, reason: string): void {
-  context.emit({
+  emitStateSnapshot(context, {
     type: 'thief.state',
     at,
     source: 'thief',

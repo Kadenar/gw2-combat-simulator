@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
+import { emitStateSnapshot } from '../../../platform/engine/state-snapshots.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
 /**
  * Shared primitives for every necromancer skill handler.
@@ -60,15 +61,19 @@ export function hasTrait(context: { readonly config: NecromancerConfig }, traitI
 }
 
 export function emitState(context: NecromancerSchedulerContext, at: number, reason = ''): void {
-  context.emit({
-    type: 'necromancer.state',
-    at,
-    source: 'necromancer',
-    sourceId: `necromancer.state.${reason || 'update'}`,
-    actorType: 'player',
-    reason,
-    state: snapshotNecromancerState(context.state.profession)
-  });
+  emitStateSnapshot(
+    context,
+    {
+      type: 'necromancer.state',
+      at,
+      source: 'necromancer',
+      sourceId: `necromancer.state.${reason || 'update'}`,
+      actorType: 'player',
+      reason,
+      state: snapshotNecromancerState(context.state.profession)
+    },
+    { dedupeAcrossSourceIds: true }
+  );
 }
 
 export function emitDamage(

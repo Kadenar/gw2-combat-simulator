@@ -22,4 +22,5 @@ export * from './scheduled-event-stream.js';
 export * from './scheduler-state.js';
 export * from './scheduler.js';
 export * from './skill-factories.js';
+export * from './state-snapshots.js';
 export * from './task-queue.js';
