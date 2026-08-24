@@ -9,6 +9,8 @@ import {
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreControl,
   reactToNecromancerCoreDamage,
+  reactToTasteForBloodAlliedHit,
+  reactToTasteForBloodGrant,
   reactToVampiricPresenceAlliedHit
 } from './traits.js';
 
@@ -20,6 +22,8 @@ export const necromancerCoreResolverEventHandlers = Object.freeze({
   'necromancer.chill': handleNecromancerChillEvent,
   'necromancer.revive': handleNecromancerReviveEvent,
   'necromancer.summon-attack': handleNecromancerSummonAttack,
+  'necromancer.taste-for-blood-grant': reactToTasteForBloodGrant,
+  'necromancer.taste-for-blood-allied-hit': reactToTasteForBloodAlliedHit,
   'necromancer.vampiric-presence-allied-hit': reactToVampiricPresenceAlliedHit
 });
 

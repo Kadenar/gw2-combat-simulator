@@ -13,6 +13,18 @@ import { effectName, resultCombatReferenceMs } from './model.js';
 
 type OrderedEventLogRow = EventLogRow & { readonly order: number };
 
+/** Converts stable minion ownership ids into readable per-minion log labels. */
+function minionAttackerLabel(event: SimulationEvent): string {
+  const match = /^minion:([^:]+):(\d+)$/.exec(String(event.summonOwner || ''));
+  if (!match) return '';
+  const name = match[1]
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  return name ? `${name} #${Number(match[2]) + 1}` : '';
+}
+
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: ProfessionApplicationBuild | null = null,
@@ -172,10 +184,15 @@ export function simulationEventLogRows(
     if (event.type === 'damage') {
       const isCloneHit = event.source === 'Clone';
       const source = isCloneHit ? 'CLONE HIT' : 'HIT';
+      // Preserve trigger-only allied and per-minion identities on proc rows
+      // without splitting their damage-breakdown attribution.
+      const triggeredBy = String(event.triggeredBy || '');
+      const alliedAttacker = /^Allied Player \d+ Attack$/.test(triggeredBy) ? triggeredBy : '';
+      const attacker = alliedAttacker || minionAttackerLabel(event);
       push(
         event.at,
         'damage',
-        `${source} ${event.name} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
+        `${source} ${event.name}${attacker ? ` [${attacker}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
         isCloneHit ? 'resource' : '',
         isCloneHit
       );

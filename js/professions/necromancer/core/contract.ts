@@ -7,13 +7,25 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { advanceNecromancerState, finalizeNecromancerCast } from './life-force.js';
-import { gainNecromancerLifeForce } from './shared.js';
 import { transferNecromancerSelfConditions } from './conditions.js';
-import { addCarapace, emitBuff, emitCondition, emitDamage, hasTrait } from './shared.js';
+import {
+  addCarapace,
+  emitBuff,
+  emitCondition,
+  emitDamage,
+  gainNecromancerLifeForce,
+  hasTrait,
+  necromancerPartyBoonRecipients
+} from './shared.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
 import { necromancerMinionTaskHandlers } from './minions.js';
 import { necromancerCastAvailability, requiredShroud, validateNecromancerBuild } from './availability.js';
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  balanceProfileEffect,
+  necromancerBalanceProfile
+} from './profiles.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -78,6 +90,44 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
   }
 }
 
+const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
+  [ID.NECROTIC_BITE, 1],
+  [ID.LIFE_SIPHON, 3],
+  [ID.DARK_PACT, 3],
+  [ID.DEATHLY_SWARM, 3],
+  [ID.ENFEEBLING_BLOOD, 3]
+]);
+
+/**
+ * Grants Taste for Blood at activation so the granting dagger skill's own
+ * direct hits can immediately spend the independently shared party stacks.
+ */
+function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): void {
+  if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
+  const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
+  if (!stacks) return;
+
+  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
+  const duration = Number(effect?.duration || 10);
+  const recipients = necromancerPartyBoonRecipients(context);
+  emitBuff(context, skill, String(effect?.kind || 'taste-for-blood'), duration, stacks, {
+    at: context.start,
+    metadata: recipients
+  });
+  context.emit({
+    type: 'necromancer.taste-for-blood-grant',
+    at: context.start,
+    source: 'Trait',
+    sourceId: TRAIT.OVERFLOWING_THIRST,
+    actorType: 'effect',
+    skillId: skill.id,
+    skillName: skill.name,
+    duration,
+    stacks,
+    ...recipients
+  });
+}
+
 /**
  * Applies all Necromancer after-cast state transitions and trait effects, then
  * lets the profession handler finalize the skill.
@@ -112,10 +162,6 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
         damageKind: 'life-steal'
       }
     });
-  }
-
-  if (skill.type === 'Weapon' && skill.weapon === 'Dagger' && hasTrait(context, TRAIT.OVERFLOWING_THIRST)) {
-    emitBuff(context, skill, 'taste-for-blood', 10);
   }
 
   if (
@@ -225,6 +271,7 @@ export const necromancerCastRules = Object.freeze({
  */
 export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
+  onCastStart,
   afterCast,
   /**
    * Clears simulated self-conditions after a global cooldown reset.

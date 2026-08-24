@@ -2,9 +2,10 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { TRAITS as NECROMANCER_TRAITS } from '../data/traits-data.js';
 import { addCarapace } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { gw2AlliedEffectRecipients } from '../../../platform/gw2/allied-players.js';
+import { gw2AlliedEffectRecipients, gw2BoonApplicationRecipients } from '../../../platform/gw2/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/native-profession.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
@@ -39,6 +40,8 @@ interface TraitCoefficientDefinition {
   readonly traitId: SkillId;
   readonly coefficient: number;
   readonly noCrit?: boolean;
+  readonly damageKind?: string;
+  readonly icon?: string;
 }
 
 interface TraitVulnerabilityDefinition {
@@ -70,6 +73,7 @@ function queueTraitDamage(
     skillWeapon: 'Unequipped',
     noCrit: true,
     damageKind: 'life-steal',
+    ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
     triggeredBy: event.skillName
   });
   context.recordProc?.('trait', name, event.at, event.skillName);
@@ -106,7 +110,7 @@ export function applyTraitCondition(
 export function queueTraitCoefficientDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  { name, traitId, coefficient, noCrit = true }: TraitCoefficientDefinition
+  { name, traitId, coefficient, noCrit = true, damageKind, icon }: TraitCoefficientDefinition
 ): void {
   enqueueOrdered(context.queue, {
     type: 'damage',
@@ -122,6 +126,9 @@ export function queueTraitCoefficientDamage(
     actorType: 'effect',
     skillWeapon: 'Unequipped',
     noCrit,
+    ...(damageKind ? { damageKind } : {}),
+    ...(icon ? { icon } : {}),
+    ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
     triggeredBy: event.skillName
   });
   context.recordProc?.('trait', name, event.at, event.skillName);
@@ -244,10 +251,97 @@ export function rolledCritical(details: NecromancerResolverReactionDetails): boo
   return details.hitContext?.critical?.didCrit === true;
 }
 
-function hasActiveBuff(context: NecromancerResolverContext, kind: string, at: number): boolean {
-  return (context.boons.get(kind) || []).some(
-    (application) => application.at <= at && application.expiresAt > at && application.stacks > 0
+// Taste for Blood is intensity-stacked: each recipient hit removes exactly one
+// stack from that recipient's pool while leaving every other pool untouched.
+function consumeActiveBuffStack(
+  context: NecromancerResolverContext,
+  kind: string,
+  at: number,
+  selfApplication = true
+): boolean {
+  const applications = context.boons.get(kind) || [];
+  const index = applications.findIndex(
+    (application) =>
+      (!selfApplication || application.affectsSelf !== false) &&
+      application.at <= at &&
+      application.expiresAt > at &&
+      application.stacks > 0
   );
+  if (index < 0) return false;
+
+  const application = applications[index];
+  if (application.stacks === 1) {
+    applications.splice(index, 1);
+  } else {
+    applications[index] = { ...application, stacks: application.stacks - 1 };
+  }
+  context.boons.set(kind, applications);
+  return true;
+}
+
+function alliedTasteForBloodKind(allyIndex: number): string {
+  return `taste-for-blood:ally:${allyIndex}`;
+}
+
+function companionTasteForBloodKind(companionId: string): string {
+  return `taste-for-blood:companion:${companionId}`;
+}
+
+function addTasteForBloodApplication(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent,
+  kind: string
+): void {
+  const applications = context.boons.get(kind) || [];
+  applications.push({
+    at: event.at,
+    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    stacks: Math.max(1, Number(event.stacks || 1)),
+    source: event.source,
+    affectsSelf: false
+  });
+  context.boons.set(kind, applications);
+}
+
+// Trait-derived Taste for Blood packets keep Overflowing Thirst artwork so
+// damage breakdown attribution matches the mechanic that granted the stacks.
+const OVERFLOWING_THIRST_ICON = String(
+  NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || ''
+);
+
+function queueTasteForBlood(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'strike');
+  queueTraitCoefficientDamage(context, event, {
+    name: 'Taste for Blood',
+    traitId: TRAIT.OVERFLOWING_THIRST,
+    coefficient: Number(effect?.coefficient ?? 0.05),
+    noCrit: effect?.metadata?.noCrit !== false,
+    damageKind: String(effect?.metadata?.damageKind || 'life-steal'),
+    icon: OVERFLOWING_THIRST_ICON
+  });
+}
+
+/** Gives each selected player or minion its own expiring stack application. */
+export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
+  const recipients = gw2BoonApplicationRecipients(context.config, event);
+  for (let allyIndex = 1; allyIndex <= recipients.alliedPlayerCount; allyIndex += 1) {
+    addTasteForBloodApplication(context, event, alliedTasteForBloodKind(allyIndex));
+  }
+  for (const companionId of recipients.companionIds) {
+    addTasteForBloodApplication(context, event, companionTasteForBloodKind(companionId));
+  }
+}
+
+/** An allied hit consumes only that ally's Taste for Blood stack pool. */
+export function reactToTasteForBloodAlliedHit(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent
+): void {
+  if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
+  const allyIndex = Number(event.allyIndex || 0);
+  if (!allyIndex || !consumeActiveBuffStack(context, alliedTasteForBloodKind(allyIndex), event.at, false)) return;
+  queueTasteForBlood(context, event);
 }
 
 export function applyTraitVulnerability(
@@ -411,13 +505,18 @@ export function reactToNecromancerCoreDamage(
     if (actorKey) queueVampiricPresence(context, event, actorKey);
   }
 
-  if (hasTrait(context, TRAIT.OVERFLOWING_THIRST) && hasActiveBuff(context, 'taste-for-blood', event.at)) {
-    queueTraitDamage(context, event, {
-      name: 'Taste for Blood',
-      traitId: TRAIT.OVERFLOWING_THIRST,
-      flatStrikeBase: 325,
-      flatStrikePowerCoeff: 0
-    });
+  const tasteForBloodKind =
+    event.actorType === 'player'
+      ? 'taste-for-blood'
+      : event.actorType === 'summon' && event.summonOwner
+        ? companionTasteForBloodKind(String(event.summonOwner))
+        : null;
+  if (
+    hasTrait(context, TRAIT.OVERFLOWING_THIRST) &&
+    tasteForBloodKind &&
+    consumeActiveBuffStack(context, tasteForBloodKind, event.at, event.actorType === 'player')
+  ) {
+    queueTasteForBlood(context, event);
   }
 }
 

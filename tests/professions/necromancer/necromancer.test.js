@@ -1567,6 +1567,141 @@ test('dagger skills use their current PvE strike and bleeding mechanics', () => 
   assert.ok(Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12);
 });
 
+test('Overflowing Thirst grants the documented Taste for Blood stacks to five party members', () => {
+  const cases = [
+    ['Life Siphon', ID.LIFE_SIPHON, 3],
+    ['Dark Pact', ID.DARK_PACT, 3],
+    ['Deathly Swarm', ID.DEATHLY_SWARM, 3],
+    ['Enfeebling Blood', ID.ENFEEBLING_BLOOD, 3]
+  ];
+
+  for (const [name, skillId, stacks] of cases) {
+    const result = simulate(
+      'Core',
+      [name],
+      {
+        primaryWeapon: 'Dagger',
+        secondaryWeapon: 'Dagger',
+        selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
+        allies: { count: 4 }
+      },
+      observationTail(2000)
+    );
+    const application = result.events.find(
+      (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === skillId
+    );
+
+    assert.equal(application?.stacks, stacks, name);
+    assert.equal(application?.affectsSelf, true, name);
+    assert.equal(application?.alliedPlayerCount, 4, name);
+    assert.equal(application?.recipientCount, 5, name);
+  }
+
+  const chain = simulate('Core', ['Necrotic Slash', 'Necrotic Stab', 'Necrotic Bite'], {
+    primaryWeapon: 'Dagger',
+    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
+  });
+  const applications = chain.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
+
+  assert.deepEqual(
+    applications.map((event) => [event.skillId, event.stacks]),
+    [[ID.NECROTIC_BITE, 1]]
+  );
+});
+
+test('Taste for Blood consumes one stack per direct hit and deals a 0.05 life siphon', () => {
+  const lifeSiphon = simulate(
+    'Core',
+    ['Life Siphon'],
+    {
+      primaryWeapon: 'Dagger',
+      selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
+    },
+    observationTail(3000)
+  );
+  const chain = simulate('Core', ['Necrotic Slash', 'Necrotic Stab', 'Necrotic Bite', 'Necrotic Slash'], {
+    primaryWeapon: 'Dagger',
+    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
+  });
+  const lifeSiphonPackets = lifeSiphon.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.OVERFLOWING_THIRST
+  );
+  const chainPackets = chain.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.OVERFLOWING_THIRST
+  );
+  const breakdown = skillBreakdownRows(lifeSiphon).find((row) => row.name === 'Taste for Blood');
+  const traitIcon = necromancerCatalog.traits.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon;
+
+  assert.equal(lifeSiphonPackets.length, 3);
+  assert.equal(chainPackets.length, 1);
+  assert.equal(breakdown?.icon, traitIcon);
+  assert.equal(
+    lifeSiphonPackets.every(
+      (event) => event.coefficient === 0.05 && event.damageKind === 'life-steal' && event.noCrit === true
+    ),
+    true
+  );
+});
+
+test('allied players consume independent Taste for Blood stack pools', () => {
+  const result = simulate(
+    'Core',
+    ['Life Siphon'],
+    {
+      primaryWeapon: 'Dagger',
+      selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
+      allies: { count: 2, strikesPerSecond: 10 }
+    },
+    observationTail(3000)
+  );
+  const packets = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.OVERFLOWING_THIRST
+  );
+  const triggerCounts = packets.reduce((counts, event) => {
+    counts[event.triggeredBy] = (counts[event.triggeredBy] || 0) + 1;
+    return counts;
+  }, {});
+
+  assert.deepEqual(triggerCounts, {
+    'Allied Player 1 Attack': 3,
+    'Allied Player 2 Attack': 3,
+    'Life Siphon': 3
+  });
+});
+
+test('Taste for Blood gives minions independent pools after higher-priority players', () => {
+  const run = (allies) =>
+    simulate(
+      'Core',
+      ['Summon Bone Minions', 'Life Siphon', { type: 'wait', durationMs: 5000 }],
+      {
+        primaryWeapon: 'Dagger',
+        selectedSkills: ['Summon Bone Minions'],
+        selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
+        allies: { count: allies, strikesPerSecond: 0 }
+      },
+      observationTail(3000)
+    );
+  const minionPacketOwners = (result) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'damage' &&
+          event.sourceId === TRAIT.OVERFLOWING_THIRST &&
+          String(event.summonOwner).startsWith('minion:bone-minion:')
+      )
+      .map((event) => event.summonOwner);
+  const uncapped = run(0);
+  const partiallyCapped = run(3);
+  const capped = run(4);
+  const uncappedOwners = minionPacketOwners(uncapped);
+
+  assert.equal(uncappedOwners.includes('minion:bone-minion:0'), true);
+  assert.equal(uncappedOwners.includes('minion:bone-minion:1'), true);
+  assert.deepEqual([...new Set(minionPacketOwners(partiallyCapped))], ['minion:bone-minion:0']);
+  assert.deepEqual(minionPacketOwners(capped), []);
+});
+
 test('off-hand sword follow-ups use their complete PvE effects', () => {
   const result = simulate(
     'Core',
@@ -2142,25 +2277,65 @@ test('Vampiric Presence supports four allied players and respects its five-targe
     stats: { power: 1000 },
     allies: { count: 4, strikesPerSecond: 0 }
   });
+  const boneMinions = (allies = 0) =>
+    simulate('Core', ['Summon Bone Minions', { type: 'wait', durationMs: 4500 }], {
+      selectedSkills: ['Summon Bone Minions'],
+      selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+      stats: { power: 1000 },
+      allies: { count: allies, strikesPerSecond: 0 }
+    });
   const alliedSiphons = allies.resolvedEvents.filter(
     (event) => event.type === 'damage' && String(event.triggeredBy).startsWith('Allied Player')
+  );
+  const alliedRows = simulationEventLogRows(allies, null, necromancerProfession).filter((row) =>
+    row.description.startsWith('HIT Vampiric Presence')
   );
   const minionSiphons = (result) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.name === 'Vampiric Presence' && event.triggeredBy === 'Bone Shard'
     );
+  const boneMinionSiphons = (result) =>
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === 'damage' &&
+        event.name === 'Vampiric Presence' &&
+        String(event.summonOwner).startsWith('minion:bone-minion:')
+    );
+  const uncappedBoneMinions = boneMinions();
+  const partiallyCappedBoneMinions = boneMinions(3);
 
   assert.equal(alliedSiphons.length, 8);
   assert.deepEqual(
     [...new Set(alliedSiphons.map((event) => event.triggeredBy))],
     ['Allied Player 1 Attack', 'Allied Player 2 Attack', 'Allied Player 3 Attack', 'Allied Player 4 Attack']
   );
+  assert.equal(alliedRows.length, 8);
+  for (let allyIndex = 1; allyIndex <= 4; allyIndex += 1) {
+    assert.equal(
+      alliedRows.some((row) => row.description.includes(`[Allied Player ${allyIndex} Attack]`)),
+      true
+    );
+  }
   assert.equal(
     alliedSiphons.every((event) => Math.abs(event.damage - 65.3) < 1e-12),
     true
   );
   assert.equal(minionSiphons(minion).length > 0, true);
   assert.equal(minionSiphons(cappedMinion).length, 0);
+  assert.deepEqual(
+    [...new Set(boneMinionSiphons(uncappedBoneMinions).map((event) => event.summonOwner))],
+    ['minion:bone-minion:0', 'minion:bone-minion:1']
+  );
+  assert.deepEqual(
+    [...new Set(boneMinionSiphons(partiallyCappedBoneMinions).map((event) => event.summonOwner))],
+    ['minion:bone-minion:0']
+  );
+  assert.equal(
+    simulationEventLogRows(uncappedBoneMinions, null, necromancerProfession).some((row) =>
+      row.description.startsWith('HIT Vampiric Presence [Bone Minion #1]')
+    ),
+    true
+  );
 });
 
 test('Rigor Mortis is instant and fires two immobilizing projectile finishers', () => {
@@ -3467,10 +3642,6 @@ test('remaining outgoing Necromancer trait families affect combat state', () => 
     selectedSkills: ['Signet of Spite'],
     selectedTraitIds: [TRAIT.SIGNETS_OF_SUFFERING]
   });
-  const thirst = simulate('Core', ['Necrotic Slash', 'Necrotic Stab'], {
-    primaryWeapon: 'Dagger',
-    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
-  });
   const brew = simulate('Harbinger', ['Elixir of Risk'], {
     selectedSkills: ['Elixir of Risk'],
     selectedTraitIds: [TRAIT.BOLSTERING_BREW]
@@ -3487,10 +3658,6 @@ test('remaining outgoing Necromancer trait families affect combat state', () => 
   );
   assert.equal(
     signet.breakdown.some((entry) => entry.name === 'Signets of Suffering'),
-    true
-  );
-  assert.equal(
-    thirst.breakdown.some((entry) => entry.name === 'Taste for Blood'),
     true
   );
   assert.equal(
@@ -4074,6 +4241,24 @@ test('Necromancer state events have a real event-log presentation', () => {
   assert.equal(rows[0].type, 'necromancer.state');
   assert.match(rows[0].description, /shroud-enter.*Life force 82\.5.*Shroud reaper.*Blight 3.*Soul shards 2/);
   assert.doesNotMatch(rows[0].description, /UNPRESENTED CUSTOM EVENT/);
+});
+
+test('Necromancer siphon bookkeeping events stay out of the event log', () => {
+  const rows = simulationEventLogRows(
+    {
+      events: [
+        { type: 'necromancer.taste-for-blood-grant', at: 0, stacks: 3, duration: 10 },
+        { type: 'necromancer.taste-for-blood-allied-hit', at: 1, allyIndex: 1 },
+        { type: 'necromancer.vampiric-presence-allied-hit', at: 1, allyIndex: 1 }
+      ],
+      resolvedEvents: [],
+      endState: { profession: {} }
+    },
+    null,
+    necromancerProfession
+  );
+
+  assert.deepEqual(rows, []);
 });
 
 test('slot skills are inaccessible in transformed shrouds', () => {

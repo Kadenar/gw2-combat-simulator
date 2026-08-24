@@ -145,12 +145,46 @@ function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, st
   state.traitProcReadyAt.vampiricPresenceAlliedNextAt = nextAt;
 }
 
+// Allied attack opportunities are trigger-only events. Resolver-owned stack
+// pools decide independently whether each player can spend Taste for Blood.
+function emitAlliedTasteForBloodHits(context: NecromancerSchedulerContext, start: number, end: number): void {
+  if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
+  const allies = gw2AlliedPlayerAssumptions(context.config);
+  if (!allies.count || !allies.strikesPerSecond) return;
+  const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
+  if (combatStart == null || end < combatStart - context.epsilon) return;
+
+  const state = professionCoreState(context);
+  const interval = 1 / allies.strikesPerSecond;
+  const windowStart = Math.max(start, combatStart);
+  let nextAt = Number(state.traitProcReadyAt.tasteForBloodAlliedNextAt || 0);
+  if (!(nextAt > windowStart + context.epsilon)) nextAt = windowStart + interval;
+  while (nextAt <= end + context.epsilon) {
+    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
+      context.emit({
+        type: 'necromancer.taste-for-blood-allied-hit',
+        at: nextAt,
+        source: 'Trait',
+        sourceId: TRAIT.OVERFLOWING_THIRST,
+        actorType: 'effect',
+        skillName: `Allied Player ${allyIndex} Attack`,
+        allyIndex
+      });
+    }
+
+    nextAt += interval;
+  }
+
+  state.traitProcReadyAt.tasteForBloodAlliedNextAt = nextAt;
+}
+
 export function advanceNecromancerState(context: NecromancerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const start = Number(state.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   purgeTimedState(state, end);
   emitAlliedVampiricPresenceHits(context, start, end);
+  emitAlliedTasteForBloodHits(context, start, end);
 
   if (activeSignetOfUndeath(context)) {
     const passive = necromancerBalanceProfile(context, PROFILE.signetOfUndeathPassive);

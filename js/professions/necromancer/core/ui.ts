@@ -250,8 +250,17 @@ export function necromancerEventLogRow(
     };
   }
 
-  // Internal revive and summon packets do not have independent result rows.
-  if (['necromancer.revive', 'necromancer.summon-attack'].includes(event?.type)) {
+  // Internal lifecycle and per-recipient trigger packets only support combat
+  // resolution; hiding them keeps bookkeeping out of the player event log.
+  if (
+    [
+      'necromancer.revive',
+      'necromancer.summon-attack',
+      'necromancer.taste-for-blood-grant',
+      'necromancer.taste-for-blood-allied-hit',
+      'necromancer.vampiric-presence-allied-hit'
+    ].includes(event?.type)
+  ) {
     return null;
   }
 

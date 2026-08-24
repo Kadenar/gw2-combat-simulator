@@ -17,6 +17,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   barbedPrecision: TRAIT.BARBED_PRECISION,
   vampiric: TRAIT.VAMPIRIC,
   vampiricPresence: TRAIT.VAMPIRIC_PRESENCE,
+  overflowingThirst: TRAIT.OVERFLOWING_THIRST,
   chillingDarkness: TRAIT.CHILLING_DARKNESS,
   insidiousDisruption: TRAIT.INSIDIOUS_DISRUPTION,
   reapersMight: TRAIT.REAPERS_MIGHT,
@@ -213,6 +214,24 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect',
         packetLabel: 'shroud',
+        metadata: { noCrit: true, damageKind: 'life-steal' }
+      }
+    ]
+  }),
+  trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.overflowingThirst, 'Overflowing Thirst', {
+    effects: [
+      {
+        type: 'buff',
+        kind: 'taste-for-blood',
+        stacks: 3,
+        duration: 10,
+        actorType: 'player'
+      },
+      {
+        type: 'strike',
+        coefficient: 0.05,
+        hits: 1,
+        actorType: 'effect',
         metadata: { noCrit: true, damageKind: 'life-steal' }
       }
     ]
