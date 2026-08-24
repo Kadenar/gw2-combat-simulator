@@ -13,7 +13,7 @@ import {
   FAMILIAR_INTERRUPT_WINDOWS,
   FAMILIAR_PROFILE_BY_BASIC
 } from './constants.js';
-import { triggerSpecializedElementEntry } from './attunements.js';
+import { completeEvokerAttunement, triggerSpecializedElementEntry } from './attunements.js';
 import { materializeArmedElectricEnchantments } from './enchantments.js';
 import {
   emitResource,
@@ -297,6 +297,11 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, mu
 }
 
 export function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
+  // Evoker supplies its trait-proc policy before Core's completion hook, while Core still owns the shared transition.
+  if (completeEvokerAttunement(context, skill)) {
+    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
+  }
+
   const state = evokerState.from(context);
   const at = context.effectiveEnd;
   const completesActiveFamiliar = state.activeFamiliarCast?.reservationId === context.reservationId;

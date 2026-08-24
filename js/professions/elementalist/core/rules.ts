@@ -33,11 +33,11 @@ export {
 } from './mechanics.js';
 export {
   grantElementalistRockSolid,
-  triggerElementalistBountifulPower,
-  triggerElementalistEarthenBlast,
-  triggerElementalistElectricDischarge,
-  triggerElementalistFlameExpulsion,
-  triggerElementalistSunspot
+  triggerBountifulPower,
+  triggerEarthenBlast,
+  triggerElectricDischarge,
+  triggerFlameExpulsion,
+  triggerSunspot
 } from './traits.js';
 
 import { criticalChance } from '../../../platform/gw2/damage.js';

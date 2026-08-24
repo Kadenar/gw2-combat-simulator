@@ -1643,6 +1643,68 @@ test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent 5-se
   assert.equal(procs(nonFire, 'Flame Expulsion').length, attempts(nonFire, 'exit').length);
 });
 
+test('Air-specialized Evoker leaves Electric Discharge without an internal cooldown', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Evoker']],
+    rotation: [
+      'Raging Ricochet',
+      'Earth Attunement',
+      'Air Attunement',
+      'Water Attunement',
+      'Air Attunement',
+      'Fire Attunement'
+    ],
+    startAttunement: 'Fire',
+    weapons: ['Pistol', 'Dagger'],
+    evokerElement: 'Air'
+  });
+  const entries = result.events.filter((event) => event.type === 'elementalist.attunement' && event.to === 'Air');
+  const discharges = result.events.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Electric Discharge'
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(entries.length, 2);
+  assert.ok(entries.at(-1).at - entries[0].at < 5);
+  assert.equal(discharges.length, entries.length);
+});
+
+test('Earth-specialized Evoker gives Earthen Blast and Rock Solid independent 5-second cooldowns', () => {
+  const simulate = (evokerElement) =>
+    runNative({
+      lines: [['Earth', '1-2-2'], ['Air'], ['Evoker']],
+      rotation: [
+        'Raging Ricochet',
+        'Air Attunement',
+        'Earth Attunement',
+        'Water Attunement',
+        'Earth Attunement',
+        'Fire Attunement'
+      ],
+      startAttunement: 'Fire',
+      weapons: ['Pistol', 'Dagger'],
+      evokerElement
+    });
+  const earthEntries = (result) =>
+    result.events.filter((event) => event.type === 'elementalist.attunement' && event.to === 'Earth');
+  const earthenBlasts = (result) =>
+    result.events.filter((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
+  const rockSolid = (result) => result.events.filter((event) => event.type === 'buff' && event.source === 'Rock Solid');
+  const earth = simulate('Earth');
+  const entries = earthEntries(earth);
+
+  assert.deepEqual(earth.warnings, []);
+  assert.equal(entries.length, 2);
+  assert.ok(entries.at(-1).at - entries[0].at < 5);
+  assert.equal(earthenBlasts(earth).length, 1);
+  assert.equal(rockSolid(earth).length, 1);
+
+  const nonEarth = simulate('Water');
+
+  assert.equal(earthenBlasts(nonEarth).length, earthEntries(nonEarth).length);
+  assert.equal(rockSolid(nonEarth).length, earthEntries(nonEarth).length);
+});
+
 test('Specialized Elements grants three familiar charges per matching weapon skill', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker', '1-1-3']],

@@ -15,17 +15,28 @@ import { combatStarted, emitBuff, emitProfiledBuff, profiledEffect } from './mec
 import {
   grantElementalAttunementBoon,
   grantElementalistRockSolid,
-  triggerElementalistBountifulPower,
-  triggerElementalistEarthenBlast,
-  triggerElementalistElectricDischarge,
-  triggerElementalistFlameExpulsion,
-  triggerElementalistSunspot
+  triggerBountifulPower,
+  triggerEarthenBlast,
+  triggerElectricDischarge,
+  triggerFlameExpulsion,
+  triggerSunspot
 } from './traits.js';
 import { inFlightAutoattackCarryover, progressedAutoattackCarryover } from './weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
+}
+
+export interface ElementalistAttunementTraitTrigger {
+  readonly attunement: ElementalistAttunement;
+  readonly profileId: Skill['id'];
+}
+
+export interface ElementalistAttunementTransition {
+  readonly secondaryAttunement?: ElementalistAttunement | null;
+  readonly rechargeDuration?: number;
+  readonly shouldTriggerAttunementTrait?: (trigger: ElementalistAttunementTraitTrigger) => boolean;
 }
 
 export function projectedFreshAirReadyAt(context: ElementalistCastContext, upTo: number): number | null {
@@ -67,10 +78,7 @@ export function onAttunementComplete(
   context: ElementalistLifecycleContext,
   skill: Skill,
   target: ElementalistAttunement,
-  transition: {
-    readonly secondaryAttunement?: ElementalistAttunement | null;
-    readonly rechargeDuration?: number;
-  } = {}
+  transition: ElementalistAttunementTransition = {}
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
@@ -147,13 +155,24 @@ export function onAttunementComplete(
     skillName: skill.name
   });
   if (!combatStarted(context, at)) return;
-  if (previous === 'Fire' && target !== 'Fire') {
-    triggerElementalistFlameExpulsion(context, at, skill.id);
+
+  // Specializations can gate shared attunement-trait effects without Core inspecting specialization state or policy.
+  const shouldTriggerAttunementTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
+    transition.shouldTriggerAttunementTrait?.({ attunement, profileId }) !== false;
+
+  if (previous === 'Fire' && target !== 'Fire' && shouldTriggerAttunementTrait('Fire', PROFILE.pyromancersPuissance)) {
+    triggerFlameExpulsion(context, at, skill.id);
   }
 
-  if (target === 'Fire') triggerElementalistSunspot(context, at, skill.id);
+  if (target === 'Fire' && shouldTriggerAttunementTrait('Fire', PROFILE.sunspot)) {
+    triggerSunspot(context, at, skill.id);
+  }
+
   if (target === 'Air') {
-    triggerElementalistElectricDischarge(context, at, skill.id);
+    if (shouldTriggerAttunementTrait('Air', PROFILE.electricDischarge)) {
+      triggerElectricDischarge(context, at, skill.id);
+    }
+
     if (previous !== 'Air' && hasTrait(context, 'Fresh Air')) {
       state.freshAirLastResetAt = at;
       const freshAir = profiledEffect(context, PROFILE.freshAir, 'buff');
@@ -179,8 +198,13 @@ export function onAttunementComplete(
   }
 
   if (target === 'Earth') {
-    triggerElementalistEarthenBlast(context, at, skill.id);
-    grantElementalistRockSolid(context, at, skill.id);
+    if (shouldTriggerAttunementTrait('Earth', PROFILE.earthenBlast)) {
+      triggerEarthenBlast(context, at, skill.id);
+    }
+
+    if (shouldTriggerAttunementTrait('Earth', PROFILE.rockSolid)) {
+      grantElementalistRockSolid(context, at, skill.id);
+    }
   }
 
   if (hasTrait(context, 'Arcane Prowess')) {
@@ -192,6 +216,6 @@ export function onAttunementComplete(
   }
 
   if (!dualAttunement) {
-    triggerElementalistBountifulPower(context, at, 1, skill.id);
+    triggerBountifulPower(context, at, 1, skill.id);
   }
 }

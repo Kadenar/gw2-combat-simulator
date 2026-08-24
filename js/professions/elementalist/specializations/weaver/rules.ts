@@ -8,11 +8,7 @@ import type {
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { modifyWeaverAttributes, weaverModifierRules } from './modifiers.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import {
-  elementalistAlacrityAdjustedDuration,
-  emitElementalistBuff,
-  triggerElementalistBountifulPower
-} from '../../core/rules.js';
+import { elementalistAlacrityAdjustedDuration, emitElementalistBuff, triggerBountifulPower } from '../../core/rules.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   elementalistCoreState,
@@ -213,7 +209,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     );
   }
 
-  triggerElementalistBountifulPower(context as never, at, unravelActive ? 1 : 2, sourceId);
+  triggerBountifulPower(context as never, at, unravelActive ? 1 : 2, sourceId);
 }
 
 function emitBuff(

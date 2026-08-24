@@ -8,13 +8,18 @@ import {
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
 } from '../../core/state.js';
-import { elementalistAttunementRechargeDuration } from '../../core/attunements.js';
+import {
+  elementalistAttunementRechargeDuration,
+  onAttunementComplete,
+  targetAttunement,
+  type ElementalistAttunementTraitTrigger
+} from '../../core/attunements.js';
 import { emitElementalistBuff } from '../../core/mechanics.js';
 import {
   grantElementalistRockSolid,
-  triggerElementalistEarthenBlast,
-  triggerElementalistElectricDischarge,
-  triggerElementalistSunspot
+  triggerEarthenBlast,
+  triggerElectricDischarge,
+  triggerSunspot
 } from '../../core/traits.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
@@ -27,6 +32,45 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
+}
+
+// Evocation's five-second trait ICD applies to some Fire and Earth entry effects
+const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
+  CORE_PROFILE.sunspot,
+  CORE_PROFILE.pyromancersPuissance,
+  CORE_PROFILE.earthenBlast,
+  CORE_PROFILE.rockSolid
+]);
+
+function consumeEvokerAttunementTraitCooldown(
+  context: ElementalistSchedulerContext,
+  state: EvokerState,
+  at: number,
+  profileId: Skill['id']
+): boolean {
+  const key = String(profileId);
+  if (Number(state.attunementTraitProcReadyAt[key] || 0) > at + context.epsilon) return false;
+
+  // Evoker owns the shared per-trait timer used by both real and familiar-triggered attunement entries.
+  state.attunementTraitProcReadyAt[key] =
+    at + elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
+  return true;
+}
+
+export function completeEvokerAttunement(context: ElementalistCastContext, skill: Skill): boolean {
+  const target = targetAttunement(skill);
+  if (!target) return false;
+
+  const state = evokerState.from(context);
+  const at = context.effectiveEnd;
+  // Apply each configured ICD only when its element is the Evoker's selected specialization.
+  const shouldTriggerAttunementTrait = ({ attunement, profileId }: ElementalistAttunementTraitTrigger): boolean =>
+    !EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES.has(profileId) ||
+    state.element !== attunement ||
+    consumeEvokerAttunementTraitCooldown(context as never, state, at, profileId);
+
+  onAttunementComplete(context, skill, target, { shouldTriggerAttunementTrait });
+  return true;
 }
 
 export function applyEvokerAttunementRechargePolicy(
@@ -96,12 +140,8 @@ export function triggerSpecializedElementEntry(
 ): void {
   const at = context.effectiveEnd;
   const state = evokerState.from(context);
-  const procReady = (key: string): boolean => {
-    if (Number(state.attunementTraitProcReadyAt[key] || 0) > at + context.epsilon) return false;
-    state.attunementTraitProcReadyAt[key] =
-      at + elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
-    return true;
-  };
+  const procReady = (profileId: Skill['id']): boolean =>
+    consumeEvokerAttunementTraitCooldown(context as never, state, at, profileId);
 
   context.emit({
     type: 'elementalist.attunement-enter',
@@ -113,12 +153,11 @@ export function triggerSpecializedElementEntry(
     to: element
   });
   if (element === 'Fire') {
-    // Core owns the Fire-specialized Evoker cooldown so normal and familiar entry paths share one Sunspot timer.
-    if (hasTrait(context, 'Sunspot')) {
-      triggerElementalistSunspot(context as never, at, skill.id);
+    if (hasTrait(context, 'Sunspot') && procReady(CORE_PROFILE.sunspot)) {
+      triggerSunspot(context as never, at, skill.id);
     }
   } else if (element === 'Air') {
-    triggerElementalistElectricDischarge(context as never, at, skill.id);
+    triggerElectricDischarge(context as never, at, skill.id);
     if (hasTrait(context, 'One with Air')) {
       const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'boon', 'Superspeed');
       emitElementalistBuff(
@@ -158,11 +197,11 @@ export function triggerSpecializedElementEntry(
       );
     }
   } else if (element === 'Earth') {
-    if (hasTrait(context, 'Earthen Blast') && procReady(String(CORE_PROFILE.earthenBlast))) {
-      triggerElementalistEarthenBlast(context as never, at, skill.id);
+    if (hasTrait(context, 'Earthen Blast') && procReady(CORE_PROFILE.earthenBlast)) {
+      triggerEarthenBlast(context as never, at, skill.id);
     }
 
-    if (hasTrait(context, 'Rock Solid') && procReady(String(CORE_PROFILE.rockSolid))) {
+    if (hasTrait(context, 'Rock Solid') && procReady(CORE_PROFILE.rockSolid)) {
       grantElementalistRockSolid(context as never, at, skill.id);
     }
   }

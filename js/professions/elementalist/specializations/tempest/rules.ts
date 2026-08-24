@@ -11,10 +11,10 @@ import {
   applyElementalistAura,
   emitElementalistBuff,
   emitElementalistProc,
-  triggerElementalistEarthenBlast,
-  triggerElementalistElectricDischarge,
-  triggerElementalistFlameExpulsion,
-  triggerElementalistSunspot
+  triggerEarthenBlast,
+  triggerElectricDischarge,
+  triggerFlameExpulsion,
+  triggerSunspot
 } from '../../core/rules.js';
 import { elementalistCoreState, setElementalistAttunementReadyAt } from '../../core/state.js';
 import { armElementalistElementalLightningJolt } from '../../core/elementals.js';
@@ -86,11 +86,11 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (skill.attunement === 'Fire') {
-    triggerElementalistSunspot(context as never, context.start, skill.id);
+    triggerSunspot(context as never, context.start, skill.id);
   } else if (skill.attunement === 'Air') {
-    triggerElementalistElectricDischarge(context as never, context.start, skill.id);
+    triggerElectricDischarge(context as never, context.start, skill.id);
   } else if (skill.attunement === 'Earth') {
-    triggerElementalistEarthenBlast(context as never, context.start, skill.id);
+    triggerEarthenBlast(context as never, context.start, skill.id);
   }
 }
 
@@ -213,7 +213,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (attunement === 'Fire') {
-    triggerElementalistFlameExpulsion(context as never, context.effectiveEnd, skill.id);
+    triggerFlameExpulsion(context as never, context.effectiveEnd, skill.id);
   }
 
   if (hasTrait(context, 'Transcendent Tempest')) {

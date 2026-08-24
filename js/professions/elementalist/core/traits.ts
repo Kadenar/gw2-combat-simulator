@@ -1,6 +1,6 @@
 import { criticalChance } from '../../../platform/gw2/damage.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
@@ -33,33 +33,10 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
-function consumeFireEvokerAttunementTraitCooldown(
-  context: ElementalistSchedulerContext,
-  at: number,
-  traitProfileId: Skill['id']
-): boolean {
-  const specialization = context.state.profession.specialization;
-  if (specialization.kind !== 'Evoker' || specialization.state.element !== 'Fire') return true;
-
-  const readyAt = Number(specialization.state.attunementTraitProcReadyAt[String(traitProfileId)] || 0);
-  if (readyAt > at + context.epsilon) return false;
-
-  // Fire-specialized Evokers share each trait's timer across normal attunement
-  // entries and familiar-triggered entries, while Sunspot and Flame Expulsion remain independent.
-  specialization.state.attunementTraitProcReadyAt[String(traitProfileId)] =
-    at + elementalistBalanceValue(context, TRAIT.EVOCATION, 'internalCooldown', 5);
-  return true;
-}
-
-export function triggerElementalistSunspot(
-  context: ElementalistSchedulerContext,
-  at: number,
-  sourceId: Skill['id']
-): void {
+export function triggerSunspot(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) {
     return;
   }
-  if (!consumeFireEvokerAttunementTraitCooldown(context, at, PROFILE.sunspot)) return;
 
   const applySunspotAura = () =>
     applyElementalistAura(context, {
@@ -94,15 +71,10 @@ export function triggerElementalistSunspot(
   });
 }
 
-export function triggerElementalistFlameExpulsion(
-  context: ElementalistSchedulerContext,
-  at: number,
-  sourceId: Skill['id']
-): void {
+export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) {
     return;
   }
-  if (!consumeFireEvokerAttunementTraitCooldown(context, at, PROFILE.pyromancersPuissance)) return;
 
   const cappedMight = Math.min(
     elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
@@ -169,7 +141,7 @@ export function triggerElementalistFlameExpulsion(
   });
 }
 
-export function triggerElementalistElectricDischarge(
+export function triggerElectricDischarge(
   context: ElementalistSchedulerContext,
   at: number,
   sourceId: Skill['id']
@@ -212,11 +184,7 @@ export function triggerElementalistElectricDischarge(
   });
 }
 
-export function triggerElementalistEarthenBlast(
-  context: ElementalistSchedulerContext,
-  at: number,
-  sourceId: Skill['id']
-): void {
+export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) {
     return;
   }
@@ -280,7 +248,7 @@ export function grantElementalAttunementBoon(
   );
 }
 
-export function triggerElementalistBountifulPower(
+export function triggerBountifulPower(
   context: ElementalistSchedulerContext,
   at: number,
   stacks: number,

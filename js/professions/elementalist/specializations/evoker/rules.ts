@@ -40,7 +40,8 @@ export const evokerSchedulerHooks = Object.freeze({
   },
   onCastComplete: {
     id: 'elementalist.evoker-complete',
-    order: 30,
+    // Evoker must attach its specialization-owned trait gate before Core handles the completed attunement.
+    order: 5,
     handler: onCastComplete
   },
   onEventScheduled: {
