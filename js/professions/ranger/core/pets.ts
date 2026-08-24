@@ -384,14 +384,6 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
   const state = professionCoreState(context);
   const commandDelay = Number(state.petCommandDelays[String(event.activationId || '')] || 0);
   const updates: Record<string, unknown> = {};
-  const companionIds = Array.isArray(event.companionIds) ? event.companionIds.map(String) : [];
-  if (
-    event.type === 'buff' &&
-    event.affectsSummons === true &&
-    (companionIds.length === 0 || companionIds.every((id) => id === 'ranger-pet'))
-  ) {
-    updates.companionIds = [rangerPetCompanionId(context)];
-  }
 
   if (commandDelay > 0 && event.type !== 'action') {
     updates.at = Number(event.at) + commandDelay;

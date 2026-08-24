@@ -13,15 +13,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { normalizedNecromancerLifeForceCost, syncNecromancerResources } from '../../core/state.js';
 import { removeNecromancerSelfCondition } from '../../core/conditions.js';
-import {
-  emitBuff,
-  emitCondition,
-  emitControl,
-  emitDamage,
-  emitState,
-  hasTrait,
-  necromancerPartyBoonRecipients
-} from '../../core/shared.js';
+import { emitBuff, emitCondition, emitControl, emitDamage, emitState, hasTrait } from '../../core/shared.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -50,7 +42,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
     const might = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.abrasiveGrit), 'boon');
     emitBuff(context, skill, String(might?.boon || 'might'), Number(might?.duration || 6), Number(might?.stacks || 2), {
       at,
-      metadata: necromancerPartyBoonRecipients(context)
+      metadata: { recipients: 'party', maximumRecipients: 5 }
     });
   }
 
@@ -62,7 +54,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
       String(alacrity?.boon || 'alacrity'),
       Number(alacrity?.duration || 1.5),
       Number(alacrity?.stacks || 1),
-      { at, metadata: necromancerPartyBoonRecipients(context) }
+      { at, metadata: { recipients: 'party', maximumRecipients: 5 } }
     );
   }
 }
@@ -212,7 +204,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
         Number(pulseProtection?.stacks || 1),
         {
           at: pulseAt,
-          metadata: necromancerPartyBoonRecipients(context)
+          metadata: { recipients: 'party', maximumRecipients: 5 }
         }
       );
     }
@@ -226,7 +218,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       Number(detonationProtection?.stacks || 1),
       {
         at: at + delay,
-        metadata: necromancerPartyBoonRecipients(context)
+        metadata: { recipients: 'party', maximumRecipients: 5 }
       }
     );
     emitDamage(context, skill, Number(strike?.coefficient || 3), {

@@ -9,15 +9,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  * which procs Meltdown every 20 stacks. Exports `necromancerBlightSkillHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import {
-  emitBuff,
-  emitCondition,
-  emitControl,
-  emitDamage,
-  emitState,
-  hasTrait,
-  necromancerPartyBoonRecipients
-} from '../../core/shared.js';
+import { emitBuff, emitCondition, emitControl, emitDamage, emitState, hasTrait } from '../../core/shared.js';
 import type { NecromancerCastContext, NecromancerSchedulerContext, NecromancerSkill } from '../../types.js';
 import type { BalanceProfile, SkillEffect } from '../../../../platform/engine/types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
@@ -206,7 +198,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, 'blight-consumed');
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
-    ? { metadata: necromancerPartyBoonRecipients(context) }
+    ? { metadata: { recipients: 'party', maximumRecipients: 5 } }
     : undefined;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
     const protection = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.bolsteringBrew), 'boon');

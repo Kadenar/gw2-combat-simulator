@@ -740,12 +740,38 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
 
   assert.equal(rechargeMs(playerAlacrity), 15000);
   assert.equal(rechargeMs(petAlacrity), 12000);
-  assert.equal(
-    petAlacrity.events.some(
-      (event) => event.type === 'buff' && event.kind === 'alacrity' && event.affectsSummons === true
-    ),
-    true
+  const petAlacrityApplication = petAlacrity.events.find(
+    (event) => event.type === 'buff' && event.kind === 'alacrity' && event.affectsSummons === true
   );
+
+  assert.ok(petAlacrityApplication);
+  assert.equal(petAlacrityApplication.companionIds.length, 1);
+  assert.match(petAlacrityApplication.companionIds[0], /^ranger-pet:/);
+});
+
+test('Ranger party boons prioritize players before the active pet', () => {
+  const simulateSunSpirit = (alliedPlayerCount) =>
+    simulate('Core', ['Sun Spirit'], {
+      selectedSkills: ['Sun Spirit'],
+      selectedPet: 'Fanged Iboga',
+      allies: { count: alliedPlayerCount, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true
+    });
+  const shared = simulateSunSpirit(2).events.find(
+    (event) => event.type === 'buff' && event.skillName === 'Sun Spirit' && event.kind === 'might'
+  );
+  const capped = simulateSunSpirit(4).events.find(
+    (event) => event.type === 'buff' && event.skillName === 'Sun Spirit' && event.kind === 'might'
+  );
+
+  assert.ok(shared);
+  assert.equal(shared.alliedPlayerCount, 2);
+  assert.equal(shared.companionIds.length, 1);
+  assert.match(shared.companionIds[0], /^ranger-pet:/);
+  assert.ok(capped);
+  assert.equal(capped.alliedPlayerCount, 4);
+  assert.deepEqual(capped.companionIds, []);
+  assert.equal(capped.affectsSummons, false);
 });
 
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {

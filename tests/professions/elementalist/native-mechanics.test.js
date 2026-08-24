@@ -234,8 +234,23 @@ test('Tempest party boons affect the summoned elemental', () => {
   ]);
   assert.ok(
     feelTheBurnBoons.every(
-      (event) => event.recipients === 'party' && event.maximumRecipients === 5 && event.affectsSummons === true
+      (event) =>
+        event.recipients === 'party' &&
+        event.maximumRecipients === 5 &&
+        event.affectsSummons === true &&
+        event.companionIds.length === 1 &&
+        event.companionIds[0].startsWith('elementalist-elemental:')
     )
+  );
+  assert.ok(
+    isolated.events
+      .filter(
+        (event) =>
+          event.type === 'buff' &&
+          event.skillName === 'Feel the Burn!' &&
+          (event.kind === 'might' || (event.kind === 'fury' && event.duration > 10))
+      )
+      .every((event) => event.affectsSummons === false && event.companionIds.length === 0)
   );
 
   const firstBarrage = (result) =>

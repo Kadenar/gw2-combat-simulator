@@ -78,7 +78,6 @@ export function createExpectedProcTracker({
     const profile = balanceProfile(TRAIT.MASTER_FENCER);
     core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown || 8);
     addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
-    const companionIds = core.clones.map((clone) => `mesmer.clone:${clone.id}`);
     const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
     for (const [index, application] of [
       { recipients: 'self' as const, duration: 8 },
@@ -101,8 +100,7 @@ export function createExpectedProcTracker({
         affectsSelf: application.recipients === 'self',
         ...(application.recipients === 'allies'
           ? {
-              maximumRecipients: Number(effect?.maximumRecipients || 4),
-              companionIds
+              maximumRecipients: Number(effect?.maximumRecipients || 4)
             }
           : {})
       });

@@ -3,12 +3,7 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import {
-  emitBuff,
-  gainNecromancerLifeForce,
-  hasTrait as hasNecromancerTrait,
-  necromancerPartyBoonRecipients
-} from '../../core/shared.js';
+import { emitBuff, gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
 import { advanceHarbingerBlight } from './blight.js';
 import { harbingerState } from './state.js';
 import {
@@ -67,7 +62,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
       const quickness = balanceProfileEffect(profile, 'boon');
       const fury = balanceProfileEffect(profile, 'boon', 1);
-      const recipients = necromancerPartyBoonRecipients(context);
+      const recipients = { recipients: 'party' as const, maximumRecipients: 5 };
       emitBuff(
         context,
         skill,
@@ -111,7 +106,8 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     const deathlyHaste = {
       source: 'Trait',
       sourceId: TRAIT.DEATHLY_HASTE,
-      ...necromancerPartyBoonRecipients(context)
+      recipients: 'party',
+      maximumRecipients: 5
     };
     emitBuff(
       context,

@@ -9,15 +9,17 @@ import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-// Weapon-spell stacks are tracked per-recipient key; multi-summon events expand into one key per summon index
+// Weapon-spell stacks follow the creature that owns an attack before its stat
+// attribution, so player-scaled spirit packets cannot spend the player's stacks.
 function recipientKeys(event: NecromancerResolverEvent): string[] {
-  if (event.actorType === 'player') return ['player'];
-  if (event.actorType !== 'summon') return [];
   if (event.summonOwnerBase && Number(event.summonCount || 0) > 1) {
     return Array.from({ length: Number(event.summonCount) }, (_, index) => `${event.summonOwnerBase}:${index}`);
   }
+  if (event.summonOwner) return [event.summonOwner];
+  if (event.actorType === 'player') return ['player'];
+  if (event.actorType !== 'summon') return [];
 
-  return event.summonOwner ? [event.summonOwner] : [];
+  return [];
 }
 
 function spellIcon(context: NecromancerResolverContext, skillId: SkillId): string {

@@ -2372,6 +2372,9 @@ test('Spider Venom grants six independent charges to the player and allies', () 
   assert.equal(partyBuff.stacks, 6);
   assert.equal(partyBuff.duration, 24);
   assert.equal(partyBuff.recipientCount, 5);
+  assert.equal(partyBuff.alliedPlayerCount, 4);
+  assert.deepEqual(partyBuff.companionIds, []);
+  assert.equal(partyBuff.affectsSummons, false);
 
   const allyPoisons = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.triggeredByAlly

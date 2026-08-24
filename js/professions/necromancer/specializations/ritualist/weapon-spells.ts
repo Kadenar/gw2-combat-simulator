@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Ritualist weapon-spell applications.
  *
@@ -9,27 +8,16 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
-import { hasTrait } from '../../core/shared.js';
+import { hasTrait, necromancerActiveMinionCompanionIds } from '../../core/shared.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import type { NecromancerCastContext, NecromancerCoreState, NecromancerSkill } from '../../types.js';
+import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
 
 const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> = Object.freeze({
   [ID.NIGHTMARE_WEAPON]: 'nightmare',
   [ID.SPLINTER_WEAPON]: 'splinter',
   [ID.RESILIENT_WEAPON]: 'resilient'
 });
-
-function activeMinionRecipients(state: NecromancerCoreState): string[] {
-  const recipients: string[] = [];
-  for (const [key, count] of Object.entries(state.activeMinions || {})) {
-    for (let index = 0; index < Number(count || 0); index += 1) {
-      recipients.push(`minion:${key}:${index}`);
-    }
-  }
-
-  return recipients;
-}
 
 function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
@@ -43,7 +31,9 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
   const allyStacks = fullAlliedBenefit ? playerStacks : defaultAllyStacks;
   const party = gw2AlliedEffectRecipients(context.config, {
     maximumRecipients: maximumAllies + 1,
-    companionIds: activeMinionRecipients(professionCoreState(context))
+    // Weapon spells can include ordinary minions after player-first targeting;
+    // Ritualist spirits do not receive weapon-spell stacks.
+    companionIds: necromancerActiveMinionCompanionIds(context)
   });
   context.emit({
     type: 'necromancer.weapon-spell',

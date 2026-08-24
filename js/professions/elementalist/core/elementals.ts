@@ -141,7 +141,7 @@ function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
 }
 
 // Stable per-summon actor id so damage/strikes attribute to the right companion.
-function companionId(summonGeneration: number): string {
+export function elementalistElementalCompanionId(summonGeneration: number): string {
   return `elementalist-elemental:${summonGeneration}`;
 }
 
@@ -230,7 +230,7 @@ function beginSummonAction(
     name: skillName,
     endsAt: at + animationEnd,
     fullEndsAt: at + animationEnd,
-    summonOwner: companionId(elemental.summonGeneration),
+    summonOwner: elementalistElementalCompanionId(elemental.summonGeneration),
     autonomousElementalSkill: !playerCommanded,
     playerCommandedElementalSkill: playerCommanded
   });
@@ -384,7 +384,7 @@ function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, 
     summonCriticalChance: 0.05,
     summonCriticalDamage: 1.5,
     summonDamagePerCoefficient: baseDamage,
-    summonOwner: companionId(summonGeneration),
+    summonOwner: elementalistElementalCompanionId(summonGeneration),
     skillWeapon: 'Unequipped'
   };
 }
@@ -432,7 +432,7 @@ function emitStrike(
       summonUsesMight: false,
       summonUsesEquipmentModifiers: false,
       summonUsesProfessionModifiers: false,
-      summonOwner: companionId(Number(task.payload?.summonGeneration || 0))
+      summonOwner: elementalistElementalCompanionId(Number(task.payload?.summonGeneration || 0))
     });
   }
 

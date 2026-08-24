@@ -1609,7 +1609,7 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
   );
 });
 
-test('Taste for Blood consumes one stack per direct hit and deals a 0.05 life siphon', () => {
+test('Taste for Blood consumes one stack per direct hit and uses its power-only life-siphon formula', () => {
   const lifeSiphon = simulate(
     'Core',
     ['Life Siphon'],
@@ -1637,8 +1637,39 @@ test('Taste for Blood consumes one stack per direct hit and deals a 0.05 life si
   assert.equal(breakdown?.icon, traitIcon);
   assert.equal(
     lifeSiphonPackets.every(
-      (event) => event.coefficient === 0.05 && event.damageKind === 'life-steal' && event.noCrit === true
+      (event) =>
+        event.coefficient === 0 &&
+        event.flatStrikeBase === 375 &&
+        event.flatStrikePowerCoeff === 0.05 &&
+        event.damage === 475 &&
+        event.damageKind === 'life-steal' &&
+        event.noCrit === true
     ),
+    true
+  );
+});
+
+test('Taste for Blood procs use Overflowing Thirst artwork and log their triggering skill', () => {
+  const result = simulate(
+    'Ritualist',
+    ['Dark Pact', "Ritualist's Shroud", 'Wanderlust'],
+    {
+      initialResource: 100,
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Dagger',
+      selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
+    },
+    observationTail(5000)
+  );
+  const traitIcon = necromancerCatalog.traits.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon;
+  const wanderlustProc = result.procSteps.find(
+    (proc) => proc.skill === 'Taste for Blood' && proc.sourceSkill === 'Wanderlust'
+  );
+  const eventRows = simulationEventLogRows(result, null, necromancerProfession);
+
+  assert.equal(wanderlustProc?.icon, traitIcon);
+  assert.equal(
+    eventRows.some((row) => row.description.startsWith('HIT Taste for Blood [Triggered by Wanderlust]')),
     true
   );
 });
@@ -1700,6 +1731,33 @@ test('Taste for Blood gives minions independent pools after higher-priority play
   assert.equal(uncappedOwners.includes('minion:bone-minion:1'), true);
   assert.deepEqual([...new Set(minionPacketOwners(partiallyCapped))], ['minion:bone-minion:0']);
   assert.deepEqual(minionPacketOwners(capped), []);
+});
+
+test('Taste for Blood excludes active Ritualist spirits from its shared stack pools', () => {
+  const result = simulate(
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", 'Life Siphon', { type: 'wait', durationMs: 5000 }],
+    {
+      initialResource: 100,
+      primaryWeapon: 'Dagger',
+      selectedTraitIds: [TRAIT.LINGERING_SPIRITS, TRAIT.OVERFLOWING_THIRST],
+      sharePlayerBoonsWithSummons: true
+    },
+    observationTail(3000)
+  );
+  const application = result.events.find(
+    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+  );
+  const spiritPackets = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.sourceId === TRAIT.OVERFLOWING_THIRST &&
+      String(event.triggeredBy).endsWith('Autoattack')
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(application.companionIds, []);
+  assert.equal(spiritPackets.length, 0);
 });
 
 test('off-hand sword follow-ups use their complete PvE effects', () => {
@@ -2222,6 +2280,89 @@ test('Vampiric siphons on every direct player and minion hit with separate power
   );
 });
 
+test('Blood Magic siphons preserve independent pools and intervals across four ordinary minions', () => {
+  const result = simulate(
+    'Core',
+    [
+      'Summon Blood Fiend',
+      'Summon Bone Minions',
+      'Summon Flesh Golem',
+      'Life Siphon',
+      { type: 'wait', durationMs: 5000 }
+    ],
+    {
+      primaryWeapon: 'Dagger',
+      selectedSkills: ['Summon Blood Fiend', 'Summon Bone Minions', 'Summon Flesh Golem'],
+      selectedTraitIds: [TRAIT.VAMPIRIC, TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST],
+      stats: { power: 1000 }
+    },
+    observationTail(3000)
+  );
+  const owners = ['minion:blood-fiend:0', 'minion:bone-minion:0', 'minion:bone-minion:1', 'minion:flesh-golem:0'];
+  const application = result.events.find(
+    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+  );
+  const minionHits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.actorType === 'summon' && owners.includes(event.summonOwner)
+  );
+  const vampiric = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Vampiric — Minion Life Steal'
+  );
+  const presence = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Vampiric Presence' && owners.includes(event.summonOwner)
+  );
+  const taste = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Taste for Blood' && owners.includes(event.summonOwner)
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(new Set(application.companionIds), new Set(owners));
+  assert.equal(application.recipientCount, 5);
+  assert.equal(minionHits.length > 0, true);
+  assert.equal(vampiric.length, minionHits.length);
+  assert.equal(presence.length, minionHits.length);
+  assert.deepEqual(new Set(taste.map((event) => event.summonOwner)), new Set(owners));
+  assert.equal(
+    owners.every((owner) => taste.filter((event) => event.summonOwner === owner).length <= 3),
+    true
+  );
+});
+
+test("Ritualist spirit attacks proc Vampiric and share the owner's Vampiric Presence interval", () => {
+  const result = simulate(
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', 'Wanderlust', 'Preservation', { type: 'wait', durationMs: 8000 }],
+    {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.VAMPIRIC, TRAIT.VAMPIRIC_PRESENCE],
+      stats: { power: 1000 }
+    }
+  );
+  const spiritAutos = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.summonKind === 'spirit' && event.spiritAttackType === 'autoattack'
+  );
+  const spiritAutoTimes = new Set(spiritAutos.map((event) => event.at));
+  const spiritVampiric = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC && String(event.triggeredBy).endsWith('Autoattack')
+  );
+  const spiritPresence = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.sourceId === TRAIT.VAMPIRIC_PRESENCE &&
+      String(event.triggeredBy).endsWith('Autoattack')
+  );
+
+  assert.equal(spiritAutos.length > 0, true);
+  assert.equal(spiritVampiric.length, spiritAutos.length);
+  assert.equal(
+    spiritVampiric.every((event) => event.flatStrikeBase === 38 && event.flatStrikePowerCoeff === 0.003),
+    true
+  );
+  assert.equal(spiritPresence.length, spiritAutoTimes.size);
+  assert.deepEqual(new Set(spiritPresence.map((event) => event.at)), spiritAutoTimes);
+});
+
 test('Vampiric Presence uses its half-second interval and stronger Shroud siphon', () => {
   const base = simulate('Core', ['Ghastly Claws'], {
     primaryWeapon: 'Axe',
@@ -2247,17 +2388,17 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
   assert.equal(
     baseSiphons.every(
       (event) =>
-        event.flatStrikeBase === 32 &&
+        event.flatStrikeBase === 65 &&
         event.flatStrikePowerCoeff === 0.0333 &&
-        Math.abs(event.damage - 65.3) < 1e-12 &&
+        Math.abs(event.damage - 98.3) < 1e-12 &&
         event.damageKind === 'life-steal' &&
         event.criticalChance === 0
     ),
     true
   );
-  assert.equal(shroudSiphon.flatStrikeBase, 62);
+  assert.equal(shroudSiphon.flatStrikeBase, 129);
   assert.equal(shroudSiphon.flatStrikePowerCoeff, 0.0666);
-  assert.ok(Math.abs(shroudSiphon.damage - 128.6) < 1e-12);
+  assert.ok(Math.abs(shroudSiphon.damage - 195.6) < 1e-12);
 });
 
 test('Vampiric Presence supports four allied players and respects its five-target cap', () => {
@@ -2317,7 +2458,7 @@ test('Vampiric Presence supports four allied players and respects its five-targe
     );
   }
   assert.equal(
-    alliedSiphons.every((event) => Math.abs(event.damage - 65.3) < 1e-12),
+    alliedSiphons.every((event) => Math.abs(event.damage - 98.3) < 1e-12),
     true
   );
   assert.equal(minionSiphons(minion).length > 0, true);
@@ -2727,7 +2868,11 @@ test('independent minions inherit dynamically shared Fury', () => {
   assert.equal(spiritBoons.length, 2);
   assert.ok(
     spiritBoons.every(
-      (event) => event.recipients === 'party' && event.affectsSummons === false && event.companionIds.length === 0
+      (event) =>
+        event.recipients === 'party' &&
+        event.affectsSummons === true &&
+        event.companionIds.length === 1 &&
+        event.companionIds[0] === 'spirit:wanderlust'
     )
   );
 });
@@ -3170,33 +3315,80 @@ test('Ritualist weapon spells scale with allied players', () => {
 test('Ritualist weapon spells prioritize players, include minions, and exclude spirits', () => {
   const result = simulate(
     'Ritualist',
-    ['Summon Bone Minions', "Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", 'Nightmare Weapon'],
+    [
+      'Summon Bone Minions',
+      "Ritualist's Shroud",
+      'Anguish',
+      "Exit Ritualist's Shroud",
+      'Nightmare Weapon',
+      'Splinter Weapon'
+    ],
     {
       initialResource: 100,
-      selectedSkills: ['Summon Bone Minions', 'Nightmare Weapon'],
+      selectedSkills: ['Summon Bone Minions', 'Nightmare Weapon', 'Splinter Weapon'],
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
       allies: { count: 2, strikesPerSecond: 1 }
     },
     observationTail(5000)
   );
-  const application = result.events.find(
-    (event) => event.type === 'necromancer.weapon-spell' && event.spell === 'nightmare'
-  );
+  const applications = result.events.filter((event) => event.type === 'necromancer.weapon-spell');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.profession.activeSpirits.anguish, true);
-  assert.equal(application.alliedPlayerCount, 2);
-  assert.equal(application.recipientCount, 5);
-  assert.deepEqual(application.recipients, ['minion:bone-minion:0', 'minion:bone-minion:1']);
+  assert.deepEqual(
+    applications.map((event) => event.spell),
+    ['nightmare', 'splinter']
+  );
   assert.equal(
-    application.recipients.some((recipient) => recipient.startsWith('spirit:')),
-    false
+    applications.every(
+      (event) =>
+        event.alliedPlayerCount === 2 &&
+        event.recipientCount === 5 &&
+        event.recipients.join(',') === 'minion:bone-minion:0,minion:bone-minion:1' &&
+        event.recipients.every((recipient) => !recipient.startsWith('spirit:'))
+    ),
+    true
   );
   assert.equal(
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.triggeredByAlly
     ).length,
     6
+  );
+});
+
+test("Wanderlust's player-scaled attacks cannot spend the player's Splinter Weapon stacks", () => {
+  const result = simulate(
+    'Ritualist',
+    [
+      "Ritualist's Shroud",
+      'Wanderlust',
+      "Exit Ritualist's Shroud",
+      'Splinter Weapon',
+      'Necrotic Slash',
+      { type: 'wait', durationMs: 4000 }
+    ],
+    {
+      initialResource: 100,
+      selectedSkills: ['Splinter Weapon'],
+      selectedTraitIds: [TRAIT.LINGERING_SPIRITS]
+    }
+  );
+  const splinterProcs = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Splinter Weapon'
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    splinterProcs.some((event) => event.triggeredBy === 'Necrotic Slash'),
+    true
+  );
+  assert.equal(
+    splinterProcs.some(
+      (event) =>
+        String(event.triggeredBy).includes('Wanderlust') || String(event.summonOwner).startsWith('spirit:wanderlust')
+    ),
+    false
   );
 });
 

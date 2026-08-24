@@ -1,5 +1,7 @@
 import { clamp } from './numeric.js';
 
+import type { SimulationEventInput } from '../engine/types.js';
+
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc
  * triggers; they never contribute their own damage.
@@ -83,6 +85,28 @@ export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): 
     count: clamp(Math.trunc(Number(allies.count || 0)), 0, 4),
     strikesPerSecond: clamp(Number(allies.strikesPerSecond || 0), 0, 10)
   });
+}
+
+/**
+ * Supplies concrete active companion candidates before the canonical boon
+ * recipient resolver applies player-first target-cap selection.
+ */
+export function prepareGw2BoonCompanionCandidates(
+  event: SimulationEventInput,
+  companionIds: readonly unknown[]
+): SimulationEventInput {
+  if (event.type !== 'buff' || event.boonAudienceResolved === true || event.affectsSummons === false) return event;
+  const scope = String(event.recipients || '').toLowerCase();
+  const shared =
+    scope === 'party' ||
+    scope === 'allies' ||
+    ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope) ||
+    event.affectsSummons === true;
+  if (!shared || Array.isArray(event.companionIds)) return event;
+  return {
+    ...event,
+    companionIds: [...new Set(companionIds.map(String).filter(Boolean))]
+  };
 }
 
 /**

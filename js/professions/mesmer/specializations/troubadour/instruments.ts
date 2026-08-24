@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -25,12 +24,6 @@ const conditionFromProfile = (
     stacks: Number(effect?.stacks ?? fallback.stacks)
   };
 };
-
-const partyBoonRecipients = (context: MesmerCastContext, maximumRecipients = 5) => ({
-  recipients: 'party' as const,
-  maximumRecipients,
-  companionIds: professionCoreState(context.state).clones.map((clone) => `mesmer.clone:${clone.id}`)
-});
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(
@@ -149,7 +142,8 @@ function instrumentAttack(
       duration: Number(quickness?.duration || 6),
       skillName: skill.name,
       sourceSkill: skill.name,
-      ...partyBoonRecipients(context)
+      recipients: 'party',
+      maximumRecipients: 5
     });
     runtime.addEvent({
       type: 'buff',
@@ -159,7 +153,8 @@ function instrumentAttack(
       duration: Number(might?.duration || 8),
       skillName: skill.name,
       sourceSkill: skill.name,
-      ...partyBoonRecipients(context)
+      recipients: 'party',
+      maximumRecipients: 5
     });
   }
 }
@@ -262,7 +257,8 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         duration: Number(effect?.duration || duration),
         skillName: skill.name,
         sourceSkill: skill.name,
-        ...partyBoonRecipients(context)
+        recipients: 'party',
+        maximumRecipients: 5
       });
     }
   }

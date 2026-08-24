@@ -2,6 +2,7 @@ import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modi
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';
@@ -10,14 +11,24 @@ import { rangerPetByName } from './state.js';
 import { advanceRangerResources } from './resources.js';
 import { applyRangerWeaponSwapTraits, completeRangerTraits } from './traits.js';
 import { updateRangerWeaponState } from './weapon-state.js';
-import { beginRangerPetCommand, observeRangerPetEvent, rangerPetTaskHandlers } from './pets.js';
-import type { SimulationEvent } from '../../../platform/engine/types.js';
+import { beginRangerPetCommand, observeRangerPetEvent, rangerPetCompanionId, rangerPetTaskHandlers } from './pets.js';
+import type { SimulationEvent, SimulationEventInput } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../platform/gw2/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '../types.js';
 import type { RangerCastContext } from '../types.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const rangerCoreSchedulerHooks = Object.freeze({
+  prepareEvent: {
+    id: 'ranger.boon-companion-candidates',
+    order: 5,
+    // An unmerged active pet competes only after player recipients for shared boons.
+    handler: (context: RangerSchedulerContext, event: SimulationEventInput) =>
+      prepareGw2BoonCompanionCandidates(
+        event,
+        professionCoreState(context).petActive ? [rangerPetCompanionId(context)] : []
+      )
+  },
   advance: {
     id: 'ranger.core-resources',
     order: 10,

@@ -42,6 +42,7 @@ export {
 
 import { criticalChance } from '../../../platform/gw2/damage.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
+import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 export { elementalistCoreAttributeRules } from './modifiers.js';
@@ -71,6 +72,7 @@ import {
   beginElementalistGlyphCast,
   completeElementalistElementalCommand,
   completeElementalistGlyphCast,
+  elementalistElementalCompanionId,
   elementalistElementalAvailability,
   elementalistElementalTaskHandlers,
   observeElementalistElementalEvent
@@ -564,11 +566,28 @@ export const elementalistCoreCastRules = Object.freeze({
 
 export const elementalistCoreSchedulerHooks = Object.freeze({
   taskHandlers: elementalistElementalTaskHandlers,
-  prepareEvent: {
-    id: 'elementalist.hitbox',
-    order: 10,
-    handler: prepareElementalistHitboxEvent
-  },
+  prepareEvent: Object.freeze([
+    {
+      id: 'elementalist.boon-companion-candidates',
+      order: 5,
+      // The active glyph elemental is a concrete candidate, never an anonymous summon slot.
+      handler(context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
+        const elemental = elementalistCoreState(context).summonedElemental;
+        const active =
+          elemental.element !== null &&
+          elemental.activeUntil > Number(event.at ?? context.state.time) - context.epsilon;
+        return prepareGw2BoonCompanionCandidates(
+          event,
+          active ? [elementalistElementalCompanionId(elemental.summonGeneration)] : []
+        );
+      }
+    },
+    {
+      id: 'elementalist.hitbox',
+      order: 10,
+      handler: prepareElementalistHitboxEvent
+    }
+  ]),
   onCastStart: {
     id: 'elementalist.core-cast-start',
     order: 10,

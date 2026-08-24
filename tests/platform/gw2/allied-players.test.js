@@ -4,8 +4,33 @@ import test from 'node:test';
 import {
   gw2AlliedEffectRecipients,
   gw2BoonApplicationRecipients,
-  gw2AlliedPlayerProcTimeline
+  gw2AlliedPlayerProcTimeline,
+  prepareGw2BoonCompanionCandidates
 } from '../../../js/platform/gw2/allied-players.js';
+
+test('boon companion candidates bind before canonical recipient selection', () => {
+  const event = { type: 'buff', at: 1, source: 'test', recipients: 'party', maximumRecipients: 5 };
+  const prepared = prepareGw2BoonCompanionCandidates(event, ['pet:one', 'pet:one', '', 'pet:two']);
+
+  assert.deepEqual(prepared, {
+    ...event,
+    companionIds: ['pet:one', 'pet:two']
+  });
+  assert.deepEqual(gw2BoonApplicationRecipients({ allies: { count: 3 } }, prepared), {
+    includesSelf: true,
+    affectsSelf: true,
+    alliedPlayerCount: 3,
+    companionIds: ['pet:one'],
+    affectsSummons: true,
+    recipientCount: 5
+  });
+  const selfOnly = { ...event, affectsSummons: false };
+  assert.equal(prepareGw2BoonCompanionCandidates(selfOnly, ['pet:one']), selfOnly);
+  assert.deepEqual(prepareGw2BoonCompanionCandidates({ ...event, companionIds: ['pet:explicit'] }, ['pet:one']), {
+    ...event,
+    companionIds: ['pet:explicit']
+  });
+});
 
 test('allied effect recipients prioritize players before companions', () => {
   const partialParty = gw2AlliedEffectRecipients(

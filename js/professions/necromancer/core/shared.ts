@@ -18,12 +18,13 @@ import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotNecromancerState } from '../state.js';
 import { hasNecromancerTrait, syncNecromancerResources } from './state.js';
-import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
+import type { SimulationActorType, SkillId } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerConfig,
   NecromancerCoreState,
   NecromancerEmissionContext,
+  NecromancerResolverContext,
   NecromancerSchedulerContext,
   NecromancerSkill
 } from '../types.js';
@@ -193,8 +194,10 @@ export function emitBuff(
   });
 }
 
-/** Pattern 2/3 party-boon metadata with concrete active minion identities. */
-export function necromancerPartyBoonRecipients(context: NecromancerEmissionContext): Readonly<SchedulerRecord> {
+/** Returns stable identities for minions eligible to receive shared effects. */
+export function necromancerActiveMinionCompanionIds(
+  context: NecromancerEmissionContext | NecromancerResolverContext
+): readonly string[] {
   const core = professionCoreState(context);
   const companionIds: string[] = [];
   for (const [key, count] of Object.entries(core.activeMinions || {})) {
@@ -203,11 +206,24 @@ export function necromancerPartyBoonRecipients(context: NecromancerEmissionConte
     }
   }
 
-  return {
-    recipients: 'party',
-    maximumRecipients: 5,
-    companionIds
+  return Object.freeze(companionIds);
+}
+
+/** Includes every active Necromancer summon that can compete for a shared boon slot. */
+export function necromancerActiveBoonCompanionIds(
+  context: NecromancerEmissionContext | NecromancerResolverContext
+): readonly string[] {
+  const candidate = context as {
+    readonly state?: { readonly profession?: unknown };
+    readonly profession?: unknown;
   };
+  const runtime = (candidate.state?.profession ?? candidate.profession) as {
+    readonly specialization?: { readonly state?: { readonly activeSpirits?: Readonly<Record<string, boolean>> } };
+  };
+  const spiritIds = Object.entries(runtime.specialization?.state?.activeSpirits || {})
+    .filter(([, active]) => active)
+    .map(([key]) => `spirit:${key}`);
+  return Object.freeze([...necromancerActiveMinionCompanionIds(context), ...spiritIds]);
 }
 
 export function necromancerBoonDuration(

@@ -200,7 +200,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        flatStrikeBase: 32,
+        flatStrikeBase: 65,
         flatStrikePowerCoeff: 0.0333,
         actorType: 'effect',
         packetLabel: 'base',
@@ -210,7 +210,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        flatStrikeBase: 62,
+        flatStrikeBase: 129,
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect',
         packetLabel: 'shroud',
@@ -229,7 +229,9 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       },
       {
         type: 'strike',
-        coefficient: 0.05,
+        coefficient: 0,
+        flatStrikeBase: 375,
+        flatStrikePowerCoeff: 0.05,
         hits: 1,
         actorType: 'effect',
         metadata: { noCrit: true, damageKind: 'life-steal' }

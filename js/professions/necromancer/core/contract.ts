@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared
@@ -15,7 +16,8 @@ import {
   emitDamage,
   gainNecromancerLifeForce,
   hasTrait,
-  necromancerPartyBoonRecipients
+  necromancerActiveBoonCompanionIds,
+  necromancerActiveMinionCompanionIds
 } from './shared.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
@@ -26,6 +28,7 @@ import {
   balanceProfileEffect,
   necromancerBalanceProfile
 } from './profiles.js';
+import type { SimulationEventInput } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -109,7 +112,13 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
 
   const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
   const duration = Number(effect?.duration || 10);
-  const recipients = necromancerPartyBoonRecipients(context);
+  const recipients = {
+    recipients: 'party' as const,
+    maximumRecipients: 5,
+    // EVTC buff targets confirm Taste for Blood can reach ordinary minions but
+    // not Ritualist spirits, even while those spirits remain active.
+    companionIds: necromancerActiveMinionCompanionIds(context)
+  };
   emitBuff(context, skill, String(effect?.kind || 'taste-for-blood'), duration, stacks, {
     at: context.start,
     metadata: recipients
@@ -270,6 +279,12 @@ export const necromancerCastRules = Object.freeze({
  * Necromancer scheduler lifecycle hooks and weapon task dispatch table.
  */
 export const necromancerSchedulerHooks = Object.freeze({
+  prepareEvent: {
+    id: 'necromancer.boon-companion-candidates',
+    order: 5,
+    handler: (context: NecromancerSchedulerContext, event: SimulationEventInput) =>
+      prepareGw2BoonCompanionCandidates(event, necromancerActiveBoonCompanionIds(context))
+  },
   advance: advanceNecromancerState,
   onCastStart,
   afterCast,

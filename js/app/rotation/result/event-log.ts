@@ -184,15 +184,24 @@ export function simulationEventLogRows(
     if (event.type === 'damage') {
       const isCloneHit = event.source === 'Clone';
       const source = isCloneHit ? 'CLONE HIT' : 'HIT';
-      // Preserve trigger-only allied and per-minion identities on proc rows
-      // without splitting their damage-breakdown attribution.
+      // Preserve the actor or triggering skill on derived-damage rows without
+      // splitting their damage-breakdown attribution.
       const triggeredBy = String(event.triggeredBy || '');
       const alliedAttacker = /^Allied Player \d+ Attack$/.test(triggeredBy) ? triggeredBy : '';
       const attacker = alliedAttacker || minionAttackerLabel(event);
+      const procTrigger =
+        !attacker &&
+        event.actorType === 'effect' &&
+        triggeredBy &&
+        triggeredBy !== event.name &&
+        triggeredBy !== event.skillName
+          ? `Triggered by ${triggeredBy}`
+          : '';
+      const attribution = attacker || procTrigger;
       push(
         event.at,
         'damage',
-        `${source} ${event.name}${attacker ? ` [${attacker}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
+        `${source} ${event.name}${attribution ? ` [${attribution}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
         isCloneHit ? 'resource' : '',
         isCloneHit
       );

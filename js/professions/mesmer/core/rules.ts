@@ -8,6 +8,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 
 import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/runtime-rules.js';
+import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
 import { clamp } from '../../../platform/gw2/numeric.js';
 import {
@@ -1137,6 +1138,16 @@ export const mesmerCoreSkillMechanicHandlers = Object.freeze({
 });
 
 export const mesmerCoreSchedulerHooks = Object.freeze({
+  prepareEvent: {
+    id: 'mesmer.boon-companion-candidates',
+    order: 5,
+    // Shared boon preparation snapshots active clones before player-first target selection.
+    handler: (context: MesmerSchedulerContext, event: SimulationEventInput) =>
+      prepareGw2BoonCompanionCandidates(
+        event,
+        professionCoreState(context).clones.map((clone) => `mesmer.clone:${clone.id}`)
+      )
+  },
   initialize: initializeMesmerScheduler,
   advance: advanceMesmerScheduler,
   onCastStart: startMesmerCast,

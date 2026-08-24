@@ -1,15 +1,8 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { SkillEffect } from '../../../../platform/engine/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import type { MesmerCastContext, MesmerShatterResolution } from '../../types.js';
-
-const partyBoonRecipients = (context: MesmerCastContext, maximumRecipients: number) => ({
-  recipients: 'party' as const,
-  maximumRecipients,
-  companionIds: professionCoreState(context.state).clones.map((clone) => `mesmer.clone:${clone.id}`)
-});
 
 const triggerShatterBoon = (
   context: MesmerCastContext,
@@ -43,7 +36,8 @@ const triggerShatterBoon = (
     duration,
     skillName: resolution.skill.name,
     sourceSkill: resolution.skill.name,
-    ...partyBoonRecipients(context, Number(effect.maximumRecipients ?? 5))
+    recipients: 'party',
+    maximumRecipients: Number(effect.maximumRecipients ?? 5)
   });
   runtime.addTraitProc(traitName, resolution.at, resolution.skill.name, `${duration}s ${kind}`);
 };

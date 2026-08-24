@@ -3,7 +3,7 @@ import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '../data/traits-data.js';
-import { addCarapace } from './shared.js';
+import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { gw2AlliedEffectRecipients, gw2BoonApplicationRecipients } from '../../../platform/gw2/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/native-profession.js';
@@ -25,6 +25,7 @@ interface TraitDamageDefinition {
   readonly traitId: SkillId;
   readonly flatStrikeBase: number;
   readonly flatStrikePowerCoeff: number;
+  readonly icon?: string;
 }
 
 interface TraitConditionDefinition {
@@ -54,7 +55,7 @@ interface TraitVulnerabilityDefinition {
 function queueTraitDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  { name, traitId, flatStrikeBase, flatStrikePowerCoeff }: TraitDamageDefinition
+  { name, traitId, flatStrikeBase, flatStrikePowerCoeff, icon }: TraitDamageDefinition
 ): void {
   enqueueOrdered(context.queue, {
     type: 'damage',
@@ -73,10 +74,11 @@ function queueTraitDamage(
     skillWeapon: 'Unequipped',
     noCrit: true,
     damageKind: 'life-steal',
+    ...(icon ? { icon } : {}),
     ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
     triggeredBy: event.skillName
   });
-  context.recordProc?.('trait', name, event.at, event.skillName);
+  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
 export function applyTraitCondition(
@@ -131,7 +133,9 @@ export function queueTraitCoefficientDamage(
     ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
     triggeredBy: event.skillName
   });
-  context.recordProc?.('trait', name, event.at, event.skillName);
+  // Proc markers need the derived effect's artwork because their display name
+  // does not necessarily match either the granting trait or triggering skill.
+  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
@@ -140,12 +144,13 @@ function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   return Number(context.totals.strike || 0) + Number(context.totals.condition || 0) > maximum * 0.5;
 }
 
-// Vampiric adds one non-critical siphon to every direct player hit, while only
-// the Necromancer's minions (not Ritualist spirits) use the larger minion packet.
+// Ritualist spirit attacks proc the owner's Vampiric packet. Ordinary
+// Necromancer minions use the separate, larger minion-scaled packet.
 function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.VAMPIRIC)) return;
-  const minionHit = event.actorType === 'summon' && event.summonKind !== 'spirit';
-  if (event.actorType !== 'player' && !minionHit) return;
+  const summonHit = event.actorType === 'summon';
+  const minionHit = summonHit && event.summonKind !== 'spirit';
+  if (event.actorType !== 'player' && !summonHit) return;
 
   const profile = necromancerBalanceProfile(context, PROFILE.vampiric);
   const packetLabel = minionHit ? 'minion' : 'player';
@@ -160,28 +165,14 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
   });
 }
 
-function vampiricPresenceCompanionIds(context: NecromancerResolverContext): string[] {
-  const ids: string[] = [];
-  for (const [key, count] of Object.entries(professionCoreState(context).activeMinions || {})) {
-    for (let index = 0; index < Number(count || 0); index += 1) ids.push(`minion:${key}:${index}`);
-  }
-
-  const specializationState = context.profession.specialization.state as {
-    readonly activeSpirits?: Readonly<Record<string, boolean>>;
-  };
-  for (const [key, active] of Object.entries(specializationState.activeSpirits || {})) {
-    if (active) ids.push(`spirit:${key}`);
-  }
-
-  return ids;
-}
-
 function vampiricPresenceActorKey(context: NecromancerResolverContext, event: NecromancerResolverEvent): string | null {
-  if (event.actorType === 'player') return 'self';
+  // Spirit attacks are owner-attributed and share the player's proc interval;
+  // ordinary minions remain independent capped allied recipients.
+  if (event.actorType === 'player' || (event.actorType === 'summon' && event.summonKind === 'spirit')) return 'self';
   if (event.actorType !== 'summon') return null;
   const recipients = gw2AlliedEffectRecipients(context.config, {
     maximumRecipients: 5,
-    companionIds: vampiricPresenceCompanionIds(context)
+    companionIds: necromancerActiveMinionCompanionIds(context)
   });
   const owner = String(event.summonOwner || '');
   if (owner && recipients.companionIds.includes(owner)) return owner;
@@ -221,7 +212,7 @@ function queueVampiricPresence(
   queueTraitDamage(context, event, {
     name: 'Vampiric Presence',
     traitId: TRAIT.VAMPIRIC_PRESENCE,
-    flatStrikeBase: Number(effect?.flatStrikeBase ?? (inShroud ? 62 : 32)),
+    flatStrikeBase: Number(effect?.flatStrikeBase ?? (inShroud ? 129 : 65)),
     flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? (inShroud ? 0.0666 : 0.0333))
   });
 }
@@ -303,20 +294,21 @@ function addTasteForBloodApplication(
   context.boons.set(kind, applications);
 }
 
-// Trait-derived Taste for Blood packets keep Overflowing Thirst artwork so
-// damage breakdown attribution matches the mechanic that granted the stacks.
+// Trait-derived Taste for Blood packets and proc markers keep Overflowing
+// Thirst artwork so attribution matches the mechanic that granted the stacks.
 const OVERFLOWING_THIRST_ICON = String(
   NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || ''
 );
 
 function queueTasteForBlood(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'strike');
-  queueTraitCoefficientDamage(context, event, {
+  // Taste for Blood is a power-only life siphon, so armor and weapon strength
+  // must not enter its 375 + 0.05 * Power damage formula.
+  queueTraitDamage(context, event, {
     name: 'Taste for Blood',
     traitId: TRAIT.OVERFLOWING_THIRST,
-    coefficient: Number(effect?.coefficient ?? 0.05),
-    noCrit: effect?.metadata?.noCrit !== false,
-    damageKind: String(effect?.metadata?.damageKind || 'life-steal'),
+    flatStrikeBase: Number(effect?.flatStrikeBase ?? 375),
+    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? 0.05),
     icon: OVERFLOWING_THIRST_ICON
   });
 }

@@ -3105,6 +3105,30 @@ test('Sharper Images uses deterministic expected-proc accumulation', () => {
   );
 });
 
+test('Mesmer allied boons prioritize players before active clones', () => {
+  const result = simulateMesmer(
+    ['Mind Slash'],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Sword',
+      initialResource: 3,
+      selectedTraits: ['Master Fencer'],
+      allies: { count: 2, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+      stats: { precision: 10000 }
+    })
+  );
+  const alliedFury = result.events.find(
+    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.recipients === 'allies'
+  );
+
+  assert.ok(alliedFury);
+  assert.equal(alliedFury.alliedPlayerCount, 2);
+  assert.deepEqual(alliedFury.companionIds, ['mesmer.clone:1', 'mesmer.clone:2']);
+  assert.equal(alliedFury.recipientCount, 4);
+});
+
 test('Illusionary Counter arms one Counterspell without generating clones itself', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',

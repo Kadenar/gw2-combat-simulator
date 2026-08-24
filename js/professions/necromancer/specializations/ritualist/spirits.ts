@@ -17,7 +17,6 @@ import {
   emitState,
   gainNecromancerLifeForce,
   hasTrait,
-  necromancerPartyBoonRecipients,
   registerNecromancerCreatureStrikeMultiplier,
   registerCreatureSummonReaction,
   runCreatureSummonReactions
@@ -345,7 +344,7 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
   const profile = necromancerBalanceProfile(context, PROFILE.empoweringSpirits);
   const quickness = balanceProfileEffect(profile, 'boon');
   const boonOptions = {
-    metadata: necromancerPartyBoonRecipients(context)
+    metadata: { recipients: 'party', maximumRecipients: 5 }
   };
   emitBuff(
     context,
@@ -532,7 +531,7 @@ function summonSpirit(
     emitWanderlustInitial(context, skill, spirit, at);
   } else if (spirit.key === 'preservation') {
     const boonOptions = {
-      metadata: necromancerPartyBoonRecipients(context)
+      metadata: { recipients: 'party', maximumRecipients: 5 }
     };
     emitBuff(context, skill, 'protection', 4, 1, boonOptions);
     emitBuff(context, skill, 'vigor', 4, 1, boonOptions);
@@ -636,7 +635,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       }
     });
     const boonOptions = {
-      metadata: necromancerPartyBoonRecipients(context)
+      metadata: { recipients: 'party', maximumRecipients: 5 }
     };
     for (const boon of boons) {
       emitBuff(
@@ -663,7 +662,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
     const boonOptions = {
-      metadata: necromancerPartyBoonRecipients(context)
+      metadata: { recipients: 'party', maximumRecipients: 5 }
     };
     emitBuff(context, skill, 'aegis', 3, 1, boonOptions);
     emitBuff(context, skill, 'resistance', 4, 1, boonOptions);

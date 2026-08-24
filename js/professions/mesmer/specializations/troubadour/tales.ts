@@ -1,4 +1,3 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -41,11 +40,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
   const runtime = mesmerRuntimeFor(context);
   const profileId = TALE_PROFILE_IDS[skill.id];
   const profile = profileId ? runtime.balanceProfile(profileId) : null;
-  const partyRecipients = {
-    recipients: 'party' as const,
-    maximumRecipients: 5,
-    companionIds: professionCoreState(context.state).clones.map((clone) => `mesmer.clone:${clone.id}`)
-  };
+  const partyRecipients = { recipients: 'party' as const, maximumRecipients: 5 };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
     runtime.addEvent({

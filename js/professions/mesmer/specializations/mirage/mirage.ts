@@ -107,8 +107,7 @@ export function createMirageActionController({
       ...(boonRecipients === 'party'
         ? {
             recipients: boonRecipients,
-            maximumRecipients: 5,
-            companionIds: professionCoreState(state).clones.map((clone) => `mesmer.clone:${clone.id}`)
+            maximumRecipients: 5
           }
         : {})
     });

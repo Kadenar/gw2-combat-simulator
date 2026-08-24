@@ -3743,6 +3743,9 @@ test("Razorclaw models party procs with the Revenant's condition stats", () => {
   assert.equal(partyBuff.stacks, 4);
   assert.equal(partyBuff.duration, 5);
   assert.equal(partyBuff.recipientCount, 5);
+  assert.equal(partyBuff.alliedPlayerCount, 4);
+  assert.deepEqual(partyBuff.companionIds, []);
+  assert.equal(partyBuff.affectsSummons, false);
   const personalPackets = result.resolvedEvents.filter(
     (event) =>
       event.skillName === "Razorclaw's Rage" &&
