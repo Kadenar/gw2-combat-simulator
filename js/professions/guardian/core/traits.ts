@@ -125,6 +125,9 @@ function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: Guar
   const strike = guardianBalanceProfileEffect(profile, 'strike');
   const hits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
   const interval = Number(strike?.intervalMs || 1000) / 1000;
+  // The triggered symbol is one distinct activation so its unequipped weapon-strength roll is shared by its
+  // pulses without colliding with the virtue cast's equipped-weapon roll.
+  const activationId = context.createActivationId('effect');
   for (let index = 0; index < hits; index += 1) {
     context.emit(
       buildGuardianStrike({
@@ -136,6 +139,7 @@ function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: Guar
         name: 'Lesser Symbol of Blades',
         coefficient: Number(strike?.coefficient || 0.65) / hits,
         skillWeapon: 'Unequipped',
+        activationId,
         hitIndex: index + 1,
         totalHits: hits,
         isSymbol: true,

@@ -105,6 +105,65 @@ test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   assert.equal(renderCount, 1);
 });
 
+test('RNG runner limits parallel workers for an event-heavy baseline', (t) => {
+  runTimersImmediately(t);
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+
+  t.after(() => {
+    if (workerDescriptor) {
+      Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    } else {
+      delete globalThis.Worker;
+    }
+
+    if (navigatorDescriptor) {
+      Object.defineProperty(globalThis, 'navigator', navigatorDescriptor);
+    } else {
+      delete globalThis.navigator;
+    }
+  });
+
+  const workers = [];
+  class PendingWorker {
+    constructor() {
+      workers.push(this);
+    }
+
+    addEventListener() {}
+
+    terminate() {}
+
+    postMessage() {}
+  }
+
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: PendingWorker
+  });
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    writable: true,
+    value: { hardwareConcurrency: 16 }
+  });
+
+  const app = {
+    build: { rotation: STRIKE_ROTATION },
+    results: { resolvedEvents: Array.from({ length: 1000 }, () => ({})) },
+    adapter: {
+      randomDistributionRequest() {
+        return { trials: 500 };
+      },
+      renderResults() {}
+    }
+  };
+
+  new RandomDistributionRunner(app).schedule(true);
+
+  assert.equal(workers.length, 2);
+});
+
 function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
   // (optionally) breakdown/events — keep it minimal but non-empty.

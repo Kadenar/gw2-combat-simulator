@@ -22,6 +22,12 @@ export const MAX_RANDOM_DISTRIBUTION_WORKERS = 8;
 /** Conservative worker count when the browser does not expose CPU capacity. */
 export const DEFAULT_RANDOM_DISTRIBUTION_WORKERS = 4;
 
+/** Event-heavy simulations retain enough runtime memory to require lower parallelism. */
+export const MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_EVENT_COUNT = 1_000;
+
+/** Worker cap used when a baseline reaches the event-heavy threshold. */
+export const MAX_MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_WORKERS = 2;
+
 const EXPLANATION_COHORT_PERCENT = 10;
 const MAX_EXPLANATION_DRIVERS = 5;
 const MIN_EXPLANATION_CORRELATION = 0.2;
@@ -38,12 +44,23 @@ export interface RandomDistributionBatch {
   readonly seedStart: number;
 }
 
-export function randomDistributionWorkerCount(trialCount: number, hardwareConcurrency = 0): number {
+export function randomDistributionWorkerCount(
+  trialCount: number,
+  hardwareConcurrency = 0,
+  baselineEventCount = 0
+): number {
   const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers = hardware > 0 ? Math.max(1, hardware - 1) : DEFAULT_RANDOM_DISTRIBUTION_WORKERS;
-  return Math.min(trials, MAX_RANDOM_DISTRIBUTION_WORKERS, availableWorkers);
+  const eventCount = Math.max(0, Math.trunc(Number(baselineEventCount) || 0));
+  // Large resolved timelines make each worker memory-intensive, so run fewer copies concurrently to avoid
+  // browser worker termination while retaining parallel distribution progress.
+  const workloadWorkerLimit =
+    eventCount >= MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_EVENT_COUNT
+      ? MAX_MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_WORKERS
+      : MAX_RANDOM_DISTRIBUTION_WORKERS;
+  return Math.min(trials, workloadWorkerLimit, availableWorkers);
 }
 
 export function partitionRandomDistributionTrials(trialCount: number, workerCount: number): RandomDistributionBatch[] {

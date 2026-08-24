@@ -258,6 +258,8 @@ test('RNG trials partition across available worker cores without changing seeds'
   assert.equal(randomDistributionWorkerCount(500, 2), 1);
   assert.equal(randomDistributionWorkerCount(500, 0), 4);
   assert.equal(randomDistributionWorkerCount(0, 8), 0);
+  assert.equal(randomDistributionWorkerCount(500, 16, 999), 8);
+  assert.equal(randomDistributionWorkerCount(500, 16, 1000), 2);
   assert.deepEqual(partitionRandomDistributionTrials(10, 3), [
     { trials: 4, seedStart: 1 },
     { trials: 3, seedStart: 5 },

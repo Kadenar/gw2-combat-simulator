@@ -3910,6 +3910,34 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
   assert.equal(zealotsResolution.endState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
 });
 
+test('Furious Focus uses a separate stochastic weapon-strength activation from its triggering virtue', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Spear of Justice', { type: 'wait', durationMs: 5000 }],
+    config: {
+      ...config,
+      specialization: 'Dragonhunter',
+      primaryWeapon: 'Spear',
+      boons: { fury: true },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS],
+      randomness: { mode: 'stochastic', seed: 1 }
+    }
+  });
+  const virtue = result.resolvedEvents.find((event) => event.name === 'Spear of Justice' && event.type === 'damage');
+  const symbol = result.resolvedEvents.filter(
+    (event) => event.name === 'Lesser Symbol of Blades' && event.type === 'damage'
+  );
+
+  assert.equal(virtue.weaponStrengthProfileId, 'weapon.spear');
+  assert.equal(symbol.length, 5);
+  assert.notEqual(symbol[0].activationId, virtue.activationId);
+  assert.equal(new Set(symbol.map((event) => event.activationId)).size, 1);
+  assert.equal(
+    symbol.every((event) => event.weaponStrengthProfileId === 'nonweapon.unequipped'),
+    true
+  );
+});
+
 test('resolution traits affect strike damage, critical chance, and might', () => {
   const run = (selectedTraitIds) =>
     simulateGw2({

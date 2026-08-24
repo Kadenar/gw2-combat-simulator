@@ -134,7 +134,12 @@ export class RandomDistributionRunner {
       if (requestId !== this.requestId) return;
 
       if (typeof Worker === 'function') {
-        const workerCount = randomDistributionWorkerCount(request.trials, globalThis.navigator?.hardwareConcurrency);
+        // Baseline event count estimates per-worker memory before starting parallel stochastic copies.
+        const workerCount = randomDistributionWorkerCount(
+          request.trials,
+          globalThis.navigator?.hardwareConcurrency,
+          results.resolvedEvents?.length ?? 0
+        );
         const batches = partitionRandomDistributionTrials(request.trials, workerCount);
         if (!batches.length) {
           applyDistribution(summarizeRandomDistribution([]));
