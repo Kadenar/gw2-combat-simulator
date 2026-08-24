@@ -82,7 +82,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         }
       }
     ],
-    lifeForceGain: 3,
+    // Aggregate the three 3% siphons because the simulator assumes every strike connects.
+    lifeForceGain: 9,
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'harbinger',

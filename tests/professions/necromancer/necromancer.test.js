@@ -374,6 +374,15 @@ test('Necromancer multi-hit skills use their configured packet timings', () => {
   assert.deepEqual(offsets(wanderlust, 'Wanderlust', ID.WANDERLUST), [720, 2760, 3760, 4760, 5760]);
 });
 
+test('Vital Draw grants nine percent life force for its three assumed hits', () => {
+  const result = simulate('Harbinger', ['Harbinger Shroud', 'Vital Draw'], { initialResource: 20 });
+  const states = result.events.filter((event) => event.type === 'necromancer.state');
+  const gainIndex = states.findIndex((event) => event.reason === 'skill-life-force');
+
+  // Compare adjacent resource snapshots so the contract remains independent of cast-duration drain.
+  assert.equal(states[gainIndex].state.lifeForce - states[gainIndex - 1].state.lifeForce, 9);
+});
+
 test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => {
   const result = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {
     initialResource: 100,
