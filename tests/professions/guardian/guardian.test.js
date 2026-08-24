@@ -1462,6 +1462,33 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   );
 });
 
+test('Willbender Flames use a separate stochastic weapon-strength activation from their virtue', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Rushing Justice', { type: 'wait', durationMs: 6000 }],
+    config: {
+      ...config,
+      specialization: 'Willbender',
+      randomness: { mode: 'stochastic', seed: 1 }
+    }
+  });
+  const virtue = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Rushing Justice'
+  );
+  const flames = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Willbender Flames'
+  );
+
+  assert.equal(virtue.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
+  assert.equal(flames.length, 5);
+  assert.notEqual(flames[0].activationId, virtue.activationId);
+  assert.equal(new Set(flames.map((event) => event.activationId)).size, 1);
+  assert.equal(
+    flames.every((event) => event.weaponStrengthProfileId === 'nonweapon.unequipped'),
+    true
+  );
+});
+
 test('Guardian symbols and persistent attacks resolve after their casts', () => {
   const symbol = simulateGw2({
     profession: guardianProfession,

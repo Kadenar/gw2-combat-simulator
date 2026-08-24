@@ -270,12 +270,15 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
   const flames = guardianBalanceProfile(context, PROFILE.flames);
   const pulses = Math.max(1, Math.trunc(Number(flames?.maximumStacks || 5)));
   const interval = Number(flames?.pulseInterval || 1);
+  // A flame field is a separate activation from the virtue that created it, so its unequipped weapon-strength
+  // roll is shared by its pulses without colliding with the virtue impact's profession-mechanic roll.
+  const activationId = context.createActivationId('effect');
   for (let pulse = 1; pulse <= pulses; pulse += 1) {
     context.tasks.schedule({
       id: `guardian.willbender-flame:${flameGeneration}:${task.at}:${pulse}`,
       type: 'guardian.willbender-flame-pulse',
       at: Number(task.at) + pulse * interval,
-      payload: { flameGeneration, flameId, pulse }
+      payload: { activationId, flameGeneration, flameId, pulse }
     });
   }
 }
