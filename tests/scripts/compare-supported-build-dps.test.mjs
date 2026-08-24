@@ -6,8 +6,11 @@ import test from 'node:test';
 
 import {
   findDpsMismatches,
+  MAXIMUM_ABSOLUTE_DPS_ERROR,
   MAXIMUM_RELATIVE_ERROR,
+  parseMaximumAbsoluteDpsError,
   parseMode,
+  printDpsComparison,
   updateManifestBenchmarkDps
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
 
@@ -31,13 +34,52 @@ test('DPS comparison reports only manifest builds outside the 1% tolerance', () 
   );
 });
 
+test('absolute DPS comparison reports only builds more than 100 DPS from the manifest value', () => {
+  const metrics = [
+    { id: 'within-positive', benchmarkDps: 40_000, dps: 40_100 },
+    { id: 'within-negative', benchmarkDps: 40_000, dps: 39_900 },
+    { id: 'above', benchmarkDps: 40_000, dps: 40_101 },
+    { id: 'below', benchmarkDps: 40_000, dps: 39_899 }
+  ];
+
+  const mismatches = findDpsMismatches(metrics, MAXIMUM_RELATIVE_ERROR, MAXIMUM_ABSOLUTE_DPS_ERROR);
+
+  assert.equal(MAXIMUM_ABSOLUTE_DPS_ERROR, 100);
+  assert.deepEqual(
+    mismatches.map(({ id, difference }) => ({ id, difference })),
+    [
+      { id: 'above', difference: 101 },
+      { id: 'below', difference: -101 }
+    ]
+  );
+});
+
 test('mode parsing defaults to dry mode and requires an explicit commit', () => {
   assert.equal(parseMode([]), 'dry');
   assert.equal(parseMode(['--dry']), 'dry');
   assert.equal(parseMode(['--dry-run']), 'dry');
+  assert.equal(parseMode(['--absolute-dps']), 'dry');
   assert.equal(parseMode(['--commit']), 'commit');
   assert.throws(() => parseMode(['--commit', '--dry']), /either dry mode or --commit/);
   assert.throws(() => parseMode(['--unknown']), /Unknown argument/);
+});
+
+test('absolute DPS tolerance requires an explicit flag', () => {
+  assert.equal(parseMaximumAbsoluteDpsError([]), null);
+  assert.equal(parseMaximumAbsoluteDpsError(['--absolute-dps']), 100);
+});
+
+test('absolute DPS comparison output identifies the fixed tolerance', (context) => {
+  const output = [];
+
+  context.mock.method(console, 'log', (message) => output.push(message));
+  printDpsComparison(
+    [{ profession: 'mesmer', benchmarkDps: 40_000, dps: 40_100 }],
+    MAXIMUM_RELATIVE_ERROR,
+    MAXIMUM_ABSOLUTE_DPS_ERROR
+  );
+
+  assert.deepEqual(output, ['All 1 rotation-backed builds across 1 manifests are within 100 DPS of benchmark DPS.']);
 });
 
 test('commit mode writes simulated DPS to matching manifest entries', async (context) => {
