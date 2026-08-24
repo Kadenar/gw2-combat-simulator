@@ -453,11 +453,15 @@ frame.addEventListener('load', async () => {
 
     const originalPower = app.attributeData.attributes.Power.final;
     const helm = document.querySelector('[data-slot="Helm"]');
-    const gearRotationDps = document.querySelector('[data-role="current-rotation-dps"]');
+    const floatingDps = document.querySelector('#floating-dps .floating-dps-value');
 
     assert(
-      gearRotationDps?.textContent === Math.round(app.results.dps).toLocaleString(),
-      'gear panel does not show the current rotation DPS'
+      !document.querySelector('[data-role="current-rotation-dps"]'),
+      'gear panel still shows the redundant current rotation DPS'
+    );
+    assert(
+      floatingDps?.textContent === Math.round(app.results.dps).toLocaleString(),
+      'floating DPS does not show the current rotation result'
     );
     helm.focus();
     helm.value = "Viper's";
@@ -468,9 +472,9 @@ frame.addEventListener('load', async () => {
       'gear prefix change replaced the select and broke Tab navigation'
     );
     assert(
-      document.querySelector('[data-role="current-rotation-dps"]') === gearRotationDps &&
-        gearRotationDps.textContent === Math.round(app.results.dps).toLocaleString(),
-      'gear prefix change did not update the current rotation DPS in place'
+      document.querySelector('#floating-dps .floating-dps-value') === floatingDps &&
+        floatingDps.textContent === Math.round(app.results.dps).toLocaleString(),
+      'gear prefix change did not update the floating DPS in place'
     );
     assert(
       icon(document, 'Dodge / Mirage Cloak').querySelector('img').src ===

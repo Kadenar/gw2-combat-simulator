@@ -672,6 +672,31 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.equal(summaryMirror.innerHTML, '');
 });
 
+test('current rotation DPS stays above the footer and hides in the professions view', async () => {
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(
+    css,
+    /\.floating-dps\s*\{\s*position: absolute;\s*right: max\(14px, env\(safe-area-inset-right\)\);\s*bottom: calc\(100% \+ 12px\);/
+  );
+  assert.match(
+    css,
+    /body\[data-profession\]\[data-simulator-view='professions'\] \.floating-dps\s*\{\s*display: none;/
+  );
+});
+
+test('gear panel leaves current rotation DPS to the floating metric', async () => {
+  const [gearPanel, professionApp, css] = await Promise.all([
+    readFile(new URL('../../js/app/build/gear-panel.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/profession-app.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../css/style.css', import.meta.url), 'utf8')
+  ]);
+
+  assert.doesNotMatch(gearPanel, /current-rotation-dps|gear-rotation-dps|currentRotationDps/);
+  assert.doesNotMatch(professionApp, /updateGearRotationDps/);
+  assert.doesNotMatch(css, /\.gear-rotation-(?:result|dps)/);
+});
+
 test('empty and authored rotations keep the same timeline height', async () => {
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 

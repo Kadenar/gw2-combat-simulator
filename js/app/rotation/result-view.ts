@@ -1,11 +1,13 @@
 import { mountRotationResults, SKILL_COLS } from '../../platform/ui/rotation-results.js';
-import { syncRotationFocusResults } from '../../platform/ui/rotation-workspace.js';
+import { syncRotationFocusResults, updateFloatingDps } from '../../platform/ui/rotation-workspace.js';
 import { targetHealthBreakpointSnapshots } from '../../platform/ui/result-transform.js';
 import type { ProfessionAppState } from '../profession/types.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from './icons.js';
 import { renderPatchComparison } from '../simulation/patch-preview-view.js';
 import type { ResultIconRow } from './icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from './result-model.js';
+import { analyzeRotationLoops } from './loop-analysis.js';
+import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from './loop-analysis-view.js';
 
 const EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',
@@ -47,6 +49,8 @@ export function renderResults(app: ProfessionAppState): void {
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
+    updateFloatingDps(null);
+    removeRotationLoopAnalysis(element);
     mountRotationResults(summaryStrip, {
       metrics: EMPTY_RESULT_METRICS,
       summaryPlaceholder: true
@@ -63,6 +67,7 @@ export function renderResults(app: ProfessionAppState): void {
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
   );
+  updateFloatingDps(metrics.find((metric) => metric.className === 'dps')?.value);
   // The builder owns the live strip; the results root only renders detailed analysis.
   mountRotationResults(summaryStrip, { metrics });
   const skillRows = skillBreakdownRows(result);
@@ -133,6 +138,7 @@ export function renderResults(app: ProfessionAppState): void {
       }
     }
   );
+  renderRotationLoopAnalysis(element, app, analyzeRotationLoops(app));
   const mirror = document.getElementById('analysis-dps-summary');
   if (mirror) {
     mirror.innerHTML = '';

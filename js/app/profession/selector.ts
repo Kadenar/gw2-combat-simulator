@@ -14,12 +14,7 @@ import { mountRotationTimelineSize } from '../../platform/ui/rotation-timeline-s
 import { mountRotationWorkspace } from '../../platform/ui/rotation-workspace.js';
 import { mountSimulatorTutorial } from '../tutorial.js';
 import { mountSimulatorNavigation } from './navigation.js';
-import {
-  professionGroups,
-  type ProfessionRegistryEntry,
-  PROFESSION_ROUTES,
-  professionRoute
-} from './registry.js';
+import { professionGroups, type ProfessionRegistryEntry, PROFESSION_ROUTES, professionRoute } from './registry.js';
 
 export {
   // Kept here as compatibility exports for existing selector consumers.
@@ -193,9 +188,9 @@ function renderProfessionGroupCards(root: Document, grid: Element, entries: read
  */
 export function bindProfessionSelector(root: Document = document): void {
   mountGw2IconFallback(root);
+  mountLegalFooter(root);
   mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
-  mountLegalFooter(root);
   mountCommunityActions(root);
   mountSimulatorTutorial(root);
   mountSimulatorNavigation(root);

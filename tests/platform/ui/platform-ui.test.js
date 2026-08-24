@@ -49,9 +49,11 @@ import {
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,
+  mountFloatingDps,
   mountRotationDpsSummary,
   reduceRotationWorkspaceState,
-  syncRotationFocusResults
+  syncRotationFocusResults,
+  updateFloatingDps
 } from '../../../js/platform/ui/rotation-workspace.js';
 import {
   bindTimelineInteractions,
@@ -183,6 +185,55 @@ test('rotation DPS summary mounts directly after the timeline', () => {
     id: 'rotation-dps-summary',
     className: 'rotation-dps-summary'
   });
+});
+
+test('floating DPS mounts once and tracks the latest result', () => {
+  const elements = new Map();
+  const footer = {
+    append(node) {
+      elements.set(node.id, node);
+    }
+  };
+  const element = () => ({
+    id: '',
+    className: '',
+    textContent: '',
+    attributes: new Map(),
+    children: [],
+    append(...children) {
+      this.children.push(...children);
+    },
+    setAttribute(name, value) {
+      this.attributes.set(name, value);
+    },
+    querySelector(selector) {
+      return this.children.find((child) => `.${child.className}` === selector) || null;
+    }
+  });
+  const root = {
+    body: {
+      dataset: { profession: 'mesmer' },
+      append(node) {
+        elements.set(node.id, node);
+      }
+    },
+    createElement: () => element(),
+    getElementById: (id) => elements.get(id) || null,
+    querySelector: (selector) => (selector === '.landing-footer' ? footer : null)
+  };
+
+  const indicator = mountFloatingDps(root);
+  mountFloatingDps(root);
+  updateFloatingDps('12,345', root);
+
+  assert.equal(elements.size, 1);
+  assert.equal(indicator.querySelector('.floating-dps-label').textContent, 'DPS');
+  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '12,345');
+  assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
+
+  updateFloatingDps(null, root);
+  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '—');
+  assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
 });
 
 test('activation editor suggests and validates manual interruption times', () => {
