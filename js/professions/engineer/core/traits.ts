@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasEngineerTrait } from './state.js';

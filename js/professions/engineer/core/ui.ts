@@ -1,5 +1,5 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {
   PaletteSkillAvailability,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isInternalCooldownReady } from '../../../js/platform/engine/clock.js';
+import { isInternalCooldownReady } from '../../../js/platform/engine/core/clock.js';
 
 test('internal cooldowns remain active through their boundary timestamp', () => {
   assert.equal(isInternalCooldownReady(0, 0), true);

@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import { engineerEnduranceReadyAt } from './resources.js';

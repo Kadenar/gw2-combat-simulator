@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext } from '../types.js';

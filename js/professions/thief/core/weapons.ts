@@ -1,5 +1,5 @@
 import { spearChainStageForSkill } from './conditions.js';
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '../types.js';
 
 export function thiefWeaponSkillMatchesSet(

@@ -1,5 +1,5 @@
 import { chronomancerState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */

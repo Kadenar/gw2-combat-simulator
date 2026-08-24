@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Tracks Guardian weapon autoattack chains, temporary flip
  * availability, and normal weapon-bar gating.

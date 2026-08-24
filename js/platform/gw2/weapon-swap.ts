@@ -1,5 +1,5 @@
-import { professionCoreState } from '../engine/profession.js';
-import { replaceSkillHandler } from '../engine/skill-handlers.js';
+import { professionCoreState } from '../engine/profession/state.js';
+import { replaceSkillHandler } from '../engine/skills/handlers.js';
 import type { SimulationEventInput, Skill, SkillHandlerStrategy, SkillId } from '../engine/types.js';
 
 interface Gw2WeaponSwapContext {

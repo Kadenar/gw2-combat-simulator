@@ -1,6 +1,6 @@
 /** Renegade runtime state machines backed by declarative skill profiles. */
-import { materializeSkillEffectApplications } from '../../../../platform/engine/effect-materializer.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
 import { emitRevenantState } from '../../core/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';

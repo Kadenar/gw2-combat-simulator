@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import type { RangerCastContext, RangerSkill } from '../types.js';
 import { isRangerHammerVariant } from './hammer.js';

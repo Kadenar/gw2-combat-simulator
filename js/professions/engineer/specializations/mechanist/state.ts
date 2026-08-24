@@ -1,5 +1,5 @@
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
 import type { BalanceProfile, SkillId } from '../../../../platform/engine/types.js';
 import type { EngineerConfig, EngineerMechAttributes, EngineerPlayerStats, MechanistState } from '../../types.js';

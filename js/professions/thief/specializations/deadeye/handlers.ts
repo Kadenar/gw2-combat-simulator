@@ -1,6 +1,6 @@
 import { deadeyeState } from './state.js';
-import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { completeStealWithStoredSkills } from '../../core/steal.js';
 import { emitStealTraitEffects } from '../../core/traits.js';
 import { emitThiefCondition, emitThiefState, gainThiefInitiative } from '../../core/shared.js';

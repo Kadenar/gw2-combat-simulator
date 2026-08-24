@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
 import { syncWarriorAdrenaline } from '../../core/resources.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../core/profiles.js';

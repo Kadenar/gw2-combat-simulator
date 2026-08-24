@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';

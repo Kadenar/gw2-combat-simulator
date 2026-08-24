@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../platform/engine/profession/state.js';
 import type { WarriorEndStateProjectionOptions, WarriorState } from './types.js';
 
 /** Aggregates Core and active-specialization state at the Warrior family boundary. */

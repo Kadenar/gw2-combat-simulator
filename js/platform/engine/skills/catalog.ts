@@ -3,9 +3,9 @@
  * boundary where generated API data, hand-authored mechanics, explicit
  * overrides, and resolver handlers become one validated immutable lookup.
  */
-import { normalizeSkillHandler, SKILL_HANDLER_MODES } from './skill-handlers.js';
+import { normalizeSkillHandler, SKILL_HANDLER_MODES } from './handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from './autoattack-chains.js';
-import { toEntries } from './collections.js';
+import { toEntries } from '../core/collections.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -20,7 +20,7 @@ import type {
   SkillId,
   SkillLockout,
   StrikeTick
-} from './types.js';
+} from '../types.js';
 
 interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];

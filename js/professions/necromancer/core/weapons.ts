@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *

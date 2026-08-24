@@ -9,7 +9,7 @@ import {
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions
 } from '../../../js/app/profession/assumptions.js';
-import { defineProfession } from '../../../js/platform/engine/profession.js';
+import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../js/platform/gw2/query.js';
 import { createGw2TimelineIndex } from '../../../js/platform/gw2/timeline-index.js';
 import { canonicalTargetConditionName } from '../../../js/platform/gw2/target-state.js';

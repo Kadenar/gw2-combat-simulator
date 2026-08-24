@@ -1,4 +1,4 @@
-import { SKILL_HANDLER_MODES } from '../../../../platform/engine/skill-handlers.js';
+import { SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
 import type { SkillHandlerPhase } from '../../../../platform/engine/types.js';
 import type { RevenantCastContext } from '../../types.js';

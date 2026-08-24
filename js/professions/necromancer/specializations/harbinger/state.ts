@@ -1,5 +1,5 @@
 import type { HarbingerState, NecromancerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
   const initialBlight = Math.max(0, Math.min(25, Math.trunc(Number(config.initialBlight || 0))));

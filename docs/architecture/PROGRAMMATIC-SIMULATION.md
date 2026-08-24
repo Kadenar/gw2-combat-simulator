@@ -29,7 +29,7 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import { prepareSimulationConfig } from './js/platform/engine/prepare-config.js';
+import { prepareSimulationConfig } from './js/platform/engine/config.js';
 import { simulateGw2 } from './js/platform/gw2/simulate.js';
 import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';

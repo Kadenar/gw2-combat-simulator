@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compareQueuedEvents, StableEventQueue } from '../../../js/platform/engine/event-queue.js';
-import { eventCausalOrder, eventTimestamp } from '../../../js/platform/engine/events.js';
+import { compareQueuedEvents, StableEventQueue } from '../../../js/platform/engine/events/queue.js';
+import { eventCausalOrder, eventTimestamp } from '../../../js/platform/engine/events/events.js';
 
 test('event ordering primitives preserve canonical and legacy field precedence', () => {
   assert.equal(eventTimestamp({ at: 3, time: 4 }), 3);

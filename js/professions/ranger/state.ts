@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../platform/engine/profession/state.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import { DRUID_PUBLIC_END_STATE_KEYS, DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS } from './specializations/druid/state.js';
 import {

@@ -1,5 +1,5 @@
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { applyCondition, queueDamage } from './shared.js';
 import { snapshotEngineerState } from '../state.js';
 import type {

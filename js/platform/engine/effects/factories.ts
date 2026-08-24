@@ -14,7 +14,7 @@ import type {
   StatusEffect,
   StrikeEffect,
   StrikeTick
-} from './types.js';
+} from '../types.js';
 
 type ConditionOptions = Readonly<SchedulerRecord> & {
   readonly atMs?: number;

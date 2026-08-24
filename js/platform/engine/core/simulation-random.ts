@@ -4,7 +4,7 @@
  * starting or stopping its own proc rolls does not perturb critical rolls
  * elsewhere in the same simulation.
  */
-import type { SimulationRandom, SimulationRandomnessConfig } from './types.js';
+import type { SimulationRandom, SimulationRandomnessConfig } from '../types.js';
 
 export const SIMULATION_RANDOMNESS_MODES = Object.freeze({
   DETERMINISTIC: 'deterministic',

@@ -1,4 +1,4 @@
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';

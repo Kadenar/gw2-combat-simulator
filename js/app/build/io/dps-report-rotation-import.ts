@@ -1,6 +1,6 @@
 import { isDpsReportData, parseDpsReport } from '../../../dps-report-analyzer/parser.js';
 import { fetchDpsReport } from '../../../dps-report-analyzer/url.js';
-import { normalizeRotation } from '../../../platform/engine/rotation-commands.js';
+import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
 import type { ParsedDpsReport } from '../../../dps-report-analyzer/types.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';

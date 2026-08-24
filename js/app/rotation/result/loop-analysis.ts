@@ -1,4 +1,4 @@
-import { eventCausalOrder } from '../../../platform/engine/events.js';
+import { eventCausalOrder } from '../../../platform/engine/events/events.js';
 import type { SchedulerStep, SimulationEvent, Skill, SkillId } from '../../../platform/engine/types.js';
 import { createGw2TimelineIndex } from '../../../platform/gw2/timeline-index.js';
 import type { ProfessionAppState } from '../../profession/types.js';

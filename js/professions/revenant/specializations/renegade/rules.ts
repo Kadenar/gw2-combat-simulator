@@ -1,5 +1,5 @@
-import { materializeSkillEffectApplications } from '../../../../platform/engine/effect-materializer.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';

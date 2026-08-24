@@ -1,4 +1,4 @@
-import { EPSILON } from '../../../../platform/engine/clock.js';
+import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from '../../core/profiles.js';

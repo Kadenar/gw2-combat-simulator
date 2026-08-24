@@ -2,7 +2,7 @@
  * Rotation normalization utilities keep legacy files and shorthand inputs at
  * the boundary while the scheduler and application use canonical commands.
  */
-import type { CatalogLookup, RotationCommand } from './types.js';
+import type { CatalogLookup, RotationCommand } from '../types.js';
 
 function finiteMilliseconds(
   value: unknown,

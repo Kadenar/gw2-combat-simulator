@@ -1,5 +1,5 @@
-import { enqueueOrdered } from '../../engine/event-queue.js';
-import { isInternalCooldownReady } from '../../engine/clock.js';
+import { enqueueOrdered } from '../../engine/events/queue.js';
+import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import type { SchedulerRecord } from '../../engine/types.js';
 import { isGw2PlayerActorEvent } from '../event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON, SIGIL_PROCS } from '../gear-data.js';

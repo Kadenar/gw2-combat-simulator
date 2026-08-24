@@ -1,6 +1,6 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import type { Gw2TimedBuffApplication } from '../../../../platform/gw2/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';

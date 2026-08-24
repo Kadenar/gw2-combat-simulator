@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { BladeswornState, WarriorConfig } from '../../types.js';
 
 export function createBladeswornState(config: WarriorConfig = {}): BladeswornState {

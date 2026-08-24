@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { AntiquaryState, ThiefConfig } from '../../types.js';
 
 export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {

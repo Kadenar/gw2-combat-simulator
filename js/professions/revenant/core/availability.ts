@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { revenantEnduranceReadyAt } from './energy.js';

@@ -1,5 +1,5 @@
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
-import { EPSILON } from '../../../platform/engine/clock.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { EPSILON } from '../../../platform/engine/core/clock.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { NativeResolvedDamageDetails } from '../../../platform/gw2/native-module-types.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';

@@ -7,7 +7,7 @@ import { completeStealWithStoredSkills } from '../../core/steal.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 
 export function completeSiphon(context: ThiefCastContext): void {
   const state = specterState.from(context);

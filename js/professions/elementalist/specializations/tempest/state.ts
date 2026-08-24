@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export interface TempestState {
   latentStaminaReadyAt: number;

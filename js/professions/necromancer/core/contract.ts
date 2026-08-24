@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared
@@ -10,7 +10,7 @@ import { advanceNecromancerState, finalizeNecromancerCast } from './life-force.j
 import { gainNecromancerLifeForce } from './shared.js';
 import { transferNecromancerSelfConditions } from './conditions.js';
 import { addCarapace, emitBuff, emitCondition, emitDamage, hasTrait } from './shared.js';
-import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
 import { necromancerMinionTaskHandlers } from './minions.js';
 import { necromancerCastAvailability, requiredShroud, validateNecromancerBuild } from './availability.js';

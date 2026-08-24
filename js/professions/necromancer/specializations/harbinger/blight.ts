@@ -1,5 +1,5 @@
 import { addBlight, consumeBlight, harbingerState, purgeHarbingerTimedState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Harbinger blight skill handlers.
  *

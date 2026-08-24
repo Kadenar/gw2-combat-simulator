@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { emitStateSnapshot } from '../../../platform/engine/state-snapshots.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
 /**
  * Shared primitives for every necromancer skill handler.

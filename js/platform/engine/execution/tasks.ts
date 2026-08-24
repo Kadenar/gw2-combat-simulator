@@ -4,9 +4,9 @@
  * stream. Payloads must be serializable, and runaway zero-time loops are guarded
  * by the shared safety limit.
  */
-import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
-import { insertSorted } from './collections.js';
-import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from './types.js';
+import { ACTION_SAFETY_LIMIT, EPSILON } from '../core/clock.js';
+import { insertSorted } from '../core/collections.js';
+import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from '../types.js';
 
 function cloneSerializable<T>(value: T, label: string): T {
   try {

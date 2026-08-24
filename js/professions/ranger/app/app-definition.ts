@@ -1,5 +1,5 @@
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../app/profession/define-app.js';
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { applyRangerBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';

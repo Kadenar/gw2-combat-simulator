@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitRevenantState } from './shared.js';
 import type { RevenantCastContext, RevenantSkill } from '../types.js';
 

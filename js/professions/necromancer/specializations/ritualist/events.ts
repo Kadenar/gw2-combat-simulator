@@ -1,6 +1,6 @@
 import { ritualistState } from './state.js';
-import { EPSILON } from '../../../../platform/engine/clock.js';
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { EPSILON } from '../../../../platform/engine/core/clock.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,

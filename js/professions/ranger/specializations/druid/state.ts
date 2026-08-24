@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { DruidState, RangerConfig, RangerState } from '../../types.js';
 
 // Druid owns its public Celestial Avatar resource projection.

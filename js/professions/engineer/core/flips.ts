@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitEngineerState } from './events.js';
 import { turretOwnerId } from './turrets.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';

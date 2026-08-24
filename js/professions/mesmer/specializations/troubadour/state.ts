@@ -1,5 +1,5 @@
 import type { MesmerConfig, MesmerTroubadourState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export function createTroubadourState(_config: Partial<MesmerConfig> = {}): MesmerTroubadourState {
   return {

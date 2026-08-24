@@ -123,7 +123,7 @@ A common headless use case is running the same scenario repeatedly with small ch
 `prepareSimulationConfig()` makes it convenient to define shared assumptions once and override individual values.
 
 ```js
-import { prepareSimulationConfig } from './js/platform/engine/prepare-config.js';
+import { prepareSimulationConfig } from './js/platform/engine/config.js';
 import { simulateGw2 } from './js/platform/gw2/simulate.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 

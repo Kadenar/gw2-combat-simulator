@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { defineProfession } from '../../../js/platform/engine/profession.js';
+import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
 import { gw2WeaponSwapSkillHandler } from '../../../js/platform/gw2/weapon-swap.js';
 
 test('shared weapon swap commits canonical state and event before profession extensions', () => {

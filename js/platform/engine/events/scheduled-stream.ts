@@ -5,7 +5,7 @@
  */
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from './events.js';
 
-import type { ScheduledEventStream, SimulationEvent } from './types.js';
+import type { ScheduledEventStream, SimulationEvent } from '../types.js';
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];

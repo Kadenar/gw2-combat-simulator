@@ -1,5 +1,5 @@
 import { GUARDIAN_SKILL_IDS as ID } from '../data/ids.js';
-import { strikeTimeline } from '../../../platform/engine/effect-factories.js';
+import { strikeTimeline } from '../../../platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 
 export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({

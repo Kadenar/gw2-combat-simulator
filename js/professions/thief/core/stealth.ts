@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasThiefTrait } from './state.js';
 import { emitThiefCondition, emitThiefState, gainThiefInitiative } from './shared.js';

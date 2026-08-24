@@ -1,6 +1,6 @@
-import { EPSILON } from '../../engine/clock.js';
-import { sortQueuedEvents, takeNextEvent } from '../../engine/event-queue.js';
-import { HandlerRegistry } from '../../engine/handler-registry.js';
+import { EPSILON } from '../../engine/core/clock.js';
+import { sortQueuedEvents, takeNextEvent } from '../../engine/events/queue.js';
+import { HandlerRegistry } from '../../engine/resolution/handler-registry.js';
 
 import type {
   Gw2ResolverEvent,

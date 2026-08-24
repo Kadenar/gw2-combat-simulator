@@ -1,4 +1,4 @@
-import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 import { activateChant, activateCommand } from './traits.js';
 
 export const paragonSkillHandlers = Object.freeze({

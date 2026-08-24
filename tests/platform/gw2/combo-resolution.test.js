@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildScheduledEventStream } from '../../../js/platform/engine/scheduled-event-stream.js';
-import { createSimulationRandom } from '../../../js/platform/engine/simulation-random.js';
+import { buildScheduledEventStream } from '../../../js/platform/engine/events/scheduled-stream.js';
+import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import {
   createGw2ComboRuntimeState,
   registerComboField,

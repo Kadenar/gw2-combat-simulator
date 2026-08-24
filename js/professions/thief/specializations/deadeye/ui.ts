@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { deadeyeCastAvailability } from './availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';

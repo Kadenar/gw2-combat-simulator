@@ -1,4 +1,4 @@
-import { defineProfessionFamily } from '../engine/profession.js';
+import { defineProfessionFamily } from '../engine/profession/family.js';
 import type {
   CanonicalCatalog,
   ProfessionFamilyDefinition,

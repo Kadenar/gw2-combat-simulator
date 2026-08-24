@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { assertSimulationEvent, createEvent } from '../../../js/platform/engine/events.js';
+import { assertSimulationEvent, createEvent } from '../../../js/platform/engine/events/events.js';
 import {
   assertScheduledEventStream,
   buildScheduledEventStream
-} from '../../../js/platform/engine/scheduled-event-stream.js';
-import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engine/state-snapshots.js';
+} from '../../../js/platform/engine/events/scheduled-stream.js';
+import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engine/events/state-snapshots.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.throws(

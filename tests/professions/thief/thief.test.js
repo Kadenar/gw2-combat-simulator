@@ -8,8 +8,8 @@ import { weaponPaletteRows, weaponSkills } from '../../../js/app/rotation/palett
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import { createGw2CombatQuery } from '../../../js/platform/gw2/query.js';
-import { resolveProfessionRuntime } from '../../../js/platform/engine/profession.js';
-import { normalizeRotation } from '../../../js/platform/engine/rotation-commands.js';
+import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
+import { normalizeRotation } from '../../../js/platform/engine/execution/rotation.js';
 import { resourceDisplayViews } from '../../../js/platform/ui/resource-display.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
 import {

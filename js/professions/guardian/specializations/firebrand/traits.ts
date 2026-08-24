@@ -1,7 +1,7 @@
 import { firebrandState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
-import { isInternalCooldownReady } from '../../../../platform/engine/clock.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';

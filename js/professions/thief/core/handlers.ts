@@ -1,4 +1,4 @@
-import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { completeThiefDodge, performThiefDodge } from './dodge.js';
 import {

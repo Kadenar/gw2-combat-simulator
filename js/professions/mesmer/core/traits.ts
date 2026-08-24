@@ -3,7 +3,7 @@
  * scheduler-owned state.
  */
 
-import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from './profiles.js';
 import type { MesmerApplyCondition, MesmerResolverContext, MesmerResolverEvent } from '../types.js';

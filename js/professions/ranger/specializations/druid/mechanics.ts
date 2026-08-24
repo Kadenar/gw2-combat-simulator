@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyRangerWeaponSwapTraits } from '../../core/traits.js';

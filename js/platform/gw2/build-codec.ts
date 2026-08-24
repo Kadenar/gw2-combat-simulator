@@ -1,4 +1,4 @@
-import { normalizeRotation } from '../engine/rotation-commands.js';
+import { normalizeRotation } from '../engine/execution/rotation.js';
 import {
   FOOD_NAMES,
   GEAR_SLOTS,

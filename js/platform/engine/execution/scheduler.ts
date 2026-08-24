@@ -5,19 +5,20 @@
  * customize behavior through the profession contract and injected scheduler
  * policy rather than forking this state machine.
  */
-import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
-import { foldAvailability } from './availability.js';
-import { createEvent } from './events.js';
-import { effectFirstAt, materializeSkillEffectApplications } from './effect-materializer.js';
-import { createCooldownController } from './cooldown-controller.js';
-import { normalizeObservationPolicy, observationEndTime } from './observation-policy.js';
-import { normalizeRotation } from './rotation-commands.js';
-import { createSchedulerState } from './scheduler-state.js';
-import { buildScheduledEventStream } from './scheduled-event-stream.js';
-import { sortQueuedEvents } from './event-queue.js';
-import { createTaskQueue } from './task-queue.js';
-import { cloneProfessionState, resolveProfessionRuntime } from './profession.js';
-import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from './skill-handlers.js';
+import { ACTION_SAFETY_LIMIT, EPSILON } from '../core/clock.js';
+import { foldAvailability } from '../skills/availability.js';
+import { createEvent } from '../events/events.js';
+import { effectFirstAt, materializeSkillEffectApplications } from '../effects/materializer.js';
+import { createCooldownController } from './cooldowns.js';
+import { normalizeObservationPolicy, observationEndTime } from './observation.js';
+import { normalizeRotation } from './rotation.js';
+import { createSchedulerState } from './state.js';
+import { buildScheduledEventStream } from '../events/scheduled-stream.js';
+import { sortQueuedEvents } from '../events/queue.js';
+import { createTaskQueue } from './tasks.js';
+import { cloneProfessionState } from '../profession/state.js';
+import { resolveProfessionRuntime } from '../profession/family.js';
+import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '../skills/handlers.js';
 import type {
   AmmoState,
   AvailabilityResult,
@@ -46,7 +47,7 @@ import type {
   Skill,
   SkillId,
   TaskQueue
-} from './types.js';
+} from '../types.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;

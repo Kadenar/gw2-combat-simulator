@@ -1,6 +1,6 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
-import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { addCarapace } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';

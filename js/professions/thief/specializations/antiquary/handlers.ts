@@ -1,4 +1,4 @@
-import { augmentSkillHandler, skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler, skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import { emitStealTraitEffects } from '../../core/traits.js';
 import {

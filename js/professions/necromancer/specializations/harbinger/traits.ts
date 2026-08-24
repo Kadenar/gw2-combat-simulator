@@ -1,4 +1,4 @@
-import { SKILL_HANDLER_MODES } from '../../../../platform/engine/skill-handlers.js';
+import { SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasTrait } from '../../core/shared.js';
 import type { NecromancerCastContext } from '../../types.js';

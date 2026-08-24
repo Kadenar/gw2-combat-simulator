@@ -4,8 +4,8 @@ import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
-import { deriveAutoattackChains, indexAutoattackChains } from '../../js/platform/engine/autoattack-chains.js';
+import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
+import { deriveAutoattackChains, indexAutoattackChains } from '../../js/platform/engine/skills/autoattack-chains.js';
 import {
   blind,
   boon,
@@ -17,20 +17,20 @@ import {
   strike,
   strikePackets,
   strikeTimeline
-} from '../../js/platform/engine/effect-factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events.js';
-import { HandlerRegistry } from '../../js/platform/engine/handler-registry.js';
-import { defineProfession } from '../../js/platform/engine/profession.js';
-import { resolveScheduledStream } from '../../js/platform/engine/resolver.js';
-import { normalizeRotation } from '../../js/platform/engine/rotation-commands.js';
-import { createSchedulerState } from '../../js/platform/engine/scheduler-state.js';
-import { createScheduler } from '../../js/platform/engine/scheduler.js';
-import { buildScheduledEventStream } from '../../js/platform/engine/scheduled-event-stream.js';
+} from '../../js/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
+import { HandlerRegistry } from '../../js/platform/engine/resolution/handler-registry.js';
+import { defineProfession } from '../../js/platform/engine/profession/contract.js';
+import { resolveScheduledStream } from '../../js/platform/engine/resolution/resolver.js';
+import { normalizeRotation } from '../../js/platform/engine/execution/rotation.js';
+import { createSchedulerState } from '../../js/platform/engine/execution/state.js';
+import { createScheduler } from '../../js/platform/engine/execution/scheduler.js';
+import { buildScheduledEventStream } from '../../js/platform/engine/events/scheduled-stream.js';
 import {
   augmentSkillHandler,
   replaceSkillHandler,
   SKILL_HANDLER_MODES
-} from '../../js/platform/engine/skill-handlers.js';
+} from '../../js/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { professionRegistry } from '../../js/app/profession/registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '../../js/platform/gw2/gear-data.js';
@@ -2930,7 +2930,10 @@ test('migrated combo professions have no local compatibility path', async () => 
 
 test('profession family state composition has no flat runtime adapters', async () => {
   const jsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
-  const engineSource = await readFile(path.join(jsRoot, 'platform', 'engine', 'profession.ts'), 'utf8');
+  const professionRoot = path.join(jsRoot, 'platform', 'engine', 'profession');
+  const engineSource = (
+    await Promise.all((await javascriptFiles(professionRoot)).map((file) => readFile(file, 'utf8')))
+  ).join('\n');
 
   assert.doesNotMatch(engineSource, /\bnew Proxy\b|Object\.defineProperty|createComposedStateAdapter/);
 

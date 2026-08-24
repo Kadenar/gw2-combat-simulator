@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
 import { warriorEnduranceReadyAt } from './resources.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';

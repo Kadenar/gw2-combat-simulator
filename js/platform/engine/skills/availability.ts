@@ -3,7 +3,7 @@
  * a skill accumulates into a single verdict, so the scheduler learns whether a
  * cast is ready, permanently blocked, or must wait until a retry timestamp.
  */
-import type { AvailabilityResult } from './types.js';
+import type { AvailabilityResult } from '../types.js';
 
 /**
  * Folds a sequence of normalized availability outcomes into one result. A

@@ -1,5 +1,5 @@
-import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { syncWarriorAdrenaline } from '../../core/resources.js';
 import { applyWarriorSkillResource } from '../../resources.js';
 import { warriorBalanceProfile } from '../../core/profiles.js';

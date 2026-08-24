@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { BerserkerState } from '../../types.js';
 
 // kingOfFiresCriticalProgress accumulates fractional crit probability in

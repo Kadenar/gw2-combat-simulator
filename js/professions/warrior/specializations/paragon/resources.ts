@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { spendCoreWarriorAdrenaline, syncWarriorAdrenaline } from '../../core/resources.js';
 import type { WarriorCastContext, WarriorSkill } from '../../types.js';
 

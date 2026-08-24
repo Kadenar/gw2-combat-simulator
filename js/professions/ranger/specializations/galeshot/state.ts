@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { GaleshotState, RangerConfig, RangerState } from '../../types.js';
 
 // Galeshot owns its public Cyclone Bow and wind-resource projection.

@@ -1,7 +1,7 @@
 import { necromancerBlightSkillHandlers } from './blight.js';
 import { darkBarrage } from './dark-barrage.js';
 import { darkBarrageHandlerMode } from './traits.js';
-import { skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skill-handlers.js';
+import { skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 
 export const harbingerSkillHandlers = new Map([
   [

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
-import { defineProfession } from '../../../js/platform/engine/profession.js';
-import { createSimulationRandom } from '../../../js/platform/engine/simulation-random.js';
+import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
+import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import { WEAPON_DATA } from '../../../js/platform/gw2/gear-data.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import {

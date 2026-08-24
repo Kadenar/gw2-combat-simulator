@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../platform/engine/profession/state.js';
 import { syncNecromancerResources } from './core/state.js';
 import { syncHarbingerState } from './specializations/harbinger/state.js';
 import type { NecromancerEndStateProjectionOptions, NecromancerState } from './types.js';

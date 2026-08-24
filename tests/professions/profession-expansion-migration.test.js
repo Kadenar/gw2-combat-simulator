@@ -5,11 +5,11 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { replaceBuild } from '../../js/app/build/state/persistence.js';
-import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
-import { custom, strikeTimeline } from '../../js/platform/engine/effect-factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events.js';
-import { defineProfession } from '../../js/platform/engine/profession.js';
-import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skill-handlers.js';
+import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
+import { custom, strikeTimeline } from '../../js/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
+import { defineProfession } from '../../js/platform/engine/profession/contract.js';
+import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../helpers/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/engineer.js';

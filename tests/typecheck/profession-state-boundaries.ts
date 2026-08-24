@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState, professionCoreState } from '../../js/platform/engine/profession.js';
+import { defineProfessionSpecializationState, professionCoreState } from '../../js/platform/engine/profession/state.js';
 import { holosmithState } from '../../js/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '../../js/professions/engineer/specializations/mechanist/state.js';
 import type {

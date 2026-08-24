@@ -11,7 +11,7 @@ import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/r
 import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '../../../js/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
-import { createSimulationRandom } from '../../../js/platform/engine/simulation-random.js';
+import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import {

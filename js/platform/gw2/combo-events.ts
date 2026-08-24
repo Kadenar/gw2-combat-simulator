@@ -1,4 +1,4 @@
-import { EPSILON } from '../engine/clock.js';
+import { EPSILON } from '../engine/core/clock.js';
 import { clamp } from './numeric.js';
 import { comboDefinition } from './combo-definitions.js';
 

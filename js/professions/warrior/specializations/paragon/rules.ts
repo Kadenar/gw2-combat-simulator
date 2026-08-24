@@ -5,7 +5,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import { warriorBalanceProfile } from '../../core/profiles.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { syncWarriorAdrenaline } from '../../core/resources.js';
 import type { WarriorSchedulerContext } from '../../types.js';
 import { paragonState } from './state.js';

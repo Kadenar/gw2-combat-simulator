@@ -1,4 +1,4 @@
-import { prepareSimulationConfig } from '../../js/platform/engine/prepare-config.js';
+import { prepareSimulationConfig } from '../../js/platform/engine/config.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
 

@@ -3,8 +3,8 @@
  * (`rotation`, `tail`, or `absolute`) and, once the rotation timeline is known,
  * resolves the concrete end time over which damage and effects are measured.
  */
-import { EPSILON } from './clock.js';
-import type { NormalizedObservationPolicy, ObservationPolicy } from './types.js';
+import { EPSILON } from '../core/clock.js';
+import type { NormalizedObservationPolicy, ObservationPolicy } from '../types.js';
 
 /** Validates and freezes the caller-owned resolver observation policy. */
 export function normalizeObservationPolicy(

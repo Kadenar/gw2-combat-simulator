@@ -1,5 +1,5 @@
-import { createCanonicalCatalog } from '../engine/catalog.js';
-import { toEntries } from '../engine/collections.js';
+import { createCanonicalCatalog } from '../engine/skills/catalog.js';
+import { toEntries } from '../engine/core/collections.js';
 import type {
   CanonicalCatalog,
   BalanceProfile,

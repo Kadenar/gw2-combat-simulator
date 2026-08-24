@@ -4,9 +4,9 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/platform/engine/event-queue.js';
-import { buildScheduledEventStream } from '../../../js/platform/engine/scheduled-event-stream.js';
-import { createSimulationRandom } from '../../../js/platform/engine/simulation-random.js';
+import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/platform/engine/events/queue.js';
+import { buildScheduledEventStream } from '../../../js/platform/engine/events/scheduled-stream.js';
+import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import { createCloneAttackScheduler } from '../../../js/professions/mesmer/core/clone-attacks.js';
 import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolver/event-handlers.js';
 

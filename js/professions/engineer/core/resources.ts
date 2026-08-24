@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasEngineerTrait } from './state.js';
 import { emitEngineerState } from './events.js';

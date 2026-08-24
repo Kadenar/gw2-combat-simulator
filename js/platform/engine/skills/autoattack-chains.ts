@@ -4,7 +4,7 @@
  * sequences, then index each skill's position within its chain using the same
  * lookup shape.
  */
-import type { AutoattackChainPosition, Skill, SkillId } from './types.js';
+import type { AutoattackChainPosition, Skill, SkillId } from '../types.js';
 
 /**
  * Freezes a chain after normalizing all skill ids to numbers.

@@ -1,5 +1,5 @@
-import { materializeSkillEffectApplications } from '../../../platform/engine/effect-materializer.js';
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * Trait effects triggered by invoking a legend.
  *

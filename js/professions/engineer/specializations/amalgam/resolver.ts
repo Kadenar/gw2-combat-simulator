@@ -1,5 +1,5 @@
 import { amalgamState } from './state.js';
-import { isInternalCooldownReady } from '../../../../platform/engine/clock.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyCondition, procState, queueDamage, recordTrait, resolverSkill } from '../../core/shared.js';

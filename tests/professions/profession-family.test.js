@@ -2,16 +2,13 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
-import {
-  defineProfession,
-  defineProfessionFamily,
-  defineProfessionModule,
-  resolveProfessionRuntime
-} from '../../js/platform/engine/profession.js';
+import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../js/platform/engine/profession/contract.js';
+import { defineProfessionFamily, resolveProfessionRuntime } from '../../js/platform/engine/profession/family.js';
+import { defineProfessionModule } from '../../js/platform/engine/profession/module.js';
 import { nativeSkillRuntimeOwner } from '../../js/platform/gw2/native-profession.js';
-import { createResolverState } from '../../js/platform/engine/resolver.js';
-import { createScheduler } from '../../js/platform/engine/scheduler.js';
+import { createResolverState } from '../../js/platform/engine/resolution/resolver.js';
+import { createScheduler } from '../../js/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
 import { composeSkillMechanics } from '../helpers/skill-mechanics.js';

@@ -1,7 +1,7 @@
 import { renegadeState } from './state.js';
-import { materializeSkillEffectApplications } from '../../../../platform/engine/effect-materializer.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { activeKallasFervorStacks } from './renegade.js';

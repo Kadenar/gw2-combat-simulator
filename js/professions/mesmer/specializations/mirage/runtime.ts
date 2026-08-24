@@ -1,4 +1,4 @@
-import { EPSILON } from '../../../../platform/engine/clock.js';
+import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { createMirageActionController } from './mirage.js';

@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { thiefEnduranceReadyAt, thiefInitiativeRegenerationRate } from './resources.js';
 import { spearChainStageForSkill } from './conditions.js';

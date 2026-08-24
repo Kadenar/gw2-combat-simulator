@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
  * applies its conditional damage changes to scheduler events.

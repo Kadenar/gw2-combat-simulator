@@ -4,8 +4,8 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON, isInternalCooldownReady } from '../engine/clock.js';
-import { enqueueOrdered } from '../engine/event-queue.js';
+import { EPSILON, isInternalCooldownReady } from '../engine/core/clock.js';
+import { enqueueOrdered } from '../engine/events/queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,

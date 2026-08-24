@@ -1,5 +1,5 @@
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTraitIcon } from '../../core/traits.js';

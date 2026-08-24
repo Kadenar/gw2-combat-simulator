@@ -1,5 +1,5 @@
 import { conduitState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';

@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { replaceSkill } from '../../../platform/gw2/native-profession.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';

@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
  *
@@ -10,7 +10,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '../types.js';
 import { captureNecromancerStatePreserver } from './state-reconciliation.js';
 

@@ -1,5 +1,5 @@
 import type { MesmerChronomancerState, MesmerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
   return {

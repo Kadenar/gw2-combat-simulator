@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitEngineerState } from './events.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';

@@ -1,5 +1,5 @@
 import type { MesmerConfig, MesmerVirtuosoState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export function createVirtuosoState(config: Partial<MesmerConfig> = {}): MesmerVirtuosoState {
   return {

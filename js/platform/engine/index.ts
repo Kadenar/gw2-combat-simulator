@@ -1,26 +1,9 @@
 /**
- * Barrel module for the profession-neutral engine layer. Re-exports the public
- * surface (catalog, scheduler, resolver, effect builders, and supporting
- * primitives) so consumers import from one entry point instead of reaching into
- * individual implementation files.
+ * High-level engine entrypoint. Domain entrypoints expose lower-level authoring
+ * and testing primitives without forcing ordinary consumers through one barrel.
  */
-export * from './catalog.js';
-export * from './clock.js';
-export * from './collections.js';
-export * from './cooldown-controller.js';
-export * from './event-queue.js';
-export * from './events.js';
-export * from './effect-factories.js';
-export * from './effect-materializer.js';
-export * from './handler-registry.js';
-export * from './observation-policy.js';
-export * from './profession.js';
-export * from './prepare-config.js';
-export * from './resolver.js';
-export * from './rotation-commands.js';
-export * from './scheduled-event-stream.js';
-export * from './scheduler-state.js';
-export * from './scheduler.js';
-export * from './skill-factories.js';
-export * from './state-snapshots.js';
-export * from './task-queue.js';
+export * from './config.js';
+export { createScheduler } from './execution/scheduler.js';
+export * from './profession/index.js';
+export { resolveScheduledStream } from './resolution/resolver.js';
+export { createCanonicalCatalog, validateCanonicalCatalog } from './skills/catalog.js';

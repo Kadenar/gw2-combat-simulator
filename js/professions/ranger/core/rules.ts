@@ -1,7 +1,7 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';

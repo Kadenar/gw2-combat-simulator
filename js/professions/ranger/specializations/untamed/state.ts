@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { RangerConfig, RangerState, UntamedState } from '../../types.js';
 
 // Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.

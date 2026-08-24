@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { prepareSimulationConfig } from '../../../js/platform/engine/prepare-config.js';
+import { prepareSimulationConfig } from '../../../js/platform/engine/config.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch } from '../../../js/platform/gw2/skill-patch.js';
 import { chartValueAt } from '../../../js/platform/ui/charts.js';

@@ -1,5 +1,5 @@
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { clamp } from '../../../platform/gw2/numeric.js';
 import {
   enqueueGw2OwnedComboFinisher,

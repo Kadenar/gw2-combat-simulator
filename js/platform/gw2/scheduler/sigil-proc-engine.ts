@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '../../engine/clock.js';
+import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
 import { SIGIL_PROCS } from '../gear-data.js';
 import { isGw2PlayerActorEvent } from '../event-ownership.js';

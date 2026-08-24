@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import type { RotationStateSnapshotItem } from '../../../../platform/engine/types.js';

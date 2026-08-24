@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
+import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
 import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,

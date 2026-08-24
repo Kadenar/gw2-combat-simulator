@@ -1,7 +1,7 @@
 import { luminaryState } from './state.js';
 import { PIERCING_STANCE_IMPACT_MS } from './skills.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
 import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skill-timing.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';

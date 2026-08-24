@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from './mechanics.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';

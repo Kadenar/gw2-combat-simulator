@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.

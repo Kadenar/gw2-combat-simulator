@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { SpellbreakerState } from '../../types.js';
 
 export function createSpellbreakerState(): SpellbreakerState {

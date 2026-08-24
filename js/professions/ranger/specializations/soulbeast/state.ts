@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { selectedRangerPet } from '../../core/state.js';
 import type { RangerConfig, RangerState, SoulbeastState } from '../../types.js';
 

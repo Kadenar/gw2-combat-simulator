@@ -1,4 +1,4 @@
-import { normalizeRotation } from '../../../platform/engine/rotation-commands.js';
+import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 

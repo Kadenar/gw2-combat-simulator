@@ -1,5 +1,5 @@
-import { EPSILON } from '../../engine/clock.js';
-import { enqueueOrdered } from '../../engine/event-queue.js';
+import { EPSILON } from '../../engine/core/clock.js';
+import { enqueueOrdered } from '../../engine/events/queue.js';
 import { conditionTickDamage } from '../condition-formulas.js';
 import { clamp } from '../numeric.js';
 import { createPermanentTargetConditionStacks } from '../target-state.js';

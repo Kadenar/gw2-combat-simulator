@@ -1,5 +1,5 @@
-import { EPSILON } from '../../platform/engine/clock.js';
-import { flattenProfessionState } from '../../platform/engine/profession.js';
+import { EPSILON } from '../../platform/engine/core/clock.js';
+import { flattenProfessionState } from '../../platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from './core/runtime.js';
 import type {
   MesmerCoreState,

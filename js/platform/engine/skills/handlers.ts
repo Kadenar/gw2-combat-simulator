@@ -5,7 +5,7 @@
  * replacing handlers own the entire emitted profile and require no declarative
  * effects; a mode resolver supports skills whose profile changes at runtime.
  */
-import type { SchedulerRecord, Skill, SkillHandlerMode, SkillHandlerPhase, SkillHandlerStrategy } from './types.js';
+import type { SchedulerRecord, Skill, SkillHandlerMode, SkillHandlerPhase, SkillHandlerStrategy } from '../types.js';
 
 type SkillHandlerOptions<TContext extends object> = Omit<
   Partial<SkillHandlerStrategy<TContext>>,

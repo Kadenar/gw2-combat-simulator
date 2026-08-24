@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '../../core/ui.js';
 import type {
   PaletteSkillAvailability,

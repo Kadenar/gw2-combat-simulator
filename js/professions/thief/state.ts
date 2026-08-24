@@ -1,4 +1,4 @@
-import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession.js';
+import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession/state.js';
 import { THIEF_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {
   ANTIQUARY_INACTIVE_STATE_DEFAULTS,

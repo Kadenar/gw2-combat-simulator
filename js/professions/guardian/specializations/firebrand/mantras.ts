@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import { firebrandState } from './state.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';

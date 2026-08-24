@@ -1,4 +1,4 @@
-import { createSimulationRandom } from '../../engine/simulation-random.js';
+import { createSimulationRandom } from '../../engine/core/simulation-random.js';
 import type { SchedulerRecord, SchedulerState, SimulationRandom } from '../../engine/types.js';
 import { createRelicRuntime } from '../relic-rules.js';
 import { createCanonicalTargetConditionStateMap } from '../target-state.js';

@@ -1,6 +1,6 @@
-import { EPSILON } from '../engine/clock.js';
-import { insertSorted } from '../engine/collections.js';
-import { eventCausalOrder, eventTimestamp } from '../engine/events.js';
+import { EPSILON } from '../engine/core/clock.js';
+import { insertSorted } from '../engine/core/collections.js';
+import { eventCausalOrder, eventTimestamp } from '../engine/events/events.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,

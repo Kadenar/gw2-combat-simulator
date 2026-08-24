@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Owns the Core Mesmer scheduler integration boundary. It assembles
  * shared controllers, normalizes build/runtime data, coordinates cast
@@ -6,7 +6,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  * the shared profession engine.
  */
 
-import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/runtime-rules.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
 import { clamp } from '../../../platform/gw2/numeric.js';

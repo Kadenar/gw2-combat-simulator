@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
 import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/target-state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';

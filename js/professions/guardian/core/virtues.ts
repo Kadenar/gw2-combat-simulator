@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
  * refresh events, plus the reusable resolver-time Justice burning contract.

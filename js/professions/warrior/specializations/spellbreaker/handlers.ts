@@ -1,4 +1,4 @@
-import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 import { applyWarriorSkillResource } from '../../resources.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

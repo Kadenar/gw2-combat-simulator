@@ -11,7 +11,7 @@ import {
   templateSpecializations,
   undoTemplateLoad
 } from '../../js/app/build/panels/presets.js';
-import { normalizeRotation } from '../../js/platform/engine/rotation-commands.js';
+import { normalizeRotation } from '../../js/platform/engine/execution/rotation.js';
 import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/professions/mesmer/data/ids.js';
 

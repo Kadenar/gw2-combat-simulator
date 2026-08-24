@@ -1,5 +1,5 @@
 import type { GuardianLuminaryState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export function createLuminaryState(): GuardianLuminaryState {
   return {

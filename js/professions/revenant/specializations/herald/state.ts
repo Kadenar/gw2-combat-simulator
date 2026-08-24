@@ -1,5 +1,5 @@
 import type { HeraldState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export const HERALD_PUBLIC_END_STATE_KEYS: readonly (keyof HeraldState)[] = Object.freeze([]);
 export const HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HeraldState>> = Object.freeze({});

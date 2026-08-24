@@ -1,5 +1,5 @@
 import type { AmalgamState, EngineerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 // Amalgam owns its public protocol state and the inactive compatibility values.
 export const AMALGAM_PUBLIC_END_STATE_KEYS = Object.freeze([

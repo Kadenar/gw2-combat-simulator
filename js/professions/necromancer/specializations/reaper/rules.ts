@@ -1,9 +1,9 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '../../../../platform/gw2/target-state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { isInternalCooldownReady } from '../../../../platform/engine/clock.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { requiredShroud } from '../../core/availability.js';
 import { emitDamage, gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
 import {

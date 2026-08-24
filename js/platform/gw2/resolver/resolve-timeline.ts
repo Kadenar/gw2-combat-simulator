@@ -1,6 +1,6 @@
-import { EPSILON } from '../../engine/clock.js';
-import { createEventQueue } from '../../engine/event-queue.js';
-import { assertScheduledEventStream as assertPlatformStream } from '../../engine/scheduled-event-stream.js';
+import { EPSILON } from '../../engine/core/clock.js';
+import { createEventQueue } from '../../engine/events/queue.js';
+import { assertScheduledEventStream as assertPlatformStream } from '../../engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from './event-loop.js';
 
 import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from '../types.js';

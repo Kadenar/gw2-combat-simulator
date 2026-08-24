@@ -117,4 +117,4 @@ export const implemented = <Definition extends SkillFragment>(
   ...definition,
   implemented: true
 });
-import type { SkillFragment } from './types.js';
+import type { SkillFragment } from '../types.js';

@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../platform/engine/profession.js';
+import { professionCoreState } from '../../platform/engine/profession/state.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { baseRevenantEnergyCost } from './core/energy.js';
 import { emitRevenantState } from './core/shared.js';

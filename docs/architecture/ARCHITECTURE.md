@@ -322,7 +322,7 @@ profession predicates. Mesmer does not own a scheduler, resolver wrapper, or res
 
 ## Events
 
-Event schema version 1 is defined in `platform/engine/events.ts`. Every event has:
+Event schema version 1 is defined in `platform/engine/events/events.ts`. Every event has:
 
 ```js
 {

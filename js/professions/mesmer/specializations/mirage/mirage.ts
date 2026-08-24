@@ -1,5 +1,5 @@
 import { mirageState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { BalanceProfile, SchedulerState, SkillEffect, SkillId } from '../../../../platform/engine/types.js';

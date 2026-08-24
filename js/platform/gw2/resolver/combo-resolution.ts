@@ -1,4 +1,4 @@
-import { enqueueOrdered } from '../../engine/event-queue.js';
+import { enqueueOrdered } from '../../engine/events/queue.js';
 import { materializeComboOutcome } from '../combo-definitions.js';
 import {
   normalizeComboFinisherType,

@@ -1,5 +1,5 @@
 import { conduitState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Conduit and Legendary Entity runtime mechanics.
  *

@@ -1,4 +1,4 @@
-import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 import { emitStealTraitEffects } from '../../core/traits.js';
 import { completeSiphon, enterShadowShroud, exitShadowShroud } from './shroud.js';
 import type { SkillHandlerPhase } from '../../../../platform/engine/types.js';

@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { ElementalistConfig } from '../../types.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '../../core/state.js';
 

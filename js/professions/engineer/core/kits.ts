@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitEngineerBarSwap, emitEngineerState } from './events.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 

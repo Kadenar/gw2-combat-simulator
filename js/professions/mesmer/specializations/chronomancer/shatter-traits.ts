@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { SkillEffect } from '../../../../platform/engine/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';

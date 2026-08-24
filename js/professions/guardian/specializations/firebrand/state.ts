@@ -1,5 +1,5 @@
 import { GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { GuardianConfig, GuardianFirebrandState, GuardianSchedulerContext } from '../../types.js';

@@ -1,5 +1,5 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { attributeProvenance } from '../../../platform/gw2/attribute-provenance.js';
 import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/target-state.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';

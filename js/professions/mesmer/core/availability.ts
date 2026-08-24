@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { EPSILON } from '../../../platform/engine/clock.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { EPSILON } from '../../../platform/engine/core/clock.js';
 import { mesmerRuntimeFor } from './runtime.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime, MesmerSkill } from '../types.js';

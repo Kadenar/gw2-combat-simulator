@@ -1,5 +1,5 @@
 import type { ConduitState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export const CONDUIT_PUBLIC_END_STATE_KEYS: readonly (keyof ConduitState)[] = Object.freeze([
   'affinity',

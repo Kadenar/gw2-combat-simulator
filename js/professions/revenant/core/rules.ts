@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.

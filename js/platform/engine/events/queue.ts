@@ -2,10 +2,10 @@
  * Stable event queue helpers used by both scheduling and resolution. Events are
  * ordered by timestamp, then explicit priority, then insertion order.
  */
-import type { QueuedEvent } from './types.js';
+import type { QueuedEvent } from '../types.js';
 import { eventCausalOrder, eventTimestamp } from './events.js';
 
-export { EPSILON } from './clock.js';
+export { EPSILON } from '../core/clock.js';
 
 interface HeapEntry<T extends QueuedEvent> {
   readonly event: T;

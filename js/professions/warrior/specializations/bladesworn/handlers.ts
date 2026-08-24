@@ -1,4 +1,4 @@
-import { augmentSkillHandler, replaceSkillHandler } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler, replaceSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 import {
   enterDragonTrigger,
   enterGunsaber,

@@ -1,5 +1,5 @@
-import { isInternalCooldownReady } from '../engine/clock.js';
-import { augmentSkillHandler, replaceSkillHandler } from '../engine/skill-handlers.js';
+import { isInternalCooldownReady } from '../engine/core/clock.js';
+import { augmentSkillHandler, replaceSkillHandler } from '../engine/skills/handlers.js';
 import type { SkillHandlerStrategy, SkillId } from '../engine/types.js';
 import type {
   NativeResolvedDamageDetails,

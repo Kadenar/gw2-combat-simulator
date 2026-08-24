@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../platform/engine/profession/state.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import { ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {

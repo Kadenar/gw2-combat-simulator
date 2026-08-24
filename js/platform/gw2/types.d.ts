@@ -18,8 +18,8 @@ import type {
   SchedulerContext,
   SchedulerPolicy
 } from '../engine/types.js';
-import type { StableEventQueue } from '../engine/event-queue.js';
-import type { HandlerRegistry } from '../engine/handler-registry.js';
+import type { StableEventQueue } from '../engine/events/queue.js';
+import type { HandlerRegistry } from '../engine/resolution/handler-registry.js';
 
 export type ComboFieldType =
   'Dark' | 'Ethereal' | 'Fire' | 'Ice' | 'Light' | 'Lightning' | 'Poison' | 'Smoke' | 'Water';

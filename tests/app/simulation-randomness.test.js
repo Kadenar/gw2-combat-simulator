@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig } from '../../js/app/simulation/config.js';
-import { createSimulationRandom } from '../../js/platform/engine/simulation-random.js';
+import { createSimulationRandom } from '../../js/platform/engine/core/simulation-random.js';
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,

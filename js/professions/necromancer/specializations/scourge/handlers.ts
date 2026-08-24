@@ -1,5 +1,5 @@
 import { necromancerShadeSkillHandlers } from './shades.js';
-import { augmentSkillHandler, replaceSkillHandler } from '../../../../platform/engine/skill-handlers.js';
+import { augmentSkillHandler, replaceSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 
 export const scourgeSkillHandlers = new Map([
   [

@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
-import { materializeSkillEffectApplications } from '../../../platform/engine/effect-materializer.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type {

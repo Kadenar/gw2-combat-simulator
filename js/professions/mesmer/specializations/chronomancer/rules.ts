@@ -1,7 +1,7 @@
 import { chronomancerState } from './state.js';
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { EPSILON } from '../../../../platform/engine/clock.js';
+import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { targetHasCondition } from '../../../../platform/gw2/target-state.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';

@@ -1,4 +1,4 @@
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, procState, queueBuff, recordTrait } from '../../core/shared.js';

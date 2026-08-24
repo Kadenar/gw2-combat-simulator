@@ -1,6 +1,6 @@
 import { necromancerSpiritSkillHandlers } from './spirits.js';
 import { necromancerWeaponSpellSkillHandlers } from './weapon-spells.js';
-import { skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skill-handlers.js';
+import { skillHandler, SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 import type { SkillHandlerPhase } from '../../../../platform/engine/types.js';
 import type { NecromancerCastContext } from '../../types.js';
 

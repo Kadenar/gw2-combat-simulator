@@ -1,4 +1,4 @@
-import { createSimulationRandom } from '../../engine/simulation-random.js';
+import { createSimulationRandom } from '../../engine/core/simulation-random.js';
 import { createGw2ComboRuntimeState } from '../combo-events.js';
 import { createCanonicalTargetConditionStateMap } from '../target-state.js';
 

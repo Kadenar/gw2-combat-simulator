@@ -3,7 +3,7 @@ import {
   DEFAULT_SIMULATION_RANDOMNESS,
   SIMULATION_RANDOMNESS_MODES,
   normalizeSimulationRandomness
-} from '../../platform/engine/simulation-random.js';
+} from '../../platform/engine/core/simulation-random.js';
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,

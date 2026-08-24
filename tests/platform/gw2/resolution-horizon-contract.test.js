@@ -4,9 +4,9 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
-import { defineProfession } from '../../../js/platform/engine/profession.js';
-import { createScheduler } from '../../../js/platform/engine/scheduler.js';
+import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
+import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
 

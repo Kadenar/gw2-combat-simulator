@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
 

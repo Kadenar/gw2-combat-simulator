@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { createEventQueue } from '../../../js/platform/engine/event-queue.js';
+import { createEventQueue } from '../../../js/platform/engine/events/queue.js';
 import { createGw2ConditionResolution } from '../../../js/platform/gw2/resolver/condition-resolution.js';
 import { createGw2ResolverExtensions } from '../../../js/platform/gw2/resolver/extensions.js';
 import {

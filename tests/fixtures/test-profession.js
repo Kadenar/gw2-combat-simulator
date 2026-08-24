@@ -1,5 +1,5 @@
-import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
-import { defineProfession } from '../../js/platform/engine/profession.js';
+import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../js/platform/engine/profession/contract.js';
 
 const catalog = createCanonicalCatalog({
   generated: [

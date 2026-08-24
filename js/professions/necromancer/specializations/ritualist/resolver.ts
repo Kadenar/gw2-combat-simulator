@@ -1,5 +1,5 @@
 import { ritualistState } from './state.js';
-import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import { handleNecromancerPainfulBond, handleNecromancerWeaponSpell } from './events.js';

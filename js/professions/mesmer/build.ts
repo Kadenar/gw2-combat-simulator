@@ -3,7 +3,7 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { boundedNumber } from '../../platform/gw2/build-normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
-import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
+import { normalizeRotation } from '../../platform/engine/execution/rotation.js';
 import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions

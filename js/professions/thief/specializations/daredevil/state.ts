@@ -1,5 +1,5 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { hasThiefTrait, selectedThiefTraits } from '../../core/state.js';
 import type { DaredevilState, ThiefConfig, ThiefDodge } from '../../types.js';
 

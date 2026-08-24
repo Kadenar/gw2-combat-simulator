@@ -1,5 +1,5 @@
 import { firebrandState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * @fileoverview Implements Firebrand tome cast gating, shared page
  * regeneration and spending, tome state replay, and Ashes of the Just damage

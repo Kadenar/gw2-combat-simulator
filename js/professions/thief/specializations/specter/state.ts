@@ -1,5 +1,5 @@
 import { thiefBaseMaximumHealth } from '../../core/state.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import type { SpecterState, ThiefConfig } from '../../types.js';
 
 // GW2: shadow force pool capacity is 69% of maximum health in absolute HP terms.

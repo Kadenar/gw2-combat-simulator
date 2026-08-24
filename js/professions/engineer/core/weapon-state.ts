@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
 export function updateEngineerWeaponState(context: EngineerCastContext, skill: EngineerSkill): void {

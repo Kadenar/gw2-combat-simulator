@@ -1,5 +1,5 @@
 import type { ScourgeState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { registerNecromancerStatePreserver } from '../../core/state-reconciliation.js';
 
 export function createScourgeState(): ScourgeState {

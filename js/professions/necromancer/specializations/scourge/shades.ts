@@ -1,5 +1,5 @@
 import { scourgeState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Scourge sand shade handlers.
  *

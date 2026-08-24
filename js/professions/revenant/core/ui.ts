@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '../data/ids.js';

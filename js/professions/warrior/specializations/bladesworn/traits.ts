@@ -14,7 +14,7 @@ import {
   requestedDragonCharges,
   type DragonFlowRateSegment
 } from './dragon-trigger.js';
-import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { applyWarriorBurstSpendTraits, grantBerserkersPower } from '../../core/traits.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

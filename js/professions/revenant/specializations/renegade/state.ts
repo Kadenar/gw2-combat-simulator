@@ -1,5 +1,5 @@
 import type { RenegadeState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 
 export const RENEGADE_PUBLIC_END_STATE_KEYS: readonly (keyof RenegadeState)[] = Object.freeze([
   'bandTogetherReady',
