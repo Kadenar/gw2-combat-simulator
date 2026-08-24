@@ -605,6 +605,19 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   );
 });
 
+test('an open event log expands past the normal rotation panel cap', async () => {
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(
+    css,
+    /body:not\(\[data-rotation-focus\]\) \.rotation-panel:has\(\.rotation-event-log \.res-log-wrap\[open\]\)\s*\{\s*max-height: none;\s*overflow: visible;/
+  );
+  assert.match(
+    css,
+    /\.rotation-event-log \.res-log\s*\{\s*max-height: clamp\(120px, calc\(100dvh - 200px\), 400px\);\s*scrollbar-gutter: stable;/
+  );
+});
+
 test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
   const [displayControls, timelineView, timelineSize] = await Promise.all([
     readFile(new URL('../../js/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),

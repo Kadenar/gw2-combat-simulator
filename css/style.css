@@ -6453,6 +6453,18 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   margin-top: 8px;
 }
 
+/* The normal builder is height-capped for its timeline, so let it rejoin page
+   flow while the log is open instead of clipping the log at the panel edge. */
+body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log-wrap[open]) {
+  max-height: none;
+  overflow: visible;
+}
+
+.rotation-event-log .res-log {
+  max-height: clamp(120px, calc(100dvh - 200px), 400px);
+  scrollbar-gutter: stable;
+}
+
 .res-log-wrap summary {
   font-size: 11px;
   color: var(--accent);
