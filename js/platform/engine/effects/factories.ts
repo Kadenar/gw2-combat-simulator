@@ -283,6 +283,29 @@ export const buff = (
   }) as StatusEffect;
 
 /**
+ * Schedules a reporting-only timed effect that does not enter boon state.
+ *
+ * @param {string} kind
+ * @param {number} duration
+ * @param {Readonly<SchedulerRecord> & {stacks?: number}} [options]
+ * @returns {StatusEffect}
+ */
+export const effect = (
+  kind: string,
+  duration: number,
+  options: Readonly<SchedulerRecord> & {
+    readonly stacks?: number;
+  } = {}
+): StatusEffect =>
+  ({
+    type: 'effect',
+    kind,
+    duration,
+    stacks: options.stacks ?? 1,
+    ...withoutReservedOptions(options, STATUS_RESERVED_OPTIONS)
+  }) as StatusEffect;
+
+/**
  * Emits a profession-defined event type with a custom event payload.
  *
  * @param {string} eventType

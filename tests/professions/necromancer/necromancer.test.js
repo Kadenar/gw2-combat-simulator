@@ -1588,7 +1588,7 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
       observationTail(2000)
     );
     const application = result.events.find(
-      (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === skillId
+      (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === skillId
     );
 
     assert.equal(application?.stacks, stacks, name);
@@ -1601,7 +1601,7 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
     primaryWeapon: 'Dagger',
     selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
   });
-  const applications = chain.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
+  const applications = chain.events.filter((event) => event.type === 'effect' && event.kind === 'taste-for-blood');
 
   assert.deepEqual(
     applications.map((event) => [event.skillId, event.stacks]),
@@ -1669,6 +1669,10 @@ test('Taste for Blood procs use Overflowing Thirst artwork and log their trigger
 
   assert.equal(wanderlustProc?.icon, traitIcon);
   assert.equal(
+    eventRows.some((row) => row.description === 'EFFECT Taste for Blood x3 (10s)'),
+    true
+  );
+  assert.equal(
     eventRows.some((row) => row.description.startsWith('HIT Taste for Blood [Triggered by Wanderlust]')),
     true
   );
@@ -1700,7 +1704,7 @@ test('allied players consume independent Taste for Blood stack pools', () => {
   });
 });
 
-test('Taste for Blood gives minions independent pools after higher-priority players', () => {
+test('Taste for Blood effect state gives minions independent pools regardless of boon sharing', () => {
   const run = (allies) =>
     simulate(
       'Core',
@@ -1709,7 +1713,8 @@ test('Taste for Blood gives minions independent pools after higher-priority play
         primaryWeapon: 'Dagger',
         selectedSkills: ['Summon Bone Minions'],
         selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
-        allies: { count: allies, strikesPerSecond: 0 }
+        allies: { count: allies, strikesPerSecond: 0 },
+        sharePlayerBoonsWithSummons: false
       },
       observationTail(3000)
     );
@@ -1727,6 +1732,10 @@ test('Taste for Blood gives minions independent pools after higher-priority play
   const capped = run(4);
   const uncappedOwners = minionPacketOwners(uncapped);
 
+  assert.equal(
+    uncapped.events.some((event) => event.type === 'buff' && event.kind === 'taste-for-blood'),
+    false
+  );
   assert.equal(uncappedOwners.includes('minion:bone-minion:0'), true);
   assert.equal(uncappedOwners.includes('minion:bone-minion:1'), true);
   assert.deepEqual([...new Set(minionPacketOwners(partiallyCapped))], ['minion:bone-minion:0']);
@@ -1746,7 +1755,7 @@ test('Taste for Blood excludes active Ritualist spirits from its shared stack po
     observationTail(3000)
   );
   const application = result.events.find(
-    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+    (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
   );
   const spiritPackets = result.resolvedEvents.filter(
     (event) =>
@@ -2300,7 +2309,7 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
   );
   const owners = ['minion:blood-fiend:0', 'minion:bone-minion:0', 'minion:bone-minion:1', 'minion:flesh-golem:0'];
   const application = result.events.find(
-    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+    (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
   );
   const minionHits = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && owners.includes(event.summonOwner)

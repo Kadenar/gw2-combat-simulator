@@ -225,7 +225,14 @@ export function buildChartSeries(
   }
 
   for (const event of result.events || []) {
-    if (event.type !== 'buff' || event.affectsSelf === false || !Number(event.duration || 0)) continue;
+    // Reporting-only effects share timed-effect visualization with buffs but
+    // never imply storage in the simulator's boon state.
+    if (
+      (event.type !== 'buff' && event.type !== 'effect') ||
+      event.affectsSelf === false ||
+      !Number(event.duration || 0)
+    )
+      continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
       name: effectName(event.kind, event),

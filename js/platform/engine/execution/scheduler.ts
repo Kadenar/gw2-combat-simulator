@@ -178,7 +178,9 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       ...(effect.persistsAfterInterrupt === true ? { persistsAfterInterrupt: true } : {})
     };
     const baseDuration =
-      effect.type === 'boon' || effect.type === 'buff' ? Math.max(0, Number(effect.duration || 0)) : undefined;
+      effect.type === 'boon' || effect.type === 'buff' || effect.type === 'effect'
+        ? Math.max(0, Number(effect.duration || 0))
+        : undefined;
     const duration =
       baseDuration == null
         ? undefined

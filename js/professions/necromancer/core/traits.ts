@@ -5,7 +5,7 @@ import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '../data/traits-data.js';
 import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { gw2AlliedEffectRecipients, gw2BoonApplicationRecipients } from '../../../platform/gw2/allied-players.js';
+import { gw2AlliedEffectRecipients } from '../../../platform/gw2/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/native-profession.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
@@ -242,21 +242,13 @@ export function rolledCritical(details: NecromancerResolverReactionDetails): boo
   return details.hitContext?.critical?.didCrit === true;
 }
 
-// Taste for Blood is intensity-stacked: each recipient hit removes exactly one
-// stack from that recipient's pool while leaving every other pool untouched.
-function consumeActiveBuffStack(
-  context: NecromancerResolverContext,
-  kind: string,
-  at: number,
-  selfApplication = true
-): boolean {
-  const applications = context.boons.get(kind) || [];
+// Taste for Blood is profession-owned effect state: each recipient hit removes
+// one stack from its own pool without entering or consulting shared boon state.
+function consumeTasteForBloodEffect(context: NecromancerResolverContext, recipient: string, at: number): boolean {
+  const effects = professionCoreState(context).tasteForBloodEffects;
+  const applications = effects[recipient] || [];
   const index = applications.findIndex(
-    (application) =>
-      (!selfApplication || application.affectsSelf !== false) &&
-      application.at <= at &&
-      application.expiresAt > at &&
-      application.stacks > 0
+    (application) => application.at <= at && application.expiresAt > at && application.stacks > 0
   );
   if (index < 0) return false;
 
@@ -266,32 +258,33 @@ function consumeActiveBuffStack(
   } else {
     applications[index] = { ...application, stacks: application.stacks - 1 };
   }
-  context.boons.set(kind, applications);
+  effects[recipient] = applications;
   return true;
 }
 
-function alliedTasteForBloodKind(allyIndex: number): string {
-  return `taste-for-blood:ally:${allyIndex}`;
+function alliedTasteForBloodRecipient(allyIndex: number): string {
+  return `ally:${allyIndex}`;
 }
 
-function companionTasteForBloodKind(companionId: string): string {
-  return `taste-for-blood:companion:${companionId}`;
+function companionTasteForBloodRecipient(companionId: string): string {
+  return `companion:${companionId}`;
 }
 
 function addTasteForBloodApplication(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  kind: string
+  recipient: string
 ): void {
-  const applications = context.boons.get(kind) || [];
+  const effects = professionCoreState(context).tasteForBloodEffects;
+  const applications = (effects[recipient] || []).filter(
+    (application) => application.expiresAt > event.at && application.stacks > 0
+  );
   applications.push({
     at: event.at,
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-    stacks: Math.max(1, Number(event.stacks || 1)),
-    source: event.source,
-    affectsSelf: false
+    stacks: Math.max(1, Number(event.stacks || 1))
   });
-  context.boons.set(kind, applications);
+  effects[recipient] = applications;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
@@ -316,12 +309,12 @@ function queueTasteForBlood(context: NecromancerResolverContext, event: Necroman
 /** Gives each selected player or minion its own expiring stack application. */
 export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
-  const recipients = gw2BoonApplicationRecipients(context.config, event);
-  for (let allyIndex = 1; allyIndex <= recipients.alliedPlayerCount; allyIndex += 1) {
-    addTasteForBloodApplication(context, event, alliedTasteForBloodKind(allyIndex));
+  if (event.affectsSelf !== false) addTasteForBloodApplication(context, event, 'self');
+  for (let allyIndex = 1; allyIndex <= Number(event.alliedPlayerCount || 0); allyIndex += 1) {
+    addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
   }
-  for (const companionId of recipients.companionIds) {
-    addTasteForBloodApplication(context, event, companionTasteForBloodKind(companionId));
+  for (const companionId of Array.isArray(event.companionIds) ? event.companionIds.map(String) : []) {
+    addTasteForBloodApplication(context, event, companionTasteForBloodRecipient(companionId));
   }
 }
 
@@ -332,7 +325,7 @@ export function reactToTasteForBloodAlliedHit(
 ): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   const allyIndex = Number(event.allyIndex || 0);
-  if (!allyIndex || !consumeActiveBuffStack(context, alliedTasteForBloodKind(allyIndex), event.at, false)) return;
+  if (!allyIndex || !consumeTasteForBloodEffect(context, alliedTasteForBloodRecipient(allyIndex), event.at)) return;
   queueTasteForBlood(context, event);
 }
 
@@ -497,16 +490,16 @@ export function reactToNecromancerCoreDamage(
     if (actorKey) queueVampiricPresence(context, event, actorKey);
   }
 
-  const tasteForBloodKind =
+  const tasteForBloodRecipient =
     event.actorType === 'player'
-      ? 'taste-for-blood'
+      ? 'self'
       : event.actorType === 'summon' && event.summonOwner
-        ? companionTasteForBloodKind(String(event.summonOwner))
+        ? companionTasteForBloodRecipient(String(event.summonOwner))
         : null;
   if (
     hasTrait(context, TRAIT.OVERFLOWING_THIRST) &&
-    tasteForBloodKind &&
-    consumeActiveBuffStack(context, tasteForBloodKind, event.at, event.actorType === 'player')
+    tasteForBloodRecipient &&
+    consumeTasteForBloodEffect(context, tasteForBloodRecipient, event.at)
   ) {
     queueTasteForBlood(context, event);
   }

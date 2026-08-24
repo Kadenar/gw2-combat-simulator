@@ -70,6 +70,12 @@ export interface NecromancerWeaponSpellState extends SchedulerRecord {
   readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
 }
 
+export interface NecromancerTasteForBloodApplication {
+  readonly at: number;
+  readonly expiresAt: number;
+  stacks: number;
+}
+
 export interface NecromancerCoreState {
   lifeForce: number;
   resource: number;
@@ -107,6 +113,7 @@ export interface NecromancerCoreState {
   barbedPrecisionProgress: number;
   spitefulFortitudeLifeForce: number;
   traitProcReadyAt: Record<string, number>;
+  tasteForBloodEffects: Record<string, NecromancerTasteForBloodApplication[]>;
 }
 
 export interface ReaperState {

@@ -50,6 +50,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'marker',
   'resource',
   'buff',
+  'effect',
   'weakness_vulnerability',
   'peitha'
 ]);

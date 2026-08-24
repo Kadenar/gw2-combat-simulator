@@ -81,6 +81,22 @@ test('Elemental Empowerment chart series includes emitted stacks and caps at ten
   );
 });
 
+test('reporting-only effects remain visible on the timed-effects chart', () => {
+  const series = buildChartSeries(
+    {
+      duration: 3,
+      events: [{ type: 'effect', at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 }]
+    },
+    1000
+  );
+
+  assert.deepEqual(
+    series.effects['Taste for Blood'].map((point) => point.v),
+    [3, 3, 0, 0]
+  );
+  assert.equal(series.effectTypes['Taste for Blood'], 'buff');
+});
+
 test('timed relic proc chart series shows binary uptime across refreshes', () => {
   const series = buildChartSeries(
     {

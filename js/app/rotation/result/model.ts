@@ -30,6 +30,7 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   aegis: 'Aegis',
   'kallas-fervor': "Kalla's Fervor",
   'elemental empowerment': 'Elemental Empowerment',
+  'taste-for-blood': 'Taste for Blood',
   'necromancer-soul-barbs': 'Soul Barbs',
   'berserkers-power': "Berserker's Power",
   'lethal-tempo': 'Lethal Tempo',

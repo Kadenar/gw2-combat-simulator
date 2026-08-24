@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
+import { gw2AlliedEffectRecipients, prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared
@@ -14,6 +14,7 @@ import {
   emitBuff,
   emitCondition,
   emitDamage,
+  emitEffect,
   gainNecromancerLifeForce,
   hasTrait,
   necromancerActiveBoonCompanionIds,
@@ -110,16 +111,24 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
   const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
   if (!stacks) return;
 
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
+  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'effect');
   const duration = Number(effect?.duration || 10);
+  const selected = gw2AlliedEffectRecipients(context.config, {
+    maximumRecipients: 5,
+    companionIds: necromancerActiveMinionCompanionIds(context)
+  });
   const recipients = {
     recipients: 'party' as const,
     maximumRecipients: 5,
-    // EVTC buff targets confirm Taste for Blood can reach ordinary minions but
-    // not Ritualist spirits, even while those spirits remain active.
-    companionIds: necromancerActiveMinionCompanionIds(context)
+    affectsSelf: selected.includesSelf,
+    affectsSummons: selected.companionIds.length > 0,
+    alliedPlayerCount: selected.alliedPlayerCount,
+    // EVTC effect targets confirm Taste for Blood can reach ordinary minions
+    // but not Ritualist spirits, even while those spirits remain active.
+    companionIds: selected.companionIds,
+    recipientCount: selected.recipientCount
   };
-  emitBuff(context, skill, String(effect?.kind || 'taste-for-blood'), duration, stacks, {
+  emitEffect(context, skill, String(effect?.kind || 'taste-for-blood'), duration, stacks, {
     at: context.start,
     metadata: recipients
   });

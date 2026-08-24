@@ -95,6 +95,7 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
+    effect: noop,
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
     },

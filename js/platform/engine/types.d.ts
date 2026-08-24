@@ -40,6 +40,7 @@ export type CommonSimulationEventType =
   | 'marker'
   | 'resource'
   | 'buff'
+  | 'effect'
   | 'weakness_vulnerability'
   | 'peitha';
 
@@ -234,7 +235,7 @@ export interface ControlEffect extends SkillEffectBase {
 }
 
 export interface StatusEffect extends SkillEffectBase {
-  readonly type: 'boon' | 'buff';
+  readonly type: 'boon' | 'buff' | 'effect';
   readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;

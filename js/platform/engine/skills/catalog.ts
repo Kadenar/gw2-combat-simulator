@@ -50,7 +50,7 @@ interface NormalizedAutoattackChains {
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
-const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
+const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'effect', 'custom']);
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 const DURATION_SCALES = new Set(['boon', 'fixed']);
@@ -541,13 +541,13 @@ function normalizeEffect(effect: unknown): SkillEffect {
     }
   }
 
-  if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
+  if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff' || normalizedEffect.type === 'effect') {
     if (!String(normalizedEffect.boon || normalizedEffect.kind || normalizedEffect.name || '')) {
-      throw new TypeError('Boon and buff effects require a name.');
+      throw new TypeError('Boon, buff, and effect statuses require a name.');
     }
 
     if (!(Number(normalizedEffect.duration) > 0)) {
-      throw new TypeError('Boon and buff effects require a positive duration.');
+      throw new TypeError('Boon, buff, and effect statuses require a positive duration.');
     }
   }
 

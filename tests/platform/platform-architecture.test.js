@@ -13,6 +13,7 @@ import {
   conditionTimeline,
   control,
   custom,
+  effect,
   repeatedCondition,
   strike,
   strikePackets,
@@ -383,6 +384,12 @@ test('shared declarative factories preserve generic effect options', () => {
     duration: 2,
     stacks: 2
   });
+  assert.deepEqual(effect('trait-charge', 10, { stacks: 3 }), {
+    type: 'effect',
+    kind: 'trait-charge',
+    duration: 10,
+    stacks: 3
+  });
   assert.deepEqual(condition('Vulnerability', 5, 3), {
     type: 'condition',
     condition: 'Vulnerability',
@@ -447,6 +454,51 @@ test('declarative boons can gate dynamic skill availability', () => {
   assert.equal(expired.totalDamage, 0);
   assert.ok(extended.totalDamage > 0);
   assert.match(expired.warnings.join(' '), /unavailable/);
+});
+
+test('declarative effects remain outside shared boon state', () => {
+  let observedAsBoon = true;
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 920011,
+        name: 'Grant Trait Effect',
+        castTimeMs: 0,
+        effects: [effect('trait-charge', 10, { stacks: 3 })]
+      },
+      {
+        id: 920012,
+        name: 'Inspect Trait Effect',
+        castTimeMs: 0,
+        handlerId: 'fixture.inspect-effect',
+        effects: []
+      }
+    ],
+    skillHandlers: {
+      'fixture.inspect-effect': replaceSkillHandler((context) => {
+        observedAsBoon = context.hasBuff('trait-charge');
+      })
+    }
+  });
+  const profession = defineProfession({
+    id: 'effect-state-fixture',
+    name: 'Effect State Fixture',
+    catalog
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ['Grant Trait Effect', 'Inspect Trait Effect']
+  });
+
+  assert.equal(observedAsBoon, false);
+  assert.equal(
+    result.events.some((event) => event.type === 'effect' && event.kind === 'trait-charge'),
+    true
+  );
+  assert.equal(
+    result.events.some((event) => event.type === 'buff' && event.kind === 'trait-charge'),
+    false
+  );
 });
 
 test('handler registry rejects duplicates and missing required handlers', () => {
