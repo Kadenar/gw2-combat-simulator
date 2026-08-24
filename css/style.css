@@ -3798,6 +3798,20 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   align-items: center;
 }
 
+.rotation-copy-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.rotation-copy-loop[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(157, 123, 208, 0.12);
+}
+
 /* The config sidebar narrows the rotation panel without changing the viewport,
    so responsive rotation layouts need to follow the panel's actual width. */
 @container rotation-builder (min-width: 701px) and (max-width: 1050px) {
@@ -4390,6 +4404,20 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
 .rot-skill:hover {
   transform: scale(1.08);
+}
+
+/* Range selection is a temporary authoring layer; it never changes simulated commands. */
+.rotation-timeline.rotation-range-selecting .rot-skill[data-idx]:not(.rot-injected) {
+  cursor: crosshair;
+}
+
+.rotation-timeline .rot-skill.rot-range-selected,
+.rotation-timeline .rot-skill.rot-range-selected:hover {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 10px rgba(157, 123, 208, 0.65);
+  opacity: 1;
+  filter: none;
 }
 
 .rot-skill.dragging {

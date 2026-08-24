@@ -208,6 +208,13 @@ export interface RotationActionOptions extends SchedulerRecord {
   readonly durationMs?: number | null;
 }
 
+export interface RotationSelectionRange {
+  readonly anchorIndex: number;
+  readonly startIndex: number;
+  readonly endIndex: number;
+  readonly awaitingEnd: boolean;
+}
+
 export interface ProfessionAssumptionOption {
   readonly value: string;
   readonly label: string;
@@ -353,6 +360,9 @@ export interface ProfessionAppState {
   results: ProfessionAppResult | null;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex?: number | null;
+  rotationSelection: RotationSelectionRange | null;
+  rotationSelectionMode: boolean;
+  rotationClipboard: RotationCommand[];
   procVisibility?: Set<string>;
   procVisibilityKeys?: Set<string>;
   procFilterOpen?: boolean;

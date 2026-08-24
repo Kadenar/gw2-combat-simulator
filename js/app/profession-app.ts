@@ -9,6 +9,7 @@ import { renderSkills } from './build/skills-panel.js';
 import { renderTraits } from './build/traits-panel.js';
 import { addRotation } from './rotation/actions.js';
 import { mountRotationDisplayControls } from './rotation/display-controls.js';
+import { mountRotationClipboard } from './rotation/clipboard.js';
 import { recordRotationHistory } from './rotation/history.js';
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
@@ -49,6 +50,9 @@ export class ProfessionApp implements ProfessionAppState {
   results: ProfessionAppResult | null;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
+  rotationSelection: ProfessionAppState['rotationSelection'];
+  rotationSelectionMode: boolean;
+  rotationClipboard: ProfessionAppState['rotationClipboard'];
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
   templatePresets: BuildTemplatePreset[];
@@ -84,6 +88,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.results = null;
     this.dragState = null;
     this.rotationInsertionIndex = null;
+    this.rotationSelection = null;
+    this.rotationSelectionMode = false;
+    this.rotationClipboard = [];
     // Restore timeline display preferences independently from the saved build and simulation configuration.
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
@@ -99,6 +106,7 @@ export class ProfessionApp implements ProfessionAppState {
 
   async init(): Promise<void> {
     mountPatchPreviewControls(this);
+    mountRotationClipboard(this);
     bindPageControls(this);
     const templatesReady = initBuildTemplates(this);
     this.updateSimulationState();

@@ -1,6 +1,7 @@
 import type { RotationCommand, Skill, SkillId } from '../../platform/engine/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../profession/types.js';
 import { normalizeRotationInsertionIndex } from '../../platform/ui/insertion-cursor.js';
+import { clearRotationSelection } from './clipboard.js';
 
 export function resolveEntrySkill(
   app: ProfessionAppState,
@@ -47,6 +48,8 @@ export function createRotationItem(
 
 export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
   if (!items.length) return false;
+  // New authored actions invalidate index-based range selections from the previous timeline.
+  clearRotationSelection(app);
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
   if (insertionIndex === null) {
     app.rotationInsertionIndex = null;
