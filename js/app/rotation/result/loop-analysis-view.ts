@@ -39,6 +39,7 @@ function stepHtml(app: ProfessionAppState, step: RotationLoopStep, index: number
       <span class="rotation-loop-gap-label"><b>…</b> Variable actions</span>
     </li>`;
   }
+
   const fallbackIcon = resultSkillIcon(app, {
     name: step.name,
     skillId: step.primarySkillId
@@ -209,6 +210,7 @@ export function renderRotationLoopAnalysis(
     removeRotationLoopAnalysis(container);
     return;
   }
+
   const coverage = analysis.analyzedActionCount
     ? Math.round((analysis.coveredActionCount / analysis.analyzedActionCount) * 100)
     : 0;
@@ -238,6 +240,7 @@ export function renderRotationLoopAnalysis(
     dialog?.remove();
     dialog = null;
   }
+
   if (!dialog) {
     dialog = ownerDocument.createElement('dialog');
     dialog.id = LOOP_DIALOG_ID;
@@ -247,6 +250,7 @@ export function renderRotationLoopAnalysis(
     dialog.dataset.role = 'rotation-loop-dialog';
     ownerDocument.body?.append(dialog);
   }
+
   // Keep the modal in the document body so virtualized/scrolled Analysis content cannot unmount it while open.
   dialog.innerHTML = dialogContentHtml(app, analysis, coverage);
   const trigger = section.querySelector<HTMLButtonElement>('[data-role="rotation-loop-open"]');
@@ -256,6 +260,7 @@ export function renderRotationLoopAnalysis(
     if (typeof dialog.close === 'function') dialog.close();
     else dialog.removeAttribute('open');
   };
+
   trigger?.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();

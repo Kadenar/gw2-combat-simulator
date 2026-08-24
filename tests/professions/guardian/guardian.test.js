@@ -359,6 +359,7 @@ test('Guardian longbow packets and Symbol of Energy burning use measured EVTC ti
       damage: result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName)
     };
   };
+
   const offsets = ({ action, damage }) => damage.map((event) => Math.round((event.at - action.at) * 1000));
   const puncture = profile('Puncture Shot');
   const deflecting = profile('Deflecting Shot');

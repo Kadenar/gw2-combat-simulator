@@ -213,6 +213,7 @@ function queueVampiricPresence(
     if (actorKey === 'self') state.vampiricPresenceReadyAt = nextAt;
     else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
   }
+
   queueTraitDamage(context, event, {
     name: 'Vampiric Presence',
     traitId: TRAIT.VAMPIRIC_PRESENCE,
@@ -262,6 +263,7 @@ function consumeTasteForBloodBuff(context: NecromancerResolverContext, recipient
   } else {
     applications[index] = { ...application, stacks: application.stacks - 1 };
   }
+
   buffs[recipient] = applications;
   return true;
 }
@@ -317,6 +319,7 @@ export function reactToTasteForBloodGrant(context: NecromancerResolverContext, e
   for (let allyIndex = 1; allyIndex <= Number(event.alliedPlayerCount || 0); allyIndex += 1) {
     addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
   }
+
   for (const companionId of Array.isArray(event.companionIds) ? event.companionIds.map(String) : []) {
     addTasteForBloodApplication(context, event, companionTasteForBloodRecipient(companionId));
   }

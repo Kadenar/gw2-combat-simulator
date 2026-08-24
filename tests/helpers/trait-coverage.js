@@ -28,6 +28,7 @@ function comparableText(value) {
 // explain why a trait is pending or out of model.
 function concreteReason(value) {
   const reason = normalizedText(value);
+
   if (reason.length < 12) return false;
   return !['out of model', 'not supported', 'unsupported', 'not applicable'].includes(reason.toLowerCase());
 }
@@ -48,6 +49,7 @@ function normalizeEffect(effect, entry, trait, index) {
         ? { ...effect }
         : {};
   const description = normalizedText(value.description);
+
   if (!description) {
     throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} needs a description.`);
   }
@@ -57,12 +59,14 @@ function normalizeEffect(effect, entry, trait, index) {
   }
 
   const rawStatus = value.status || entry.status;
+
   if (typeof rawStatus !== 'string' || !VALID_STATUSES.has(rawStatus)) {
     throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} has invalid status.`);
   }
 
   const status = rawStatus;
   const reason = normalizedText(value.reason || entry.reason);
+
   if (
     (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL || status === TRAIT_COVERAGE_STATUSES.PENDING) &&
     !concreteReason(reason)
@@ -90,6 +94,7 @@ function normalizeEffect(effect, entry, trait, index) {
  */
 export function validateTraitCoverageManifest(catalog, manifest, { professionId = 'profession' } = {}) {
   const traits = Array.isArray(catalog?.traits) ? catalog.traits : [];
+
   if (!Array.isArray(manifest)) {
     throw new TypeError(`${professionId} trait coverage must be an array.`);
   }
@@ -103,12 +108,14 @@ export function validateTraitCoverageManifest(catalog, manifest, { professionId 
     }
 
     const entry = rawEntry;
+
     if (Object.hasOwn(entry, 'tests')) {
       throw new TypeError(`${professionId} trait coverage cannot use test-title evidence.`);
     }
 
     const traitId = Number(entry.traitId);
     const trait = traitsById.get(traitId);
+
     if (!trait) {
       throw new TypeError(`${professionId} trait coverage references unknown trait ${entry.traitId}.`);
     }
@@ -128,6 +135,7 @@ export function validateTraitCoverageManifest(catalog, manifest, { professionId 
     const effects = entry.effects.map((effect, index) => normalizeEffect(effect, entry, trait, index));
     const status = entry.status;
     const reason = normalizedText(entry.reason);
+
     if (
       (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL || status === TRAIT_COVERAGE_STATUSES.PENDING) &&
       !concreteReason(reason)
@@ -151,6 +159,7 @@ export function validateTraitCoverageManifest(catalog, manifest, { professionId 
   const missing = traits
     .filter((trait) => !coverageById.has(Number(trait.id)))
     .map((trait) => `${trait.id} (${trait.name})`);
+
   if (missing.length) {
     throw new TypeError(`${professionId} trait coverage is missing: ${missing.join(', ')}.`);
   }

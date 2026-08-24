@@ -76,6 +76,7 @@ export function createGw2TriggerMaterializer(
         if (isStandardBoon(event.kind || event.boon)) {
           materializeBoonRelics(context, state.relic, event);
         }
+
         break;
       case 'condition':
         materializeConditionRelics(context, state.relic, event);

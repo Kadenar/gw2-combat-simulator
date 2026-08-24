@@ -85,8 +85,11 @@ const REASONS = Object.freeze({
 
 function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
+
   if (/ally|allies|nearby|reviv/.test(description)) return REASONS.ally;
+
   if (/heal|barrier|incoming|block|condition.*remove|damage.*reduced/.test(description)) return REASONS.defensive;
+
   if (/movement|dodge|endurance/.test(description)) return REASONS.movement;
   return REASONS.missing;
 }

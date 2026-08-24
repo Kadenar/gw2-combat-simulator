@@ -108,12 +108,14 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   if (legitimateMs > 0) {
     details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
   }
+
   for (const [skill, cancellation] of cancellations) {
     details.push({
       label: `Skill cancelled '${skill}'${cancellation.count > 1 ? ` (${cancellation.count} casts)` : ''}`,
       value: formatTimelineDuration(cancellation.durationMs)
     });
   }
+
   return details.length ? details : [{ label: 'No idle time', value: formatTimelineDuration(0) }];
 }
 

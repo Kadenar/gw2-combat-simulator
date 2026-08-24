@@ -272,6 +272,7 @@ test('Superiority Complex accepts Fear or Taunt while generic disabled requires 
       2 * 1.25
     );
   }
+
   assertClose(
     mesmerRules('Core').modifyCriticalDamage(
       {

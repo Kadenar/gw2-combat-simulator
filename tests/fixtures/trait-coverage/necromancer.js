@@ -127,6 +127,7 @@ const manifest = necromancerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
   const reason = OUT_OF_MODEL_REASON_BY_NAME[trait.name];
+
   if (!implemented && !reason) {
     throw new TypeError(`Necromancer trait ${trait.name} needs an explicit coverage reason.`);
   }

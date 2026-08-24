@@ -1045,6 +1045,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     rotation.splice(insertAt, 0, ...entries);
     return true;
   };
+
   const binding = bindTimelineInteractions(root, {
     rotation,
     getDragState: () => dragState,

@@ -79,7 +79,9 @@ const REASONS = Object.freeze({
 /** Returns the documented reason a trait remains outside the simulator model. */
 function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
+
   if (/ally|allies|reviv|nearby/.test(description)) return REASONS.ally;
+
   if (/heal|barrier|incoming|block|damage reduction|aegis/.test(description)) {
     return REASONS.defensive;
   }

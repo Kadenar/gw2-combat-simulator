@@ -213,6 +213,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         })
       );
     }
+
     for (let index = 0; index < Number(might?.applications || 2); index += 1) {
       emitGuardianBuff(
         context,

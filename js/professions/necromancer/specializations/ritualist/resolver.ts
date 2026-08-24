@@ -15,6 +15,7 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
   if (event.summonOwnerBase && Number(event.summonCount || 0) > 1) {
     return Array.from({ length: Number(event.summonCount) }, (_, index) => `${event.summonOwnerBase}:${index}`);
   }
+
   if (event.summonOwner) return [event.summonOwner];
   if (event.actorType === 'player') return ['player'];
   if (event.actorType !== 'summon') return [];

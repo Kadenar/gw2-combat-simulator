@@ -418,6 +418,7 @@ function preservesAutoattackChain(rootId: number, skill: MesmerSkill): boolean {
   if (skill.type !== 'Weapon') {
     return Number(skill.quicknessCastTimeMs ?? skill.castTimeMs ?? 0) <= BRIEF_AUTOATTACK_CHAIN_PRESERVING_CAST_MS;
   }
+
   return (
     PRESERVED_WEAPON_CHAIN_ROOT_IDS.has(rootId) || (rootId === ID.LACERATING_CHOP && skill.id === ID.IMAGINARY_AXES)
   );
@@ -492,6 +493,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
   if (interrupted && details.earlyResourceAt != null && context.effectiveEnd < details.earlyResourceAt - EPSILON) {
     context.tasks.cancelOwner(details.earlyResourceOwnerId || '');
   }
+
   const phantasmSummonProgress = Number(skill.phantasmSummonProgress);
   const phantasmSummonThreshold = context.start + (context.fullEnd - context.start) * phantasmSummonProgress;
   const completedInterruptedPhantasm =
@@ -738,6 +740,7 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
       }
     });
   }
+
   if (delayedResourceSpend) {
     shatterSpent = runtime.actions.reserveResources();
   } else if (shatter && shatter.consumesResources !== false) {
@@ -978,8 +981,10 @@ export function handleResourceGainTask(
     for (const effect of sourceSkill.maxCloneEffects || []) {
       runtime.addCondition(sourceSkill.name, task.at, { ...effect, name: effect.condition }, 'Player');
     }
+
     return;
   }
+
   runtime.resources.gainResources(task.at, count, weapon, reason, cause);
 }
 

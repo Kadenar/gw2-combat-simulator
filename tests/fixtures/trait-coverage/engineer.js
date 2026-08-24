@@ -90,6 +90,7 @@ const OUT_OF_MODEL_REASONS = Object.freeze({
 
 function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
+
   if (/ally|allies|reviv|nearby/.test(description)) {
     return OUT_OF_MODEL_REASONS.ally;
   }

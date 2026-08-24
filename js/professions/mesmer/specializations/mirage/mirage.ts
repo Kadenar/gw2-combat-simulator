@@ -295,6 +295,7 @@ export function createMirageActionController({
         source: 'Player'
       });
     }
+
     for (const condition of ambush.player.conditions || []) {
       addCondition(ambush.name, impactAt, condition);
     }
@@ -338,6 +339,7 @@ export function createMirageActionController({
     for (const packetAt of impactTimes) {
       addAmbushVulnerability(packetAt, ambush);
     }
+
     if (ambush.createsClone) {
       queueResources(impactAt + epsilon, 1, weapon, ambush.name, {
         sourceSkillId: skill.id

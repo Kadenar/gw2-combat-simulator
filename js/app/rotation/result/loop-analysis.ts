@@ -258,6 +258,7 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
     if (destination && !cancelled) activeAttunement = destination;
     if (weaponLineDestination !== undefined) activeWeaponLine = weaponLineDestination || '';
   }
+
   // A lone cancelled-before-commit attempt is noise rather than an authored
   // loop step. Repeated cancellations remain visible because they may be an
   // intentional benchmark technique.
@@ -268,6 +269,7 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
       cancelledCounts.set(key, (cancelledCounts.get(key) || 0) + 1);
     }
   }
+
   return actions
     .filter((action) => !action.cancelled || (cancelledCounts.get(skillKey(action.skillId)) || 0) > 1)
     .map((action, sequenceIndex) => ({ ...action, sequenceIndex }));
@@ -278,6 +280,7 @@ function catalogAutoattackChains(app: ProfessionAppState): ReadonlyMap<string, r
   for (const chain of app.activeCatalog.autoattackChains || []) {
     if (chain.length > 1) chains.set(String(chain[0]), chain);
   }
+
   return chains;
 }
 
@@ -305,8 +308,10 @@ function combineConsecutiveTokens(tokens: readonly LoopToken[]): LoopToken[] {
       };
       continue;
     }
+
     combined.push(token);
   }
+
   return combined;
 }
 
@@ -320,6 +325,7 @@ function tokenizeActions(
   for (const chain of autoattackChains.values()) {
     for (const skillId of chain) autoattackRootBySkill.set(String(skillId), chain[0]);
   }
+
   const claimedChainIndexes = new Set<number>();
   const chainTokenByStart = new Map<number, LoopToken>();
   for (let start = 0; start < actions.length; start += 1) {
@@ -338,15 +344,19 @@ function tokenizeActions(
           matchedIndex = candidateIndex;
           break;
         }
+
         if (autoattackRootBySkill.get(String(candidate.skillId)) === chain[0]) break;
       }
+
       if (matchedIndex < 0 || actions[matchedIndex].startMs - actions[start].startMs > 5000) {
         complete = false;
         break;
       }
+
       matchedIndexes.push(matchedIndex);
       cursor = matchedIndex + 1;
     }
+
     if (!complete) continue;
     const chainActions = matchedIndexes.map((index) => actions[index]);
     for (const index of matchedIndexes) claimedChainIndexes.add(index);
@@ -369,6 +379,7 @@ function tokenizeActions(
       tokens.push(chainToken);
       continue;
     }
+
     if (claimedChainIndexes.has(index)) continue;
     const incompleteChainRoot = autoattackRootBySkill.get(String(action.skillId));
     if (incompleteChainRoot != null) {
@@ -378,8 +389,10 @@ function tokenizeActions(
       });
       continue;
     }
+
     tokens.push(baseSkillToken(action));
   }
+
   return combineConsecutiveTokens(tokens);
 }
 
@@ -507,11 +520,13 @@ function structuralSegments(
       });
       pending = [];
     };
+
     for (const action of actions) {
       if (pending.length && action.attunement !== pendingAttunement) append(true);
       if (!pending.length) pendingAttunement = action.attunement;
       pending.push(action);
     }
+
     append(false);
     return segments;
   }
@@ -539,6 +554,7 @@ function structuralSegments(
     pending.push(action);
     if (action.name === 'Swap Weapons') append(true);
   }
+
   append(false);
   return segments;
 }
@@ -557,8 +573,10 @@ function sequenceEditDistance(left: readonly LoopToken[], right: readonly LoopTo
         previous[rightIndex - 1] + substitution
       );
     }
+
     previous = current;
   }
+
   return previous[right.length];
 }
 
@@ -572,6 +590,7 @@ function meanLagSimilarity(segments: readonly RotationSegment[], lag: number): n
   for (let index = 0; index + lag < segments.length; index += 1) {
     similarities.push(sequenceSimilarity(segments[index].tokens, segments[index + lag].tokens));
   }
+
   return similarities.length
     ? similarities.reduce((total, similarity) => total + similarity, 0) / similarities.length
     : 0;
@@ -587,6 +606,7 @@ function meanLagPrefixSimilarity(segments: readonly RotationSegment[], lag: numb
       )
     );
   }
+
   return similarities.length
     ? similarities.reduce((total, similarity) => total + similarity, 0) / similarities.length
     : 0;
@@ -606,6 +626,7 @@ function engineerPhaseDiscrimination(segments: readonly RotationSegment[], phase
     const stable = supports.every((support) => support <= 0.25 || support >= 0.75);
     if (stable) strongestDifference = Math.max(strongestDifference, difference);
   }
+
   return strongestDifference;
 }
 
@@ -633,6 +654,7 @@ function engineerMacroPhaseCount(segments: readonly RotationSegment[]): number {
       bestQuality = quality;
     }
   }
+
   return bestPhaseCount;
 }
 
@@ -656,6 +678,7 @@ function engineerMacroSegments(
     ) {
       continue;
     }
+
     const key = skillKey(action.skillId);
     const positions = positionsByAnchor.get(key) || [];
     positions.push(index);
@@ -684,6 +707,7 @@ function engineerMacroSegments(
         actions: intervalActions
       });
     }
+
     const completeIntervals = intervals.filter((segment) => segment.complete);
     if (completeIntervals.length < 2) continue;
     const typicalLength = median(completeIntervals.map((segment) => segment.tokens.length));
@@ -704,6 +728,7 @@ function engineerMacroSegments(
     }));
     if (!best || score > best.score) best = { score, segments: phasedSegments };
   }
+
   return best ? [...best.segments] : [];
 }
 
@@ -753,6 +778,7 @@ function bestSimilarCluster(
       best = { segments: members, medoid, meanSimilarity };
     }
   }
+
   return best;
 }
 
@@ -785,6 +811,7 @@ function boundaryClusters(segments: readonly RotationSegment[]): SegmentCluster[
       remaining = remaining.filter((segment) => !claimed.has(segment));
     }
   }
+
   return clusters;
 }
 
@@ -822,6 +849,7 @@ function boundaryGuideClusters(segments: readonly RotationSegment[]): SegmentClu
       label: medoid.label
     });
   }
+
   return guides;
 }
 
@@ -870,10 +898,12 @@ function fallbackAnchorClusters(
       const segment = segmentFromTokens(tokens.slice(start, end), sourceIndex++);
       if (segment) intervals.push(segment);
     }
+
     const best = bestSimilarCluster(intervals);
     if (!best) continue;
     candidates.push({ ...best, boundaryDriven: false, label: 'Core Loop' });
   }
+
   return candidates;
 }
 
@@ -908,6 +938,7 @@ function fallbackTandemClusters(
       });
     }
   }
+
   return candidates;
 }
 
@@ -934,6 +965,7 @@ function occurrenceOverlap(left: SegmentCluster, right: SegmentCluster): number 
   for (const action of leftActions) {
     if (rightActions.has(action)) intersection += 1;
   }
+
   return intersection / Math.min(leftActions.size, rightActions.size);
 }
 
@@ -944,6 +976,7 @@ function selectFallbackClusters(candidates: readonly SegmentCluster[]): SegmentC
     const existing = bySignature.get(signature);
     if (!existing || candidate.meanSimilarity > existing.meanSimilarity) bySignature.set(signature, candidate);
   }
+
   const ranked = [...bySignature.values()].sort((left, right) => {
     const leftLength = left.medoid.tokens.length * left.segments.length * left.meanSimilarity;
     const rightLength = right.medoid.tokens.length * right.segments.length * right.meanSimilarity;
@@ -955,6 +988,7 @@ function selectFallbackClusters(candidates: readonly SegmentCluster[]): SegmentC
     selected.push(candidate);
     if (selected.length >= MAX_DETECTED_LOOPS) break;
   }
+
   return selected;
 }
 
@@ -991,27 +1025,32 @@ function alignToReference(reference: readonly LoopToken[], candidate: readonly L
       column -= 1;
       continue;
     }
+
     if (row > 0 && distance[row][column] === distance[row - 1][column] + 1) {
       row -= 1;
       continue;
     }
+
     if (column > 0 && distance[row][column] === distance[row][column - 1] + 1) {
       insertions.push({ slot: row, token: candidate[column - 1] });
       column -= 1;
       continue;
     }
+
     if (row > 0 && column > 0) {
       insertions.push({ slot: row - 1, token: candidate[column - 1] });
       row -= 1;
       column -= 1;
       continue;
     }
+
     if (row > 0) row -= 1;
     else if (column > 0) {
       insertions.push({ slot: 0, token: candidate[column - 1] });
       column -= 1;
     }
   }
+
   return { matches, insertions: insertions.reverse() };
 }
 
@@ -1050,6 +1089,7 @@ function stepsUsuallyFollowImmediately(
     });
     if (adjacent) linked += 1;
   }
+
   return eligible > 0 && linked / eligible >= 0.85;
 }
 
@@ -1060,6 +1100,7 @@ function consensusSteps(cluster: SegmentCluster): RotationLoopStep[] {
   for (const token of cluster.medoid.tokens) {
     referenceKeyFrequency.set(token.key, (referenceKeyFrequency.get(token.key) || 0) + 1);
   }
+
   cluster.medoid.tokens.forEach((referenceToken, referenceIndex) => {
     if (referenceToken.key.startsWith('auto-chain-fragment:')) return;
     const samples =
@@ -1108,6 +1149,7 @@ function consensusSteps(cluster: SegmentCluster): RotationLoopStep[] {
       if (insertion.token.key.startsWith('auto-chain-fragment:') || referenceKeyFrequency.has(insertion.token.key)) {
         continue;
       }
+
       const group = insertionsByKey.get(insertion.token.key) || { samples: [] };
       group.samples.push({ occurrence, slot: insertion.slot, token: insertion.token });
       insertionsByKey.set(insertion.token.key, group);
@@ -1118,6 +1160,7 @@ function consensusSteps(cluster: SegmentCluster): RotationLoopStep[] {
     for (const sample of group.samples) {
       occurrenceCounts.set(sample.occurrence, (occurrenceCounts.get(sample.occurrence) || 0) + sample.token.count);
     }
+
     const support = occurrenceCounts.size / cluster.segments.length;
     if (support < MIN_STEP_SUPPORT) continue;
     const token = group.samples[0].token;
@@ -1236,6 +1279,7 @@ function boundaryGuideSteps(cluster: SegmentCluster): RotationLoopStep[] {
     if (!predictableBoundaryStep(consensus[index])) break;
     tail.unshift(index);
   }
+
   const boundaryIndexes = new Set([...head, ...tail]);
   const boundaryKeys = new Set([...boundaryIndexes].map((index) => consensus[index].key));
   const middle = consensus
@@ -1257,6 +1301,7 @@ function boundaryGuideSteps(cluster: SegmentCluster): RotationLoopStep[] {
       MAX_BOUNDARY_GUIDE_STEPS
     );
   }
+
   if (selectedIndexes.length < MIN_LOOP_TOKENS) return [];
 
   const steps: RotationLoopStep[] = [];
@@ -1277,6 +1322,7 @@ function boundaryGuideSteps(cluster: SegmentCluster): RotationLoopStep[] {
         followsPreviousImmediately: false
       });
     }
+
     const step = consensus[sourceIndex];
     steps.push({
       ...step,
@@ -1391,6 +1437,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
       return cached.analysis;
     }
   }
+
   const actions = normalizedPlayerActions(app);
   if (actions.length < MIN_LOOP_TOKENS * 2) {
     const analysis = {
@@ -1404,6 +1451,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
     if (result) analysisCache.set(result, { catalog: app.activeCatalog, buildSignature, analysis });
     return analysis;
   }
+
   const autoattackChains = catalogAutoattackChains(app);
   const segments = structuralSegments(app, actions, autoattackChains);
   let detectedLoops: DetectedRotationLoop[] = [];
@@ -1424,6 +1472,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
     for (const { loop } of normalMatches) {
       normalLabelCounts.set(loop.label, (normalLabelCounts.get(loop.label) || 0) + 1);
     }
+
     detectedLoops = normalMatches.map(({ cluster, loop }, index) =>
       loop.confidence === 'high' || (loop.confidence === 'medium' && (normalLabelCounts.get(loop.label) || 0) > 1)
         ? loop
@@ -1432,6 +1481,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
     const resolvedLabels = new Set(detectedLoops.map((loop) => loop.label));
     detectedLoops.push(...guideLoops.filter((loop) => !resolvedLabels.has(loop.label)));
   }
+
   if (!detectedLoops.length) {
     const fallbackClusters = selectFallbackClusters([
       ...fallbackAnchorClusters(actions, autoattackChains),
@@ -1445,6 +1495,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
       })
       .filter((loop): loop is DetectedRotationLoop => Boolean(loop));
   }
+
   const loops = uniqueLoopLabels(
     detectedLoops
       .sort((left, right) => left.occurrences[0].startMs - right.occurrences[0].startMs)
@@ -1460,6 +1511,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
       }
     }
   }
+
   const coveredIndexes = [...covered].sort((left, right) => left - right);
   const firstCovered = coveredIndexes[0] ?? actions.length;
   const lastCovered = coveredIndexes.at(-1) ?? -1;

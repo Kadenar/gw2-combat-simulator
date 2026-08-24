@@ -166,6 +166,7 @@ export function reconstructRenegadeDpsReportActions(
       );
       if (action) inferred.push(action);
     }
+
     const action = inferredWarbandAction(context, anchor, ICERAZOR, anchor.start - duration, -2, false);
     if (action) inferred.push(powerEnergyPrecast ? { ...action, followingWaitMs: duration } : action);
   }

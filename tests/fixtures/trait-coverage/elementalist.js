@@ -94,6 +94,7 @@ const IMPLEMENTED = new Set([
 
 function outOfModelReason(trait) {
   const description = String(trait.description || '').toLowerCase();
+
   if (/ally|allies|share|revive/.test(description)) {
     return "This allied or revival payload cannot change the simulator's deterministic single-target damage output.";
   }

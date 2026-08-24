@@ -2534,6 +2534,7 @@ test('Vampiric Presence supports four allied players and respects its five-targe
       true
     );
   }
+
   assert.equal(
     alliedSiphons.every((event) => Math.abs(event.damage - 98.3) < 1e-12),
     true
@@ -4217,6 +4218,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     assert.deepEqual(mechanicGroup.resourceIds, ['soul-shards'], specialization);
     assert.equal(mechanicGroup.resourcePlacement, 'beside', specialization);
   }
+
   assert.equal(harbingerResources[0].maximum, 13256);
   assert.equal(harbingerResources[0].value, 13256 * 0.8);
   assert.equal(harbingerResources[0].startMaximum, 100);

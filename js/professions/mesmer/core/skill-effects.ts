@@ -153,6 +153,7 @@ export function createSkillEffectController({
     if (!skipDirectResource) {
       illusionResources.schedule(skill, at, castStart, phantasmExecutions);
     }
+
     specialEffects.apply(skill, at, castStart);
     damage.finish(skill, damageResult);
     return clarityConsumed;
