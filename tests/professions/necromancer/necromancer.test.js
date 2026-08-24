@@ -2030,6 +2030,63 @@ test('Bone Fiend uses paired Bone Shards and its fourth crippling volley', () =>
   );
 });
 
+test('Vampiric siphons on every direct player and minion hit with separate power scaling', () => {
+  const player = simulate('Core', ['Ghastly Claws'], {
+    primaryWeapon: 'Axe',
+    selectedTraitIds: [TRAIT.VAMPIRIC],
+    stats: { power: 1000 }
+  });
+  const condition = simulate('Core', ['Blood Curse', { type: 'wait', durationMs: 2000 }], {
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.VAMPIRIC],
+    stats: { power: 1000 }
+  });
+  const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
+    selectedSkills: ['Summon Bone Fiend'],
+    selectedTraitIds: [TRAIT.VAMPIRIC],
+    stats: { power: 1000 }
+  });
+  const playerSiphons = player.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC
+  );
+  const conditionSiphons = condition.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC
+  );
+  const minionHits = minion.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.source === 'Minion' && event.skillId === 3633
+  );
+  const minionSiphons = minion.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.name === 'Vampiric — Minion Life Steal'
+  );
+
+  // Ghastly Claws proves there is no internal cooldown: all eight packets siphon.
+  assert.equal(playerSiphons.length, 8);
+  assert.equal(
+    playerSiphons.every(
+      (event) =>
+        event.flatStrikeBase === 38 &&
+        event.flatStrikePowerCoeff === 0.003 &&
+        event.damage === 41 &&
+        event.damageKind === 'life-steal' &&
+        event.criticalChance === 0
+    ),
+    true
+  );
+  assert.equal(conditionSiphons.length, 1);
+  assert.equal(minionHits.length > 0, true);
+  assert.equal(minionSiphons.length, minionHits.length);
+  assert.equal(
+    minionSiphons.every(
+      (event) =>
+        event.flatStrikeBase === 50 &&
+        event.flatStrikePowerCoeff === 0.0213 &&
+        event.damage === 71.3 &&
+        event.triggeredBy === 'Bone Shard'
+    ),
+    true
+  );
+});
+
 test('Rigor Mortis is instant and fires two immobilizing projectile finishers', () => {
   const result = simulate('Core', ['Summon Bone Fiend', 'Rigor Mortis', { type: 'wait', durationMs: 4000 }], {
     selectedSkills: ['Summon Bone Fiend'],

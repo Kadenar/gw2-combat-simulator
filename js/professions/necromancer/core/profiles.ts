@@ -15,6 +15,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   dhuumfire: TRAIT.DHUUMFIRE,
   unyieldingBlast: TRAIT.UNYIELDING_BLAST,
   barbedPrecision: TRAIT.BARBED_PRECISION,
+  vampiric: TRAIT.VAMPIRIC,
   vampiricPresence: TRAIT.VAMPIRIC_PRESENCE,
   chillingDarkness: TRAIT.CHILLING_DARKNESS,
   insidiousDisruption: TRAIT.INSIDIOUS_DISRUPTION,
@@ -164,6 +165,30 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         stacks: 1,
         duration: 3,
         actorType: 'effect'
+      }
+    ]
+  }),
+  trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.vampiric, 'Vampiric', {
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 38,
+        flatStrikePowerCoeff: 0.003,
+        actorType: 'effect',
+        packetLabel: 'player',
+        metadata: { noCrit: true, damageKind: 'life-steal' }
+      },
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 50,
+        flatStrikePowerCoeff: 0.0213,
+        actorType: 'effect',
+        packetLabel: 'minion',
+        metadata: { noCrit: true, damageKind: 'life-steal' }
       }
     ]
   }),

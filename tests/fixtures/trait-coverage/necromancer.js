@@ -34,6 +34,7 @@ const IMPLEMENTED = new Set([
   'Deadly Strength',
   "Corrupter's Fervor",
   'Overflowing Thirst',
+  'Vampiric',
   'Vampiric Presence',
   'Transfusion',
   'Gluttony',
@@ -102,8 +103,6 @@ const OUT_OF_MODEL_REASON_BY_NAME = Object.freeze({
   'Unholy Sanctuary': 'Player healing and lethal incoming damage are outside the outgoing single-target damage model.',
   'Mark of Evasion':
     'The Necromancer rotation contract has no dodge action or movement-position model from which to trigger this mark.',
-  Vampiric:
-    'The catalog does not provide the per-hit PvE siphon coefficient and player healing is outside the result model.',
   'Last Rites': 'Ally downed state, player health loss, and healing output are outside the single-player damage model.',
   'Ritual of Life': 'Ally revival and area healing are outside the single-player target model.',
   'Blood Renewal': 'Player healing and defensive self-condition consumption are outside the outgoing damage model.',

@@ -132,6 +132,26 @@ function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   return Number(context.totals.strike || 0) + Number(context.totals.condition || 0) > maximum * 0.5;
 }
 
+// Vampiric adds one non-critical siphon to every direct player hit, while only
+// the Necromancer's minions (not Ritualist spirits) use the larger minion packet.
+function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (!hasTrait(context, TRAIT.VAMPIRIC)) return;
+  const minionHit = event.actorType === 'summon' && event.summonKind !== 'spirit';
+  if (event.actorType !== 'player' && !minionHit) return;
+
+  const profile = necromancerBalanceProfile(context, PROFILE.vampiric);
+  const packetLabel = minionHit ? 'minion' : 'player';
+  const effect = profile?.effects?.find(
+    (candidate) => candidate.type === 'strike' && candidate.packetLabel === packetLabel
+  );
+  queueTraitDamage(context, event, {
+    name: minionHit ? 'Vampiric — Minion Life Steal' : 'Vampiric',
+    traitId: TRAIT.VAMPIRIC,
+    flatStrikeBase: Number(effect?.flatStrikeBase || (minionHit ? 50 : 38)),
+    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || (minionHit ? 0.0213 : 0.003))
+  });
+}
+
 export function targetIsChilled(context: NecromancerResolverContext, at: number): boolean {
   if (
     context.config.target?.conditions?.Chilled === true ||
@@ -188,6 +208,7 @@ export function reactToNecromancerCoreDamage(
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
+  applyVampiric(context, event);
   if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.reapersMight), 'boon');
     enqueueOrdered(context.queue, {
