@@ -1853,6 +1853,31 @@ test('off-hand sword follow-ups use their complete PvE effects', () => {
   );
 });
 
+test('off-hand sword follow-ups expire after three seconds and rearm after their parent is recast', () => {
+  for (const [parent, followUp] of [
+    ['Hungering Maelstrom', 'Gormandize'],
+    ['Devouring Visage', 'Consume']
+  ]) {
+    const config = {
+      boons: { quickness: true },
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword'
+    };
+    const withinWindow = simulate('Core', [parent, { type: 'wait', durationMs: 2900 }, followUp], config);
+    const expired = simulate('Core', [parent, { type: 'wait', durationMs: 3100 }, followUp], config);
+    const rearmed = simulate('Core', [parent, { type: 'wait', durationMs: 3100 }, followUp, parent, followUp], config);
+    const followUpActions = (result) =>
+      result.events.filter((event) => event.type === 'action' && event.skillName === followUp);
+
+    assert.deepEqual(withinWindow.warnings, [], followUp);
+    assert.equal(followUpActions(withinWindow).length, 1, followUp);
+    assert.match(expired.warnings.join(' '), new RegExp(`${followUp} is unavailable`), followUp);
+    assert.equal(followUpActions(expired).length, 0, followUp);
+    assert.match(rearmed.warnings.join(' '), new RegExp(`${followUp} is unavailable`), followUp);
+    assert.equal(followUpActions(rearmed).length, 1, followUp);
+  }
+});
+
 test('Plaguelands, chill fields, and cooldown reset retain live behavior', () => {
   const plague = simulate(
     'Reaper',

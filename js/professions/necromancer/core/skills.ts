@@ -9,6 +9,9 @@ import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Off-hand sword reactivations replace their parent skill for only the game's three-second follow-up window.
+const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;
+
 export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
     implemented: true,
@@ -2166,6 +2169,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
     interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 640,
+    flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
       {
         type: 'strike',
@@ -2285,6 +2289,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.DEVOURING_VISAGE]: {
     implemented: true,
     quicknessCastTimeMs: 680,
+    flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
       {
         type: 'strike',
