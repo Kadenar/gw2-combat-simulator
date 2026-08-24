@@ -4165,6 +4165,12 @@ test('Necromancer resources and palette change with specialization state', () =>
   );
   assert.equal(harbingerResources[0].pipStyle, 'compact-profession-resource-necromancer-life-force');
   assert.equal(reaperBar[0].className, 'compact-resource-palette necromancer-f-skills');
+  for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
+    const mechanicGroup = necromancerProfession.ui.paletteGroups({ specialization })[0];
+
+    assert.deepEqual(mechanicGroup.resourceIds, ['soul-shards'], specialization);
+    assert.equal(mechanicGroup.resourcePlacement, 'beside', specialization);
+  }
   assert.equal(harbingerResources[0].maximum, 13256);
   assert.equal(harbingerResources[0].value, 13256 * 0.8);
   assert.equal(harbingerResources[0].startMaximum, 100);
@@ -4354,6 +4360,10 @@ test('Necromancer renders life force above its F-skills', async () => {
   assert.match(
     palette.innerHTML,
     /data-resource-id="soul-shards"[\s\S]*data-resource-count="0"[\s\S]*necromancer-soul-shards/
+  );
+  assert.match(
+    palette.innerHTML,
+    /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
   app.results.endState.profession.soulShards = 4;
   globalThis.document = {

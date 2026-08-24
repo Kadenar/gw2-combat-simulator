@@ -124,6 +124,9 @@ export function necromancerTransformPaletteGroups(
       skillIds: [...(entryId == null ? [] : [entryId]), ...(exitId == null ? [] : [exitId]), ...professionSkillIds],
       color: '#57a86b',
       className: 'compact-resource-palette necromancer-f-skills',
+      // Spear shards belong beside the profession mechanic that consumes and supports them across every specialization.
+      resourceIds: ['soul-shards'],
+      resourcePlacement: 'beside',
       resourceAnchor: true,
       stackId
     }
