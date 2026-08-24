@@ -1,8 +1,11 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
-import { paletteView } from '../../../platform/ui/palette.js';
 import type { NormalizedPaletteGroup } from '../../../platform/ui/types.js';
-import type { ProfessionAppState, ProfessionSlotLoadoutContext } from '../../profession/types.js';
+import type {
+  ProfessionAppContract,
+  ProfessionAppState,
+  ProfessionSlotLoadoutContext
+} from '../../profession/types.js';
 import { groupWeaponSkillsByAttunement } from '../../profession/weapon-attunement-groups.js';
 import { activeSpecialization, paletteEndState, paletteProfessionState } from '../shared/context.js';
 
@@ -12,6 +15,57 @@ const PALETTE_ACTION_ORDER = new Map<string, number>([
   ['Pick Up Mirage Mirror', 1],
   ['Swap Weapons', 2]
 ]);
+
+/**
+ * Normalizes profession-owned palette declarations into isolated app view
+ * models so generic renderers cannot mutate catalog-owned definitions.
+ */
+export function paletteView(profession: ProfessionAppContract, context: SchedulerRecord): NormalizedPaletteGroup[] {
+  const groups = profession.ui.paletteGroups(context);
+  if (!Array.isArray(groups)) {
+    throw new TypeError('paletteGroups must return an array.');
+  }
+
+  return groups.map((group) => ({
+    id: String(group.id),
+    label: String(group.label || group.id),
+    skillIds: [...(group.skillIds || [])],
+    reservedSkillIds: [...(group.reservedSkillIds || [])],
+    skillEntries: (group.skillEntries || []).map((entry) => ({ ...entry })),
+    color: String(group.color || ''),
+    className: String(group.className || ''),
+    stackId: String(group.stackId || ''),
+    placement:
+      group.placement === 'weapon-set-1' || group.placement === 'active-weapon' ? group.placement : 'profession',
+    weaponRowLabel: String(group.weaponRowLabel || ''),
+    resourceAnchor: Boolean(group.resourceAnchor),
+    resourceIds: (group.resourceIds || []).map(String),
+    resourcePlacement:
+      group.resourcePlacement === 'above' || group.resourcePlacement === 'beside' || group.resourcePlacement === 'below'
+        ? group.resourcePlacement
+        : 'below',
+    includeActionSkills: Boolean(group.includeActionSkills),
+    controls: (group.controls || []).map((control) => ({
+      id: String(control.id),
+      label: String(control.label || control.id),
+      icon: String(control.icon || ''),
+      title: String(control.title || control.label || control.id),
+      color: String(control.color || ''),
+      className: String(control.className || ''),
+      active: Boolean(control.active),
+      pressed: Boolean(control.pressed),
+      muted: Boolean(control.muted),
+      badge: String(control.badge || '')
+    })),
+    statusIcon: group.statusIcon
+      ? {
+          icon: String(group.statusIcon.icon || ''),
+          label: String(group.statusIcon.label || ''),
+          title: String(group.statusIcon.title || group.statusIcon.label || '')
+        }
+      : undefined
+  }));
+}
 
 export function uniqueByName(skills: readonly Skill[]): Skill[] {
   const unique = new Map<string, Skill>();

@@ -10,7 +10,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/
 import { createGw2CombatQuery } from '../../../js/platform/gw2/query.js';
 import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
 import { normalizeRotation } from '../../../js/platform/engine/execution/rotation.js';
-import { resourceDisplayViews } from '../../../js/platform/ui/resource-display.js';
+import { resourceDisplayViews } from '../../../js/app/rotation/palette/resource-view.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
 import {
   createThiefBuildDefaults,

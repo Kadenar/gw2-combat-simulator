@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteView } from '../../../js/platform/ui/palette.js';
+import { paletteView } from '../../../js/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
 import { ELEMENTALIST_WEAVER_SKILL_IDS } from '../../../js/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';

@@ -1,8 +1,5 @@
-import type { SchedulerRecord } from '../engine/types.js';
-import type { ProfessionAppContract } from '../../app/profession/types.js';
 import type {
   AmmoView,
-  NormalizedPaletteGroup,
   PaletteControlView,
   PaletteDragEvent,
   PaletteGroupView,
@@ -16,55 +13,6 @@ const PALETTE_PLACEHOLDER_ICON =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" ' +
   'height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E' +
   '%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
-
-export function paletteView(profession: ProfessionAppContract, context: SchedulerRecord): NormalizedPaletteGroup[] {
-  const groups = profession.ui.paletteGroups(context);
-  if (!Array.isArray(groups)) {
-    throw new TypeError('paletteGroups must return an array.');
-  }
-
-  // Copy and normalize the profession boundary so renderers never mutate
-  // catalog-owned group definitions.
-  return groups.map((group) => ({
-    id: String(group.id),
-    label: String(group.label || group.id),
-    skillIds: [...(group.skillIds || [])],
-    reservedSkillIds: [...(group.reservedSkillIds || [])],
-    skillEntries: (group.skillEntries || []).map((entry) => ({ ...entry })),
-    color: String(group.color || ''),
-    className: String(group.className || ''),
-    stackId: String(group.stackId || ''),
-    placement:
-      group.placement === 'weapon-set-1' || group.placement === 'active-weapon' ? group.placement : 'profession',
-    weaponRowLabel: String(group.weaponRowLabel || ''),
-    resourceAnchor: Boolean(group.resourceAnchor),
-    resourceIds: (group.resourceIds || []).map(String),
-    resourcePlacement:
-      group.resourcePlacement === 'above' || group.resourcePlacement === 'beside' || group.resourcePlacement === 'below'
-        ? group.resourcePlacement
-        : 'below',
-    includeActionSkills: Boolean(group.includeActionSkills),
-    controls: (group.controls || []).map((control) => ({
-      id: String(control.id),
-      label: String(control.label || control.id),
-      icon: String(control.icon || ''),
-      title: String(control.title || control.label || control.id),
-      color: String(control.color || ''),
-      className: String(control.className || ''),
-      active: Boolean(control.active),
-      pressed: Boolean(control.pressed),
-      muted: Boolean(control.muted),
-      badge: String(control.badge || '')
-    })),
-    statusIcon: group.statusIcon
-      ? {
-          icon: String(group.statusIcon.icon || ''),
-          label: String(group.statusIcon.label || ''),
-          title: String(group.statusIcon.title || group.statusIcon.label || '')
-        }
-      : undefined
-  }));
-}
 
 function ammoView(ammo: AmmoView | null | undefined): {
   readonly current: number;
