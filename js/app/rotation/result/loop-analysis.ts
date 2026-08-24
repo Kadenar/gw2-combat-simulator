@@ -396,6 +396,96 @@ function physicalWeaponSwapEnabled(app: ProfessionAppState): boolean {
   );
 }
 
+function necromancerShroudLabel(app: ProfessionAppState, shroud: string): string {
+  const entry = app.activeCatalog.skills.find((skill) => String(skill.shroudEntry || '') === shroud);
+  if (entry) return `${entry.name} Loop`;
+  const title = shroud.replace(/[-_]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return `${title} Shroud Loop`;
+}
+
+/** Splits transformed shroud visits from contiguous weapon visits so each mechanic can form its own loop. */
+function necromancerStructuralSegments(
+  app: ProfessionAppState,
+  actions: readonly NormalizedAction[],
+  autoattackChains: ReadonlyMap<string, readonly SkillId[]>
+): RotationSegment[] {
+  const segments: RotationSegment[] = [];
+  let pendingWeapon: NormalizedAction[] = [];
+  let pendingShroud: NormalizedAction[] = [];
+  let activeShroud = '';
+  const appendWeapon = (complete: boolean): void => {
+    if (!pendingWeapon.length) return;
+    const weaponSet = pendingWeapon[0].weaponSet;
+    segments.push({
+      sourceIndex: segments.length,
+      laneKey: `weapon-set:${weaponSet}`,
+      label: `${weaponSetName(app, weaponSet)} Loop`,
+      complete,
+      tokens: tokenizeActions(pendingWeapon, autoattackChains),
+      actions: pendingWeapon
+    });
+    pendingWeapon = [];
+  };
+
+  const appendShroud = (complete: boolean): void => {
+    if (!pendingShroud.length) return;
+    segments.push({
+      sourceIndex: segments.length,
+      laneKey: `necromancer-shroud:${activeShroud}`,
+      label: necromancerShroudLabel(app, activeShroud),
+      complete,
+      tokens: tokenizeActions(pendingShroud, autoattackChains),
+      actions: pendingShroud
+    });
+    pendingShroud = [];
+  };
+
+  for (const action of actions) {
+    const skill = actionSkill(app, action.skillId);
+    const shroudEntry = String(skill?.shroudEntry || '');
+    const shroudExit = String(skill?.shroudExit || '');
+    const shroudSkill = String(skill?.shroud || '');
+
+    if (shroudEntry) {
+      appendWeapon(true);
+      if (pendingShroud.length) appendShroud(true);
+      activeShroud = shroudEntry;
+      pendingShroud.push(action);
+      continue;
+    }
+
+    if (activeShroud && (shroudSkill === activeShroud || shroudExit === activeShroud)) {
+      pendingShroud.push(action);
+      if (shroudExit) {
+        appendShroud(true);
+        activeShroud = '';
+      }
+
+      continue;
+    }
+
+    if (activeShroud) {
+      // A normal action after shroud-only skills proves an automatic shroud exit even when no exit cast was authored.
+      appendShroud(true);
+      activeShroud = '';
+    }
+
+    if (shroudSkill) {
+      appendWeapon(true);
+      activeShroud = shroudSkill;
+      pendingShroud.push(action);
+      continue;
+    }
+
+    pendingWeapon.push(action);
+    if (action.name === 'Swap Weapons') appendWeapon(true);
+  }
+
+  appendShroud(false);
+  appendWeapon(false);
+  return segments;
+}
+
 function structuralSegments(
   app: ProfessionAppState,
   actions: readonly NormalizedAction[],
@@ -425,7 +515,9 @@ function structuralSegments(
     append(false);
     return segments;
   }
+
   if (app.build.profession === 'engineer') return engineerMacroSegments(app, actions, autoattackChains);
+  if (app.build.profession === 'necromancer') return necromancerStructuralSegments(app, actions, autoattackChains);
   if (!physicalWeaponSwapEnabled(app)) return [];
   const segments: RotationSegment[] = [];
   let pending: NormalizedAction[] = [];
