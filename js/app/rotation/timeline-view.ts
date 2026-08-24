@@ -551,12 +551,12 @@ export function renderTimeline(app: ProfessionAppState): void {
     const detail =
       marker.reason === 'zero-damage-cast'
         ? [
-            `Dead time: ${duration} wasted`,
+            `Idle time: ${duration} wasted`,
             `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
             'No interruptCommitMs is configured'
           ].join('\n')
         : [
-            `Dead time: ${duration} wasted`,
+            `Idle time: ${duration} wasted`,
             `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
           ].join('\n');
     return `<div class="rot-skill rot-injected rot-dead-time" role="note"

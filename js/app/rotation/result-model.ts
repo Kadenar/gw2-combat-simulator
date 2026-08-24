@@ -113,7 +113,7 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
       value: formatTimelineDuration(cancellation.durationMs)
     });
   }
-  return details.length ? details : [{ label: 'No dead time', value: formatTimelineDuration(0) }];
+  return details.length ? details : [{ label: 'No idle time', value: formatTimelineDuration(0) }];
 }
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
@@ -138,7 +138,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   );
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   metrics.splice(1, 0, {
-    label: 'Total Dead Time',
+    label: 'Total Idle Time',
     value: formatTimelineDuration(deadTimeMs),
     className: '',
     details: deadTimeBreakdownDetails(deadTimeMarkers)

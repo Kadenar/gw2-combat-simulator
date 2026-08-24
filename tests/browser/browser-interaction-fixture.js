@@ -295,7 +295,7 @@ frame.addEventListener('load', async () => {
     );
     assert(
       [...document.querySelectorAll('#rotation-results .res-label')].map((label) => label.textContent).join('|') ===
-        'Duration|Total Dead Time|Total Damage|DPS|Strike|Condition',
+        'Duration|Total Idle Time|Total Damage|DPS|Strike|Condition',
       'result summary metric order is incorrect'
     );
     assert(

@@ -840,7 +840,7 @@ test('summary metrics render a clickable and escaped contributor disclosure', ()
   mountRotationResults(container, {
     metrics: [
       {
-        label: 'Total Dead Time',
+        label: 'Total Idle Time',
         value: '650ms',
         details: [
           { label: 'Idle time between skills', value: '250ms' },
@@ -851,7 +851,7 @@ test('summary metrics render a clickable and escaped contributor disclosure', ()
   });
 
   assert.match(container.innerHTML, /<details class="res-metric-info">/);
-  assert.match(container.innerHTML, /aria-label="Show Total Dead Time breakdown"/);
+  assert.match(container.innerHTML, /aria-label="Show Total Idle Time breakdown"/);
   assert.match(container.innerHTML, /Idle time between skills/);
   assert.match(container.innerHTML, /Skill cancelled '&lt;Mind Stab&gt;'/);
   assert.doesNotMatch(container.innerHTML, /Skill cancelled '<Mind Stab>'/);

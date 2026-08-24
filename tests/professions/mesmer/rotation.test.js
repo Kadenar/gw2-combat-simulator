@@ -6177,7 +6177,7 @@ test('result summary uses the expected metric order', () => {
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Duration', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
 });
 
@@ -6203,7 +6203,7 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
   });
 
   assert.deepEqual(metrics[1], {
-    label: 'Total Dead Time',
+    label: 'Total Idle Time',
     value: '250ms',
     className: '',
     details: [{ label: 'Idle time between skills', value: '250ms' }]
@@ -6246,7 +6246,7 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
   });
 
   assert.deepEqual(metrics[1], {
-    label: 'Total Dead Time',
+    label: 'Total Idle Time',
     value: '700ms',
     className: '',
     details: [
@@ -6378,7 +6378,7 @@ test('result summary includes kill time when target health is exhausted', () => 
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Kill Time', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Kill Time', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));
 });

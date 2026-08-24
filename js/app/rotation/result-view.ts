@@ -34,7 +34,7 @@ const EFFECT_COLORS: Readonly<Record<string, string>> = {
 /** Keeps the builder's metric footprint stable before a rotation can be simulated. */
 const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Duration', value: '—', className: '' },
-  { label: 'Total Dead Time', value: '—', className: '' },
+  { label: 'Total Idle Time', value: '—', className: '' },
   { label: 'Total Damage', value: '—', className: '' },
   { label: 'DPS', value: '—', className: 'dps' },
   { label: 'Strike', value: '—', className: '' },

@@ -615,6 +615,7 @@ test('timeline display checkboxes are owned by Simulation Config instead of the 
 
   assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);
   assert.match(displayControls, /id: 'rotation-show-dead-time'/);
+  assert.match(displayControls, /label: 'Display idle time'/);
   assert.match(displayControls, /id: 'rotation-overlay-sigil-procs'/);
   assert.match(displayControls, /id: 'rotation-overlay-relic-procs'/);
   assert.doesNotMatch(timelineView, /data-overlay-proc-type/);
@@ -664,7 +665,7 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
   assert.deepEqual(
     [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
-    ['Duration', 'Total Dead Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
   );
   assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 6);
   assert.match(results.innerHTML, /No analysis yet/);

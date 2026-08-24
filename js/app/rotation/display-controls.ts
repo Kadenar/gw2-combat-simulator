@@ -52,7 +52,7 @@ export function mountRotationDisplayControls(app: ProfessionAppState, root: Docu
   controls.append(
     checkboxControl(root, {
       id: 'rotation-show-dead-time',
-      label: 'Show dead time',
+      label: 'Display idle time',
       title: 'Show time between skills when no skill cast is active',
       checked: rotationDeadTimeVisibility(root),
       onChange: (checked) => setRotationDeadTimeVisibility(root, checked)
