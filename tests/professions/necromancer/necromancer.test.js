@@ -26,8 +26,10 @@ import {
 } from '../../../js/professions/necromancer/data/ids.js';
 import {
   actualNecromancerLifeForceCost,
+  createNecromancerCoreState,
   normalizedNecromancerLifeForceCost
 } from '../../../js/professions/necromancer/core/state.js';
+import { addSoulShards, purgeTimedState } from '../../../js/professions/necromancer/core/shared.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/core/profiles.js';
 import { REAPER_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/reaper/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/scourge/profiles.js';
@@ -1392,6 +1394,21 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
   assert.ok(Math.abs(lowPerforateDamage / normalPerforateDamage - 1.2) < 1e-12);
 });
 
+test('Soul Shards expire after ten seconds and refresh together when another shard is gained', () => {
+  const state = createNecromancerCoreState();
+
+  assert.equal(addSoulShards(state, 2, 0), 2);
+  assert.deepEqual(state.soulShardExpiries, [10, 10]);
+
+  assert.equal(addSoulShards(state, 1, 9), 1);
+  assert.deepEqual(state.soulShardExpiries, [19, 19, 19]);
+
+  purgeTimedState(state, 10);
+  assert.equal(state.soulShards, 3);
+  purgeTimedState(state, 19);
+  assert.equal(state.soulShards, 0);
+});
+
 test('Isolate and Distress expose the follow-up and reset Perforate', () => {
   const result = simulate('Harbinger', ['Perforate', 'Isolate', 'Distress', 'Perforate'], {
     initialResource: 0,
@@ -2260,6 +2277,9 @@ test('Vampiric siphons on every direct player and minion hit with separate power
   const minionSiphons = minion.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Vampiric — Minion Life Steal'
   );
+  const vampiricIcon = necromancerCatalog.traits.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon;
+  const playerRow = skillBreakdownRows(player).find((row) => row.name === 'Vampiric');
+  const minionRow = skillBreakdownRows(minion).find((row) => row.name === 'Vampiric — Minion Life Steal');
 
   // Ghastly Claws proves there is no internal cooldown: all eight packets siphon.
   assert.equal(playerSiphons.length, 8);
@@ -2277,6 +2297,8 @@ test('Vampiric siphons on every direct player and minion hit with separate power
   assert.equal(conditionSiphons.length, 1);
   assert.equal(minionHits.length > 0, true);
   assert.equal(minionSiphons.length, minionHits.length);
+  assert.equal(playerRow?.icon, vampiricIcon);
+  assert.equal(minionRow?.icon, vampiricIcon);
   assert.equal(
     minionSiphons.every(
       (event) =>
@@ -3787,9 +3809,12 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
       event.sourceId === TRAIT.TRANSFUSION &&
       (event.type === 'damage' || (event.type === 'condition' && event.condition === 'Poisoned'))
   );
+  const chilblainsIcon = necromancerCatalog.skillsById.get(ID.CHILLBLAINS)?.icon;
 
   assert.ok(lesserChilblains?.strike > 0);
   assert.ok(lesserChilblains?.condition > 0);
+  assert.equal(lesserChilblains?.skillId, ID.LESSER_CHILBLAINS);
+  assert.equal(lesserChilblains?.icon, chilblainsIcon);
   assert.equal(lesserChilblains?.parentSkill, 'Soul Spiral');
   assert.equal(lesserChilblains?.casts, 0);
   assert.equal(soulSpiral?.condition, baselineSoulSpiral?.condition);
@@ -3800,6 +3825,22 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
     ),
     true
   );
+});
+
+test('Voracious Arc gives Lesser Chilblains its own damage row and artwork', () => {
+  const result = simulate(
+    'Harbinger',
+    ['Harbinger Shroud', 'Voracious Arc'],
+    { selectedTraitIds: [TRAIT.TRANSFUSION] },
+    observationTail(4100)
+  );
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Lesser Chilblains');
+
+  assert.ok(row?.strike > 0);
+  assert.ok(row?.condition > 0);
+  assert.equal(row?.skillId, ID.LESSER_CHILBLAINS);
+  assert.equal(row?.parentSkill, 'Voracious Arc');
+  assert.equal(row?.icon, necromancerCatalog.skillsById.get(ID.CHILLBLAINS)?.icon);
 });
 
 test('cross-specialization Necromancer trait triggers remain executable', () => {

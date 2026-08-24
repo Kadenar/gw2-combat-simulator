@@ -197,10 +197,12 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   if (skill.shroudSlot === 4 && hasTrait(context, TRAIT.TRANSFUSION)) {
-    // Attribute the derived strike and poison to Lesser Chilblains while retaining the shroud skill as their trigger.
+    // Give the derived packets Lesser Chilblains' real skill identity and artwork while retaining the shroud trigger.
+    const lesserChilblainsIcon = String(context.catalog.skillsById.get(ID.CHILLBLAINS)?.icon || '');
     const lesserChilblainsAttribution = {
-      skillId: TRAIT.TRANSFUSION,
+      skillId: ID.LESSER_CHILBLAINS,
       skillName: 'Lesser Chilblains',
+      icon: lesserChilblainsIcon,
       parentSkillName: skill.name,
       triggeredBy: skill.name
     };

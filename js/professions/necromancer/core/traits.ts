@@ -144,8 +144,11 @@ function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   return Number(context.totals.strike || 0) + Number(context.totals.condition || 0) > maximum * 0.5;
 }
 
-// Ritualist spirit attacks proc the owner's Vampiric packet. Ordinary
-// Necromancer minions use the separate, larger minion-scaled packet.
+// Both packet variants explicitly use the granting trait's artwork so the
+// minion variant cannot fall back to the icon of the attack that triggered it.
+const VAMPIRIC_ICON = String(NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '');
+
+// Ritualist spirit attacks proc the owner's Vampiric packet. Ordinary Necromancer minions use the larger packet.
 function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.VAMPIRIC)) return;
   const summonHit = event.actorType === 'summon';
@@ -161,7 +164,8 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
     name: minionHit ? 'Vampiric — Minion Life Steal' : 'Vampiric',
     traitId: TRAIT.VAMPIRIC,
     flatStrikeBase: Number(effect?.flatStrikeBase || (minionHit ? 50 : 38)),
-    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || (minionHit ? 0.0213 : 0.003))
+    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || (minionHit ? 0.0213 : 0.003)),
+    icon: VAMPIRIC_ICON
   });
 }
 

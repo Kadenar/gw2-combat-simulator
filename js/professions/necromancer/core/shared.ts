@@ -29,6 +29,8 @@ import type {
   NecromancerSkill
 } from '../types.js';
 
+const SOUL_SHARD_DURATION_SECONDS = 10;
+
 interface EmitDamageOptions {
   readonly at?: number;
   readonly hits?: number;
@@ -259,9 +261,10 @@ export function addCarapace(state: NecromancerCoreState, stacks: number, at: num
   return count;
 }
 
-export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
+export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
-  const expiresAt = at + duration;
+  // Every shard shares the newest application's ten-second window so gaining a shard refreshes the stack.
+  const expiresAt = at + SOUL_SHARD_DURATION_SECONDS;
   state.soulShardExpiries = state.soulShardExpiries.map(() => expiresAt);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 6 - state.soulShardExpiries.length);
   state.soulShardExpiries.push(...Array.from({ length: count }, () => expiresAt));
