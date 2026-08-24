@@ -10,8 +10,8 @@
 
 import { embedRoute, isEmbedded } from '../embed.js';
 import { mountGw2IconFallback } from '../../platform/ui/gw2-icon-fallback.js';
-import { mountRotationTimelineSize } from '../../platform/ui/rotation-timeline-size.js';
-import { mountRotationWorkspace } from '../../platform/ui/rotation-workspace.js';
+import { mountRotationTimelineSize } from '../rotation/timeline/size.js';
+import { mountRotationWorkspace } from '../rotation/workspace.js';
 import { mountSimulatorTutorial } from '../tutorial.js';
 import { mountSimulatorNavigation } from './navigation.js';
 import { professionGroups, type ProfessionRegistryEntry, PROFESSION_ROUTES, professionRoute } from './registry.js';

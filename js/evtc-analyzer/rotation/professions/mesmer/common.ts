@@ -43,6 +43,7 @@ const STAFF_CLONE_SPECIES = 8111;
 const MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS = 1500;
 const MIRAGE_PRE_SWAP_STAFF_ACTION_WINDOW_MS = 1500;
 const PHANTASM_COMBO_AURA_WINDOW_MS = 250;
+const DISTORTION_SHATTER_EFFECT_WINDOW_MS = 250;
 
 /**
  * Reports whether a Chaos Aura gain coincides with a Swordsman or Lancer combo inside an active ethereal well, so the

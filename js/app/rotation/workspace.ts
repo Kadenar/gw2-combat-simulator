@@ -1,3 +1,4 @@
+/** Owns the simulator page's rotation workspace layout, focus mode, and live DPS chrome. */
 export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
 
 export type RotationWorkspaceState = Readonly<{

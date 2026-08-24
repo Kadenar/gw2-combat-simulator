@@ -133,6 +133,10 @@ export interface TimelineInteractionOptions {
   readonly rotation: RotationCommand[];
   readonly getDragState: () => RotationDragState | null | undefined;
   readonly setDragState: (value: RotationDragState | null) => void;
+  /** Applies a timeline drag through the application-owned rotation editing layer. */
+  readonly moveEntry: (fromIndex: number, toIndex: number) => boolean;
+  /** Applies one resolved palette item or macro through the application-owned editing layer. */
+  readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => boolean;
   readonly resolvePaletteEntry?: (
     name: string,
     drag: RotationDragState | null | undefined,

@@ -1,8 +1,5 @@
-import {
-  rotationDeadTimeVisibility,
-  setRotationDeadTimeVisibility
-} from '../../../platform/ui/rotation-timeline-size.js';
-import { storeRotationProcOverlayVisibility } from '../../../platform/ui/rotation-proc-overlays.js';
+import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from './size.js';
+import { storeRotationProcOverlayVisibility } from './proc-overlays.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 import { renderTimeline } from './view.js';
 

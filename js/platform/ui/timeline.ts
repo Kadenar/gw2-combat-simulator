@@ -275,92 +275,12 @@ export function updateSkillDropIndicator(skillElement: HTMLElement, clientX: num
   skillElement.classList.add(clientX < rect.left + rect.width / 2 ? 'drag-insert-before' : 'drag-insert-after');
 }
 
-export function moveRotationEntry(rotation: TimelineRotationEntry[], fromIndex: number, toIndex: number): boolean {
-  if (
-    !Array.isArray(rotation) ||
-    !Number.isInteger(fromIndex) ||
-    !Number.isInteger(toIndex) ||
-    fromIndex < 0 ||
-    fromIndex >= rotation.length
-  ) {
-    return false;
-  }
-
-  const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
-  // Removing an earlier entry shifts a forward insertion target left by one.
-  const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
-  if (insertAt === fromIndex) return false;
-
-  const [entry] = rotation.splice(fromIndex, 1);
-  if (entry === undefined) return false;
-  rotation.splice(insertAt, 0, entry);
-  return true;
-}
-
 export function rotationEntryName(entry: TimelineRotationEntry): string {
   // Preserve the established UI action keys while deriving them from canonical command discriminants.
   if (entry.type === 'cast') return String(entry.skillId);
   if (entry.type === 'wait') return '__wait';
   if (entry.type === 'combat-start') return '__combat_start';
   return '__cooldown_reset';
-}
-
-export function updateRotationEntry(
-  entry: TimelineRotationEntry,
-  changes: SchedulerRecord = {}
-): TimelineRotationEntry {
-  // Canonical commands always remain objects; undefined changes remove optional command settings.
-  const updated: SchedulerRecord = { ...entry };
-  for (const [key, value] of Object.entries(changes || {})) {
-    if (value === undefined) {
-      delete updated[key];
-    } else {
-      updated[key] = value;
-    }
-  }
-
-  return updated as unknown as TimelineRotationEntry;
-}
-
-export function removeRotationEntryOptions(
-  entry: TimelineRotationEntry,
-  keys: readonly string[] = []
-): TimelineRotationEntry {
-  return updateRotationEntry(entry, Object.fromEntries(keys.map((key) => [key, undefined])));
-}
-
-export function insertRotationEntry(
-  rotation: TimelineRotationEntry[],
-  entry: TimelineRotationEntry | null | undefined,
-  index: number
-): boolean {
-  if (!Array.isArray(rotation) || entry == null || !Number.isInteger(index)) {
-    return false;
-  }
-
-  const boundedIndex = Math.max(0, Math.min(index, rotation.length));
-  rotation.splice(boundedIndex, 0, entry);
-  return true;
-}
-
-export function insertRotationEntries(
-  rotation: TimelineRotationEntry[],
-  entries: TimelineRotationEntry[],
-  index: number
-): boolean {
-  if (
-    !Array.isArray(rotation) ||
-    !Array.isArray(entries) ||
-    !entries.length ||
-    entries.some((entry) => entry == null) ||
-    !Number.isInteger(index)
-  ) {
-    return false;
-  }
-
-  const boundedIndex = Math.max(0, Math.min(index, rotation.length));
-  rotation.splice(boundedIndex, 0, ...entries);
-  return true;
 }
 
 export function timelineRows(
@@ -471,7 +391,7 @@ export function bindTimelineInteractions(
     setDragState(null);
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index ?? drag.idx);
-      if (!moveRotationEntry(rotation, fromIndex, insertAt)) return false;
+      if (!options.moveEntry(fromIndex, insertAt)) return false;
       changed();
       return true;
     }
@@ -480,10 +400,8 @@ export function bindTimelineInteractions(
       const name = String(drag.name ?? drag.skillName ?? '');
       const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
       // Palette macros may resolve to multiple adjacent entries.
-      const inserted = Array.isArray(resolved)
-        ? insertRotationEntries(rotation, resolved, insertAt)
-        : insertRotationEntry(rotation, resolved, insertAt);
-      if (!inserted) return false;
+      const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
+      if (!options.insertEntries(entries, insertAt)) return false;
       changed();
       return true;
     }
@@ -518,12 +436,11 @@ export function bindTimelineInteractions(
         if (!Number.isInteger(index)) return;
         if (event.shiftKey) {
           // Shift-remove is the fast "truncate rotation here" gesture.
-          if (options.onTruncate) options.onTruncate(index);
-          else rotation.splice(index);
-        } else if (options.onRemove) {
-          options.onRemove(index);
+          if (!options.onTruncate) return;
+          options.onTruncate(index);
         } else {
-          rotation.splice(index, 1);
+          if (!options.onRemove) return;
+          options.onRemove(index);
         }
 
         changed();

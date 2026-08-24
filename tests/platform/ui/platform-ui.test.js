@@ -39,36 +39,14 @@ import {
   sortResultRows
 } from '../../../js/platform/ui/rotation-results.js';
 import {
-  normalizeRotationDeadTimeVisibility,
-  normalizeRotationTimelineSize,
-  ROTATION_DEAD_TIME_STORAGE_KEY,
-  rotationDeadTimeVisibility,
-  setRotationDeadTimeVisibility,
-  ROTATION_TIMELINE_SIZE_OPTIONS
-} from '../../../js/platform/ui/rotation-timeline-size.js';
-import {
-  DEFAULT_ROTATION_WORKSPACE_STATE,
-  isSimulationConfigVisible,
-  mountFloatingDps,
-  mountRotationDpsSummary,
-  reduceRotationWorkspaceState,
-  syncRotationFocusResults,
-  updateFloatingDps
-} from '../../../js/platform/ui/rotation-workspace.js';
-import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   getSkillDropInsertionIndex,
-  insertRotationEntry,
-  insertRotationEntries,
-  moveRotationEntry,
-  removeRotationEntryOptions,
   rotationEntryName,
   timelineDeadTimeMarkers,
-  timelineSkillCastOrdinals,
-  updateRotationEntry
+  timelineSkillCastOrdinals
 } from '../../../js/platform/ui/timeline.js';
 
 function inertContainer() {
@@ -78,163 +56,6 @@ function inertContainer() {
     querySelectorAll: () => []
   };
 }
-
-test('rotation timeline sizes expose two larger display options', () => {
-  assert.deepEqual(
-    ROTATION_TIMELINE_SIZE_OPTIONS.map((option) => [option.value, option.label]),
-    [
-      ['normal', '100%'],
-      ['large', '125%'],
-      ['extra-large', '150%']
-    ]
-  );
-  assert.equal(normalizeRotationTimelineSize('large'), 'large');
-  assert.equal(normalizeRotationTimelineSize('extra-large'), 'extra-large');
-  assert.equal(normalizeRotationTimelineSize('unsupported'), 'normal');
-  assert.equal(normalizeRotationTimelineSize(null), 'normal');
-  assert.equal(normalizeRotationDeadTimeVisibility('true'), true);
-  assert.equal(normalizeRotationDeadTimeVisibility(true), true);
-  assert.equal(normalizeRotationDeadTimeVisibility('false'), false);
-  assert.equal(normalizeRotationDeadTimeVisibility(null), false);
-});
-
-test('rotation dead-time visibility applies to the timeline and persists', () => {
-  const stored = new Map();
-  const panel = { dataset: {} };
-  const root = {
-    defaultView: {
-      localStorage: {
-        getItem: (key) => stored.get(key) ?? null,
-        setItem: (key, value) => stored.set(key, value)
-      }
-    },
-    getElementById: () => ({ closest: () => panel })
-  };
-
-  setRotationDeadTimeVisibility(root, true);
-
-  assert.equal(panel.dataset.showDeadTime, 'true');
-  assert.equal(stored.get(ROTATION_DEAD_TIME_STORAGE_KEY), 'true');
-  assert.equal(rotationDeadTimeVisibility(root), true);
-});
-
-test('rotation workspace keeps simulation config in a drawer in normal and focus modes', () => {
-  assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, {
-    configOpen: false,
-    focus: false
-  });
-  assert.equal(isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE), false);
-
-  const configOpen = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-config');
-
-  assert.deepEqual(configOpen, { configOpen: true, focus: false });
-  assert.equal(isSimulationConfigVisible(configOpen), true);
-  assert.deepEqual(reduceRotationWorkspaceState(configOpen, 'escape'), {
-    configOpen: false,
-    focus: false
-  });
-
-  const focused = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-focus');
-
-  assert.deepEqual(focused, { configOpen: false, focus: true });
-  assert.equal(isSimulationConfigVisible(focused), false);
-  assert.equal(isSimulationConfigVisible({ configOpen: true, focus: true }), true);
-  assert.deepEqual(reduceRotationWorkspaceState({ configOpen: true, focus: true }, 'toggle-focus'), {
-    configOpen: false,
-    focus: false
-  });
-  assert.equal(reduceRotationWorkspaceState(focused, 'escape'), focused);
-});
-
-test('focus mode expands DPS snapshots only for the focused workspace', () => {
-  let focused = true;
-  const details = { dataset: {}, open: false };
-  const root = {
-    body: { hasAttribute: () => focused },
-    querySelectorAll: () => [details]
-  };
-
-  syncRotationFocusResults(root);
-  assert.equal(details.open, true);
-  assert.equal(details.dataset.focusExpanded, 'true');
-
-  focused = false;
-  syncRotationFocusResults(root);
-  assert.equal(details.open, false);
-  assert.equal(details.dataset.focusExpanded, undefined);
-});
-
-test('rotation DPS summary mounts directly after the timeline', () => {
-  let inserted = null;
-  const timeline = {
-    after(element) {
-      inserted = element;
-    }
-  };
-  const panel = {
-    querySelector: (selector) => (selector === '#rotation-timeline' ? timeline : null)
-  };
-  const root = {
-    getElementById: () => null,
-    createElement: () => ({ id: '', className: '' })
-  };
-
-  mountRotationDpsSummary(root, panel);
-
-  assert.deepEqual(inserted, {
-    id: 'rotation-dps-summary',
-    className: 'rotation-dps-summary'
-  });
-});
-
-test('floating DPS mounts once and tracks the latest result', () => {
-  const elements = new Map();
-  const footer = {
-    append(node) {
-      elements.set(node.id, node);
-    }
-  };
-  const element = () => ({
-    id: '',
-    className: '',
-    textContent: '',
-    attributes: new Map(),
-    children: [],
-    append(...children) {
-      this.children.push(...children);
-    },
-    setAttribute(name, value) {
-      this.attributes.set(name, value);
-    },
-    querySelector(selector) {
-      return this.children.find((child) => `.${child.className}` === selector) || null;
-    }
-  });
-  const root = {
-    body: {
-      dataset: { profession: 'mesmer' },
-      append(node) {
-        elements.set(node.id, node);
-      }
-    },
-    createElement: () => element(),
-    getElementById: (id) => elements.get(id) || null,
-    querySelector: (selector) => (selector === '.landing-footer' ? footer : null)
-  };
-
-  const indicator = mountFloatingDps(root);
-  mountFloatingDps(root);
-  updateFloatingDps('12,345', root);
-
-  assert.equal(elements.size, 1);
-  assert.equal(indicator.querySelector('.floating-dps-label').textContent, 'DPS');
-  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '12,345');
-  assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
-
-  updateFloatingDps(null, root);
-  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '—');
-  assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
-});
 
 test('activation editor suggests and validates manual interruption times', () => {
   assert.equal(suggestedActivationInterruptMs(920, 1200), 919);
@@ -1206,48 +1027,9 @@ test('palette controls delegate neutral control identities', () => {
   assert.equal(activated, 'profession-resource:one');
 });
 
-test('timeline canonical entries update, insert, and reject invalid moves', () => {
+test('timeline canonical entries expose stable presentation names', () => {
   assert.equal(rotationEntryName({ type: 'cast', skillId: 'One' }), 'One');
   assert.equal(rotationEntryName({ type: 'wait', durationMs: 50 }), '__wait');
-  assert.deepEqual(updateRotationEntry({ type: 'cast', skillId: 'One' }, { concurrentOffsetMs: 100 }), {
-    type: 'cast',
-    skillId: 'One',
-    concurrentOffsetMs: 100
-  });
-  assert.deepEqual(
-    removeRotationEntryOptions({ type: 'cast', skillId: 'One', concurrentOffsetMs: 100 }, ['concurrentOffsetMs']),
-    { type: 'cast', skillId: 'One' }
-  );
-  assert.deepEqual(
-    updateRotationEntry(
-      { type: 'cast', skillId: 'One', interruptAfterMs: 250 },
-      {
-        interruptAfterMs: undefined
-      }
-    ),
-    { type: 'cast', skillId: 'One' }
-  );
-
-  const command = (skillId) => ({ type: 'cast', skillId });
-  const rotation = [command('A'), command('B'), command('C')];
-
-  assert.equal(moveRotationEntry(rotation, 0, 3), true);
-  assert.deepEqual(rotation, [command('B'), command('C'), command('A')]);
-  assert.equal(moveRotationEntry(rotation, 1, 2), false);
-  assert.equal(moveRotationEntry(rotation, -1, 1), false);
-  assert.equal(moveRotationEntry(rotation, 0, 1.5), false);
-  assert.equal(insertRotationEntry(rotation, command('D'), 1), true);
-  assert.deepEqual(rotation, [command('B'), command('D'), command('C'), command('A')]);
-  assert.equal(insertRotationEntries(rotation, [command('Macro A'), command('Macro B')], 2), true);
-  assert.deepEqual(rotation, [
-    command('B'),
-    command('D'),
-    command('Macro A'),
-    command('Macro B'),
-    command('C'),
-    command('A')
-  ]);
-  assert.equal(insertRotationEntries(rotation, [], 0), false);
 });
 
 test('timeline binding inserts palette entries and drop positions use tile halves', () => {
@@ -1258,12 +1040,19 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     classList: { add() {}, remove() {} },
     querySelectorAll: () => []
   };
+  const insertEntries = (entries, insertAt) => {
+    if (!entries.length) return false;
+    rotation.splice(insertAt, 0, ...entries);
+    return true;
+  };
   const binding = bindTimelineInteractions(root, {
     rotation,
     getDragState: () => dragState,
     setDragState: (value) => {
       dragState = value;
     },
+    moveEntry: () => false,
+    insertEntries,
     resolvePaletteEntry: (name, drag) => ({
       type: 'cast',
       skillId: drag.skillId,
@@ -1289,6 +1078,8 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     setDragState: (value) => {
       dragState = value;
     },
+    moveEntry: () => false,
+    insertEntries,
     resolvePaletteEntry: () => [
       { type: 'cast', skillId: 10 },
       { type: 'cast', skillId: -5, concurrentOffsetMs: 0 }

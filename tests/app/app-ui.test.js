@@ -609,7 +609,7 @@ test('timeline display checkboxes are owned by Simulation Config instead of the 
   const [displayControls, timelineView, timelineSize] = await Promise.all([
     readFile(new URL('../../js/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/platform/ui/rotation-timeline-size.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../js/app/rotation/timeline/size.ts', import.meta.url), 'utf8')
   ]);
 
   assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);

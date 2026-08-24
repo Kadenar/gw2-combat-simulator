@@ -1,3 +1,4 @@
+/** Owns the persisted display size and idle-time visibility of the application timeline. */
 export const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 

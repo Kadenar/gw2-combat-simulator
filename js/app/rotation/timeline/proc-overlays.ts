@@ -1,3 +1,4 @@
+/** Owns persisted application preferences for simulated proc overlays on the rotation timeline. */
 export const ROTATION_PROC_OVERLAY_STORAGE_KEYS = Object.freeze({
   sigil: 'gw2-rotation-overlay-sigil-procs',
   relic: 'gw2-rotation-overlay-relic-procs'

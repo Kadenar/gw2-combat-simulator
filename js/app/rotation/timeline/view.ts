@@ -7,8 +7,7 @@ import {
   formatTimelineSkillTooltip,
   rotationEntryName,
   timelineDeadTimeMarkers,
-  timelineSkillCastOrdinals,
-  updateRotationEntry
+  timelineSkillCastOrdinals
 } from '../../../platform/ui/timeline.js';
 import {
   activationDamageCommitMs,
@@ -42,6 +41,7 @@ import {
   syncRotationClipboardView
 } from '../editing/clipboard.js';
 import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
+import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '../editing/operations.js';
 import {
   closeDoubleEdgeEditor,
   doubleEdgeOutcomeLabel,
@@ -281,6 +281,8 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     setDragState: (value) => {
       app.dragState = value;
     },
+    moveEntry: (fromIndex, toIndex) => moveRotationEntry(app.build.rotation, fromIndex, toIndex),
+    insertEntries: (entries, insertAt) => insertRotationEntries(app.build.rotation, entries, insertAt),
     resolvePaletteEntry: (name, drag, insertAt) => {
       const parsedSkillId = Number(drag?.skillId);
       const skill = resolveEntrySkill(app, {

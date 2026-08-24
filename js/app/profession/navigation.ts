@@ -8,7 +8,7 @@
  * `mountSimulatorNavigation` is the entry point; the rest are its DOM helpers.
  */
 
-import { resetRotationWorkspace } from '../../platform/ui/rotation-workspace.js';
+import { resetRotationWorkspace } from '../rotation/workspace.js';
 import { embedRoute, isEmbedded } from '../embed.js';
 
 export type SimulatorView = 'professions' | 'workspace' | 'analysis';
