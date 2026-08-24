@@ -81,11 +81,11 @@ test('Elemental Empowerment chart series includes emitted stacks and caps at ten
   );
 });
 
-test('reporting-only effects remain visible on the timed-effects chart', () => {
+test('generic buffs remain visible on the timed-effects chart', () => {
   const series = buildChartSeries(
     {
       duration: 3,
-      events: [{ type: 'effect', at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 }]
+      events: [{ type: 'buff', at: 0, kind: 'taste-for-blood', stacks: 3, duration: 2 }]
     },
     1000
   );

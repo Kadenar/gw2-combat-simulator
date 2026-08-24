@@ -6,6 +6,7 @@
 
 import { EPSILON, isInternalCooldownReady } from '../engine/core/clock.js';
 import { enqueueOrdered } from '../engine/events/queue.js';
+import { isStandardBoon } from './boon-state.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
@@ -854,6 +855,7 @@ export function materializeBoonRelics(
   relic: Gw2RelicRuntime,
   event: SimulationEvent
 ): void {
+  if (!isStandardBoon(event.kind || event.boon)) return;
   const handler = relic.rules.materializeBoon;
   if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
@@ -883,6 +885,7 @@ export function relicCriticalChanceBonus(
  * Applies the selected relic's boon trigger, if any.
  */
 export function handleBoonRelics(ctx: Gw2RelicContext, event: SimulationEvent): void {
+  if (!isStandardBoon(event.kind || event.boon)) return;
   invokeRelicHook(ctx, 'boon', event);
 }
 

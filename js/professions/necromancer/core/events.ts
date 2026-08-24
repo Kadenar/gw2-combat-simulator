@@ -59,7 +59,7 @@ export function handleNecromancerStateEvent(
     barbedPrecisionProgress: core.barbedPrecisionProgress,
     spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
     traitProcReadyAt: core.traitProcReadyAt,
-    tasteForBloodEffects: core.tasteForBloodEffects
+    tasteForBloodBuffs: core.tasteForBloodBuffs
   };
   const restoreSpecializationState = captureNecromancerStatePreserver(active.state);
   for (const key of coreKeys) delete mutableCore[key];

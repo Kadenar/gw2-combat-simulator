@@ -453,7 +453,6 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         type: 'buff',
         kind: 'reavers-curse',
         duration: 6,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }
@@ -475,7 +474,6 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         type: 'buff',
         kind: 'forerunner-of-death',
         duration: 10,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }

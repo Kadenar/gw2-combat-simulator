@@ -96,6 +96,14 @@ const namedBoon = (name: string, boon: string, stacks: number, duration: number)
   duration
 });
 
+const namedBuff = (name: string, kind: string, stacks: number, duration: number): SkillEffect => ({
+  type: 'buff',
+  name,
+  kind,
+  stacks,
+  duration
+});
+
 const namedCondition = (name: string, condition: string, stacks: number, duration: number): SkillEffect => ({
   type: 'condition',
   name,
@@ -312,7 +320,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     effects: [namedBoon('Fury', 'fury', 1, 5), namedBoon('Swiftness', 'swiftness', 1, 5)]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.oneWithAir, 'One with Air', {
-    effects: [namedBoon('Superspeed', 'superspeed', 1, 3)]
+    effects: [namedBuff('Superspeed', 'superspeed', 1, 3)]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ferociousWinds, 'Ferocious Winds', { attributeConversion: 0.07 }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.electricDischarge, 'Electric Discharge', {

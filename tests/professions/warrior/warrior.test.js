@@ -2392,7 +2392,6 @@ test('Warrior signets use the supplied active effects and passive downtime', () 
       type: 'buff',
       kind: 'signet-of-fury-active',
       duration: 4,
-      durationScale: 'fixed',
       atMs: 40,
       timingAnchor: 'castStart',
       timingScale: 'fixed',

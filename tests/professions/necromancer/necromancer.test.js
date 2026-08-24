@@ -1588,7 +1588,7 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
       observationTail(2000)
     );
     const application = result.events.find(
-      (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === skillId
+      (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === skillId
     );
 
     assert.equal(application?.stacks, stacks, name);
@@ -1601,7 +1601,7 @@ test('Overflowing Thirst grants the documented Taste for Blood stacks to five pa
     primaryWeapon: 'Dagger',
     selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
   });
-  const applications = chain.events.filter((event) => event.type === 'effect' && event.kind === 'taste-for-blood');
+  const applications = chain.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
 
   assert.deepEqual(
     applications.map((event) => [event.skillId, event.stacks]),
@@ -1669,7 +1669,7 @@ test('Taste for Blood procs use Overflowing Thirst artwork and log their trigger
 
   assert.equal(wanderlustProc?.icon, traitIcon);
   assert.equal(
-    eventRows.some((row) => row.description === 'EFFECT Taste for Blood x3 (10s)'),
+    eventRows.some((row) => row.description === 'BUFF Taste for Blood x3 (10s)'),
     true
   );
   assert.equal(
@@ -1704,7 +1704,7 @@ test('allied players consume independent Taste for Blood stack pools', () => {
   });
 });
 
-test('Taste for Blood effect state gives minions independent pools regardless of boon sharing', () => {
+test('Taste for Blood buff state gives minions independent pools regardless of boon sharing', () => {
   const run = (allies) =>
     simulate(
       'Core',
@@ -1734,7 +1734,7 @@ test('Taste for Blood effect state gives minions independent pools regardless of
 
   assert.equal(
     uncapped.events.some((event) => event.type === 'buff' && event.kind === 'taste-for-blood'),
-    false
+    true
   );
   assert.equal(uncappedOwners.includes('minion:bone-minion:0'), true);
   assert.equal(uncappedOwners.includes('minion:bone-minion:1'), true);
@@ -1755,7 +1755,7 @@ test('Taste for Blood excludes active Ritualist spirits from its shared stack po
     observationTail(3000)
   );
   const application = result.events.find(
-    (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
   );
   const spiritPackets = result.resolvedEvents.filter(
     (event) =>
@@ -2309,7 +2309,7 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
   );
   const owners = ['minion:blood-fiend:0', 'minion:bone-minion:0', 'minion:bone-minion:1', 'minion:flesh-golem:0'];
   const application = result.events.find(
-    (event) => event.type === 'effect' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
+    (event) => event.type === 'buff' && event.kind === 'taste-for-blood' && event.skillId === ID.LIFE_SIPHON
   );
   const minionHits = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && owners.includes(event.summonOwner)
@@ -3768,6 +3768,38 @@ test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
   );
 
   assert.ok(Math.abs(gunslingerPoison.effectiveDuration - 6.496) < 1e-12);
+});
+
+test('Lesser Chilblains owns its strike and poison damage attribution', () => {
+  const baseline = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {}, observationTail(4100));
+  const result = simulate(
+    'Reaper',
+    ["Reaper's Shroud", 'Soul Spiral'],
+    { selectedTraitIds: [TRAIT.TRANSFUSION] },
+    observationTail(4100)
+  );
+  const rows = skillBreakdownRows(result);
+  const lesserChilblains = rows.find((row) => row.name === 'Lesser Chilblains');
+  const soulSpiral = rows.find((row) => row.name === 'Soul Spiral');
+  const baselineSoulSpiral = skillBreakdownRows(baseline).find((row) => row.name === 'Soul Spiral');
+  const attributedEvents = result.resolvedEvents.filter(
+    (event) =>
+      event.sourceId === TRAIT.TRANSFUSION &&
+      (event.type === 'damage' || (event.type === 'condition' && event.condition === 'Poisoned'))
+  );
+
+  assert.ok(lesserChilblains?.strike > 0);
+  assert.ok(lesserChilblains?.condition > 0);
+  assert.equal(lesserChilblains?.parentSkill, 'Soul Spiral');
+  assert.equal(lesserChilblains?.casts, 0);
+  assert.equal(soulSpiral?.condition, baselineSoulSpiral?.condition);
+  assert.equal(attributedEvents.length, 2);
+  assert.equal(
+    attributedEvents.every(
+      (event) => event.skillName === 'Lesser Chilblains' && event.parentSkillName === 'Soul Spiral'
+    ),
+    true
+  );
 });
 
 test('cross-specialization Necromancer trait triggers remain executable', () => {

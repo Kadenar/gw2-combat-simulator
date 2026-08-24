@@ -12,8 +12,9 @@ Use the npm commands in the root `package.json` for routine workflows.
 Combat log analyzers:
 
 - `npm run benchmarks:compare` runs in dry mode: it simulates every rotation-backed build manifest preset and reports
-  current DPS values more than 1% away from `benchmarkDps`. Pass `-- --commit` to write every rounded current simulated
-  DPS value back to its manifest entry. Presets without rotations are reported and left unchanged.
+  current DPS values more than 1% away from `benchmarkDps`. Pass `-- --absolute-dps` to use a fixed 100 DPS tolerance
+  instead. Pass `-- --commit` to write every rounded current simulated DPS value back to its manifest entry. Presets
+  without rotations are reported and left unchanged.
 - `node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.zevtc>` reads a local ArcDPS log.
 - `npm run build:modules && node scripts/analysis/reconstruct-dps-report-rotation.mjs <dps.report URL>` reconstructs
   simulator commands from the public Elite Insights JSON. Add `--build=<build.json>` when polymorphic skill choices must

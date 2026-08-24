@@ -105,6 +105,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     barbedPrecisionProgress: 0.5,
     spitefulFortitudeLifeForce: 0,
     traitProcReadyAt: {},
-    tasteForBloodEffects: {}
+    tasteForBloodBuffs: {}
   });
 }

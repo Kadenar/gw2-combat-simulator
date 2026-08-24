@@ -7,10 +7,11 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
 } from '../types.js';
-import { gw2BoonApplicationRecipients } from '../allied-players.js';
+import { gw2BoonApplicationRecipients, gw2BuffApplicationRecipients } from '../allied-players.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
+  isStandardBoon,
   remainingDurationStackSeconds
 } from '../boon-state.js';
 import { createGw2ComboResolution } from './combo-resolution.js';
@@ -31,7 +32,12 @@ interface CreateGw2ResolverEventHandlersOptions {
 const noop: Gw2ResolverReaction = () => {};
 
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
-  const recipients = gw2BoonApplicationRecipients(ctx.config, event);
+  const kind = String(event.kind || '').toLowerCase();
+  // Runtime buff events cover both standard boons and generic positive
+  // statuses; only standard boons use configured boon-sharing behavior.
+  const recipients = isStandardBoon(kind)
+    ? gw2BoonApplicationRecipients(ctx.config, event)
+    : gw2BuffApplicationRecipients(ctx.config, event);
   Object.assign(event, {
     affectsSelf: recipients.affectsSelf,
     affectsSummons: recipients.affectsSummons,
@@ -39,7 +45,6 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
     companionIds: recipients.companionIds,
     recipientCount: recipients.recipientCount
   });
-  const kind = String(event.kind || '').toLowerCase();
   const applications = ctx.boons.get(kind) || [];
   applications.push({
     at: event.at,
@@ -95,7 +100,6 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
-    effect: noop,
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
     },

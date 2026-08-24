@@ -242,11 +242,11 @@ export function rolledCritical(details: NecromancerResolverReactionDetails): boo
   return details.hitContext?.critical?.didCrit === true;
 }
 
-// Taste for Blood is profession-owned effect state: each recipient hit removes
-// one stack from its own pool without entering or consulting shared boon state.
-function consumeTasteForBloodEffect(context: NecromancerResolverContext, recipient: string, at: number): boolean {
-  const effects = professionCoreState(context).tasteForBloodEffects;
-  const applications = effects[recipient] || [];
+// Taste for Blood uses generic buff reporting while profession-owned pools
+// preserve independent charge consumption for every affected recipient.
+function consumeTasteForBloodBuff(context: NecromancerResolverContext, recipient: string, at: number): boolean {
+  const buffs = professionCoreState(context).tasteForBloodBuffs;
+  const applications = buffs[recipient] || [];
   const index = applications.findIndex(
     (application) => application.at <= at && application.expiresAt > at && application.stacks > 0
   );
@@ -258,7 +258,7 @@ function consumeTasteForBloodEffect(context: NecromancerResolverContext, recipie
   } else {
     applications[index] = { ...application, stacks: application.stacks - 1 };
   }
-  effects[recipient] = applications;
+  buffs[recipient] = applications;
   return true;
 }
 
@@ -275,8 +275,8 @@ function addTasteForBloodApplication(
   event: NecromancerResolverEvent,
   recipient: string
 ): void {
-  const effects = professionCoreState(context).tasteForBloodEffects;
-  const applications = (effects[recipient] || []).filter(
+  const buffs = professionCoreState(context).tasteForBloodBuffs;
+  const applications = (buffs[recipient] || []).filter(
     (application) => application.expiresAt > event.at && application.stacks > 0
   );
   applications.push({
@@ -284,7 +284,7 @@ function addTasteForBloodApplication(
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
     stacks: Math.max(1, Number(event.stacks || 1))
   });
-  effects[recipient] = applications;
+  buffs[recipient] = applications;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
@@ -325,7 +325,7 @@ export function reactToTasteForBloodAlliedHit(
 ): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   const allyIndex = Number(event.allyIndex || 0);
-  if (!allyIndex || !consumeTasteForBloodEffect(context, alliedTasteForBloodRecipient(allyIndex), event.at)) return;
+  if (!allyIndex || !consumeTasteForBloodBuff(context, alliedTasteForBloodRecipient(allyIndex), event.at)) return;
   queueTasteForBlood(context, event);
 }
 
@@ -499,7 +499,7 @@ export function reactToNecromancerCoreDamage(
   if (
     hasTrait(context, TRAIT.OVERFLOWING_THIRST) &&
     tasteForBloodRecipient &&
-    consumeTasteForBloodEffect(context, tasteForBloodRecipient, event.at)
+    consumeTasteForBloodBuff(context, tasteForBloodRecipient, event.at)
   ) {
     queueTasteForBlood(context, event);
   }

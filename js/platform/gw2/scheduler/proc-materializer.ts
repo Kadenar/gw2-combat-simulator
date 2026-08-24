@@ -1,4 +1,5 @@
 import type { ScheduledTask, SchedulerContext, SchedulerRecord, SimulationEvent } from '../../engine/types.js';
+import { isStandardBoon } from '../boon-state.js';
 import { isGw2PlayerActorEvent } from '../event-ownership.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '../query.js';
 import {
@@ -70,7 +71,11 @@ export function createGw2TriggerMaterializer(
 
     switch (event.type) {
       case 'buff':
-        materializeBoonRelics(context, state.relic, event);
+        // Generic buffs share the timed-status event without counting as boons
+        // for relic triggers.
+        if (isStandardBoon(event.kind || event.boon)) {
+          materializeBoonRelics(context, state.relic, event);
+        }
         break;
       case 'condition':
         materializeConditionRelics(context, state.relic, event);

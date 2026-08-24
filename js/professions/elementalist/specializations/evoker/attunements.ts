@@ -159,11 +159,11 @@ export function triggerSpecializedElementEntry(
   } else if (element === 'Air') {
     triggerElectricDischarge(context as never, at, skill.id);
     if (hasTrait(context, 'One with Air')) {
-      const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'boon', 'Superspeed');
+      const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'buff', 'Superspeed');
       emitElementalistBuff(
         context as never,
         at,
-        String(superspeed?.boon || 'Superspeed'),
+        String(superspeed?.kind || 'Superspeed'),
         Number(superspeed?.stacks ?? 1),
         Number(superspeed?.duration ?? 3),
         skill.name,

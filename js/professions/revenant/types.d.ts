@@ -138,7 +138,10 @@ export interface RevenantCoreState {
   traitProcReadyAt: Record<string, number | boolean>;
 }
 
-export interface HeraldState {}
+export interface HeraldState {
+  elevatedCompassionReadyAt: number;
+  sharedEmpowermentReadyAt: number;
+}
 
 export interface RenegadeState {
   bandTogetherReady: boolean;

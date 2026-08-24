@@ -1,5 +1,6 @@
 import { isGw2NonWeaponEffectEvent } from '../event-ownership.js';
-import { gw2BoonApplicationRecipients } from '../allied-players.js';
+import { gw2BoonApplicationRecipients, gw2BuffApplicationRecipients } from '../allied-players.js';
+import { isStandardBoon } from '../boon-state.js';
 import { prepareGw2ComboEvent } from '../combo-events.js';
 import { weaponStrengthProfileIdForEvent } from '../weapon-strength.js';
 
@@ -31,7 +32,12 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
   const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
     event = prepareGw2ComboEvent(event);
     if (event.type === 'buff') {
-      const recipients = gw2BoonApplicationRecipients(context.config as Gw2Config, event);
+      const boon = isStandardBoon(event.kind || event.boon);
+      // Generic buffs use allied-effect targeting and remain independent from
+      // the configuration that controls player-boon sharing with summons.
+      const recipients = boon
+        ? gw2BoonApplicationRecipients(context.config as Gw2Config, event)
+        : gw2BuffApplicationRecipients(context.config as Gw2Config, event);
       return {
         ...event,
         affectsSelf: recipients.affectsSelf,
@@ -39,7 +45,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
         alliedPlayerCount: recipients.alliedPlayerCount,
         companionIds: recipients.companionIds,
         recipientCount: recipients.recipientCount,
-        boonAudienceResolved: true
+        ...(boon ? { boonAudienceResolved: true } : { buffAudienceResolved: true })
       };
     }
 

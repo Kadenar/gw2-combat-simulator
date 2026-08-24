@@ -264,7 +264,6 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         boon: 'Stability',
         stacks: 1,
         duration: 5,
-        durationScale: 'boon',
         atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast',

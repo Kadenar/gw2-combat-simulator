@@ -874,7 +874,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'buff',
         kind: 'signet-of-fury-active',
         duration: 4,
-        durationScale: 'fixed',
         atMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'fixed',

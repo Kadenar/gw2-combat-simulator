@@ -5,10 +5,13 @@ import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
 import type { BalanceProfile, SkillFragment } from '../../../../platform/engine/types.js';
 
 export const HERALD_SPIRIT_BOON_PROFILE_ID = 'revenant.spirit-boon.dragon';
+export const HERALD_ELEVATED_COMPASSION_PROFILE_ID = 'revenant.elevated-compassion';
+export const HERALD_SHARED_EMPOWERMENT_PROFILE_ID = 'revenant.shared-empowerment';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
 // the same profession-mechanic tile as the activating facet.
 const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
+const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
@@ -199,8 +202,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         }
       },
       {
-        type: 'boon',
-        boon: 'superspeed',
+        type: 'buff',
+        kind: 'superspeed',
         duration: 5,
         stacks: 1,
         atMs: 560,
@@ -266,7 +269,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     energyCost: 0,
     upkeepCost: 2,
     effects: [],
-    legendId: 'LegendaryDragon',
+    // Herald's F2 remains available outside Glint so the active legend can select its True Nature variant.
     facet: true,
     pulseInterval: 3,
     upkeepConsumeByLegendId: {
@@ -283,7 +286,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
-    cooldown: 20,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
     effects: [
       {
@@ -294,7 +297,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         actorType: 'player'
       }
     ],
-    legendId: 'LegendaryDragon',
     consume: true
   },
   [ID.TRUE_NATURE_ID_51675]: {
@@ -303,7 +305,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
-    cooldown: 20,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
     effects: [
       {
@@ -313,7 +315,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         stacks: 2
       }
     ],
-    legendId: 'LegendaryDragon',
     consume: true
   },
   [ID.TRUE_NATURE_ID_51696]: {
@@ -322,10 +323,21 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
-    cooldown: 20,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
-    effects: [],
-    legendId: 'LegendaryDragon',
+    effects: [
+      {
+        type: 'custom',
+        eventType: 'proc',
+        event: {
+          procType: 'boon-extension',
+          name: 'True Nature (dragon) — Boon Extension',
+          duration: 2,
+          recipients: 'party',
+          maximumRecipients: 5
+        }
+      }
+    ],
     consume: true
   },
   [ID.TRUE_NATURE_ID_51713]: {
@@ -334,10 +346,9 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
-    cooldown: 20,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
     effects: [],
-    legendId: 'LegendaryDragon',
     consume: true
   },
   [ID.TRUE_NATURE_ID_51714]: {
@@ -346,7 +357,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     paletteTileOrder: 2,
     handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
-    cooldown: 20,
+    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
     effects: [
       {
@@ -356,7 +367,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         stacks: 5
       }
     ],
-    legendId: 'LegendaryDragon',
     consume: true
   },
   [ID.LEGENDARY_DRAGON_STANCE]: {
@@ -398,6 +408,42 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
 });
 
 export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  {
+    id: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
+    name: 'Shared Empowerment',
+    profileKind: 'trait',
+    description: 'Applying a boon to an ally grants nearby allies one stack of might.',
+    cooldown: 1,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 8,
+        stacks: 1,
+        actorType: 'effect',
+        recipients: 'party',
+        maximumRecipients: 5
+      }
+    ]
+  },
+  {
+    id: HERALD_ELEVATED_COMPASSION_PROFILE_ID,
+    name: 'Elevated Compassion',
+    profileKind: 'trait',
+    description: 'Grants quickness while aggregate upkeep is at least six.',
+    cooldown: 1,
+    threshold: 6,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 1.25,
+        stacks: 1,
+        actorType: 'player',
+        recipients: 'party'
+      }
+    ]
+  },
   {
     id: HERALD_SPIRIT_BOON_PROFILE_ID,
     name: 'Spirit Boon (Dragon)',

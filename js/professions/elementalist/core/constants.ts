@@ -84,7 +84,6 @@ export const BOON_KINDS = new Set([
   'resistance',
   'resolution',
   'stability',
-  'superspeed',
   'swiftness',
   'vigor'
 ]);

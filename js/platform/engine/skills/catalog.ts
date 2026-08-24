@@ -50,10 +50,9 @@ interface NormalizedAutoattackChains {
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
-const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'effect', 'custom']);
+const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
-const DURATION_SCALES = new Set(['boon', 'fixed']);
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
 // Quickness increases action speed by 50 %, so unquickened cast time = quicknessCastTimeMs * 1.5.
 const QUICKNESS_ACTION_RATE = 1.5;
@@ -73,7 +72,6 @@ const EFFECT_FIELDS = new Set([
   'durationReductionPerAffinity',
   'damageIncreasePerStack',
   'damagePerCoefficient',
-  'durationScale',
   'boon',
   'kind',
   'name',
@@ -318,10 +316,6 @@ function normalizeEffect(effect: unknown): SkillEffect {
     );
   }
 
-  if (normalizedEffect.durationScale != null && !DURATION_SCALES.has(String(normalizedEffect.durationScale))) {
-    throw new TypeError('Effect durationScale must be boon or fixed.');
-  }
-
   const interruptCommitMs =
     normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
   if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
@@ -541,13 +535,13 @@ function normalizeEffect(effect: unknown): SkillEffect {
     }
   }
 
-  if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff' || normalizedEffect.type === 'effect') {
+  if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
     if (!String(normalizedEffect.boon || normalizedEffect.kind || normalizedEffect.name || '')) {
-      throw new TypeError('Boon, buff, and effect statuses require a name.');
+      throw new TypeError('Boon and buff statuses require a name.');
     }
 
     if (!(Number(normalizedEffect.duration) > 0)) {
-      throw new TypeError('Boon, buff, and effect statuses require a positive duration.');
+      throw new TypeError('Boon and buff statuses require a positive duration.');
     }
   }
 

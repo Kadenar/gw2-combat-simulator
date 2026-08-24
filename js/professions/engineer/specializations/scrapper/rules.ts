@@ -85,8 +85,8 @@ export const scrapperSchedulerHooks = Object.freeze({
 
 export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    // Object in Motion: +5% strike damage per active movement boon (stability/swiftness/superspeed).
-    // Multiplicative — three boons = 1.05^3 ≈ +15.8%.
+    // Object in Motion: +5% strike damage per active movement status (stability/swiftness/superspeed).
+    // Multiplicative — three statuses = 1.05^3 ≈ +15.8%.
     id: 'engineer.object-in-motion',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',

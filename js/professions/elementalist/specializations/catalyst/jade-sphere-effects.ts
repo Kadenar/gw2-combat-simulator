@@ -20,7 +20,6 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
       boon,
       stacks: 1,
       duration,
-      durationScale: 'boon' as const,
       atMs,
       timingAnchor: 'castStart' as const,
       timingScale: 'cast' as const,

@@ -41,7 +41,7 @@ function emitBuff(
     skillName: skill.name,
     name,
     kind,
-    // GW2 caps superspeed at 10s regardless of source; other boons uncapped here
+    // GW2 caps superspeed at 10s regardless of source; other statuses are uncapped here
     duration: kind === 'superspeed' ? Math.min(10, duration) : duration,
     stacks: 1
   });

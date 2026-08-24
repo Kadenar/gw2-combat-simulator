@@ -1,18 +1,100 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import { emitRevenantBoon } from '../../core/boons.js';
 import { emitRevenantState } from '../../core/shared.js';
-import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
-import { HERALD_MECHANICS as MECHANICS } from './mechanics.js';
-import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
+import { hasRevenantTrait } from '../../core/state.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill
 } from '../../types.js';
+import { HERALD_MECHANICS as MECHANICS } from './mechanics.js';
+import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from './skills.js';
+import { heraldState } from './state.js';
 
 interface HeraldFacetPulsePayload extends SchedulerRecord {
   readonly skillId: SkillId;
+}
+
+export const HERALD_ELEVATED_COMPASSION_TASK = 'revenant.herald-elevated-compassion';
+const ELEVATED_COMPASSION_TASK_OWNER = 'revenant.herald-elevated-compassion';
+
+function elevatedCompassionProfile(context: RevenantSchedulerContext) {
+  const profile = context.catalog.balanceProfilesById.get(HERALD_ELEVATED_COMPASSION_PROFILE_ID);
+  if (!profile) throw new Error('Missing Elevated Compassion balance profile.');
+  return profile;
+}
+
+function elevatedCompassionIsActive(context: RevenantSchedulerContext): boolean {
+  const threshold = Math.max(0, Number(elevatedCompassionProfile(context).threshold || 0));
+  const upkeep = professionCoreState(context).activeUpkeeps.reduce(
+    (total, active) => total + Math.max(0, Number(active.upkeepCost || 0)),
+    0
+  );
+  return hasRevenantTrait(context.config, TRAIT.ELEVATED_COMPASSION) && upkeep >= threshold;
+}
+
+function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at: number): void {
+  const profile = elevatedCompassionProfile(context);
+  const effect = profile.effects?.find((candidate) => candidate.type === 'boon');
+  if (!effect) throw new Error('Elevated Compassion is missing its quickness effect.');
+  const baseDuration = Math.max(0, Number(effect.duration || 0));
+  const skill = { id: TRAIT.ELEVATED_COMPASSION, name: 'Elevated Compassion' } as RevenantSkill;
+  const duration = context.schedulerPolicy.effectDuration?.(context, skill, effect, baseDuration) ?? baseDuration;
+
+  // Emit one self-affecting party boon and reserve the next legal pulse so threshold re-entry cannot bypass the ICD.
+  context.emit({
+    type: 'buff',
+    at,
+    source: 'revenant',
+    sourceId: TRAIT.ELEVATED_COMPASSION,
+    actorType: 'player',
+    skillId: TRAIT.ELEVATED_COMPASSION,
+    skillName: 'Elevated Compassion',
+    name: 'Elevated Compassion â€” quickness',
+    kind: String(effect.boon || 'quickness'),
+    duration,
+    stacks: Math.max(1, Number(effect.stacks || 1)),
+    recipients: effect.recipients || 'party'
+  });
+
+  const cooldown = Math.max(context.epsilon, Number(profile.cooldown || 0));
+  heraldState.from(context).elevatedCompassionReadyAt = at + cooldown;
+  context.tasks.schedule({
+    type: HERALD_ELEVATED_COMPASSION_TASK,
+    at: at + cooldown,
+    ownerId: ELEVATED_COMPASSION_TASK_OWNER
+  });
+}
+
+/** Starts or stops Elevated Compassion's one-second pulse loop after upkeep-changing casts. */
+export function syncElevatedCompassion(context: RevenantCastContext): void {
+  const at = context.effectiveEnd;
+  if (!elevatedCompassionIsActive(context)) {
+    context.tasks.cancelOwner(ELEVATED_COMPASSION_TASK_OWNER);
+    return;
+  }
+
+  if (Number.isFinite(context.tasks.nextAt(HERALD_ELEVATED_COMPASSION_TASK))) return;
+  const readyAt = Math.max(at, Number(heraldState.from(context).elevatedCompassionReadyAt || 0));
+  if (readyAt <= at + context.epsilon) {
+    grantElevatedCompassionQuickness(context, at);
+    return;
+  }
+
+  context.tasks.schedule({
+    type: HERALD_ELEVATED_COMPASSION_TASK,
+    at: readyAt,
+    ownerId: ELEVATED_COMPASSION_TASK_OWNER
+  });
+}
+
+/** Grants a recurring Elevated Compassion pulse only while the configured upkeep threshold remains met. */
+export function handleElevatedCompassionPulse(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
+  if (!elevatedCompassionIsActive(context)) return;
+  grantElevatedCompassionQuickness(context, task.at);
 }
 
 /** Removes the active facet and consumes its temporary flip. */
@@ -27,7 +109,7 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   // Remove the consume flip itself from availableFlips so it can't be cast a second time.
   delete state.availableFlips[skill.id];
   if (facet) {
-    // The cooldown is placed on the parent facet, not the consume skill, so the facet can't be re-activated immediately.
+    // Parent ownership also makes Facet of Nature's 20-second cooldown shared by every legend-specific True Nature ID.
     const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
     if (cooldown > 0) {
       context.state.cooldowns.set(facet.id, at + cooldown);
@@ -80,7 +162,10 @@ export function handleHeraldFacetPulse(
   const pulse = skill?.upkeepPulse as
     { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
   if (!skill || !pulse) return;
-  emitRevenantBoon(context, skill, pulse.kind, pulse.duration, pulse.stacks, { at: task.at });
+  emitRevenantBoon(context, skill, pulse.kind, pulse.duration, pulse.stacks, {
+    at: task.at,
+    recipients: 'party'
+  });
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',
     at: task.at + Math.max(0, Number(skill.pulseInterval ?? 3)),

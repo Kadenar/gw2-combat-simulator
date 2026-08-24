@@ -4,14 +4,13 @@
     "benchmarkDurationSeconds": 123.284,
     "benchmarkDamage": 3954045,
     "benchmarkDps": 32073,
-    "simulatedDps": 31724.916651308704,
+    "simulatedDps": 31705.700260187405,
     "timingSource": "Elite Insights cast summaries from dps.report",
-    "note": "Greatsword skill 5 is precast before the pull; Facet of Elements and Facet of Strength are reconstructed from their opening consume skills."
+    "note": "Herald facets and True Nature are precast before Greatsword skill 5; combat begins 334 ms into the Greatsword cast."
   },
   "rotation": [
     {
-      "name": "Eternity's Requiem",
-      "skillId": 62929
+      "name": "Facet of Nature"
     },
     {
       "name": "Facet of Elements"
@@ -20,18 +19,25 @@
       "name": "Facet of Strength"
     },
     {
-      "name": "Burst of Strength"
+      "name": "Facet of Chaos"
+    },
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    {
+      "name": "Eternity's Requiem",
+      "skillId": 62929
     },
     {
       "name": "__combat_start",
       "offset": 334
     },
     {
-      "name": "Elemental Blast"
+      "name": "Burst of Strength"
     },
     {
-      "name": "Facet of Chaos",
-      "offset": 84
+      "name": "Elemental Blast"
     },
     {
       "name": "Chaotic Release"

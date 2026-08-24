@@ -55,11 +55,10 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'cast'
       },
       {
-        type: 'boon',
-        boon: 'Superspeed',
+        type: 'buff',
+        kind: 'superspeed',
         stacks: 1,
         duration: 3,
-        durationScale: 'boon',
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -70,7 +69,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         boon: 'Might',
         stacks: 3,
         duration: 6,
-        durationScale: 'boon',
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'cast',

@@ -26,7 +26,6 @@ function boon(atMs: number, name: string, stacks: number, duration: number): Ski
     boon: name,
     stacks,
     duration,
-    durationScale: 'boon',
     atMs,
     timingAnchor: 'castStart',
     timingScale: 'cast',

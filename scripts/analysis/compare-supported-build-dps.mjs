@@ -3,6 +3,7 @@
  * current DPS values that drift more than the preset regression tolerance.
  *
  * Dry-run usage: npm run benchmarks:compare
+ * Absolute-tolerance usage: npm run benchmarks:compare -- --absolute-dps
  * Commit usage: npm run benchmarks:compare -- --commit
  */
 import { readFile, writeFile } from 'node:fs/promises';
@@ -12,15 +13,24 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
+export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-/** Keep the CLI and preset tests aligned on the 1% manifest DPS contract. */
-export function findDpsMismatches(metrics, maximumRelativeError = MAXIMUM_RELATIVE_ERROR) {
+/** Keep the default 1% contract while allowing the CLI to opt into a fixed-DPS regression threshold. */
+export function findDpsMismatches(
+  metrics,
+  maximumRelativeError = MAXIMUM_RELATIVE_ERROR,
+  maximumAbsoluteDpsError = null
+) {
   return metrics.flatMap((metric) => {
     const difference = metric.dps - metric.benchmarkDps;
     const relativeDifference = difference / metric.benchmarkDps;
+    const isWithinTolerance =
+      maximumAbsoluteDpsError == null
+        ? Math.abs(relativeDifference) <= maximumRelativeError
+        : Math.abs(difference) <= maximumAbsoluteDpsError;
 
-    if (Math.abs(relativeDifference) <= maximumRelativeError) return [];
+    if (isWithinTolerance) return [];
 
     return [
       {
@@ -51,20 +61,25 @@ function formatSignedPercent(value) {
   return `${sign}${(value * 100).toFixed(2)}%`;
 }
 
-export function printDpsComparison(metrics, maximumRelativeError = MAXIMUM_RELATIVE_ERROR) {
-  const mismatches = findDpsMismatches(metrics, maximumRelativeError);
+export function printDpsComparison(
+  metrics,
+  maximumRelativeError = MAXIMUM_RELATIVE_ERROR,
+  maximumAbsoluteDpsError = null
+) {
+  const mismatches = findDpsMismatches(metrics, maximumRelativeError, maximumAbsoluteDpsError);
   const professionCount = new Set(metrics.map((metric) => metric.profession)).size;
-  const tolerance = (maximumRelativeError * 100).toFixed(2);
+  const tolerance =
+    maximumAbsoluteDpsError == null ? `${(maximumRelativeError * 100).toFixed(2)}%` : `${maximumAbsoluteDpsError} DPS`;
 
   if (mismatches.length === 0) {
     console.log(
-      `All ${metrics.length} rotation-backed builds across ${professionCount} manifests are within ${tolerance}% of benchmark DPS.`
+      `All ${metrics.length} rotation-backed builds across ${professionCount} manifests are within ${tolerance} of benchmark DPS.`
     );
 
     return mismatches;
   }
 
-  console.log(`Found ${mismatches.length} DPS mismatch(es) outside the ${tolerance}% tolerance:`);
+  console.log(`Found ${mismatches.length} DPS mismatch(es) outside the ${tolerance} tolerance:`);
 
   for (const mismatch of mismatches) {
     console.log(
@@ -166,7 +181,7 @@ export async function updateManifestBenchmarkDps(metrics, root = repoRoot) {
 }
 
 export function parseMode(args) {
-  const knownArguments = new Set(['--commit', '--dry', '--dry-run']);
+  const knownArguments = new Set(['--commit', '--dry', '--dry-run', '--absolute-dps']);
   const unknownArguments = args.filter((argument) => !knownArguments.has(argument));
 
   if (unknownArguments.length > 0) {
@@ -182,10 +197,19 @@ export function parseMode(args) {
   return args.includes('--commit') ? 'commit' : 'dry';
 }
 
+/** Select the fixed 100-DPS threshold only when the caller explicitly requests it. */
+export function parseMaximumAbsoluteDpsError(args) {
+  parseMode(args);
+
+  return args.includes('--absolute-dps') ? MAXIMUM_ABSOLUTE_DPS_ERROR : null;
+}
+
 const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isMain) {
-  const mode = parseMode(process.argv.slice(2));
+  const args = process.argv.slice(2);
+  const mode = parseMode(args);
+  const maximumAbsoluteDpsError = parseMaximumAbsoluteDpsError(args);
 
   console.log(
     mode === 'commit'
@@ -194,7 +218,7 @@ if (isMain) {
   );
 
   const metrics = await captureSupportedBuildMetrics();
-  const mismatches = printDpsComparison(metrics);
+  const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
 
   if (mode === 'commit') {
     const update = await updateManifestBenchmarkDps(metrics);

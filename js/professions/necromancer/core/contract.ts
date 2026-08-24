@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { gw2AlliedEffectRecipients, prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
+import { gw2AlliedEffectRecipients, prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared
@@ -14,7 +14,6 @@ import {
   emitBuff,
   emitCondition,
   emitDamage,
-  emitEffect,
   gainNecromancerLifeForce,
   hasTrait,
   necromancerActiveBoonCompanionIds,
@@ -111,8 +110,8 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
   const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
   if (!stacks) return;
 
-  const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'effect');
-  const duration = Number(effect?.duration || 10);
+  const buff = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
+  const duration = Number(buff?.duration || 10);
   const selected = gw2AlliedEffectRecipients(context.config, {
     maximumRecipients: 5,
     companionIds: necromancerActiveMinionCompanionIds(context)
@@ -128,7 +127,7 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
     companionIds: selected.companionIds,
     recipientCount: selected.recipientCount
   };
-  emitEffect(context, skill, String(effect?.kind || 'taste-for-blood'), duration, stacks, {
+  emitBuff(context, skill, String(buff?.kind || 'taste-for-blood'), duration, stacks, {
     at: context.start,
     metadata: recipients
   });
@@ -198,17 +197,29 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   if (skill.shroudSlot === 4 && hasTrait(context, TRAIT.TRANSFUSION)) {
+    // Attribute the derived strike and poison to Lesser Chilblains while retaining the shroud skill as their trigger.
+    const lesserChilblainsAttribution = {
+      skillId: TRAIT.TRANSFUSION,
+      skillName: 'Lesser Chilblains',
+      parentSkillName: skill.name,
+      triggeredBy: skill.name
+    };
     emitDamage(context, skill, 1.8, {
       name: 'Lesser Chilblains',
       source: 'Trait',
       sourceId: TRAIT.TRANSFUSION,
       actorType: 'effect',
-      skillWeapon: 'Unequipped'
+      skillWeapon: 'Unequipped',
+      metadata: lesserChilblainsAttribution
     });
     emitCondition(context, skill, 'Poisoned', 2, 4, {
       source: 'Trait',
       sourceId: TRAIT.TRANSFUSION,
-      actorType: 'effect'
+      actorType: 'effect',
+      metadata: {
+        ...lesserChilblainsAttribution,
+        name: 'Lesser Chilblains - Poisoned'
+      }
     });
     context.emit({
       type: 'necromancer.chill',
@@ -292,7 +303,7 @@ export const necromancerSchedulerHooks = Object.freeze({
     id: 'necromancer.boon-companion-candidates',
     order: 5,
     handler: (context: NecromancerSchedulerContext, event: SimulationEventInput) =>
-      prepareGw2BoonCompanionCandidates(event, necromancerActiveBoonCompanionIds(context))
+      prepareGw2BuffCompanionCandidates(event, necromancerActiveBoonCompanionIds(context))
   },
   advance: advanceNecromancerState,
   onCastStart,

@@ -45,7 +45,6 @@ const BASE_RAZORCLAW_EFFECTS = Object.freeze([
     type: 'buff',
     kind: 'razorclaws-rage',
     duration: 5,
-    durationScale: 'fixed',
     stacks: 4,
     actorType: 'player',
     recipients: 'party'
@@ -538,7 +537,6 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         type: 'buff',
         kind: 'band-together',
         duration: 4,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }
@@ -554,7 +552,6 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         type: 'buff',
         kind: 'kallas-fervor',
         duration: 8,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }
@@ -572,7 +569,6 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
         type: 'buff',
         kind: 'kallas-fervor',
         duration: 12,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }

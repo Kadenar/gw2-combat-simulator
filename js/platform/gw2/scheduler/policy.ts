@@ -31,6 +31,7 @@ import { createGw2EventPreparer } from './event-preparer.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
+  isStandardBoon,
   remainingDurationStackSeconds
 } from '../boon-state.js';
 import { clamp } from '../numeric.js';
@@ -238,11 +239,14 @@ export function createGw2SchedulerPolicy(
     },
 
     effectDuration(_context, _skill, effect, baseDuration) {
-      if ((effect.type !== 'boon' && effect.type !== 'buff') || effect.durationScale === 'fixed') {
+      const boon = effect.boon || effect.kind || effect.name;
+      // Generic positive buffs have fixed durations. Concentration and boon-
+      // duration bonuses apply only to authored standard-boon applications.
+      if (effect.type !== 'boon' || !isStandardBoon(boon)) {
         return baseDuration;
       }
 
-      const name = titleCase(effect.boon || effect.kind || effect.name);
+      const name = titleCase(boon);
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
       const sigils = config.sigilSets?.[weaponSet - 1] || {};
       const staticStats = gw2StatsForWeaponSet(config, weaponSet);

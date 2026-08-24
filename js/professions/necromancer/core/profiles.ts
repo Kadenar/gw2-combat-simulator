@@ -221,7 +221,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.overflowingThirst, 'Overflowing Thirst', {
     effects: [
       {
-        type: 'effect',
+        type: 'buff',
         kind: 'taste-for-blood',
         stacks: 3,
         duration: 10,

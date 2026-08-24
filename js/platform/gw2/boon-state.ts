@@ -24,6 +24,21 @@ interface DurationStackOptions<T> {
 
 export const GW2_BOON_DURATION_CAP_SECONDS = 30;
 export const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
+export const GW2_STANDARD_BOONS = Object.freeze([
+  'aegis',
+  'alacrity',
+  'fury',
+  'might',
+  'protection',
+  'quickness',
+  'regeneration',
+  'resistance',
+  'resolution',
+  'stability',
+  'swiftness',
+  'vigor'
+] as const);
+const STANDARD_BOON_SET = new Set<string>(GW2_STANDARD_BOONS);
 const DURATION_STACKING_BOON_CAPS = new Map([
   ['quickness', GW2_BOON_DURATION_CAP_SECONDS],
   ['alacrity', GW2_BOON_DURATION_CAP_SECONDS],
@@ -32,6 +47,11 @@ const DURATION_STACKING_BOON_CAPS = new Map([
   ['vigor', GW2_BOON_DURATION_CAP_SECONDS],
   ['swiftness', GW2_SWIFTNESS_DURATION_CAP_SECONDS]
 ]);
+
+/** Restricts boon-only rules to GW2's standard boon set. */
+export function isStandardBoon(kind: unknown): boolean {
+  return STANDARD_BOON_SET.has(String(kind || '').toLowerCase());
+}
 
 /** Returns whether repeated applications add duration instead of intensity. */
 export function isDurationStackingBoon(kind: unknown): boolean {

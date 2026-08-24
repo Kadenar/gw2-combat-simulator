@@ -13,7 +13,7 @@ export const HERALD_MECHANICS = freeze({
     // FACET_OF_NATURE is a special case: the actual consume ID depends on the active legend (see trueNatureConsumeByLegendId).
     [ID.FACET_OF_NATURE]: ID.TRUE_NATURE
   }),
-  // Facet of Nature has five distinct True Nature skill IDs, one per legend — the game server routes them differently even though the effect is identical.
+  // Facet of Nature has five distinct True Nature skill IDs, one per active legend, while all variants share the parent Facet cooldown.
   trueNatureConsumeByLegendId: freeze({
     [LEGEND.ASSASSIN]: ID.TRUE_NATURE,
     [LEGEND.DWARF]: ID.TRUE_NATURE_ID_51675,

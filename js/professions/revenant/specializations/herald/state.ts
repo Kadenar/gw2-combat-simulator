@@ -4,9 +4,12 @@ import { defineProfessionSpecializationState } from '../../../../platform/engine
 export const HERALD_PUBLIC_END_STATE_KEYS: readonly (keyof HeraldState)[] = Object.freeze([]);
 export const HERALD_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HeraldState>> = Object.freeze({});
 
-// Herald carries no private simulation state beyond what the shared core (activeUpkeeps, availableFlips, energy) already tracks.
+// Keep Herald ICDs private so threshold re-entry and rapid boon packets cannot reset either trait's cadence.
 export function createHeraldState(): HeraldState {
-  return {};
+  return {
+    elevatedCompassionReadyAt: 0,
+    sharedEmpowermentReadyAt: 0
+  };
 }
 
 // The same factory is used for both scheduler and resolver state (see module.ts) because Herald needs no resolver-only state.

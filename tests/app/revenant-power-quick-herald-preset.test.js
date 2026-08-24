@@ -7,7 +7,7 @@ import { loadProfessionAppAdapter } from '../../js/app/profession/registry.js';
 test('Power Quickness Herald preset preserves the submitted build and equipment', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const herald = manifest.find((section) => section.section === 'Herald');
-  const preset = herald.presets.find((candidate) => candidate.label === 'Power Quickness (Greatsword / SwSw)');
+  const preset = herald.presets.find((candidate) => candidate.label === 'Power Quickness (Greatsword - Sword/Sword)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const build = adapter.toApplicationBuild(saved);

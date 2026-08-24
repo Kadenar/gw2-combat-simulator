@@ -194,36 +194,6 @@ export function emitBuff(
   });
 }
 
-/** Emits a timed effect for reporting without adding it to shared boon state. */
-export function emitEffect(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  kind: string,
-  duration: number,
-  stacks = 1,
-  {
-    at = context.effectiveEnd ?? context.state.time,
-    metadata = {}
-  }: {
-    readonly at?: number;
-    readonly metadata?: Readonly<Record<string, unknown>>;
-  } = {}
-): void {
-  context.emit({
-    type: 'effect',
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    duration,
-    stacks,
-    ...metadata
-  });
-}
-
 /** Returns stable identities for minions eligible to receive shared effects. */
 export function necromancerActiveMinionCompanionIds(
   context: NecromancerEmissionContext | NecromancerResolverContext

@@ -110,7 +110,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         boon: 'Might',
         stacks: 5,
         duration: 6,
-        durationScale: 'boon',
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',

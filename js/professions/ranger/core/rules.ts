@@ -2,7 +2,7 @@ import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modi
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { prepareGw2BoonCompanionCandidates } from '../../../platform/gw2/allied-players.js';
+import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/allied-players.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';
@@ -24,7 +24,7 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     order: 5,
     // An unmerged active pet competes only after player recipients for shared boons.
     handler: (context: RangerSchedulerContext, event: SimulationEventInput) =>
-      prepareGw2BoonCompanionCandidates(
+      prepareGw2BuffCompanionCandidates(
         event,
         professionCoreState(context).petActive ? [rangerPetCompanionId(context)] : []
       )

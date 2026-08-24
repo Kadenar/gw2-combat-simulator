@@ -40,6 +40,7 @@ const IMPLEMENTED = new Set([
   'Righteous Rebel',
   'Swift Termination',
   'Reinforced Potency',
+  'Shared Empowerment',
   'Elevated Compassion',
   'Tenacious Ruin',
   'Empire Divided',

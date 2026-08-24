@@ -42,7 +42,6 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         boon: 'Regeneration',
         stacks: 1,
         duration: 4,
-        durationScale: 'boon',
         atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast',

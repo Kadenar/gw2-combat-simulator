@@ -315,7 +315,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'buff',
         kind: 'cosmic-wisdom',
         duration: 7,
-        durationScale: 'fixed',
         stacks: 1,
         actorType: 'player'
       }
@@ -603,7 +602,6 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         type: 'buff',
         kind: 'cosmic-wisdom-extension',
         duration: 1,
-        durationScale: 'fixed',
         stacks: 1
       }
     ]

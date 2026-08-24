@@ -40,6 +40,14 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
   duration
 });
 
+const buff = (name: string, kind: string, stacks: number, duration: number): SkillEffect => ({
+  type: 'buff',
+  name,
+  kind,
+  stacks,
+  duration
+});
+
 const variant = (
   id: string,
   parentId: SkillId,
@@ -93,7 +101,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     effects: [condition('Earth', 'Bleeding', 3, 8)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.flowingFinesse, ID.FLOWING_FINESSE, 'Flowing Finesse - Consumed Bullets', {
-    effects: [aura('Water', 'Frost Aura', 3), boon('Air', 'Superspeed', 1, 4)]
+    effects: [aura('Water', 'Frost Aura', 3), buff('Air', 'superspeed', 1, 4)]
   }),
   variant(WEAVER_BALANCE_PROFILE_IDS.enervatingEarth, ID.ENERVATING_EARTH, 'Enervating Earth - Earth Bullet', {
     effects: [condition('Earth', 'Bleeding', 4, 8)]

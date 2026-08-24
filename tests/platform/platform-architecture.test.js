@@ -9,11 +9,11 @@ import { deriveAutoattackChains, indexAutoattackChains } from '../../js/platform
 import {
   blind,
   boon,
+  buff,
   condition,
   conditionTimeline,
   control,
   custom,
-  effect,
   repeatedCondition,
   strike,
   strikePackets,
@@ -61,6 +61,7 @@ import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js'
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '../../js/professions/mesmer/state.js';
 import { testProfession } from '../fixtures/test-profession.js';
+import { isStandardBoon } from '../../js/platform/gw2/boon-state.js';
 
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {
@@ -87,6 +88,30 @@ test('native professions share one skill timing contract', async () => {
         const explicitlyTimed = effect.atMs != null || effect.intervalMs != null || effect.ticks != null;
 
         assert.equal(explicitlyTimed, effect.timingAnchor != null && effect.timingScale != null, skill.name);
+      }
+    }
+  }
+});
+
+test('GW2 catalogs separate standard boons from generic timed buffs', async () => {
+  for (const entry of professionRegistry) {
+    const catalog = (await entry.loadProfession()).catalog;
+    const records = [...catalog.skills, ...(catalog.balanceProfiles || [])];
+    for (const record of records) {
+      for (const status of record.effects || []) {
+        if (status.type === 'boon') {
+          assert.equal(
+            isStandardBoon(status.boon),
+            true,
+            `${entry.id}: ${record.name} uses nonstandard boon ${status.boon}`
+          );
+        } else if (status.type === 'buff') {
+          assert.equal(
+            isStandardBoon(status.kind),
+            false,
+            `${entry.id}: ${record.name} authors standard boon ${status.kind} as a generic buff`
+          );
+        }
       }
     }
   }
@@ -384,8 +409,8 @@ test('shared declarative factories preserve generic effect options', () => {
     duration: 2,
     stacks: 2
   });
-  assert.deepEqual(effect('trait-charge', 10, { stacks: 3 }), {
-    type: 'effect',
+  assert.deepEqual(buff('trait-charge', 10, { stacks: 3 }), {
+    type: 'buff',
     kind: 'trait-charge',
     duration: 10,
     stacks: 3
@@ -456,49 +481,44 @@ test('declarative boons can gate dynamic skill availability', () => {
   assert.match(expired.warnings.join(' '), /unavailable/);
 });
 
-test('declarative effects remain outside shared boon state', () => {
-  let observedAsBoon = true;
+test('declarative generic buffs use shared timed state without boon-duration scaling', () => {
+  let observedAsBuff = false;
   const catalog = createCanonicalCatalog({
     generated: [
       {
         id: 920011,
-        name: 'Grant Trait Effect',
+        name: 'Grant Trait Buff',
         castTimeMs: 0,
-        effects: [effect('trait-charge', 10, { stacks: 3 })]
+        effects: [buff('trait-charge', 10, { stacks: 3 })]
       },
       {
         id: 920012,
-        name: 'Inspect Trait Effect',
+        name: 'Inspect Trait Buff',
         castTimeMs: 0,
-        handlerId: 'fixture.inspect-effect',
+        handlerId: 'fixture.inspect-buff',
         effects: []
       }
     ],
     skillHandlers: {
-      'fixture.inspect-effect': replaceSkillHandler((context) => {
-        observedAsBoon = context.hasBuff('trait-charge');
+      'fixture.inspect-buff': replaceSkillHandler((context) => {
+        observedAsBuff = context.hasBuff('trait-charge');
       })
     }
   });
   const profession = defineProfession({
-    id: 'effect-state-fixture',
-    name: 'Effect State Fixture',
+    id: 'buff-state-fixture',
+    name: 'Buff State Fixture',
     catalog
   });
   const result = simulateGw2({
     profession,
-    rotation: ['Grant Trait Effect', 'Inspect Trait Effect']
+    rotation: ['Grant Trait Buff', 'Inspect Trait Buff'],
+    config: { stats: { concentration: 1500 } }
   });
+  const application = result.events.find((event) => event.type === 'buff' && event.kind === 'trait-charge');
 
-  assert.equal(observedAsBoon, false);
-  assert.equal(
-    result.events.some((event) => event.type === 'effect' && event.kind === 'trait-charge'),
-    true
-  );
-  assert.equal(
-    result.events.some((event) => event.type === 'buff' && event.kind === 'trait-charge'),
-    false
-  );
+  assert.equal(observedAsBuff, true);
+  assert.equal(application?.duration, 10);
 });
 
 test('handler registry rejects duplicates and missing required handlers', () => {

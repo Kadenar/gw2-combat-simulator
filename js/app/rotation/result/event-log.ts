@@ -171,14 +171,6 @@ export function simulationEventLogRows(
           'trigger'
         );
         break;
-      case 'effect':
-        push(
-          event.at,
-          'trigger',
-          `EFFECT ${effectName(event.kind)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
-          'trigger'
-        );
-        break;
       default:
         if (String(event.type || '').includes('.')) {
           pushProfessionRow(event);

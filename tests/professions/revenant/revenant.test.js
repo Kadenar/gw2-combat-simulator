@@ -617,7 +617,6 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
       type: 'buff',
       kind: 'razorclaws-rage',
       duration: 5,
-      durationScale: 'fixed',
       stacks: 4,
       actorType: 'player',
       recipients: 'party'
@@ -2615,6 +2614,67 @@ test('Facet of Nature exposes the consume variant for the active legend', () => 
   );
 });
 
+test('Dragon True Nature extends active allied boons by two seconds', () => {
+  const result = simulate(
+    'Herald',
+    [
+      'Facet of Darkness',
+      { type: 'wait', durationMs: 3100 },
+      'Facet of Nature',
+      { skillId: SKILL.TRUE_NATURE_ID_51696 }
+    ],
+    {
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      initialEnergy: 100,
+      stats: { concentration: 0 }
+    }
+  );
+  const fury = result.events.find(
+    (event) => event.type === 'buff' && event.skillName === 'Facet of Darkness' && event.kind === 'fury'
+  );
+  const extension = result.events.find(
+    (event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_ID_51696
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(fury.duration, 5);
+  assert.equal(extension.duration, 2);
+  assert.equal(extension.procType, 'boon-extension');
+});
+
+test('True Nature variants share their twenty-second parent cooldown across legends', () => {
+  const result = simulate(
+    'Herald',
+    [
+      'Facet of Nature',
+      { skillId: SKILL.TRUE_NATURE },
+      'Swap Legends',
+      'Facet of Nature',
+      { skillId: SKILL.TRUE_NATURE_ID_51696 }
+    ],
+    {
+      selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
+      startingLegend: LEGEND.ASSASSIN,
+      initialEnergy: 100
+    }
+  );
+  const facetSteps = result.steps.filter((step) => step.skill === 'Facet of Nature');
+  const firstTrueNature = result.steps.find((step) => step.skill === 'True Nature');
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(facetSteps[1].start, firstTrueNature.end + 20000);
+  for (const skillId of [
+    SKILL.TRUE_NATURE,
+    SKILL.TRUE_NATURE_ID_51675,
+    SKILL.TRUE_NATURE_ID_51696,
+    SKILL.TRUE_NATURE_ID_51713,
+    SKILL.TRUE_NATURE_ID_51714
+  ]) {
+    assert.equal(revenantCatalog.skillsById.get(skillId).cooldown, 20);
+  }
+});
+
 test('Herald consume skills apply their cooldown to the parent facet', () => {
   const cases = [
     ['Facet of Light', 'Infuse Light', 30],
@@ -2668,6 +2728,85 @@ test('Herald facets pulse their boons every three seconds', () => {
     );
     assert.equal(result.endState.profession.activeUpkeeps.length, 0);
   }
+});
+
+test('Shared Empowerment grants one stack of eight-second Might on a one-second ICD', () => {
+  const result = simulate('Herald', ['Pain Absorption', 'Pain Absorption', 'Pain Absorption'], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 100,
+    traitIds: [TRAIT.SHARED_EMPOWERMENT],
+    stats: { concentration: 0 },
+    allies: { count: 4 }
+  });
+  const applications = result.events.filter(
+    (event) => event.type === 'buff' && event.skillName === 'Shared Empowerment'
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    applications.map((event) => [event.at, event.kind, event.duration, event.stacks]),
+    [
+      [result.steps[0].end / 1000, 'might', 8, 1],
+      [result.steps[2].end / 1000, 'might', 8, 1]
+    ]
+  );
+  assert.ok(applications.every((event) => event.alliedPlayerCount === 4));
+});
+
+test('Elevated Compassion grants 1.25 seconds of Quickness once per second at six upkeep', () => {
+  const belowThreshold = simulate('Herald', ['Facet of Chaos', { type: 'wait', durationMs: 1100 }], {
+    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DRAGON,
+    initialEnergy: 100,
+    traitIds: [TRAIT.ELEVATED_COMPASSION],
+    stats: { concentration: 0 }
+  });
+  const atThreshold = simulate('Herald', ['Facet of Chaos', 'Facet of Strength', { type: 'wait', durationMs: 2100 }], {
+    selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DRAGON,
+    initialEnergy: 100,
+    traitIds: [TRAIT.ELEVATED_COMPASSION],
+    stats: { concentration: 0 }
+  });
+  const thresholdReentry = simulate(
+    'Herald',
+    [
+      'Facet of Chaos',
+      'Facet of Strength',
+      'Burst of Strength',
+      'Facet of Darkness',
+      { type: 'wait', durationMs: 300 }
+    ],
+    {
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      initialEnergy: 100,
+      traitIds: [TRAIT.ELEVATED_COMPASSION],
+      stats: { concentration: 0 }
+    }
+  );
+
+  assert.equal(
+    belowThreshold.events.some((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion'),
+    false
+  );
+  assert.deepEqual(
+    atThreshold.events
+      .filter((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion')
+      .map((event) => [event.at, event.kind, event.duration]),
+    [
+      [0, 'quickness', 1.25],
+      [1, 'quickness', 1.25],
+      [2, 'quickness', 1.25]
+    ]
+  );
+  assert.deepEqual(
+    thresholdReentry.events
+      .filter((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion')
+      .map((event) => event.at),
+    [0, 1]
+  );
 });
 
 test('Herald consume skills apply their full outgoing profiles', () => {

@@ -1,6 +1,6 @@
 /**
  * Effect materialization. Expands one canonical skill effect (strike,
- * condition, control, blind, boon/buff/effect, or custom) into its ordered timed event
+ * condition, control, blind, boon/buff, or custom) into its ordered timed event
  * applications, resolving per-tick timing against the cast start or end. Cast
  * interruption and actual event emission remain scheduler concerns.
  */
@@ -178,7 +178,7 @@ export function materializeSkillEffectApplications({
         }
       });
     }
-  } else if (effect.type === 'boon' || effect.type === 'buff' || effect.type === 'effect') {
+  } else if (effect.type === 'boon' || effect.type === 'buff') {
     const recipientMetadata = {
       ...(effect.recipients != null ? { recipients: effect.recipients } : {}),
       ...(effect.affectsSelf != null ? { affectsSelf: effect.affectsSelf } : {}),
@@ -196,9 +196,9 @@ export function materializeSkillEffectApplications({
         event: {
           ...baseEvent,
           at,
-          // Effects remain reporting-only instead of entering the shared boon
-          // state; boons and legacy buffs retain their existing runtime event.
-          type: effect.type === 'effect' ? 'effect' : 'buff',
+          // Boons and generic positive statuses share the timed-buff runtime
+          // event; the authored type still controls GW2 boon-duration scaling.
+          type: 'buff',
           kind: String(effect.boon || effect.kind || effect.name || '').toLowerCase(),
           stacks: Math.max(1, Number(effect.stacks || 1)),
           duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),

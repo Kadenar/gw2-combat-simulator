@@ -113,7 +113,7 @@ export interface NecromancerCoreState {
   barbedPrecisionProgress: number;
   spitefulFortitudeLifeForce: number;
   traitProcReadyAt: Record<string, number>;
-  tasteForBloodEffects: Record<string, NecromancerTasteForBloodApplication[]>;
+  tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
 }
 
 export interface ReaperState {

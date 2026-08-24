@@ -5,12 +5,13 @@ import {
   gw2AlliedEffectRecipients,
   gw2BoonApplicationRecipients,
   gw2AlliedPlayerProcTimeline,
-  prepareGw2BoonCompanionCandidates
+  gw2BuffApplicationRecipients,
+  prepareGw2BuffCompanionCandidates
 } from '../../../js/platform/gw2/allied-players.js';
 
 test('boon companion candidates bind before canonical recipient selection', () => {
   const event = { type: 'buff', at: 1, source: 'test', recipients: 'party', maximumRecipients: 5 };
-  const prepared = prepareGw2BoonCompanionCandidates(event, ['pet:one', 'pet:one', '', 'pet:two']);
+  const prepared = prepareGw2BuffCompanionCandidates(event, ['pet:one', 'pet:one', '', 'pet:two']);
 
   assert.deepEqual(prepared, {
     ...event,
@@ -25,8 +26,8 @@ test('boon companion candidates bind before canonical recipient selection', () =
     recipientCount: 5
   });
   const selfOnly = { ...event, affectsSummons: false };
-  assert.equal(prepareGw2BoonCompanionCandidates(selfOnly, ['pet:one']), selfOnly);
-  assert.deepEqual(prepareGw2BoonCompanionCandidates({ ...event, companionIds: ['pet:explicit'] }, ['pet:one']), {
+  assert.equal(prepareGw2BuffCompanionCandidates(selfOnly, ['pet:one']), selfOnly);
+  assert.deepEqual(prepareGw2BuffCompanionCandidates({ ...event, companionIds: ['pet:explicit'] }, ['pet:one']), {
     ...event,
     companionIds: ['pet:explicit']
   });
@@ -60,6 +61,29 @@ test('allied effect recipients prioritize players before companions', () => {
     includesSelf: true,
     alliedPlayerCount: 4,
     companionIds: [],
+    recipientCount: 5
+  });
+});
+
+test('generic buff recipients ignore the boon-sharing configuration', () => {
+  const recipients = gw2BuffApplicationRecipients(
+    {
+      allies: { count: 2 },
+      sharePlayerBoonsWithSummons: false
+    },
+    {
+      recipients: 'party',
+      maximumRecipients: 5,
+      companionIds: ['minion:one', 'minion:two']
+    }
+  );
+
+  assert.deepEqual(recipients, {
+    includesSelf: true,
+    affectsSelf: true,
+    alliedPlayerCount: 2,
+    companionIds: ['minion:one', 'minion:two'],
+    affectsSummons: true,
     recipientCount: 5
   });
 });

@@ -928,7 +928,7 @@ test('Revenant Power Renegade Greatsword default build resolves', async () => {
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.label, 'Power (Greatsword / SwSw)');
+  assert.equal(preset.label, 'Power (Greatsword - Sword/Sword)');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.equal(build.specializations[2].name, 'Renegade');
@@ -942,7 +942,7 @@ test('Revenant Power Renegade Hammer default build resolves', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
-  const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer / SwSw)');
+  const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer - Sword/Sword)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
@@ -961,8 +961,12 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const vindicator = manifest.find((section) => section.section === 'Vindicator');
-  const energyPreset = vindicator.presets.find((candidate) => candidate.label === 'Power (Greatsword / SwSw - Energy)');
-  const hydroPreset = vindicator.presets.find((candidate) => candidate.label === 'Power (Greatsword / SwSw - Hydro)');
+  const energyPreset = vindicator.presets.find(
+    (candidate) => candidate.label === 'Power (Greatsword - Sword/Sword - Energy)'
+  );
+  const hydroPreset = vindicator.presets.find(
+    (candidate) => candidate.label === 'Power (Greatsword - Sword/Sword - Hydro)'
+  );
   const [energySaved, hydroSaved, replay] = await Promise.all([
     readFile(new URL(`../../${energyPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
     readFile(new URL(`../../${hydroPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
@@ -1028,7 +1032,7 @@ test('Revenant Condition Renegade Shortbow default build resolves', async () => 
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
-  const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Shortbow / Mace-Axe)');
+  const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Shortbow - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
@@ -1051,7 +1055,7 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
-  const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Mace-Axe / Spear)');
+  const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Mace/Axe - Spear)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
@@ -1078,7 +1082,7 @@ test('Revenant Condition Quickness Herald default build resolves', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const herald = manifest.find((section) => section.section === 'Herald');
-  const preset = herald.presets.find((candidate) => candidate.label === 'Condition Quickness (Shortbow / Mace-Axe)');
+  const preset = herald.presets.find((candidate) => candidate.label === 'Condition Quickness (Shortbow - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
@@ -1105,7 +1109,7 @@ test('Revenant Condition Conduit Mistfire default build resolves', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
   const adapter = await loadProfessionAppAdapter('revenant');
   const conduit = manifest.find((section) => section.section === 'Conduit');
-  const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Mistfire)');
+  const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Spear - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 

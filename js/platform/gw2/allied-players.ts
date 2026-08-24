@@ -45,6 +45,7 @@ interface Gw2BoonRecipientEvent {
   readonly alliedPlayerCount?: unknown;
   readonly recipientCount?: unknown;
   readonly boonAudienceResolved?: unknown;
+  readonly buffAudienceResolved?: unknown;
 }
 
 /**
@@ -91,11 +92,17 @@ export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): 
  * Supplies concrete active companion candidates before the canonical boon
  * recipient resolver applies player-first target-cap selection.
  */
-export function prepareGw2BoonCompanionCandidates(
+export function prepareGw2BuffCompanionCandidates(
   event: SimulationEventInput,
   companionIds: readonly unknown[]
 ): SimulationEventInput {
-  if (event.type !== 'buff' || event.boonAudienceResolved === true || event.affectsSummons === false) return event;
+  if (
+    event.type !== 'buff' ||
+    event.boonAudienceResolved === true ||
+    event.buffAudienceResolved === true ||
+    event.affectsSummons === false
+  )
+    return event;
   const scope = String(event.recipients || '').toLowerCase();
   const shared =
     scope === 'party' ||
@@ -215,6 +222,30 @@ export function gw2BoonApplicationRecipients(
     recipientCount:
       Number(selected.includesSelf) + selected.alliedPlayerCount + companionIds.length + Number(genericSummonSelected)
   });
+}
+
+/**
+ * Resolves generic timed-buff recipients without consulting the configuration
+ * that controls whether player boons may be shared with summons.
+ */
+export function gw2BuffApplicationRecipients(
+  config: Gw2AlliedPlayerConfig,
+  event: Gw2BoonRecipientEvent = {}
+): Gw2BoonApplicationRecipients {
+  if (event.buffAudienceResolved === true) {
+    return gw2BoonApplicationRecipients(config, {
+      ...event,
+      boonAudienceResolved: true
+    });
+  }
+
+  return gw2BoonApplicationRecipients(
+    {
+      ...config,
+      sharePlayerBoonsWithSummons: true
+    },
+    event
+  );
 }
 
 /**

@@ -40,7 +40,6 @@ export type CommonSimulationEventType =
   | 'marker'
   | 'resource'
   | 'buff'
-  | 'effect'
   | 'weakness_vulnerability'
   | 'peitha';
 
@@ -193,7 +192,6 @@ export interface SkillEffectBase {
   readonly timingAnchor?: 'castStart' | 'castEnd';
   /** `cast` values are authored on the Quickness timeline and expand for slower casts. */
   readonly timingScale?: 'cast' | 'fixed';
-  readonly durationScale?: 'boon' | 'fixed';
   readonly applications?: number;
   readonly persistsAfterInterrupt?: boolean;
   /** Effect-specific launch cutoff; falls back to the parent skill cutoff. */
@@ -235,7 +233,7 @@ export interface ControlEffect extends SkillEffectBase {
 }
 
 export interface StatusEffect extends SkillEffectBase {
-  readonly type: 'boon' | 'buff' | 'effect';
+  readonly type: 'boon' | 'buff';
   readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;
