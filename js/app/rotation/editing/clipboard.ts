@@ -3,6 +3,14 @@ import { normalizeRotationInsertionIndex } from '../../../platform/ui/insertion-
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState, RotationSelectionRange } from '../../profession/types.js';
 
+/**
+ * Range-selection clipboard for the rotation timeline. Users arm "copy loop"
+ * mode, click a first and last entry to capture a contiguous span into
+ * `app.rotationClipboard`, then paste it at the insertion cursor. This module
+ * owns selection normalization, the copy/paste state transitions, and the
+ * toolbar buttons + keyboard shortcuts that drive them.
+ */
+
 export type RotationSelectionClickResult = 'ignored' | 'pending' | 'copied';
 
 function cloneRotationCommands(commands: readonly RotationCommand[]): RotationCommand[] {
@@ -10,6 +18,11 @@ function cloneRotationCommands(commands: readonly RotationCommand[]): RotationCo
   return commands.map((command) => ({ ...command }));
 }
 
+/**
+ * Validates and clamps a stored selection against the current rotation length,
+ * returning null when it is missing or no longer coherent (out-of-range or
+ * empty span). Guards against stale selections after the rotation is edited.
+ */
 export function normalizeRotationSelection(
   selection: RotationSelectionRange | null | undefined,
   rotationLength: number
@@ -40,6 +53,12 @@ export function normalizeRotationSelection(
   };
 }
 
+/**
+ * Advances the two-click selection at a clicked entry index. The first click
+ * anchors a one-entry span awaiting its endpoint; the second click extends from
+ * the anchor to the clicked entry (in either direction) and clears
+ * `awaitingEnd`. An out-of-range index just re-normalizes the existing state.
+ */
 export function rotationSelectionForEntry(
   selection: RotationSelectionRange | null | undefined,
   index: number,
@@ -65,11 +84,17 @@ export function rotationSelectionForEntry(
   };
 }
 
+/** Drops any active range selection and exits selection mode. */
 export function clearRotationSelection(app: ProfessionAppState): void {
   app.rotationSelection = null;
   app.rotationSelectionMode = false;
 }
 
+/**
+ * Copies the current selection's span into the clipboard as isolated clones,
+ * settles the selection, and arms the insertion cursor just after the copied
+ * loop. Returns false when there is no valid selection to copy.
+ */
 export function copyRotationSelection(app: ProfessionAppState): boolean {
   const selection = normalizeRotationSelection(app.rotationSelection, app.build.rotation.length);
   if (!selection) return false;
@@ -81,6 +106,11 @@ export function copyRotationSelection(app: ProfessionAppState): boolean {
   return app.rotationClipboard.length > 0;
 }
 
+/**
+ * Pastes clones of the clipboard at the insertion cursor (or the end when
+ * unset), selects the pasted span, advances an armed cursor past it, and
+ * re-sims. Returns false when the clipboard is empty.
+ */
 export function pasteRotationClipboard(app: ProfessionAppState): boolean {
   if (!app.rotationClipboard.length) return false;
   const entries = cloneRotationCommands(app.rotationClipboard);
@@ -101,6 +131,11 @@ export function pasteRotationClipboard(app: ProfessionAppState): boolean {
   return true;
 }
 
+/**
+ * Applies one entry click while in selection mode: 'ignored' when not selecting,
+ * 'copied' once the second endpoint completes and captures the loop, otherwise
+ * 'pending' while awaiting the closing click.
+ */
 export function selectRotationClipboardEntry(app: ProfessionAppState, index: number): RotationSelectionClickResult {
   if (!app.rotationSelectionMode) return 'ignored';
   const selection = rotationSelectionForEntry(app.rotationSelection, index, app.build.rotation.length);
@@ -109,12 +144,18 @@ export function selectRotationClipboardEntry(app: ProfessionAppState, index: num
   return selection && !selection.awaitingEnd && copyRotationSelection(app) ? 'copied' : 'pending';
 }
 
+/** True when the keydown originates inside a form field or dialog, where Ctrl+C/V belong to that control. */
 function shouldIgnoreClipboardShortcut(event: KeyboardEvent): boolean {
   const target = event.target;
   if (!(target instanceof Element)) return false;
   return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
 
+/**
+ * Re-normalizes selection state and repaints the timeline to match: toggles the
+ * range-selecting class, marks selected entries, disables dragging while
+ * selecting, and refreshes the toolbar controls.
+ */
 function refreshRotationClipboardView(app: ProfessionAppState, root: Document = document): void {
   const timeline = root.getElementById('rotation-timeline');
   const selection = normalizeRotationSelection(app.rotationSelection, app.build.rotation.length);
@@ -131,6 +172,10 @@ function refreshRotationClipboardView(app: ProfessionAppState, root: Document = 
   renderRotationClipboardControls(app, root);
 }
 
+/**
+ * Timeline click entry point: applies the selection click and, unless ignored,
+ * suppresses the default click and repaints. Returns the click result.
+ */
 export function handleRotationSelectionClick(
   app: ProfessionAppState,
   index: number,
@@ -144,6 +189,11 @@ export function handleRotationSelectionClick(
   return result;
 }
 
+/**
+ * Updates the copy/paste toolbar buttons to reflect current state: the copy
+ * button's label/tooltip track selection mode and whether a loop is already
+ * captured; the paste button reflects clipboard size and target position.
+ */
 export function renderRotationClipboardControls(app: ProfessionAppState, root: Document = document): void {
   const selection = normalizeRotationSelection(app.rotationSelection, app.build.rotation.length);
   const copyLoopButton = root.getElementById('btn-sim-copy-loop');
@@ -176,10 +226,16 @@ export function renderRotationClipboardControls(app: ProfessionAppState, root: D
   }
 }
 
+/** Public hook for re-syncing clipboard UI after an external rotation change. */
 export function syncRotationClipboardView(app: ProfessionAppState, root: Document = document): void {
   refreshRotationClipboardView(app, root);
 }
 
+/**
+ * One-time setup: injects the copy/paste toolbar group next to undo/redo, wires
+ * button clicks and the Ctrl/Cmd+C/V shortcuts, and renders initial controls.
+ * No-ops if the toolbar is missing or already mounted.
+ */
 export function mountRotationClipboard(app: ProfessionAppState, root: Document = document): void {
   const toolbar = root.querySelector<HTMLElement>('.rotation-btns');
   if (!toolbar || root.getElementById('rotation-copy-tools')) return;

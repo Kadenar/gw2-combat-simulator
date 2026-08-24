@@ -6,6 +6,11 @@ import {
 import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 
+/**
+ * Coerces an untyped projection payload into validated editor rows. Each
+ * candidate must carry finite `charges`/`at`/`delta`/`coefficient` (and a finite
+ * or null `flowAfter`); malformed rows are dropped rather than shown.
+ */
 function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate) => {
@@ -36,6 +41,12 @@ function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
   });
 }
 
+/**
+ * Opens the charge-release editor for a charge-consuming skill (e.g. Dragon
+ * Slash). Asks the profession UI to project the charge outcomes at the given
+ * insertion index, validates the rows, and hands them to the shared editor;
+ * `onApply` reports the chosen release-at-charges back to the caller.
+ */
 export function openDragonSlashReleaseEditor(options: {
   readonly app: ProfessionAppState;
   readonly anchor: HTMLElement;

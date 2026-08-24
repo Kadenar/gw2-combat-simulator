@@ -3,6 +3,11 @@ import type { ProfessionAppState, RotationActionOptions } from '../../profession
 import { normalizeRotationInsertionIndex } from '../../../platform/ui/insertion-cursor.js';
 import { clearRotationSelection } from './clipboard.js';
 
+/**
+ * Resolves the catalog skill behind a rotation entry or palette item. Non-cast
+ * commands (wait, combat-start, …) have no skill and return undefined. Prefers a
+ * numeric skillId lookup and falls back to name-based lookup.
+ */
 export function resolveEntrySkill(
   app: ProfessionAppState,
   item: RotationCommand | { readonly name: SkillId; readonly skillId?: unknown }
@@ -15,6 +20,13 @@ export function resolveEntrySkill(
     : app.skillByName.get(String(identity));
 }
 
+/**
+ * Builds one canonical rotation command from a palette identity plus options.
+ * Sentinel names (`__cooldown_reset`, `__combat_start`, `__wait`) map to their
+ * control commands; anything else becomes a `cast`. Optional cast fields are
+ * only included when supplied, and interrupt timing defaults to the skill's
+ * `defaultInterruptMs` when the caller leaves it unset.
+ */
 export function createRotationItem(
   app: ProfessionAppState,
   name: string,
@@ -46,6 +58,11 @@ export function createRotationItem(
   };
 }
 
+/**
+ * Inserts authored commands at the armed insertion cursor (or appends when no
+ * cursor is set), advances the cursor past them, and triggers a re-sim via
+ * `changed`. Returns false for an empty batch.
+ */
 export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
   if (!items.length) return false;
   // New authored actions invalidate index-based range selections from the previous timeline.
@@ -63,6 +80,7 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Rot
   return true;
 }
 
+/** Builds a single command from a palette identity and inserts it. */
 export function addRotation(app: ProfessionAppState, name: string, options: RotationActionOptions = {}): void {
   insertRotationItems(app, [createRotationItem(app, name, options)]);
 }

@@ -1,5 +1,11 @@
 import type { CastCommand, Skill } from '../../../platform/engine/types.js';
 
+/**
+ * Popover editor for a thief Double Edge cast, letting the author pin the risky
+ * recast to either outcome (succeeded / backfired) so the sim is deterministic.
+ * Only one editor is open at a time; opening a new one closes the previous.
+ */
+
 export type DoubleEdgeOutcome = NonNullable<CastCommand['doubleEdgeOutcome']>;
 
 export interface DoubleEdgeEditorOptions {
@@ -19,22 +25,32 @@ export type ConfigurableDoubleEdgeSkill = Skill & {
   readonly handlerId: 'thief.double-edge';
 };
 
+// Singleton handle for the currently open editor, so a new open can close the old one.
 let activeEditor: DoubleEdgeEditorHandle | null = null;
 
+/** Type guard: true for skills whose Double Edge outcome is author-configurable. */
 export function hasConfigurableDoubleEdgeOutcome(
   skill: Skill | null | undefined
 ): skill is ConfigurableDoubleEdgeSkill {
   return skill?.handlerId === 'thief.double-edge';
 }
 
+/** Closes the open editor, if any. */
 export function closeDoubleEdgeEditor(): void {
   activeEditor?.close();
 }
 
+/** Human-readable label for a stored outcome value. */
 export function doubleEdgeOutcomeLabel(outcome: unknown): string {
   return outcome === 'backfire' ? 'Backfired' : 'Succeeded';
 }
 
+/**
+ * Builds, positions, and mounts the Double Edge popover anchored to a timeline
+ * entry. Wires outside-click/Escape/scroll/resize dismissal and reports the
+ * picked outcome through `onApply`. Returns a handle exposing the element and a
+ * `close()` that tears down all listeners.
+ */
 export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEdgeEditorHandle {
   closeDoubleEdgeEditor();
 
@@ -81,6 +97,8 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEd
   success.checked = !backfire.checked;
 
   let closed = false;
+  // Place the popover to the right of its anchor, flipping left and clamping into
+  // the viewport when it would overflow; the arrow tracks the anchor's center.
   const position = (): void => {
     if (!options.anchor.isConnected) {
       handle.close();
