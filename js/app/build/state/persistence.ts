@@ -1,4 +1,4 @@
-import type { Gw2AppAdapter, ProfessionApplicationBuild } from '../profession/types.js';
+import type { Gw2AppAdapter, ProfessionApplicationBuild } from '../../profession/types.js';
 
 /**
  * Validates and returns an application state adapter.

@@ -9,7 +9,7 @@ import {
   weaponPaletteRows,
   weaponSkills
 } from '../../../js/app/rotation/palette/model.js';
-import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
+import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '../../../js/app/rotation/palette/resource-view.js';
 import { renderPalette } from '../../../js/app/rotation/palette/view.js';

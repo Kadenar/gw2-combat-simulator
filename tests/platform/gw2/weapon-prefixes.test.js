@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createDefaultBuild, replaceBuild } from '../../../js/app/build/persistence.js';
+import { createDefaultBuild, replaceBuild } from '../../../js/app/build/state/persistence.js';
 import {
   calculateAttributes,
   mesmerAppAdapter,

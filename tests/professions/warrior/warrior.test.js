@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '../../../js/app/profession/registry.js';
 import { professionRoute } from '../../../js/app/profession/selector.js';
-import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
+import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
 import { autoattackChainSkillAvailable } from '../../../js/app/rotation/palette/model.js';
 import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';

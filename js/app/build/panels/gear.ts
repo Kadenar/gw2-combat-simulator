@@ -7,12 +7,12 @@ import {
   RUNE_GROUPS,
   SIGIL_GROUPS,
   UTILITY_GROUPS
-} from '../../platform/gw2/gear-data.js';
-import { setWeaponSigil } from '../../platform/gw2/weapon-sigils.js';
-import { groupedOptions, option } from './options.js';
-import { requiredElement, requiredInput, requiredSelect } from '../../platform/ui/dom.js';
+} from '../../../platform/gw2/gear-data.js';
+import { setWeaponSigil } from '../../../platform/gw2/weapon-sigils.js';
+import { groupedOptions, option } from '../../../platform/ui/html.js';
+import { requiredElement, requiredInput, requiredSelect } from '../../../platform/ui/dom.js';
 
-import type { ProfessionAppState } from '../profession/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 function selectRow(label: string, id: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>

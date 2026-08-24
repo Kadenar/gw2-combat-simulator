@@ -3,10 +3,10 @@ import {
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from './build-template-import.js';
-import { errorMessage } from '../../platform/ui/dom.js';
+import { errorMessage } from '../../../platform/ui/dom.js';
 
 import type { BuildTemplateImportPreview } from './build-template-import.js';
-import type { ProfessionAppState } from '../profession/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 interface BuildTemplateDialogElements {
   readonly dialog: HTMLDialogElement;

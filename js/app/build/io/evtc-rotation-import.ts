@@ -1,6 +1,6 @@
-import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
-import type { RotationCommand } from '../../platform/engine/types.js';
-import type { ProfessionAppState } from '../profession/types.js';
+import { normalizeRotation } from '../../../platform/engine/rotation-commands.js';
+import type { RotationCommand } from '../../../platform/engine/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 export interface ImportedEvtcRotation {
   readonly rotation: readonly RotationCommand[];
@@ -17,9 +17,9 @@ export function isJsonRotationFile(file: Pick<File, 'name' | 'type'>): boolean {
 /** Reads EVTC/ZIP bytes and reconstructs the matching active build's rotation. */
 export async function readEvtcRotationFile(file: File, app: ProfessionAppState): Promise<ImportedEvtcRotation> {
   const [{ decompressEvtcInput }, { parseEvtc }, rotationModule] = await Promise.all([
-    import('../../evtc-analyzer/decompression.js'),
-    import('../../evtc-analyzer/parser.js'),
-    import('../../evtc-analyzer/rotation/index.js')
+    import('../../../evtc-analyzer/decompression.js'),
+    import('../../../evtc-analyzer/parser.js'),
+    import('../../../evtc-analyzer/rotation/index.js')
   ]);
   const expanded = await decompressEvtcInput(await file.arrayBuffer());
   const log = parseEvtc(expanded);

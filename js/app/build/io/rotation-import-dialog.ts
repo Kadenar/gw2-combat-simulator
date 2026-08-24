@@ -1,11 +1,11 @@
 import { getRotationItems, readJsonFile } from './files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from './evtc-rotation-import.js';
 import { readDpsReportRotationData, readDpsReportRotationUrl } from './dps-report-rotation-import.js';
-import { isDpsReportData } from '../../dps-report-analyzer/parser.js';
-import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
-import { errorMessage } from '../../platform/ui/dom.js';
+import { isDpsReportData } from '../../../dps-report-analyzer/parser.js';
+import { normalizeRotation } from '../../../platform/engine/rotation-commands.js';
+import { errorMessage } from '../../../platform/ui/dom.js';
 
-import type { ProfessionAppState } from '../profession/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 

@@ -3,19 +3,18 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  groupedOptions,
   DEFAULT_TARGET_ARMOR,
   normalizeTargetArmor,
-  option,
   PERMANENT_TARGET_CONDITIONS,
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '../../js/app/build/options.js';
-import { getBuildExportPayload } from '../../js/app/build/files.js';
-import { skillBarDisplaySkill } from '../../js/app/build/skills-panel.js';
-import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/persistence.js';
+} from '../../js/app/build/panels/options.js';
+import { getBuildExportPayload } from '../../js/app/build/io/files.js';
+import { skillBarDisplaySkill } from '../../js/app/build/panels/skills.js';
+import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/state/persistence.js';
+import { groupedOptions, option } from '../../js/platform/ui/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '../../js/app/profession/registry.js';
 import { professionRoute } from '../../js/app/profession/selector.js';
 import {
@@ -690,7 +689,7 @@ test('current rotation DPS stays above the footer and hides in the professions v
 
 test('gear panel leaves current rotation DPS to the floating metric', async () => {
   const [gearPanel, professionApp, css] = await Promise.all([
-    readFile(new URL('../../js/app/build/gear-panel.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/build/panels/gear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/profession-app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../css/style.css', import.meta.url), 'utf8')
   ]);
@@ -717,7 +716,7 @@ test('empty and authored rotations keep the same timeline height', async () => {
 test('shared app and platform helpers are profession neutral', async () => {
   const sources = await Promise.all([
     readFile(new URL('../../js/app/simulation/modifier-contributions.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/build/persistence.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/app/build/state/persistence.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/simulation/config.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),

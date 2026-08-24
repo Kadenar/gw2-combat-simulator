@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { loadProfession } from '../../../js/app/profession/registry.js';
-import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
+import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
 import { displayedFlipSkills } from '../../../js/app/rotation/palette/model.js';
 import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';

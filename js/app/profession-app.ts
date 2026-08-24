@@ -1,12 +1,17 @@
-import { createDefaultBuild, loadBuild, saveBuild } from './build/persistence.js';
-import { renderAssumptions } from './build/assumptions-panel.js';
-import { renderAttributes } from './build/attributes-panel.js';
-import { renderGear } from './build/gear-panel.js';
-import { bindPageControls } from './build/page-controls.js';
-import { initBuildTemplates, updateTemplateSelection } from './build/presets.js';
-import { normalizeSelectedSkills } from './build/selection.js';
-import { renderSkills } from './build/skills-panel.js';
-import { renderTraits } from './build/traits-panel.js';
+import {
+  bindPageControls,
+  createDefaultBuild,
+  initBuildTemplates,
+  loadBuild,
+  normalizeSelectedSkills,
+  renderAssumptions,
+  renderAttributes,
+  renderGear,
+  renderSkills,
+  renderTraits,
+  saveBuild,
+  updateTemplateSelection
+} from './build/index.js';
 import { addRotation } from './rotation/editing/actions.js';
 import { mountRotationClipboard } from './rotation/editing/clipboard.js';
 import { recordRotationHistory } from './rotation/editing/history.js';

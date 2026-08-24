@@ -1,4 +1,4 @@
-import { createDefaultBuild } from '../../js/app/build/persistence.js';
+import { createDefaultBuild } from '../../js/app/build/state/persistence.js';
 import {
   calculateAttributes as calcAttributes,
   mesmerAppAdapter

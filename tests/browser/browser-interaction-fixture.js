@@ -1,4 +1,4 @@
-import { createDefaultBuild } from '../../js/app/build/persistence.js';
+import { createDefaultBuild } from '../../js/app/build/state/persistence.js';
 
 const output = document.getElementById('fixture-output');
 const frame = document.getElementById('simulator');

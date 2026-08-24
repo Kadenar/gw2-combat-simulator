@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { readDpsReportRotationData, readDpsReportRotationUrl } from '../../js/app/build/dps-report-rotation-import.js';
+import {
+  readDpsReportRotationData,
+  readDpsReportRotationUrl
+} from '../../js/app/build/io/dps-report-rotation-import.js';
 import { DpsReportError } from '../../js/dps-report-analyzer/errors.js';
 import { isDpsReportData, parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
 import {

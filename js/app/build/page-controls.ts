@@ -1,8 +1,7 @@
-import { downloadJson, getBuildExportPayload, readJsonFile } from './files.js';
-import { createDefaultBuild, replaceBuildConfiguration } from './persistence.js';
-import { bindRotationImportDialog } from './rotation-import-dialog.js';
-import { bindBuildTemplateImportDialog } from './build-template-import-dialog.js';
-export { importBuildTemplateCode } from './build-template-import.js';
+import { bindBuildTemplateImportDialog } from './io/build-template-import-dialog.js';
+import { downloadJson, getBuildExportPayload, readJsonFile } from './io/files.js';
+import { bindRotationImportDialog } from './io/rotation-import-dialog.js';
+import { createDefaultBuild, replaceBuildConfiguration } from './state/persistence.js';
 import { redoRotation, undoRotation } from '../rotation/editing/history.js';
 import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../platform/ui/dom.js';
 

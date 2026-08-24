@@ -1,9 +1,9 @@
-import { isDpsReportData, parseDpsReport } from '../../dps-report-analyzer/parser.js';
-import { fetchDpsReport } from '../../dps-report-analyzer/url.js';
-import { normalizeRotation } from '../../platform/engine/rotation-commands.js';
-import type { ParsedDpsReport } from '../../dps-report-analyzer/types.js';
-import type { RotationCommand } from '../../platform/engine/types.js';
-import type { ProfessionAppState } from '../profession/types.js';
+import { isDpsReportData, parseDpsReport } from '../../../dps-report-analyzer/parser.js';
+import { fetchDpsReport } from '../../../dps-report-analyzer/url.js';
+import { normalizeRotation } from '../../../platform/engine/rotation-commands.js';
+import type { ParsedDpsReport } from '../../../dps-report-analyzer/types.js';
+import type { RotationCommand } from '../../../platform/engine/types.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 export interface ImportedDpsReportRotation {
   readonly rotation: readonly RotationCommand[];
@@ -35,7 +35,7 @@ export async function readDpsReportRotationData(
   }
 
   const report = parseDpsReport(input);
-  const rotationModule = await import('../../dps-report-analyzer/rotation/index.js');
+  const rotationModule = await import('../../../dps-report-analyzer/rotation/index.js');
   const activeSpecialization = app.adapter.eliteSpecialization(app.build).trim().toLowerCase();
   const players = rotationModule.detectDpsReportRotationPlayers(report);
   const matchingPlayers = players.filter(

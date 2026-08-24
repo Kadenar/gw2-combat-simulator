@@ -1,13 +1,13 @@
-import { escapeHtml as esc } from '../../platform/ui/html.js';
-import { fetchJsonAsset, getRotationItems, loadPresetBundle } from './files.js';
-import { replaceBuildConfiguration, replaceBuildRotation } from './persistence.js';
+import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '../io/files.js';
+import { replaceBuildConfiguration, replaceBuildRotation } from '../state/persistence.js';
 
 import type {
   BuildTemplatePreset,
   BuildTemplateSection,
   ProfessionAppState,
   ProfessionApplicationBuild
-} from '../profession/types.js';
+} from '../../profession/types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template';
 type TemplateCategory = 'power' | 'condi' | 'other';

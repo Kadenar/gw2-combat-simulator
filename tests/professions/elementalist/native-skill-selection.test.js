@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { availableSlotSkills } from '../../../js/app/build/skills-panel.js';
+import { availableSlotSkills } from '../../../js/app/build/panels/skills.js';
 import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';

@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
-} from '../../../js/app/build/persistence.js';
+} from '../../../js/app/build/state/persistence.js';
 import {
   calculateAttributes as calculateMesmerAttributes,
   calculateModifierContributions,

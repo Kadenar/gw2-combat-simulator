@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { replaceBuild } from '../../js/app/build/persistence.js';
+import { replaceBuild } from '../../js/app/build/state/persistence.js';
 import { createCanonicalCatalog } from '../../js/platform/engine/catalog.js';
 import { custom, strikeTimeline } from '../../js/platform/engine/effect-factories.js';
 import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events.js';

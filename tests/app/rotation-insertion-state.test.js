@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createDefaultBuild } from '../../js/app/build/persistence.js';
+import { createDefaultBuild } from '../../js/app/build/state/persistence.js';
 import { loadProfessionAppAdapter, professionRegistry } from '../../js/app/profession/registry.js';
 import { paletteEndState, paletteProfessionState } from '../../js/app/rotation/shared/context.js';
 import { paletteSkillView } from '../../js/app/rotation/palette/view.js';

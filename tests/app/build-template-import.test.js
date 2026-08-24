@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { importBuildTemplateCode } from '../../js/app/build/page-controls.js';
 import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
+  importBuildTemplateCode,
   previewBuildTemplateCode
-} from '../../js/app/build/build-template-import.js';
+} from '../../js/app/build/io/build-template-import.js';
 import { elementalistCatalog } from '../../js/professions/elementalist/catalog.js';
 import { elementalistAppAdapter } from '../../js/professions/elementalist/app/app-definition.js';
 import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
@@ -100,7 +100,10 @@ test('cross-profession imports identify the build and offer its simulator', () =
 
 test('build-code import uses a review dialog instead of browser prompts', () => {
   const pageControls = readFileSync(new URL('../../js/app/build/page-controls.ts', import.meta.url), 'utf8');
-  const dialog = readFileSync(new URL('../../js/app/build/build-template-import-dialog.ts', import.meta.url), 'utf8');
+  const dialog = readFileSync(
+    new URL('../../js/app/build/io/build-template-import-dialog.ts', import.meta.url),
+    'utf8'
+  );
 
   assert.doesNotMatch(pageControls, /\bprompt\s*\(/);
   assert.match(pageControls, /\.combat-loadout-title/);

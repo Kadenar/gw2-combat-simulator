@@ -10,7 +10,7 @@ import {
   templateMatchesFilter,
   templateSpecializations,
   undoTemplateLoad
-} from '../../js/app/build/presets.js';
+} from '../../js/app/build/panels/presets.js';
 import { normalizeRotation } from '../../js/platform/engine/rotation-commands.js';
 import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/professions/mesmer/data/ids.js';
@@ -149,7 +149,7 @@ test('filtered templates remain hidden despite their flex layout', () => {
 
 test('desktop template sidebar stays left of the simulator workspace', () => {
   const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
-  const source = readFileSync(new URL('../../js/app/build/presets.ts', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../js/app/build/panels/presets.ts', import.meta.url), 'utf8');
 
   assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: 310px minmax\(0, 1fr\);/);
   assert.match(css, /\.profession-main\s*\{\s*min-width: 0;\s*grid-column: 2;\s*grid-row: 1;/);

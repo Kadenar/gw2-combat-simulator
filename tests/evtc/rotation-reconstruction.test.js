@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { deflateRawSync } from 'node:zlib';
 
-import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/evtc-rotation-import.js';
+import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/io/evtc-rotation-import.js';
 import { EvtcError } from '../../js/evtc-analyzer/errors.js';
 import { EVTC_PROFESSIONS, EVTC_SPECIALIZATIONS } from '../../js/evtc-analyzer/profession-metadata.js';
 import {

@@ -1,8 +1,11 @@
-import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '../../platform/gw2/build-template-codec.js';
-import { replaceBuildConfiguration } from './persistence.js';
+import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '../../../platform/gw2/build-template-codec.js';
+import { replaceBuildConfiguration } from '../state/persistence.js';
 
-import type { Gw2BuildTemplateWeaponSet, ResolvedGw2BuildTemplate } from '../../platform/gw2/build-template-codec.js';
-import type { ProfessionAppState } from '../profession/types.js';
+import type {
+  Gw2BuildTemplateWeaponSet,
+  ResolvedGw2BuildTemplate
+} from '../../../platform/gw2/build-template-codec.js';
+import type { ProfessionAppState } from '../../profession/types.js';
 
 interface BuildTemplateProfession {
   readonly code: number;
