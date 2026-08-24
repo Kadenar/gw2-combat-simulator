@@ -1,6 +1,7 @@
 import { createSimulationRandom } from '../../engine/simulation-random.js';
 import type { SchedulerRecord, SchedulerState, SimulationRandom } from '../../engine/types.js';
 import { createRelicRuntime } from '../relic-rules.js';
+import { createCanonicalTargetConditionStateMap } from '../target-state.js';
 import type {
   Gw2CombatQuery,
   Gw2Config,
@@ -54,7 +55,7 @@ export function createMaterializerState(
     combatBeganAt: null,
     criticalFactsRequired,
     boons: new Map(),
-    conditionState: new Map(),
+    conditionState: createCanonicalTargetConditionStateMap(),
     totals: { strike: 0, condition: 0 },
     relic: createRelicRuntime(config.relic),
     random: createSimulationRandom(config.randomness),

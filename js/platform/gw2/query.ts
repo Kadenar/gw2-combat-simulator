@@ -157,6 +157,46 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
 
   const startingWeaponSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
   const staticConfig = configWithBaselineStats(startingWeaponSet);
+  const activeConfigsByWeaponSet = new Map<number, Gw2Config>();
+  const staticAttributesByWeaponSet = new Map<number, Gw2ResolvedStats>();
+  /** Reuses immutable weapon-set inputs while returning fresh mutable attribute results to profession hooks. */
+  const staticAttributesAt = (weaponSet: number, mightStacks: number): Gw2ResolvedStats => {
+    const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
+    let base = staticAttributesByWeaponSet.get(normalizedWeaponSet);
+    if (!base) {
+      base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), 0, normalizedWeaponSet);
+      staticAttributesByWeaponSet.set(normalizedWeaponSet, base);
+    }
+
+    const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
+    return {
+      ...base,
+      power: Number(base.power || 0) + mightBonus,
+      conditionDamage: Number(base.conditionDamage || 0) + mightBonus,
+      conditionDurationBonuses: { ...(base.conditionDurationBonuses || {}) }
+    };
+  };
+
+  /** Builds each weapon-set-specific hook configuration once per combat query. */
+  function activeConfigForWeaponSet(weaponSet: number): Gw2Config {
+    if (!config.weaponSetStats?.length) return staticConfig;
+    const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
+    const cached = activeConfigsByWeaponSet.get(normalizedWeaponSet);
+    if (cached) return cached;
+    const activeConfig = configWithBaselineStats(normalizedWeaponSet);
+    const calculatedPrimaryWeapon = (normalizedWeaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || '';
+    const resolved = {
+      ...activeConfig,
+      attributeProvenance: {
+        ...(config.attributeProvenance || {}),
+        calculatedWeaponSet: normalizedWeaponSet,
+        calculatedPrimaryWeapon
+      }
+    };
+    activeConfigsByWeaponSet.set(normalizedWeaponSet, resolved);
+    return resolved;
+  }
+
   let query: Readonly<Gw2CombatQuery> | null = null;
 
   /**
@@ -346,18 +386,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   const activeSigilSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined) =>
     gw2SigilSet(config, activeWeaponSetAt(time, runtime));
   const activeConfigAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): Gw2Config => {
-    if (!config.weaponSetStats?.length) return staticConfig;
-    const weaponSet = activeWeaponSetAt(time, runtime);
-    const activeConfig = configWithBaselineStats(weaponSet);
-    const calculatedPrimaryWeapon = (weaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || '';
-    return {
-      ...activeConfig,
-      attributeProvenance: {
-        ...(config.attributeProvenance || {}),
-        calculatedWeaponSet: weaponSet,
-        calculatedPrimaryWeapon
-      }
-    };
+    return activeConfigForWeaponSet(activeWeaponSetAt(time, runtime));
   };
 
   const hookContext = (
@@ -397,10 +426,10 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     event: SimulationEvent | null = null,
     runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
-    const activeConfig = activeConfigAt(time, runtime);
+    const activeWeaponSet = activeWeaponSetAt(time, runtime);
     const modifiedStats = activeProfession.modifyAttributes(
       hookContext(time, { event, runtime }),
-      gw2StaticAttributes(activeConfig, mightStacksAt(time, runtime, event), activeWeaponSetAt(time, runtime))
+      staticAttributesAt(activeWeaponSet, mightStacksAt(time, runtime, event))
     ) as unknown as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.

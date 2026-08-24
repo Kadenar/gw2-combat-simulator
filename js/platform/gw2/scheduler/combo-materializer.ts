@@ -51,10 +51,7 @@ interface OwnedFinisherDescriptor extends SchedulerRecord {
 }
 
 function currentEvent(context: SchedulerContext, original: SimulationEvent): SimulationEvent {
-  return (
-    context.events.find((candidate) => candidate.type === original.type && candidate.__order === original.__order) ||
-    original
-  );
+  return context.eventByOrder(Number(original.__order)) || original;
 }
 
 function fieldDescriptors(context: SchedulerContext, event: SimulationEvent): readonly OwnedFieldDescriptor[] {
@@ -132,7 +129,8 @@ function fieldAt(event: SimulationEvent, descriptor: OwnedFieldDescriptor) {
 }
 
 function activeOwnedFields(context: SchedulerContext, ownerId: string, at: number): ComboFieldEvent[] {
-  return context.events
+  return context
+    .eventsOfType('combo_field')
     .filter(
       (event): event is ComboFieldEvent =>
         event.type === 'combo_field' &&
@@ -156,13 +154,15 @@ function descriptorBinding(
   if (explicit) {
     const field =
       explicit.kind === 'field-id'
-        ? context.events.find(
-            (event): event is ComboFieldEvent =>
-              event.type === 'combo_field' &&
-              event.fieldId === explicit.fieldId &&
-              event.at <= at + context.epsilon &&
-              Number(event.expiresAt) > at + context.epsilon
-          )
+        ? context
+            .eventsOfType('combo_field')
+            .find(
+              (event): event is ComboFieldEvent =>
+                event.type === 'combo_field' &&
+                event.fieldId === explicit.fieldId &&
+                event.at <= at + context.epsilon &&
+                Number(event.expiresAt) > at + context.epsilon
+            )
         : undefined;
     return { binding: explicit, fieldAt: field?.at, warnOnUnbound: false };
   }
@@ -195,7 +195,7 @@ function projectilePacketIdentity(event: SimulationEvent, parentEventOrder: numb
 }
 
 function rebindPendingFinishers(context: SchedulerContext, ownerId: string): void {
-  for (const pending of [...context.events]) {
+  for (const pending of [...context.eventsOfType('combo_finisher')]) {
     if (pending.type !== 'combo_finisher' || pending.comboAllowRebind !== true || pending.comboOwnerId !== ownerId) {
       continue;
     }

@@ -37,7 +37,16 @@ const CONDITION_ALIASES = Object.freeze({
   weakened: 'Weakness'
 });
 
+const CANONICAL_CONDITION_STATE_MAPS = new WeakSet<ReadonlyMap<string, unknown>>();
+
 export const CANONICAL_TARGET_CONDITIONS = Object.freeze([...new Set(Object.values(CONDITION_ALIASES))].sort());
+
+/** Creates an internally owned condition map whose keys are canonicalized before insertion. */
+export function createCanonicalTargetConditionStateMap<T>(): Map<string, T> {
+  const state = new Map<string, T>();
+  CANONICAL_CONDITION_STATE_MAPS.add(state);
+  return state;
+}
 
 /**
  * Normalizes simulator and wiki condition spellings to the canonical runtime
@@ -164,6 +173,13 @@ export function runtimeTargetConditionStacks(
 ): number {
   if (!(runtime?.conditionState instanceof Map)) return 0;
   const canonicalName = canonicalTargetConditionName(name);
+  if (CANONICAL_CONDITION_STATE_MAPS.has(runtime.conditionState)) {
+    const entry = runtime.conditionState.get(canonicalName);
+    return (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
+  }
+
+  // Externally supplied and legacy maps may contain aliases or duplicate
+  // spellings, so retain the complete compatibility scan for unmarked maps.
   let total = 0;
   for (const [condition, entry] of runtime.conditionState) {
     if (canonicalTargetConditionName(condition) !== canonicalName) continue;

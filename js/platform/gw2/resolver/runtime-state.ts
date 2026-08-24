@@ -1,5 +1,6 @@
 import { createSimulationRandom } from '../../engine/simulation-random.js';
 import { createGw2ComboRuntimeState } from '../combo-events.js';
+import { createCanonicalTargetConditionStateMap } from '../target-state.js';
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
@@ -39,7 +40,7 @@ export function createGw2ResolverRuntimeState({
     eventFilterState,
     breakdown: new Map(),
     conditions: new Map(),
-    conditionState: new Map(),
+    conditionState: createCanonicalTargetConditionStateMap(),
     conditionApplications: [],
     resolved: [],
     procSteps: [],

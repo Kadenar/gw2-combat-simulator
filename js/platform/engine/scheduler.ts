@@ -284,6 +284,44 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   // Derived events share their cause's integer order and use fractional
   // suffixes, keeping them adjacent to the cause at equal timestamps.
   const derivedEventCounts = new Map<number, number>();
+  // Shared indexes let scheduler policies and profession hooks query narrow
+  // event subsets without repeatedly scanning the complete scheduled stream.
+  const eventTypeIndex = new Map<string, SimulationEvent[]>();
+  const eventOrderIndex = new Map<number, SimulationEvent>();
+  const emptyEventBucket = Object.freeze([]) as readonly SimulationEvent[];
+  const indexEvent = (event: SimulationEvent): void => {
+    const type = String(event.type || '');
+    const bucket = eventTypeIndex.get(type);
+    if (bucket) bucket.push(event);
+    else eventTypeIndex.set(type, [event]);
+    const order = Number(event.__order);
+    if (Number.isFinite(order)) eventOrderIndex.set(order, event);
+  };
+
+  const replaceIndexedEvent = (event: SimulationEvent, replacement: SimulationEvent): void => {
+    const previousType = String(event.type || '');
+    const nextType = String(replacement.type || '');
+    if (previousType === nextType) {
+      const bucket = eventTypeIndex.get(previousType);
+      const index = bucket?.indexOf(event) ?? -1;
+      if (bucket && index >= 0) bucket[index] = replacement;
+    } else {
+      // Type-changing replacements are rare; rebuilding the two affected
+      // buckets preserves the exact insertion order exposed by context.events.
+      eventTypeIndex.set(
+        previousType,
+        events.filter((candidate) => String(candidate.type || '') === previousType)
+      );
+      eventTypeIndex.set(
+        nextType,
+        events.filter((candidate) => String(candidate.type || '') === nextType)
+      );
+    }
+
+    const order = Number(event.__order);
+    if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
+  };
+
   // Buff events are indexed by lowercased kind so buffStacks/hasBuff scan only
   // the relevant buffs instead of the entire event log on every query.
   const buffIndex = new Map<string, SimulationEvent[]>();
@@ -351,6 +389,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const prefix = String(kind || 'effect');
       return `${prefix}:${++activationOrder}`;
     },
+    eventsOfType(type: string) {
+      return eventTypeIndex.get(String(type || '')) || emptyEventBucket;
+    },
+    eventByOrder(order: number) {
+      return eventOrderIndex.get(Number(order));
+    },
     emit(/** @type {SimulationEventInput} */ event) {
       const professionPrepared = activeProfession.prepareEvent(context, event);
       const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
@@ -359,6 +403,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         __order: eventOrder++
       });
       events.push(normalized);
+      indexEvent(normalized);
       indexBuffEvent(normalized);
       state.pendingEvents.push(normalized);
       observationQueue.push(normalized);
@@ -395,6 +440,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       replaceReference(events);
       replaceReference(state.pendingEvents);
       replaceReference(observationQueue);
+      replaceIndexedEvent(event, replacement);
       indexBuffEvent(replacement);
       return replacement;
     },

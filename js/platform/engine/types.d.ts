@@ -628,6 +628,8 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   maximumAmmoFor(skill: Skill): number;
   createActivationId(kind?: 'effect' | 'summon-attack' | string): string;
   advanceTo(at: number): void;
+  eventsOfType(type: string): readonly SimulationEvent[];
+  eventByOrder(order: number): SimulationEvent | undefined;
   emit(event: SimulationEventInput): SimulationEvent;
   replaceEvent(event: SimulationEvent, updates: SchedulerRecord): SimulationEvent;
   emitDerived(cause: SimulationEvent, event: SimulationEventInput): SimulationEvent;
