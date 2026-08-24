@@ -2087,6 +2087,82 @@ test('Vampiric siphons on every direct player and minion hit with separate power
   );
 });
 
+test('Vampiric Presence uses its half-second interval and stronger Shroud siphon', () => {
+  const base = simulate('Core', ['Ghastly Claws'], {
+    primaryWeapon: 'Axe',
+    selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+    stats: { power: 1000 }
+  });
+  const shroud = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud'], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+    stats: { power: 1000 }
+  });
+  const baseSiphons = base.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
+  );
+  const shroudSiphon = shroud.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
+  );
+
+  assert.deepEqual(
+    baseSiphons.map((event) => Number(event.at.toFixed(2))),
+    [0.27, 0.81, 1.35, 1.89]
+  );
+  assert.equal(
+    baseSiphons.every(
+      (event) =>
+        event.flatStrikeBase === 32 &&
+        event.flatStrikePowerCoeff === 0.0333 &&
+        Math.abs(event.damage - 65.3) < 1e-12 &&
+        event.damageKind === 'life-steal' &&
+        event.criticalChance === 0
+    ),
+    true
+  );
+  assert.equal(shroudSiphon.flatStrikeBase, 62);
+  assert.equal(shroudSiphon.flatStrikePowerCoeff, 0.0666);
+  assert.ok(Math.abs(shroudSiphon.damage - 128.6) < 1e-12);
+});
+
+test('Vampiric Presence supports four allied players and respects its five-target cap', () => {
+  const allies = simulate('Core', [{ type: 'wait', durationMs: 1100 }], {
+    selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+    stats: { power: 1000 },
+    allies: { count: 10, strikesPerSecond: 10 }
+  });
+  const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
+    selectedSkills: ['Summon Bone Fiend'],
+    selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+    stats: { power: 1000 }
+  });
+  const cappedMinion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
+    selectedSkills: ['Summon Bone Fiend'],
+    selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
+    stats: { power: 1000 },
+    allies: { count: 4, strikesPerSecond: 0 }
+  });
+  const alliedSiphons = allies.resolvedEvents.filter(
+    (event) => event.type === 'damage' && String(event.triggeredBy).startsWith('Allied Player')
+  );
+  const minionSiphons = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Vampiric Presence' && event.triggeredBy === 'Bone Shard'
+    );
+
+  assert.equal(alliedSiphons.length, 8);
+  assert.deepEqual(
+    [...new Set(alliedSiphons.map((event) => event.triggeredBy))],
+    ['Allied Player 1 Attack', 'Allied Player 2 Attack', 'Allied Player 3 Attack', 'Allied Player 4 Attack']
+  );
+  assert.equal(
+    alliedSiphons.every((event) => Math.abs(event.damage - 65.3) < 1e-12),
+    true
+  );
+  assert.equal(minionSiphons(minion).length > 0, true);
+  assert.equal(minionSiphons(cappedMinion).length, 0);
+});
+
 test('Rigor Mortis is instant and fires two immobilizing projectile finishers', () => {
   const result = simulate('Core', ['Summon Bone Fiend', 'Rigor Mortis', { type: 'wait', durationMs: 4000 }], {
     selectedSkills: ['Summon Bone Fiend'],

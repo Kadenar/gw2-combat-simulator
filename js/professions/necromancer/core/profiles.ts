@@ -193,15 +193,26 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     ]
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.vampiricPresence, 'Vampiric Presence', {
-    cooldown: 1,
+    cooldown: 0.5,
     effects: [
       {
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        flatStrikeBase: 80,
-        flatStrikePowerCoeff: 0.03,
+        flatStrikeBase: 32,
+        flatStrikePowerCoeff: 0.0333,
         actorType: 'effect',
+        packetLabel: 'base',
+        metadata: { noCrit: true, damageKind: 'life-steal' }
+      },
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 62,
+        flatStrikePowerCoeff: 0.0666,
+        actorType: 'effect',
+        packetLabel: 'shroud',
         metadata: { noCrit: true, damageKind: 'life-steal' }
       }
     ]

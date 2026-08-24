@@ -4,6 +4,7 @@ import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js'
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { addCarapace } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { gw2AlliedEffectRecipients } from '../../../platform/gw2/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/native-profession.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
@@ -150,6 +151,80 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
     flatStrikeBase: Number(effect?.flatStrikeBase || (minionHit ? 50 : 38)),
     flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || (minionHit ? 0.0213 : 0.003))
   });
+}
+
+function vampiricPresenceCompanionIds(context: NecromancerResolverContext): string[] {
+  const ids: string[] = [];
+  for (const [key, count] of Object.entries(professionCoreState(context).activeMinions || {})) {
+    for (let index = 0; index < Number(count || 0); index += 1) ids.push(`minion:${key}:${index}`);
+  }
+
+  const specializationState = context.profession.specialization.state as {
+    readonly activeSpirits?: Readonly<Record<string, boolean>>;
+  };
+  for (const [key, active] of Object.entries(specializationState.activeSpirits || {})) {
+    if (active) ids.push(`spirit:${key}`);
+  }
+
+  return ids;
+}
+
+function vampiricPresenceActorKey(context: NecromancerResolverContext, event: NecromancerResolverEvent): string | null {
+  if (event.actorType === 'player') return 'self';
+  if (event.actorType !== 'summon') return null;
+  const recipients = gw2AlliedEffectRecipients(context.config, {
+    maximumRecipients: 5,
+    companionIds: vampiricPresenceCompanionIds(context)
+  });
+  const owner = String(event.summonOwner || '');
+  if (owner && recipients.companionIds.includes(owner)) return owner;
+  if (!owner && recipients.companionIds.length > 0) {
+    return `summon:${String(event.sourceId || event.skillId || event.skillName || 'unknown')}`;
+  }
+
+  return null;
+}
+
+// Vampiric Presence has a per-recipient interval and swaps to its stronger
+// packet only for real Necromancer Shroud forms; Lich Form is a transform.
+function queueVampiricPresence(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent,
+  actorKey: string,
+  intervalAlreadyApplied = false
+): void {
+  const profile = necromancerBalanceProfile(context, PROFILE.vampiricPresence);
+  const state = professionCoreState(context);
+  const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
+  const packetLabel = inShroud ? 'shroud' : 'base';
+  const effect = profile?.effects?.find(
+    (candidate) => candidate.type === 'strike' && candidate.packetLabel === packetLabel
+  );
+  const readyAt =
+    actorKey === 'self'
+      ? Number(state.vampiricPresenceReadyAt || 0)
+      : Number(state.traitProcReadyAt[`vampiricPresence:${actorKey}`] || 0);
+  if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
+
+  if (!intervalAlreadyApplied) {
+    const nextAt = event.at + Number(profile?.cooldown ?? 0.5);
+    if (actorKey === 'self') state.vampiricPresenceReadyAt = nextAt;
+    else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
+  }
+  queueTraitDamage(context, event, {
+    name: 'Vampiric Presence',
+    traitId: TRAIT.VAMPIRIC_PRESENCE,
+    flatStrikeBase: Number(effect?.flatStrikeBase ?? (inShroud ? 62 : 32)),
+    flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? (inShroud ? 0.0666 : 0.0333))
+  });
+}
+
+export function reactToVampiricPresenceAlliedHit(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent
+): void {
+  if (!hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) return;
+  queueVampiricPresence(context, event, `ally:${Number(event.allyIndex || 0)}`, true);
 }
 
 export function targetIsChilled(context: NecromancerResolverContext, at: number): boolean {
@@ -331,19 +406,9 @@ export function reactToNecromancerCoreDamage(
   }
 
   necromancerBarbedPrecisionReaction.handler(context, event, details);
-  if (
-    hasTrait(context, TRAIT.VAMPIRIC_PRESENCE) &&
-    isInternalCooldownReady(event.at, Number(professionCoreState(context).vampiricPresenceReadyAt || 0))
-  ) {
-    const profile = necromancerBalanceProfile(context, PROFILE.vampiricPresence);
-    const effect = balanceProfileEffect(profile, 'strike');
-    professionCoreState(context).vampiricPresenceReadyAt = event.at + Number(profile?.cooldown || 1);
-    queueTraitDamage(context, event, {
-      name: 'Vampiric Presence',
-      traitId: TRAIT.VAMPIRIC_PRESENCE,
-      flatStrikeBase: Number(effect?.flatStrikeBase || 80),
-      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.03)
-    });
+  if (hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) {
+    const actorKey = vampiricPresenceActorKey(context, event);
+    if (actorKey) queueVampiricPresence(context, event, actorKey);
   }
 
   if (hasTrait(context, TRAIT.OVERFLOWING_THIRST) && hasActiveBuff(context, 'taste-for-blood', event.at)) {

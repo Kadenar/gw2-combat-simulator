@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/allied-players.js';
 /**
  * Life-force resource clock and cast finalization.
  *
@@ -108,11 +109,48 @@ function activeSignetOfVampirism(context: NecromancerSchedulerContext): boolean 
   return selectedSkillNames(context).includes('Signet of Vampirism');
 }
 
+// Configured party members contribute trigger-only attacks for Vampiric
+// Presence. Each ally owns the half-second interval and never adds base damage.
+function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, start: number, end: number): void {
+  if (!hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) return;
+  const allies = gw2AlliedPlayerAssumptions(context.config);
+  if (!allies.count || !allies.strikesPerSecond) return;
+  const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
+  if (combatStart == null || end < combatStart - context.epsilon) return;
+
+  const state = professionCoreState(context);
+  const interval = Math.max(
+    Number(necromancerBalanceProfile(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5),
+    1 / allies.strikesPerSecond
+  );
+  const windowStart = Math.max(start, combatStart);
+  let nextAt = Number(state.traitProcReadyAt.vampiricPresenceAlliedNextAt || 0);
+  if (!(nextAt > windowStart + context.epsilon)) nextAt = windowStart + interval;
+  while (nextAt <= end + context.epsilon) {
+    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
+      context.emit({
+        type: 'necromancer.vampiric-presence-allied-hit',
+        at: nextAt,
+        source: 'Trait',
+        sourceId: TRAIT.VAMPIRIC_PRESENCE,
+        actorType: 'effect',
+        skillName: `Allied Player ${allyIndex} Attack`,
+        allyIndex
+      });
+    }
+
+    nextAt += interval;
+  }
+
+  state.traitProcReadyAt.vampiricPresenceAlliedNextAt = nextAt;
+}
+
 export function advanceNecromancerState(context: NecromancerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const start = Number(state.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   purgeTimedState(state, end);
+  emitAlliedVampiricPresenceHits(context, start, end);
 
   if (activeSignetOfUndeath(context)) {
     const passive = necromancerBalanceProfile(context, PROFILE.signetOfUndeathPassive);

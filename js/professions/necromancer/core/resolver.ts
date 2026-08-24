@@ -8,7 +8,8 @@ import {
   reactToNecromancerBlind,
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreControl,
-  reactToNecromancerCoreDamage
+  reactToNecromancerCoreDamage,
+  reactToVampiricPresenceAlliedHit
 } from './traits.js';
 
 /**
@@ -18,7 +19,8 @@ export const necromancerCoreResolverEventHandlers = Object.freeze({
   'necromancer.state': handleNecromancerStateEvent,
   'necromancer.chill': handleNecromancerChillEvent,
   'necromancer.revive': handleNecromancerReviveEvent,
-  'necromancer.summon-attack': handleNecromancerSummonAttack
+  'necromancer.summon-attack': handleNecromancerSummonAttack,
+  'necromancer.vampiric-presence-allied-hit': reactToVampiricPresenceAlliedHit
 });
 
 /**
