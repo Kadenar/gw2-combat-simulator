@@ -44,6 +44,10 @@ const MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS = 1500;
 const MIRAGE_PRE_SWAP_STAFF_ACTION_WINDOW_MS = 1500;
 const PHANTASM_COMBO_AURA_WINDOW_MS = 250;
 
+/**
+ * Reports whether a Chaos Aura gain coincides with a Swordsman or Lancer combo inside an active ethereal well, so the
+ * resulting aura is not misidentified as an explicit Chaos Armor cast.
+ */
 function phantasmComboAura(actions: readonly EvtcRecordedRotationAction[], time: number): boolean {
   const fieldActive = [
     { identity: WELL_OF_CALAMITY, durationMs: 4800 },
@@ -66,6 +70,10 @@ function phantasmComboAura(actions: readonly EvtcRecordedRotationAction[], time:
   );
 }
 
+/**
+ * Returns the earliest event for each agent of the requested species that is owned by the selected Mesmer, excluding
+ * the player and agents belonging to other players.
+ */
 function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, speciesId: number): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
@@ -90,6 +98,10 @@ function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, sp
   );
 }
 
+/**
+ * Reconstructs Unstable Bladestorm casts whose animations are absent by clustering player-owned missile events and
+ * treating each unmatched missile cluster as the cast's completion evidence.
+ */
 function missingUnstableBladestormActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -106,6 +118,7 @@ function missingUnstableBladestormActions(
   );
 }
 
+/** Reconstructs missing Chaos Storm casts from their effect GUID when no nearby recorded action already represents it. */
 function missingChaosStormActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -117,6 +130,10 @@ function missingChaosStormActions(
   );
 }
 
+/**
+ * Identifies Phase Retreat signals by requiring a Mesmer teleport effect to coincide with the spawn of a player-owned
+ * staff clone, which excludes unrelated teleports that share the effect.
+ */
 function phaseRetreatSignals(context: EvtcProfessionReconstructionContext): MesmerSignal[] {
   const cloneSpawns = firstOwnedAgentSignals(context, STAFF_CLONE_SPECIES);
   return effectSignals(context, MESMER_EFFECT_GUIDS.mesmerTeleport).filter((signal) =>
@@ -124,6 +141,7 @@ function phaseRetreatSignals(context: EvtcProfessionReconstructionContext): Mesm
   );
 }
 
+/** Converts unmatched Phase Retreat evidence into canonical instant actions. */
 function phaseRetreatActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -135,6 +153,10 @@ function phaseRetreatActions(
   );
 }
 
+/**
+ * Reconstructs explicit or initial-state Chaos Armor actions from aura gains while rejecting gains caused by Phase
+ * Retreat, Chaos Storm, and phantasm combos, and retiming delayed Mirage aura packets to their pre-swap staff use.
+ */
 function chaosArmorActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -225,6 +247,10 @@ function chaosArmorActions(
     });
 }
 
+/**
+ * Reconstructs Core, Chronomancer, and Mirage Distortion casts from clustered buff gains while leaving Virtuoso and
+ * Troubadour to their specialization-specific mechanics.
+ */
 function distortionActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -240,6 +266,10 @@ function distortionActions(
   );
 }
 
+/**
+ * Infers Mirror Images from simultaneous pairs of player-owned clone spawns, excluding Phase Retreat spawns and using
+ * build selection or repeated spawn pairs to avoid treating an ambiguous pair as a utility cast.
+ */
 function mirrorImagesActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -271,6 +301,10 @@ function mirrorImagesActions(
   });
 }
 
+/**
+ * Reconstructs Signet of Midnight from its effect GUID unless the packet is a cooldown-restored effect immediately
+ * following Continuum Shift or a nearby action already represents the cast.
+ */
 function signetOfMidnightActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -298,6 +332,10 @@ function signetOfMidnightActions(
   });
 }
 
+/**
+ * Infers an opening Mimic precast when selected build data permits it and the timing of two later Mimic records implies
+ * that an unrecorded use completed at combat start.
+ */
 function inferredOpeningMimic(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -333,6 +371,10 @@ function inferredOpeningMimic(
   ];
 }
 
+/**
+ * Adds Mesmer-wide actions recoverable from missiles, effects, buffs, owned summons, and opening-state timing before
+ * specialization-specific reconstruction runs.
+ */
 export function addMesmerCommonActions(
   context: EvtcProfessionReconstructionContext,
   recordedActions: readonly EvtcRecordedRotationAction[]

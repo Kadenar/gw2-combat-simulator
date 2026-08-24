@@ -19,6 +19,10 @@ const specializationReconstructors: ReadonlyMap<string, MesmerActionTransform> =
   ['virtuoso', reconstructVirtuosoActions]
 ]);
 
+/**
+ * Removes actions beyond the encounter boundary, applies Mirage's post-encounter input grace period, and deduplicates
+ * the merged generic and specialization-specific action streams.
+ */
 function finalizeMesmerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -30,6 +34,10 @@ function finalizeMesmerActions(
   );
 }
 
+/**
+ * Runs the Mesmer EVTC reconstruction pipeline: common evidence recovery, specialization mechanics, autoattack
+ * commitment filtering, encounter-boundary cleanup, and final deduplication.
+ */
 export function reconstructMesmerProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {

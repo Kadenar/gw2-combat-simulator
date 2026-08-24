@@ -340,15 +340,75 @@ test('reconstructs casts, inferred instants, swaps, dodges, and exact timing', (
   assert.equal(result.actions[3].supportedByCatalog, false);
   assert.deepEqual(result.rotation, [
     { name: '__combat_start' },
-    { name: '__wait', waitMs: 200 },
     { name: 'Mind Stab', skillId: 1_000 },
     { name: 'Time Sink', skillId: 2_000, offset: 100 },
     { name: 'Swap Weapons', skillId: -3, offset: 100 },
-    { name: '__wait', waitMs: 100 },
     { name: 'Dodge', skillId: -5 }
   ]);
   assert.match(result.warnings[0], /instant cast was inferred/);
   assert.match(result.warnings[1], /not present/);
+});
+
+test('keeps overlapping autoattacks serial and does not replay animation tails as waits', () => {
+  const autoattack = {
+    id: 4_000,
+    name: 'Fixture Autoattack',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    castTimeMs: 840,
+    quicknessCastTimeMs: 560,
+    effects: [],
+    implemented: true
+  };
+  const fixture = log({
+    skills: [{ id: autoattack.id, name: autoattack.name }],
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      event({ time: 1_200, stateChange: 67, skillId: autoattack.id, value: 840 }),
+      event({ time: 1_600, stateChange: 68, skillId: autoattack.id, value: 400, activation: 3 }),
+      event({ time: 1_733, target: 0x2000n, skillId: autoattack.id, value: 100 }),
+      event({ time: 1_760, stateChange: 67, skillId: autoattack.id, value: 840 }),
+      event({ time: 1_900, stateChange: 68, skillId: autoattack.id, value: 140, activation: 4 }),
+      event({ time: 2_000, stateChange: 67, skillId: autoattack.id, value: 840 }),
+      event({ time: 2_400, stateChange: 68, skillId: autoattack.id, value: 400, activation: 3 }),
+      event({ time: 2_533, target: 0x2000n, skillId: autoattack.id, value: 100 })
+    ]
+  });
+
+  const result = reconstructEvtcRotation(fixture, { skills: [...catalog.skills, autoattack] });
+  const autoattackCommands = result.rotation.filter((command) => command.name === autoattack.name);
+
+  assert.equal(autoattackCommands.length, 3);
+  assert.equal(
+    autoattackCommands.every((command) => command.offset == null),
+    true
+  );
+  assert.equal(autoattackCommands[1].interruptMs, 140);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait'),
+    []
+  );
+});
+
+test('adds waits only for sustained observed idle gaps between completed casts', () => {
+  const fixture = log({
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      event({ time: 1_200, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 1_600, stateChange: 68, skillId: 1_000, value: 400, activation: 3 }),
+      event({ time: 1_940, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 2_340, stateChange: 68, skillId: 1_000, value: 400, activation: 3 }),
+      event({ time: 3_100, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 3_500, stateChange: 68, skillId: 1_000, value: 400, activation: 3 })
+    ]
+  });
+
+  const result = reconstructEvtcRotation(fixture, catalog);
+
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait'),
+    [{ name: '__wait', waitMs: 600 }]
+  );
 });
 
 test('uses observed strike packets to reconcile interrupted casts generically', () => {

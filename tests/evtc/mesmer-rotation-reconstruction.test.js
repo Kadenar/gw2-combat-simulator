@@ -267,6 +267,32 @@ test('separates a second shatter after three clone detonations', () => {
   assert.equal(names(result, 'Split Second').length, 2);
 });
 
+test('recovers a shatter whose only effect signals coincide with clone lifecycle ends', () => {
+  const cloneAddresses = [0x3000n, 0x3001n];
+  const skills = [skill(56930, 'Split Second')];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      effect(101, 11_000),
+      cloneDeath(cloneAddresses[0], 11_000),
+      effect(101, 11_080),
+      cloneDeath(cloneAddresses[1], 11_080, 21),
+      effect(101, 11_700)
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    names(result, 'Split Second').map((action) => action.timestampMs),
+    [1_000, 1_700]
+  );
+});
+
 test('does not collapse rapid Time Sink fallback packets into one shatter', () => {
   const skills = [skill(56873, 'Time Sink')];
   const fixture = mesmerLog(40, skills, [
@@ -545,7 +571,7 @@ test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across C
 
   assert.deepEqual(
     replayedSplits.map((step) => step.start),
-    [1_000, 1_600, 3_100]
+    [1_000, 1_600, 2_900]
   );
   assert.ok(replayedSplits.every((step) => !step.invalid));
 });

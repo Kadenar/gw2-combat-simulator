@@ -376,7 +376,6 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     allSkills,
     epsilon: EPSILON,
     activePrimaryWeapon,
-    currentResource: actions.currentResource,
     markCompounding: resources.markCompounding,
     queueResources: resources.queueResources,
     addEvent,
@@ -536,7 +535,9 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
                 playerEffectEnd: context.effectiveEnd,
                 skipDirectResource: details.resourceScheduledDuringCast
               }
-            : { skipDirectResource: details.resourceScheduledDuringCast }
+            : {
+                skipDirectResource: details.resourceScheduledDuringCast
+              }
         );
       }
 
@@ -716,13 +717,13 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
   const delayedResourceSpend =
     shatter?.consumesResources !== false && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
   const earlyResourceAt =
-    skill.id === ID.MIND_THE_GAP && skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
+    skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
       ? context.start + Number(skill.resource.atMs || 0) / 1000 + EPSILON
       : null;
   const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < context.fullEnd - EPSILON;
   const earlyResourceOwnerId = `${context.reservationId}:mesmer.resource`;
   if (resourceScheduledDuringCast) {
-    // Mind the Gap's clone packet resolves before cast completion, allowing an instant shatter to consume it first.
+    // Cast-start resource packets must resolve during the cast so concurrent shatters can consume them.
     context.tasks.schedule({
       type: TASK.resourceGain,
       at: earlyResourceAt,
@@ -966,6 +967,18 @@ export function handleResourceGainTask(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const { count, weapon, reason, cause } = task.payload;
+  const sourceSkill = runtime.skillsById.get(Number(cause?.sourceSkillId));
+  const resolvesMaximumCloneOutcome =
+    runtime.resourceDefinition.singular === 'clone' &&
+    runtime.actions.currentResource() >= runtime.resourceDefinition.maximum &&
+    Boolean(sourceSkill?.maxCloneEffects?.length);
+  if (resolvesMaximumCloneOutcome && sourceSkill) {
+    // The resource packet owns the outcome: at impact time it either creates a clone or emits the skill's at-cap effect.
+    for (const effect of sourceSkill.maxCloneEffects || []) {
+      runtime.addCondition(sourceSkill.name, task.at, { ...effect, name: effect.condition }, 'Player');
+    }
+    return;
+  }
   runtime.resources.gainResources(task.at, count, weapon, reason, cause);
 }
 

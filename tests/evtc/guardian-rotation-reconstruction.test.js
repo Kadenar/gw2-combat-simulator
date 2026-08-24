@@ -249,7 +249,7 @@ test('coalesces Willbender animations and ignores passive flame packets', () => 
     result.rotation.find(
       (command, index) => command.name === 'Sword of Justice' && result.rotation[index - 1]?.name === 'Rushing Justice'
     ),
-    { name: 'Sword of Justice', skillId: 9_168, offset: 600 }
+    { name: 'Sword of Justice', skillId: 9_168 }
   );
 });
 

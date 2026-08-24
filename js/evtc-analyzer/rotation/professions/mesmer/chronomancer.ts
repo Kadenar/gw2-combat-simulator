@@ -31,6 +31,7 @@ const TIME_ANCHORED_BUFF = 30136;
 const MAXIMUM_SHATTER_SOURCES = 4;
 const PRIMARY_EFFECT_DUPLICATE_WINDOW_MS = 10;
 const CLONE_EFFECT_LIFECYCLE_WINDOW_MS = 2;
+const MAXIMUM_SHATTER_SOURCE_TAIL_MS = 1000;
 
 interface ShatterSignalSet {
   readonly signals: readonly MesmerSignal[];
@@ -45,6 +46,10 @@ const RESOURCE_SHATTER_IDS: ReadonlySet<number> = new Set([
   DISTORTION.skillId
 ]);
 
+/**
+ * Selects the evidence stream for one Chronomancer shatter, preferring effect-GUID signals for the whole log and
+ * falling back to direct player skill packets only when no matching effect signal exists.
+ */
 function shatterSignals(
   context: EvtcProfessionReconstructionContext,
   guid: string,
@@ -57,6 +62,10 @@ function shatterSignals(
     : { signals: direct, effectEvidence: false };
 }
 
+/**
+ * Orders shatter signals and partitions them by the inter-signal gap and optional maximum number of Mesmer/clone
+ * sources so the first signal in each group can represent one cast.
+ */
 function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[][] {
   const sorted = [...signalSet.signals].sort(
     (left, right) => left.event.time - right.event.time || left.eventIndex - right.eventIndex
@@ -64,7 +73,7 @@ function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[
   const groups: MesmerSignal[][] = [];
   let previousTime = Number.NEGATIVE_INFINITY;
   for (const signal of sorted) {
-    const current = groups.at(-1);
+    const current = groups[groups.length - 1];
     if (
       !current ||
       signal.event.time - previousTime > gapMs ||
@@ -73,13 +82,17 @@ function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[
       groups.push([]);
     }
 
-    groups.at(-1)!.push(signal);
+    groups[groups.length - 1]!.push(signal);
     previousTime = signal.event.time;
   }
 
   return groups;
 }
 
+/**
+ * Removes at most one nearby effect signal for each lifecycle end belonging to the selected player's clones, leaving
+ * player-side or otherwise unmatched shatter anchors without consuming another Mesmer's clone evidence.
+ */
 function effectsWithoutCloneLifecycleEnds(
   context: EvtcProfessionReconstructionContext,
   signals: readonly MesmerSignal[]
@@ -125,7 +138,36 @@ function effectsWithoutCloneLifecycleEnds(
   return signals.filter((_, index) => !removed.has(index));
 }
 
-/** Removes clone packets using their lifetime-end events, leaving one trait-independent shatter cast signal. */
+/**
+ * Recovers a cast whose complete effect evidence was consumed by clone lifecycle matching while treating removed
+ * signals within the source-tail window as additional clone sources for an already known cast.
+ */
+function lifecycleOnlyShatterCastSignals(
+  signals: readonly MesmerSignal[],
+  primarySignals: readonly MesmerSignal[]
+): MesmerSignal[] {
+  const primarySet = new Set(primarySignals);
+  const recovered: MesmerSignal[] = [];
+  const knownCasts = [...primarySignals].sort(
+    (left, right) => left.event.time - right.event.time || left.eventIndex - right.eventIndex
+  );
+
+  for (const signal of signals) {
+    if (primarySet.has(signal)) continue;
+    const previous = [...knownCasts, ...recovered]
+      .filter((candidate) => candidate.event.time <= signal.event.time)
+      .sort((left, right) => right.event.time - left.event.time || right.eventIndex - left.eventIndex)[0];
+    if (previous && signal.event.time - previous.event.time <= MAXIMUM_SHATTER_SOURCE_TAIL_MS) continue;
+    recovered.push(signal);
+  }
+
+  return recovered;
+}
+
+/**
+ * Reduces direct or effect evidence to one trait-independent anchor per shatter input, including lifecycle-only casts
+ * and the bounded four-source fallback used when clone matching removes every primary signal.
+ */
 function shatterCastSignals(
   context: EvtcProfessionReconstructionContext,
   signalSet: ShatterSignalSet,
@@ -136,11 +178,15 @@ function shatterCastSignals(
   }
 
   const primarySignals = effectsWithoutCloneLifecycleEnds(context, signalSet.signals);
-  if (primarySignals.length) return clusterSignals(primarySignals, PRIMARY_EFFECT_DUPLICATE_WINDOW_MS);
+  if (primarySignals.length) {
+    const lifecycleOnlyCasts = lifecycleOnlyShatterCastSignals(signalSet.signals, primarySignals);
+    return clusterSignals([...primarySignals, ...lifecycleOnlyCasts], PRIMARY_EFFECT_DUPLICATE_WINDOW_MS);
+  }
 
   return signalGroups(signalSet, gapMs).map((signals) => signals[0]);
 }
 
+/** Converts retained shatter anchors into canonical instant actions unless the action stream already has that cast. */
 function actionsFromSignals(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
@@ -155,6 +201,10 @@ function actionsFromSignals(
   );
 }
 
+/**
+ * Reconstructs Continuum Split from Time Anchored gains and manual Continuum Shift from removals that report enough
+ * remaining duration to distinguish an early return from natural expiration.
+ */
 function continuumActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -185,6 +235,10 @@ function continuumActions(
   return [...splits, ...shifts];
 }
 
+/**
+ * Infers Mirror Images casts omitted during Continuum Split by learning its ordinary recharge from recorded casts and
+ * placing missing uses between sufficiently close shatter pairs inside anomalously large cast gaps.
+ */
 function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
   const mirrors = actions
     .filter(
@@ -249,6 +303,10 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
   return inferred;
 }
 
+/**
+ * Adds Chronomancer shatters, Continuum transitions, and inferred Continuum-restored Mirror Images uses to the generic
+ * Mesmer action stream.
+ */
 export function reconstructChronomancerActions(
   context: EvtcProfessionReconstructionContext,
   recordedActions: readonly EvtcRecordedRotationAction[]

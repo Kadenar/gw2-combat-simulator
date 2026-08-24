@@ -525,6 +525,39 @@ test('interrupt commands end casts and remove later hit events', () => {
   assert.ok(interrupted.totalDamage < full.totalDamage);
 });
 
+test('Winds of Chaos commits by 560 ms and retains its later packets after interruption', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    primaryWeapon: 'Staff',
+    secondaryWeapon: '',
+    initialResource: 0
+  });
+  const packets = (interruptMs) => {
+    const result = simulateMesmer(
+      [
+        { name: 'Winds of Chaos', interruptMs },
+        { name: '__wait', waitMs: 1000 }
+      ],
+      config
+    );
+
+    return result.resolvedEvents.filter(
+      (event) => event.skillName === 'Winds of Chaos' && (event.type === 'damage' || event.type === 'condition')
+    );
+  };
+
+  assert.deepEqual(packets(559), []);
+  assert.deepEqual(
+    packets(560).map((event) => [event.type, Math.round(event.at * 1000), event.condition || null]),
+    [
+      ['damage', 533, null],
+      ['damage', 623, null],
+      ['condition', 760, 'Torment'],
+      ['condition', 760, 'Confusion']
+    ]
+  );
+});
+
 test('Confusing Images applies seven timed confusion pulses and loses later pulses when interrupted', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -3136,7 +3169,11 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
   });
   const belowCap = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], { ...config, initialResource: 2 });
 
+  assert.equal(belowCap.steps[2].end - belowCap.steps[2].start, 840);
   assert.equal(belowCap.endState.profession.resource, 3);
+  const cloneGain = belowCap.events.find((event) => event.type === 'resource' && event.reason === 'Ether Clone');
+  assert.ok(cloneGain);
+  assert.equal(Math.round(cloneGain.at * 1000 - belowCap.steps[2].start), 442);
   assert.equal(
     belowCap.events.some(
       (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
@@ -3150,15 +3187,73 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
   });
 
   assert.equal(atCap.endState.profession.resource, 3);
-  assert.ok(
-    atCap.events.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.skillName === 'Ether Clone' &&
-        event.condition === 'Torment' &&
-        event.duration === 9
-    )
+  assert.equal(
+    atCap.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone'),
+    false
   );
+  const maximumCloneTorment = atCap.events.find(
+    (event) =>
+      event.type === 'condition' &&
+      event.skillName === 'Ether Clone' &&
+      event.condition === 'Torment' &&
+      event.duration === 9
+  );
+  assert.ok(maximumCloneTorment);
+  assert.equal(Math.round(maximumCloneTorment.at * 1000 - atCap.steps[2].start), 442);
+});
+
+test('Ether Clone grants its clone only when the 442 ms projectile packet commits', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Pistol',
+    initialResource: 2
+  });
+  const beforeHit = simulateMesmer(
+    ['Ether Bolt', 'Ether Blast', { name: 'Ether Clone', interruptMs: 441 }, { name: 'Split Second', offset: 450 }],
+    config
+  );
+  const onHit = simulateMesmer(
+    ['Ether Bolt', 'Ether Blast', { name: 'Ether Clone', interruptMs: 442 }, { name: 'Split Second', offset: 450 }],
+    config
+  );
+
+  assert.equal(shatterResourceSpends(beforeHit).get(3)?.count, 2);
+  assert.equal(shatterResourceSpends(onHit).get(3)?.count, 3);
+  assert.equal(
+    beforeHit.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Ether Clone'),
+    false
+  );
+  assert.equal(
+    onHit.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Ether Clone'),
+    true
+  );
+});
+
+test('Ether Clone resolves its at-cap outcome from clone count at projectile time', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Chronomancer',
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Pistol',
+    initialResource: 3
+  });
+  const resultAt = (offset) =>
+    simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone', { name: 'Split Second', offset }], config);
+  const freedBeforePacket = resultAt(441);
+  const freedAfterPacket = resultAt(443);
+  const hasCloneGain = (result) =>
+    result.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone');
+  const hasMaximumTorment = (result) =>
+    result.events.some(
+      (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
+    );
+
+  assert.equal(freedBeforePacket.endState.profession.resource, 1);
+  assert.equal(hasCloneGain(freedBeforePacket), true);
+  assert.equal(hasMaximumTorment(freedBeforePacket), false);
+  assert.equal(freedAfterPacket.endState.profession.resource, 0);
+  assert.equal(hasCloneGain(freedAfterPacket), false);
+  assert.equal(hasMaximumTorment(freedAfterPacket), true);
 });
 
 test('autoattack chain steps unlock only after the preceding attack', () => {

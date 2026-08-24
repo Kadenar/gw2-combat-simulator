@@ -23,6 +23,10 @@ const DISTORTION = Object.freeze({ name: 'Distortion', skillId: 68273 });
 
 const DISTORTION_BUFF = 10243;
 
+/**
+ * Reconstructs a Virtuoso action from effect-GUID evidence and supplements it with clustered direct packets only when
+ * no effect signal appears within the broad correlation window.
+ */
 function effectBackedActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
@@ -46,6 +50,7 @@ function effectBackedActions(
   );
 }
 
+/** Reconstructs Virtuoso Distortion actions from clustered gains of the shared Distortion buff. */
 function distortionActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -57,6 +62,7 @@ function distortionActions(
   );
 }
 
+/** Adds Virtuoso Bladeturn Requiem, Thousand Cuts, and Distortion actions to the generic Mesmer action stream. */
 export function reconstructVirtuosoActions(
   context: EvtcProfessionReconstructionContext,
   recordedActions: readonly EvtcRecordedRotationAction[]

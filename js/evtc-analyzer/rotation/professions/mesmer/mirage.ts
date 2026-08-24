@@ -28,6 +28,10 @@ const MIRAGE_CLOAK_BUFF = 40408;
 const DISTORTION_BUFF = 10243;
 const MIRAGE_MIRROR_DAMAGE = 44677;
 
+/**
+ * Selects and clusters the primary evidence for one Mirage shatter, preferring direct player damage over the effect
+ * GUID so clone damage cannot create duplicate input actions.
+ */
 function primaryShatterSignals(
   context: EvtcProfessionReconstructionContext,
   identity: MesmerActionIdentity,
@@ -39,6 +43,10 @@ function primaryShatterSignals(
   return clusterSignals(signals, gapMs);
 }
 
+/**
+ * Reconstructs Cry of Frustration, Mind Wrack, and Diversion from their authoritative signals while rejecting
+ * Diversion effects that overlap a recent shatter and suppressing actions already present in the stream.
+ */
 function shatterActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -67,6 +75,10 @@ function shatterActions(
   );
 }
 
+/**
+ * Converts Mirage Cloak gains into either Dodge or Pick Up Mirage Mirror actions by correlating each gain with nearby
+ * mirror effect or damage evidence, preserving initial cloak state as a precast.
+ */
 function mirageCloakActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -101,6 +113,7 @@ function mirageCloakActions(
     });
 }
 
+/** Adds Mirage shatters and Mirage Cloak resource actions to the generic Mesmer action stream. */
 export function reconstructMirageActions(
   context: EvtcProfessionReconstructionContext,
   recordedActions: readonly EvtcRecordedRotationAction[]

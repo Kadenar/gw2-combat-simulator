@@ -572,7 +572,6 @@ export type MesmerAddDamage = (
   extra?: MesmerEventExtra
 ) => readonly SimulationEvent[];
 export type MesmerActivePrimaryWeapon = () => string;
-export type MesmerCurrentResource = () => number;
 export type MesmerDestroyClone = (clone: MesmerClone, at: number) => void;
 export type MesmerQueueResources = (
   at: number,

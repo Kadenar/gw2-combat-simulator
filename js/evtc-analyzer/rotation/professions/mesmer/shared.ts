@@ -30,21 +30,27 @@ export const MESMER_EFFECT_GUIDS = Object.freeze({
   virtuosoThousandCuts: 'E4002B7AD7DF024394D0184B47A316E7'
 });
 
+/** Normalizes a skill or action name for case-insensitive comparisons across EVTC and simulator metadata. */
 export function normalized(value: unknown): string {
   return String(value || '')
     .trim()
     .toLowerCase();
 }
 
+/** Resolves a raw EVTC skill ID to its recorded name, returning a stable placeholder when metadata is missing. */
 export function rawSkillName(context: EvtcProfessionReconstructionContext, skillId: number): string {
   return context.log.skills.find((skill) => skill.id === skillId)?.name.trim() || `Unknown ${skillId}`;
 }
 
+/** Returns the active catalog's nonnegative quickness-adjusted cast duration for a canonical Mesmer action. */
 export function castDuration(context: EvtcProfessionReconstructionContext, identity: MesmerActionIdentity): number {
   const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
   return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
 }
 
+/**
+ * Creates a canonical zero-duration Mesmer action from EVTC evidence and applies any supplied timing or state overrides.
+ */
 export function canonicalAction(
   eventIndex: number,
   time: number,
@@ -68,6 +74,10 @@ export function canonicalAction(
   };
 }
 
+/**
+ * Creates a completed canonical cast whose start is derived from its catalog duration and observed end, marking casts
+ * that completed before combat as precasts.
+ */
 export function canonicalCast(
   context: EvtcProfessionReconstructionContext,
   signal: MesmerSignal,
@@ -85,6 +95,7 @@ export function canonicalCast(
   });
 }
 
+/** Returns the selected player's first recorded EnterCombat timestamp, or null when the log has no such boundary. */
 export function combatStartTime(context: EvtcProfessionReconstructionContext): number | null {
   return (
     context.log.events.find(
@@ -93,6 +104,7 @@ export function combatStartTime(context: EvtcProfessionReconstructionContext): n
   );
 }
 
+/** Returns the selected player's first positive EVTC instance ID for matching owned agents and lifecycle events. */
 export function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
   return (
     context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
@@ -100,6 +112,7 @@ export function playerInstance(context: EvtcProfessionReconstructionContext): nu
   );
 }
 
+/** Encodes a 64-bit EVTC field as eight uppercase little-endian hexadecimal bytes for effect GUID reconstruction. */
 function littleEndianHex(value: bigint): string {
   let current = value;
   let result = '';
@@ -113,6 +126,10 @@ function littleEndianHex(value: bigint): string {
   return result.toUpperCase();
 }
 
+/**
+ * Resolves encounter-local effect content IDs to GUIDs and returns player-sourced effect-create events matching the
+ * requested Mesmer effect GUID.
+ */
 export function effectSignals(context: EvtcProfessionReconstructionContext, guid: string): MesmerSignal[] {
   const guidByContentId = new Map(
     context.log.events
@@ -130,6 +147,10 @@ export function effectSignals(context: EvtcProfessionReconstructionContext, guid
   );
 }
 
+/**
+ * Returns positive, non-buff damage packets for the requested skill IDs that were emitted directly by the selected
+ * player and are not activation or state-change records.
+ */
 export function directSkillSignals(
   context: EvtcProfessionReconstructionContext,
   skillIds: ReadonlySet<number>
@@ -146,6 +167,10 @@ export function directSkillSignals(
   );
 }
 
+/**
+ * Returns gains of one buff targeting the selected player, optionally including BuffInitial records used to recover
+ * state or precasts that began before the visible combat timeline.
+ */
 export function buffGainSignals(
   context: EvtcProfessionReconstructionContext,
   skillId: number,
@@ -166,6 +191,10 @@ export function buffGainSignals(
   });
 }
 
+/**
+ * Sorts signals and retains the first signal of each cluster, starting a new cluster after the configured time gap or
+ * source-count limit.
+ */
 export function clusterSignals(
   signals: readonly MesmerSignal[],
   gapMs: number,
@@ -190,6 +219,10 @@ export function clusterSignals(
   return clustered;
 }
 
+/**
+ * Reports whether an action with the same canonical/raw ID or normalized name starts or ends within the given window,
+ * preventing independent evidence channels from reconstructing the same input twice.
+ */
 export function hasNearbyAction(
   actions: readonly EvtcRecordedRotationAction[],
   identity: MesmerActionIdentity,
@@ -207,6 +240,10 @@ export function hasNearbyAction(
   );
 }
 
+/**
+ * Reports whether a skill is selected in the imported build, or null when the context contains no skill-selection data
+ * and the analyzer must use evidence-only heuristics.
+ */
 export function selectedSkill(
   context: EvtcProfessionReconstructionContext,
   identity: MesmerActionIdentity
@@ -219,6 +256,7 @@ export function selectedSkill(
   );
 }
 
+/** Returns the earliest death or combat-exit timestamp among agents identified as encounter targets. */
 export function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
   const targets = new Set(
     context.log.agents
@@ -235,6 +273,7 @@ export function encounterEndTime(context: EvtcProfessionReconstructionContext): 
   return times.length ? Math.min(...times) : null;
 }
 
+/** Sorts actions and removes later actions with the same canonical/raw skill ID inside the deduplication window. */
 export function dedupeActions(
   actions: readonly EvtcRecordedRotationAction[],
   windowMs = 50

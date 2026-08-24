@@ -735,6 +735,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: '',
     environment: 'Terrestrial',
     cooldown: 0,
+    interruptCommitMs: 560,
     effects: [
       {
         type: 'strike',
@@ -746,19 +747,22 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         actorType: 'player',
         weapon: 'staff',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         condition: 'torment',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         condition: 'confusion',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        persistsAfterInterrupt: true
       }
     ],
     quicknessCastTimeMs: 760
@@ -943,11 +947,14 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     weapon: 'Scepter',
     specialization: '',
     environment: 'Terrestrial',
-    castTimeMs: 1260,
+    quicknessCastTimeMs: 840,
     cooldown: 0,
+    // Ether Clone creates its clone with the projectile hit; interruptions before that packet grant no clone.
     resource: {
       mode: 'add',
-      count: 1
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 442
     },
     maxCloneEffects: [
       {

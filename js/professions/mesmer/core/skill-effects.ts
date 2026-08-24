@@ -11,7 +11,6 @@ import type {
   MesmerAddTraitProc,
   MesmerConfig,
   MesmerConditionEffect,
-  MesmerCurrentResource,
   MesmerExceptionalProfileOptions,
   MesmerInstrument,
   MesmerPhantasmAttackTiming,
@@ -36,7 +35,6 @@ interface SkillEffectControllerOptions {
   readonly allSkills: readonly MesmerSkill[];
   readonly epsilon: number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly currentResource: MesmerCurrentResource;
   readonly markCompounding: (at: number, count: number) => void;
   readonly queueResources: MesmerQueueResources;
   readonly addEvent: MesmerAddEvent;
@@ -64,7 +62,6 @@ export function createSkillEffectController({
   allSkills,
   epsilon,
   activePrimaryWeapon,
-  currentResource,
   markCompounding,
   queueResources,
   addEvent,
@@ -93,7 +90,6 @@ export function createSkillEffectController({
     resourceDefinition,
     epsilon,
     activePrimaryWeapon,
-    currentResource,
     queueResources,
     phantasms
   });
@@ -138,15 +134,12 @@ export function createSkillEffectController({
       pulseCount > 1
         ? Array.from({ length: pulseCount }, (_, index) => castStart + ((at - castStart) * (index + 1)) / pulseCount)
         : [];
-    const cloneAtMaximum = illusionResources.cloneAtMaximum(skill);
     const phantasmExecutions = phantasms.prepare(skill, castStart, phantasmSummonAt, clarityConsumed);
     phantasms.scheduleLifecycle(phantasmExecutions);
-    const conditions = cloneAtMaximum
-      ? skill.maxCloneEffects || []
-      : (skill.effects || []).filter(
-          (effect): effect is MesmerConditionEffect =>
-            effect.type === 'condition' && (effect.requiredTrait == null || traits.has(Number(effect.requiredTrait)))
-        );
+    const conditions = (skill.effects || []).filter(
+      (effect): effect is MesmerConditionEffect =>
+        effect.type === 'condition' && (effect.requiredTrait == null || traits.has(Number(effect.requiredTrait)))
+    );
     const damageResult = damage.schedule(
       skill,
       at,
@@ -158,7 +151,7 @@ export function createSkillEffectController({
     );
     // Cast-start packets are scheduled by the cast lifecycle and must not be emitted again on completion.
     if (!skipDirectResource) {
-      illusionResources.schedule(skill, at, castStart, cloneAtMaximum, phantasmExecutions);
+      illusionResources.schedule(skill, at, castStart, phantasmExecutions);
     }
     specialEffects.apply(skill, at, castStart);
     damage.finish(skill, damageResult);

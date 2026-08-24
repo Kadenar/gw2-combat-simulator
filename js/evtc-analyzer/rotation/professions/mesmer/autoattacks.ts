@@ -7,6 +7,10 @@ const MAX_AUTOATTACK_IMPACT_MS = 2000;
 const WINDS_OF_CHAOS = Object.freeze({ name: 'Winds of Chaos', skillId: 10273 });
 const WINDS_FIRST_IMPACT_MS = 533;
 
+/**
+ * Reconstructs Winds of Chaos casts whose animation records are missing by pairing their player-owned bounce packets
+ * and adding one cast for each packet pair that cannot be matched to an existing action.
+ */
 function addMissingWindsOfChaosActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -44,6 +48,7 @@ function addMissingWindsOfChaosActions(
   return [...actions, ...inferred];
 }
 
+/** Resolves an action against the active catalog and reports whether it occupies the weapon-autoattack slot. */
 function isAutoattack(context: EvtcProfessionReconstructionContext, action: EvtcRecordedRotationAction): boolean {
   const skill = findRotationSkill(
     action.canonicalSkillId ?? action.rawSkillId,
@@ -54,6 +59,10 @@ function isAutoattack(context: EvtcProfessionReconstructionContext, action: Evtc
   return String(skill?.slot || '').toLowerCase() === 'weapon_1';
 }
 
+/**
+ * Removes completed Mesmer autoattack animations that lack a confirming player strike, preserves interrupted chain
+ * attempts, and restores missing Winds of Chaos casts from their damage packets.
+ */
 export function removeUncommittedMesmerAutoattacks(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

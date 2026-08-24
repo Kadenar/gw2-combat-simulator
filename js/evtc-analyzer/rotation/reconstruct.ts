@@ -25,12 +25,15 @@ import {
 import {
   EFFECT_PACKET_TOLERANCE_MS,
   missingInterruptCommitWarnings,
+  quicknessRuntimeDurationMs,
   reconcileCastEffectPackets
 } from './effect-packets.js';
 import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
 import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
 
 const TIMING_TOLERANCE_MS = 50;
+// Only a sustained gap after both EVTC and modeled cast completion is strong enough evidence for an explicit idle wait.
+const MINIMUM_CONFIRMED_IDLE_GAP_MS = 400;
 const TRANSITION_WINDOW_MS = 150;
 const WEAPON_STOW_ANIMATION_ID = 23285;
 const TRANSITION_GAIN_BUFF_IDS = new Set(
@@ -699,7 +702,7 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     skillId: action.skillId
   };
   const actualDuration = action.end - action.start;
-  const runtimeDuration = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
+  const runtimeDuration = quicknessRuntimeDurationMs(action.skill);
   if (action.replayInterruptMs != null) {
     command.interruptMs = Math.max(0, action.replayInterruptMs);
   } else if (
@@ -714,6 +717,15 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
   }
 
   return command;
+}
+
+/** Uses simulator cast timing for completed actions so EVTC animation tails are not replayed again as waits. */
+function replayActionEnd(action: ResolvedAction): number {
+  if (action.replayCastEnd != null) return action.replayCastEnd;
+  if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
+  if (action.status !== 'completed') return action.end;
+  const runtimeDuration = quicknessRuntimeDurationMs(action.skill);
+  return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
 
 function buildRotation(
@@ -774,8 +786,10 @@ function buildRotation(
       interruptMs?: number;
       doubleEdgeOutcome?: 'success' | 'backfire';
     };
-    const instant = entry.action.end <= entry.action.start && entry.action.replayCastEnd == null;
+    const actionReplayEnd = replayActionEnd(entry.action);
+    const instant = actionReplayEnd <= entry.action.start;
     const independent = entry.action.skill?.independentCast === true;
+    const concurrent = independent || (instant && entry.action.skill?.canCastConcurrently !== false);
     // Continuum Split must stay anchored at its recorded cast boundary so its cooldown snapshot uses the EVTC order.
     const boundaryTransition =
       instant &&
@@ -786,11 +800,11 @@ function buildRotation(
       at <= activeCastEnd + TIMING_TOLERANCE_MS;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = at - previousCastStart;
-    } else if (previousCastStart != null && (overlapping || boundaryTransition)) {
+    } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
       command.offset = Math.max(0, at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
-      if (gap > TIMING_TOLERANCE_MS && !suppressGap) {
+      if (gap > MINIMUM_CONFIRMED_IDLE_GAP_MS && !suppressGap) {
         rotation.push({ name: '__wait', waitMs: gap });
       }
 
@@ -803,7 +817,10 @@ function buildRotation(
     } else {
       previousCastStart = at;
       if (!instant) {
-        activeCastEnd = Math.max(activeCastEnd, entry.action.replayCastEnd ?? entry.action.end);
+        activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
+      } else {
+        // A late instant is observed activity, so a later idle gap starts there instead of at the prior cast end.
+        activeCastEnd = Math.max(activeCastEnd, at);
       }
 
       suppressGap = entry.action.suppressFollowingWait === true;
