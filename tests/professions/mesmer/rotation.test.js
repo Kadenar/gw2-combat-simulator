@@ -10,9 +10,9 @@ import { chartValueAt } from '../../../js/platform/ui/charts.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
-  formatTimelineCastDetails,
-  moveRotationEntry
+  formatTimelineCastDetails
 } from '../../../js/platform/ui/timeline.js';
+import { moveRotationEntry } from '../../../js/app/rotation/editing/operations.js';
 import { nextResultSortState, sortResultRows } from '../../../js/platform/ui/rotation-results.js';
 import {
   buildChartSeries,

@@ -249,8 +249,12 @@ function chaosArmorActions(
 }
 
 /**
- * Reconstructs Core, Chronomancer, and Mirage Distortion casts from clustered buff gains while leaving Virtuoso and
- * Troubadour to their specialization-specific mechanics.
+ * Reconstructs Core, Chronomancer, and Mirage Distortion casts from clustered buff gains that coincide with the
+ * shatter effect, leaving Virtuoso and Troubadour to their specialization-specific mechanics.
+ *
+ * Blurred Inscriptions applies the Distortion buff whenever a signet is used, so the buff gain alone is not proof of a
+ * Distortion shatter. Requiring the shared Distortion/Mind Wrack shatter effect near the gain rejects signet-granted
+ * distortion while still admitting the real shatter, which emits both the buff and the effect.
  */
 function distortionActions(
   context: EvtcProfessionReconstructionContext,
@@ -260,11 +264,18 @@ function distortionActions(
     return [];
   }
 
-  return clusterSignals(buffGainSignals(context, DISTORTION_BUFF), 500).flatMap((signal) =>
-    hasNearbyAction(actions, DISTORTION, signal.event.time, 100)
-      ? []
-      : [canonicalAction(signal.eventIndex, signal.event.time, DISTORTION, signal.event.skillId, 'buff-transition')]
+  const shatterEffectTimes = effectSignals(context, MESMER_EFFECT_GUIDS.distortionOrMindWrack).map(
+    (signal) => signal.event.time
   );
+  return clusterSignals(buffGainSignals(context, DISTORTION_BUFF), 500)
+    .filter((signal) =>
+      shatterEffectTimes.some((time) => Math.abs(time - signal.event.time) <= DISTORTION_SHATTER_EFFECT_WINDOW_MS)
+    )
+    .flatMap((signal) =>
+      hasNearbyAction(actions, DISTORTION, signal.event.time, 100)
+        ? []
+        : [canonicalAction(signal.eventIndex, signal.event.time, DISTORTION, signal.event.skillId, 'buff-transition')]
+    );
 }
 
 /**

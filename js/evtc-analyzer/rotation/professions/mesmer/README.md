@@ -199,8 +199,14 @@ For Core, Chronomancer, and Mirage:
 1. Find gains of Distortion buff ID `10243` targeting the player.
 2. Cluster gains using a 500 ms gap.
 3. Keep the first gain from each cluster.
-4. Skip it if Distortion already exists within 100 ms.
-5. Create canonical Distortion ID `10192` with `buff-transition` evidence.
+4. Reject a gain that has no Distortion/Mind Wrack shatter effect (`3D29ABD39CB5BD458C4D50A22FCC0E4B`) within 250 ms.
+5. Skip it if Distortion already exists within 100 ms.
+6. Create canonical Distortion ID `10192` with `buff-transition` evidence.
+
+The shatter-effect pairing is required because Blurred Inscriptions applies the Distortion buff on every signet use, so the
+buff gain alone is not proof of a Distortion shatter. The real shatter emits both the buff and the shared shatter effect;
+signet-granted distortion emits only the buff. Mind Wrack emits the effect but never the Distortion buff, so it is not
+misread as Distortion.
 
 Virtuoso and Troubadour are excluded from this Distortion path.
 
@@ -261,6 +267,7 @@ as another source within the 1,000 ms tail of the recovered cast. The result is 
 | Diversion grouping | 750 ms |
 | Diversion overlap rejection | 1,000 ms |
 | Distortion grouping | 500 ms |
+| Distortion buff-to-shatter-effect pairing | plus or minus 250 ms |
 | Final same-skill deduplication | 50 ms |
 
 ## Focused tests

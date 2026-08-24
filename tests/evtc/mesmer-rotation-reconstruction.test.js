@@ -13,6 +13,7 @@ const GUIDS = Object.freeze({
   splitSecond: 'C035166E3E4C414ABE640F47797D9B4A',
   timeSink: 'AB2E22E7EE74DA4C87DA777C62E475EA',
   diversion: '916D8385083F144EBAA5BEEDE21FD47A',
+  distortionOrMindWrack: '3D29ABD39CB5BD458C4D50A22FCC0E4B',
   mirageMirror: '1370CDF5F2061445A656A1D77C37A55C',
   mesmerTeleport: 'C34E250B01FF534292EE6AB36D768337',
   bladeturnRequiem: '87B761200637AC48B71469F553BA6F60',
@@ -643,9 +644,11 @@ test('recovers a Chronomancer Mirror Images use suppressed at clone cap', () => 
     skills,
     [
       guidMapping(GUIDS.splitSecond, 101),
+      guidMapping(GUIDS.distortionOrMindWrack, 102),
       event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
       ...clonePair(11_000, 0),
       ...clonePair(31_000, 2),
+      effect(102, 50_500),
       event({
         time: 50_500,
         target: PLAYER,
@@ -685,6 +688,7 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
   const fixture = mesmerLog(59, skills, [
     guidMapping(GUIDS.diversion, 201),
     guidMapping(GUIDS.mirageMirror, 202),
+    guidMapping(GUIDS.distortionOrMindWrack, 203),
     event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
     event({
       target: PLAYER,
@@ -730,6 +734,7 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
     direct(10190, 17_200),
     effect(201, 17_500),
     effect(201, 19_000),
+    effect(203, 20_000),
     event({
       time: 20_000,
       target: PLAYER,
@@ -748,6 +753,27 @@ test('reconstructs Mirage cloak sources and shatters without packet spam', () =>
   assert.equal(names(result, 'Cry of Frustration').length, 1);
   assert.equal(names(result, 'Diversion').length, 1);
   assert.equal(names(result, 'Distortion').length, 1);
+});
+
+test('ignores Blurred Inscriptions distortion buffs without a shatter effect', () => {
+  const skills = [skill(10192, 'Distortion'), skill(10234, 'Signet of Midnight')];
+  const fixture = mesmerLog(0, skills, [
+    guidMapping(GUIDS.distortionOrMindWrack, 203),
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    // Signet use under Blurred Inscriptions grants the Distortion buff but emits no shatter effect.
+    event({ time: 12_000, target: PLAYER, value: 1_000, skillId: 10243, buff: 1 }),
+    // A real Distortion shatter pairs the buff gain with the shared shatter effect.
+    effect(203, 20_000),
+    event({ time: 20_000, target: PLAYER, value: 1_000, skillId: 10243, buff: 1 })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const distortions = names(result, 'Distortion');
+
+  assert.equal(distortions.length, 1);
+  // Timestamps are relative to the 10_000 ms EnterCombat, so the surviving cast is the paired shatter at 20_000 ms,
+  // not the signet-granted buff at 12_000 ms.
+  assert.equal(distortions[0].timestampMs, 10_000);
 });
 
 test('does not mistake a Phase Retreat clone pair for Mirror Images', () => {
