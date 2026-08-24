@@ -274,7 +274,8 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
     amount += Math.min(5, targetConditionCount(context.config));
   }
 
-  if (skill.id === 10529 && targetBoonCount(context.config) === 0) {
+  // Dark Pact's fixed gain is conditional on having at least one target boon to remove.
+  if (skill.id === ID.DARK_PACT && targetBoonCount(context.config) === 0) {
     amount = 0;
   }
 

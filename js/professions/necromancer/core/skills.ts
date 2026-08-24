@@ -57,6 +57,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingScale: 'cast'
       }
     ],
+    // Dark Pact grants 5% life force only after ripping a boon; its impact handler owns the self-bleed and immobilize.
+    lifeForceGain: 5,
     handlerId: 'necromancer.dark-pact'
   },
   [ID.GRASPING_DEAD]: {
@@ -2142,7 +2144,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 2.6999999999999997,
+        coefficient: 2.7,
         hits: 9,
         atMs: 480,
         intervalMs: 160,

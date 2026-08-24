@@ -14,6 +14,7 @@ import {
   emitBuff,
   emitCondition,
   emitDamage,
+  emitState,
   gainNecromancerLifeForce,
   hasTrait,
   necromancerActiveBoonCompanionIds,
@@ -310,14 +311,14 @@ export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   onCastStart,
   afterCast,
-  /**
-   * Clears simulated self-conditions after a global cooldown reset.
-   *
-   * @param {object} context Scheduler cooldown-reset context.
-   * @returns {void}
-   */
+  /** Refills shared life force and clears simulated self-conditions after a global cooldown reset. */
   onCooldownReset: (context: NecromancerSchedulerContext): void => {
-    professionCoreState(context).selfConditions = [];
+    const state = professionCoreState(context);
+    // Every Necromancer specialization uses this shared pool, including shrouds and Scourge shade skills.
+    state.lifeForce = state.maximumLifeForce;
+    state.resource = state.lifeForce;
+    state.selfConditions = [];
+    emitState(context, context.state.time, 'cooldown-reset');
   },
   onEventScheduled,
   taskHandlers: Object.freeze({

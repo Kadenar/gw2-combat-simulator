@@ -5,14 +5,28 @@ import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { thiefPlayerEvent } from '../../core/rules.js';
 import { specterCastAvailability } from './availability.js';
 import { advanceSpecterResources, spendSpecterResources } from './shroud.js';
+import { specterState } from './state.js';
 import { handleDarkSentry, handleLarcenousTorment, observeSpecterEvent } from './traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
+import { emitThiefState } from '../../core/shared.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import type { ThiefSchedulerContext } from '../../types.js';
 
 export const specterSchedulerHooks = Object.freeze({
   advance: advanceSpecterResources,
   onCastStart: spendSpecterResources,
+  onCooldownReset: {
+    id: 'thief.specter-shadow-force-reset',
+    order: 20,
+    // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
+    handler: (context: ThiefSchedulerContext): void => {
+      const state = specterState.from(context);
+      state.shadowForce = state.maximumShadowForce;
+      state.shadowForceUpdatedAt = context.state.time;
+      emitThiefState(context, context.state.time, 'cooldown-reset');
+    }
+  },
   onEventScheduled: {
     id: 'thief.specter-events',
     order: 30,

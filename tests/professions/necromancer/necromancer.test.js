@@ -1530,11 +1530,39 @@ test('necromancer wells finish their pulses after the final rotation action', ()
   }
 });
 
-test('dagger skills use their current PvE strike and bleeding mechanics', () => {
-  const darkPact = simulate('Core', ['Dark Pact'], {
+test('Dark Pact gains life force only after ripping a boon and inflicts its target and self conditions', () => {
+  const withBoon = simulate('Core', ['Dark Pact'], {
     initialResource: 0,
     primaryWeapon: 'Dagger'
   });
+  const boonless = simulate('Core', ['Dark Pact'], {
+    initialResource: 0,
+    primaryWeapon: 'Dagger',
+    target: {
+      ...baseConfig.target,
+      boonless: true
+    }
+  });
+  const targetCondition = (condition) =>
+    boonless.events.find(
+      (event) => event.type === 'condition' && event.skillId === ID.DARK_PACT && event.condition === condition
+    );
+  const selfBleeding = boonless.events.find(
+    (event) => event.type === 'self_condition' && event.skillId === ID.DARK_PACT && event.condition === 'Bleeding'
+  );
+
+  assert.equal(
+    boonless.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
+    2.4
+  );
+  assert.equal(withBoon.endState.profession.lifeForce, 5);
+  assert.equal(boonless.endState.profession.lifeForce, 0);
+  assert.deepEqual([targetCondition('Bleeding')?.stacks, targetCondition('Bleeding')?.duration], [2, 10]);
+  assert.deepEqual([selfBleeding?.stacks, selfBleeding?.duration], [2, 10]);
+  assert.equal(targetCondition('Immobilized')?.duration, 6);
+});
+
+test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {
   const lifeSiphon = (targetBleeding) =>
     simulate(
       'Core',
@@ -1558,27 +1586,11 @@ test('dagger skills use their current PvE strike and bleeding mechanics', () => 
       .filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON)
       .reduce((sum, event) => sum + event.damage, 0);
 
-  assert.equal(
-    darkPact.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
-    2.4
-  );
-  assert.equal(
-    darkPact.events.find(
-      (event) => event.type === 'condition' && event.skillId === ID.DARK_PACT && event.condition === 'Bleeding'
-    )?.stacks,
-    2
-  );
-  assert.equal(
-    darkPact.events.find(
-      (event) => event.type === 'condition' && event.skillId === ID.DARK_PACT && event.condition === 'Immobilized'
-    )?.duration,
-    6
-  );
   assert.deepEqual(
-    darkPact.events
-      .filter((event) => event.type === 'self_condition')
+    plain.events
+      .filter((event) => event.type === 'self_condition' && event.skillId === ID.LIFE_SIPHON)
       .map((event) => [event.condition, event.stacks, event.duration]),
-    [['Bleeding', 2, 10]]
+    [['Bleeding', 1, 8]]
   );
   assert.equal(plain.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).length, 9);
   assert.ok(Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12);
