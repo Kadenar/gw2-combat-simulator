@@ -26,7 +26,7 @@
         "label": "Condition (Shortbow - Mace/Axe)",
         "build": "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 41702
+        "benchmarkDps": 41463
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
@@ -43,7 +43,7 @@
         "label": "Power Quickness (Greatsword - Sword/Sword)",
         "build": "Builds/revenant/b-power-quick-herald-greatsword-sword-sword.json",
         "rotation": "Rotations/revenant/r-power-quick-herald-greatsword-sword-sword-benchmark.json",
-        "benchmarkDps": 31706,
+        "benchmarkDps": 31704,
         "referenceDps": 32073,
         "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem"
       },
@@ -86,7 +86,7 @@
         "label": "Condition (Spear - Mace/Axe)",
         "build": "Builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "Rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
-        "benchmarkDps": 40004,
+        "benchmarkDps": 39785,
         "upToDate": true
       }
     ]

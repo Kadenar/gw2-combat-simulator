@@ -7,28 +7,28 @@
         "build": "Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
-        "benchmarkDps": 41768,
+        "benchmarkDps": 41724,
         "upToDate": true
       },
       {
         "label": "Power (Rifle - Double Helix)",
         "build": "Builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "Rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 43833,
+        "benchmarkDps": 43778,
         "upToDate": true
       },
       {
         "label": "Condition Alacrity (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
-        "benchmarkDps": 35693,
+        "benchmarkDps": 35638,
         "upToDate": true
       },
       {
         "label": "Condition (3 Kit)",
         "build": "Builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
-        "benchmarkDps": 43019,
+        "benchmarkDps": 42877,
         "upToDate": true
       }
     ]
@@ -40,7 +40,7 @@
         "label": "Condition (Pistol / Pistol)",
         "build": "Builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
-        "benchmarkDps": 42940,
+        "benchmarkDps": 42772,
         "upToDate": true
       },
       {
@@ -59,14 +59,14 @@
         "label": "Power (Sword / Pistol)",
         "build": "Builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
-        "benchmarkDps": 40900,
+        "benchmarkDps": 40637,
         "upToDate": true
       },
       {
         "label": "Power (Rifle)",
         "build": "Builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "Rotations/engineer/r-power-mechanist-rifle-bench.json",
-        "benchmarkDps": 38993,
+        "benchmarkDps": 38749,
         "upToDate": true
       }
     ]
@@ -79,7 +79,7 @@
         "build": "Builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "Rotations/engineer/r-power-scrapper-hammer-bench.json",
         "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
-        "benchmarkDps": 41476,
+        "benchmarkDps": 41468,
         "upToDate": true
       }
     ]

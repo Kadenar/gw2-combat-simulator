@@ -7,7 +7,7 @@
         "build": "Builds/elementalist/b-power-weaver-sword.json",
         "rotation": "Rotations/elementalist/r-power-weaver-sword.json",
         "dpsReportUrl": "https://dps.report/tDOX-20260721-013355_golem",
-        "benchmarkDps": 43523,
+        "benchmarkDps": 43503,
         "upToDate": true
       },
       {
@@ -23,7 +23,7 @@
         "build": "Builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "Rotations/elementalist/r-condi-weaver-pistol.json",
         "dpsReportUrl": "https://dps.report/Yt2F-20260805-122746_golem",
-        "benchmarkDps": 45904,
+        "benchmarkDps": 45603,
         "upToDate": true
       },
       {
@@ -52,7 +52,7 @@
         "build": "Builds/elementalist/b-cele-alac-tempest.json",
         "rotation": "Rotations/elementalist/r-cele-alac-tempest.json",
         "dpsReportUrl": "https://dps.report/3zgo-20260418-133338_golem",
-        "benchmarkDps": 21028,
+        "benchmarkDps": 20903,
         "upToDate": true
       },
       {
@@ -60,7 +60,7 @@
         "build": "Builds/elementalist/b-power-tempest-sword.json",
         "rotation": "Rotations/elementalist/r-power-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/mtOO-20260716-004900_golem",
-        "benchmarkDps": 42212,
+        "benchmarkDps": 42199,
         "upToDate": true
       },
       {
@@ -106,7 +106,7 @@
         "label": "Power Alacrity (Hammer)",
         "build": "Builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "Rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29911,
+        "benchmarkDps": 29906,
         "upToDate": false
       },
       {
@@ -114,14 +114,14 @@
         "build": "Builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/B38a-20260414-224425_golem",
-        "benchmarkDps": 42089,
+        "benchmarkDps": 41923,
         "upToDate": true
       },
       {
         "label": "Condition (Scepter/Warhorn)",
         "build": "Builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "Rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40736,
+        "benchmarkDps": 40601,
         "upToDate": false
       },
       {
@@ -136,7 +136,7 @@
         "label": "Condition Alacrity (Scepter/Warhorn)",
         "build": "Builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "Rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 34233,
+        "benchmarkDps": 34056,
         "upToDate": false
       },
       {
@@ -180,7 +180,7 @@
         "build": "Builds/elementalist/b-power-catalyst-scepter-btth.json",
         "rotation": "Rotations/elementalist/r-power-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/aAgi-20260414-165732_golem",
-        "benchmarkDps": 41445,
+        "benchmarkDps": 41431,
         "upToDate": true
       },
       {
@@ -188,7 +188,7 @@
         "build": "Builds/elementalist/b-power-catalyst-spear.json",
         "rotation": "Rotations/elementalist/r-power-catalyst-spear.json",
         "dpsReportUrl": "https://dps.report/MZij-20260417-144821_golem",
-        "benchmarkDps": 41778,
+        "benchmarkDps": 41771,
         "upToDate": true
       },
       {
@@ -196,7 +196,7 @@
         "build": "Builds/elementalist/b-power-quick-catalyst-sword-fa.json",
         "rotation": "Rotations/elementalist/r-power-quick-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/iKCM-20260416-002204_golem",
-        "benchmarkDps": 34306,
+        "benchmarkDps": 34294,
         "upToDate": true
       },
       {
@@ -212,14 +212,14 @@
         "build": "Builds/elementalist/b-condi-catalyst-pistol.json",
         "rotation": "Rotations/elementalist/r-condi-catalyst-pistol.json",
         "dpsReportUrl": "https://dps.report/Q2mp-20260416-234551_golem",
-        "benchmarkDps": 37441,
+        "benchmarkDps": 37258,
         "upToDate": true
       },
       {
         "label": "Condition Quickness (Pistol/Warhorn)",
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-warhorn.json",
-        "benchmarkDps": 34781,
+        "benchmarkDps": 34645,
         "upToDate": false
       },
       {
@@ -227,21 +227,21 @@
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/wJsO-20260416-231016_golem",
-        "benchmarkDps": 32684,
+        "benchmarkDps": 32581,
         "upToDate": true
       },
       {
         "label": "Inferno (Scepter/Dagger)",
         "build": "Builds/elementalist/b-inferno-catalyst.json",
         "rotation": "Rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40433,
+        "benchmarkDps": 40367,
         "upToDate": false
       },
       {
         "label": "Inferno Quickness (Scepter/Dagger)",
         "build": "Builds/elementalist/b-inferno-quick-catalyst.json",
         "rotation": "Rotations/elementalist/r-inferno-quick-catalyst.json",
-        "benchmarkDps": 36881,
+        "benchmarkDps": 36823,
         "upToDate": false
       }
     ]
@@ -262,7 +262,7 @@
         "build": "Builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "Rotations/elementalist/r-power-quick-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/0Ez4-20260414-142811_golem",
-        "benchmarkDps": 32445,
+        "benchmarkDps": 32442,
         "upToDate": true
       },
       {
@@ -270,7 +270,7 @@
         "build": "Builds/elementalist/b-power-alac-evoker-toad.json",
         "rotation": "Rotations/elementalist/r-power-alac-evoker-toad.json",
         "dpsReportUrl": "https://dps.report/tFzd-20260415-200807_golem",
-        "benchmarkDps": 33523,
+        "benchmarkDps": 33502,
         "upToDate": true
       },
       {
@@ -317,7 +317,7 @@
         "label": "Condition Alacrity Toad - EB (Pistol/Warhorn)",
         "build": "Builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "rotation": "Rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40366,
+        "benchmarkDps": 40211,
         "upToDate": true
       },
       {

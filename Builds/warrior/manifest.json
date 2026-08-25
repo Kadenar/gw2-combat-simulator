@@ -45,14 +45,14 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42817,
+        "benchmarkDps": 42813,
         "upToDate": true
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43318,
+        "benchmarkDps": 43316,
         "upToDate": true
       },
       {

@@ -6,7 +6,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
-        "benchmarkDps": 42820,
+        "benchmarkDps": 42816,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -14,7 +14,7 @@
         "label": "Condition (Pistol / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 42011,
+        "benchmarkDps": 41830,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -58,7 +58,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
-        "benchmarkDps": 41810,
+        "benchmarkDps": 41809,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -78,7 +78,7 @@
         "label": "Power (Greatsword / Longbow)",
         "build": "Builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "Rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
-        "benchmarkDps": 41420,
+        "benchmarkDps": 41419,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true
