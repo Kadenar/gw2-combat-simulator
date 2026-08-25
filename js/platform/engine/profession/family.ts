@@ -218,8 +218,8 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
 }
 
 /**
- * Legacy contracts pass through unchanged. Family contracts resolve once for
- * the supplied configuration.
+ * Resolves family contracts for the supplied configuration. Already-resolved
+ * runtime contracts pass through unchanged.
  */
 export function resolveProfessionRuntime<TProfessionState extends object = SchedulerRecord>(
   profession: ProfessionSource<TProfessionState>,
