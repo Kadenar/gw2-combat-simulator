@@ -189,6 +189,9 @@ export function isEngineerMechCommand(skill: EngineerSkill | undefined): boolean
 
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const scaling = mechWeaponScaling(context, ID.ROCKET_PUNCH_MECH);
+  // Rocket Punch is the mech's activation, not another packet from the
+  // player's triggering weapon cast, so it owns a separate strength roll.
+  const activationId = context.createActivationId('summon-attack');
   context.emit({
     type: 'damage',
     at,
@@ -210,6 +213,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     weaponStrengthProfileId: scaling.profileId,
     engineerMech: true,
     explosion: true,
+    activationId,
     triggeredBy: skill.name
   });
   context.emit({
@@ -225,6 +229,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     stacks: engineerBalanceEffectValue(context, PROFILE.rocketPunch, 'condition', 'stacks', 1),
     duration: engineerBalanceEffectValue(context, PROFILE.rocketPunch, 'condition', 'duration', 5),
     engineerMech: true,
+    activationId,
     triggeredBy: skill.name
   });
   context.emit({
@@ -239,6 +244,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     controlKind: 'defiance',
     duration: engineerBalanceEffectValue(context, PROFILE.rocketPunch, 'control', 'duration', 100),
     engineerMech: true,
+    activationId,
     triggeredBy: skill.name
   });
 }

@@ -113,6 +113,9 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     const profile = rangerBalanceProfile(context, PROFILE.mistral);
     const strike = rangerBalanceProfileEffect(profile, 'strike');
     const chilled = rangerBalanceProfileEffect(profile, 'condition');
+    // Each missile-triggered Mistral is its own effect activation while its
+    // strike and condition packets remain grouped under one identity.
+    const activationId = context.createActivationId('effect');
     context.emit({
       type: 'damage',
       at: task.at,
@@ -127,7 +130,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
       canCrit: true,
       damageKind: 'galeshot-mistral',
       triggeredBy: payload?.skillName,
-      activationId: payload?.activationId
+      activationId
     });
     context.emit({
       type: 'condition',
@@ -142,7 +145,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
       duration: Number(chilled?.duration ?? 1),
       stacks: Number(chilled?.stacks ?? 1),
       triggeredBy: payload?.skillName,
-      activationId: payload?.activationId
+      activationId
     });
   }
 

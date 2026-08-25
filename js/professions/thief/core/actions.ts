@@ -73,6 +73,9 @@ export function handleThievesGuildAttack(
   const summonName = `Thieves Guild \u2014 ${summon.name}`;
   const attackName = `${summonName} \u2014 ${attack.name}`;
   const damageBreakdownName = `${summon.displayName || summon.name} \u2014 ${attack.name}`;
+  // Recurring summon attacks are separate activations; only the packets from
+  // this attack share its sampled weapon strength and causal ownership.
+  const activationId = context.createActivationId('summon-attack');
   context.emit({
     type: 'damage',
     at: task.at,
@@ -95,7 +98,8 @@ export function handleThievesGuildAttack(
     summonCriticalChance: Number(profile.criticalChance),
     summonCriticalDamage: Number(profile.criticalDamage),
     summonIgnoresBoons: true,
-    summonUsesEquipmentModifiers: false
+    summonUsesEquipmentModifiers: false,
+    activationId
   });
   for (const condition of attack.conditions || []) {
     context.emit({
@@ -114,7 +118,8 @@ export function handleThievesGuildAttack(
       duration: Number(condition.duration || 0),
       summonInheritsAttributes: true,
       summonIgnoresBoons: true,
-      summonUsesEquipmentModifiers: false
+      summonUsesEquipmentModifiers: false,
+      activationId
     });
   }
 

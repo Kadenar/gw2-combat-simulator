@@ -71,6 +71,8 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       state.shatteringStoneUntil =
         at + elementalistBalanceValue(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
     } else if (skill.name === 'Boulder Blast') {
+      // The projectile finisher is a separate non-weapon activation from the
+      // pistol strike, so downstream combo damage must not reuse its roll.
       context.emit({
         type: 'damage',
         at,
@@ -81,6 +83,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         skillId: skill.id,
         coefficient: 0,
         noCrit: true,
+        activationId: context.createActivationId('effect'),
         comboFinishers: [
           {
             ownerId: 'elementalist',
