@@ -317,7 +317,7 @@
         "label": "Condition Alacrity Toad - EB (Pistol/Warhorn)",
         "build": "Builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "rotation": "Rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40211,
+        "benchmarkDps": 40440,
         "upToDate": true
       },
       {
