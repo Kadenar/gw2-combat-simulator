@@ -18,6 +18,7 @@ export interface EffectEventBase extends SchedulerRecord {
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
+  readonly summonKind?: string;
   readonly skillId?: SkillId | null;
   readonly skillName?: string;
   readonly activationId?: string;
@@ -66,6 +67,13 @@ export function materializeSkillEffectApplications({
   const applications: MaterializedEffectApplication[] = [];
   const comboMetadata = effect.comboFinishers ? { comboFinishers: effect.comboFinishers } : {};
   const comboFieldMetadata = effect.comboFields ? { comboFields: effect.comboFields } : {};
+  // Summon subtype follows every packet so ownership and clone/phantasm identity remain separate.
+  const effectBaseEvent = {
+    ...baseEvent,
+    ...((effect.summonKind ?? effect.metadata?.summonKind) != null
+      ? { summonKind: String(effect.summonKind ?? effect.metadata?.summonKind) }
+      : {})
+  };
   const flatStrikeMetadata = {
     ...(effect.flatDamage != null ? { flatDamage: Number(effect.flatDamage) } : {}),
     ...(effect.flatStrikeBase != null ? { flatStrikeBase: Number(effect.flatStrikeBase) } : {}),
@@ -84,7 +92,7 @@ export function materializeSkillEffectApplications({
       applications.push({
         at,
         event: {
-          ...baseEvent,
+          ...effectBaseEvent,
           type: 'damage',
           at,
           name: effect.name || skill.name,
@@ -117,7 +125,7 @@ export function materializeSkillEffectApplications({
         applications.push({
           at,
           event: {
-            ...baseEvent,
+            ...effectBaseEvent,
             at,
             type: 'condition',
             name: effect.name || `${skill.name} — ${tick.condition}`,
@@ -142,7 +150,7 @@ export function materializeSkillEffectApplications({
         applications.push({
           at,
           event: {
-            ...baseEvent,
+            ...effectBaseEvent,
             at,
             type: 'condition',
             name: effect.name || `${skill.name} — ${effect.condition}`,
@@ -166,7 +174,7 @@ export function materializeSkillEffectApplications({
       applications.push({
         at,
         event: {
-          ...baseEvent,
+          ...effectBaseEvent,
           at,
           type: effect.type,
           ...(effect.duration != null ? { duration: Number(effect.duration) } : {}),
@@ -194,7 +202,7 @@ export function materializeSkillEffectApplications({
       applications.push({
         at,
         event: {
-          ...baseEvent,
+          ...effectBaseEvent,
           at,
           // Boons and generic positive statuses share the timed-buff runtime
           // event; the authored type still controls GW2 boon-duration scaling.
@@ -218,7 +226,7 @@ export function materializeSkillEffectApplications({
       applications.push({
         at,
         event: {
-          ...baseEvent,
+          ...effectBaseEvent,
           at,
           ...effect.event,
           type: effect.eventType,

@@ -7,6 +7,7 @@ import {
   buildScheduledEventStream
 } from '../../../js/platform/engine/events/scheduled-stream.js';
 import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engine/events/state-snapshots.js';
+import { skillDamageIdentityKey } from '../../../js/platform/ui/results/result-tables.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.throws(
@@ -55,6 +56,43 @@ test('typed event boundary rejects values outside the declared contract', () => 
       }),
     /actorType is invalid/
   );
+  assert.throws(
+    () =>
+      assertSimulationEvent({
+        type: 'damage',
+        at: 0,
+        source: 'fixture',
+        sourceId: 1,
+        ownerActorType: 'invalid',
+        coefficient: 1
+      }),
+    /ownerActorType is invalid/
+  );
+  assert.throws(
+    () =>
+      assertSimulationEvent({
+        type: 'damage',
+        at: 0,
+        source: 'fixture',
+        sourceId: 1,
+        actorType: 'summon',
+        summonKind: '',
+        coefficient: 1
+      }),
+    /summonKind must be a non-empty string/
+  );
+});
+
+test('summon subtype remains part of damage identity', () => {
+  const cloneKey = skillDamageIdentityKey({ skillId: 1, actorType: 'summon', summonKind: 'clone', name: 'Attack' });
+  const phantasmKey = skillDamageIdentityKey({
+    skillId: 1,
+    actorType: 'summon',
+    summonKind: 'phantasm',
+    name: 'Attack'
+  });
+
+  assert.notEqual(cloneKey, phantasmKey);
 });
 
 test('typed event and stream constructors return immutable envelopes', () => {

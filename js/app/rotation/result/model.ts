@@ -214,6 +214,7 @@ export function buildChartSeries(result: Gw2SimulationResult, sampleStepMs = 250
           skillId: event.skillId,
           sourceId: event.sourceId,
           actorType: event.actorType,
+          summonKind: event.summonKind,
           source: event.source,
           parentSkill: event.parentSkillName,
           name: event.name

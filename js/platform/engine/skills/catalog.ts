@@ -51,6 +51,7 @@ interface NormalizedAutoattackChains {
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
 const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
+const EFFECT_ACTOR_TYPES = new Set(['player', 'summon', 'effect', 'unknown']);
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
@@ -88,6 +89,7 @@ const EFFECT_FIELDS = new Set([
   'sourceId',
   'actorType',
   'ownerActorType',
+  'summonKind',
   'weapon',
   'weaponStrength',
   'weaponStrengthProfileId',
@@ -312,6 +314,22 @@ function normalizeEffect(effect: unknown): SkillEffect {
     throw new TypeError(
       `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
     );
+  }
+
+  // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
+  if (normalizedEffect.actorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.actorType)) {
+    throw new TypeError('Skill effect actorType is invalid.');
+  }
+
+  if (normalizedEffect.ownerActorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.ownerActorType)) {
+    throw new TypeError('Skill effect ownerActorType is invalid.');
+  }
+
+  if (
+    normalizedEffect.summonKind !== undefined &&
+    (typeof normalizedEffect.summonKind !== 'string' || !normalizedEffect.summonKind)
+  ) {
+    throw new TypeError('Skill effect summonKind must be a non-empty string.');
   }
 
   const interruptCommitMs =

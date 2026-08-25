@@ -8,7 +8,13 @@ import type {
   Skill,
   StrikeEffect
 } from '../../../platform/engine/types.js';
-import type { MesmerAddCondition, MesmerAddDamage, MesmerAddEvent, MesmerAddTraitProc } from '../types.js';
+import type {
+  MesmerAddCondition,
+  MesmerAddDamage,
+  MesmerAddEvent,
+  MesmerAddTraitProc,
+  MesmerSummonKind
+} from '../types.js';
 
 interface MesmerEventMaterializerOptions {
   readonly emit: (event: SimulationEventInput) => SimulationEvent | null;
@@ -20,6 +26,14 @@ function conditionName(value: unknown): string {
   const normalized = String(value || '').toLowerCase();
   if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+/** Preserves clone/phantasm behavior as summon subtype metadata while source labels remain compatible. */
+function mesmerSummonKind(source: string, explicit?: unknown): MesmerSummonKind | undefined {
+  if (explicit === 'clone' || explicit === 'phantasm') return explicit;
+  if (source === 'Clone') return 'clone';
+  if (source === 'Phantasm') return 'phantasm';
+  return undefined;
 }
 
 /**
@@ -60,7 +74,8 @@ export function createMesmerEventMaterializer({
     if (!condition.duration) return [];
     const eventSource = String(extra.source || source);
     const sourceId = extra.sourceId ?? skillName;
-    const actorType = extra.actorType || gw2ActorTypeForSource(eventSource);
+    const summonKind = mesmerSummonKind(eventSource, extra.summonKind ?? condition.summonKind);
+    const actorType = extra.actorType || (summonKind ? 'summon' : gw2ActorTypeForSource(eventSource));
     const pseudoSkill: Skill = {
       id: extra.skillId ?? skillName,
       name: skillName
@@ -100,6 +115,7 @@ export function createMesmerEventMaterializer({
         source: eventSource,
         sourceId,
         actorType,
+        summonKind,
         skillId: extra.skillId ?? null,
         skillName
       }
@@ -122,7 +138,8 @@ export function createMesmerEventMaterializer({
   const addDamage: MesmerAddDamage = (skill, at, group, extra = {}) => {
     const source = String(group.source || extra.source || 'Player');
     const sourceId = extra.sourceId ?? skill.id ?? skill.name;
-    const actorType = group.actorType || extra.actorType || gw2ActorTypeForSource(source);
+    const summonKind = mesmerSummonKind(source, group.summonKind ?? extra.summonKind);
+    const actorType = group.actorType || extra.actorType || (summonKind ? 'summon' : gw2ActorTypeForSource(source));
     const hasExplicitTiming =
       group.atMs != null || group.intervalMs != null || (Array.isArray(group.ticks) && group.ticks.length > 0);
     const effect: StrikeEffect = {
@@ -145,6 +162,7 @@ export function createMesmerEventMaterializer({
         source,
         sourceId,
         actorType,
+        summonKind,
         skillId: extra.skillId ?? skill.id ?? null,
         skillName: skill.name,
         // Preserve a committed packet's interrupt lifetime through Mesmer's custom materializer.
@@ -156,8 +174,7 @@ export function createMesmerEventMaterializer({
     return applications.flatMap((application) => {
       const explicit = String(group.weapon || '');
       const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-      const independentStrength =
-        actorType === 'phantasm' || actorType === 'summon' ? weaponStrength[normalized] : undefined;
+      const independentStrength = actorType === 'summon' ? weaponStrength[normalized] : undefined;
       const emitted = emit({
         ...application.event,
         // Timed Mesmer packets were individually materialized before this

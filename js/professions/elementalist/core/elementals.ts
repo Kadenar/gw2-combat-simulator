@@ -863,7 +863,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
     event.type === 'combat_start' ||
     (!context.hasExplicitCombatStart &&
       ['damage', 'condition', 'control', 'blind'].includes(event.type) &&
-      ['player', 'summon', 'phantasm'].includes(String(event.actorType)));
+      ['player', 'summon'].includes(String(event.actorType)));
   if (!combatStarted) return;
   if (state.summonedElemental.activeUntil <= event.at + context.epsilon && autoSummon) {
     const glyph = glyphSkillForElement(context, selected);

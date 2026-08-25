@@ -110,7 +110,10 @@ export function createGw2ResolverRuntimeState({
       const skillId = source?.skillId ?? null;
       const sourceId = source?.sourceId ?? skillId ?? sourceSkill;
       const identityId = skillId ?? sourceId;
-      const actorIdentity = source?.actorType ?? source?.source ?? '';
+      // Summon subtype prevents clone and phantasm entries from sharing one identity bucket.
+      const actorIdentity = source?.summonKind
+        ? `${source.actorType ?? ''}:${source.summonKind}`
+        : (source?.actorType ?? source?.source ?? '');
       const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,
@@ -121,6 +124,7 @@ export function createGw2ResolverRuntimeState({
         skillId,
         sourceId,
         actorType: source?.actorType,
+        summonKind: source?.summonKind,
         source: source?.source,
         damage: 0,
         strikeDamage: 0,
@@ -139,6 +143,10 @@ export function createGw2ResolverRuntimeState({
 
       if (!current.actorType && source?.actorType) {
         current.actorType = source.actorType;
+      }
+
+      if (!current.summonKind && source?.summonKind) {
+        current.summonKind = source.summonKind;
       }
 
       if (!current.source && source?.source) {

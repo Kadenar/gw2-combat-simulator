@@ -17,7 +17,7 @@ const EFFECT_SOURCES = new Set(['Food', 'Relic', 'Sigil', 'Trait']);
 const NON_WEAPON_EFFECT_SOURCES = new Set(['equipment', 'food', 'relic', 'sigil', 'trait']);
 
 /**
- * Classifies legacy source labels while new events migrate to actorType.
+ * Classifies display-oriented source labels when explicit actor ownership is absent.
  *
  * @param {unknown} source
  * @returns {Gw2EventActorType}
@@ -59,8 +59,7 @@ export function isGw2PlayerActorEvent(event: Partial<SimulationEventInput> | nul
 
 /**
  * Resolves whose outgoing modifiers an event inherits. Events without an
- * explicit owner retain their actor ownership. The legacy phantasm actor is
- * canonicalized to summon ownership for compatibility.
+ * explicit owner retain their actor ownership.
  */
 export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
   const explicit = String(event?.ownerActorType || '');
@@ -68,7 +67,6 @@ export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | nu
     return explicit as Gw2EventActorType;
   }
 
-  if (explicit === 'phantasm') return GW2_EVENT_ACTOR_TYPES.SUMMON;
   return gw2EventActorType(event);
 }
 

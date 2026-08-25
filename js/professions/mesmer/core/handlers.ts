@@ -10,7 +10,7 @@ function conditionName(value: unknown): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function legacyWeaponStrength(effect: SkillEffect, skill: Skill): number | undefined {
+function effectWeaponStrength(effect: SkillEffect, skill: Skill): number | undefined {
   if (effect.weaponStrength != null) return Number(effect.weaponStrength);
   const explicit = String(effect.weapon || '');
   const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
@@ -28,17 +28,15 @@ function observeDeclarativeEffect(
   if (event.type === 'damage') {
     const individuallyTimed =
       Array.isArray(effect.ticks) || Number(effect.intervalMs || 0) > 0 || Number(skill.pulseCount || 0) > 1;
+    const phantasmOwned = effect.summonKind === 'phantasm';
     context.replaceEvent(event, {
-      source: effect.actorType === 'phantasm' ? 'Phantasm' : 'Player',
+      source: phantasmOwned ? 'Phantasm' : 'Player',
       blade: Boolean(skill.blade),
       canCrit: undefined,
       name: skill.name,
       totalHits: individuallyTimed ? 1 : event.totalHits,
       weapon: effect.weapon || '',
-      weaponStrength:
-        effect.weaponStrength != null || effect.actorType === 'phantasm'
-          ? legacyWeaponStrength(effect, skill)
-          : undefined,
+      weaponStrength: effect.weaponStrength != null || phantasmOwned ? effectWeaponStrength(effect, skill) : undefined,
       skillWeapon:
         skill.weapon ||
         (['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''))

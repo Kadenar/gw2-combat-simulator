@@ -7,7 +7,7 @@ import type { QueuedEvent, SimulationActorType, SimulationEvent } from '../types
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
-const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'unknown', 'phantasm']);
+const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'unknown']);
 const LEGACY_EVENT_TYPES = new Set(['boon', 'cooldown_snapshot', 'self_condition']);
 
 /**
@@ -93,6 +93,14 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
   if (event.actorType !== undefined && !ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
     throw new Error('Event actorType is invalid.');
+  }
+
+  if (event.ownerActorType !== undefined && !ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {
+    throw new Error('Event ownerActorType is invalid.');
+  }
+
+  if (event.summonKind !== undefined && (typeof event.summonKind !== 'string' || !event.summonKind)) {
+    throw new Error('Event summonKind must be a non-empty string.');
   }
 
   if (event.activationId !== undefined && (typeof event.activationId !== 'string' || !event.activationId)) {

@@ -191,7 +191,12 @@ function criticalMetric(event: Gw2ResolverEvent): Readonly<{
   id: string;
   label: string;
 }> {
-  if (event.source === 'Clone' || event.source === 'Phantasm' || event.actorType === 'phantasm') {
+  if (
+    event.source === 'Clone' ||
+    event.source === 'Phantasm' ||
+    event.summonKind === 'clone' ||
+    event.summonKind === 'phantasm'
+  ) {
     return { id: 'illusion', label: 'Illusion critical hits' };
   }
 

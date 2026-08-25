@@ -60,7 +60,6 @@ function breakdownActorType(
   sourceEvent: Gw2ResolverEvent | undefined
 ): SimulationActorType {
   const explicit = entry.actorType ?? sourceEvent?.actorType;
-  if (explicit === 'phantasm') return explicit;
   return gw2EventActorType({
     actorType: explicit,
     source: entry.source ?? sourceEvent?.source
@@ -68,7 +67,7 @@ function breakdownActorType(
 }
 
 const breakdownGroup = (actorType: SimulationActorType): 'Player' | 'Entities' =>
-  actorType === 'summon' || actorType === 'phantasm' ? 'Entities' : 'Player';
+  actorType === 'summon' ? 'Entities' : 'Player';
 
 const CHRONOPHANTASMA_SUFFIX = ' - Chronophantasma';
 const PARENT_SKILL_SEPARATOR = ' \u2014 ';
@@ -170,12 +169,15 @@ export function skillDamageIdentityKey(fields: {
   readonly skillId?: SkillId | null;
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType | null;
+  readonly summonKind?: string | null;
   readonly source?: string | null;
   readonly parentSkill?: string | null;
   readonly name?: string | null;
 }): string {
   const identityId = fields.skillId ?? fields.sourceId ?? '';
-  const actorIdentity = fields.actorType ?? fields.source ?? '';
+  const actorIdentity = fields.summonKind
+    ? `${fields.actorType ?? ''}:${fields.summonKind}`
+    : (fields.actorType ?? fields.source ?? '');
   return `${String(identityId)}|${String(actorIdentity)}|${fields.parentSkill || ''}|${fields.name || ''}`;
 }
 
@@ -190,6 +192,7 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
       skillId: entry.skillId,
       sourceId: entry.sourceId,
       actorType: entry.actorType,
+      summonKind: entry.summonKind,
       source: entry.source,
       parentSkill: entry.parentSkill,
       name: entry.name

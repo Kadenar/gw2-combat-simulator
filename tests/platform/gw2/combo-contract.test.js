@@ -91,12 +91,11 @@ test('missing bindings and invalid field lifetimes fail event validation', () =>
   );
 });
 
-test('catalog field aliases normalize into explicit field metadata', () => {
+test('catalog combo field descriptors normalize and validate explicit metadata', () => {
   const skill = normalizeGw2ComboCatalogSkill({
     id: 1,
-    name: 'Field Alias Skill',
-    comboField: 'fire',
-    comboFieldDuration: 4,
+    name: 'Explicit Combo Field Skill',
+    comboFields: [{ fieldType: 'fire', duration: 4 }],
     effects: [{ type: 'strike', coefficient: 1 }]
   });
 
@@ -105,7 +104,7 @@ test('catalog field aliases normalize into explicit field metadata', () => {
       fieldType: 'Fire',
       duration: 4,
       startMs: 0,
-      startAnchor: 'castEnd'
+      startAnchor: 'castStart'
     }
   ]);
   assert.throws(

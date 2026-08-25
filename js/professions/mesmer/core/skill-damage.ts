@@ -278,7 +278,7 @@ export function createSkillDamageController({
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
           : group;
-      if (group.actorType === 'phantasm') {
+      if (group.summonKind === 'phantasm') {
         if (phantasmExecutions.length === 0) {
           throw new TypeError(`Phantasm strike ${skill.id} requires phantasm resource metadata.`);
         }
@@ -310,8 +310,9 @@ export function createSkillDamageController({
 
     scheduleTrackedHits(skill, playerHitTimes);
     if (phantasmExecutions.length > 0) {
-      const playerConditions = conditions.filter((effect) => effect.actorType === 'player');
-      const phantasmConditions = conditions.filter((effect) => effect.actorType !== 'player');
+      // Summon subtype, rather than actor ownership, keeps phantasm conditions out of the player path.
+      const playerConditions = conditions.filter((effect) => effect.summonKind !== 'phantasm');
+      const phantasmConditions = conditions.filter((effect) => effect.summonKind === 'phantasm');
       schedulePlayerConditions(skill, at, castStart, pulseTimes, playerConditions);
       for (const phantasm of phantasmExecutions) {
         phantasms.scheduleConditions(phantasm, phantasmConditions);

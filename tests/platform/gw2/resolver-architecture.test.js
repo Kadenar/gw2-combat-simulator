@@ -102,6 +102,7 @@ function tormentDamageAtMight(might) {
       },
       target: {
         ...defaults.target,
+        conditions: { ...defaults.target.conditions, Vulnerability: 0 },
         vulnerability: 0,
         moving: false,
         activatingSkills: false,

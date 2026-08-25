@@ -271,15 +271,20 @@ export interface MesmerMechanic extends SchedulerRecord {
   readonly flipChildId?: number;
 }
 
+/** Distinguishes Mesmer illusion behavior while both variants use canonical summon ownership. */
+export type MesmerSummonKind = 'clone' | 'phantasm';
+
 export interface MesmerStrikeEffect extends StrikeEffect {
   readonly castProgress?: number;
   readonly requiredTrait?: number;
+  readonly summonKind?: MesmerSummonKind;
 }
 
 export interface MesmerConditionEffect extends ConditionEffect {
   readonly condition: string;
   readonly duration: number;
   readonly packetLabel?: string;
+  readonly summonKind?: MesmerSummonKind;
   /** Restricts a phantasm-owned condition to one summoned entity. */
   readonly phantasmEntityIndex?: number;
 }
@@ -298,6 +303,7 @@ export interface MesmerConditionApplication extends SchedulerRecord {
   readonly timingAnchor?: 'castStart' | 'castEnd';
   readonly timingScale?: 'cast' | 'fixed';
   readonly ticks?: readonly ConditionTick[];
+  readonly summonKind?: MesmerSummonKind;
 }
 
 export interface MesmerEventExtra extends SchedulerRecord {
@@ -307,6 +313,7 @@ export interface MesmerEventExtra extends SchedulerRecord {
   readonly sourceId?: SkillId;
   readonly skillId?: SkillId | null;
   readonly actorType?: SimulationActorType;
+  readonly summonKind?: MesmerSummonKind;
   /** Identifies damage or conditions produced by a shatter skill. */
   readonly shatter?: boolean;
   /** Marks packets that may receive shatter traits; clone repeat strikes can opt out while every blade opts in. */

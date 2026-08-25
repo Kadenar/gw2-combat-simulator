@@ -10,7 +10,7 @@ import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from './types.js';
 
 function streamActor(event: Gw2ResolverEvent): string {
-  if (event.actorType === 'summon' || event.actorType === 'phantasm') {
+  if (event.actorType === 'summon') {
     return 'summon';
   }
 

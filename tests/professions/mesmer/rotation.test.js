@@ -408,6 +408,8 @@ test('Flow of Time increases clone critical chance while alacrity is active', ()
   const cloneHit = result.resolvedEvents.find((event) => event.type === 'damage' && event.source === 'Clone');
 
   assert.ok(cloneHit);
+  assert.equal(cloneHit.actorType, 'summon');
+  assert.equal(cloneHit.summonKind, 'clone');
   assert.ok(Math.abs(cloneHit.criticalChance - 0.2) < 1e-12);
 });
 
@@ -427,6 +429,8 @@ test('Phantasmal Fury increases phantasm critical chance', () => {
   const phantasmHit = result.resolvedEvents.find((event) => event.type === 'damage' && event.source === 'Phantasm');
 
   assert.ok(phantasmHit);
+  assert.equal(phantasmHit.actorType, 'summon');
+  assert.equal(phantasmHit.summonKind, 'phantasm');
   assert.ok(Math.abs(phantasmHit.criticalChance - 0.3) < 1e-12);
 });
 
@@ -2100,6 +2104,7 @@ test('stationary torment uses the current PvE formula', () => {
       },
       target: {
         ...defaults.target,
+        conditions: { ...defaults.target.conditions, Vulnerability: 0 },
         vulnerability: 0,
         moving: false,
         activatingSkills: false,
@@ -2158,6 +2163,7 @@ test('target skill activations add the current PvE confusion activation damage',
         ...config,
         target: {
           ...defaults.target,
+          conditions: { ...defaults.target.conditions, Vulnerability: 0 },
           vulnerability: 0,
           activatingSkills: confusionActivationsPerSecond > 0,
           confusionActivationsPerSecond
@@ -2446,20 +2452,23 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
     selectedTraitIds: [TRAIT.TIME_BOMB]
   });
   const claw = simulateMesmer(rotation, { ...config, relic: 'Claw' });
-  const strikeDamage = (result, actorType) =>
+  const strikeDamage = (result, actorType, summonKind = '') =>
     result.resolvedEvents
       .filter(
         (event) =>
-          event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.actorType === actorType
+          event.type === 'damage' &&
+          event.skillName === 'Phantasmal Swordsman' &&
+          event.actorType === actorType &&
+          (!summonKind || event.summonKind === summonKind)
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
   assert.ok(strikeDamage(dangerTime, 'player') > strikeDamage(base, 'player'));
-  assert.ok(strikeDamage(dangerTime, 'phantasm') > strikeDamage(base, 'phantasm'));
+  assert.ok(strikeDamage(dangerTime, 'summon', 'phantasm') > strikeDamage(base, 'summon', 'phantasm'));
   assert.ok(Math.abs(strikeDamage(claw, 'player') / strikeDamage(base, 'player') - 1.07) < 1e-12);
-  assert.equal(strikeDamage(claw, 'phantasm'), strikeDamage(base, 'phantasm'));
+  assert.equal(strikeDamage(claw, 'summon', 'phantasm'), strikeDamage(base, 'summon', 'phantasm'));
   assert.ok(Math.abs(strikeDamage(timeBomb, 'player') / strikeDamage(base, 'player') - 1.1) < 1e-12);
-  assert.equal(strikeDamage(timeBomb, 'phantasm'), strikeDamage(base, 'phantasm'));
+  assert.equal(strikeDamage(timeBomb, 'summon', 'phantasm'), strikeDamage(base, 'summon', 'phantasm'));
   const timeBombBuff = timeBomb.events.find((event) => event.type === 'buff' && event.kind === 'time-bomb');
   const explosion = timeBomb.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Time Bomb');
 
@@ -2474,7 +2483,8 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
   assert.deepEqual(entityRows.map((row) => row.name).sort(), ['Blurred Frenzy', 'Sword Attack']);
   assert.ok(Math.abs(playerRow.strike - strikeDamage(dangerTime, 'player')) < 1e-9);
   assert.ok(
-    Math.abs(entityRows.reduce((sum, row) => sum + row.strike, 0) - strikeDamage(dangerTime, 'phantasm')) < 1e-9
+    Math.abs(entityRows.reduce((sum, row) => sum + row.strike, 0) - strikeDamage(dangerTime, 'summon', 'phantasm')) <
+      1e-9
   );
 });
 
@@ -6054,10 +6064,10 @@ test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', 
   );
 
   assert.deepEqual(
-    lancerConditions.map((event) => [event.condition, event.duration, event.source, event.actorType]),
+    lancerConditions.map((event) => [event.condition, event.duration, event.source, event.actorType, event.summonKind]),
     [
-      ['Crippled', 3, 'Phantasm', 'summon'],
-      ['Immobilized', 2, 'Phantasm', 'summon']
+      ['Crippled', 3, 'Phantasm', 'summon', 'phantasm'],
+      ['Immobilized', 2, 'Phantasm', 'summon', 'phantasm']
     ]
   );
   assert.equal(shackles.length, 1);

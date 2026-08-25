@@ -1,5 +1,4 @@
 import { EPSILON } from '../../engine/core/clock.js';
-import { normalizeSimulationEventInput } from '../../engine/events/events.js';
 import { clamp } from '../combat/numeric.js';
 import { comboDefinition } from './definitions.js';
 
@@ -133,7 +132,6 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
 
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
 export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEventInput {
-  event = normalizeSimulationEventInput(event);
   if (event.type === 'combo_field') {
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);

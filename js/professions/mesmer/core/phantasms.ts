@@ -273,7 +273,9 @@ export function createPhantasmEffectController({
   ): MesmerPhantasmStrikeResult => {
     const sourcedGroup: MesmerDamageGroup = {
       ...selectedGroup,
-      source: 'Phantasm'
+      source: 'Phantasm',
+      actorType: 'summon',
+      summonKind: 'phantasm'
     };
     // Flatten tick-array definitions into a single coefficient sum so the damageGroup
     // holds a scalar value regardless of how the source data was authored.
@@ -443,7 +445,8 @@ export function createPhantasmEffectController({
       source: 'Phantasm',
       sourceId: execution.skill.id,
       skillId: execution.skill.id,
-      actorType: 'summon' as const
+      actorType: 'summon' as const,
+      summonKind: 'phantasm' as const
     };
     for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };

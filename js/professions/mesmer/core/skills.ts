@@ -195,7 +195,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.5,
         hits: 1,
         name: 'Phantasm leap',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       },
       {
@@ -203,7 +204,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 1.6,
         hits: 8,
         name: 'Phantasm Blurred Frenzy',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
     ],
@@ -249,7 +251,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.92,
         hits: 8,
         name: 'Illusion Damage',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       },
       {
@@ -257,6 +260,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         condition: 'bleeding',
         duration: 4,
         stacks: 8,
+        actorType: 'summon',
+        summonKind: 'phantasm',
         packetLabel: 'Illusion Damage'
       }
     ],
@@ -318,7 +323,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.5,
         hits: 1,
         name: 'Phantasm attack',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         // Backfire uses the phantasm's summon profile rather than the mesmer's equipped Torch strength.
         weapon: 'Phantasm medium'
       },
@@ -342,13 +348,16 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         condition: 'Burning',
         duration: 9,
         stacks: 1,
-        actorType: 'phantasm'
+        actorType: 'summon',
+        summonKind: 'phantasm'
       },
       {
         type: 'condition',
         condition: 'confusion',
         duration: 3,
-        stacks: 3
+        stacks: 3,
+        actorType: 'summon',
+        summonKind: 'phantasm'
       }
     ],
     quicknessCastTimeMs: 760
@@ -505,14 +514,17 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.45,
         hits: 3,
         name: 'One warlock',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'Phantasm high'
       },
       {
         type: 'condition',
         condition: 'Torment',
         duration: 4,
-        stacks: 6
+        stacks: 6,
+        actorType: 'summon',
+        summonKind: 'phantasm'
       }
     ],
     quicknessCastTimeMs: 840
@@ -604,7 +616,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 1.2,
         hits: 4,
         name: 'One berserker',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm high'
       },
       {
@@ -722,7 +735,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 1,
         hits: 1,
         name: 'Target without boons',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
     ],
@@ -822,7 +836,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 1.656,
         hits: 12,
         name: 'Damage',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
     ],
@@ -1133,7 +1148,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.4,
         hits: 1,
         name: 'Damage',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm defender'
       }
     ],
@@ -1215,7 +1231,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.9,
         hits: 1,
         name: 'Damage',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       }
     ],
@@ -1682,7 +1699,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 2.28,
         hits: 1,
         name: 'Phantasm shot',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'rifle'
       }
     ]
@@ -1719,21 +1737,24 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         coefficient: 0.6,
         hits: 1,
         name: 'One lancer',
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         weapon: 'phantasm medium'
       },
       {
         type: 'condition',
         condition: 'Crippled',
         duration: 3,
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         phantasmEntityIndex: 0
       },
       {
         type: 'condition',
         condition: 'Immobilized',
         duration: 2,
-        actorType: 'phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
         phantasmEntityIndex: 1
       }
     ],

@@ -13,16 +13,7 @@ export type ObservationPolicy =
 
 export type NormalizedObservationPolicy = ObservationPolicy;
 
-export type SimulationActorType =
-  | 'player'
-  | 'summon'
-  | 'effect'
-  | 'unknown'
-  /**
-   * Legacy Mesmer scheduler detail. Resolver ownership classifies this as a
-   * summon; future event normalization should remove it from the public union.
-   */
-  | 'phantasm';
+export type SimulationActorType = 'player' | 'summon' | 'effect' | 'unknown';
 
 export type CommonSimulationEventType =
   | 'action'
@@ -55,6 +46,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
+  readonly summonKind?: string;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
@@ -129,6 +121,7 @@ export interface SimulationEventInput {
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
+  readonly summonKind?: string;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
@@ -200,6 +193,7 @@ export interface SkillEffectBase {
   readonly sourceId?: SkillId;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
+  readonly summonKind?: string;
   readonly name?: string;
   readonly metadata?: Readonly<Record<string, unknown>>;
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];

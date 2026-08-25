@@ -44,7 +44,7 @@ test('modifier ownership is independent from proc actor ownership', () => {
   assert.equal(
     gw2EventOwnerActorType({
       actorType: 'effect',
-      ownerActorType: 'phantasm'
+      ownerActorType: 'summon'
     }),
     'summon'
   );

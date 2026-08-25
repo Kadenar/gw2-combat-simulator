@@ -766,7 +766,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
     const phantasmCount = Number(skill.resource?.count || 1);
 
     return strikeEffects(skill).reduce(
-      (sum, effect) => sum + strikeCoefficient(effect) * (effect.actorType === 'phantasm' ? phantasmCount : 1),
+      (sum, effect) => sum + strikeCoefficient(effect) * (effect.summonKind === 'phantasm' ? phantasmCount : 1),
       0
     );
   };
@@ -803,7 +803,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   }
 
   const lancerPhantasm = strikeEffects(normalized('Phantasmal Lancer')).find(
-    (effect) => effect.actorType === 'phantasm'
+    (effect) => effect.summonKind === 'phantasm'
   );
 
   // The phantasm's lower coefficient is paired with the medium phantasm weapon-strength table.
@@ -823,7 +823,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
 
   const lancer = normalized('Phantasmal Lancer');
 
-  assert.equal(strikeEffects(lancer).find((effect) => effect.actorType === 'phantasm').coefficient, 0.6);
+  assert.equal(strikeEffects(lancer).find((effect) => effect.summonKind === 'phantasm').coefficient, 0.6);
   const swordsman = normalized('Phantasmal Swordsman');
 
   assert.deepEqual(
@@ -837,10 +837,10 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   const mage = normalized('Phantasmal Mage');
 
   assert.deepEqual(
-    strikeEffects(mage).map((effect) => [effect.actorType, effect.coefficient]),
+    strikeEffects(mage).map((effect) => [effect.actorType, effect.summonKind, effect.coefficient]),
     [
-      ['player', 0.19],
-      ['phantasm', 0.5]
+      ['player', undefined, 0.19],
+      ['summon', 'phantasm', 0.5]
     ]
   );
 });
