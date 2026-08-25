@@ -13,8 +13,12 @@ import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '../../../js/app/rotation/palette/resource-view.js';
 import { renderPalette } from '../../../js/app/rotation/palette/view.js';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '../../../js/app/profession/registry.js';
-import { professionRoute } from '../../../js/app/profession/selector.js';
+import {
+  loadProfession,
+  loadProfessionAppAdapter,
+  professionOptions,
+  professionRoute
+} from '../../../js/app/profession/registry.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';

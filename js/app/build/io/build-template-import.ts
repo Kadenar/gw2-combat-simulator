@@ -126,8 +126,3 @@ export function applyBuildTemplatePreview(
   app.changed();
   return preview.warnings;
 }
-
-/** Convenience path for callers that intentionally preview and apply immediately. */
-export function importBuildTemplateCode(app: ProfessionAppState, chatCode: string): readonly string[] {
-  return applyBuildTemplatePreview(app, previewBuildTemplateCode(app, chatCode));
-}

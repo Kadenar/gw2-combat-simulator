@@ -175,8 +175,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   antiquaryDamageUntil: number;
   combatHighExpiresAt: number;
   combatHighStacks: number;
-  artifactStealthAttacksRemaining?: number;
-  artifactStealthAttackExpiresAt?: number;
   mistburnCharges: number;
   mistburnExpiresAt: number;
   mistburnGeneration: number;

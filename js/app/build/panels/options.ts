@@ -41,8 +41,6 @@ export const TARGET_CONDITION_GROUPS = Object.freeze([
   })
 ]);
 
-export const PERMANENT_TARGET_CONDITIONS = Object.freeze(TARGET_CONDITION_GROUPS.flatMap((group) => group.conditions));
-
 export const STACKING_TARGET_CONDITIONS = new Set(['Vulnerability', 'Bleeding', 'Torment', 'Confusion']);
 
 export const DEFAULT_TARGET_ARMOR = 2597;

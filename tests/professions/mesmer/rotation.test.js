@@ -7,6 +7,7 @@ import { prepareSimulationConfig } from '../../../js/platform/engine/config.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { chartValueAt } from '../../../js/platform/ui/results/charts/time-series.js';
+import { eventLogCsv } from '../../../js/platform/ui/results/event-log.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
@@ -28,7 +29,7 @@ import {
   shatterResourceSpends,
   timelineWeaponRows
 } from '../../../js/app/rotation/timeline/model.js';
-import { simulationEventLogCsv, simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
+import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { rotationWarningItems } from '../../../js/app/rotation/result/warnings.js';
 import { RELIC_DATA } from '../../../js/platform/gw2/equipment/relics/catalog.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
@@ -2215,7 +2216,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
         event.description.includes('Phantasmal Duelist phantasm conversion')
     )
   );
-  assert.match(simulationEventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
+  assert.match(eventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
 });
 
 test('configured Virtuoso bladesongs spend blades at cast end', () => {
@@ -6394,8 +6395,8 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
   assert.equal(duelistStart.at, -0.5);
   assert.equal(combatStart.at, 0);
   assert.ok(Math.abs(counterspellStart.at - 0.18) < 1e-12);
-  assert.match(simulationEventLogCsv(log), /"-0\.500","cast"/);
-  assert.match(simulationEventLogCsv(log), /"0\.000","combat_start","COMBAT START"/);
+  assert.match(eventLogCsv(log), /"-0\.500","cast"/);
+  assert.match(eventLogCsv(log), /"0\.000","combat_start","COMBAT START"/);
 });
 
 test('result summary includes kill time when target health is exhausted', () => {

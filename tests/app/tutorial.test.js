@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  activateTutorialPanel,
-  restartTutorialAnimation,
-  setTutorialAnimationState,
-  tutorialPrefersReducedMotion
-} from '../../js/app/tutorial.js';
+import { activateTutorialPanel, restartTutorialAnimation, setTutorialAnimationState } from '../../js/app/tutorial.js';
 
 function tutorialImageStub(source = 'tutorial.gif') {
   const attributes = new Map();
@@ -117,20 +112,4 @@ test('tutorial replay resets the cached GIF on the next animation frame', () => 
   queuedFrames.shift()();
   queuedFrames.shift()();
   assert.equal(image.getAttribute('src'), 'tutorial.gif');
-});
-
-test('tutorial honors the system reduced-motion preference', () => {
-  assert.equal(
-    tutorialPrefersReducedMotion({
-      matchMedia: () => ({ matches: true })
-    }),
-    true
-  );
-  assert.equal(
-    tutorialPrefersReducedMotion({
-      matchMedia: () => ({ matches: false })
-    }),
-    false
-  );
-  assert.equal(tutorialPrefersReducedMotion(null), false);
 });

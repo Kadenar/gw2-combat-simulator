@@ -1,11 +1,6 @@
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
 import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
-import {
-  EVENT_LOG_ORDER,
-  eventLogCsv,
-  mountEventLog,
-  normalizeEventLogDescriptor
-} from '../../../platform/ui/results/event-log.js';
+import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '../../../platform/ui/results/event-log.js';
 import type { EventLogRow } from '../../../platform/ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../../profession/types.js';
 import { professionEndState } from '../shared/context.js';
@@ -221,10 +216,6 @@ export function simulationEventLogRows(
         left.at - right.at || left.order - right.order || left.description.localeCompare(right.description)
     )
     .map(({ order: _order, ...row }) => row);
-}
-
-export function simulationEventLogCsv(rows: readonly EventLogRow[]): string {
-  return eventLogCsv(rows);
 }
 
 export function renderEventLog(app: ProfessionAppState): void {

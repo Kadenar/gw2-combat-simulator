@@ -6,10 +6,11 @@ import test from 'node:test';
 import {
   loadProfession,
   loadProfessionAppAdapter,
+  PROFESSION_ROUTES,
   professionOptions,
-  professionRegistry
+  professionRegistry,
+  professionRoute
 } from '../../../js/app/profession/registry.js';
-import { PROFESSION_ROUTES, professionRoute } from '../../../js/app/profession/selector.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { selectedGw2TraitValues } from '../../../js/platform/gw2/combat/query/combat-query.js';
 import {

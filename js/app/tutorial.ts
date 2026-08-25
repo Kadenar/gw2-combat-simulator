@@ -39,10 +39,6 @@ export function restartTutorialAnimation(
   }
 }
 
-export function tutorialPrefersReducedMotion(view: Pick<Window, 'matchMedia'> | null | undefined): boolean {
-  return Boolean(view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-}
-
 /** Switches the visible walkthrough and keeps every inactive GIF unloaded. */
 export function activateTutorialPanel(
   root: ParentNode,

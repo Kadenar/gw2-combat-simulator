@@ -5,7 +5,6 @@ import test from 'node:test';
 import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
-  importBuildTemplateCode,
   previewBuildTemplateCode
 } from '../../js/app/build/io/build-template-import.js';
 import { elementalistCatalog } from '../../js/professions/elementalist/catalog.js';
@@ -36,7 +35,8 @@ test('in-game build import replaces selections without discarding gear or rotati
     }
   };
 
-  const warnings = importBuildTemplateCode(app, ELEMENTALIST_CODE);
+  const preview = previewBuildTemplateCode(app, ELEMENTALIST_CODE);
+  const warnings = applyBuildTemplatePreview(app, preview);
 
   assert.deepEqual(app.build.specializations, [
     { name: 'Fire', traits: '1-3-1' },
@@ -67,15 +67,14 @@ test('Engineer build import equips the inferred primary spear', () => {
     changed() {}
   };
 
-  const warnings = importBuildTemplateCode(app, ENGINEER_CODE);
+  const preview = previewBuildTemplateCode(app, ENGINEER_CODE);
+  const warnings = applyBuildTemplatePreview(app, preview);
 
   assert.deepEqual(app.build.weapons, ['Spear', '']);
   assert.deepEqual(app.build.alternateWeapons, alternateWeapons);
   assert.match(warnings[0], /Choose the intended weapon set/);
 
-  const pistolPreview = previewBuildTemplateCode(app, ENGINEER_CODE);
-
-  applyBuildTemplatePreview(app, pistolPreview, pistolPreview.weaponOptions[1]);
+  applyBuildTemplatePreview(app, preview, preview.weaponOptions[1]);
   assert.deepEqual(app.build.weapons, ['Pistol', 'Pistol']);
 });
 

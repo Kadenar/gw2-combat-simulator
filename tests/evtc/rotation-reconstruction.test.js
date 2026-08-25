@@ -6,7 +6,7 @@ import { deflateRawSync } from 'node:zlib';
 import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/io/evtc-rotation-import.js';
 import { applyRotationImportPreview, previewRotationFile } from '../../js/app/build/io/rotation-import-dialog.js';
 import { EvtcError } from '../../js/evtc-analyzer/errors.js';
-import { EVTC_PROFESSIONS, EVTC_SPECIALIZATIONS } from '../../js/evtc-analyzer/profession-metadata.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../../js/evtc-analyzer/profession-metadata.js';
 import {
   detectEvtcRotationPlayers,
   EVTC_PROFESSION_ROTATION_PARSERS,
@@ -259,10 +259,14 @@ test('registers an individual parser for every current profession specialization
   assert.equal(getEvtcProfessionRotationParser('mesmer', 'reaper'), null);
 
   for (const parser of EVTC_PROFESSION_ROTATION_PARSERS) {
-    const profession = EVTC_PROFESSIONS.find((candidate) => candidate.id === parser.professionId);
-    const specialization = EVTC_SPECIALIZATIONS.find(
-      (candidate) => candidate.professionId === parser.professionId && candidate.id === parser.specializationId
+    const profession = Array.from({ length: 256 }, (_, code) => evtcProfessionMetadata(code)).find(
+      (candidate) => candidate?.id === parser.professionId
     );
+    const specialization = Array.from({ length: 256 }, (_, code) =>
+      evtcSpecializationMetadata(code, parser.professionId)
+    ).find((candidate) => candidate?.id === parser.specializationId);
+    assert.ok(profession, `missing EVTC profession metadata for ${parser.professionId}`);
+    assert.ok(specialization, `missing EVTC specialization metadata for ${parser.id}`);
     const fixture = log({
       agents: [
         {

@@ -91,9 +91,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   SOLAR_STORM: 73094,
   SYMBOL_OF_LUMINANCE: 73132,
 
-  // Compatibility with the original Guardian vertical-slice test fixture.
-  STRIKE: 9109,
-
   // Generated coverage for every skill in the API metadata snapshot.
   RECEIVE_THE_LIGHT: 9083, // "Receive the Light!"
   ADVANCE: 9084, // "Advance!"

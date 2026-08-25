@@ -387,11 +387,6 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
   });
 }
 
-/** Backwards-compatible name for callers that project declared flip families. */
-export function displayedFlipSkills(app: ProfessionAppState, skills: readonly Skill[]): Skill[] {
-  return displayedSkillTiles(app, skills);
-}
-
 /**
  * Collapses linked chains, autoattacks, flips, and ambush replacements to the
  * skill currently occupying each combat-bar tile as the live state changes.
@@ -602,26 +597,6 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
     const activeVariant = app.skillByName.get(`${baseName} (${primaryAttunement})`);
     return [activeVariant || skill];
   });
-}
-
-export function rotationUtilityFlipByParent(app: ProfessionAppState): Map<string, Skill> {
-  const skillById = app.skillById || app.activeCatalog.skillsById;
-  const flips = new Map<string, Skill>();
-  for (const skill of app.skills) {
-    if (
-      !(skill.flipParent || skill.flipParentId != null) ||
-      skill.type === 'Weapon' ||
-      skill.kit ||
-      skill.paletteFlip === false
-    ) {
-      continue;
-    }
-
-    const parentName = String(skill.flipParent || skillById.get(Number(skill.flipParentId))?.name || '');
-    if (parentName) flips.set(parentName, skill);
-  }
-
-  return flips;
 }
 
 export function paletteSkillIsInstant(

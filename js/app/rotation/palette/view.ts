@@ -15,7 +15,7 @@ import {
   activationDamageCommitMs,
   openActivationEditor
 } from '../../../platform/ui/rotation/editors/activation-editor.js';
-import { openDurationEditor, validateDurationMs } from '../../../platform/ui/rotation/editors/duration-editor.js';
+import { openDurationEditor } from '../../../platform/ui/rotation/editors/duration-editor.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
@@ -73,13 +73,6 @@ export function suggestedPaletteInterruptMs(skill: Skill | null | undefined): nu
   return Number.isFinite(configured) && configured >= 1 && configured < fullCastMs
     ? Math.round(configured)
     : Math.max(1, fullCastMs - 1);
-}
-
-/** Normalizes a user-entered wait to a positive whole number of milliseconds. */
-export function parseWaitDurationMs(raw: string | null): number | null {
-  if (raw == null) return null;
-  const validation = validateDurationMs(raw);
-  return validation.valid ? validation.value : null;
 }
 
 /**

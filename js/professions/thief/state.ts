@@ -34,14 +34,9 @@ const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
 
 export function projectThiefEndState({ schedulerState }: ThiefEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotThiefState(schedulerState.profession);
-  const compatibility = {
-    ...state,
-    artifactStealthAttacksRemaining: state.artifactStealthAttacksRemaining ?? state.stealthAttackCharges ?? 0,
-    artifactStealthAttackExpiresAt: state.artifactStealthAttackExpiresAt ?? state.stealthAttackExpiresAt ?? 0
-  };
   return Object.fromEntries(
     THIEF_PUBLIC_END_STATE_KEYS.map((key) => {
-      const value = Object.hasOwn(compatibility, key) ? compatibility[key] : INACTIVE_STATE_DEFAULTS[key];
+      const value = Object.hasOwn(state, key) ? state[key] : INACTIVE_STATE_DEFAULTS[key];
       return [key, structuredClone(value)];
     })
   );

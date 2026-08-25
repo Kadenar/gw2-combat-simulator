@@ -130,9 +130,6 @@ const specializations: readonly EvtcSpecializationMetadata[] = Object.freeze([
 const professionsByCode = new Map(professions.map((profession) => [profession.code, profession]));
 const specializationsByCode = new Map(specializations.map((specialization) => [specialization.code, specialization]));
 
-export const EVTC_PROFESSIONS = professions;
-export const EVTC_SPECIALIZATIONS = specializations;
-
 export function evtcProfessionMetadata(code: number): EvtcProfessionMetadata | null {
   return professionsByCode.get(code) || null;
 }

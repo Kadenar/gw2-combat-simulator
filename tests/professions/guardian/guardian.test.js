@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { loadProfession } from '../../../js/app/profession/registry.js';
 import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
-import { displayedFlipSkills } from '../../../js/app/rotation/palette/model.js';
+import { displayedSkillTiles } from '../../../js/app/rotation/palette/model.js';
 import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
@@ -3056,7 +3056,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
       config: { ...config, ...extraConfig }
     });
 
-    return displayedFlipSkills(
+    return displayedSkillTiles(
       app,
       skillIds.map((skillId) => guardianCatalog.skillsById.get(skillId))
     ).map((skill) => skill.id);

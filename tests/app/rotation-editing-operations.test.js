@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  insertRotationEntry,
   insertRotationEntries,
   moveRotationEntry,
-  removeRotationEntryOptions,
   updateRotationEntry
 } from '../../js/app/rotation/editing/operations.js';
 
@@ -14,10 +12,6 @@ test('rotation editing operations update, insert, and reject invalid moves', () 
     skillId: 'One',
     concurrentOffsetMs: 100
   });
-  assert.deepEqual(
-    removeRotationEntryOptions({ type: 'cast', skillId: 'One', concurrentOffsetMs: 100 }, ['concurrentOffsetMs']),
-    { type: 'cast', skillId: 'One' }
-  );
   assert.deepEqual(
     updateRotationEntry(
       { type: 'cast', skillId: 'One', interruptAfterMs: 250 },
@@ -36,7 +30,7 @@ test('rotation editing operations update, insert, and reject invalid moves', () 
   assert.equal(moveRotationEntry(rotation, 1, 2), false);
   assert.equal(moveRotationEntry(rotation, -1, 1), false);
   assert.equal(moveRotationEntry(rotation, 0, 1.5), false);
-  assert.equal(insertRotationEntry(rotation, command('D'), 1), true);
+  assert.equal(insertRotationEntries(rotation, [command('D')], 1), true);
   assert.deepEqual(rotation, [command('B'), command('D'), command('C'), command('A')]);
   assert.equal(insertRotationEntries(rotation, [command('Macro A'), command('Macro B')], 2), true);
   assert.deepEqual(rotation, [

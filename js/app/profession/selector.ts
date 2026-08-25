@@ -14,13 +14,7 @@ import { mountRotationTimelineSize } from '../rotation/timeline/size.js';
 import { mountRotationWorkspace } from '../rotation/workspace.js';
 import { mountSimulatorTutorial } from '../tutorial.js';
 import { mountSimulatorNavigation } from './navigation.js';
-import { professionGroups, type ProfessionRegistryEntry, PROFESSION_ROUTES, professionRoute } from './registry.js';
-
-export {
-  // Kept here as compatibility exports for existing selector consumers.
-  PROFESSION_ROUTES,
-  professionRoute
-};
+import { professionGroups, type ProfessionRegistryEntry } from './registry.js';
 
 const GITHUB_ISSUES_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues';
 const BUILD_SUBMISSION_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues/new?template=build-submission.yml';

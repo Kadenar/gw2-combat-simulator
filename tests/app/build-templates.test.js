@@ -7,7 +7,6 @@ import {
   loadTemplateAction,
   templateCategory,
   templateHasBoon,
-  templateMatchesFilter,
   templateSpecializations,
   undoTemplateLoad
 } from '../../js/app/build/panels/presets.js';
@@ -63,7 +62,7 @@ test('template discovery loads the profession-scoped manifest', async (t) => {
   assert.equal(requestedPath, 'Builds/mesmer/manifest.json');
 });
 
-test('template filters combine damage type, boon, and specialization', () => {
+test('template metadata classifies damage type and boon roles', () => {
   const power = {
     label: 'Power',
     build: 'Builds/mesmer/b-power-chronomancer.json',
@@ -105,26 +104,6 @@ test('template filters combine damage type, boon, and specialization', () => {
   assert.equal(templateHasBoon(powerBoon), true);
   assert.equal(templateHasBoon(condiBoon), true);
   assert.equal(templateHasBoon(otherBoon), true);
-  assert.equal(templateMatchesFilter(power, 'power'), true);
-  assert.equal(templateMatchesFilter(powerBoon, 'power'), true);
-  assert.equal(templateMatchesFilter(condi, 'condi'), true);
-  assert.equal(templateMatchesFilter(condiBoon, 'condi'), true);
-  assert.equal(templateMatchesFilter(power, 'power', true), false);
-  assert.equal(templateMatchesFilter(powerBoon, 'power', true), true);
-  assert.equal(templateMatchesFilter(condi, 'condi', true), false);
-  assert.equal(templateMatchesFilter(condiBoon, 'condi', true), true);
-  assert.equal(templateMatchesFilter(powerBoon, 'all', true), true);
-  assert.equal(templateMatchesFilter(condiBoon, 'all', true), true);
-  assert.equal(templateMatchesFilter(otherBoon, 'all', true), true);
-  assert.equal(templateMatchesFilter(otherBoon, 'power', true), false);
-  assert.equal(templateMatchesFilter(otherBoon, 'condi', true), false);
-  assert.equal(templateMatchesFilter(other, 'all'), true);
-  assert.equal(templateMatchesFilter(other, 'all', true), false);
-  assert.equal(templateMatchesFilter(power, 'power', false, 'Chronomancer'), true);
-  assert.equal(templateMatchesFilter(power, 'power', false, 'Mirage'), false);
-  assert.equal(templateMatchesFilter(condi, 'condi', false, 'Chronomancer'), true);
-  assert.equal(templateMatchesFilter(powerBoon, 'power', true, 'Deadeye'), true);
-  assert.equal(templateMatchesFilter(powerBoon, 'power', true, 'Chronomancer'), false);
 });
 
 test('specialization filters come from unique manifest section names', () => {

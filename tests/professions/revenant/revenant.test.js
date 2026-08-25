@@ -5,7 +5,7 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
 import {
   currentAutoattackSkill,
-  displayedFlipSkills,
+  displayedSkillTiles,
   paletteActionSkills,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
@@ -1004,7 +1004,7 @@ test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () 
       secondaryWeapon: 'Sword'
     });
 
-    return displayedFlipSkills(
+    return displayedSkillTiles(
       app,
       names.map((name) => revenantCatalog.skillsByName.get(name))
     ).map((skill) => skill.name);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { displayedFlipSkills } from '../../js/app/rotation/palette/model.js';
+import { displayedSkillTiles } from '../../js/app/rotation/palette/model.js';
 import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
@@ -58,14 +58,14 @@ test('audited weapon flip families project one live palette identity', () => {
     assert.ok(parent, `missing audited parent ${parentIdentity}`);
     assert.ok(child, `missing audited child ${childIdentity}`);
     assert.deepEqual(
-      displayedFlipSkills(app, [parent]).map((skill) => skill.id),
+      displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [parent.id],
       `${parent.name} should display before its follow-up is armed`
     );
 
     app.results.endState.profession.availableFlips[child.id] = true;
     assert.deepEqual(
-      displayedFlipSkills(app, [parent]).map((skill) => skill.id),
+      displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [child.id],
       `${child.name} should replace ${parent.name} while armed`
     );

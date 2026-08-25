@@ -268,5 +268,4 @@ test('Thief public projection keeps inactive compatibility fields', () => {
   assert.equal(result.endState.profession.shadowForce, 0);
   assert.deepEqual(result.endState.profession.artifactSlots, []);
   assert.equal(result.endState.profession.artifactUsesRemaining, 0);
-  assert.equal(result.endState.profession.artifactStealthAttacksRemaining, 0);
 });

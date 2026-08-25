@@ -5,7 +5,6 @@ import test from 'node:test';
 import {
   DEFAULT_TARGET_ARMOR,
   normalizeTargetArmor,
-  PERMANENT_TARGET_CONDITIONS,
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
@@ -16,14 +15,17 @@ import { skillBarDisplaySkill } from '../../js/app/build/panels/skills.js';
 import { clampStartingResourceValues } from '../../js/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/state/persistence.js';
 import { groupedOptions, option } from '../../js/platform/ui/shared/html.js';
-import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '../../js/app/profession/registry.js';
-import { professionRoute } from '../../js/app/profession/selector.js';
+import {
+  loadProfessionAppAdapter,
+  professionOptions,
+  professionRegistry,
+  professionRoute
+} from '../../js/app/profession/registry.js';
 import {
   autoattackChainSkillAvailable,
-  displayedFlipSkills,
+  displayedSkillTiles,
   displayedWeaponSkills,
   paletteActionSkills,
-  rotationUtilityFlipByParent,
   weaponSkills,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
@@ -43,7 +45,6 @@ import {
   timelineWeaponRows
 } from '../../js/app/rotation/timeline/model.js';
 import { addRotation, createRotationItem, insertRotationItems } from '../../js/app/rotation/editing/actions.js';
-import { parseWaitDurationMs } from '../../js/app/rotation/palette/view.js';
 import { syncProcVisibility } from '../../js/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/shared/icons.js';
 import { renderResults } from '../../js/app/rotation/result/view.js';
@@ -465,15 +466,6 @@ test('rotation items preserve default interrupts when options contain nullish va
   });
 });
 
-test('wait duration parsing rejects cancelled, non-finite, and sub-millisecond values', () => {
-  assert.equal(parseWaitDurationMs(null), null);
-  assert.equal(parseWaitDurationMs('not a number'), null);
-  assert.equal(parseWaitDurationMs('Infinity'), null);
-  assert.equal(parseWaitDurationMs('0.9'), null);
-  assert.equal(parseWaitDurationMs('1.4'), 1);
-  assert.equal(parseWaitDurationMs('1000'), 1000);
-});
-
 test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   const sourceIcon = 'https://example.com/source-skill.png';
   const app = {
@@ -576,7 +568,6 @@ test('shared app metadata owns common attributes and target conditions', () => {
   const defaultTargetConditions = createMesmerBuildDefaults().assumptions.targetConditions;
 
   assert.equal(PRIMARY_ATTRIBUTES.includes('Condition Damage'), true);
-  assert.equal(PERMANENT_TARGET_CONDITIONS.includes('Vulnerability'), true);
   assert.equal(Object.hasOwn(defaultTargetConditions, 'Fear'), false);
   assert.equal(Object.hasOwn(defaultTargetConditions, 'Taunt'), false);
   assert.equal(STACKING_TARGET_CONDITIONS.has('Vulnerability'), true);
@@ -590,10 +581,6 @@ test('shared app metadata owns common attributes and target conditions', () => {
         ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Cripple', 'Immobilize', 'Fear', 'Taunt']
       ]
     ]
-  );
-  assert.deepEqual(
-    PERMANENT_TARGET_CONDITIONS,
-    TARGET_CONDITION_GROUPS.flatMap((group) => group.conditions)
   );
 });
 
@@ -1430,13 +1417,13 @@ test('palette flip projection infers catalog children and honors timed expiry', 
   };
 
   assert.deepEqual(
-    displayedFlipSkills(app, [parent]).map((skill) => skill.name),
+    displayedSkillTiles(app, [parent]).map((skill) => skill.name),
     ['Follow-up Skill']
   );
 
   app.results.endState.time = 2000;
   assert.deepEqual(
-    displayedFlipSkills(app, [parent]).map((skill) => skill.name),
+    displayedSkillTiles(app, [parent]).map((skill) => skill.name),
     ['Opening Skill']
   );
 });
@@ -1754,9 +1741,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     ).map((row) => row.weaponSet),
     [1, 1]
   );
-  const flips = rotationUtilityFlipByParent(engineer);
-
-  for (const [parent, flip] of [
+  for (const [parentName, flipName] of [
     ['Throw Mine', 'Detonate'],
     ['Rifle Turret', 'Detonate Rifle Turret'],
     ['Flame Turret', 'Detonate Flame Turret'],
@@ -1765,10 +1750,15 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     ['Healing Turret', 'Detonate Healing Turret'],
     ['Rocket Turret', 'Detonate Rocket Turret']
   ]) {
-    assert.equal(flips.get(parent)?.name, flip, parent);
+    const parent = engineer.skillByName.get(parentName);
+    const flip = engineer.skillByName.get(flipName);
+    engineer.results.endState.profession.availableFlips = { [flip.id]: true };
+    assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
-  assert.equal(flips.has('Grenade Kit'), false);
+  const grenadeKit = engineer.skillByName.get('Grenade Kit');
+  engineer.results.endState.profession.availableFlips = {};
+  assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
 });
 
 test('Engineer kits register distinct weapon lines in the timeline', async () => {

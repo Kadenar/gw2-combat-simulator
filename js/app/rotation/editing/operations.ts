@@ -52,32 +52,6 @@ export function updateRotationEntry(entry: RotationCommand, changes: SchedulerRe
 }
 
 /**
- * Convenience over updateRotationEntry: strips the named optional keys off a
- * command by mapping each to undefined.
- */
-export function removeRotationEntryOptions(entry: RotationCommand, keys: readonly string[] = []): RotationCommand {
-  return updateRotationEntry(entry, Object.fromEntries(keys.map((key) => [key, undefined])));
-}
-
-/**
- * Inserts a single entry at `index`, mutating `rotation` in place. The index is
- * clamped to [0, length]. Returns false (no mutation) on invalid inputs.
- */
-export function insertRotationEntry(
-  rotation: RotationCommand[],
-  entry: RotationCommand | null | undefined,
-  index: number
-): boolean {
-  if (!Array.isArray(rotation) || entry == null || !Number.isInteger(index)) {
-    return false;
-  }
-
-  const boundedIndex = Math.max(0, Math.min(index, rotation.length));
-  rotation.splice(boundedIndex, 0, entry);
-  return true;
-}
-
-/**
  * Inserts multiple entries at `index`, preserving their order, mutating
  * `rotation` in place. Rejects empty batches or any null/undefined entry so a
  * partial insert never happens. Returns false (no mutation) on invalid inputs.

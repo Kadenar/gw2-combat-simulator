@@ -65,17 +65,6 @@ export function templateHasBoon(preset: Pick<BuildTemplatePreset, 'label' | 'bui
   return /\b(?:quickness|alacrity)\b|[-/](?:quick|alac)-/.test(description);
 }
 
-export function templateMatchesFilter(
-  preset: Pick<BuildTemplatePreset, 'label' | 'build' | 'section'>,
-  filter: TemplateFilter,
-  boonOnly = false,
-  specialization: string | null = null
-): boolean {
-  const matchesDamageType = filter === 'all' || templateCategory(preset) === filter;
-  const matchesSpecialization = specialization === null || preset.section === specialization;
-  return matchesDamageType && matchesSpecialization && (!boonOnly || templateHasBoon(preset));
-}
-
 function isTemplateFilter(value: string | undefined): value is TemplateFilter {
   return TEMPLATE_FILTERS.includes(value as TemplateFilter);
 }
