@@ -512,6 +512,50 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
   assert.doesNotMatch(container.innerHTML, /\sid="/);
 });
 
+test('chart canvases stay fluid when their initial container width is unavailable', () => {
+  const context = {
+    beginPath() {},
+    clearRect() {},
+    fillText() {},
+    lineTo() {},
+    moveTo() {},
+    restore() {},
+    save() {},
+    setLineDash() {},
+    setTransform() {},
+    stroke() {}
+  };
+  const parentElement = { clientWidth: 0 };
+  const canvas = () => ({
+    closest: () => null,
+    getContext: () => context,
+    parentElement,
+    style: {}
+  });
+  const dpsCanvas = canvas();
+  const effectsCanvas = canvas();
+  const canvases = new Map([
+    ['[data-role="dps-canvas"]', dpsCanvas],
+    ['[data-role="effects-canvas"]', effectsCanvas]
+  ]);
+  const container = {
+    innerHTML: '',
+    querySelector: (selector) => canvases.get(selector) || null,
+    querySelectorAll: () => []
+  };
+
+  mountTimeSeriesCharts(container, {
+    durationMs: 1000,
+    dps: [{ t: 0, v: 100 }],
+    effects: {}
+  });
+
+  assert.equal(dpsCanvas.width, 760);
+  assert.equal(effectsCanvas.width, 760);
+  assert.equal(dpsCanvas.style.width, '100%');
+  assert.equal(effectsCanvas.style.width, '100%');
+});
+
 test('result charts reuse the target-health DPS snapshot breakpoints', () => {
   const chartContainer = inertContainer();
   const container = {

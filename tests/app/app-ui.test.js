@@ -601,6 +601,16 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   );
 });
 
+test('damage breakdown keeps its skill identity column visible on narrow screens', async () => {
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+  const identityColumn = 'minmax\\(180px, 1fr\\)';
+
+  assert.match(css, new RegExp(`\\.res-hdr\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
+  assert.match(css, new RegExp(`\\.res-row\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
+  assert.match(css, new RegExp(`\\.res-skill-group-heading\\s*\\{[\\s\\S]*?grid-template-columns: ${identityColumn}`));
+  assert.match(css, /\.res-breakdown\s*\{[\s\S]*?overflow-x: auto;/);
+});
+
 test('an open event log expands past the normal rotation panel cap', async () => {
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 

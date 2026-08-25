@@ -6307,9 +6307,11 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   opacity: 0.8;
 }
 
+/* Keep skill identity readable on narrow screens while the numeric columns use
+   the breakdown panel's horizontal scroller. */
 .res-hdr {
   display: grid;
-  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 2px 4px;
   font-size: 9px;
@@ -6335,7 +6337,7 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 
 .res-row {
   display: grid;
-  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 3px 4px;
   font-size: 12px;
@@ -6363,7 +6365,7 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 
 .res-skill-group-heading {
   display: grid;
-  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   align-items: center;
   gap: 4px;
   padding: 7px 4px 4px;

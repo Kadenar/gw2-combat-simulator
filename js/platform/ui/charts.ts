@@ -609,10 +609,11 @@ function drawLineChart(
     Math.floor(canvas.parentElement?.clientWidth || canvas.closest?.('.chart-wrap')?.clientWidth || 760)
   );
   const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
-  // Separate backing-store pixels from CSS dimensions for sharp HiDPI lines.
+  // Keep layout width fluid so a hidden or stale measurement cannot widen the
+  // mobile viewport; only the backing store uses the measured pixel width.
   canvas.width = Math.round(cssWidth * dpr);
   canvas.height = Math.round(height * dpr);
-  canvas.style.width = `${cssWidth}px`;
+  canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
   if (!context) return null;
@@ -747,7 +748,8 @@ function drawHitTimeline(
   const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
   canvas.width = Math.round(cssWidth * dpr);
   canvas.height = Math.round(height * dpr);
-  canvas.style.width = `${cssWidth}px`;
+  // Match the line charts' fluid layout while retaining a measured backing store.
+  canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
   if (!context) return null;
