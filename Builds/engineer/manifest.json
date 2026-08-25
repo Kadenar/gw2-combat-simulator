@@ -82,6 +82,13 @@
     "section": "Scrapper",
     "presets": [
       {
+        "label": "Condition Quickness (Spear)",
+        "build": "Builds/engineer/b-condi-quick-scrapper-spear.json",
+        "rotation": "Rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
+        "benchmarkDps": 30886,
+        "upToDate": true
+      },
+      {
         "label": "Power (Hammer)",
         "build": "Builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "Rotations/engineer/r-power-scrapper-hammer-bench.json",

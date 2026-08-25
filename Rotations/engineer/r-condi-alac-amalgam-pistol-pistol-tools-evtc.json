@@ -1,5 +1,7 @@
 {
   "rotation": [
+    { "name": "Evolve", "skillId": 76642 },
+    { "name": "__wait", "waitMs": 160 },
     { "name": "__combat_start" },
     { "name": "Defensive Protocol: Thorns", "skillId": 77163 },
     { "name": "Offensive Protocol: Obliterate", "skillId": 76901 },

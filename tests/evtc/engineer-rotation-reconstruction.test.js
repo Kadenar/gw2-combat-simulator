@@ -885,6 +885,38 @@ test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
   );
 });
 
+test('recovers a precombat Evolve from initial Evolved duration without a bomb opener', () => {
+  const skills = [
+    skill(76642, 'Evolve', {
+      type: 'Profession',
+      slot: 'Profession_5',
+      quicknessCastTimeMs: 640
+    })
+  ];
+  const fixture = engineerLog(skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      target: PLAYER,
+      skillId: 77008,
+      value: 7_720,
+      buffDamage: 8_000,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills }, { selectedSkillIds: [76642] });
+  const evolve = result.actions.find((action) => action.name === 'Evolve');
+
+  assert.equal(evolve?.evidence, 'initial-state');
+  assert.equal(evolve?.timestampMs, 0);
+  assert.equal(result.combatStartTimestampMs, 800);
+  assert.deepEqual(result.rotation.slice(0, 3), [
+    { name: 'Evolve', skillId: 76642 },
+    { name: '__wait', waitMs: 160 },
+    { name: '__combat_start' }
+  ]);
+});
+
 test('maps Engineer kit swaps, Amalgam morphs, and passive packets', () => {
   const skills = [
     skill(5800, 'Grenade Kit', {
@@ -1138,4 +1170,72 @@ test('reconstructs unnamed standard dodge animation packets as Engineer Dodge ac
       skillId: -5
     }
   );
+});
+
+test('recovers a Scrapper Reconstruction Field precast from matching initial buffs', () => {
+  const skills = [
+    skill(29505, 'Reconstruction Field', {
+      type: 'Profession',
+      slot: 'Profession_1',
+      castTimeMs: 500
+    }),
+    skill(73002, 'Lightning Rod', {
+      slot: 'Weapon_3',
+      castTimeMs: 400
+    }),
+    skill(73122, 'Conduit Surge', {
+      slot: 'Weapon_2',
+      castTimeMs: 750
+    })
+  ];
+  const fixture = engineerLog(
+    skills,
+    [
+      event({ time: 10_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        time: 10_000,
+        target: PLAYER,
+        skillId: 717,
+        value: 1_771,
+        buffDamage: 2_372,
+        buff: 18,
+        stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+      }),
+      event({
+        time: 10_000,
+        target: PLAYER,
+        skillId: 5974,
+        value: 6_399,
+        buffDamage: 7_000,
+        buff: 18,
+        stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+      }),
+      event({
+        time: 10_001,
+        skillId: 73002,
+        value: 560,
+        buffDamage: 559,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      }),
+      event({ time: 10_010, target: TARGET, value: 1_000, skillId: 73002 }),
+      ...animation(73122, 10_001, 500)
+    ],
+    { elite: 43 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills }, { selectedSkillNames: ['Medic Gyro'] });
+
+  // A pre-log F1 cast has no activation packet; the paired initial effects are its durable EVTC signature.
+  assert.equal(result.parserId, 'engineer:scrapper');
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Reconstruction Field', 'Lightning Rod', 'Conduit Surge']
+  );
+  assert.equal(result.actions[0].evidence, 'initial-state');
+  assert.deepEqual(result.rotation.slice(0, 2), [
+    { name: 'Reconstruction Field', skillId: 29505 },
+    { name: 'Lightning Rod', skillId: 73002 }
+  ]);
 });

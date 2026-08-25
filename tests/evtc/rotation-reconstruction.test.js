@@ -6,6 +6,7 @@ import { deflateRawSync } from 'node:zlib';
 import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/io/evtc-rotation-import.js';
 import { applyRotationImportPreview, previewRotationFile } from '../../js/app/build/io/rotation-import-dialog.js';
 import { EvtcError } from '../../js/evtc-analyzer/errors.js';
+import { parseEvtc } from '../../js/evtc-analyzer/parser.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../../js/evtc-analyzer/profession-metadata.js';
 import {
   detectEvtcRotationPlayers,
@@ -184,7 +185,7 @@ const catalog = {
   ]
 };
 
-function expandedEvtcFixture({ interruptedDamage = false, secondActivation = false } = {}) {
+function expandedEvtcFixture({ interruptedDamage = false, secondActivation = false, skillName = 'Mind Stab' } = {}) {
   const header = Buffer.alloc(16);
 
   header.write('EVTC20260815', 0, 'ascii');
@@ -205,7 +206,7 @@ function expandedEvtcFixture({ interruptedDamage = false, secondActivation = fal
   const skill = Buffer.alloc(68);
 
   skill.writeUInt32LE(1_000, 0);
-  skill.write('Mind Stab', 4, 'utf8');
+  skill.write(skillName, 4, 'utf8');
   const activation = Buffer.alloc(64);
 
   activation.writeBigUInt64LE(1_000n, 0);
@@ -250,6 +251,12 @@ function expandedEvtcFixture({ interruptedDamage = false, secondActivation = fal
 
   return Buffer.concat([header, agentCount, agent, skillCount, skill, activation, animationStop, damage]);
 }
+
+test('canonicalizes Master Tuning Crystal EVTC labels to Tuning Icicle', () => {
+  const parsed = parseEvtc(expandedEvtcFixture({ skillName: 'Master Tuning Crystal' }));
+
+  assert.equal(parsed.skills[0].name, 'Tuning Icicle');
+});
 
 test('registers an individual parser for every current profession specialization', () => {
   assert.equal(EVTC_PROFESSION_ROTATION_PARSERS.length, 45);
