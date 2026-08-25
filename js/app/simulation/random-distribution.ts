@@ -303,6 +303,23 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
         },
         Number(event.stacks)
       );
+      // Application counts can match even when their timing changes how many
+      // ticks land; resolved damage retains that stochastic outcome for explanations.
+      const damageLabel =
+        name.toLowerCase() === condition.toLowerCase()
+          ? `${condition} damage`
+          : `${name} ${condition.toLowerCase()} damage`;
+      addMetric(
+        metrics,
+        {
+          id: `condition-damage:${String(event.sourceId)}:${metricSlug(name)}:${metricSlug(condition)}`,
+          group,
+          label: damageLabel,
+          category: 'condition',
+          unit: 'value'
+        },
+        Number(event.damage)
+      );
     }
   }
 
