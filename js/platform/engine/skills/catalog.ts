@@ -128,8 +128,6 @@ const EFFECT_METADATA_FIELDS = new Set([
   'noCrit',
   'forceCrit',
   'projectile',
-  'finisherType',
-  'finisherValue',
   'summonKind',
   'recipients',
   'affectsSelf',

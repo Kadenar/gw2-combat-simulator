@@ -88,99 +88,35 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
   );
 }
 
-// Legacy data encoded finisherValue with type-specific semantics:
-//   Projectile → chance (0..1)
-//   Whirl      → number of applications (hits that each trigger a combo)
-//   Blast      → successfulCombos (combos produced on a single success)
-function legacyFinisher(
-  finisherType: unknown,
-  finisherValue: unknown,
-  attemptGroup?: string
-): readonly Readonly<SchedulerRecord>[] | undefined {
-  if (!finisherType) return;
-  const type = normalizeComboFinisherType(finisherType);
-  const value = Math.max(0, Number(finisherValue ?? 1));
-  return normalizeFinisherDescriptors(
-    [
-      {
-        finisherType: type,
-        chance: type === 'Projectile' ? value : 1,
-        applications: type === 'Whirl' ? Math.max(1, Math.floor(value)) : 1,
-        successfulCombos: type === 'Blast' ? Math.max(1, Math.floor(value)) : 1
-      }
-    ],
-    attemptGroup
-  );
-}
-
-// Strips the old finisherType/finisherValue fields from tick/effect metadata
-// so they aren't re-processed now that we have an explicit comboFinishers array.
-function withoutLegacyFinisherAliases(metadata: SchedulerRecord | undefined): SchedulerRecord | undefined {
-  if (!metadata) return metadata;
-  const { finisherType: _finisherType, finisherValue: _finisherValue, ...rest } = metadata;
-  return rest;
-}
-
-function normalizeTick(
-  tick: SchedulerRecord,
-  effectIndex: number,
-  tickIndex: number,
-  allowLegacy: boolean
-): SchedulerRecord {
+function normalizeTick(tick: SchedulerRecord, effectIndex: number, tickIndex: number): SchedulerRecord {
   const attemptGroup = `effect:${effectIndex + 1}:tick:${tickIndex + 1}`;
-  // Legacy finisher metadata is only promoted on strike ticks (allowLegacy=true).
-  // Non-strike ticks instead have the old fields stripped from their metadata.
   const comboFinishers =
-    tick.comboFinishers == null
-      ? allowLegacy
-        ? legacyFinisher(
-            (tick.metadata as SchedulerRecord | undefined)?.finisherType,
-            (tick.metadata as SchedulerRecord | undefined)?.finisherValue,
-            attemptGroup
-          )
-        : undefined
-      : normalizeFinisherDescriptors(tick.comboFinishers, attemptGroup);
-  const normalizedTick = allowLegacy
-    ? tick
-    : {
-        ...tick,
-        ...(tick.metadata
-          ? {
-              metadata: withoutLegacyFinisherAliases(tick.metadata as SchedulerRecord)
-            }
-          : {})
-      };
-  return comboFinishers ? { ...normalizedTick, comboFinishers } : normalizedTick;
+    tick.comboFinishers == null ? undefined : normalizeFinisherDescriptors(tick.comboFinishers, attemptGroup);
+  return comboFinishers ? { ...tick, comboFinishers } : tick;
 }
 
 function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect {
-  const metadata = effect.metadata as SchedulerRecord | undefined;
   const comboFields = effect.comboFields == null ? undefined : normalizeFieldDescriptors(effect.comboFields);
-  // Legacy finisher fields in metadata are only promoted to comboFinishers on
-  // strike effects. Non-strike effects (buffs, conditions, etc.) have them stripped.
   const comboFinishers =
     effect.comboFinishers == null
-      ? effect.type === 'strike'
-        ? legacyFinisher(metadata?.finisherType, metadata?.finisherValue, `effect:${effectIndex + 1}`)
-        : undefined
+      ? undefined
       : normalizeFinisherDescriptors(effect.comboFinishers, `effect:${effectIndex + 1}`);
   const ticks = Array.isArray(effect.ticks)
     ? Object.freeze(
         effect.ticks.map((tick, tickIndex) =>
-          Object.freeze(normalizeTick(tick as SchedulerRecord, effectIndex, tickIndex, effect.type === 'strike'))
+          Object.freeze(normalizeTick(tick as SchedulerRecord, effectIndex, tickIndex))
         )
       )
     : effect.ticks;
   return {
     ...effect,
-    ...(effect.type !== 'strike' && metadata ? { metadata: withoutLegacyFinisherAliases(metadata) } : {}),
     ...(comboFields ? { comboFields } : {}),
     ...(comboFinishers ? { comboFinishers } : {}),
     ...(ticks ? { ticks } : {})
   } as SkillEffect;
 }
 
-/** Normalizes GW2 combo aliases at native catalog assembly time. */
+/** Normalizes explicit GW2 combo descriptors and supported field aliases at native catalog assembly time. */
 export function normalizeGw2ComboCatalogSkill(skill: SkillFragment): SkillFragment {
   const legacyDuration = Number(skill.comboFieldDuration ?? skill.fieldDuration ?? skill.duration ?? 0);
   // When comboFieldStartMs is absent the field activates at the end of the cast
@@ -199,9 +135,7 @@ export function normalizeGw2ComboCatalogSkill(skill: SkillFragment): SkillFragme
           ])
         : undefined;
   const comboFinishers =
-    skill.comboFinishers != null
-      ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill')
-      : legacyFinisher(skill.finisherType, skill.finisherValue, 'skill');
+    skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;
   return {
     ...skill,
     ...(comboFields ? { comboFields } : {}),

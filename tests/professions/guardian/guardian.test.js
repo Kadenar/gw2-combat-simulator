@@ -1096,10 +1096,7 @@ test('Willbender utilities use the supplied physical skill profiles', () => {
   assert.equal(strikes('Whirling Light').length, 4);
   assert.equal(
     strikes('Whirling Light').every(
-      (event) =>
-        event.finisherValue == null &&
-        event.comboFinishers?.[0]?.finisherType === 'Whirl' &&
-        event.comboFinishers[0].ownerId === 'guardian'
+      (event) => event.comboFinishers?.[0]?.finisherType === 'Whirl' && event.comboFinishers[0].ownerId === 'guardian'
     ),
     true
   );

@@ -91,21 +91,13 @@ test('missing bindings and invalid field lifetimes fail event validation', () =>
   );
 });
 
-test('catalog aliases normalize into explicit field and packet metadata', () => {
+test('catalog field aliases normalize into explicit field metadata', () => {
   const skill = normalizeGw2ComboCatalogSkill({
     id: 1,
-    name: 'Legacy Combo Skill',
+    name: 'Field Alias Skill',
     comboField: 'fire',
     comboFieldDuration: 4,
-    finisherType: 'whirl',
-    finisherValue: 3,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        metadata: { finisherType: 'projectile', finisherValue: 0.2 }
-      }
-    ]
+    effects: [{ type: 'strike', coefficient: 1 }]
   });
 
   assert.deepEqual(skill.comboFields, [
@@ -116,10 +108,6 @@ test('catalog aliases normalize into explicit field and packet metadata', () => 
       startAnchor: 'castEnd'
     }
   ]);
-  assert.equal(skill.comboFinishers[0].finisherType, 'Whirl');
-  assert.equal(skill.comboFinishers[0].applications, 3);
-  assert.equal(skill.effects[0].comboFinishers[0].finisherType, 'Projectile');
-  assert.equal(skill.effects[0].comboFinishers[0].chance, 0.2);
   assert.throws(
     () =>
       normalizeGw2ComboCatalogSkill({
