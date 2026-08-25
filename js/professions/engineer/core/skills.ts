@@ -165,6 +165,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 0.4,
         hits: 1,
         name: 'Fragmentation Shot',
+        // Pistol projectiles launch before their cancelable aftercasts end, so a later kit swap must not discard the hit.
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
           projectile: true
@@ -175,6 +178,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]
@@ -241,6 +246,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 0.4,
         hits: 1,
         name: 'Static Shot',
+        // The projectile remains live when its aftercast is canceled, including cancellations reconstructed from EVTC.
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
           projectile: true
@@ -251,10 +259,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Confusion',
         stacks: 3,
         duration: 5,
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player'
       },
       {
         type: 'blind',
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]
@@ -277,6 +289,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 2.5,
         hits: 1,
         name: 'Glue Shot',
+        // Glue Shot's launched projectile and resulting field survive an immediate weapon-kit transition.
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
           projectile: true
@@ -292,6 +307,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player'
       },
       {
@@ -299,6 +316,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Immobilized',
         stacks: 1,
         duration: 1.5,
+        interruptCommitMs: 0,
+        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]

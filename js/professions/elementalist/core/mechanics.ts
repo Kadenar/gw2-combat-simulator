@@ -1,7 +1,8 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
-import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
-import { elementalistCoreState, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
+import type { ElementalistAuraState, ElementalistCoreState } from './state.js';
 import { BOON_KINDS, ETCHING_CHAINS } from './constants.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
@@ -223,7 +224,7 @@ export function applyElementalistAura(
     priority?: number;
   }
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const adjustedDuration = hasTrait(context, 'Smothering Auras')
     ? duration * elementalistBalanceValue(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
     : duration;

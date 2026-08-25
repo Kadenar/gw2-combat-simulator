@@ -1,8 +1,34 @@
 /** Warhorn weapon-skill mechanics owned by the Core Elementalist module. */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import { elementalistPacketEffects } from '../skill-effects.js';
+import { conditionTimeline, strikeTimeline } from '../../../../platform/engine/effects/factories.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+
+// Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
+const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
+  [
+    { atMs: 400, coefficient: 0.8 },
+    { atMs: 680, coefficient: 0.72 },
+    { atMs: 960, coefficient: 0.64 },
+    { atMs: 1240, coefficient: 0.56 },
+    { atMs: 1520, coefficient: 0.48 },
+    { atMs: 1800, coefficient: 0.4 },
+    { atMs: 2080, coefficient: 0.32 },
+    { atMs: 2360, coefficient: 0.24 },
+    { atMs: 2760, coefficient: 0.16 },
+    { atMs: 3160, coefficient: 0.08 },
+    { atMs: 3600, coefficient: 0.05 },
+    { atMs: 4000, coefficient: 0.05 },
+    { atMs: 4400, coefficient: 0.05 },
+    { atMs: 4800, coefficient: 0.05 },
+    { atMs: 5060, coefficient: 0.05 },
+    { atMs: 5390, coefficient: 0.05 },
+    { atMs: 5790, coefficient: 0.05 },
+    { atMs: 6220, coefficient: 0.05 },
+    { atMs: 6620, coefficient: 0.05 }
+  ],
+  [{ atMs: 4800, coefficient: 0.05 }]
+] as const;
 
 const WILDFIRE_TICK_OFFSETS_MS = [1560, 2560, 3560, 4560, 5560, 6560, 7560] as const;
 
@@ -221,31 +247,18 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 25,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [400, 0.8],
-        [680, 0.72],
-        [960, 0.64],
-        [1240, 0.56],
-        [1520, 0.48],
-        [1800, 0.4],
-        [2080, 0.32],
-        [2360, 0.24],
-        [2760, 0.16],
-        [3160, 0.08],
-        [3600, 0.05],
-        [4000, 0.05],
-        [4400, 0.05],
-        [4800, 0.05],
-        [4800, 0.05],
-        [5060, 0.05],
-        [5390, 0.05],
-        [5790, 0.05],
-        [6220, 0.05],
-        [6620, 0.05]
-      ],
-      { condition: { condition: 'Vulnerability', stacks: 1, duration: 10 } }
-    )
+    effects: LIGHTNING_ORB_STRIKE_TICK_LAYERS.flatMap((ticks) => [
+      strikeTimeline(ticks, { timingAnchor: 'castStart', timingScale: 'cast' }),
+      conditionTimeline(
+        ticks.map(({ atMs }) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 10
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      )
+    ])
   },
   [ID.SAND_SQUALL]: {
     name: 'Sand Squall',

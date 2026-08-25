@@ -1,17 +1,13 @@
 import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
 } from '../types.js';
-import {
-  elementalistCoreState,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement,
-  type ElementalistCoreState
-} from './state.js';
+import { setElementalistAttunementReadyAt, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import { PERSISTING_FLAMES_FIELD_SKILLS } from './constants.js';
 import {
   applyElementalistAura,
@@ -265,7 +261,7 @@ export function triggerBountifulPower(
   sourceId: Skill['id']
 ): void {
   if (!hasTrait(context, 'Bountiful Power')) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   state.bountifulPowerProgress += stacks;
   const threshold = elementalistBalanceValue(context, PROFILE.bountifulPower, 'threshold', 5);
   while (state.bountifulPowerProgress >= threshold) {
@@ -286,7 +282,7 @@ export function triggerBountifulPower(
 
 export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skill: Skill): void {
   if (!hasTrait(context, 'Evasive Arcana')) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const attunement = state.primaryAttunement;
   const key = `evasiveArcana${attunement}`;
@@ -363,7 +359,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
 }
 
 export function applyGenericPostCast(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   if (hasTrait(context, "Pyromancer's Puissance") && state.primaryAttunement === 'Fire' && combatStarted(context, at)) {
     emitProfiledBuff(
@@ -582,7 +578,7 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
     return;
   }
 
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   state.freshAirCandidates.push({
     at: event.at,
     criticalChance: eventCriticalChance(context),
@@ -592,7 +588,7 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
 }
 
 export function processFreshAirCandidates(context: ElementalistSchedulerContext, through: number): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (!state.freshAirCandidates.length) return;
   const pending = [];
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
@@ -650,7 +646,7 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
     return;
   }
 
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const chance = eventCriticalChance(context);
   if (hasTrait(context, 'Raging Storm')) {
     state.criticalProcProgress.ragingStorm = Number(state.criticalProcProgress.ragingStorm || 0) + chance;
@@ -805,7 +801,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
     });
   }
 
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (
     !hasTrait(context, 'Elemental Lockdown') ||
     Number(state.procReadyAt.elementalLockdown || 0) > event.at + context.epsilon

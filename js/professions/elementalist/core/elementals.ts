@@ -20,6 +20,7 @@
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
@@ -40,7 +41,6 @@ import {
   ELEMENTAL_LIGHTNING_JOLT_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from './elemental-profile.js';
-import { elementalistCoreState } from './state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 export { EARTH_ELEMENTAL_EVTC_PROFILE, FIRE_ELEMENTAL_EVTC_PROFILE } from './elemental-profile.js';
@@ -146,7 +146,7 @@ export function elementalistElementalCompanionId(summonGeneration: number): stri
 // True if the given summon generation is still the live elemental at time `at`.
 // Guards scheduled tasks against firing for an expired or replaced summon.
 function activeElemental(context: ElementalistSchedulerContext, summonGeneration: number, at: number): boolean {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   return (
     (elemental.element === 'Fire' || elemental.element === 'Earth') &&
     elemental.summonGeneration === summonGeneration &&
@@ -185,7 +185,7 @@ function scheduleTask(
 // Truncates the elemental's in-flight action event when it is pre-empted (a player
 // command or expiry mid-swing) so the timeline shows the interruption at `at`.
 function interruptCurrentAction(context: ElementalistSchedulerContext, at: number): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (!elemental.currentActivationId) return;
   const action = context.events.find(
     (event) => event.type === 'action' && event.activationId === elemental.currentActivationId
@@ -209,7 +209,7 @@ function beginSummonAction(
   skillName: string,
   animationEnd: number
 ): Readonly<{ actionGeneration: number; activationId: string }> {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
   const playerCommanded = skillName === commandName(element);
   interruptCurrentAction(context, at);
@@ -248,7 +248,7 @@ function scheduleImpact(
   hitIndex = 1,
   priority = -20
 ): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   scheduleTask(
     context,
     ELEMENTAL_IMPACT_TASK,
@@ -266,7 +266,7 @@ function scheduleImpact(
 
 // Queues the next AI decision tick after the current action's recovery window.
 function scheduleNextAi(context: ElementalistSchedulerContext, at: number, actionGeneration: number): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   elemental.nextActionAt = at;
   scheduleTask(context, ELEMENTAL_AI_TASK, at, {
     summonGeneration: elemental.summonGeneration,
@@ -286,7 +286,7 @@ function startFireball(context: ElementalistSchedulerContext, at: number): void 
   const action = beginSummonAction(context, at, profile.skillId, 'Fireball', profile.animationEnd / rate);
   scheduleImpact(context, at + profile.impact / rate, 'fireball', action);
   const nextAt = at + profile.recovery / rate;
-  elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental.busyUntil = nextAt;
+  professionCoreState(context).summonedElemental.busyUntil = nextAt;
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
@@ -295,7 +295,7 @@ function startFireball(context: ElementalistSchedulerContext, at: number): void 
 function startFlameBurst(context: ElementalistSchedulerContext, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   const rate = actionRate(context, at);
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Flame Burst', profile.animationEnd / rate);
   elemental.secondaryAttackReadyAt =
     at + profile.animationEnd / rate + profile.cooldown / summonRechargeRate(context, at);
@@ -310,7 +310,7 @@ function startFlameBurst(context: ElementalistSchedulerContext, at: number): voi
 function startFlameBarrage(context: ElementalistSchedulerContext, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
   const rate = actionRate(context, at);
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const postCommandRecovery =
     elemental.actionGeneration === 0
       ? FIRE_ELEMENTAL_EVTC_PROFILE.postCommandRecovery
@@ -332,7 +332,7 @@ function startPunch(context: ElementalistSchedulerContext, at: number): void {
   const action = beginSummonAction(context, at, profile.skillId, 'Punch', profile.animationEnd / rate);
   scheduleImpact(context, at + profile.impact / rate, 'punch', action);
   const nextAt = at + profile.recovery / rate;
-  elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental.busyUntil = nextAt;
+  professionCoreState(context).summonedElemental.busyUntil = nextAt;
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
@@ -340,7 +340,7 @@ function startPunch(context: ElementalistSchedulerContext, at: number): void {
 function startEnervatingPunch(context: ElementalistSchedulerContext, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
   const rate = actionRate(context, at);
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Enervating Punch', profile.animationEnd / rate);
   elemental.secondaryAttackReadyAt =
     at + profile.animationEnd / rate + profile.cooldown / summonRechargeRate(context, at);
@@ -355,7 +355,7 @@ function startEnervatingPunch(context: ElementalistSchedulerContext, at: number)
 function startStomp(context: ElementalistSchedulerContext, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const rate = actionRate(context, at);
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const postCommandRecovery =
     elemental.actionGeneration === 0
       ? EARTH_ELEMENTAL_EVTC_PROFILE.postCommandRecovery
@@ -401,7 +401,7 @@ function emitStrike(
   coefficient = 1,
   metadata: SchedulerRecord = {}
 ): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
   const pendingLightningJolt = elemental.pendingLightningJolt;
   if (pendingLightningJolt) {
@@ -466,7 +466,7 @@ function emitPlayerOwnedCondition(
   duration: number,
   stacks = 1
 ): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   context.emit({
     type: 'condition',
     activationId: task.payload?.activationId,
@@ -487,7 +487,7 @@ function emitPlayerOwnedCondition(
 // Runs a boon's base duration through the summoning glyph's effect-duration policy
 // (concentration / boon-duration modifiers) so Might/Protection scale with the build.
 function boonDuration(context: ElementalistSchedulerContext, boon: string, duration: number): number {
-  const element = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental.element;
+  const element = professionCoreState(context).summonedElemental.element;
   const sourceSkill =
     element === 'Earth'
       ? context.catalog.skillsByName.get('Glyph of Elementals (Earth)')
@@ -551,7 +551,7 @@ function handleElementalImpactTask(
 ): void {
   const payload = task.payload;
   if (!payload) return;
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (
     !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
@@ -655,7 +655,7 @@ function handleElementalImpactTask(
 function handleElementalAiTask(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const payload = task.payload;
   if (!payload) return;
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (
     !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
@@ -686,7 +686,7 @@ function handleElementalExpireTask(
 ): void {
   const payload = task.payload;
   if (!payload) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const elemental = state.summonedElemental;
   if (payload.summonGeneration !== elemental.summonGeneration) return;
   const element = elemental.element;
@@ -722,7 +722,7 @@ function handleElementalExpireTask(
 // Kicks off the attack loop after the initial target-acquisition delay. Idempotent
 // via the `started` flag so combat-start and cast paths don't double-start it.
 function startElemental(context: ElementalistSchedulerContext, at: number): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (
     (elemental.element !== 'Fire' && elemental.element !== 'Earth') ||
     elemental.started ||
@@ -764,7 +764,7 @@ function summonElemental(
   startImmediately: boolean,
   element: ElementalKind
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const profile = element === 'Earth' ? EARTH_ELEMENTAL_EVTC_PROFILE : FIRE_ELEMENTAL_EVTC_PROFILE;
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
@@ -826,7 +826,7 @@ export function armElementalistElementalLightningJolt(
   skillId: number,
   coefficient: number
 ): void {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (
     (elemental.element === 'Fire' || elemental.element === 'Earth') &&
     elemental.activeUntil > context.effectiveEnd + context.epsilon
@@ -842,7 +842,7 @@ export function armElementalistElementalLightningJolt(
 //   2) combat start (explicit event, or first offensive event when none is expected)
 //      → summon-and-start if none active, otherwise start the pending elemental.
 export function observeElementalistElementalEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const selected = selectedElemental(context);
   const autoSummon = automaticSummoningEnabled(context) && selected != null;
   if (
@@ -881,7 +881,7 @@ export function elementalistElementalAvailability(
   context: ElementalistCastContext,
   skill: Skill
 ): AvailabilityResult | null {
-  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  const elemental = professionCoreState(context).summonedElemental;
   if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.start + context.epsilon;
     return active ||

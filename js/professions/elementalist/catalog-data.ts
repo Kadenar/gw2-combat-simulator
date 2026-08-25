@@ -91,16 +91,38 @@ function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
 }
 
 function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly SkillEffect[] {
-  let hitIndex = 0;
+  const effects = skill.effects || [];
+  const chronologicalStrikeIndices = new Map<string, number>();
+  // Hitbox caps follow chronological packet order even when separate canonical timelines preserve same-time causality.
+  effects
+    .flatMap((effect, effectIndex) => {
+      if (effect.type !== 'strike') return [];
+      if (Array.isArray(effect.ticks)) {
+        return effect.ticks.map((tick, tickIndex) => ({ effectIndex, tickIndex, atMs: Number(tick.atMs) }));
+      }
+
+      return [{ effectIndex, tickIndex: 0, atMs: Number(effect.atMs || 0) }];
+    })
+    .sort(
+      (left, right) =>
+        left.atMs - right.atMs || left.effectIndex - right.effectIndex || left.tickIndex - right.tickIndex
+    )
+    .forEach(({ effectIndex, tickIndex }, index) => {
+      chronologicalStrikeIndices.set(`${effectIndex}:${tickIndex}`, index + 1);
+    });
+
   let lastStrikeIndices: number[] = [];
 
-  return (skill.effects || []).map((effect) => {
+  return effects.map((effect, effectIndex) => {
     if (effect.type === 'strike') {
       const hitCount = Array.isArray(effect.ticks)
         ? effect.ticks.length
         : Math.max(1, Math.trunc(Number(effect.hits || 1)));
 
-      lastStrikeIndices = Array.from({ length: hitCount }, () => (hitIndex += 1));
+      lastStrikeIndices = Array.from(
+        { length: hitCount },
+        (_, tickIndex) => chronologicalStrikeIndices.get(`${effectIndex}:${tickIndex}`) || 0
+      );
 
       if (Array.isArray(effect.ticks)) {
         return {

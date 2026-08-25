@@ -5,13 +5,13 @@ import type {
   SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { modifyWeaverAttributes, weaverModifierRules } from './modifiers.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { elementalistAlacrityAdjustedDuration, emitElementalistBuff, triggerBountifulPower } from '../../core/rules.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
   isElementalistAttunement,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
@@ -38,7 +38,7 @@ const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 
 function initialize(context: ElementalistSchedulerContext): void {
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   const state = weaverState.from(context);
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
@@ -71,7 +71,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
 
   const chainPosition = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (skill.type === 'Weapon' && skill.attunement && !chainPosition) {
-    const core = elementalistCoreState(context as unknown as SchedulerRecord);
+    const core = professionCoreState(context);
     const state = weaverState.from(context);
     const attunement = String(skill.attunement);
     const dualAttunements = weaverDualAttunements(skill);
@@ -138,7 +138,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   }
 
   const state = weaverState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   const at = event.at;
   const target = event.to;
   const previous = event.from;
@@ -246,7 +246,7 @@ function modifyRechargeStart(context: ElementalistPrecastContext, rechargeStart:
 
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = weaverState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   const at = context.effectiveEnd;
   const dualAttunements = weaverDualAttunements(skill);
   const target = targetAttunement(skill);
@@ -392,7 +392,7 @@ export const weaverSkillMechanicHandlers = Object.freeze({
 
 function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const state = weaverState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   const at = task.at;
   const sourceId = String(task.payload?.sourceId || 'weave-self');
   const duration = elementalistBalanceValue(context, PROFILE.resources, 'durationMultiplier', 20);
@@ -409,7 +409,7 @@ function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: 
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.name === 'Unravel') {
     const state = weaverState.from(context);
-    const core = elementalistCoreState(context as unknown as SchedulerRecord);
+    const core = professionCoreState(context);
     state.unravelUntil =
       context.effectiveEnd + elementalistBalanceValue(context, PROFILE.unravel, 'durationMultiplier', 5);
     for (const attunement of Object.keys(core.attunementReadyAt)) {
@@ -457,7 +457,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 }
 
 function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   const state = weaverState.from(context);
   const sourceId = (task.payload?.sourceId || 'primordial-stance') as Skill['id'];
   const attunements = state.secondaryAttunement
@@ -501,7 +501,7 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   const skill = context.skill;
   let adjusted = duration;
-  if (skill.name === 'Purblinding Plasma' && elementalistCoreState(context).pistolBullets.Air) {
+  if (skill.name === 'Purblinding Plasma' && professionCoreState(context).pistolBullets.Air) {
     adjusted *= elementalistBalanceValue(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
   }
 

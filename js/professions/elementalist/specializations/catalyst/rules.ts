@@ -5,10 +5,11 @@ import type {
   SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
 import { applyElementalistAura, elementalistBuffDuration, emitElementalistBuff } from '../../core/rules.js';
-import { elementalistCoreState, type ElementalistAttunement } from '../../core/state.js';
+import type { ElementalistAttunement } from '../../core/state.js';
 import type { CatalystEmpowermentPool } from '../../types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import {
@@ -108,7 +109,7 @@ function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: Sched
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
   const state = catalystState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   if (skill.attunement !== core.primaryAttunement) {
     return {
       ready: false,
@@ -280,7 +281,7 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
 
 function activateElementalCelerity(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   for (const candidate of context.catalog.skills) {
     if (
       candidate.type === 'Weapon' &&
@@ -347,7 +348,7 @@ export const catalystSkillMechanicHandlers = Object.freeze({
 
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
     const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     emitElementalistBuff(

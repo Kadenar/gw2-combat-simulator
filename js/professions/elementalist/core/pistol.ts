@@ -1,6 +1,6 @@
-import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '../types.js';
-import { elementalistCoreState } from './state.js';
 import { PISTOL_NO_CONSUME, PISTOL_NO_GRANT, PISTOL_SKILL_ELEMENTS } from './constants.js';
 import {
   applyElementalistAura,
@@ -17,7 +17,7 @@ import {
 
 export function applyPistolState(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Pistol') return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
   if (!element) return;

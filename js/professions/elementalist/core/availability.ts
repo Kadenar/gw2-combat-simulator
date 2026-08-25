@@ -1,7 +1,8 @@
-import type { AvailabilityResult, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
 import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type { ElementalistPrecastContext as ElementalistCastContext, ElementalistSchedulerContext } from '../types.js';
-import { ELEMENTALIST_ATTUNEMENTS, elementalistCoreState, type ElementalistCoreState } from './state.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistCoreState } from './state.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURED_WEAPONS,
@@ -39,7 +40,7 @@ function selectedSkillNames(context: ElementalistCastContext): Set<string> {
 export function elementalistCoreAvailability(context: ElementalistCastContext, skill: Skill): AvailabilityResult {
   const elementalAvailability = elementalistElementalAvailability(context, skill);
   if (elementalAvailability) return elementalAvailability;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (
     skill.name === 'Elemental Explosion' &&
     !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])

@@ -5,6 +5,7 @@ import type {
   SimulationEventInput,
   Skill
 } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
@@ -16,7 +17,7 @@ import {
   triggerFlameExpulsion,
   triggerSunspot
 } from '../../core/rules.js';
-import { elementalistCoreState, setElementalistAttunementReadyAt } from '../../core/state.js';
+import { setElementalistAttunementReadyAt } from '../../core/state.js';
 import { armElementalistElementalLightningJolt } from '../../core/elementals.js';
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS, ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
 import { tempestModifierRules } from './modifiers.js';
@@ -96,7 +97,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
 
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (skill.attunement !== state.primaryAttunement) {
     return {
       ready: false,
@@ -181,7 +182,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (!skill.overload) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const attunement = String(skill.attunement);
   if (attunement in state.attunementReadyAt) {
     const typedAttunement = attunement as keyof typeof state.attunementReadyAt;

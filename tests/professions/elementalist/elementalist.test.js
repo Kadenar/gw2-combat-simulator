@@ -17,7 +17,6 @@ import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
   migrateElementalistBuild,
-  toApplicationBuild,
   validateElementalistBuild
 } from '../../../js/professions/elementalist/build.js';
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
@@ -27,6 +26,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '../../../js/professions/elementalist/data/ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/professions/elementalist/core/elemental-profile.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/professions/elementalist/core/skills.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
   elementalistBalanceValue
@@ -215,7 +215,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   );
 });
 
-test('Elementalist build defaults and saved snapshots migrate explicitly', () => {
+test('Elementalist build defaults and canonical builds normalize explicitly', () => {
   const defaults = createElementalistBuildDefaults();
 
   assert.equal(defaults.profession, 'elementalist');
@@ -235,9 +235,9 @@ test('Elementalist build defaults and saved snapshots migrate explicitly', () =>
   assert.deepEqual(migrated.weapons, ['Scepter', 'Warhorn']);
   assert.equal(validateElementalistBuild(migrated).valid, true);
 
-  const migratedHitbox = migrateElementalistBuild({ hitboxSize: 'small' });
+  const migratedHitbox = migrateElementalistBuild({ assumptions: { hitboxSize: 'large' } });
 
-  assert.equal(migratedHitbox.assumptions.hitboxSize, 'small');
+  assert.equal(migratedHitbox.assumptions.hitboxSize, 'large');
 
   const collapsed = migrateElementalistBuild({
     ...defaults,
@@ -257,72 +257,89 @@ test('Elementalist build defaults and saved snapshots migrate explicitly', () =>
   );
 });
 
-test('standalone Elementalist snapshot fields migrate into the native schema', () => {
-  const defaults = createElementalistBuildDefaults();
-  const snapshot = {
-    build: {
-      ...defaults,
-      assumptions: {
-        ...defaults.assumptions,
-        might: 17,
-        fury: true,
-        quickness: false,
-        targetConditions: {
-          Burning: true,
-          Vulnerability: 12
-        }
-      },
-      profession: undefined,
-      schemaVersion: undefined
-    },
-    selectedSkills: {
-      heal: 'Signet of Restoration',
-      util1: 'Arcane Blast',
-      util2: 'Signet of Fire',
-      util3: 'Arcane Wave',
-      elite: 'Weave Self'
-    },
-    activeAttunement: 'Water',
-    secondaryAttunement: 'Earth',
-    evokerElement: 'Air',
-    evokerStartCharges: 4,
-    evokerStartEmpowered: 2,
-    rotation: [
-      'Fire Attunement',
-      { name: '__wait', waitMs: 420 },
-      '__combat_start',
-      { name: 'Arcane Blast', offset: 120, interruptMs: 250 }
+test('Elementalist canonical strike timelines preserve packet timing, coefficients, and same-time order', () => {
+  const invokeLightning = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.INVOKE_LIGHTNING];
+  const strike = invokeLightning.effects[0];
+
+  assert.equal(strike.type, 'strike');
+  assert.equal(strike.timingAnchor, 'castStart');
+  assert.equal(strike.timingScale, 'cast');
+  assert.deepEqual(
+    strike.ticks.slice(0, 3).map(({ atMs, coefficient }) => [atMs, coefficient]),
+    [
+      [360, 0.825],
+      [360, 0.7425],
+      [360, 0.66]
     ]
-  };
-
-  const migrated = migrateElementalistBuild(snapshot);
-
-  assert.equal(validateElementalistBuild(migrated).valid, true);
-  assert.deepEqual(migrated.selectedSkills, {
-    Heal: 'Signet of Restoration',
-    Utility1: 'Arcane Blast',
-    Utility2: 'Signet of Fire',
-    Utility3: 'Arcane Wave',
-    Elite: 'Weave Self'
-  });
-  assert.equal(migrated.startAttunement, 'Water');
-  assert.equal(migrated.secondaryAttunement, 'Earth');
-  assert.equal(migrated.evokerElement, 'Air');
-  assert.equal(migrated.initialEvokerCharges, 4);
-  assert.equal(migrated.initialEvokerEmpowered, 2);
-  assert.equal(migrated.assumptions.might, 17);
-  assert.equal(migrated.assumptions.fury, true);
-  assert.equal(migrated.assumptions.quickness, false);
-  assert.deepEqual(migrated.assumptions.targetConditions, {
-    Burning: true,
-    Vulnerability: 12
-  });
-  assert.ok(
-    migrated.rotation
-      .filter((command) => command.type === 'cast')
-      .every((command) => elementalistCatalog.skillsById.has(command.skillId))
   );
-  assert.deepEqual(toApplicationBuild(snapshot).rotation, migrated.rotation);
+});
+
+test('Elementalist canonical condition timelines preserve their packet start and applications', () => {
+  const frostStorm = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.FROST_STORM];
+  const [strike, bleeding] = frostStorm.effects;
+
+  assert.equal(strike.type, 'strike');
+  assert.equal(bleeding.type, 'condition');
+  assert.equal(strike.ticks[0].atMs, 1040);
+  assert.deepEqual(bleeding.ticks[0], {
+    atMs: 1320,
+    condition: 'Bleeding',
+    stacks: 1,
+    duration: 3
+  });
+  assert.deepEqual(
+    bleeding.ticks.map(({ atMs }) => atMs),
+    strike.ticks.slice(1).map(({ atMs }) => atMs)
+  );
+});
+
+test('Elementalist canonical strike timelines retain per-packet combat metadata', () => {
+  const fieryWhirl = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.FIERY_WHIRL];
+  const strike = fieryWhirl.effects[0];
+
+  assert.equal(strike.type, 'strike');
+  assert.deepEqual(strike.comboFinishers, [
+    {
+      ownerId: 'elementalist',
+      finisherType: 'Whirl',
+      ambiguousFieldSelection: 'oldest'
+    }
+  ]);
+  assert.deepEqual(
+    strike.ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
+    [
+      [280, 0.688],
+      [400, 0.688],
+      [530, 0.688],
+      [640, 0.688],
+      [760, 0.688],
+      [880, 0.688],
+      [990, 0.688],
+      [1130, 0.688]
+    ]
+  );
+});
+
+test('Elementalist canonical timelines retain causal and hitbox order for same-time packets', () => {
+  const glyphOfStormsAir = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
+  const packets = glyphOfStormsAir.effects.flatMap((effect) =>
+    effect.ticks
+      .filter(({ atMs }) => atMs === 880)
+      .map((tick) => [
+        effect.type,
+        effect.type === 'strike' ? tick.coefficient : tick.condition,
+        tick.metadata.hitboxIndex
+      ])
+  );
+
+  assert.deepEqual(packets, [
+    ['strike', 0.825, 1],
+    ['condition', 'Vulnerability', 1],
+    ['strike', 0.78375, 2],
+    ['condition', 'Vulnerability', 2],
+    ['strike', 0.7425, 3],
+    ['condition', 'Vulnerability', 3]
+  ]);
 });
 
 test('all Elementalist build and rotation assets migrate through the native codec', async () => {
@@ -354,16 +371,6 @@ test('all Elementalist build and rotation assets migrate through the native code
 
     assert.equal(savedBuild.schemaVersion, ELEMENTALIST_BUILD_SCHEMA_VERSION, `${preset.section}: ${preset.label}`);
     assert.equal(validation.valid, true, `${preset.section}: ${preset.label}: ${validation.errors.join('; ')}`);
-    assert.equal(
-      Object.hasOwn(savedBuild.assumptions, 'elementalSimulationProfile'),
-      false,
-      `${preset.section}: ${preset.label}: retired elemental profile`
-    );
-    assert.equal(
-      Object.hasOwn(savedBuild.assumptions, 'glyphBoonedElementals'),
-      false,
-      `${preset.section}: ${preset.label}: retired elemental boon flag`
-    );
     assert.ok(
       build.rotation
         .filter((command) => command.type === 'cast')

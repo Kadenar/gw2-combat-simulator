@@ -1,7 +1,7 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
-import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '../types.js';
-import { elementalistCoreState } from './state.js';
 import { CONJURE_SKILLS } from './constants.js';
 import { applyElementalistAura } from './mechanics.js';
 import {
@@ -15,7 +15,7 @@ function hasTrait(context: unknown, trait: string): boolean {
 }
 
 export function applyConjureState(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const conjuredWeapon = CONJURE_SKILLS[Number(skill.id)];
   let swapped = false;

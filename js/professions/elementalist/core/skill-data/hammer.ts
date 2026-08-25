@@ -1,8 +1,11 @@
 /** Hammer weapon-skill mechanics owned by the Core Elementalist module. */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import { elementalistPacketEffects } from '../skill-effects.js';
+import { conditionTimeline, strikeTimeline } from '../../../../platform/engine/effects/factories.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+
+// Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
+const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 2040] as const;
 
 export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
@@ -579,20 +582,21 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [200, 0.55],
-        [360, 0.55],
-        [600, 0.55],
-        [840, 0.55],
-        [1080, 0.55],
-        [1320, 0.55],
-        [1560, 0.55],
-        [1800, 0.55],
-        [2040, 0.55]
-      ],
-      { condition: { condition: 'Vulnerability', stacks: 1, duration: 10 } }
-    )
+    effects: [
+      strikeTimeline(
+        HURRICANE_OF_PAIN_TICKS.map((atMs) => ({ atMs, coefficient: 0.55 })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      ),
+      conditionTimeline(
+        HURRICANE_OF_PAIN_TICKS.map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 10
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      )
+    ]
   },
   [ID.CRESCENT_WIND]: {
     name: 'Crescent Wind',

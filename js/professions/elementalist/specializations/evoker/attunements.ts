@@ -1,9 +1,8 @@
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
-import type { SchedulerRecord, SimulationEvent, Skill } from '../../../../platform/engine/types.js';
+import type { SimulationEvent, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
   isElementalistAttunement,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement

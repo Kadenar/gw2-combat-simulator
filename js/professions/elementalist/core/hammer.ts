@@ -1,21 +1,17 @@
-import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
 } from '../types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
-  type ElementalistAttunement,
-  type ElementalistCoreState
-} from './state.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import { HAMMER_ORB_SKILLS } from './constants.js';
 import { activeBuffEvents, emitBuff, emitProfiledCondition, profiledEffect, skillWeapon } from './mechanics.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext, skill: Skill): boolean {
   if (skill.name !== 'Grand Finale') return false;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= context.start;
@@ -74,7 +70,7 @@ export function hammerOrbMatchesAttunement(
 
 export function applyHammerState(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
   if (single) {

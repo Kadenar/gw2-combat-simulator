@@ -1,6 +1,7 @@
-import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext } from '../../types.js';
-import { ELEMENTALIST_ATTUNEMENTS, elementalistCoreState, type ElementalistAttunement } from '../../core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../core/state.js';
 import { activeHammerOrbElements } from '../../core/hammer.js';
 import { activeBuffEvents, emitBuff, skillWeapon } from '../../core/mechanics.js';
 import {
@@ -15,7 +16,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   if (skillWeapon(skill) !== 'Hammer') return;
   const elements = weaverDualAttunements(skill);
   if (!elements) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const orbDuration = elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier', 15);
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -49,7 +50,7 @@ export function weaverHammerAvailability(
   if (skillWeapon(skill) !== 'Hammer') return null;
   const elements = weaverDualAttunements(skill);
   if (!elements) return null;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const retryAt =
     state.hammerOrbLastCastAt + elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
   if (retryAt > context.start + context.epsilon) {

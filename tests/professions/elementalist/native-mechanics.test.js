@@ -2204,19 +2204,11 @@ test('Tempest always starts with its initial overload available', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Tempest', '3-2-1']],
     rotation: ['Overload Air'],
-    startAttunement: 'Air',
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      startingAttunementPreDwelled: false
-    }
+    startAttunement: 'Air'
   });
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Air');
 
   assert.equal(overload.at, 0);
-  assert.equal(
-    elementalistProfession.ui.assumptionControls.some((control) => control.key === 'startingAttunementPreDwelled'),
-    false
-  );
 });
 
 test('Transcendent Tempest precedes same-time Overload completion damage', () => {
@@ -2880,18 +2872,6 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
   assert.equal(result.endState.cooldowns['Glyph of Elementals'], undefined);
-});
-
-test('legacy snapshots discard retired elemental packet assumptions', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    build: elementalistProfession.createBuildDefaults(),
-    elementalSimulationProfile: 'reference',
-    glyphBoonedElementals: true
-  });
-
-  assert.equal(Object.hasOwn(build.assumptions, 'elementalSimulationProfile'), false);
-  assert.equal(Object.hasOwn(build.assumptions, 'glyphBoonedElementals'), false);
-  assert.equal(Object.hasOwn(build.assumptions, 'startingAttunementPreDwelled'), false);
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {

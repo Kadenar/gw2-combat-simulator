@@ -1,12 +1,8 @@
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
-import type { AvailabilityResult, SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import type { AvailabilityResult, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistPrecastContext } from '../../types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
-  isElementalistAttunement,
-  type ElementalistAttunement
-} from '../../core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, isElementalistAttunement, type ElementalistAttunement } from '../../core/state.js';
 import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './constants.js';
 import { evokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -37,7 +33,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
 
     // capture remaining recharge before the swap fires so applyEvokerAttunementRechargePolicy can preserve shorter cooldowns
     if (!state.pendingOffAttunementRemainingByCommand[context.commandIndex]) {
-      const core = elementalistCoreState(context as unknown as SchedulerRecord);
+      const core = professionCoreState(context);
       state.pendingOffAttunementRemainingByCommand[context.commandIndex] = Object.fromEntries(
         ELEMENTALIST_ATTUNEMENTS.map((element) => [
           element,

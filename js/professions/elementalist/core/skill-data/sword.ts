@@ -1,8 +1,23 @@
 /** Sword weapon-skill mechanics owned by the Core Elementalist module. */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import { elementalistPacketEffects } from '../skill-effects.js';
+import { conditionTimeline, strikeTimeline } from '../../../../platform/engine/effects/factories.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+
+// Canonical Sword timelines keep condition applications aligned with their originating strike packets.
+const QUANTUM_STRIKE_TICKS = [
+  { atMs: 600, coefficient: 0.5 },
+  { atMs: 800, coefficient: 0.425 },
+  { atMs: 1000, coefficient: 0.425 },
+  { atMs: 1200, coefficient: 0.425 },
+  { atMs: 1400, coefficient: 0.425 },
+  { atMs: 1600, coefficient: 0.425 },
+  { atMs: 1800, coefficient: 0.425 },
+  { atMs: 2000, coefficient: 0.425 },
+  { atMs: 2200, coefficient: 0.425 }
+] as const;
+
+const RUST_FRENZY_TICKS = [360, 360, 600, 640, 840, 840, 1080, 1120] as const;
 
 export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIRE_STRIKE]: {
@@ -568,20 +583,18 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 16,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [600, 0.5],
-        [800, 0.425],
-        [1000, 0.425],
-        [1200, 0.425],
-        [1400, 0.425],
-        [1600, 0.425],
-        [1800, 0.425],
-        [2000, 0.425],
-        [2200, 0.425]
-      ],
-      { condition: { condition: 'Vulnerability', stacks: 1, duration: 8 } }
-    )
+    effects: [
+      strikeTimeline(QUANTUM_STRIKE_TICKS, { timingAnchor: 'castStart', timingScale: 'cast' }),
+      conditionTimeline(
+        QUANTUM_STRIKE_TICKS.map(({ atMs }) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 8
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      )
+    ]
   },
   [ID.CRYSTAL_SLASH]: {
     name: 'Crystal Slash',
@@ -789,18 +802,20 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 15,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [360, 0.33],
-        [360, 0.33],
-        [600, 0.33],
-        [640, 0.33],
-        [840, 0.33],
-        [840, 0.33],
-        [1080, 0.33],
-        [1120, 0.33]
-      ],
-      { condition: { condition: 'Bleeding', stacks: 1, duration: 4 } }
-    )
+    effects: [
+      strikeTimeline(
+        RUST_FRENZY_TICKS.map((atMs) => ({ atMs, coefficient: 0.33 })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      ),
+      conditionTimeline(
+        RUST_FRENZY_TICKS.map((atMs) => ({
+          atMs,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 4
+        })),
+        { timingAnchor: 'castStart', timingScale: 'cast' }
+      )
+    ]
   }
 });

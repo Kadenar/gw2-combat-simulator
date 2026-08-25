@@ -41,6 +41,7 @@ export {
 } from './traits.js';
 
 import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
@@ -61,7 +62,6 @@ import type {
 } from '../types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
   resetElementalistAttunementCooldowns,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement,
@@ -111,7 +111,7 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
   // packets, so aura-triggered modifiers can affect the skill that granted it.
   applySkillAura(context, skill);
   beginElementalistGlyphCast(context, skill);
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const chain = etchingChain(skill.name);
   if (chain && skill.name === chain.etching && skillWeapon(skill) === 'Spear') {
     state.etchings[chain.etching] = { stage: 'lesser', otherCasts: 0 };
@@ -152,7 +152,7 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
 }
 
 export function elementalistAfterCast(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   extendPersistingFlamesPackets(context, skill);
   const activationEvents = context.events
     .filter(
@@ -211,7 +211,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
 }
 
 function applySpecialSkillProgression(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
 
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
@@ -261,7 +261,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     context: ElementalistSchedulerContext;
     at: number;
   }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).rockBarrierExpiresAt =
+    professionCoreState(context).rockBarrierExpiresAt =
       at + elementalistBalanceValue(context, PROFILE.rockBarrier, 'durationMultiplier', 30);
   },
   'elementalist.core.release-rock-barrier': ({
@@ -271,7 +271,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     context: ElementalistSchedulerContext;
     at: number;
   }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).rockBarrierExpiresAt = 0;
+    professionCoreState(context).rockBarrierExpiresAt = 0;
     const root = context.catalog.skillsByName.get('Rock Barrier');
     if (root) {
       context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, { rockBarrierRelease: true }));
@@ -286,7 +286,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     skill: Skill;
     at: number;
   }): void => {
-    const state = elementalistCoreState(context as unknown as SchedulerRecord);
+    const state = professionCoreState(context);
     const auraByAttunement: Readonly<Record<ElementalistAttunement, readonly [string, number]>> = {
       Fire: ['Fire Aura', 4],
       Water: ['Frost Aura', 4],
@@ -305,16 +305,16 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     for (const element of ELEMENTALIST_ATTUNEMENTS) state.pistolBullets[element] = false;
   },
   'elementalist.core.arm-spear-damage': ({ context }: { context: ElementalistSchedulerContext }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).spearNextDamageBonus = true;
+    professionCoreState(context).spearNextDamageBonus = true;
   },
   'elementalist.core.arm-spear-recharge': ({ context }: { context: ElementalistSchedulerContext }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).spearNextRechargeReduction = true;
+    professionCoreState(context).spearNextRechargeReduction = true;
   },
   'elementalist.core.arm-spear-critical': ({ context }: { context: ElementalistSchedulerContext }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).spearNextGuaranteedCritical = true;
+    professionCoreState(context).spearNextGuaranteedCritical = true;
   },
   'elementalist.core.arm-spear-control': ({ context }: { context: ElementalistSchedulerContext }): void => {
-    elementalistCoreState(context as unknown as SchedulerRecord).spearNextControlHit = true;
+    professionCoreState(context).spearNextControlHit = true;
   },
   'elementalist.core.disable-signet-of-fire-passive': ({
     context,
@@ -326,7 +326,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     if (hasTrait(context, 'Written in Stone')) return;
-    const state = elementalistCoreState(context as unknown as SchedulerRecord);
+    const state = professionCoreState(context);
     state.signetOfFireDisabledUntil = Number(context.state.cooldowns.get(skill.id) || at);
     context.emit({
       type: 'elementalist.signet-fire',
@@ -357,7 +357,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     return;
   }
 
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   applyConjureState(context, skill);
   applySpecialSkillProgression(context, skill);
   updateAutoattackChainState(context, skill, state);
@@ -426,7 +426,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
 export function observeElementalistEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   observeElementalistElementalEvent(context, event);
   extendPersistingFlamesField(context, event);
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (
     event.type === 'damage' &&
     event.actorType !== 'summon' &&
@@ -456,7 +456,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
 }
 
 export function advanceElementalistState(context: ElementalistSchedulerContext, at: number): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   processFreshAirCandidates(context, at);
   updateEndurance(context, state, at, Boolean(context.config.boons?.vigor));
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
@@ -502,7 +502,7 @@ export function modifyElementalistRechargeDuration(
   const skill = context.skill;
   if (!skill) return duration;
   if (skill.name === 'Glyph of Elementals') return 0;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = Number((context as unknown as SchedulerRecord).start ?? context.state.time ?? 0);
   if (skill.name === 'Rock Barrier' && !(context as unknown as SchedulerRecord).rockBarrierRelease) {
     return 0;
@@ -572,7 +572,7 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
       order: 5,
       // The active glyph elemental is a concrete candidate, never an anonymous summon slot.
       handler(context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
-        const elemental = elementalistCoreState(context).summonedElemental;
+        const elemental = professionCoreState(context).summonedElemental;
         const active =
           elemental.element !== null &&
           elemental.activeUntil > Number(event.at ?? context.state.time) - context.epsilon;

@@ -1,7 +1,6 @@
 /** Dagger weapon-skill mechanics owned by the Core Elementalist module. */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import { elementalistPacketEffects } from '../skill-effects.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.

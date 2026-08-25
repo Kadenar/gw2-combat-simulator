@@ -1,8 +1,36 @@
 /** Staff weapon-skill mechanics owned by the Core Elementalist module. */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import { elementalistPacketEffects } from '../skill-effects.js';
+import { strikeTimeline } from '../../../../platform/engine/effects/factories.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+
+// Meteor Shower's canonical timeline retains the observed coefficient decay and packet timestamps.
+const METEOR_SHOWER_STRIKE_TICKS = [
+  { atMs: 2320, coefficient: 1.6 },
+  { atMs: 2600, coefficient: 1.44 },
+  { atMs: 2920, coefficient: 1.28 },
+  { atMs: 3240, coefficient: 1.12 },
+  { atMs: 3400, coefficient: 0.96 },
+  { atMs: 3880, coefficient: 0.8 },
+  { atMs: 4480, coefficient: 0.64 },
+  { atMs: 4760, coefficient: 0.48 },
+  { atMs: 5080, coefficient: 0.32 },
+  { atMs: 5400, coefficient: 0.32 },
+  { atMs: 5560, coefficient: 0.32 },
+  { atMs: 6040, coefficient: 0.32 },
+  { atMs: 6640, coefficient: 0.32 },
+  { atMs: 6920, coefficient: 0.32 },
+  { atMs: 7240, coefficient: 0.32 },
+  { atMs: 7560, coefficient: 0.32 },
+  { atMs: 7720, coefficient: 0.32 },
+  { atMs: 8200, coefficient: 0.32 },
+  { atMs: 8800, coefficient: 0.32 },
+  { atMs: 9080, coefficient: 0.32 },
+  { atMs: 9400, coefficient: 0.32 },
+  { atMs: 9720, coefficient: 0.32 },
+  { atMs: 9880, coefficient: 0.32 },
+  { atMs: 10360, coefficient: 0.32 }
+] as const;
 
 export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIREBALL]: {
@@ -333,32 +361,12 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 30,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects([
-      [2320, 1.6],
-      [2600, 1.44],
-      [2920, 1.28],
-      [3240, 1.12],
-      [3400, 0.96],
-      [3880, 0.8],
-      [4480, 0.64],
-      [4760, 0.48],
-      [5080, 0.32],
-      [5400, 0.32],
-      [5560, 0.32],
-      [6040, 0.32],
-      [6640, 0.32],
-      [6920, 0.32],
-      [7240, 0.32],
-      [7560, 0.32],
-      [7720, 0.32],
-      [8200, 0.32],
-      [8800, 0.32],
-      [9080, 0.32],
-      [9400, 0.32],
-      [9720, 0.32],
-      [9880, 0.32],
-      [10360, 0.32]
-    ])
+    effects: [
+      strikeTimeline(METEOR_SHOWER_STRIKE_TICKS, {
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      })
+    ]
   },
   [ID.WATER_BLAST]: {
     name: 'Water Blast',

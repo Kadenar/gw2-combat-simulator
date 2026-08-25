@@ -1,15 +1,11 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
-import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
 } from '../types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
-} from './state.js';
+import { ELEMENTALIST_ATTUNEMENTS, setElementalistAttunementReadyAt, type ElementalistAttunement } from './state.js';
 import { ATTUNEMENT_RECHARGE_SECONDS, OFF_ATTUNEMENT_RECHARGE_SECONDS } from './constants.js';
 import { combatStarted, emitBuff, emitProfiledBuff, profiledEffect } from './mechanics.js';
 import {
@@ -41,7 +37,7 @@ export interface ElementalistAttunementTransition {
 
 export function projectedFreshAirReadyAt(context: ElementalistCastContext, upTo: number): number | null {
   if (!hasTrait(context, 'Fresh Air')) return null;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   if (state.primaryAttunement === 'Air') return null;
   let progress = state.freshAirProgress;
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
@@ -80,7 +76,7 @@ export function onAttunementComplete(
   target: ElementalistAttunement,
   transition: ElementalistAttunementTransition = {}
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const previous = state.primaryAttunement;
   const attunementReadyAtBefore = { ...state.attunementReadyAt };

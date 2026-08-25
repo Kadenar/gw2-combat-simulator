@@ -1,6 +1,6 @@
 /** Core Elementalist skill mechanics. */
 import { ELEMENTALIST_SKILL_IDS as ID } from '../data/ids.js';
-import { elementalistPacketEffects } from './skill-effects.js';
+import { conditionTimeline, strikeTimeline } from '../../../platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 import { ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS } from './skill-data/dagger.js';
 import { ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS } from './skill-data/focus.js';
@@ -13,6 +13,137 @@ import { ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS } from './skill-data/sword.js';
 import { ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS } from './skill-data/warhorn.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
+const CAST_SCALED_PACKET_TIMING = {
+  timingAnchor: 'castStart',
+  timingScale: 'cast'
+} as const;
+
+// Canonical tick timelines keep packet coefficients and same-time strike order explicit in skill data.
+const FROST_STORM_STRIKE_TICKS = [
+  { atMs: 1040, coefficient: 0.7 },
+  { atMs: 1320, coefficient: 0.63 },
+  { atMs: 1520, coefficient: 0.56 },
+  { atMs: 1560, coefficient: 0.49 },
+  { atMs: 1800, coefficient: 0.42 },
+  { atMs: 1800, coefficient: 0.35 },
+  { atMs: 2000, coefficient: 0.28 },
+  { atMs: 2040, coefficient: 0.21 },
+  { atMs: 2280, coefficient: 0.14 },
+  { atMs: 2280, coefficient: 0.14 },
+  { atMs: 2480, coefficient: 0.14 },
+  { atMs: 2520, coefficient: 0.14 },
+  { atMs: 2760, coefficient: 0.14 },
+  { atMs: 2760, coefficient: 0.14 },
+  { atMs: 2960, coefficient: 0.14 },
+  { atMs: 3000, coefficient: 0.14 },
+  { atMs: 3240, coefficient: 0.14 },
+  { atMs: 3240, coefficient: 0.14 },
+  { atMs: 3480, coefficient: 0.14 },
+  { atMs: 3720, coefficient: 0.14 },
+  { atMs: 3960, coefficient: 0.14 },
+  { atMs: 4240, coefficient: 0.14 },
+  { atMs: 4480, coefficient: 0.14 },
+  { atMs: 4720, coefficient: 0.14 }
+] as const;
+
+const INVOKE_LIGHTNING_STRIKE_TICKS = [
+  { atMs: 360, coefficient: 0.825 },
+  { atMs: 360, coefficient: 0.7425 },
+  { atMs: 360, coefficient: 0.66 },
+  { atMs: 480, coefficient: 0.5775 },
+  { atMs: 480, coefficient: 0.495 },
+  { atMs: 480, coefficient: 0.4125 },
+  { atMs: 600, coefficient: 0.33 },
+  { atMs: 600, coefficient: 0.2475 },
+  { atMs: 600, coefficient: 0.24 },
+  { atMs: 760, coefficient: 0.24 },
+  { atMs: 760, coefficient: 0.24 },
+  { atMs: 760, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 880, coefficient: 0.24 },
+  { atMs: 1000, coefficient: 0.24 },
+  { atMs: 1000, coefficient: 0.24 }
+] as const;
+
+const GLYPH_OF_STORMS_WATER_STRIKE_TICKS = [
+  { atMs: 1600, coefficient: 0.8 },
+  { atMs: 1920, coefficient: 0.72 },
+  { atMs: 2240, coefficient: 0.64 },
+  { atMs: 2560, coefficient: 0.56 },
+  { atMs: 2880, coefficient: 0.48 },
+  { atMs: 3200, coefficient: 0.4 },
+  { atMs: 3520, coefficient: 0.32 },
+  { atMs: 3840, coefficient: 0.32 },
+  { atMs: 4160, coefficient: 0.32 },
+  { atMs: 4480, coefficient: 0.32 },
+  { atMs: 4800, coefficient: 0.32 },
+  { atMs: 5120, coefficient: 0.32 },
+  { atMs: 5440, coefficient: 0.32 },
+  { atMs: 5760, coefficient: 0.32 },
+  { atMs: 6080, coefficient: 0.32 },
+  { atMs: 6400, coefficient: 0.32 },
+  { atMs: 6720, coefficient: 0.32 },
+  { atMs: 7040, coefficient: 0.32 }
+] as const;
+
+// Layers interleave same-time Vulnerability after its originating hit without reverting to per-packet effects.
+const GLYPH_OF_STORMS_AIR_STRIKE_TICK_LAYERS = [
+  [
+    { atMs: 880, coefficient: 0.825 },
+    { atMs: 1400, coefficient: 0.70125 },
+    { atMs: 1560, coefficient: 0.66 },
+    { atMs: 1680, coefficient: 0.61875 },
+    { atMs: 1890, coefficient: 0.5775 },
+    { atMs: 2200, coefficient: 0.53625 },
+    { atMs: 2400, coefficient: 0.495 },
+    { atMs: 2480, coefficient: 0.45375 },
+    { atMs: 2840, coefficient: 0.4125 },
+    { atMs: 2880, coefficient: 0.37125 },
+    { atMs: 3280, coefficient: 0.33 },
+    { atMs: 3400, coefficient: 0.28875 },
+    { atMs: 3480, coefficient: 0.2475 },
+    { atMs: 3880, coefficient: 0.2475 },
+    { atMs: 4080, coefficient: 0.2475 },
+    { atMs: 4160, coefficient: 0.2475 },
+    { atMs: 4400, coefficient: 0.2475 },
+    { atMs: 4800, coefficient: 0.2475 },
+    { atMs: 4880, coefficient: 0.2475 },
+    { atMs: 5400, coefficient: 0.2475 },
+    { atMs: 5440, coefficient: 0.2475 },
+    { atMs: 5680, coefficient: 0.2475 },
+    { atMs: 5880, coefficient: 0.2475 },
+    { atMs: 6080, coefficient: 0.2475 },
+    { atMs: 6400, coefficient: 0.2475 },
+    { atMs: 6480, coefficient: 0.2475 },
+    { atMs: 6760, coefficient: 0.2475 },
+    { atMs: 7290, coefficient: 0.2475 },
+    { atMs: 7400, coefficient: 0.2475 },
+    { atMs: 8040, coefficient: 0.2475 },
+    { atMs: 8080, coefficient: 0.2475 },
+    { atMs: 8880, coefficient: 0.2475 },
+    { atMs: 9680, coefficient: 0.2475 }
+  ],
+  [
+    { atMs: 880, coefficient: 0.78375 },
+    { atMs: 4880, coefficient: 0.2475 }
+  ],
+  [{ atMs: 880, coefficient: 0.7425 }]
+] as const;
+
+const FIERY_WHIRL_STRIKE_TICKS = [
+  { atMs: 280, coefficient: 0.688 },
+  { atMs: 400, coefficient: 0.688 },
+  { atMs: 530, coefficient: 0.688 },
+  { atMs: 640, coefficient: 0.688 },
+  { atMs: 760, coefficient: 0.688 },
+  { atMs: 880, coefficient: 0.688 },
+  { atMs: 990, coefficient: 0.688 },
+  { atMs: 1130, coefficient: 0.688 }
+] as const;
 const FROST_VOLLEY_TICK_OFFSETS_MS = [360, 680, 1000, 1320, 1640] as const;
 const GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS = [
   880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880
@@ -430,38 +561,18 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 20,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [1040, 0.7],
-        [1320, 0.63],
-        [1520, 0.56],
-        [1560, 0.49],
-        [1800, 0.42],
-        [1800, 0.35],
-        [2000, 0.28],
-        [2040, 0.21],
-        [2280, 0.14],
-        [2280, 0.14],
-        [2480, 0.14],
-        [2520, 0.14],
-        [2760, 0.14],
-        [2760, 0.14],
-        [2960, 0.14],
-        [3000, 0.14],
-        [3240, 0.14],
-        [3240, 0.14],
-        [3480, 0.14],
-        [3720, 0.14],
-        [3960, 0.14],
-        [4240, 0.14],
-        [4480, 0.14],
-        [4720, 0.14]
-      ],
-      {
-        condition: { condition: 'Bleeding', stacks: 1, duration: 3 },
-        conditionStartIndex: 1
-      }
-    )
+    effects: [
+      strikeTimeline(FROST_STORM_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING),
+      conditionTimeline(
+        FROST_STORM_STRIKE_TICKS.slice(1).map(({ atMs }) => ({
+          atMs,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 3
+        })),
+        CAST_SCALED_PACKET_TIMING
+      )
+    ]
   },
   [ID.DEEP_FREEZE]: {
     name: 'Deep Freeze',
@@ -702,28 +813,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 20,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects([
-      [360, 0.825],
-      [360, 0.7425],
-      [360, 0.66],
-      [480, 0.5775],
-      [480, 0.495],
-      [480, 0.4125],
-      [600, 0.33],
-      [600, 0.2475],
-      [600, 0.24],
-      [760, 0.24],
-      [760, 0.24],
-      [760, 0.24],
-      [880, 0.24],
-      [880, 0.24],
-      [880, 0.24],
-      [880, 0.24],
-      [880, 0.24],
-      [880, 0.24],
-      [1000, 0.24],
-      [1000, 0.24]
-    ])
+    effects: [strikeTimeline(INVOKE_LIGHTNING_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING)]
   },
   [ID.STATIC_FIELD_LIGHTNING_HAMMER]: {
     name: 'Static Field',
@@ -934,29 +1024,18 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 30,
     skillFamily: 'Glyph',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [1600, 0.8],
-        [1920, 0.72],
-        [2240, 0.64],
-        [2560, 0.56],
-        [2880, 0.48],
-        [3200, 0.4],
-        [3520, 0.32],
-        [3840, 0.32],
-        [4160, 0.32],
-        [4480, 0.32],
-        [4800, 0.32],
-        [5120, 0.32],
-        [5440, 0.32],
-        [5760, 0.32],
-        [6080, 0.32],
-        [6400, 0.32],
-        [6720, 0.32],
-        [7040, 0.32]
-      ],
-      { condition: { condition: 'Chilled', stacks: 1, duration: 3 } }
-    )
+    effects: [
+      strikeTimeline(GLYPH_OF_STORMS_WATER_STRIKE_TICKS, CAST_SCALED_PACKET_TIMING),
+      conditionTimeline(
+        GLYPH_OF_STORMS_WATER_STRIKE_TICKS.map(({ atMs }) => ({
+          atMs,
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 3
+        })),
+        CAST_SCALED_PACKET_TIMING
+      )
+    ]
   },
   [ID.GLYPH_OF_STORMS_AIR]: {
     name: 'Glyph of Storms (Air)',
@@ -968,47 +1047,18 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 60,
     skillFamily: 'Glyph',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [880, 0.825],
-        [880, 0.78375],
-        [880, 0.7425],
-        [1400, 0.70125],
-        [1560, 0.66],
-        [1680, 0.61875],
-        [1890, 0.5775],
-        [2200, 0.53625],
-        [2400, 0.495],
-        [2480, 0.45375],
-        [2840, 0.4125],
-        [2880, 0.37125],
-        [3280, 0.33],
-        [3400, 0.28875],
-        [3480, 0.2475],
-        [3880, 0.2475],
-        [4080, 0.2475],
-        [4160, 0.2475],
-        [4400, 0.2475],
-        [4800, 0.2475],
-        [4880, 0.2475],
-        [4880, 0.2475],
-        [5400, 0.2475],
-        [5440, 0.2475],
-        [5680, 0.2475],
-        [5880, 0.2475],
-        [6080, 0.2475],
-        [6400, 0.2475],
-        [6480, 0.2475],
-        [6760, 0.2475],
-        [7290, 0.2475],
-        [7400, 0.2475],
-        [8040, 0.2475],
-        [8080, 0.2475],
-        [8880, 0.2475],
-        [9680, 0.2475]
-      ],
-      { condition: { condition: 'Vulnerability', stacks: 2, duration: 8 } }
-    )
+    effects: GLYPH_OF_STORMS_AIR_STRIKE_TICK_LAYERS.flatMap((ticks) => [
+      strikeTimeline(ticks, CAST_SCALED_PACKET_TIMING),
+      conditionTimeline(
+        ticks.map(({ atMs }) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 2,
+          duration: 8
+        })),
+        CAST_SCALED_PACKET_TIMING
+      )
+    ])
   },
   [ID.GLYPH_OF_STORMS_EARTH]: {
     name: 'Glyph of Storms (Earth)',
@@ -1314,31 +1364,27 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 5,
     skillFamily: 'Weapon skill',
     implemented: true,
-    effects: elementalistPacketEffects(
-      [
-        [280, 0.688],
-        [400, 0.688],
-        [530, 0.688],
-        [640, 0.688],
-        [760, 0.688],
-        [880, 0.688],
-        [990, 0.688],
-        [1130, 0.688]
-      ],
-      {
-        condition: { condition: 'Cripple', stacks: 1, duration: 3 },
-        strikeTick: {
-          comboFinishers: [
-            {
-              ownerId: 'elementalist',
-              finisherType: 'Whirl',
-              ambiguousFieldSelection: 'oldest'
-            }
-          ],
-          metadata: {}
-        }
-      }
-    )
+    effects: [
+      strikeTimeline(FIERY_WHIRL_STRIKE_TICKS, {
+        ...CAST_SCALED_PACKET_TIMING,
+        comboFinishers: [
+          {
+            ownerId: 'elementalist',
+            finisherType: 'Whirl',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }),
+      conditionTimeline(
+        FIERY_WHIRL_STRIKE_TICKS.map(({ atMs }) => ({
+          atMs,
+          condition: 'Cripple',
+          stacks: 1,
+          duration: 3
+        })),
+        CAST_SCALED_PACKET_TIMING
+      )
+    ]
   },
   [ID.FIERY_RUSH]: {
     name: 'Fiery Rush',

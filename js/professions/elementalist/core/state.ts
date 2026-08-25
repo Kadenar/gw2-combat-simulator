@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import type { ElementalistConfig, ElementalistRuntimeState, ElementalistSchedulerContext } from '../types.js';
+import type { ElementalistConfig, ElementalistSchedulerContext } from '../types.js';
 
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 
@@ -153,18 +153,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     procReadyAt: {},
     arcaneEchoUntil: 0
   };
-}
-
-/**
- * Transitional compatibility export for owner-local files that have not yet
- * switched to the shared profession state accessor.
- */
-export function elementalistCoreState(context: unknown): ElementalistCoreState {
-  return professionCoreState(
-    context as {
-      readonly state: { readonly profession: ElementalistRuntimeState };
-    }
-  );
 }
 
 export function setElementalistAttunementReadyAt(

@@ -20,13 +20,6 @@ export const ELEMENTALIST_PROFESSION_ID = 'elementalist';
 
 const ATTUNEMENT_VALUES = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 const ATTUNEMENTS = new Set<string>(ATTUNEMENT_VALUES);
-const SNAPSHOT_SELECTED_SKILL_SLOTS = Object.freeze({
-  heal: 'Heal',
-  util1: 'Utility1',
-  util2: 'Utility2',
-  util3: 'Utility3',
-  elite: 'Elite'
-});
 
 export { createDefaultTargetConditions };
 
@@ -105,9 +98,6 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
       normalizeSimulationRandomnessAssumptions(build.assumptions),
       ELEMENTALIST_ASSUMPTION_CONTROLS
     );
-    delete assumptions.startingAttunementPreDwelled;
-    delete assumptions.elementalSimulationProfile;
-    delete assumptions.glyphBoonedElementals;
     const normalized = {
       ...build,
       alternateWeapons: ['', ''],
@@ -171,63 +161,12 @@ function record(value: unknown): SchedulerRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : {};
 }
 
-function migrateSnapshotSelectedSkills(value: unknown): SchedulerRecord {
-  const selectedSkills = record(value);
-  return Object.fromEntries(
-    Object.entries(selectedSkills).map(([slot, skill]) => [
-      SNAPSHOT_SELECTED_SKILL_SLOTS[slot as keyof typeof SNAPSHOT_SELECTED_SKILL_SLOTS] || slot,
-      skill
-    ])
-  );
-}
-
-/**
- * Preserves the remaining standalone snapshot fields while requiring
- * simulation assumptions to use the current nested build schema.
- */
-function normalizeSavedBuild(candidate: unknown): unknown {
-  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
-    return candidate;
-  }
-
-  const snapshot = candidate as SchedulerRecord;
-  const hasSnapshotWrapper =
-    snapshot.build && typeof snapshot.build === 'object' && !Array.isArray(snapshot.build) && !snapshot.profession;
-  const build = hasSnapshotWrapper ? record(snapshot.build) : snapshot;
-  const snapshotFields = hasSnapshotWrapper ? snapshot : build;
-  const selectedSkills = Object.hasOwn(snapshotFields, 'selectedSkills')
-    ? migrateSnapshotSelectedSkills(snapshotFields.selectedSkills)
-    : build.selectedSkills;
-
-  return {
-    ...build,
-    ...(selectedSkills ? { selectedSkills } : {}),
-    ...(Array.isArray(snapshotFields.rotation) ? { rotation: snapshotFields.rotation } : {}),
-    ...(snapshotFields.activeAttunement ? { startAttunement: snapshotFields.activeAttunement } : {}),
-    ...(snapshotFields.secondaryAttunement ? { secondaryAttunement: snapshotFields.secondaryAttunement } : {}),
-    ...(Object.hasOwn(snapshotFields, 'evokerElement') ? { evokerElement: snapshotFields.evokerElement } : {}),
-    ...(Object.hasOwn(snapshotFields, 'evokerStartCharges')
-      ? { initialEvokerCharges: snapshotFields.evokerStartCharges }
-      : {}),
-    ...(Object.hasOwn(snapshotFields, 'evokerStartEmpowered')
-      ? { initialEvokerEmpowered: snapshotFields.evokerStartEmpowered }
-      : {}),
-    ...(Object.hasOwn(snapshotFields, 'pistolBullets') ? { pistolBullets: snapshotFields.pistolBullets } : {}),
-    assumptions: {
-      ...record(build.assumptions),
-      ...(Object.hasOwn(snapshotFields, 'hitboxSize') ? { hitboxSize: snapshotFields.hitboxSize } : {})
-    }
-  };
-}
-
 export function migrateElementalistBuild(candidate?: unknown): ElementalistCanonicalBuild {
-  return elementalistBuildCodec.migrateBuild(normalizeSavedBuild(candidate));
+  return elementalistBuildCodec.migrateBuild(candidate);
 }
 
 export const validateElementalistBuild = elementalistBuildCodec.validateBuild;
 
 export function toApplicationBuild(candidate: unknown): ElementalistApplicationBuild {
-  return elementalistBuildCodec.toApplicationBuild(
-    normalizeSavedBuild(candidate)
-  ) as Gw2ApplicationBuild as ElementalistApplicationBuild;
+  return elementalistBuildCodec.toApplicationBuild(candidate) as Gw2ApplicationBuild as ElementalistApplicationBuild;
 }

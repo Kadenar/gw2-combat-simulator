@@ -1,6 +1,6 @@
-import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext } from '../../types.js';
-import { elementalistCoreState } from '../../core/state.js';
 import {
   applyElementalistAura,
   emitProfiledBuff,
@@ -16,7 +16,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   if (skillWeapon(skill) !== 'Pistol') return;
   const elements = weaverDualAttunements(skill);
   if (!elements) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const active = elements.filter((element) => state.pistolBullets[element]);
   if (!active.length) {

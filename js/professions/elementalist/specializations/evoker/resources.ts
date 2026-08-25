@@ -1,7 +1,7 @@
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
-import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
-import { elementalistCoreState } from '../../core/state.js';
 import { CONJURED_WEAPONS, EVOKER_NO_CHARGE_SKILLS, FULL_SPEAR_ETCHINGS } from './constants.js';
 import { evokerState, type EvokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -13,7 +13,7 @@ function hasTrait(context: unknown, trait: string): boolean {
 
 export function initialize(context: ElementalistSchedulerContext): void {
   const state = evokerState.from(context);
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const core = professionCoreState(context);
   // Specialized Elements keeps the six-charge capacity but accelerates each
   // matching weapon skill to three charges.
   state.maximumCharges = elementalistBalanceValue(
