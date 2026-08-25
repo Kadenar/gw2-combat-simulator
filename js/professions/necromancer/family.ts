@@ -1,6 +1,7 @@
 import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild, validateNecromancerBuild } from './build.js';
+import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';
@@ -39,6 +40,11 @@ function refineNecromancerSchedulerConfig(
 ): NecromancerConfig | null {
   const targetHealth = Number(config.target?.health || 0);
   if (!(targetHealth > 0)) return null;
+  // Only Gravedigger changes future scheduling at the 50% threshold; other health-based effects resolve in one pass.
+  const hasGravediggerCast = result.events.some(
+    (event) => event.type === 'action' && Number(event.skillId) === ID.GRAVEDIGGER
+  );
+  if (!hasGravediggerCast) return null;
   const belowHalfAt = targetBelowHalfAt(result, targetHealth);
   if (belowHalfAt == null) return null;
   const schedulerFeedback = config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
