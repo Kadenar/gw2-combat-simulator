@@ -6,7 +6,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
-        "benchmarkDps": 43000,
+        "benchmarkDps": 42820,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -14,7 +14,7 @@
         "label": "Condition (Pistol / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 41977,
+        "benchmarkDps": 42011,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -36,7 +36,7 @@
         "label": "Condition (Axe / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condition-firebrand.json",
         "rotation": "Rotations/guardian/r-condition-firebrand-bench.json",
-        "benchmarkDps": 41671,
+        "benchmarkDps": 41589,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -44,7 +44,7 @@
         "label": "Condition Quickness (Axe / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "Rotations/guardian/r-condi-qfb-ritualists-bench.json",
-        "benchmarkDps": 33057,
+        "benchmarkDps": 33145,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true
@@ -58,7 +58,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
-        "benchmarkDps": 41794,
+        "benchmarkDps": 41810,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -87,7 +87,7 @@
         "label": "Power Alacrity (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-alac-luminary.json",
         "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
-        "benchmarkDps": 37836,
+        "benchmarkDps": 37872,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

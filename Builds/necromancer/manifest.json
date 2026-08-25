@@ -18,7 +18,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-reaper.json",
         "rotation": "Rotations/necromancer/r-power-reaper-bench.json",
-        "benchmarkDps": 43418
+        "benchmarkDps": 43200
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
@@ -43,7 +43,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-ritualist.json",
         "rotation": "Rotations/necromancer/r-power-ritualist-bench.json",
-        "benchmarkDps": 43284,
+        "benchmarkDps": 43287,
         "upToDate": true
       }
     ]

@@ -13,7 +13,7 @@
         "label": "Power Quickness (Rifle)",
         "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
-        "benchmarkDps": 36704,
+        "benchmarkDps": 36723,
         "upToDate": true
       }
     ]
@@ -25,7 +25,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "Builds/thief/b-power-antiquary-sword-pistol.json",
         "rotation": "Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
-        "benchmarkDps": 44716,
+        "benchmarkDps": 44742,
         "upToDate": true
       },
       {
@@ -39,7 +39,7 @@
         "label": "Condition (Dagger / Dagger)",
         "build": "Builds/thief/b-condi-antiquary-dagger-dagger.json",
         "rotation": "Rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
-        "benchmarkDps": 42668,
+        "benchmarkDps": 42635,
         "upToDate": true
       }
     ]
@@ -51,7 +51,7 @@
         "label": "Condition (Scepter / Dagger)",
         "build": "Builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "Rotations/thief/r-condi-specter-scepter-dagger-bench.json",
-        "benchmarkDps": 36616,
+        "benchmarkDps": 36462,
         "upToDate": true
       }
     ]
@@ -63,14 +63,14 @@
         "label": "Power (Dagger / Dagger)",
         "build": "Builds/thief/b-power-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
-        "benchmarkDps": 42857,
+        "benchmarkDps": 42773,
         "upToDate": true
       },
       {
         "label": "Condition (Dagger / Dagger)",
         "build": "Builds/thief/b-condi-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
-        "benchmarkDps": 38045,
+        "benchmarkDps": 38012,
         "upToDate": true
       }
     ]

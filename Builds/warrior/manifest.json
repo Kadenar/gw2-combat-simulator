@@ -18,7 +18,7 @@
         "label": "Power (Spear + Greatsword)",
         "build": "Builds/warrior/b-power-berserker-spear-greatsword.json",
         "rotation": "Rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
-        "benchmarkDps": 42213,
+        "benchmarkDps": 42254,
         "upToDate": true
       },
       {
@@ -26,14 +26,14 @@
         "build": "Builds/warrior/b-power-berserker-hammer-axe-mace.json",
         "rotation": "Rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
         "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
-        "benchmarkDps": 42765,
+        "benchmarkDps": 42798,
         "upToDate": true
       },
       {
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "Builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "Rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44607,
+        "benchmarkDps": 44406,
         "upToDate": true
       }
     ]
@@ -45,7 +45,7 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42982,
+        "benchmarkDps": 42817,
         "upToDate": true
       },
       {
@@ -72,7 +72,7 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "Builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "Rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42252,
+        "benchmarkDps": 42278,
         "upToDate": true
       }
     ]

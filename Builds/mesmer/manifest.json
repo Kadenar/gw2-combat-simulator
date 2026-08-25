@@ -6,21 +6,21 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "Builds/mesmer/b-power-chronomancer.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
-        "benchmarkDps": 43831,
+        "benchmarkDps": 43835,
         "referenceDps": 44179
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "Builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 44410,
+        "benchmarkDps": 44404,
         "referenceDps": 44458
       },
       {
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46042
+        "benchmarkDps": 46035
       }
     ]
   },
@@ -31,7 +31,7 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "Builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40984,
+        "benchmarkDps": 40894,
         "referenceDps": 40936
       }
     ]
@@ -50,7 +50,7 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "Builds/mesmer/b-condi-virtuoso.json",
         "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39903
+        "benchmarkDps": 39896
       }
     ]
   },
@@ -61,7 +61,7 @@
         "label": "Power (Dagger-Sword / Spear)",
         "build": "Builds/mesmer/b-power-troubadour.json",
         "rotation": "Rotations/mesmer/r-power-troubadour-bench.json",
-        "benchmarkDps": 42767,
+        "benchmarkDps": 42827,
         "referenceDps": 42509
       }
     ]

@@ -51,7 +51,7 @@
         "label": "Condition Quickness (Shortbow - Mace/Axe)",
         "build": "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 32556
+        "benchmarkDps": 32429
       }
     ]
   },
@@ -79,7 +79,7 @@
         "label": "Power (Greatsword - Sword/Sword)",
         "build": "Builds/revenant/b-power-conduit.json",
         "rotation": "Rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 42798,
+        "benchmarkDps": 42522,
         "upToDate": true
       },
       {
