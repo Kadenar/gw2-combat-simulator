@@ -8,7 +8,7 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
   Gw2ResolverStage
-} from '../types.js';
+} from './types.js';
 
 type AuthoringHandler = (...args: never[]) => unknown;
 

@@ -10,7 +10,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * `necromancerWeaponTaskHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,

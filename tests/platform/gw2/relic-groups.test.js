@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { RELIC_DATA, RELIC_GROUPS, RELIC_NAMES } from '../../../js/platform/gw2/gear-data.js';
+import { RELIC_DATA, RELIC_GROUPS, RELIC_NAMES } from '../../../js/platform/gw2/equipment/relics/catalog.js';
 
 function assertCompleteGroups(groups, names, data) {
   const groupedNames = groups.flatMap((group) => group.items);

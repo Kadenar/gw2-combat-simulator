@@ -9,7 +9,7 @@ import {
 } from '../../../js/professions/mesmer/app/app-definition.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
 import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
-import { createGw2CombatQuery } from '../../../js/platform/gw2/query.js';
+import { createGw2CombatQuery } from '../../../js/platform/gw2/combat/query/combat-query.js';
 
 const defaults = () => createDefaultBuild(mesmerAppAdapter);
 

@@ -6,7 +6,7 @@ import type {
   Gw2AttributeEffect,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/builds/types.js';
 import type { GuardianBuild } from './types.js';
 
 export function applyGuardianBuildAttributeRules(

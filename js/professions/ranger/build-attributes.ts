@@ -4,7 +4,7 @@ import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/builds/types.js';
 import type { RangerBuild } from './types.js';
 import { selectedRangerPet } from './core/state.js';
 

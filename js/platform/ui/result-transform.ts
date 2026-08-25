@@ -1,4 +1,5 @@
-import type { Gw2ResolverResult, Gw2SimulationResult } from '../gw2/types.js';
+import type { Gw2ResolverResult } from '../gw2/resolver/types.js';
+import type { Gw2SimulationResult } from '../gw2/simulation/types.js';
 
 export interface ResultSummaryMetric {
   readonly label: string;

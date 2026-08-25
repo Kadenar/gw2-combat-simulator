@@ -1,8 +1,8 @@
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -29,7 +29,7 @@ import {
   observeRenegadeTraits,
   RENEGADE_CRITICAL_TRAITS_TASK
 } from './traits.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,

@@ -136,16 +136,17 @@ export const revenantSchedulerHooks = Object.freeze({
   })
 });
 
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   playerHealthFraction,
   targetHealthFraction,
   vulnerabilityStacks
-} from '../../../platform/gw2/runtime-query.js';
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import type { Gw2ModifierContext, Gw2ModifierRule, Gw2Stats } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2Stats } from '../../../platform/gw2/equipment/types.js';
 import type { RevenantConfig, RevenantCoreState, RevenantRuntimeState, RevenantState } from '../types.js';
 
 export { snapshotRevenantState } from '../state.js';

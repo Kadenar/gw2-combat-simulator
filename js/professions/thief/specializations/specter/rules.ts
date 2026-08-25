@@ -1,13 +1,14 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { thiefPlayerEvent } from '../../core/rules.js';
 import { specterCastAvailability } from './availability.js';
 import { advanceSpecterResources, spendSpecterResources } from './shroud.js';
 import { specterState } from './state.js';
 import { handleDarkSentry, handleLarcenousTorment, observeSpecterEvent } from './traits.js';
-import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
 import { emitThiefState } from '../../core/shared.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

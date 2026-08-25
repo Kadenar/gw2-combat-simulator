@@ -1,4 +1,5 @@
-import { afterSkillEffects, defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { afterSkillEffects } from '../../../../platform/gw2/authoring/mechanics.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createEngineerModuleData } from '../../catalog-data.js';
 import { holosmithSkillHandlers } from './handlers.js';
 import { holosmithResolverEventHandlers } from './resolver.js';

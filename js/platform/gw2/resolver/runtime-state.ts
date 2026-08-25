@@ -1,14 +1,14 @@
 import { createSimulationRandom } from '../../engine/core/simulation-random.js';
-import { createGw2ComboRuntimeState } from '../combo-events.js';
-import { createCanonicalTargetConditionStateMap } from '../target-state.js';
+import { createGw2ComboRuntimeState } from '../combos/events.js';
+import { createCanonicalTargetConditionStateMap } from '../combat/state/targets.js';
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
-  Gw2CriticalResult,
   Gw2DamageBreakdownEntry,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
-} from '../types.js';
+} from './types.js';
+import type { Gw2CriticalResult } from '../combat/query/types.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.

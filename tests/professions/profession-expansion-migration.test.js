@@ -10,7 +10,7 @@ import { custom, strikeTimeline } from '../../js/platform/engine/effects/factori
 import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
 import { defineProfession } from '../../js/platform/engine/profession/contract.js';
 import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../helpers/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/engineer.js';
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/state.js';

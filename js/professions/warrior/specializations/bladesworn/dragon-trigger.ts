@@ -1,4 +1,4 @@
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { WarriorCastContext, WarriorSchedulerContext } from '../../types.js';
 import { warriorBalanceProfile } from '../../core/profiles.js';

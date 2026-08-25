@@ -1,5 +1,5 @@
 import { getActiveTraits } from './data/traits-data.js';
-import { addAttribute } from '../../platform/gw2/attributes.js';
+import { addAttribute } from '../../platform/gw2/builds/attributes.js';
 import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2AttributeEffect,
@@ -7,7 +7,7 @@ import type {
   Gw2BuildAttributeRuleContext,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/builds/types.js';
 import type { MesmerBuild } from './types.js';
 
 export function applyMesmerBuildAttributeRules(

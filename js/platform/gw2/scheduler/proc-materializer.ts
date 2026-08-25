@@ -1,15 +1,16 @@
 import type { ScheduledTask, SchedulerContext, SchedulerRecord, SimulationEvent } from '../../engine/types.js';
-import { isStandardBoon } from '../boon-state.js';
-import { isGw2PlayerActorEvent } from '../event-ownership.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '../query.js';
+import { isStandardBoon } from '../combat/state/boons.js';
+import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '../combat/query/combat-query.js';
 import {
-  handleWeaknessVulnerabilityRelic,
   materializeBoonRelics,
   materializeConditionRelics,
-  relicConditionDurationBonus
-} from '../relic-rules.js';
-import type { Gw2Config, Gw2TriggerMaterializer } from '../types.js';
-import { isSchedulerSigilPrediction } from '../sigil-proc-events.js';
+  materializeWeaknessVulnerabilityRelic
+} from './relic-materializer.js';
+import { relicConditionDurationBonus } from '../equipment/relics/query.js';
+import type { Gw2Config } from '../simulation/config.js';
+import type { Gw2TriggerMaterializer } from './types.js';
+import { isSchedulerSigilPrediction } from '../equipment/sigils/proc-events.js';
 import { createGw2CombatObserver } from './combat-observer.js';
 import { hasStochasticCriticalFood, resolveCriticalTrigger } from './critical-facts.js';
 import { createMaterializerState, type MaterializerProfessionState } from './materializer-state.js';
@@ -111,7 +112,7 @@ export function createGw2TriggerMaterializer(
         break;
       case 'weakness_vulnerability':
         if (!context.hasExplicitCombatStart || context.combatStartTime != null) {
-          handleWeaknessVulnerabilityRelic(
+          materializeWeaknessVulnerabilityRelic(
             {
               relic: state.relic,
               combatStartTime: context.hasExplicitCombatStart ? context.combatStartTime : null

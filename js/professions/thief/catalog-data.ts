@@ -1,5 +1,5 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skills/recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/thief-api-metadata.js';

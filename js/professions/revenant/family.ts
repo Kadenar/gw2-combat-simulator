@@ -1,4 +1,4 @@
-import { defineNativeProfession } from '../../platform/gw2/native-profession.js';
+import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createRevenantBuildDefaults, migrateRevenantBuild, validateRevenantBuild } from './build.js';
 import { revenantNativeModules } from './modules.js';

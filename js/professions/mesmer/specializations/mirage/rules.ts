@@ -1,14 +1,14 @@
 import { mirageState } from './state.js';
 import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { illusionSource, timedStacks } from '../../core/rules.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { initializeMirageRuntime, mirageControllerFor } from './runtime.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import type { AvailabilityResult, SimulationEvent, SkillMechanicTrigger } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type {
   MesmerCastContext,
   MesmerPrecastContext,

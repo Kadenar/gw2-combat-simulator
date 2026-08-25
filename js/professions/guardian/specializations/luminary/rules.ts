@@ -1,9 +1,9 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { GUARDIAN_SKILL_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled, guardianTimedBuffActive, latestGuardianTimedBuff } from '../../core/rules.js';
 import { advanceRadiantForgeState, validateRadiantForgeCast } from './radiant-forge.js';
 import { observeLuminaryScheduledEvent, updateLuminaryTraitCastState } from './traits.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianSchedulerContext, GuardianSkill } from '../../types.js';
 
 export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

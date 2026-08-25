@@ -13,14 +13,13 @@ import type {
   Gw2ApplyBuildAttributeRules,
   Gw2ApplicationBuild,
   Gw2CalculateAttributes,
-  Gw2Config,
   Gw2FinalizedAttributeResult,
-  Gw2ProfessionContract,
-  Gw2SimulationResult,
-  Gw2SlotLoadout,
-  Gw2WeaponDataEntry
-} from '../../platform/gw2/types.js';
-import type { PatchPreview, PatchRuntimeValues } from '../../platform/gw2/skill-patch.js';
+  Gw2SlotLoadout
+} from '../../platform/gw2/builds/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
+import type { Gw2ProfessionContract, Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
+import type { Gw2WeaponDataEntry } from '../../platform/gw2/equipment/types.js';
+import type { PatchPreview, PatchRuntimeValues } from '../../platform/gw2/authoring/patches.js';
 import type { RelicComparisonModel } from '../simulation/relic-comparison.js';
 
 export interface ProfessionBuildAssumptions extends SchedulerRecord {

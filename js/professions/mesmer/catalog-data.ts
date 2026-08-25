@@ -1,4 +1,4 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
 import { createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/mesmer-api-metadata.js';
@@ -8,7 +8,7 @@ import { defaultMesmerSkillIdForDuplicateName, MESMER_DUPLICATE_SKILL_NAMES } fr
 import { TRAITS } from './data/traits-data.js';
 import { MESMER_FLIP_PARENT_BY_CHILD_ID, prepareMesmerSkillForCatalog } from './mechanics/handler-mechanics.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
-import type { NativeCatalogOptions } from '../../platform/gw2/native-profession.js';
+import type { NativeCatalogOptions } from '../../platform/gw2/authoring/module-types.js';
 
 const generated: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS].map((skill) => ({
   ...skill,

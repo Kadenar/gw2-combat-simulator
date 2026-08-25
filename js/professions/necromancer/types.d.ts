@@ -9,17 +9,15 @@ import type {
   Skill,
   SkillId
 } from '../../platform/engine/types.js';
+import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
+import type { Gw2EventDraft } from '../../platform/gw2/equipment/relics/types.js';
 import type {
-  Gw2Build,
-  Gw2BuildSpecialization,
-  Gw2CanonicalBuild,
-  Gw2Config,
-  Gw2EventDraft,
   Gw2HitResolutionContext,
-  Gw2QueryRuntime,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/resolver/types.js';
+import type { Gw2QueryRuntime } from '../../platform/gw2/combat/query/types.js';
 
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];

@@ -1,15 +1,11 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { EPSILON } from '../../../platform/engine/core/clock.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { NativeResolvedDamageDetails } from '../../../platform/gw2/native-module-types.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import type {
-  Gw2ApplyCondition,
-  Gw2EventDraft,
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime
-} from '../../../platform/gw2/types.js';
+import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import type { Gw2ApplyCondition, Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/gw2/resolver/types.js';
 import type { ElementalistResolverContext, ElementalistResolverEvent } from '../types.js';
 import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
 import {

@@ -33,11 +33,11 @@ import {
   isDurationStackingBoon,
   isStandardBoon,
   remainingDurationStackSeconds
-} from '../boon-state.js';
-import { clamp } from '../numeric.js';
-import { relicWeaponSwapRechargeMultiplier } from '../gear-data.js';
-import { gw2StatsForWeaponSet } from '../runtime-rules.js';
-import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skill-timing.js';
+} from '../combat/state/boons.js';
+import { clamp } from '../combat/numeric.js';
+import { relicWeaponSwapRechargeMultiplier } from '../equipment/relics/catalog.js';
+import { gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
+import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skills/timing.js';
 import type {
   CanonicalCatalog,
   CastContext,
@@ -47,8 +47,12 @@ import type {
   Skill,
   SkillEffect
 } from '../../engine/types.js';
-import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '../weapon-skill-matcher.js';
-import type { Gw2CombatQuery, Gw2Config, Gw2SchedulerPolicy, Gw2Stats, Gw2WeaponSkillMatcher } from '../types.js';
+import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '../equipment/weapons/skill-matcher.js';
+import type { Gw2CombatQuery } from '../combat/query/types.js';
+import type { Gw2Config } from '../simulation/config.js';
+import type { Gw2SchedulerPolicy } from './types.js';
+import type { Gw2Stats } from '../equipment/types.js';
+import type { Gw2WeaponSkillMatcher } from '../equipment/weapons/types.js';
 
 interface CreateGw2SchedulerPolicyOptions {
   readonly traits?: ReadonlySet<string | number> | null;

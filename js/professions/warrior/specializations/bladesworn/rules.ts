@@ -1,10 +1,10 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { bladeswornState } from './state.js';
 import type { AvailabilityResult, SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,

@@ -1,14 +1,14 @@
-import { expectedCritMultiplier, strikeDamage } from '../damage.js';
+import { expectedCritMultiplier, strikeDamage } from '../combat/damage/calculations.js';
 import { resolvedWeaponStrength } from './weapon-strength-resolution.js';
 
 import type {
   Gw2HitResolution,
   Gw2HitResolutionContext,
   Gw2ResolverExtensions,
-  Gw2ResolvedWeaponStrength,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
-} from '../types.js';
+} from './types.js';
+import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
 
 const STANDARD_TARGET_ARMOR = 2597;
 

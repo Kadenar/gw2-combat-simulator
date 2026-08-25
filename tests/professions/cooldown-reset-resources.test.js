@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
 import { thiefProfession } from '../../js/professions/thief/definition.js';
 

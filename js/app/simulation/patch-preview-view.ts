@@ -1,6 +1,6 @@
 import { skillBreakdownRows } from '../rotation/result/model.js';
 import type { PatchComparison, ProfessionAppState } from '../profession/types.js';
-import type { PatchOverviewEntry } from '../../platform/gw2/skill-patch.js';
+import type { PatchOverviewEntry } from '../../platform/gw2/authoring/patches.js';
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')

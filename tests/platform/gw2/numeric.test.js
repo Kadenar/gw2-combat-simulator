@@ -6,7 +6,7 @@ import {
   consumeExpectedCriticalProgress,
   EXPECTED_CRITICAL_PROGRESS_TOLERANCE,
   finiteNumber
-} from '../../../js/platform/gw2/numeric.js';
+} from '../../../js/platform/gw2/combat/numeric.js';
 
 test('clamp restricts values to an inclusive range', () => {
   assert.equal(clamp(-1, 0, 10), 0);

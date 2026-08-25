@@ -1,20 +1,20 @@
 import { EPSILON } from '../../engine/core/clock.js';
 import { enqueueOrdered } from '../../engine/events/queue.js';
-import { conditionTickDamage } from '../condition-formulas.js';
-import { clamp } from '../numeric.js';
-import { createPermanentTargetConditionStacks } from '../target-state.js';
+import { conditionTickDamage } from '../combat/damage/condition-formulas.js';
+import { clamp } from '../combat/numeric.js';
+import { createPermanentTargetConditionStacks } from '../combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
   Gw2ConditionTickResult,
-  Gw2EventDraft,
   Gw2ResolvedConditionApplication,
   Gw2ResolverConditionStack,
   Gw2ResolverConditionState,
   Gw2ResolverEvent,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
-} from '../types.js';
+} from './types.js';
+import type { Gw2EventDraft } from '../equipment/relics/types.js';
 
 interface CreateGw2ConditionResolutionOptions {
   readonly reactions: Gw2ResolverReactionRegistry;

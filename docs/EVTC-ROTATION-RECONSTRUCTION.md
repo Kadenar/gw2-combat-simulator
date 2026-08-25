@@ -57,7 +57,7 @@ For controlled experiments, import a profession contract and call `simulateGw2()
 Create `simulate.mjs` in the repository root:
 
 ```js
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const result = simulateGw2({
@@ -124,7 +124,7 @@ A common headless use case is running the same scenario repeatedly with small ch
 
 ```js
 import { prepareSimulationConfig } from './js/platform/engine/config.js';
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const baseConfig = {
@@ -473,7 +473,7 @@ Scripts that accept a profession as input can use the shared registry:
 
 ```js
 import { loadProfession } from './js/app/profession/registry.js';
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 
 const professionId = process.argv[2] || 'engineer';
 

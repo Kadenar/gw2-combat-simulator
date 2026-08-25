@@ -32,25 +32,24 @@ import {
   replaceSkillHandler,
   SKILL_HANDLER_MODES
 } from '../../js/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { professionRegistry } from '../../js/app/profession/registry.js';
-import { createProfessionWeaponData, WEAPON_DATA } from '../../js/platform/gw2/gear-data.js';
+import { createProfessionWeaponData, WEAPON_DATA } from '../../js/platform/gw2/equipment/weapons/data.js';
 import { createGw2ResolverExtensions } from '../../js/platform/gw2/resolver/extensions.js';
+import { createRelicRuntime, createRelicTimelineRuntime } from '../../js/platform/gw2/equipment/relics/runtime.js';
+import { handleWeaknessVulnerabilityRelic } from '../../js/platform/gw2/resolver/relic-reactions.js';
+import { materializeBoonRelics } from '../../js/platform/gw2/scheduler/relic-materializer.js';
 import {
-  createRelicRuntime,
-  createRelicTimelineRuntime,
-  handleWeaknessVulnerabilityRelic,
-  materializeBoonRelics,
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
   relicStrikeMultiplier,
   recordPassiveRelicTimeline
-} from '../../js/platform/gw2/relic-rules.js';
-import { sigilCriticalContribution } from '../../js/platform/gw2/sigil-rules.js';
+} from '../../js/platform/gw2/equipment/relics/query.js';
+import { sigilCriticalContribution } from '../../js/platform/gw2/equipment/sigils/rules.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '../../js/platform/gw2/stat-scaling.js';
+} from '../../js/platform/gw2/combat/damage/stat-scaling.js';
 import { GW2_SKILL_FLAGS } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '../../js/professions/mesmer/build.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
@@ -61,7 +60,7 @@ import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js'
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '../../js/professions/mesmer/state.js';
 import { testProfession } from '../fixtures/test-profession.js';
-import { isStandardBoon } from '../../js/platform/gw2/boon-state.js';
+import { isStandardBoon } from '../../js/platform/gw2/combat/state/boons.js';
 
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {
@@ -2137,9 +2136,9 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
 });
 
 test('generic combat query modules contain no equipment-specific policy', async () => {
-  const root = new URL('../../js/platform/gw2/', import.meta.url);
+  const root = new URL('../../js/platform/gw2/combat/query/', import.meta.url);
 
-  for (const filename of ['query.ts', 'timeline-index.ts']) {
+  for (const filename of ['combat-query.ts', 'timeline-index.ts']) {
     const source = await readFile(new URL(filename, root), 'utf8');
 
     assert.doesNotMatch(source, /Aristocracy|Severance/, filename);
@@ -2716,19 +2715,24 @@ test('platform import boundaries are profession neutral', async () => {
       for (const term of [entry.id, entry.name]) {
         if (
           entry.id === 'thief' &&
-          ['gw2/gear-data', 'gw2/relic-rules', 'gw2/resolver/runtime-state'].includes(modulePath)
+          ['gw2/equipment/gear/runes', 'gw2/equipment/relics/catalog', 'gw2/equipment/relics/runtime'].includes(
+            modulePath
+          )
         )
           continue;
 
-        if (entry.id === 'ranger' && ['gw2/gear-data', 'gw2/relic-rules'].includes(modulePath)) {
+        if (
+          entry.id === 'ranger' &&
+          ['gw2/equipment/relics/catalog', 'gw2/equipment/relics/runtime'].includes(modulePath)
+        ) {
           continue;
         }
 
-        if (entry.id === 'elementalist' && modulePath === 'gw2/gear-data') {
+        if (entry.id === 'elementalist' && modulePath === 'gw2/equipment/gear/runes') {
           continue;
         }
 
-        if (entry.id === 'warrior' && modulePath === 'gw2/gear-data') {
+        if (entry.id === 'warrior' && modulePath === 'gw2/equipment/relics/catalog') {
           continue;
         }
 
@@ -2961,7 +2965,7 @@ test('declarative professions keep skill ownership in runtime modules', async ()
     assert.doesNotMatch(catalog, /mechanics\/skill-mechanics\.js/);
     assert.match(catalogData, /createNativeModuleData/);
     assert.match(family, /defineNativeProfession/);
-    assert.doesNotMatch(family, /from\s+["'][^"']*catalog\.js["']/);
+    assert.doesNotMatch(family, /from\s+["']\.\/catalog\.js["']/);
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
 
     const metadata = await readFile(path.join(root, profession, 'data', `${profession}-api-metadata.ts`), 'utf8');

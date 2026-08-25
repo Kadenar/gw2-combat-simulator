@@ -1,4 +1,4 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
 import {
   createFlipParentMap,
   createSpecializationSkillIds,
@@ -15,7 +15,7 @@ import { SPELLBREAKER_SKILL_MECHANICS } from './specializations/spellbreaker/ski
 import { BLADESWORN_SKILL_MECHANICS } from './specializations/bladesworn/skills.js';
 import { PARAGON_SKILL_MECHANICS } from './specializations/paragon/skills.js';
 import type { CatalogEntity, Skill, SkillId } from '../../platform/engine/types.js';
-import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
+import type { NativeAutoattackChains } from '../../platform/gw2/authoring/module-types.js';
 
 export const WARRIOR_NON_DPS_SKILL_NAMES = Object.freeze(new Set<string>());
 

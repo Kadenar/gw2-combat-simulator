@@ -19,7 +19,7 @@ import { mountRotationDisplayControls } from './rotation/timeline/display-contro
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';
-import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/gear-data.js';
+import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from './rotation/timeline/proc-overlays.js';
 import { mountPatchPreviewControls } from './simulation/patch-preview-view.js';
 

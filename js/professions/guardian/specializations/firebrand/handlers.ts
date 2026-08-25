@@ -1,4 +1,4 @@
-import { augmentSkill, replaceSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill, replaceSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { guardianTomeSkillHandlers } from './tomes.js';
 
 export const firebrandSkillHandlers = Object.freeze({

@@ -1,7 +1,7 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   thiefPlayerEvent,
@@ -9,7 +9,7 @@ import {
   thiefRuntimeSpecializationState,
   thiefTargetHasCondition
 } from '../../core/rules.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { DaredevilState, ThiefSchedulerContext } from '../../types.js';
 import { daredevilCastAvailability } from './availability.js';
 import { updatePalmStrikeWindow } from './mechanics.js';

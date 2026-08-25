@@ -1,6 +1,6 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { illusionSource, timedActive } from '../../core/rules.js';
 import { initializeTroubadourRuntime } from './runtime.js';
 import { completeTroubadourPerformance } from './instruments.js';
@@ -10,7 +10,8 @@ import { mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import type { MesmerCastContext, MesmerRechargeContext, MesmerSchedulerContext, MesmerSkill } from '../../types.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/types.js';
 
 const EPSILON = 0.0001;
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);

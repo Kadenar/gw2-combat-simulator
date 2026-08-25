@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
 import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
 import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');

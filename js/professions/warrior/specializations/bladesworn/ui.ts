@@ -1,5 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../../platform/gw2/result-state.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../../platform/gw2/results/query.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,
@@ -14,7 +14,7 @@ import type {
   RotationStateSnapshotItem
 } from '../../../../platform/engine/types.js';
 import type { WarriorSkill, WarriorUiContext } from '../../types.js';
-import type { Gw2SimulationResult } from '../../../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../../../platform/gw2/simulation/types.js';
 import { dragonChargeReleaseProjection } from './charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);

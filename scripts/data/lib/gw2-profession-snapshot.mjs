@@ -320,7 +320,7 @@ export function serializeProfessionSnapshot({ professionName, snapshotDate, spec
     `// Snapshot: ${snapshotDate}. Run ${command} to refresh.`,
     `// Simulator mechanics are maintained under ${id}/mechanics/.`,
     '',
-    `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "../../../platform/gw2/api-metadata-types.js";`,
+    `import type { Gw2ApiSpecialization, Gw2ApiTrait } from "../../../platform/gw2/authoring/api-metadata-types.js";`,
     `import type { ${professionName}Skill } from "../types.js";`,
     '',
     `export type ${professionName}ApiTrait = Gw2ApiTrait;`,

@@ -1,4 +1,5 @@
-import { defineNativeModule, onResolvedBlind, onResolvedControl } from '../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
+import { onResolvedBlind, onResolvedControl } from '../../../platform/gw2/authoring/mechanics.js';
 import { createMesmerModuleData } from '../catalog-data.js';
 import {
   mesmerCoreAttributeRules,

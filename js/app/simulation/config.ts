@@ -1,7 +1,9 @@
 import type { SkillId } from '../../platform/engine/types.js';
-import type { Gw2AttributeBreakdown, Gw2Config, Gw2Stats } from '../../platform/gw2/types.js';
-import { createAttributeProvenance } from '../../platform/gw2/attribute-provenance.js';
-import { aggregateSigilSet, weaponSigilsForSet } from '../../platform/gw2/weapon-sigils.js';
+import type { Gw2AttributeBreakdown } from '../../platform/gw2/builds/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
+import type { Gw2Stats } from '../../platform/gw2/equipment/types.js';
+import { createAttributeProvenance } from '../../platform/gw2/builds/attribute-provenance.js';
+import { aggregateSigilSet, weaponSigilsForSet } from '../../platform/gw2/equipment/sigils/loadout.js';
 import { assumptionControlsForSpecialization } from '../profession/assumptions.js';
 import type {
   Gw2SimulationConfigOptions,

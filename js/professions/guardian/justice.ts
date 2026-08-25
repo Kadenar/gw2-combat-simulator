@@ -1,4 +1,4 @@
-import type { Gw2ConditionResolution } from '../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../platform/gw2/resolver/types.js';
 import { reactToJusticeHitWithOptions } from './core/virtues.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from './types.js';
 

@@ -4,8 +4,8 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { prepareSimulationConfig } from '../../../js/platform/engine/config.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { applyBalanceProfilePatch } from '../../../js/platform/gw2/skill-patch.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { applyBalanceProfilePatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { chartValueAt } from '../../../js/platform/ui/charts.js';
 import {
   formatConcurrentTimelineBadge,
@@ -30,7 +30,7 @@ import {
 } from '../../../js/app/rotation/timeline/model.js';
 import { simulationEventLogCsv, simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { rotationWarningItems } from '../../../js/app/rotation/result/warnings.js';
-import { RELIC_DATA } from '../../../js/platform/gw2/gear-data.js';
+import { RELIC_DATA } from '../../../js/platform/gw2/equipment/relics/catalog.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';

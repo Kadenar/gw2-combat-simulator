@@ -1,14 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { FOOD_DATA, FOOD_GROUPS, FOOD_NAMES } from '../../../js/platform/gw2/equipment/consumables/food.js';
 import {
-  FOOD_DATA,
-  FOOD_GROUPS,
-  FOOD_NAMES,
   UTILITY_DATA,
   UTILITY_GROUPS,
   UTILITY_NAMES,
   UTILITY_STAT_DATA
-} from '../../../js/platform/gw2/gear-data.js';
+} from '../../../js/platform/gw2/equipment/consumables/utilities.js';
 
 test('food exports retain a complete flat lookup and grouped display list', () => {
   const groupedNames = FOOD_GROUPS.flatMap((group) => group.items);

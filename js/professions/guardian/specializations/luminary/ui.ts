@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { timedBuffAt } from '../../../../platform/gw2/result-state.js';
+import { timedBuffAt } from '../../../../platform/gw2/results/query.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   formatSecondsRemaining,
@@ -7,7 +7,7 @@ import {
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode
 } from '../../core/ui.js';
-import type { Gw2SimulationResult } from '../../../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../../../platform/gw2/simulation/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,

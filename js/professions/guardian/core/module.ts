@@ -1,4 +1,5 @@
-import { defineNativeModule, onBuffApplied, onResolvedDamage } from '../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
+import { onBuffApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
 import { createGuardianModuleData } from '../catalog-data.js';
 import { guardianCoreSkillHandlers } from './handlers.js';
 import { guardianCoreEventHandlers, guardianCoreEventReactions } from './resolver.js';

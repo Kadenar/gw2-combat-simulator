@@ -1,10 +1,10 @@
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import {
-  defineNativeModule,
   onBuffApplied,
   onConditionApplied,
   onResolvedControl,
   onResolvedDamage
-} from '../../../../platform/gw2/native-profession.js';
+} from '../../../../platform/gw2/authoring/mechanics.js';
 import { createRangerModuleData } from '../../catalog-data.js';
 import { soulbeastSkillHandlers } from './handlers.js';
 import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './rules.js';

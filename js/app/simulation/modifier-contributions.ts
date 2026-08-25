@@ -3,7 +3,7 @@ import type {
   ModifierContributionRequest,
   ProfessionModifierComparison
 } from '../profession/types.js';
-import type { Gw2Config } from '../../platform/gw2/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
 import type { RotationCommand } from '../../platform/engine/types.js';
 
 export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;

@@ -7,8 +7,8 @@ import { weaponSetLabelVisible } from '../../../js/app/build/panels/skills.js';
 import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,

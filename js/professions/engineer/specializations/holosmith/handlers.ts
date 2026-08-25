@@ -1,6 +1,6 @@
 // augmentSkill wires photon-forge logic into the native skill's afterEffects hook,
 // which runs after all effect emissions for that skill have been processed.
-import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { engineerPhotonForgeSkillHandlers } from './photon-forge.js';
 
 export const holosmithSkillHandlers = Object.freeze({

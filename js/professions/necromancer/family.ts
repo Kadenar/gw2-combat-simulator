@@ -1,8 +1,8 @@
-import { defineNativeProfession } from '../../platform/gw2/native-profession.js';
+import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild, validateNecromancerBuild } from './build.js';
 import { necromancerNativeModules } from './modules.js';
-import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';
 
 function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): number | null {

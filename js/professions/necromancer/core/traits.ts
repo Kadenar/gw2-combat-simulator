@@ -4,11 +4,11 @@ import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js'
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '../data/traits-data.js';
 import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { gw2AlliedEffectRecipients } from '../../../platform/gw2/allied-players.js';
-import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/native-profession.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2AlliedEffectRecipients } from '../../../platform/gw2/combat/state/allied-players.js';
+import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import type { SkillId } from '../../../platform/engine/types.js';
-import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
+import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,

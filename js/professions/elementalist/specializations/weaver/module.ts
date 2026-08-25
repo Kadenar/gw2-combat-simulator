@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createElementalistModuleData } from '../../catalog-data.js';
 import { weaverAttributeRules, weaverCastRules, weaverSchedulerHooks, weaverSkillMechanicHandlers } from './rules.js';
 import { createWeaverState } from './state.js';

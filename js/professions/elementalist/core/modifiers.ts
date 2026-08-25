@@ -1,8 +1,8 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { targetHealthFraction } from '../../../platform/gw2/runtime-query.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 

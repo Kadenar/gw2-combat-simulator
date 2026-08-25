@@ -1,9 +1,10 @@
 import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { gw2StatsForWeaponSet } from '../../../../platform/gw2/runtime-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
-import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { gw2StatsForWeaponSet } from '../../../../platform/gw2/combat/query/runtime-rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { druidState } from './state.js';

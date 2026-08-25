@@ -1,5 +1,5 @@
-import { criticalChance } from '../../../platform/gw2/damage.js';
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
+import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
+import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {

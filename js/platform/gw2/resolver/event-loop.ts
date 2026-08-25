@@ -7,7 +7,7 @@ import type {
   Gw2ResolverEventHandlers,
   Gw2ResolverHandlerRegistry,
   Gw2ResolverRuntime
-} from '../types.js';
+} from './types.js';
 
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;

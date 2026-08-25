@@ -1,6 +1,6 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { engineerCoreCastAvailability } from './availability.js';
 import { advanceEngineerResources } from './resources.js';
@@ -25,7 +25,7 @@ import {
 import { hasEngineerTrait } from './state.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE, engineerBalanceValue } from './profiles.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { EngineerRechargeContext } from '../types.js';
 
 export { snapshotEngineerState } from '../state.js';

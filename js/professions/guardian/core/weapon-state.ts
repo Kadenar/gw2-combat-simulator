@@ -4,7 +4,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * availability, and normal weapon-bar gating.
  */
 
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { GuardianCastContext, GuardianSkill } from '../types.js';
 

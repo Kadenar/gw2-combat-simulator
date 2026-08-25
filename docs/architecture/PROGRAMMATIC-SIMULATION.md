@@ -30,7 +30,7 @@ Create `run-engineer.mjs` in the repository root:
 
 ```js
 import { prepareSimulationConfig } from './js/platform/engine/config.js';
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 
@@ -108,7 +108,7 @@ Tests import source-looking `.js` paths and register a loader that redirects com
 For that reason, a headless script should use source-looking imports:
 
 ```js
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 ```
 
@@ -264,7 +264,7 @@ Use the registry when the profession is selected by a command-line argument or c
 
 ```js
 import { loadProfession } from './js/app/profession/registry.js';
-import { simulateGw2 } from './js/platform/gw2/simulate.js';
+import { simulateGw2 } from './js/platform/gw2/index.js';
 
 const profession = await loadProfession('engineer');
 if (!profession) throw new Error('Unknown profession');

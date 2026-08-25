@@ -4,8 +4,8 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
 import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
 import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
-import { WEAPON_DATA } from '../../../js/platform/gw2/gear-data.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { WEAPON_DATA } from '../../../js/platform/gw2/equipment/weapons/data.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
@@ -14,7 +14,7 @@ import {
   weaponStrengthProfile,
   weaponStrengthProfileForName,
   weaponStrengthProfileIdForEvent
-} from '../../../js/platform/gw2/weapon-strength.js';
+} from '../../../js/platform/gw2/equipment/weapons/strength.js';
 
 const EXPECTED_PROFILES = Object.freeze({
   'weapon.axe': [900, 1100, 1000],

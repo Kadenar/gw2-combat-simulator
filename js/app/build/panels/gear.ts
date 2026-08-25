@@ -1,14 +1,10 @@
-import {
-  FOOD_GROUPS,
-  GEAR_SLOTS,
-  INFUSION_STATS,
-  PREFIX_GROUPS,
-  RELIC_GROUPS,
-  RUNE_GROUPS,
-  SIGIL_GROUPS,
-  UTILITY_GROUPS
-} from '../../../platform/gw2/gear-data.js';
-import { setWeaponSigil } from '../../../platform/gw2/weapon-sigils.js';
+import { FOOD_GROUPS } from '../../../platform/gw2/equipment/consumables/food.js';
+import { GEAR_SLOTS, INFUSION_STATS, PREFIX_GROUPS } from '../../../platform/gw2/equipment/gear/stats.js';
+import { RELIC_GROUPS } from '../../../platform/gw2/equipment/relics/catalog.js';
+import { RUNE_GROUPS } from '../../../platform/gw2/equipment/gear/runes.js';
+import { SIGIL_GROUPS } from '../../../platform/gw2/equipment/sigils/catalog.js';
+import { UTILITY_GROUPS } from '../../../platform/gw2/equipment/consumables/utilities.js';
+import { setWeaponSigil } from '../../../platform/gw2/equipment/sigils/loadout.js';
 import { groupedOptions, option } from '../../../platform/ui/html.js';
 import { requiredElement, requiredInput, requiredSelect } from '../../../platform/ui/dom.js';
 

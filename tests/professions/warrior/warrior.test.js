@@ -12,8 +12,8 @@ import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-v
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '../../../js/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
 import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,

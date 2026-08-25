@@ -1,5 +1,5 @@
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/trait-state.js';
-import { castRelativeEffectTimingScale } from '../../../../platform/gw2/skill-timing.js';
+import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
+import { castRelativeEffectTimingScale } from '../../../../platform/gw2/skills/timing.js';
 import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
 import { emitElementalistBuff, emitElementalistProc } from '../../core/mechanics.js';

@@ -1,8 +1,8 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { isStandardBoon } from '../../../../platform/gw2/boon-state.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { revenantActiveBoonCount, revenantPlayer, revenantTimedBuff } from '../../core/rules.js';

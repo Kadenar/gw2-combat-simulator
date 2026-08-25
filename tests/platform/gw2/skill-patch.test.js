@@ -9,10 +9,10 @@ import {
   applySkillPatch,
   patchRuntimeValue,
   validatePatchPreview
-} from '../../../js/platform/gw2/skill-patch.js';
-import { createModifierHooks, MODIFIER_TARGET } from '../../../js/platform/gw2/modifier-rules.js';
-import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/native-profession.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+} from '../../../js/platform/gw2/authoring/patches.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../js/platform/gw2/combat/modifiers/rules.js';
+import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/authoring/profession.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 
 function fixtureCatalog() {
   return createCanonicalCatalog({

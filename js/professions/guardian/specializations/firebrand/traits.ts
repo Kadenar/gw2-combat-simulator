@@ -2,14 +2,14 @@ import { firebrandState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
-import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
+import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';
 import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,

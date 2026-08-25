@@ -1,10 +1,10 @@
 import {
   afterSkillEffects,
-  defineNativeModule,
   onBuffApplied,
   onComboResolved,
   onResolvedDamage
-} from '../../../../platform/gw2/native-profession.js';
+} from '../../../../platform/gw2/authoring/mechanics.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createEngineerModuleData } from '../../catalog-data.js';
 import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './resolver.js';
 import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './rules.js';

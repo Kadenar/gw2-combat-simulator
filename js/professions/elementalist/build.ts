@@ -1,8 +1,8 @@
-import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
-import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
-import { boundedNumber, enumValue } from '../../platform/gw2/build-normalization.js';
-import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
+import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
+import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
+import { boundedNumber, enumValue } from '../../platform/gw2/builds/normalization.js';
+import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
@@ -11,7 +11,7 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { elementalistCatalog } from './catalog.js';
-import type { Gw2ApplicationBuild } from '../../platform/gw2/types.js';
+import type { Gw2ApplicationBuild } from '../../platform/gw2/builds/types.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import type { ElementalistApplicationBuild, ElementalistCanonicalBuild } from './types.js';
 

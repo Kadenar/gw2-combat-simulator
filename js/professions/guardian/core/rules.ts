@@ -1,12 +1,12 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { attributeProvenance } from '../../../platform/gw2/attribute-provenance.js';
-import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/target-state.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { hasSelectedSkill } from '../../../platform/gw2/runtime-query.js';
+import { attributeProvenance } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianState } from '../types.js';
 import { guardianCastAvailability, validateGuardianBuild } from './availability.js';
 import { advanceSpearIlluminationState, updateSpearIlluminationState } from './spear.js';

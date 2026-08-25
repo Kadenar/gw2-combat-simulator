@@ -40,10 +40,10 @@ export {
   triggerSunspot
 } from './traits.js';
 
-import { criticalChance } from '../../../platform/gw2/damage.js';
+import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
-import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/allied-players.js';
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
+import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
+import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 export { elementalistCoreAttributeRules } from './modifiers.js';
 import type {

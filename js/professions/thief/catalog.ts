@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/authoring/catalog.js';
 import { thiefWeaponSkillMatchesSet } from './catalog-data.js';
 import { thiefNativeModules } from './modules.js';
 import type { ThiefSkill } from './types.js';

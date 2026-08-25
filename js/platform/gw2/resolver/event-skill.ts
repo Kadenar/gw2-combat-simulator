@@ -1,5 +1,5 @@
 import type { Skill } from '../../engine/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverHelpers } from '../types.js';
+import type { Gw2ResolverEvent, Gw2ResolverHelpers } from './types.js';
 
 /**
  * Resolves the catalog skill associated with an event. Stable ids take

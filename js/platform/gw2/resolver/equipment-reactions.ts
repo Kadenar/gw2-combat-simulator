@@ -1,12 +1,17 @@
 import { enqueueOrdered } from '../../engine/events/queue.js';
 import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import type { SchedulerRecord } from '../../engine/types.js';
-import { isGw2PlayerActorEvent } from '../event-ownership.js';
-import { FOOD_DATA, NOURISHMENT_ICON, SIGIL_PROCS } from '../gear-data.js';
-import { onResolvedPlayerCriticalHit } from '../native-mechanics.js';
-import { clamp, consumeExpectedCriticalProgress } from '../numeric.js';
-import { gw2SigilSet, gw2StatsForWeaponSet } from '../runtime-rules.js';
-import { createSigilConditionEvent, createSigilStrikeEvent, isResolverCriticalSigil } from '../sigil-proc-events.js';
+import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '../equipment/consumables/food.js';
+import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
+import { onResolvedPlayerCriticalHit } from '../authoring/mechanics.js';
+import { clamp, consumeExpectedCriticalProgress } from '../combat/numeric.js';
+import { gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
+import {
+  createSigilConditionEvent,
+  createSigilStrikeEvent,
+  isResolverCriticalSigil
+} from '../equipment/sigils/proc-events.js';
 import {
   handleBlastComboRelic,
   handleBoonRelics,
@@ -16,19 +21,19 @@ import {
   handleRelicDamageResolved,
   handleRelicsAfterHit,
   handleWeaknessVulnerabilityRelic
-} from '../relic-rules.js';
+} from './relic-reactions.js';
 import { skillForEvent } from './event-skill.js';
 
-import type { NativeResolvedDamageDetails } from '../native-module-types.js';
+import type { NativeResolvedDamageDetails } from '../authoring/module-types.js';
+import type { Gw2ApplyCondition } from '../equipment/relics/types.js';
 import type {
-  Gw2ApplyCondition,
   Gw2ConditionResolution,
   Gw2ResolverEvent,
   Gw2ResolverReactionContributions,
   Gw2ResolverReactionRegistry,
-  Gw2ResolverRuntime,
-  Gw2SigilProc
-} from '../types.js';
+  Gw2ResolverRuntime
+} from './types.js';
+import type { Gw2SigilProc } from '../equipment/types.js';
 
 export const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,

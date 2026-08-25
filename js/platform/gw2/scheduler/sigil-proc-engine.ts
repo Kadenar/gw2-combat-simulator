@@ -1,14 +1,15 @@
 import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
-import { SIGIL_PROCS } from '../gear-data.js';
-import { isGw2PlayerActorEvent } from '../event-ownership.js';
+import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
+import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   GW2_SCHEDULER_SIGIL_PREDICTION,
   isResolverCriticalSigil
-} from '../sigil-proc-events.js';
-import type { Gw2Config, Gw2SigilProc } from '../types.js';
+} from '../equipment/sigils/proc-events.js';
+import type { Gw2Config } from '../simulation/config.js';
+import type { Gw2SigilProc } from '../equipment/types.js';
 import type { MaterializerProfessionState, MaterializerState } from './materializer-state.js';
 
 export type SigilTrigger = 'crit' | 'swap' | 'control' | 'strike';

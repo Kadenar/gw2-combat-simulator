@@ -1,4 +1,4 @@
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';

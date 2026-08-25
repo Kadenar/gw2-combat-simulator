@@ -1,8 +1,8 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerPetCompanionId } from './pets.js';
 import {

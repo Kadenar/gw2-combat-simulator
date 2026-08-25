@@ -10,7 +10,7 @@ import {
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
 } from '../../js/app/simulation/random-distribution.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,

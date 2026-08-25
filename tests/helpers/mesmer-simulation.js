@@ -1,5 +1,5 @@
 import { prepareSimulationConfig } from '../../js/platform/engine/config.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
 
 export function createDefaultConfig() {

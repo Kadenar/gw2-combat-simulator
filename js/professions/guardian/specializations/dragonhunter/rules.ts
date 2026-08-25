@@ -1,10 +1,10 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled } from '../../core/rules.js';
 import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../../types.js';
 import { dragonhunterState } from './state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';

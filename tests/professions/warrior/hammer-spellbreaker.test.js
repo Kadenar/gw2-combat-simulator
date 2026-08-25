@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/professions/warrior/build.js';
 import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 import { recalculate, runSimulation } from '../../../js/professions/warrior/app/app-definition.js';

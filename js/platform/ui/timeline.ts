@@ -1,5 +1,5 @@
 import type { RotationCommand, SchedulerRecord, SchedulerStep, SimulationEvent } from '../engine/types.js';
-import type { Gw2SimulationResult } from '../gw2/types.js';
+import type { Gw2SimulationResult } from '../gw2/simulation/types.js';
 import type { TimelineInteractionOptions } from './types.js';
 
 export type TimelineRotationEntry = RotationCommand;

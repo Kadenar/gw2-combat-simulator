@@ -4,7 +4,7 @@ import type {
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { elementalistBalanceValue } from '../../core/profiles.js';
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '../../data/ids.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

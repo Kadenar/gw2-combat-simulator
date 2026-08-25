@@ -1,4 +1,4 @@
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyCondition, procState, queueBuff, recordTrait, resolverSkill } from '../../core/shared.js';
 import {

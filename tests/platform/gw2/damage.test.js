@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { calculateSkillDamage, conditionTotalDamage } from '../../../js/platform/gw2/damage.js';
+import { calculateSkillDamage, conditionTotalDamage } from '../../../js/platform/gw2/combat/damage/calculations.js';
 
 test('preview condition duration is clamped between base and double duration', () => {
   assert.equal(conditionTotalDamage('Bleeding', 1, 2, 0, -50), 44);

@@ -1,5 +1,5 @@
 import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
-import { gw2ActorTypeForSource } from '../../../platform/gw2/event-ownership.js';
+import { gw2ActorTypeForSource } from '../../../platform/gw2/combat/state/event-ownership.js';
 
 import type {
   ConditionEffect,

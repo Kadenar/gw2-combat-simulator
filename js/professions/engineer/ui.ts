@@ -1,4 +1,4 @@
-import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/weapon-skill-matcher.js';
+import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/equipment/weapons/skill-matcher.js';
 import { ENGINEER_SKILL_IDS as ID } from './data/ids.js';
 import type { ProfessionUiContract, SchedulerRecord, SkillId } from '../../platform/engine/types.js';
 import type { EngineerSkill, EngineerUiContext } from './types.js';

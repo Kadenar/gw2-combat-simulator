@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
-import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
+import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/equipment/weapons/skill-matcher.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';

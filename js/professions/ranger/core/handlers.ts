@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { replaceSkill } from '../../../platform/gw2/native-profession.js';
-import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
+import { replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import type { RangerCastContext, RangerSkill } from '../types.js';
 import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from './traits.js';

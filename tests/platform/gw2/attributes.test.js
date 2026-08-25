@@ -13,14 +13,14 @@ import {
   runSimulation,
   simulationConfig
 } from '../../../js/professions/mesmer/app/app-definition.js';
-import { calculateCommonAttributes, finalizeBuildAttributes } from '../../../js/platform/gw2/attributes.js';
+import { calculateCommonAttributes, finalizeBuildAttributes } from '../../../js/platform/gw2/builds/attributes.js';
 import {
   calculateContributionComparisons,
   mergeModifierContributions,
   modifierContributionWorkerCount,
   partitionModifierComparisons
 } from '../../../js/app/simulation/modifier-contributions.js';
-import { aggregateSigilSet, setWeaponSigil } from '../../../js/platform/gw2/weapon-sigils.js';
+import { aggregateSigilSet, setWeaponSigil } from '../../../js/platform/gw2/equipment/sigils/loadout.js';
 import { MESMER_SKILL_IDS } from '../../../js/professions/mesmer/data/ids.js';
 
 const calcAttributes = calculateMesmerAttributes;

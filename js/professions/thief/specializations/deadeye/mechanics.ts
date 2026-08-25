@@ -12,7 +12,7 @@ import type {
 } from '../../types.js';
 import { deadeyeState } from './state.js';
 import { applyMaleficentSeven } from './traits.js';
-import type { Gw2SchedulerPolicy } from '../../../../platform/gw2/types.js';
+import type { Gw2SchedulerPolicy } from '../../../../platform/gw2/scheduler/types.js';
 import type { SchedulerContext } from '../../../../platform/engine/types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

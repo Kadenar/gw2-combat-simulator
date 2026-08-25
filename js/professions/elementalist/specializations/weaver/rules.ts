@@ -7,7 +7,7 @@ import type {
 } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { modifyWeaverAttributes, weaverModifierRules } from './modifiers.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { elementalistAlacrityAdjustedDuration, emitElementalistBuff, triggerBountifulPower } from '../../core/rules.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,

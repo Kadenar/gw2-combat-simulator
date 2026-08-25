@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createRevenantModuleData } from '../../catalog-data.js';
 import { conduitSkillHandlers } from './handlers.js';
 import { conduitEventHandlers } from './resolver.js';

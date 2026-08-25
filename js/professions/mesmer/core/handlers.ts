@@ -1,5 +1,5 @@
-import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
-import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
+import { augmentSkill, replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from './mechanics.js';
 import type { SimulationEvent, Skill, SkillEffect, SkillHandlerStrategy } from '../../../platform/engine/types.js';
 import type { MesmerHandlerContext } from '../types.js';

@@ -1,8 +1,8 @@
 import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../platform/gw2/types.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../platform/gw2/resolver/types.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { ElementalistResolverContext } from '../../types.js';
 import {
   activeElementalistBuffs,

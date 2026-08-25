@@ -1,4 +1,4 @@
-import { defineNativeProfession } from '../../platform/gw2/native-profession.js';
+import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild, validateGuardianBuild } from './build.js';
 import { guardianNativeModules } from './modules.js';

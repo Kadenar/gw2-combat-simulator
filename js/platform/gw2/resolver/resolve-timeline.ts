@@ -3,7 +3,7 @@ import { createEventQueue } from '../../engine/events/queue.js';
 import { assertScheduledEventStream as assertPlatformStream } from '../../engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from './event-loop.js';
 
-import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from '../types.js';
+import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from './types.js';
 
 interface Gw2ResolverHandoff {
   readonly warnings?: readonly string[];

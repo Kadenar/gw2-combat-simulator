@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/authoring/catalog.js';
 import { rangerNativeModules } from './modules.js';
 import type { RangerSkill } from './types.js';
 

@@ -1,5 +1,5 @@
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyTraitCondition } from '../../core/traits.js';
 import type {

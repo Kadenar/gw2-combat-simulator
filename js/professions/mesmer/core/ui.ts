@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
-import { clamp } from '../../../platform/gw2/numeric.js';
+import { clamp } from '../../../platform/gw2/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { isMesmerBuildSkillAvailable } from './availability.js';
 import { MESMER_SKILL_IDS as ID } from '../data/ids.js';

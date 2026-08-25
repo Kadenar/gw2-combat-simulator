@@ -1,5 +1,5 @@
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
 import {
   EVENT_LOG_ORDER,
   eventLogCsv,

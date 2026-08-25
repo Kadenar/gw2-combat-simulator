@@ -4,8 +4,8 @@ import test from 'node:test';
 import { createGw2SimulationConfig } from '../../../js/app/simulation/config.js';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { FOOD_DATA } from '../../../js/platform/gw2/gear-data.js';
-import { aggregateSigilSet } from '../../../js/platform/gw2/weapon-sigils.js';
+import { FOOD_DATA } from '../../../js/platform/gw2/equipment/consumables/food.js';
+import { aggregateSigilSet } from '../../../js/platform/gw2/equipment/sigils/loadout.js';
 import { createNecromancerBuildDefaults } from '../../../js/professions/necromancer/build.js';
 
 test('the shared simulation config defaults to day and preserves a night selection', () => {

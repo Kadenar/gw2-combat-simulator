@@ -1,5 +1,5 @@
 import type { SimulationEvent } from '../engine/types.js';
-import type { Gw2ResolverResult } from '../gw2/types.js';
+import type { Gw2ResolverResult } from '../gw2/resolver/types.js';
 import type { EventLogMountOptions, EventLogRow, NormalizedEventLogDescriptor } from './types.js';
 import { escapeHtml } from './html.js';
 

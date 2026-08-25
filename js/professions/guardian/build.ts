@@ -1,7 +1,7 @@
-import { normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
-import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
-import { boundedInteger } from '../../platform/gw2/build-normalization.js';
-import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
+import { normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
+import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
+import { boundedInteger } from '../../platform/gw2/builds/normalization.js';
+import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions

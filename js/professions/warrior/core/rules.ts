@@ -1,12 +1,12 @@
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import { targetHasCondition } from '../../../platform/gw2/target-state.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
 import {
   eventSkill as gw2EventSkill,
   hasSelectedSkill,
   targetHealthFraction
-} from '../../../platform/gw2/runtime-query.js';
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { warriorCastAvailability } from './availability.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -23,7 +23,7 @@ import {
 import { advanceWarriorResources } from './resources.js';
 import { handleWarriorAdrenalineTask } from '../resources.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorRuntimeState, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import type { WarriorCoreState } from '../types.js';
 

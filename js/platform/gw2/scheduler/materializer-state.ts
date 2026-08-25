@@ -1,14 +1,11 @@
 import { createSimulationRandom } from '../../engine/core/simulation-random.js';
 import type { SchedulerRecord, SchedulerState, SimulationRandom } from '../../engine/types.js';
-import { createRelicRuntime } from '../relic-rules.js';
-import { createCanonicalTargetConditionStateMap } from '../target-state.js';
-import type {
-  Gw2CombatQuery,
-  Gw2Config,
-  Gw2RelicRuntime,
-  Gw2RuntimeConditionEntry,
-  Gw2TimedBuffApplication
-} from '../types.js';
+import { createRelicRuntime } from '../equipment/relics/runtime.js';
+import { createCanonicalTargetConditionStateMap } from '../combat/state/targets.js';
+import type { Gw2CombatQuery } from '../combat/query/types.js';
+import type { Gw2Config } from '../simulation/config.js';
+import type { Gw2RelicRuntime } from '../equipment/relics/types.js';
+import type { Gw2RuntimeConditionEntry, Gw2TimedBuffApplication } from '../combat/state/types.js';
 
 export interface MaterializerProfessionState extends SchedulerRecord {
   maximumEndurance?: number;

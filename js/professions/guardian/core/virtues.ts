@@ -4,13 +4,13 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
-import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import { emitGuardianEvent } from './events.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from './profiles.js';
 import type { SkillId } from '../../../platform/engine/types.js';
-import type { Gw2ConditionResolution } from '../../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,

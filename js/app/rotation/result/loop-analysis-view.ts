@@ -32,6 +32,12 @@ function countLabel(step: RotationLoopStep): string {
   return `${count}×`;
 }
 
+/** Names detected visit cadences so alternating cooldowns read as instructions instead of vague flexibility. */
+function repeatIntervalLabel(interval: number): string {
+  if (interval === 2) return 'Every other loop';
+  return `Every ${interval} loops`;
+}
+
 function stepHtml(app: ProfessionAppState, step: RotationLoopStep, index: number): string {
   if (step.kind === 'gap') {
     return `<li class="rotation-loop-step is-gap">
@@ -60,11 +66,15 @@ function stepHtml(app: ProfessionAppState, step: RotationLoopStep, index: number
       </span>`
     : `<img src="${escapeHtml(icons[0])}" alt="" />`;
   const count = countLabel(step);
+  const repeatLabel = step.repeatInterval ? repeatIntervalLabel(step.repeatInterval) : '';
+  const flexibleTitle = repeatLabel
+    ? `${repeatLabel}; ${Math.round(step.repeatRegularity * 100)}% cadence regularity`
+    : `Appears in ${Math.round(step.support * 100)}% of detected occurrences or moves within the loop`;
   const flexible =
     step.placement === 'flexible'
-      ? `<span class="rotation-loop-flexible" title="Appears in ${Math.round(
-          step.support * 100
-        )}% of detected occurrences or moves within the loop">Flexible</span>`
+      ? `<span class="rotation-loop-flexible" title="${escapeHtml(flexibleTitle)}">${escapeHtml(
+          repeatLabel || 'Flexible'
+        )}</span>`
       : '';
   const conditionalBadge = conditional
     ? '<span class="rotation-loop-conditional" title="The destination differs between detected occurrences">Conditional</span>'

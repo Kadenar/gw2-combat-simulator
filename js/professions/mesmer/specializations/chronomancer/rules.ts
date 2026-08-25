@@ -2,14 +2,14 @@ import { chronomancerState } from './state.js';
 import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { EPSILON } from '../../../../platform/engine/core/clock.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { targetHasCondition } from '../../../../platform/gw2/target-state.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { targetHasCondition } from '../../../../platform/gw2/combat/state/targets.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { chronomancerControllerFor, initializeChronomancerRuntime } from './runtime.js';
 import { completeChronomancerTimeBomb } from './time-bomb.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
 import type {
   MesmerPrecastContext,

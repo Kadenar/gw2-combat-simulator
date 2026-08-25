@@ -1,8 +1,8 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '../../types.js';
 import { rangerPetByName } from '../../core/state.js';
 import { galeshotState } from './state.js';

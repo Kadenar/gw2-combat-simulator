@@ -1,6 +1,6 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../platform/gw2/result-state.js';
+import { timedBuffAt, timedBuffStacksAt } from '../../../platform/gw2/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {
@@ -13,7 +13,7 @@ import type {
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
 import type { WarriorSpecializationSelection } from '../data/traits-data.js';
 import type { WarriorSimulationEvent, WarriorSkill, WarriorState, WarriorUiContext } from '../types.js';
 

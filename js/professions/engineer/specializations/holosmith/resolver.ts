@@ -1,7 +1,7 @@
 import { holosmithState } from './state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { enqueueGw2OwnedComboFinisher } from '../../../../platform/gw2/resolver/combo-resolution.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { queueBuff } from '../../core/shared.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '../../types.js';

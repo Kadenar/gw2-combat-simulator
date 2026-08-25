@@ -1,10 +1,10 @@
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
 import {
-  defineNativeModule,
   onBuffApplied,
   onResolvedControl,
   onResolvedDamage,
   onResolvedPlayerCriticalHit
-} from '../../../platform/gw2/native-profession.js';
+} from '../../../platform/gw2/authoring/mechanics.js';
 import { createRangerModuleData } from '../catalog-data.js';
 import { rangerCoreSkillHandlers } from './handlers.js';
 import {

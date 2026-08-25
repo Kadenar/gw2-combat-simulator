@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
-import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
 import { recordWarriorAmmoSpend } from '../ammunition.js';
 import { applyWarriorSkillResource } from '../resources.js';

@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext } from '../types.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
 import { MESMER_NATIVE_CATALOG_OPTIONS } from './catalog-data.js';
 import { mesmerNativeModules } from './modules.js';
 

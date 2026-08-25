@@ -1,6 +1,6 @@
-import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { emitBuff, gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
@@ -14,7 +14,7 @@ import {
   necromancerTargetHasCondition
 } from '../../core/rules.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type {
   NecromancerRechargeModifierContext,
   NecromancerSimulationEvent,

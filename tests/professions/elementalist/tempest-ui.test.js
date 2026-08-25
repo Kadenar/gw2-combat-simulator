@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import {
   elementalistAppAdapter,
   recalculate,

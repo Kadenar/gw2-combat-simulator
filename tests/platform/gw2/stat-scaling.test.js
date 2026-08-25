@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { criticalChance, criticalDamageMultiplier } from '../../../js/platform/gw2/damage.js';
-import { gw2ConditionDurationMultiplier, gw2WeaponStrength } from '../../../js/platform/gw2/runtime-rules.js';
+import { criticalChance, criticalDamageMultiplier } from '../../../js/platform/gw2/combat/damage/calculations.js';
+import {
+  gw2ConditionDurationMultiplier,
+  gw2WeaponStrength
+} from '../../../js/platform/gw2/combat/query/runtime-rules.js';
 import {
   conditionDurationFractionFromExpertise,
   conditionDurationPercentFromExpertise,
@@ -9,7 +12,7 @@ import {
   criticalChancePercentFromPrecision,
   criticalDamageMultiplierFromFerocity,
   criticalDamagePercentFromFerocity
-} from '../../../js/platform/gw2/stat-scaling.js';
+} from '../../../js/platform/gw2/combat/damage/stat-scaling.js';
 
 test('stat scaling preserves exact percent- and fraction-form values', () => {
   assert.equal(criticalChancePercentFromPrecision(896), 0.047619047619047616);

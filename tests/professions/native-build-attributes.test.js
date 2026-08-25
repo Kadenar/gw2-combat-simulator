@@ -27,8 +27,8 @@ import { createThiefBuildDefaults } from '../../js/professions/thief/build.js';
 import { calculateAttributes as calculateThiefAttributes } from '../../js/professions/thief/app/app-definition.js';
 import { thiefProfession } from '../../js/professions/thief/definition.js';
 import { THIEF_TRAIT_IDS } from '../../js/professions/thief/data/ids.js';
-import { resolveAttributeEffects } from '../../js/platform/gw2/attributes.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { resolveAttributeEffects } from '../../js/platform/gw2/builds/attributes.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { createWarriorBuildDefaults } from '../../js/professions/warrior/build.js';
 import { calculateAttributes as calculateWarriorAttributes } from '../../js/professions/warrior/app/app-definition.js';
 

@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createRangerModuleData } from '../../catalog-data.js';
 import { galeshotSkillHandlers } from './handlers.js';
 import { galeshotAttributeRules, galeshotCastRules, galeshotSchedulerHooks } from './rules.js';

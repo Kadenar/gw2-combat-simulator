@@ -7,10 +7,10 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  */
 
 import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
-import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/runtime-rules.js';
-import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/allied-players.js';
-import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
-import { clamp } from '../../../platform/gw2/numeric.js';
+import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/combat/query/runtime-rules.js';
+import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
+import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { clamp } from '../../../platform/gw2/combat/numeric.js';
 import {
   MESMER_CORE_ARISTOCRACY_SKILLS,
   MESMER_CORE_BLIND_SKILLS,
@@ -1167,15 +1167,11 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
   })
 });
 
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { targetHasCondition } from '../../../platform/gw2/target-state.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
-import type {
-  Gw2ModifierContext,
-  Gw2ModifierRule,
-  Gw2QueryRuntime,
-  Gw2ResolvedStats
-} from '../../../platform/gw2/types.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2QueryRuntime, Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.js';
 
 const MODIFIER_EPSILON = 0.0001;
 

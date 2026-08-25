@@ -1,6 +1,6 @@
-import { attributeProvenance } from '../../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { attributeProvenance } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianBoonActive } from '../../core/rules.js';
 import { advanceTomeState, tomePageAvailability, validateTomeCast } from './tomes.js';
@@ -12,7 +12,7 @@ import {
   initializeFirebrandMantras
 } from './mantras.js';
 import { initializeFirebrandBalanceState } from './state.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 
 export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

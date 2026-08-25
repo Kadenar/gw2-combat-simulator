@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
 import { NECROMANCER_NON_DPS_SKILL_NAMES } from './catalog-data.js';
 import { necromancerNativeModules } from './modules.js';
 

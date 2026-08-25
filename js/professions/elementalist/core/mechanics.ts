@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
+import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
 import { elementalistCoreState, type ElementalistAuraState, type ElementalistCoreState } from './state.js';

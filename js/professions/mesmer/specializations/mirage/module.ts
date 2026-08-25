@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createMesmerModuleData } from '../../catalog-data.js';
 import { mirageAttributeRules, mirageCastRules, mirageSchedulerHooks, mirageSkillMechanicHandlers } from './rules.js';
 import { createMirageResolverState, mirageState } from './state.js';

@@ -1,10 +1,11 @@
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { illusionSource, timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { initializeVirtuosoRuntime } from './runtime.js';
-import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/types.js';
 import type { MesmerSchedulerContext, MesmerSchedulerTask } from '../../types.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { handleDeadlyBladesCriticalTask, observeDeadlyBladesEvent } from './deadly-blades.js';

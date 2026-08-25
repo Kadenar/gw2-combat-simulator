@@ -1,15 +1,15 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import {
   gw2BoonDurationMultiplier,
   gw2SigilSet,
   gw2StatsForWeaponSet
-} from '../../../../platform/gw2/runtime-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+} from '../../../../platform/gw2/combat/query/runtime-rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, playerStrike } from '../../core/rule-helpers.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { hasEngineerTrait } from '../../core/state.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../../platform/engine/types.js';
 import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '../../types.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

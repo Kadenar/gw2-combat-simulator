@@ -1,5 +1,5 @@
 import { ritualistState } from './state.js';
-import { gw2StatsForWeaponSet } from '../../../../platform/gw2/runtime-rules.js';
+import { gw2StatsForWeaponSet } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.

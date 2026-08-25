@@ -1,4 +1,4 @@
-import { augmentSkill, replaceSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill, replaceSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { guardianRadiantForgeSkillHandlers } from './radiant-forge.js';
 
 export const luminarySkillHandlers = Object.freeze({

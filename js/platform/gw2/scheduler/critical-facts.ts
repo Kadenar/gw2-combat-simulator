@@ -1,8 +1,8 @@
 import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
-import { FOOD_DATA } from '../gear-data.js';
-import { isGw2PlayerActorEvent } from '../event-ownership.js';
-import { consumeExpectedCriticalProgress } from '../numeric.js';
-import type { Gw2Config } from '../types.js';
+import { FOOD_DATA } from '../equipment/consumables/food.js';
+import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
+import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
+import type { Gw2Config } from '../simulation/config.js';
 import type { MaterializerState } from './materializer-state.js';
 
 export function hasStochasticCriticalFood(config: Gw2Config): boolean {

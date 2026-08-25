@@ -1,4 +1,5 @@
-import { defineNativeModule, onAuraApplied } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onAuraApplied } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createElementalistModuleData } from '../../catalog-data.js';
 import { tempestAttributeRules, tempestCastRules, tempestSchedulerHooks } from './rules.js';
 import { createTempestState } from './state.js';

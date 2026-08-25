@@ -6,7 +6,7 @@ import type {
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/builds/types.js';
 import type { NecromancerSpecializationSelection } from './data/traits-data.js';
 
 export function applyNecromancerBuildAttributeRules(

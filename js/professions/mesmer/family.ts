@@ -1,4 +1,5 @@
-import { assembleNativeApplicationCatalog, defineNativeProfession } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
+import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createMesmerBuildDefaults, migrateMesmerBuild, validateMesmerBuild } from './build.js';
 import { MESMER_NATIVE_CATALOG_OPTIONS } from './catalog-data.js';

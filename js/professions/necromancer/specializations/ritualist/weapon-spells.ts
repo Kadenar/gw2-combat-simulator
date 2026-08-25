@@ -7,7 +7,10 @@
  * reduction are outside the damage simulator.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
+import {
+  gw2AlliedEffectRecipients,
+  gw2AlliedPlayerProcTimeline
+} from '../../../../platform/gw2/combat/state/allied-players.js';
 import { hasTrait, necromancerActiveMinionCompanionIds } from '../../core/shared.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

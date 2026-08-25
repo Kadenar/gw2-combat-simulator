@@ -6,7 +6,7 @@ import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { MECHANIST_ATTACK_TIMING, MECHANIST_COMMAND_DURATIONS } from './mechanics.js';
-import { weaponStrengthMidpoint, weaponStrengthProfile } from '../../../../platform/gw2/weapon-strength.js';
+import { weaponStrengthMidpoint, weaponStrengthProfile } from '../../../../platform/gw2/equipment/weapons/strength.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
   EngineerCastContext,

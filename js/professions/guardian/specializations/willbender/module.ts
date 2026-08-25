@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createGuardianModuleData } from '../../catalog-data.js';
 import { willbenderSkillHandlers } from './handlers.js';
 import { willbenderEventHandlers } from './resolver.js';

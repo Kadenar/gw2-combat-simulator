@@ -1,5 +1,5 @@
-import type { Gw2SimulationResult } from '../../../platform/gw2/types.js';
-import { durationStackingBoonCapSeconds } from '../../../platform/gw2/boon-state.js';
+import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
+import { durationStackingBoonCapSeconds } from '../../../platform/gw2/combat/state/boons.js';
 import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '../../../platform/ui/charts.js';
 import { formatTimelineDuration, timelineDeadTimeMarkers } from '../../../platform/ui/timeline.js';
 import {

@@ -1,4 +1,4 @@
-import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import type { ElementalistCastContext } from '../../types.js';
 import { applyAltruisticAspect } from './traits.js';
 

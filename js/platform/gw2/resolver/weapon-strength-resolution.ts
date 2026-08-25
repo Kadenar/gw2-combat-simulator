@@ -3,10 +3,11 @@ import {
   weaponStrengthMidpoint,
   weaponStrengthProfile,
   weaponStrengthProfileIdForEvent
-} from '../weapon-strength.js';
+} from '../equipment/weapons/strength.js';
 import { skillForEvent } from './event-skill.js';
 
-import type { Gw2ResolvedWeaponStrength, Gw2ResolverEvent, Gw2ResolverRuntime } from '../types.js';
+import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from './types.js';
 
 function streamActor(event: Gw2ResolverEvent): string {
   if (event.actorType === 'summon' || event.actorType === 'phantasm') {

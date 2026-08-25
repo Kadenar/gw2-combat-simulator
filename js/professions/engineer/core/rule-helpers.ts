@@ -7,9 +7,9 @@ import {
   targetConditionCount,
   targetHealthFraction,
   vulnerabilityStacks
-} from '../../../platform/gw2/runtime-query.js';
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext } from '../../../platform/gw2/combat/modifiers/types.js';
 import type {
   EngineerMechAttributes,
   EngineerRuntimeState,

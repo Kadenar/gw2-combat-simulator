@@ -1,12 +1,12 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
   targetConditionCount,
   targetHealthFraction
-} from '../../../platform/gw2/runtime-query.js';
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { thiefCoreCastAvailability } from './availability.js';
 import { advanceThiefCoreResources, completeThiefCoreResources, spendThiefCoreResources } from './resources.js';
@@ -20,9 +20,9 @@ import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import type {
   Gw2ModifierContext,
   Gw2ModifierHooks,
-  Gw2ModifierRule,
-  Gw2ResolvedStats
-} from '../../../platform/gw2/types.js';
+  Gw2ModifierRule
+} from '../../../platform/gw2/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefQueryRuntime, ThiefSchedulerContext } from '../types.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 

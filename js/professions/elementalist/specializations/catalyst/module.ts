@@ -1,12 +1,12 @@
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import {
-  defineNativeModule,
   onAuraApplied,
   onComboResolved,
   onBuffApplied,
   onConditionApplied,
   onResolvedControl,
   onResolvedDamage
-} from '../../../../platform/gw2/native-profession.js';
+} from '../../../../platform/gw2/authoring/mechanics.js';
 import { createElementalistModuleData } from '../../catalog-data.js';
 import {
   applyCatalystEmpowerment,

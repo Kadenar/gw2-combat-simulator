@@ -1,7 +1,7 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { targetConditionStacks as configuredTargetConditionStacks } from '../../../../platform/gw2/target-state.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { targetConditionStacks as configuredTargetConditionStacks } from '../../../../platform/gw2/combat/state/targets.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { requiredShroud } from '../../core/availability.js';
@@ -16,7 +16,7 @@ import { ensurePermanentIceFieldAssumption } from './combos.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type {
   NecromancerCastContext,
   NecromancerCastModifierContext,

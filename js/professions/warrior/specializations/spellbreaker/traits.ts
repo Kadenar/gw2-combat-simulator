@@ -1,5 +1,5 @@
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import { gw2RechargeRate } from '../../../../platform/gw2/runtime-rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2RechargeRate } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { warriorBoonRemovalCounts } from '../../core/resolver.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';

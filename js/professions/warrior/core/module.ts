@@ -1,4 +1,5 @@
-import { defineNativeModule, onBuffApplied, onResolvedDamage } from '../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
+import { onBuffApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
 import { createWarriorModuleData } from '../catalog-data.js';
 import { WARRIOR_CORE_SKILL_MECHANICS, WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from './skills.js';
 import { warriorCoreSkillHandlers } from './handlers.js';

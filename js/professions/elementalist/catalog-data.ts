@@ -1,4 +1,4 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
 import { defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import {

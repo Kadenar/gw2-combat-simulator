@@ -1,11 +1,11 @@
-import { isGw2NonWeaponEffectEvent } from '../event-ownership.js';
-import { gw2BoonApplicationRecipients, gw2BuffApplicationRecipients } from '../allied-players.js';
-import { isStandardBoon } from '../boon-state.js';
-import { prepareGw2ComboEvent } from '../combo-events.js';
-import { weaponStrengthProfileIdForEvent } from '../weapon-strength.js';
+import { isGw2NonWeaponEffectEvent } from '../combat/state/event-ownership.js';
+import { gw2BoonApplicationRecipients, gw2BuffApplicationRecipients } from '../combat/state/allied-players.js';
+import { isStandardBoon } from '../combat/state/boons.js';
+import { prepareGw2ComboEvent } from '../combos/events.js';
+import { weaponStrengthProfileIdForEvent } from '../equipment/weapons/strength.js';
 
 import type { SchedulerContext, SimulationEventInput } from '../../engine/types.js';
-import type { Gw2Config } from '../types.js';
+import type { Gw2Config } from '../simulation/config.js';
 
 export interface Gw2EventPreparer {
   prepare(context: SchedulerContext, event: SimulationEventInput): SimulationEventInput;

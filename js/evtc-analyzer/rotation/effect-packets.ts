@@ -1,5 +1,5 @@
 import type { Skill, StrikeEffect } from '../../platform/engine/types.js';
-import { castRelativeEffectTimingScale, quicknessReferenceCastTimeMs } from '../../platform/gw2/skill-timing.js';
+import { castRelativeEffectTimingScale, quicknessReferenceCastTimeMs } from '../../platform/gw2/skills/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../types.js';
 import { findRotationSkill } from './catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './professions/types.js';

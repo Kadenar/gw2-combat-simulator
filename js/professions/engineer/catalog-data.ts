@@ -1,5 +1,5 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skills/recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/engineer-api-metadata.js';
@@ -7,7 +7,7 @@ import { ENGINEER_SUPPLEMENTAL_SKILLS } from './data/engineer-supplemental-skill
 import { ENGINEER_SKILL_IDS as ID } from './data/ids.js';
 import { TRAITS } from './data/traits-data.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
-import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
+import type { NativeAutoattackChains } from '../../platform/gw2/authoring/module-types.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],

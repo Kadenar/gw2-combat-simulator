@@ -1,5 +1,5 @@
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { rangerPetPaletteGroup, rangerUiState } from '../../core/ui.js';
 import type {
   PaletteSkillAvailability,

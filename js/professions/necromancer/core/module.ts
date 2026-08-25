@@ -1,10 +1,10 @@
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
 import {
-  defineNativeModule,
   onConditionApplied,
   onResolvedBlind,
   onResolvedControl,
   onResolvedDamage
-} from '../../../platform/gw2/native-profession.js';
+} from '../../../platform/gw2/authoring/mechanics.js';
 import { createNecromancerModuleData } from '../catalog-data.js';
 import {
   necromancerCoreAttributeRules,

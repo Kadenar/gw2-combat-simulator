@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig } from '../../js/app/simulation/config.js';
-import { DEFAULT_TARGET_CONDITIONS } from '../../js/platform/gw2/default-target-conditions.js';
+import { DEFAULT_TARGET_CONDITIONS } from '../../js/platform/gw2/builds/default-target-conditions.js';
 import { createElementalistBuildDefaults } from '../../js/professions/elementalist/build.js';
 import { createEngineerBuildDefaults } from '../../js/professions/engineer/build.js';
 import { createGuardianBuildDefaults } from '../../js/professions/guardian/build.js';

@@ -1,5 +1,8 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { gw2AlliedEffectRecipients, prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/allied-players.js';
+import {
+  gw2AlliedEffectRecipients,
+  prepareGw2BuffCompanionCandidates
+} from '../../../platform/gw2/combat/state/allied-players.js';
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared

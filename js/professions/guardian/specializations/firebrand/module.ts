@@ -1,9 +1,5 @@
-import {
-  defineNativeModule,
-  onBuffApplied,
-  onResolvedDamage,
-  skillAvailability
-} from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onBuffApplied, onResolvedDamage, skillAvailability } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createGuardianModuleData } from '../../catalog-data.js';
 import { firebrandSkillHandlers } from './handlers.js';
 import { firebrandEventHandlers, firebrandEventReactions } from './resolver.js';

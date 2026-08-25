@@ -1,5 +1,5 @@
-import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { gw2BaseRecharge } from '../../platform/gw2/skill-recharge.js';
+import { createNativeModuleData } from '../../platform/gw2/authoring/catalog.js';
+import { gw2BaseRecharge } from '../../platform/gw2/skills/recharge.js';
 import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/necromancer-api-metadata.js';
@@ -7,7 +7,7 @@ import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from './data/necromancer-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
-import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
+import type { NativeAutoattackChains } from '../../platform/gw2/authoring/module-types.js';
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
   new Set([

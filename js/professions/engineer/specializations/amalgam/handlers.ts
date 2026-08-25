@@ -1,4 +1,4 @@
-import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { activateAmalgamMorph, activatePlasmaticState, evolveAmalgam } from './amalgam.js';
 
 // Maps handlerId values declared in skills.ts to their afterEffects callbacks.

@@ -1,5 +1,5 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerResolverContext, RangerResolverEvent } from '../../types.js';
 import { rangerBalanceProfile, rangerBalanceProfileEffect } from '../../core/profiles.js';

@@ -2,7 +2,7 @@
 // Snapshot: 2026-08-08. Run npm run update:ranger-data to refresh.
 // Simulator mechanics are maintained under ranger/mechanics/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/authoring/api-metadata-types.js';
 import type { RangerSkill } from '../types.js';
 
 export type RangerApiTrait = Gw2ApiTrait;

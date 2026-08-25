@@ -1,4 +1,4 @@
-import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { activateOverclockSignet, engineerMechSkillHandlers } from './mech.js';
 
 export const mechanistSkillHandlers = Object.freeze({

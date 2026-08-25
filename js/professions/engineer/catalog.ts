@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/native-profession.js';
+import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
 import { ENGINEER_GENERATED_SKILL_IDS } from './catalog-data.js';
 import { engineerNativeModules } from './modules.js';
 

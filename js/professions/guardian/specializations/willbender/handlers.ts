@@ -1,4 +1,4 @@
-import { augmentSkill } from '../../../../platform/gw2/native-profession.js';
+import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';
 import { guardianVirtueSkillHandlers } from '../../core/virtues.js';

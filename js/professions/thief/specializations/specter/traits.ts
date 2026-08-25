@@ -1,5 +1,5 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
+import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
 import { emitThiefState } from '../../core/shared.js';

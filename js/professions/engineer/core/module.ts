@@ -1,4 +1,5 @@
-import { defineNativeModule, onConditionApplied, onResolvedDamage } from '../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
+import { onConditionApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
 import { createEngineerModuleData } from '../catalog-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { engineerCoreSkillHandlers } from './handlers.js';

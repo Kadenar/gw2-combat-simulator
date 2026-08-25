@@ -1,9 +1,9 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { berserkerState } from './state.js';
 import type { AvailabilityResult, SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../core/profiles.js';
 import { advanceBerserker } from './mechanics.js';

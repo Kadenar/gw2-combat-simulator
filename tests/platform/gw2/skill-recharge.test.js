@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { gw2BaseRecharge } from '../../../js/platform/gw2/skill-recharge.js';
-import { gw2EffectiveCooldown } from '../../../js/platform/gw2/runtime-rules.js';
+import { gw2BaseRecharge } from '../../../js/platform/gw2/skills/recharge.js';
+import { gw2EffectiveCooldown } from '../../../js/platform/gw2/combat/query/runtime-rules.js';
 
 test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {
   assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 8);

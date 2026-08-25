@@ -1,4 +1,5 @@
-import { defineNativeModule, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onResolvedDamage } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createThiefModuleData } from '../../catalog-data.js';
 import { antiquarySkillHandlers } from './handlers.js';
 import { antiquaryResolverEventReactions } from './resolver.js';

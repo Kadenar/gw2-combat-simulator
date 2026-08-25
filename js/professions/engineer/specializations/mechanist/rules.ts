@@ -1,6 +1,6 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/runtime-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/combat/query/runtime-rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   activeBoonStacks,
@@ -26,7 +26,7 @@ import {
 } from './mech.js';
 import { engineerMechAttributes } from './state.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { EngineerConfig, EngineerRechargeContext } from '../../types.js';
 
 export const mechanistSchedulerHooks = Object.freeze({

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as ID } from '../../../js/professions/warrior/data/ids.js';
 import { warriorProfession } from '../../../js/professions/warrior/definition.js';

@@ -5,17 +5,17 @@ import type {
   NativePatchAuthoringModifierRule,
   NativePatchAuthoringModule,
   NativePatchAuthoringSkill
-} from '../../platform/gw2/native-module-types.js';
+} from '../../platform/gw2/authoring/module-types.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   type EffectPatch,
   type EffectSelector,
   type ModifierRulePatchEdit,
-  type NumEdit,
   type PatchOverviewEntry,
   type PatchPreview,
   type SkillPatchEdit
-} from '../../platform/gw2/skill-patch.js';
+} from '../../platform/gw2/authoring/patches.js';
+import { type NumEdit } from '../../platform/gw2/authoring/patch-types.js';
 import {
   compactPatchPreview,
   createEffectTemplate,

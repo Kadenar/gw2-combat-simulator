@@ -1,5 +1,5 @@
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
-import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { completeThiefDodge, performThiefDodge } from './dodge.js';
 import {
   activateSpiderVenom,

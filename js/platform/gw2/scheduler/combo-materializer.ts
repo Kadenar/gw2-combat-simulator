@@ -6,9 +6,9 @@ import {
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
-} from '../combo-events.js';
-import { materializeComboOutcome } from '../combo-definitions.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet, gw2StatsForWeaponSet } from '../runtime-rules.js';
+} from '../combos/events.js';
+import { materializeComboOutcome } from '../combos/definitions.js';
+import { gw2BoonDurationMultiplier, gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
 
 import type {
   ScheduledTask,
@@ -23,9 +23,9 @@ import type {
   ComboFieldEvent,
   ComboFieldType,
   ComboFinisherEvent,
-  ComboFinisherType,
-  Gw2Config
-} from '../types.js';
+  ComboFinisherType
+} from '../combos/types.js';
+import type { Gw2Config } from '../simulation/config.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
 

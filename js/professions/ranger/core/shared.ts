@@ -1,5 +1,5 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { rangerPetCompanionId } from './pets.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '../types.js';
 

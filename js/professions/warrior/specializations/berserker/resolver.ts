@@ -1,4 +1,4 @@
-import { onAuraApplied } from '../../../../platform/gw2/native-profession.js';
+import { onAuraApplied } from '../../../../platform/gw2/authoring/mechanics.js';
 import { reactToBerserkerAura } from './traits.js';
 
 export const berserkerReactions = Object.freeze([

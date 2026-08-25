@@ -6,8 +6,8 @@ import { loadProfession } from '../../../js/app/profession/registry.js';
 import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
 import { displayedFlipSkills } from '../../../js/app/rotation/palette/model.js';
 import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,

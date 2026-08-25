@@ -1,4 +1,5 @@
-import { afterSkillEffects, defineNativeModule, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
+import { afterSkillEffects, onResolvedDamage } from '../../../../platform/gw2/authoring/mechanics.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createEngineerModuleData } from '../../catalog-data.js';
 import { mechanistSkillHandlers } from './handlers.js';
 import { mechanistResolverEventReactions } from './resolver.js';

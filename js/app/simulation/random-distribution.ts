@@ -1,5 +1,6 @@
 import type { RotationCommand, SimulationEvent } from '../../platform/engine/types.js';
-import type { Gw2Config, Gw2ProcStep, Gw2ResolverEvent } from '../../platform/gw2/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
+import type { Gw2ProcStep, Gw2ResolverEvent } from '../../platform/gw2/resolver/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '../../platform/engine/core/simulation-random.js';
 import type {
   RandomDistributionDriver,

@@ -5,7 +5,7 @@ import {
   mesmerResourceViews,
   mesmerUiState
 } from '../../core/ui.js';
-import { timedBuffAt } from '../../../../platform/gw2/result-state.js';
+import { timedBuffAt } from '../../../../platform/gw2/results/query.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
@@ -14,7 +14,7 @@ import type {
   SchedulerRecord,
   Skill
 } from '../../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../../platform/gw2/types.js';
+import type { Gw2SimulationResult } from '../../../../platform/gw2/simulation/types.js';
 import type { MesmerResolverEvent, MesmerUiContext } from '../../types.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([

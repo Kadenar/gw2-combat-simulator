@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const API_URL = 'https://api.guildwars2.com/v2/professions?ids=all&v=latest&lang=en';
 const OUTPUT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../js/platform/gw2/build-template-data.ts'
+  '../../js/platform/gw2/builds/templates/data.ts'
 );
 
 /** Refreshes the checked-in palette map so imports never require live API access. */

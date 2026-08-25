@@ -10,12 +10,12 @@ import {
   validateProfessionAssumptions
 } from '../../../js/app/profession/assumptions.js';
 import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../js/platform/gw2/query.js';
-import { createGw2TimelineIndex } from '../../../js/platform/gw2/timeline-index.js';
-import { canonicalTargetConditionName } from '../../../js/platform/gw2/target-state.js';
-import { hasTrait } from '../../../js/platform/gw2/trait-state.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../js/platform/gw2/combat/query/combat-query.js';
+import { createGw2TimelineIndex } from '../../../js/platform/gw2/combat/query/timeline-index.js';
+import { canonicalTargetConditionName } from '../../../js/platform/gw2/combat/state/targets.js';
+import { hasTrait } from '../../../js/platform/gw2/combat/state/traits.js';
 import { validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { defaultWeaponSkillMatchesSet } from '../../../js/platform/gw2/weapon-skill-matcher.js';
+import { defaultWeaponSkillMatchesSet } from '../../../js/platform/gw2/equipment/weapons/skill-matcher.js';
 import { isGw2WeaponSkillEquipped } from '../../../js/platform/gw2/scheduler/policy.js';
 import { engineerProfession } from '../../../js/professions/engineer/definition.js';
 import { guardianProfession } from '../../../js/professions/guardian/definition.js';

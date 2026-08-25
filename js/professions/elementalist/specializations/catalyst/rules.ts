@@ -5,8 +5,8 @@ import type {
   SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext } from '../../../../platform/gw2/types.js';
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/trait-state.js';
+import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
+import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
 import { applyElementalistAura, elementalistBuffDuration, emitElementalistBuff } from '../../core/rules.js';
 import { elementalistCoreState, type ElementalistAttunement } from '../../core/state.js';
 import type { CatalystEmpowermentPool } from '../../types.js';

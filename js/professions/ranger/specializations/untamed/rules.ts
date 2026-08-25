@@ -1,9 +1,9 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/event-ownership.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { untamedState } from './state.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../core/profiles.js';

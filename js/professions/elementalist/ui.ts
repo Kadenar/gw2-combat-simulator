@@ -1,4 +1,4 @@
-import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/weapon-skill-matcher.js';
+import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/equipment/weapons/skill-matcher.js';
 import type {
   CanonicalCatalog,
   ProfessionStartControl,

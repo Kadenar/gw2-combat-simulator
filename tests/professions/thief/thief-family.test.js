@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import {
   THIEF_ELITE_SPECIALIZATIONS,
   thiefCatalog,

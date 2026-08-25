@@ -46,14 +46,10 @@ import { parseWaitDurationMs } from '../../js/app/rotation/palette/view.js';
 import { syncProcVisibility } from '../../js/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/shared/icons.js';
 import { renderResults } from '../../js/app/rotation/result/view.js';
-import {
-  PREFIXES,
-  PREFIX_GROUPS,
-  SIGIL_GROUPS,
-  SIGIL_NAMES,
-  WEAPON_DATA,
-  createProfessionWeaponData
-} from '../../js/platform/gw2/gear-data.js';
+import { PREFIXES, PREFIX_GROUPS } from '../../js/platform/gw2/equipment/gear/stats.js';
+import { SIGIL_GROUPS } from '../../js/platform/gw2/equipment/sigils/catalog.js';
+import { SIGIL_NAMES } from '../../js/platform/gw2/equipment/sigils/data.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '../../js/platform/gw2/equipment/weapons/data.js';
 import { createGuardianBuildDefaults } from '../../js/professions/guardian/build.js';
 import { createEngineerBuildDefaults } from '../../js/professions/engineer/build.js';
 import { guardianProfession } from '../../js/professions/guardian/definition.js';

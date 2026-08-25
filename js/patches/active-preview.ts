@@ -1,4 +1,4 @@
-import type { PatchPreview } from '../platform/gw2/skill-patch.js';
+import type { PatchPreview } from '../platform/gw2/authoring/patches.js';
 
 /**
  * The repository supports one preview at a time. Keep this null until an

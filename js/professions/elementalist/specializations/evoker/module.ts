@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createElementalistModuleData } from '../../catalog-data.js';
 import { evokerAttributeRules, evokerCastRules, evokerSchedulerHooks } from './rules.js';
 import { createEvokerState } from './state.js';

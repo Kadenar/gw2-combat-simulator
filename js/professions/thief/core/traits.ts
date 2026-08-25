@@ -1,7 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
-import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/target-state.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
+import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/combat/state/targets.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasThiefTrait } from './state.js';
 import { emitThiefCondition, emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';

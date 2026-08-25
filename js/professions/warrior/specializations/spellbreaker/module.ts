@@ -1,4 +1,5 @@
-import { defineNativeModule, onResolvedControl, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onResolvedControl, onResolvedDamage } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createWarriorModuleData } from '../../catalog-data.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from './skills.js';
 import { spellbreakerSkillHandlers } from './handlers.js';

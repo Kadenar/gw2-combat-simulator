@@ -1,8 +1,8 @@
-import { GEAR_SLOTS } from '../../platform/gw2/gear-data.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
-import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
-import { boundedNumber, enumValue } from '../../platform/gw2/build-normalization.js';
-import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
+import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
+import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
+import { boundedNumber, enumValue } from '../../platform/gw2/builds/normalization.js';
+import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
@@ -13,7 +13,7 @@ import { revenantCatalog } from './catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from './data/ids.js';
 import { revenantLegendLoadout } from './legend-loadout.js';
 import type { RevenantCanonicalBuild, RevenantDodge } from './types.js';
-import type { Gw2SlotLoadout } from '../../platform/gw2/types.js';
+import type { Gw2SlotLoadout } from '../../platform/gw2/builds/types.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**

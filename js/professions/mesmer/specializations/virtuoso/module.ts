@@ -1,4 +1,4 @@
-import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createMesmerModuleData } from '../../catalog-data.js';
 import { virtuosoAttributeRules, virtuosoCastRules, virtuosoRuntimeHooks } from './rules.js';
 import { createVirtuosoResolverState, virtuosoState } from './state.js';

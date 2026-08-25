@@ -1,6 +1,6 @@
-import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { augmentSkill, replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
 import { SKILL_HANDLER_MODES } from '../../../platform/engine/skills/handlers.js';
-import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import type { SkillHandlerPhase } from '../../../platform/engine/types.js';
 import type { RevenantCastContext, RevenantSimulationEvent, RevenantSkill } from '../types.js';
 import { gainAncientEchoEnergy, revenantCoreSkillHandlers as rawCoreHandlers } from './actions.js';

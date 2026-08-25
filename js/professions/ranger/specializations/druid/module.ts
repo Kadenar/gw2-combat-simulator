@@ -1,8 +1,5 @@
-import {
-  defineNativeModule,
-  onConditionApplied,
-  onResolvedControl
-} from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onConditionApplied, onResolvedControl } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createRangerModuleData } from '../../catalog-data.js';
 import { druidSkillHandlers } from './handlers.js';
 import { druidAttributeRules, druidCastRules, druidSchedulerHooks } from './rules.js';

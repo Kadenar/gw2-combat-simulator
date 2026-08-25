@@ -6,10 +6,10 @@ import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.
 import { defineProfession } from '../../js/platform/engine/profession/contract.js';
 import { defineProfessionFamily, resolveProfessionRuntime } from '../../js/platform/engine/profession/family.js';
 import { defineProfessionModule } from '../../js/platform/engine/profession/module.js';
-import { nativeSkillRuntimeOwner } from '../../js/platform/gw2/native-profession.js';
+import { nativeSkillRuntimeOwner } from '../../js/platform/gw2/authoring/catalog.js';
 import { createResolverState } from '../../js/platform/engine/resolution/resolver.js';
 import { createScheduler } from '../../js/platform/engine/execution/scheduler.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
 import { composeSkillMechanics } from '../helpers/skill-mechanics.js';
 import { ENGINEER_ELITE_SPECIALIZATIONS, engineerCatalog } from '../../js/professions/engineer/catalog.js';

@@ -2,7 +2,7 @@
 // Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Mesmer to refresh.
 // Simulator mechanics are maintained under mesmer/mechanics/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/api-metadata-types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '../../../platform/gw2/authoring/api-metadata-types.js';
 import type { MesmerSkill } from '../types.js';
 
 export type MesmerApiTrait = Gw2ApiTrait;

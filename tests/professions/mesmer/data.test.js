@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { SKILLS, SPECIALIZATIONS } from '../../../js/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '../../../js/professions/guardian/data/guardian-api-metadata.js';
 import { TRAITS } from '../../../js/professions/mesmer/data/traits-data.js';

@@ -7,7 +7,7 @@ import {
   createGw2ComboRuntimeState,
   registerComboField,
   resolveComboAttempt
-} from '../../../js/platform/gw2/combo-events.js';
+} from '../../../js/platform/gw2/combos/events.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 
 const query = {

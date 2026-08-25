@@ -1,5 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/allied-players.js';
+import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/combat/state/allied-players.js';
 /**
  * Life-force resource clock and cast finalization.
  *

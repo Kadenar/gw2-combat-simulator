@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
  *
@@ -10,7 +10,7 @@ import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timin
  * their specialization slices.
  */
 import type { ScheduledTask } from '../../../platform/engine/types.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { gainWarriorEndurance } from './resources.js';
 import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '../resources.js';

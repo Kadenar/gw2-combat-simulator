@@ -13,7 +13,7 @@ import type {
   MesmerStrikeEffect
 } from '../types.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';
-import { castRelativeEffectTimingScale } from '../../../platform/gw2/skill-timing.js';
+import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 import type { MesmerPhantasmEffectController, MesmerPhantasmExecution } from './phantasms.js';
 
 export interface MesmerSkillDamageResult {

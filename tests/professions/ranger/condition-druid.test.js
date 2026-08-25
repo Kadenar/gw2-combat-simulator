@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { migrateRangerBuild } from '../../../js/professions/ranger/build.js';
 import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../js/professions/ranger/data/ids.js';

@@ -9,14 +9,9 @@ import type {
   Skill,
   SkillId
 } from '../../platform/engine/types.js';
-import type {
-  Gw2Build,
-  Gw2BuildAttributeRuleContext,
-  Gw2CanonicalBuild,
-  Gw2Config,
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime
-} from '../../platform/gw2/types.js';
+import type { Gw2Build, Gw2BuildAttributeRuleContext, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../platform/gw2/resolver/types.js';
 import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
 
 export interface GuardianSpecializationSelection {

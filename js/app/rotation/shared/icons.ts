@@ -1,6 +1,8 @@
 import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { Gw2ProcStep } from '../../../platform/gw2/types.js';
-import { FOOD_DATA, NOURISHMENT_ICON, RELIC_DATA, SIGIL_DATA } from '../../../platform/gw2/gear-data.js';
+import type { Gw2ProcStep } from '../../../platform/gw2/resolver/types.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '../../../platform/gw2/equipment/consumables/food.js';
+import { RELIC_DATA } from '../../../platform/gw2/equipment/relics/catalog.js';
+import { SIGIL_DATA } from '../../../platform/gw2/equipment/sigils/data.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 
 export interface ResultIconRow {

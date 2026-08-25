@@ -1,10 +1,10 @@
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
 import {
-  defineNativeModule,
   onBuffApplied,
   onConditionApplied,
   onResolvedDamage,
   onResolvedPlayerCriticalHit
-} from '../../../platform/gw2/native-profession.js';
+} from '../../../platform/gw2/authoring/mechanics.js';
 import { createThiefModuleData } from '../catalog-data.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from './resolver.js';
 import { thiefCoreAttributeRules, thiefCoreCastRules, thiefCoreSchedulerHooks } from './rules.js';

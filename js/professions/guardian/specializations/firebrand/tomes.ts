@@ -6,8 +6,11 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  * reactions.
  */
 
-import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
+import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import {
+  gw2AlliedPlayerAssumptions,
+  gw2AlliedPlayerProcTimeline
+} from '../../../../platform/gw2/combat/state/allied-players.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { selectedGuardianSpecialization } from '../../core/availability.js';
 import { emitGuardianEvent } from '../../core/events.js';
@@ -15,7 +18,7 @@ import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core
 import { hasGuardianTrait } from '../../core/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,

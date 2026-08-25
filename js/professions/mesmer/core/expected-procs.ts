@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
-import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
+import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerState, SimulationEvent } from '../../../platform/engine/types.js';
 import type {

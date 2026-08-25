@@ -1,4 +1,4 @@
-import type { Gw2ResolverEvent } from '../gw2/types.js';
+import type { Gw2ResolverEvent } from '../gw2/resolver/types.js';
 
 function percent(value: number, signed = false): string {
   const numeric = Number(value || 0) * 100;

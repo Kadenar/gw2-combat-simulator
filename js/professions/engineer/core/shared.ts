@@ -1,12 +1,12 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { clamp } from '../../../platform/gw2/numeric.js';
+import { clamp } from '../../../platform/gw2/combat/numeric.js';
 import {
   enqueueGw2OwnedComboFinisher,
   type EnqueueGw2OwnedComboFinisherOptions
 } from '../../../platform/gw2/resolver/combo-resolution.js';
 import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
-import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
+import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,

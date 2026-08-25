@@ -4,8 +4,8 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '../../../js/app/profession/registry.js';
 import { professionRoute } from '../../../js/app/profession/selector.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
 import { buildChartSeries } from '../../../js/app/rotation/result/model.js';
 import { formatResourceValue } from '../../../js/app/rotation/palette/resource-view.js';

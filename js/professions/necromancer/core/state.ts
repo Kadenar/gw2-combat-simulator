@@ -1,4 +1,4 @@
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { NECROMANCER_TRAIT_IDS } from '../data/ids.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerConfig, NecromancerCoreState } from '../types.js';

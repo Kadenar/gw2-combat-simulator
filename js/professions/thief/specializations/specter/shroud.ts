@@ -4,7 +4,7 @@ import { hasThiefTrait } from '../../core/state.js';
 import { emitThiefShroudSwap, emitThiefState } from '../../core/shared.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { completeStealWithStoredSkills } from '../../core/steal.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
+import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';

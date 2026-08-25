@@ -1,4 +1,4 @@
-import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { augmentSkill, replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
 import { performEngineerDodge } from './dodge.js';
 import { engineerFlipSkillHandlers } from './flips.js';
 import { engineerKitSkillHandlers } from './kits.js';

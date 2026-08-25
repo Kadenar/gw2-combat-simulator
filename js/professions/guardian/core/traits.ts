@@ -3,7 +3,7 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import { SPECIALIZATIONS } from '../data/guardian-api-metadata.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
-import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
+import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { buildGuardianStrike } from './events.js';
 import {
   GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,

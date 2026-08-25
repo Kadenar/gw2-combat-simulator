@@ -1,10 +1,10 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
+import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '../../types.js';
 import { dragonhunterState } from './state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';

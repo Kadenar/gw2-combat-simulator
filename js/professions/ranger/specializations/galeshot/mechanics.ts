@@ -1,4 +1,4 @@
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../../platform/gw2/scheduler/policy.js';
 import type { ScheduledTask, SimulationEvent } from '../../../../platform/engine/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';

@@ -1,4 +1,4 @@
-import { createCalculateAttributes } from '../../platform/gw2/attributes.js';
+import { createCalculateAttributes } from '../../platform/gw2/builds/attributes.js';
 import { createGw2AppAdapter } from './create-adapter.js';
 import { createProfessionRuntime } from './create-runtime.js';
 import type { Skill } from '../../platform/engine/types.js';

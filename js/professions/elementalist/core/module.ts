@@ -1,9 +1,5 @@
-import {
-  defineNativeModule,
-  onAuraApplied,
-  onConditionApplied,
-  onResolvedDamage
-} from '../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
+import { onAuraApplied, onConditionApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
 import { createElementalistModuleData } from '../catalog-data.js';
 import {
   elementalistCoreAttributeRules,

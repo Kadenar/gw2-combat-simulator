@@ -1,7 +1,7 @@
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { elementalistMightStacks, elementalistTimedBuffStacks } from '../../core/modifiers.js';
 import { elementalistBalanceValue } from '../../core/profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

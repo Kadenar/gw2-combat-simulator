@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/trait-state.js';
+import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext } from '../../types.js';
 import { emitElementalistBuff } from '../../core/mechanics.js';

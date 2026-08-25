@@ -5,7 +5,7 @@ import {
   serializeActivePatchPreview,
   validateAuthoringPreview
 } from '../../scripts/patch-preview/patch-preview-authoring-api.mjs';
-import { validatePatchPreview } from '../../js/platform/gw2/skill-patch.js';
+import { validatePatchPreview } from '../../js/platform/gw2/authoring/patches.js';
 
 test('patch authoring serializer emits the typed active preview module', () => {
   const source = serializeActivePatchPreview({

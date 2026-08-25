@@ -1,18 +1,18 @@
-import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/target-state.js';
-import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/attribute-provenance.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
   targetConditionCount,
   targetHealthFraction
-} from '../../../platform/gw2/runtime-query.js';
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { necromancerCastRules, necromancerCoreSkillMechanicHandlers, necromancerSchedulerHooks } from './contract.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE, necromancerBalanceProfile } from './profiles.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type {
   NecromancerCoreState,
   NecromancerQueryRuntime,

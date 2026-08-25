@@ -1,6 +1,6 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import { onResolvedPlayerCriticalHit } from '../../../../platform/gw2/native-profession.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { onResolvedPlayerCriticalHit } from '../../../../platform/gw2/authoring/mechanics.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { resolveSummonOwnedComboFinisher } from './combos.js';
 import { applyTraitCondition, queueTraitCoefficientDamage, targetIsChilled } from '../../core/traits.js';

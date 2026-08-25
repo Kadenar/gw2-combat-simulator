@@ -2,8 +2,8 @@ import { luminaryState } from './state.js';
 import { PIERCING_STANCE_IMPACT_MS } from './skills.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
-import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
-import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skill-timing.js';
+import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skills/timing.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import {
@@ -17,7 +17,7 @@ import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/types.js';
+import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,

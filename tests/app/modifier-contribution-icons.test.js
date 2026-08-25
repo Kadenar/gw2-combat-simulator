@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { resultSkillIcon } from '../../js/app/rotation/shared/icons.js';
-import { FOOD_DATA, NOURISHMENT_ICON, SIGIL_DATA } from '../../js/platform/gw2/gear-data.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '../../js/platform/gw2/equipment/consumables/food.js';
+import { SIGIL_DATA } from '../../js/platform/gw2/equipment/sigils/data.js';
 
 const app = {
   attributeData: { activeTraits: [] },

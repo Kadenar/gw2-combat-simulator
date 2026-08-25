@@ -5,10 +5,10 @@ import {
   COMBO_DEFINITIONS,
   comboDefinition,
   validateComboDefinitions
-} from '../../../js/platform/gw2/combo-definitions.js';
-import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '../../../js/platform/gw2/combo-events.js';
+} from '../../../js/platform/gw2/combos/definitions.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '../../../js/platform/gw2/combos/events.js';
 import { createGw2EventPreparer } from '../../../js/platform/gw2/scheduler/event-preparer.js';
-import { normalizeGw2ComboCatalogSkill } from '../../../js/platform/gw2/combo-catalog.js';
+import { normalizeGw2ComboCatalogSkill } from '../../../js/platform/gw2/combos/catalog.js';
 
 const context = {
   catalog: { skillsById: new Map(), skillsByName: new Map() },

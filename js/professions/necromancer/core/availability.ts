@@ -1,7 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from './state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import type { AvailabilityResult, SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerPrecastContext, NecromancerCoreState, NecromancerSkill } from '../types.js';
 

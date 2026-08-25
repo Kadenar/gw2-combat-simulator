@@ -1,6 +1,6 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { elementalistTimedBuffStacks } from '../../core/modifiers.js';
 
 export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

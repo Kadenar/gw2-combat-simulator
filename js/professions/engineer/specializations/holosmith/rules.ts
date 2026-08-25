@@ -1,5 +1,5 @@
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { engineerEvent, engineerSpecializationState, eventSkill, playerStrike } from '../../core/rule-helpers.js';
 import { holosmithCastAvailability } from './availability.js';
@@ -10,7 +10,7 @@ import {
   observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
 } from './photon-forge.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { EngineerCastContext, EngineerSkill } from '../../types.js';
 
 // skill.id === -5 is the synthetic dodge skill; TRV fires at dodge start (context.start), not end.

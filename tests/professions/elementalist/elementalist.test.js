@@ -10,7 +10,7 @@ import {
   professionRegistry
 } from '../../../js/app/profession/registry.js';
 import { PROFESSION_ROUTES, professionRoute } from '../../../js/app/profession/selector.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,

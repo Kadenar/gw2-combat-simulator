@@ -1,11 +1,11 @@
-import { isGw2PlayerActorEvent } from '../../../../platform/gw2/event-ownership.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianVirtue } from '../../types.js';
 import { activeLethalTempo, gainLethalTempo } from './mechanics.js';
 import { willbenderState } from './state.js';

@@ -1,6 +1,9 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '../../../platform/gw2/allied-players.js';
+import {
+  gw2AlliedPlayerAssumptions,
+  gw2AlliedPlayerProcTimeline
+} from '../../../platform/gw2/combat/state/allied-players.js';
 import { emitThiefState, gainThiefInitiative } from './shared.js';
 import {
   beginStealthAttack as beginBaseStealthAttack,

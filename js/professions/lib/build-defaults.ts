@@ -1,5 +1,5 @@
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '../../app/simulation/randomness.js';
-import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
+import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import type { RotationCommand, SchedulerRecord } from '../../platform/engine/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 3_970_000;

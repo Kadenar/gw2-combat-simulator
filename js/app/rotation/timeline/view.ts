@@ -67,7 +67,7 @@ import {
   timelineWeaponRows
 } from './model.js';
 import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '../../../platform/engine/types.js';
-import type { Gw2ProcStep } from '../../../platform/gw2/types.js';
+import type { Gw2ProcStep } from '../../../platform/gw2/resolver/types.js';
 import type { TimelineInteractionOptions } from '../../../platform/ui/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../../profession/types.js';
 

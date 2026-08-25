@@ -5,7 +5,7 @@ import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catal
 import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
 import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '../../../js/platform/gw2/scheduler/policy.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   return defineProfession({

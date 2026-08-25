@@ -20,16 +20,14 @@ import type {
   SkillFragment,
   SkillId
 } from '../../platform/engine/types.js';
+import type { Gw2Build, Gw2BuildAttributeRuleContext, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
+import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
 import type {
-  Gw2Build,
-  Gw2BuildAttributeRuleContext,
-  Gw2CanonicalBuild,
-  Gw2Config,
   Gw2ConditionResolution,
-  Gw2CriticalResult,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
-} from '../../platform/gw2/types.js';
+} from '../../platform/gw2/resolver/types.js';
+import type { Gw2CriticalResult } from '../../platform/gw2/combat/query/types.js';
 import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
 
 export interface MesmerSpecializationSelection {

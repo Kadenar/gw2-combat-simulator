@@ -1,5 +1,5 @@
-import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '../gw2/types.js';
-import { remainingDurationStackSeconds } from '../gw2/boon-state.js';
+import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '../gw2/resolver/types.js';
+import { remainingDurationStackSeconds } from '../gw2/combat/state/boons.js';
 import { escapeHtml } from './html.js';
 
 export interface ChartPoint {

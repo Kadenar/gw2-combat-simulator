@@ -1,4 +1,5 @@
-import { defineNativeModule, onConditionApplied } from '../../../../platform/gw2/native-profession.js';
+import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
+import { onConditionApplied } from '../../../../platform/gw2/authoring/mechanics.js';
 import { createNecromancerModuleData } from '../../catalog-data.js';
 import { scourgeSkillHandlers } from './handlers.js';
 import { scourgeResolverEventReactions } from './resolver.js';

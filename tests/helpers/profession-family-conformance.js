@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { nativeSkillRuntimeOwner } from '../../js/platform/gw2/native-profession.js';
+import { nativeSkillRuntimeOwner } from '../../js/platform/gw2/authoring/catalog.js';
 import { GW2_RESOLVER_STAGES } from '../../js/platform/gw2/resolver/reaction-registry.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
   'createProfessionState',

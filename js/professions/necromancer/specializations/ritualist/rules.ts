@@ -1,6 +1,6 @@
-import { professionStaticRulesApplied } from '../../../../platform/gw2/attribute-provenance.js';
-import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
-import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   cloneNecromancerAttributes,
@@ -10,7 +10,7 @@ import {
   necromancerTargetControlled
 } from '../../core/rules.js';
 import type { AvailabilityResult, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { NecromancerPrecastContext, NecromancerSkill } from '../../types.js';
