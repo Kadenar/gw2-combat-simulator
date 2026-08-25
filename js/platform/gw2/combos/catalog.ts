@@ -116,24 +116,9 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
   } as SkillEffect;
 }
 
-/** Normalizes explicit GW2 combo descriptors and supported field aliases at native catalog assembly time. */
+/** Normalizes explicit GW2 combo descriptors at native catalog assembly time. */
 export function normalizeGw2ComboCatalogSkill(skill: SkillFragment): SkillFragment {
-  const legacyDuration = Number(skill.comboFieldDuration ?? skill.fieldDuration ?? skill.duration ?? 0);
-  // When comboFieldStartMs is absent the field activates at the end of the cast
-  // animation rather than the beginning. Most fields use this implicit behavior.
-  const comboFields =
-    skill.comboFields != null
-      ? normalizeFieldDescriptors(skill.comboFields)
-      : skill.comboField && legacyDuration > 0
-        ? normalizeFieldDescriptors([
-            {
-              fieldType: skill.comboField,
-              duration: legacyDuration,
-              startMs: Number(skill.comboFieldStartMs ?? 0),
-              startAnchor: skill.comboFieldStartMs == null ? 'castEnd' : 'castStart'
-            }
-          ])
-        : undefined;
+  const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;
   const comboFinishers =
     skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;
   return {

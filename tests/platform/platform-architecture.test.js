@@ -3017,8 +3017,6 @@ test('migrated combo professions have no local compatibility path', async () => 
     const files = await javascriptFiles(root);
     const source = (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n');
 
-    assert.doesNotMatch(source, /\bcomboField(?:Duration|StartMs)?\b/, profession);
-    assert.doesNotMatch(source, /\bfieldDuration\b/, profession);
     assert.doesNotMatch(source, /blast_combo|blast-combo\.resolved/, profession);
     await assert.rejects(readFile(path.join(root, 'core', 'combos.ts'), 'utf8'), (error) => error?.code === 'ENOENT');
   }

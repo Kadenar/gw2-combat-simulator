@@ -1,4 +1,5 @@
 import { EPSILON } from '../../engine/core/clock.js';
+import { normalizeSimulationEventInput } from '../../engine/events/events.js';
 import { clamp } from '../combat/numeric.js';
 import { comboDefinition } from './definitions.js';
 
@@ -32,7 +33,7 @@ export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze(
   'Whirl'
 ]);
 
-const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'unknown', 'phantasm']);
+const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'unknown']);
 const FIELD_TYPES_BY_LOWERCASE = new Map(COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]));
 const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]));
 
@@ -132,6 +133,7 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
 
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
 export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEventInput {
+  event = normalizeSimulationEventInput(event);
   if (event.type === 'combo_field') {
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);
