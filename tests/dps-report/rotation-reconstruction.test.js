@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  readDpsReportRotationData,
-  readDpsReportRotationUrl
-} from '../../js/app/build/io/dps-report-rotation-import.js';
+import { readDpsReportRotationData } from '../../js/app/build/io/dps-report-rotation-import.js';
+import { applyRotationImportPreview, previewDpsReportUrl } from '../../js/app/build/io/rotation-import-dialog.js';
 import { DpsReportError } from '../../js/dps-report-analyzer/errors.js';
 import { isDpsReportData, parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
 import {
@@ -223,7 +221,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
 });
 
-test('the app importer accepts raw EI JSON and fetched dps.report data', async () => {
+test('the app importer previews fetched dps.report data before applying it', async () => {
   const imported = await readDpsReportRotationData(reportFixture(), appFixture());
 
   assert.equal(imported.playerLabel, 'Fixture Amalgam (Fixture.1234)');
@@ -233,11 +231,25 @@ test('the app importer accepts raw EI JSON and fetched dps.report data', async (
     true
   );
 
-  const fetched = await readDpsReportRotationUrl(
+  const app = appFixture();
+  const changedCalls = [];
+  const originalRotation = [{ type: 'wait', durationMs: 250 }];
+
+  app.build.rotation = originalRotation;
+  app.changed = (...args) => changedCalls.push(args);
+  const preview = await previewDpsReportUrl(
     'fhZX-20260622-152654_golem',
-    appFixture(),
+    app,
     async () => new Response(JSON.stringify(reportFixture()), { status: 200 })
   );
 
-  assert.deepEqual(fetched.rotation, imported.rotation);
+  assert.deepEqual(preview.rotation, imported.rotation);
+  assert.strictEqual(app.build.rotation, originalRotation);
+  assert.deepEqual(changedCalls, []);
+
+  applyRotationImportPreview(app, preview);
+
+  assert.deepEqual(app.build.rotation, imported.rotation);
+  assert.notStrictEqual(app.build.rotation, preview.rotation);
+  assert.deepEqual(changedCalls, [[false]]);
 });

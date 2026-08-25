@@ -5,11 +5,13 @@ import { isDpsReportData } from '../../../dps-report-analyzer/parser.js';
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
 import { errorMessage } from '../../../platform/ui/dom.js';
 
+import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 
-interface RotationImportSummary {
+export interface RotationImportPreview {
+  readonly rotation: readonly RotationCommand[];
   readonly actionCount: number;
   readonly description: string;
   readonly warnings: readonly string[];
@@ -24,19 +26,19 @@ interface RotationImportDialogElements {
   readonly browseButton: HTMLButtonElement;
   readonly reportInput: HTMLInputElement;
   readonly reportButton: HTMLButtonElement;
+  readonly applyButton: HTMLButtonElement;
   readonly closeButton: HTMLButtonElement;
 }
 
-/** Imports a saved rotation, raw Elite Insights JSON, or an ArcDPS EVTC log. */
-export async function importRotationFile(file: File, app: ProfessionAppState): Promise<RotationImportSummary> {
+/** Reads and validates a rotation file without replacing the active rotation until the user applies the preview. */
+export async function previewRotationFile(file: File, app: ProfessionAppState): Promise<RotationImportPreview> {
   if (isJsonRotationFile(file)) {
     const imported = await readJsonFile(file);
     const rotation = getRotationItems(imported);
     if (rotation) {
       // JSON rotations may use any historical interchange shape; app state stays canonical.
-      app.build.rotation = normalizeRotation(rotation, app.activeCatalog, { strict: true });
-      app.changed(false);
       return {
+        rotation: normalizeRotation(rotation, app.activeCatalog, { strict: true }),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
         warnings: []
@@ -45,9 +47,8 @@ export async function importRotationFile(file: File, app: ProfessionAppState): P
 
     if (isDpsReportData(imported)) {
       const report = await readDpsReportRotationData(imported, app);
-      app.build.rotation = [...report.rotation];
-      app.changed(false);
       return {
+        rotation: report.rotation,
         actionCount: report.actionCount,
         description: `Reconstructed ${report.playerLabel} · ${report.phaseLabel}`,
         warnings: report.warnings
@@ -58,25 +59,33 @@ export async function importRotationFile(file: File, app: ProfessionAppState): P
   }
 
   const imported = await readEvtcRotationFile(file, app);
-  app.build.rotation = [...imported.rotation];
-  app.changed(false);
   return {
+    rotation: imported.rotation,
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel}`,
     warnings: imported.warnings
   };
 }
 
-/** Fetches and installs a dps.report rotation into the active profession app. */
-export async function importDpsReportUrl(input: string, app: ProfessionAppState): Promise<RotationImportSummary> {
-  const imported = await readDpsReportRotationUrl(input, app);
-  app.build.rotation = [...imported.rotation];
-  app.changed(false);
+/** Fetches and reconstructs a dps.report rotation without replacing the active rotation before review. */
+export async function previewDpsReportUrl(
+  input: string,
+  app: ProfessionAppState,
+  fetchImplementation: typeof fetch = fetch
+): Promise<RotationImportPreview> {
+  const imported = await readDpsReportRotationUrl(input, app, fetchImplementation);
   return {
+    rotation: imported.rotation,
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel} · ${imported.phaseLabel}`,
     warnings: imported.warnings
   };
+}
+
+/** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
+export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
+  app.build.rotation = [...preview.rotation];
+  app.changed(false);
 }
 
 function ensureStyles(document: Document): void {
@@ -112,6 +121,7 @@ function ensureStyles(document: Document): void {
       border-left:3px solid #a67c22; border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
     .rotation-import-warning-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
     .rotation-import-actions { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; }
+    .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
   `;
   document.head.append(style);
 }
@@ -140,7 +150,8 @@ function createDialog(document: Document): RotationImportDialogElements {
     <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
     <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
     <div class="rotation-import-actions">
-      <button type="button" class="btn" data-rotation-import-close>Close</button>
+      <button type="button" class="btn" data-rotation-import-close>Cancel</button>
+      <button type="button" class="btn btn-io" data-rotation-import-apply disabled>Apply rotation</button>
     </div>
   </form>`;
   document.body.append(dialog);
@@ -152,8 +163,19 @@ function createDialog(document: Document): RotationImportDialogElements {
   const browseButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-browse]');
   const reportInput = dialog.querySelector<HTMLInputElement>('[data-rotation-import-report-input]');
   const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
+  const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
   const closeButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-close]');
-  if (!dropZone || !status || !error || !warnings || !browseButton || !reportInput || !reportButton || !closeButton) {
+  if (
+    !dropZone ||
+    !status ||
+    !error ||
+    !warnings ||
+    !browseButton ||
+    !reportInput ||
+    !reportButton ||
+    !applyButton ||
+    !closeButton
+  ) {
     throw new Error('Rotation import dialog failed to initialize.');
   }
 
@@ -166,6 +188,7 @@ function createDialog(document: Document): RotationImportDialogElements {
     browseButton,
     reportInput,
     reportButton,
+    applyButton,
     closeButton
   };
 }
@@ -204,8 +227,11 @@ export function bindRotationImportDialog(
 
   const elements = createDialog(button.ownerDocument);
   let importing = false;
+  let activePreview: RotationImportPreview | null = null;
 
   const resetMessages = (): void => {
+    activePreview = null;
+    elements.applyButton.disabled = true;
     elements.status.classList.remove('is-success');
     elements.status.textContent = 'Select a file or enter a link to begin.';
     elements.error.hidden = true;
@@ -220,19 +246,22 @@ export function bindRotationImportDialog(
     elements.reportButton.disabled = value;
     elements.reportInput.disabled = value;
     elements.closeButton.disabled = value;
+    elements.applyButton.disabled = value || !activePreview;
   };
 
   const selectFile = async (file: File): Promise<void> => {
     if (importing) return;
+    activePreview = null;
     setImporting(true);
     elements.status.classList.remove('is-success');
     elements.status.textContent = `Reading ${file.name}…`;
     elements.error.hidden = true;
     elements.warnings.hidden = true;
     try {
-      const imported = await importRotationFile(file, app);
+      const imported = await previewRotationFile(file, app);
+      activePreview = imported;
       elements.status.classList.add('is-success');
-      elements.status.textContent = `${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
+      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
@@ -252,15 +281,17 @@ export function bindRotationImportDialog(
     if (importing) return;
     const input = elements.reportInput.value.trim();
     if (!input) return;
+    activePreview = null;
     setImporting(true);
     elements.status.classList.remove('is-success');
     elements.status.textContent = 'Fetching dps.report…';
     elements.error.hidden = true;
     elements.warnings.hidden = true;
     try {
-      const imported = await importDpsReportUrl(input, app);
+      const imported = await previewDpsReportUrl(input, app);
+      activePreview = imported;
       elements.status.classList.add('is-success');
-      elements.status.textContent = `${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
+      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
@@ -285,6 +316,12 @@ export function bindRotationImportDialog(
     if (event.key !== 'Enter') return;
     event.preventDefault();
     void selectReport();
+  });
+  elements.applyButton.addEventListener('click', () => {
+    if (!activePreview) return;
+    applyRotationImportPreview(app, activePreview);
+    activePreview = null;
+    elements.dialog.close();
   });
   elements.closeButton.addEventListener('click', () => elements.dialog.close());
   fileInput.addEventListener('change', () => {

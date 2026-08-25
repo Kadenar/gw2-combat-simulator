@@ -4,6 +4,7 @@ import test from 'node:test';
 import { deflateRawSync } from 'node:zlib';
 
 import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/io/evtc-rotation-import.js';
+import { applyRotationImportPreview, previewRotationFile } from '../../js/app/build/io/rotation-import-dialog.js';
 import { EvtcError } from '../../js/evtc-analyzer/errors.js';
 import { EVTC_PROFESSIONS, EVTC_SPECIALIZATIONS } from '../../js/evtc-analyzer/profession-metadata.js';
 import {
@@ -3712,28 +3713,42 @@ test('requires an address when multiple players have equal action evidence', () 
   );
 });
 
-test('the browser rotation importer reads compressed .zevtc files', async () => {
+test('the browser rotation importer previews compressed .zevtc files before applying them', async () => {
   assert.equal(isJsonRotationFile({ name: 'rotation.json', type: '' }), true);
   assert.equal(isJsonRotationFile({ name: 'fight.zevtc', type: '' }), false);
   const bytes = zipEvtc(expandedEvtcFixture());
-  const imported = await readEvtcRotationFile(
+  const changedCalls = [];
+  const originalRotation = [{ type: 'wait', durationMs: 250 }];
+  const app = {
+    profession: { id: 'mesmer', name: 'Mesmer' },
+    adapter: { eliteSpecialization: () => 'Chronomancer' },
+    build: { rotation: originalRotation },
+    activeCatalog: catalog,
+    changed(...args) {
+      changedCalls.push(args);
+    }
+  };
+  const imported = await previewRotationFile(
     {
       name: 'fight.zevtc',
       type: 'application/octet-stream',
       arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
     },
-    {
-      profession: { id: 'mesmer', name: 'Mesmer' },
-      adapter: { eliteSpecialization: () => 'Chronomancer' },
-      build: {},
-      activeCatalog: catalog
-    }
+    app
   );
 
-  assert.equal(imported.playerLabel, 'Fixture Chronomancer (:Fixture.1234)');
+  assert.equal(imported.description, 'Reconstructed Fixture Chronomancer (:Fixture.1234)');
   assert.equal(imported.actionCount, 1);
   assert.deepEqual(imported.rotation, [{ type: 'cast', skillId: 1_000 }]);
   assert.match(imported.warnings[0], /no matching stop event/);
+  assert.strictEqual(app.build.rotation, originalRotation);
+  assert.deepEqual(changedCalls, []);
+
+  applyRotationImportPreview(app, imported);
+
+  assert.deepEqual(app.build.rotation, imported.rotation);
+  assert.notStrictEqual(app.build.rotation, imported.rotation);
+  assert.deepEqual(changedCalls, [[false]]);
 
   const idleGapBytes = zipEvtc(expandedEvtcFixture({ secondActivation: true }));
   const idleGapImport = await readEvtcRotationFile(
