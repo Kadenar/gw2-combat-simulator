@@ -459,20 +459,6 @@ test('saved builds fall back when their relic is no longer available', () => {
   assert.equal(replaceBuild({ relic: 'Claw' }).relic, 'Claw');
 });
 
-test('legacy target assumptions migrate to target health and conditions', () => {
-  const migrated = replaceBuild({
-    assumptions: {
-      vulnerability: 12,
-      targetHealthAbove50: false
-    }
-  });
-
-  assert.equal(migrated.targetHealth, 3970000);
-  assert.equal(migrated.assumptions.targetConditions.Vulnerability, 12);
-  assert.equal('targetHealthAbove50' in migrated.assumptions, false);
-  assert.equal('vulnerability' in migrated.assumptions, false);
-});
-
 test('Mesmer rotations accept names and stable IDs while disambiguating duplicate names', () => {
   const specializations = [
     { name: 'Dueling', traits: '1-3-1' },

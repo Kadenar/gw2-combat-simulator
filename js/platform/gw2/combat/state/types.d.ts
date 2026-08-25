@@ -4,8 +4,6 @@ import type { SchedulerRecord } from '../../../engine/types.js';
 export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
 
 export interface Gw2TargetConfig extends SchedulerRecord {
-  readonly vulnerability?: number | boolean;
-  readonly slowed?: number | boolean;
   readonly conditions?: Readonly<Record<string, number | boolean>>;
   readonly health?: number;
   readonly armor?: number;

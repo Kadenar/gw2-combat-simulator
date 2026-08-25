@@ -1,14 +1,6 @@
-/**
- * Maps legacy target-condition fields to their modern counterparts.
- * Used for backward compatibility with older config formats.
- */
+/** Normalizes configured and runtime target conditions behind canonical stack queries. */
 import type { Gw2Config } from '../../simulation/config.js';
 import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from './types.js';
-
-const LEGACY_TARGET_FIELDS: Readonly<Record<string, string>> = {
-  Vulnerability: 'vulnerability',
-  Slow: 'slowed'
-};
 
 const CONDITION_ALIASES = Object.freeze({
   bleed: 'Bleeding',
@@ -77,8 +69,7 @@ function normalizeTargetConditions(
 }
 
 /**
- * Resolves condition value from config, checking legacy fields first,
- * then modern conditions object with case-insensitive matching.
+ * Resolves a configured target condition with canonical and alias-aware matching.
  * @param {Gw2Config} config - Simulation config containing target state
  * @param {string} name - Condition name (e.g., "Vulnerability", "Slow")
  * @returns {number|boolean} Configured value or 0 if not found
@@ -90,11 +81,6 @@ function configuredConditionValue(
   normalizedConditions: ReadonlyMap<string, number | boolean> | null = null
 ): number | boolean {
   const canonicalName = canonicalTargetConditionName(name);
-  const legacyField = LEGACY_TARGET_FIELDS[canonicalName];
-  if (legacyField && Object.hasOwn(config.target || {}, legacyField)) {
-    return (config.target?.[legacyField] ?? 0) as number | boolean;
-  }
-
   const conditions = config.target?.conditions || {};
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];

@@ -273,7 +273,7 @@ test('effective boon and Vulnerability queries use their canonical runtime state
     profession: queryProfession,
     config: {
       boons: { might: 2, fury: false },
-      target: { vulnerability: 1 }
+      target: { conditions: { Vulnerability: 1, Slow: true } }
     },
     events
   });
@@ -289,6 +289,7 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   assert.equal(query.mightStacksAt(1, runtime, event), 2);
   assert.equal(query.furyActiveAt(1, runtime, event), false);
   assert.equal(query.vulnerabilityStacksAt(1, runtime), 1);
+  assert.equal(query.targetHasCondition('Slow', 1, runtime), true);
   assert.equal(query.mightStacksAt(1, null, event), 7);
   assert.equal(query.furyActiveAt(1, null, event), true);
   assert.equal(query.vulnerabilityStacksAt(1, null), 1);

@@ -19,9 +19,9 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
  *
  * This module supplies Mesmer defaults and configures the shared GW2 build
  * codec for migration, normalization, validation, and app-facing conversion.
- * It preserves the original unversioned target-condition assumptions while
- * the shared codec handles common legacy fields such as sigils. It also
- * constrains the initial clone, blade, or note resource.
+ * The shared codec handles common persisted fields while this module
+ * normalizes simulation randomness, rotation aliases, and the initial clone,
+ * blade, or note resource.
  */
 
 export const BUILD_SCHEMA_VERSION = 3;
@@ -73,23 +73,6 @@ function plainObject(value: unknown): SchedulerRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : {};
 }
 
-function normalizeMesmerAssumptions(build: SchedulerRecord, saved: unknown): SchedulerRecord {
-  const assumptions = normalizeSimulationRandomnessAssumptions(build);
-  const savedAssumptions = plainObject(saved);
-  // Preserve settings from original unversioned Mesmer saves without pretending
-  // that the intermediate schema versions were independently persisted formats.
-  if (savedAssumptions.targetConditions == null && savedAssumptions.vulnerability != null) {
-    assumptions.targetConditions = {
-      ...createDefaultTargetConditions(),
-      Vulnerability: savedAssumptions.vulnerability
-    };
-  }
-
-  delete assumptions.vulnerability;
-  delete assumptions.targetHealthAbove50;
-  return assumptions;
-}
-
 const mesmerBuildCodec = createGw2BuildCodec({
   professionId: PROFESSION_ID,
   schemaVersion: BUILD_SCHEMA_VERSION,
@@ -98,7 +81,7 @@ const mesmerBuildCodec = createGw2BuildCodec({
   normalizeExtra(build, { saved }) {
     return {
       ...build,
-      assumptions: normalizeMesmerAssumptions(build.assumptions, saved.assumptions),
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
       rotation: normalizeRotation(disambiguateMesmerRotationSkillNames(saved), mesmerCatalog),
       initialResource: boundedNumber(saved.initialResource ?? 5, 0, 0, 5)
     };
