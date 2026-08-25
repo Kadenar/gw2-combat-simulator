@@ -27,8 +27,9 @@
       {
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "Builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
-        "rotation": "Rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-evtc.json",
-        "benchmarkDps": 36018,
+        "rotation": "Rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
+        "benchmarkDps": 37545,
+        "dpsReportUrl": "https://dps.report/h0tB-20260504-203415_golem",
         "upToDate": true
       },
       {

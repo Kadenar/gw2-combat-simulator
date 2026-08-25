@@ -236,25 +236,36 @@ function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportRes
   };
 }
 
-/**
- * True unless the action is an autoattack that was cancelled before its strike
- * committed. A cancelled autoattack never lands, so keeping it would emit a
- * phantom weapon-1 cast that desyncs the chain (see AUTOATTACK_COMMIT_FRACTION).
- * Interrupted casts are left to the existing shortened-duration handling.
- */
+/** Keeps only autoattacks with report evidence that their first packet committed. */
 function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedAction): boolean {
   if (skillMetadata(report, action.rawSkillId)?.autoAttack !== true) return true;
+  const actualDurationMs = action.end - action.start;
   const expectedDurationMs = Number(action.expectedDurationMs || 0);
-  if (action.status === 'interrupted' || expectedDurationMs <= 0) return true;
+  if (expectedDurationMs <= 0) return true;
   // Prefer an explicit simulator cast time when EI's nominal duration includes
   // a long aftercast; the modeled cast lane is the tighter commitment bound.
   const runtimeDurationMs = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
+  const explicitCommitOffsets = [
+    action.skill?.interruptCommitMs,
+    ...(action.skill?.effects || []).map((effect) => effect.interruptCommitMs)
+  ]
+    .map(Number)
+    // Zero-value legacy metadata is not evidence that an autoattack packet committed immediately.
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const explicitCommitOffsetMs = explicitCommitOffsets.length ? Math.min(...explicitCommitOffsets) : null;
+  if (explicitCommitOffsetMs != null) {
+    return actualDurationMs + TIMING_TOLERANCE_MS >= explicitCommitOffsetMs;
+  }
   // Explicit packet timing is the precise commitment contract for attacks such as Guardian pistol's early projectile.
   const firstStrikeOffsetMs = firstStrikePacketOffsetMs(action.skill, runtimeDurationMs, { explicitOnly: true });
-  if (firstStrikeOffsetMs != null) return action.end - action.start >= firstStrikeOffsetMs;
+  if (firstStrikeOffsetMs != null) return actualDurationMs + TIMING_TOLERANCE_MS >= firstStrikeOffsetMs;
   const commitmentDurationMs =
-    runtimeDurationMs > 0 ? Math.min(expectedDurationMs, runtimeDurationMs) : expectedDurationMs;
-  return action.end - action.start >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;
+    action.status === 'interrupted' && runtimeDurationMs > 0
+      ? runtimeDurationMs
+      : runtimeDurationMs > 0
+        ? Math.min(expectedDurationMs, runtimeDurationMs)
+        : expectedDurationMs;
+  return actualDurationMs >= commitmentDurationMs * AUTOATTACK_COMMIT_FRACTION;
 }
 
 function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart: number): EvtcReconstructedCommand[] {

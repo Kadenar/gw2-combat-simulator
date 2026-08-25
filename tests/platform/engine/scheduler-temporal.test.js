@@ -454,6 +454,7 @@ test('interrupted casts can retain their original cast-lane lockout', () => {
   assert.equal(interruptedAction.rechargeReadyAt, 10.4);
   assert.equal(scheduled.state.cooldowns.get(980010), 10.4);
   assert.equal(scheduled.steps[0].end, 400);
+  assert.equal(scheduled.steps[0].castLockoutEnd, 1000);
   assert.equal(followingAction.at, 1);
   assert.equal(scheduled.steps[1].start, 1000);
   assert.equal(uninterruptedAction.endsAt, 1);

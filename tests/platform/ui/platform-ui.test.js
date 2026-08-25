@@ -171,7 +171,16 @@ test('timeline dead time excludes explicit waits, concurrent casts, and gap-fill
   assert.equal(formatTimelineDuration(100_000), '100s');
 });
 
-test('timeline dead time includes only zero-damage casts interrupted without a commit cutoff', () => {
+test('timeline dead time excludes forced post-interrupt cast lockout', () => {
+  const markers = timelineDeadTimeMarkers([
+    { ri: 0, skill: 'Interrupted Cast', start: 0, end: 400, castLockoutEnd: 1000, interrupted: true },
+    { ri: 1, skill: 'Following Cast', start: 1000, end: 1200 }
+  ]);
+
+  assert.deepEqual(markers, []);
+});
+
+test('timeline dead time includes missing commits and the full duration of explicit pre-commit cancellations', () => {
   const markers = timelineDeadTimeMarkers(
     [
       {
@@ -194,11 +203,12 @@ test('timeline dead time includes only zero-damage casts interrupted without a c
       },
       {
         ri: 2,
-        skill: 'Explicit Commit',
+        skill: 'Below Explicit Commit',
         start: 700,
         end: 900,
         activationId: 'cast:3',
-        interrupted: true
+        interrupted: true,
+        cancelledBeforeCommit: true
       },
       {
         ri: 3,
@@ -209,7 +219,10 @@ test('timeline dead time includes only zero-damage casts interrupted without a c
         interrupted: true
       }
     ],
-    [{ type: 'damage', at: 0.5, source: 'fixture', sourceId: 2, activationId: 'cast:2', damage: 10 }]
+    [
+      { type: 'damage', at: 0.5, source: 'fixture', sourceId: 2, activationId: 'cast:2', damage: 10 },
+      { type: 'damage', at: 0.8, source: 'fixture', sourceId: 3, activationId: 'cast:3', damage: 10 }
+    ]
   );
 
   assert.deepEqual(markers, [
@@ -220,6 +233,14 @@ test('timeline dead time includes only zero-damage casts interrupted without a c
       durationMs: 400,
       reason: 'zero-damage-cast',
       skill: 'Missing Commit'
+    },
+    {
+      insertionIndex: 2,
+      start: 700,
+      end: 900,
+      durationMs: 200,
+      reason: 'cancelled-before-commit',
+      skill: 'Below Explicit Commit'
     }
   ]);
 });

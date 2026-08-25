@@ -663,6 +663,10 @@ export interface SchedulerStep {
   readonly actualStart?: number;
   readonly fullCastMs?: number;
   readonly interrupted?: boolean;
+  /** Millisecond timestamp through which this cast still reserves its execution lane after ending. */
+  readonly castLockoutEnd?: number;
+  /** Identifies an interrupted commit-mode cast that ended before every declared interrupt cutoff. */
+  readonly cancelledBeforeCommit?: boolean;
   /** Identifies interrupted commit-mode casts whose damage had no commit cutoff and can therefore be reported as wasted time. */
   readonly missingInterruptCommit?: boolean;
   readonly invalid?: boolean;

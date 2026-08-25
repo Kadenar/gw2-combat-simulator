@@ -652,12 +652,17 @@ export function renderTimeline(app: ProfessionAppState): void {
   const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
     const duration = formatTimelineDuration(marker.durationMs);
     const detail =
-      marker.reason === 'zero-damage-cast'
-        ? [
-            `Idle time: ${duration} wasted`,
-            `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
-            'No interruptCommitMs is configured'
-          ].join('\n')
+      marker.reason != null
+        ? marker.reason === 'cancelled-before-commit'
+          ? [
+              `Idle time: ${duration} wasted`,
+              `${marker.skill || 'Skill'} was interrupted before its interruptCommitMs cutoff`
+            ].join('\n')
+          : [
+              `Idle time: ${duration} wasted`,
+              `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
+              'No interruptCommitMs is configured'
+            ].join('\n')
         : [
             `Idle time: ${duration} wasted`,
             `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`

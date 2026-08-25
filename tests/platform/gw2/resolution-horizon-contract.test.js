@@ -191,6 +191,24 @@ function contractProfession() {
             interruptCommitMs: 100
           }
         ]
+      },
+      {
+        id: 990011,
+        name: 'Retained Failed Commit',
+        castTimeMs: 1000,
+        interruptCommitMs: 300,
+        retainsCastLockoutAfterInterrupt: true,
+        effects: [
+          {
+            type: 'strike',
+            coefficient: 0,
+            atMs: 600,
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            persistsAfterInterrupt: true,
+            metadata: { flatDamage: 1 }
+          }
+        ]
       }
     ]
   });
@@ -448,7 +466,7 @@ test('interrupt modes distinguish whole-effect commits from per-packet channels'
   );
 });
 
-test('dead time classifies missing interrupt commits but excludes explicit commits and channels', () => {
+test('dead time includes entire attempted casts below declared commit cutoffs and excludes partial channels', () => {
   const missingCommit = simulateGw2({
     profession,
     rotation: [{ name: 'Default Commit Timeline', interruptMs: 400 }],
@@ -464,12 +482,41 @@ test('dead time classifies missing interrupt commits but excludes explicit commi
     rotation: [{ name: 'Per-packet Channel', interruptMs: 100 }],
     config: fixtureConfig()
   });
+  const effectLevelCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Staged Projectiles', interruptMs: 25 }],
+    config: fixtureConfig()
+  });
+  const retainedFailedCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Retained Failed Commit', interruptMs: 200 }, 'Long Follow-up'],
+    config: fixtureConfig()
+  });
 
   assert.deepEqual(
     timelineDeadTimeMarkers(missingCommit.steps, missingCommit.resolvedEvents).map((marker) => marker.durationMs),
     [400]
   );
-  assert.deepEqual(timelineDeadTimeMarkers(explicitCommit.steps, explicitCommit.resolvedEvents), []);
+  assert.equal(explicitCommit.steps[0].cancelledBeforeCommit, true);
+  assert.deepEqual(
+    timelineDeadTimeMarkers(explicitCommit.steps, explicitCommit.resolvedEvents).map((marker) => marker.durationMs),
+    [200]
+  );
+  assert.equal(effectLevelCommit.steps[0].cancelledBeforeCommit, true);
+  assert.deepEqual(
+    timelineDeadTimeMarkers(effectLevelCommit.steps, effectLevelCommit.resolvedEvents).map(
+      (marker) => marker.durationMs
+    ),
+    [25]
+  );
+  const retainedMarkers = timelineDeadTimeMarkers(retainedFailedCommit.steps, retainedFailedCommit.resolvedEvents);
+
+  // Count the entire failed attempt, while the retained aftercast remains forced busy time rather than additional idle time.
+  assert.equal(retainedFailedCommit.steps[0].castLockoutEnd, 1000);
+  assert.deepEqual(
+    retainedMarkers.map((marker) => marker.durationMs),
+    [200]
+  );
   assert.deepEqual(timelineDeadTimeMarkers(channel.steps, channel.resolvedEvents), []);
 });
 

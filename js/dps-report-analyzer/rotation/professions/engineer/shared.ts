@@ -26,6 +26,13 @@ function kitName(skill: Skill | null): string | null {
   return name || null;
 }
 
+/** Rejects inaccurate EI toolbelt rows whose parent skill is absent from the active build. */
+function unavailableToolbeltAction(skill: Skill | null, context: DpsReportProfessionReconstructionContext): boolean {
+  const parentName = normalized(skill?.toolbeltParentName);
+  if (!parentName || !context.selectedSkillNames?.length) return false;
+  return !context.selectedSkillNames.some((name) => normalized(name) === parentName);
+}
+
 function kitEquip(
   context: DpsReportProfessionReconstructionContext,
   kit: string,
@@ -109,6 +116,7 @@ export function reconstructEngineerDependencies(
 
   for (const action of sorted) {
     const skill = actionSkill(action, context);
+    if (unavailableToolbeltAction(skill, context)) continue;
     const equippedKit = kitName(skill);
     if (equippedKit) {
       result.push(action);

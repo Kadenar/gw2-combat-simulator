@@ -984,8 +984,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // fullEnd for those skills.
     const castLockoutEnd = interrupted && skill.retainsCastLockoutAfterInterrupt === true ? fullEnd : effectiveEnd;
     const cancelledBeforeCommit = cancelledBeforeInterruptCommit(context, skill, start, fullEnd, effectiveEnd);
-    // Distinguish missing commit metadata from an explicit cutoff that the cast
-    // simply failed to reach; only the former represents reportable wasted cast time.
+    // Preserve missing metadata separately from a known cutoff miss so dead-time
+    // reporting can require zero damage only for the ambiguous case.
     const missingInterruptCommit =
       interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
     const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
@@ -1140,6 +1140,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       actualStart: Math.round(start * 1000),
       fullCastMs: Math.round((fullEnd - start) * 1000),
       interrupted,
+      // Expose retained aftercast separately so UI accounting can treat the
+      // forced lockout as busy time without extending the interrupted cast.
+      ...(castLockoutEnd > effectiveEnd + epsilon ? { castLockoutEnd: Math.round(castLockoutEnd * 1000) } : {}),
+      ...(cancelledBeforeCommit ? { cancelledBeforeCommit: true } : {}),
       ...(missingInterruptCommit ? { missingInterruptCommit: true } : {})
     });
     latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);

@@ -95,11 +95,11 @@ const BOON_EFFECTS = new Set([
 /** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
 function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {
   const legitimateMs = markers
-    .filter((marker) => marker.reason !== 'zero-damage-cast')
+    .filter((marker) => marker.reason == null)
     .reduce((total, marker) => total + marker.durationMs, 0);
   const cancellations = new Map<string, { count: number; durationMs: number }>();
   for (const marker of markers) {
-    if (marker.reason !== 'zero-damage-cast') continue;
+    if (marker.reason == null) continue;
     const skill = marker.skill || 'Unknown skill';
     const current = cancellations.get(skill) || { count: 0, durationMs: 0 };
     current.count += 1;
@@ -136,8 +136,8 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
         };
   const metrics = transformResultSummaryMetrics(normalizedResult);
 
-  // Match the timeline's charge-aware markers so the strip includes both idle
-  // gaps and zero-damage cast time caused specifically by missing interrupt commits.
+  // Match the timeline's charge-aware markers so the strip includes idle gaps
+  // and the complete attempted duration of interrupted casts that never committed.
   const deadTimeMarkers = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result)),
     result.resolvedEvents || []

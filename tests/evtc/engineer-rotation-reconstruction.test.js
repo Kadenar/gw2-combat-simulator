@@ -498,7 +498,7 @@ function animation(skillId, start, duration, overrides = {}) {
   ];
 }
 
-test('preserves observed Engineer cast stops when only effect packets declare commit cutoffs', () => {
+test('preserves packet-level stops while replaying retained Engineer cast lockouts', () => {
   const skills = [
     skill(5827, 'Fragmentation Shot', {
       slot: 'Weapon_1',
@@ -516,13 +516,14 @@ test('preserves observed Engineer cast stops when only effect packets declare co
     }),
     skill(5931, 'Flame Blast', {
       quicknessCastTimeMs: 800,
+      retainsCastLockoutAfterInterrupt: true,
       effects: [
         {
           type: 'strike',
-          atMs: 600,
+          atMs: 480,
           timingAnchor: 'castStart',
           timingScale: 'fixed',
-          interruptCommitMs: 600,
+          interruptCommitMs: 480,
           persistsAfterInterrupt: true
         }
       ]
@@ -542,19 +543,19 @@ test('preserves observed Engineer cast stops when only effect packets declare co
     event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
     ...interruptedAnimation(5827, 2_000, 400),
     event({ time: 2_400, target: TARGET, value: 1_000, skillId: 5827 }),
-    ...interruptedAnimation(5931, 3_000, 680),
-    event({ time: 3_600, target: TARGET, value: 1_000, skillId: 5931 })
+    ...interruptedAnimation(5931, 3_000, 509),
+    event({ time: 3_465, target: TARGET, value: 1_000, skillId: 5931 })
   ]);
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  // Packet cutoffs prove that delayed hits survive without flattening the EVTC's per-cast animation timing.
+  // Packet cutoffs preserve ordinary interruption timing, while Flame Blast's post-launch cancel retains its full serial lane.
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.rotation.filter((command) => command.name === 'Fragmentation Shot' || command.name === 'Flame Blast'),
     [
       { name: 'Fragmentation Shot', skillId: 5827, interruptMs: 400 },
-      { name: 'Flame Blast', skillId: 5931, interruptMs: 680 }
+      { name: 'Flame Blast', skillId: 5931 }
     ]
   );
 });

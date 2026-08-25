@@ -1,0 +1,911 @@
+{
+  "metadata": {
+    "report": "https://dps.report/h0tB-20260504-203415_golem",
+    "benchmarkDurationSeconds": 104.855,
+    "benchmarkDamage": 3936795,
+    "benchmarkDps": 37545.13375613943,
+    "eliteInsightsVersion": "3.22.0.0",
+    "timingSource": "Elite Insights cast summaries from dps.report",
+    "note": "The precombat Evolve is retained from the previous EVTC reconstruction because this dps.report omits that cast."
+  },
+  "rotation": [
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "__combat_start",
+      "offset": 521
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 563
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 243
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 184
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Plasmatic State",
+      "skillId": 77209
+    },
+    {
+      "name": "Napalm",
+      "skillId": 5929
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 85
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 159
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 319
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Glue Shot",
+      "skillId": 5830
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 83
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 160
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 361
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 159
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 83
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 167
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 361
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 369
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 326
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 445
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 360
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Napalm",
+      "skillId": 5929
+    },
+    {
+      "name": "Plasmatic State",
+      "skillId": 77209
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 320
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 167
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 200
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 361
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 243
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 319
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 312
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Glue Shot",
+      "skillId": 5830
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 367
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 284
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 277
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 522
+    },
+    {
+      "name": "Napalm",
+      "skillId": 5929
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Plasmatic State",
+      "skillId": 77209
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 48
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 319
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 318
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "Glue Shot",
+      "skillId": 5830
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 200
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 42
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 117
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 284
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 319
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Napalm",
+      "skillId": 5929
+    },
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    },
+    {
+      "name": "Plasmatic State",
+      "skillId": 77209
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 202
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 242
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 118
+    },
+    {
+      "name": "Glue Shot",
+      "skillId": 5830
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 201
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 319
+    },
+    {
+      "name": "Flame Jet",
+      "skillId": 5928
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 202
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 76
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "Dodge",
+      "skillId": -5
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Fragmentation Shot",
+      "skillId": 5827
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76901
+    },
+    {
+      "name": "Offensive Protocol: Shred",
+      "skillId": 76568
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 117
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 83
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Stoke the Flames",
+      "skillId": 76493
+    },
+    {
+      "name": "Plasmatic State",
+      "skillId": 77209
+    },
+    {
+      "name": "Napalm",
+      "skillId": 5929
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114,
+      "offset": 320
+    },
+    {
+      "name": "Static Shot",
+      "skillId": 5829
+    },
+    {
+      "name": "Blowtorch",
+      "skillId": 5831
+    },
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77163,
+      "offset": 396
+    },
+    {
+      "name": "Poison Dart Volley",
+      "skillId": 5828
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 200
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 486
+    },
+    {
+      "name": "Glue Shot",
+      "skillId": 5830
+    },
+    {
+      "name": "Flamethrower",
+      "skillId": 5927,
+      "offset": 444
+    },
+    {
+      "name": "Flame Blast",
+      "skillId": 5931
+    },
+    {
+      "name": "Air Blast",
+      "skillId": 5930
+    },
+    {
+      "name": "Stow Flamethrower",
+      "skillId": 6114
+    }
+  ]
+}

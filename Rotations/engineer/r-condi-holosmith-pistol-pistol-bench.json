@@ -18,7 +18,10 @@
       "name": "__combat_start",
       "offset": 400
     },
-    "Engage Photon Forge",
+    {
+      "name": "Engage Photon Forge",
+      "offset": 480
+    },
     "Corona Burst",
     "Photon Blitz",
     "Prime Light Beam",
@@ -78,7 +81,10 @@
     "Poison Dart Volley",
     "Grenade Kit",
     "Shrapnel Grenade",
-    "Engage Photon Forge",
+    {
+      "name": "Engage Photon Forge",
+      "offset": 480
+    },
     "Corona Burst",
     "Photon Blitz",
     "Light Strike—Storm",
@@ -108,7 +114,10 @@
     "Galvanic Bomb",
     "Grenade Kit",
     "Shrapnel Grenade",
-    "Engage Photon Forge",
+    {
+      "name": "Engage Photon Forge",
+      "offset": 480
+    },
     "Corona Burst",
     "Photon Blitz",
     "Grenade Barrage",
@@ -288,7 +297,10 @@
       "name": "Fire Bomb",
       "interruptMs": 520
     },
-    "Engage Photon Forge",
+    {
+      "name": "Engage Photon Forge",
+      "offset": 520
+    },
     {
       "name": "Light Strike—Storm",
       "interruptMs": 80

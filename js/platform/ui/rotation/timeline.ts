@@ -62,7 +62,7 @@ export interface TimelineDeadTimeMarker {
   readonly start: number;
   readonly end: number;
   readonly durationMs: number;
-  readonly reason?: 'zero-damage-cast';
+  readonly reason?: 'zero-damage-cast' | 'cancelled-before-commit';
   readonly skill?: string;
 }
 
@@ -153,7 +153,7 @@ export function timelineSkillCastOrdinals(steps: readonly SchedulerStep[] = []):
   );
 }
 
-/** Reports idle gaps plus interrupted cast time wasted solely because damage had no commit cutoff. */
+/** Reports idle gaps plus the full attempted duration of casts that failed to commit. */
 export function timelineDeadTimeMarkers(
   steps: readonly TimelineDeadTimeStep[] = [],
   resolvedEvents: readonly SimulationEvent[] = []
@@ -169,7 +169,9 @@ export function timelineDeadTimeMarkers(
     const isSkill = isTimelineSkillStep(step);
     if (!isSkill && !isTimelineWaitStep(step)) continue;
     const start = Math.round(Number(step.start));
-    const end = Math.round(Number(step.end));
+    // A retained post-interrupt cast lockout is forced busy time, even though
+    // the visible cast itself ends at the earlier interrupt timestamp.
+    const end = Math.max(Math.round(Number(step.end)), Math.round(Number(step.castLockoutEnd ?? step.end)));
     const insertionIndex = Number(step.ri);
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
       intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
@@ -234,8 +236,13 @@ export function timelineDeadTimeMarkers(
       .map((event) => String(event.activationId))
   );
   for (const step of steps) {
-    if (!isTimelineSkillStep(step) || step.missingInterruptCommit !== true || !step.activationId) continue;
-    if (damagingActivations.has(step.activationId)) continue;
+    if (!isTimelineSkillStep(step) || !step.activationId) continue;
+    const missingCommitMetadata = step.missingInterruptCommit === true;
+    const cancelledBeforeKnownCommit = step.cancelledBeforeCommit === true && !missingCommitMetadata;
+    if (!missingCommitMetadata && !cancelledBeforeKnownCommit) continue;
+    // A declared cutoff proves the cast failed even if an incidental proc dealt damage;
+    // missing metadata remains dead time only when the activation produced no damage at all.
+    if (missingCommitMetadata && damagingActivations.has(step.activationId)) continue;
     const start = Math.round(Number(step.start));
     const end = Math.round(Number(step.end));
     const durationMs = end - start;
@@ -245,7 +252,7 @@ export function timelineDeadTimeMarkers(
       start,
       end,
       durationMs,
-      reason: 'zero-damage-cast',
+      reason: cancelledBeforeKnownCommit ? 'cancelled-before-commit' : 'zero-damage-cast',
       skill: step.skill
     });
   }

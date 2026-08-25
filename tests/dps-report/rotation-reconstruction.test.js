@@ -221,6 +221,92 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   assert.doesNotMatch(result.warnings.join('\n'), /duplicate instant|automatic trait|potentially incomplete/);
 });
 
+test('drops canceled Engineer autoattack rows while retaining committed shortened casts', () => {
+  const fixture = reportFixture();
+  fixture.players[0].rotation.push(
+    {
+      id: 5827,
+      skills: [
+        { castTime: 1_000, duration: 237, timeGained: -283 },
+        { castTime: 1_400, duration: 351, timeGained: 169 }
+      ]
+    },
+    {
+      id: 5928,
+      skills: [
+        { castTime: 2_000, duration: 77, timeGained: -1_636 },
+        { castTime: 2_100, duration: 397, timeGained: 1_316 }
+      ]
+    },
+    { id: 5842, skills: [{ castTime: 2_600, duration: 84, timeGained: -416 }] }
+  );
+  Object.assign(fixture.skillMap, {
+    s5827: { name: 'Fragmentation Shot', autoAttack: true },
+    s5928: { name: 'Flame Jet', autoAttack: true },
+    s5842: { name: 'Bomb', autoAttack: true }
+  });
+  const catalog = catalogFixture();
+  catalog.skills.push(
+    skill(5827, 'Fragmentation Shot', {
+      type: 'weapon',
+      quicknessCastTimeMs: 520,
+      effects: [{ type: 'strike', atMs: 400, interruptCommitMs: 360 }]
+    }),
+    skill(5928, 'Flame Jet', {
+      type: 'weapon',
+      castTimeMs: 2_570,
+      effects: [{ type: 'strike', atMs: 172 }]
+    }),
+    skill(5842, 'Bomb', { type: 'weapon', castTimeMs: 500, interruptCommitMs: 0 })
+  );
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
+    selectedSkillIds: [76927, 77104]
+  });
+
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.name === 'Fragmentation Shot' || action.name === 'Flame Jet')
+      .map((action) => [action.name, action.durationMs]),
+    [
+      ['Fragmentation Shot', 351],
+      ['Flame Jet', 397]
+    ]
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Bomb'),
+    false
+  );
+});
+
+test('drops inaccurate Engineer toolbelt rows that the active build cannot equip', () => {
+  const fixture = reportFixture();
+  fixture.players[0].rotation.push({ id: 76613, skills: [{ castTime: 2_700, duration: 0, timeGained: 0 }] });
+  fixture.skillMap.s76613 = {
+    name: 'Symbiotic Shielding',
+    isInstantCast: true,
+    isNotAccurate: true
+  };
+  const catalog = catalogFixture();
+  catalog.skills.push(
+    skill(76613, 'Symbiotic Shielding', {
+      type: 'profession',
+      castTimeMs: 0,
+      toolbeltParentName: 'Mitotic State'
+    })
+  );
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
+    selectedSkillIds: [76927, 77104],
+    selectedSkillNames: ['Bomb Kit', 'Flamethrower', 'Plasmatic State']
+  });
+
+  assert.equal(
+    result.actions.some((action) => action.name === 'Symbiotic Shielding'),
+    false
+  );
+});
+
 test('the app importer previews fetched dps.report data before applying it', async () => {
   const imported = await readDpsReportRotationData(reportFixture(), appFixture());
 

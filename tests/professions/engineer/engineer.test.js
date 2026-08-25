@@ -111,7 +111,9 @@ test('Engineer interrupt timing avoids zero-millisecond placeholders', () => {
   assert.ok(fragmentationShot.effects.every((effect) => effect.persistsAfterInterrupt === true));
   assert.equal(flameBlast.interruptCommitMs, undefined);
   assert.equal('measuredCancelMs' in flameBlast, false);
-  assert.ok(flameBlast.effects.every((effect) => effect.interruptCommitMs === 600));
+  assert.equal(flameBlast.retainsCastLockoutAfterInterrupt, true);
+  assert.ok(flameBlast.effects.every((effect) => effect.interruptCommitMs === 480));
+  assert.ok(flameBlast.effects.every((effect) => effect.atMs === 480));
   assert.ok(flameBlast.effects.every((effect) => effect.persistsAfterInterrupt === true));
 });
 
@@ -134,8 +136,8 @@ test('Fragmentation Shot and Flame Blast retain packets only after their measure
 
   assert.equal(damageCount('Fragmentation Shot', 359), 0);
   assert.equal(damageCount('Fragmentation Shot', 360), 1);
-  assert.equal(damageCount('Flame Blast', 599), 0);
-  assert.equal(damageCount('Flame Blast', 600), 1);
+  assert.equal(damageCount('Flame Blast', 479), 0);
+  assert.equal(damageCount('Flame Blast', 480), 1);
 });
 
 test('Poison Dart Volley interruption retains only the channel packets that have landed', () => {
@@ -2503,7 +2505,7 @@ test('measured Quickness animations and Flame Blast commitment drive steps', () 
 
   const flamethrower = simulate(
     'Amalgam',
-    ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 600 }, { type: 'wait', durationMs: 500 }],
+    ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 480 }, 'Flame Jet'],
     {
       boons: { quickness: true },
       selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
@@ -2511,10 +2513,21 @@ test('measured Quickness animations and Flame Blast commitment drive steps', () 
     }
   );
   const flameBlast = flamethrower.steps.find((step) => step.skill === 'Flame Blast');
+  const flameJet = flamethrower.steps.find((step) => step.skill === 'Flame Jet');
+  const flameBlastAction = flamethrower.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Flame Blast'
+  );
+  const flameBlastDamage = flamethrower.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.name === 'Flame Blast'
+  );
 
-  assert.equal(flameBlast.end - flameBlast.start, 600);
+  // The packet and recharge commit at 480 ms, but the next serial cast remains locked to the full 800 ms animation.
+  assert.equal(flameBlast.end - flameBlast.start, 480);
   assert.equal(flameBlast.fullCastMs, 800);
   assert.equal(flameBlast.interrupted, true);
+  assert.equal(flameJet.start - flameBlast.start, 800);
+  assert.equal(flameBlastAction.rechargeReadyAt, 6.48);
+  assert.equal(flameBlastDamage.at - flameBlast.start / 1000, 0.48);
   assert.equal(
     flamethrower.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Flame Blast').length,
     1
