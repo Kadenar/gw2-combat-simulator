@@ -52,6 +52,13 @@
         "upToDate": true
       },
       {
+        "label": "Condition (Pistol / Pistol - Tools TRV)",
+        "build": "Builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
+        "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
+        "benchmarkDps": 38929,
+        "upToDate": true
+      },
+      {
         "label": "Power (Sword / Pistol)",
         "build": "Builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",

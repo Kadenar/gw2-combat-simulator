@@ -1939,7 +1939,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Vent Exhaust',
     description:
       'Damage nearby foes and apply conditions to them. Lose heat. This attack activates Heat Therapy if you have not overheated.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Exhaust.png',
+    icon: 'https://render.guildwars2.com/file/3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png',
     type: 'Action',
     slot: 'Action',
     specialization: 'holosmith',
