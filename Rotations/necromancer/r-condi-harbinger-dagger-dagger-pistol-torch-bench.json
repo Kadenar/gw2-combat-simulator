@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "source": "20260824-175732.zevtc",
+    "arcdpsBuild": "20260816",
+    "recordedActionCount": 144,
+    "reconstructedActionCount": 150,
+    "benchmarkDurationSeconds": 88.122,
+    "benchmarkDamage": 3991747,
+    "timingSource": "ArcDPS EVTC animation activations, state changes, and passive-buff transitions",
+    "note": "The paired build supplies the 14 Blight stacks observed at the first EVTC snapshot. Blood Is Power imports shorter than its uncancellable 880 ms cast are expanded to full duration, and Plague Signet passive-buff removals replay only after it finishes. Raw EVTC command timing is rounded to the nearest 40 ms, while interrupted casts use exact engine cutoffs: Devouring Cut 400 ms, Dark Barrage 800 ms, Enfeebling Blood 638 ms, Elixir of Risk 440 ms, and Elixir of Ambition 400 ms."
+  },
+  "rotation": [
+    "Blood Is Power",
+    {
+      "name": "__combat_start",
+      "offset": 360
+    },
+    "Elixir of Risk",
+    "Blood Is Power",
+    "Plague Signet",
+    "Vile Blast",
+    "Harrowing Wave",
+    "Oppressive Collapse",
+    {
+      "name": "Elixir of Ambition",
+      "interruptMs": 400
+    },
+    "Harbinger Shroud",
+    {
+      "name": "Devouring Cut",
+      "interruptMs": 400
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Vital Draw",
+    "Voracious Arc",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    {
+      "name": "Devouring Cut",
+      "interruptMs": 400
+    },
+    "Dark Barrage",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Voracious Arc",
+    "Devouring Cut",
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Exit Harbinger Shroud",
+    "Weeping Shots",
+    {
+      "name": "Elixir of Risk",
+      "interruptMs": 440
+    },
+    "Elixir of Promise",
+    "Blood Is Power",
+    "Plague Signet",
+    "Vile Blast",
+    "Harrowing Wave",
+    "Oppressive Collapse",
+    "Weeping Shots",
+    "Swap Weapons",
+    "Enfeebling Blood",
+    "Dark Pact",
+    "Life Siphon",
+    "Deathly Swarm",
+    "Harbinger Shroud",
+    "Devouring Cut",
+    "Dark Barrage",
+    "Voracious Arc",
+    "Vital Draw",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    {
+      "name": "Devouring Cut",
+      "interruptMs": 400
+    },
+    "Dark Barrage",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Voracious Arc",
+    "Devouring Cut",
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Exit Harbinger Shroud",
+    "Dark Pact",
+    "Life Siphon",
+    {
+      "name": "Enfeebling Blood",
+      "interruptMs": 638
+    },
+    "Swap Weapons",
+    "Weeping Shots",
+    {
+      "name": "Elixir of Risk",
+      "interruptMs": 440
+    },
+    "Elixir of Promise",
+    "Blood Is Power",
+    "Vile Blast",
+    {
+      "name": "Plague Signet",
+      "offset": 0
+    },
+    "Harrowing Wave",
+    "Oppressive Collapse",
+    "Weeping Shots",
+    "Harbinger Shroud",
+    "Devouring Cut",
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Vital Draw",
+    "Voracious Arc",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Devouring Cut",
+    "Dark Barrage",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Voracious Arc",
+    {
+      "name": "Devouring Cut",
+      "interruptMs": 400
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Exit Harbinger Shroud",
+    "Weeping Shots",
+    "Elixir of Risk",
+    "Elixir of Ambition",
+    "Harrowing Wave",
+    "Oppressive Collapse",
+    "Blood Is Power",
+    "Elixir of Promise",
+    "Blood Is Power",
+    "Plague Signet",
+    "Vile Blast",
+    "Weeping Shots",
+    "Swap Weapons",
+    "Dark Pact",
+    "Life Siphon",
+    "Harbinger Shroud",
+    "Devouring Cut",
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Vital Draw",
+    "Voracious Arc",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    {
+      "name": "Devouring Cut",
+      "interruptMs": 400
+    },
+    "Dark Barrage",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Tainted Bolts",
+    "Voracious Arc",
+    "Devouring Cut",
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    "Exit Harbinger Shroud",
+    "Elixir of Risk",
+    "Dark Pact",
+    "Life Siphon",
+    "Blood Is Power",
+    {
+      "name": "Swap Weapons",
+      "offset": 600
+    },
+    "Vile Blast",
+    {
+      "name": "Plague Signet",
+      "offset": 80
+    },
+    "Harrowing Wave",
+    "Oppressive Collapse",
+    "Weeping Shots",
+    "Elixir of Promise",
+    "Vicious Shot",
+    "Vicious Shot"
+  ]
+}

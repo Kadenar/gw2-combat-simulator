@@ -69,6 +69,13 @@
         "build": "Builds/necromancer/b-condi-harbinger.json",
         "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
         "benchmarkDps": 45275
+      },
+      {
+        "label": "Condition (Dagger / Dagger + Pistol / Torch)",
+        "build": "Builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
+        "rotation": "Rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
+        "benchmarkDps": 44947,
+        "upToDate": true
       }
     ]
   }

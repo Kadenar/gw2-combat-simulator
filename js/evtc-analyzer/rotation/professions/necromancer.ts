@@ -1,4 +1,5 @@
 import { normalizeNecromancerAutoattackChains } from './necromancer/autoattacks.js';
+import { reconstructHarbingerActions } from './necromancer/harbinger.js';
 import { reconstructReaperActions } from './necromancer/reaper.js';
 import { reconstructRitualistActions } from './necromancer/ritualist.js';
 import { reconstructScourgeActions } from './necromancer/scourge.js';
@@ -9,6 +10,7 @@ import type {
 } from './types.js';
 
 const specializationReconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
+  ['harbinger', reconstructHarbingerActions],
   ['reaper', reconstructReaperActions],
   ['ritualist', reconstructRitualistActions],
   ['scourge', reconstructScourgeActions]

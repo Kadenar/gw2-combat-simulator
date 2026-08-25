@@ -22,6 +22,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     implemented: true,
     // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
     quicknessCastTimeMs: 680,
+    // The projectile releases at 440 ms, so canceling the remaining animation retains its later impact.
+    interruptCommitMs: 440,
     blightCost: 5,
     blightGain: 10,
     effects: [
@@ -195,6 +197,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.ELIXIR_OF_AMBITION]: {
     implemented: true,
     quicknessCastTimeMs: 680,
+    // The thrown elixir commits on its 400 ms impact frame, allowing the remaining animation to be canceled.
+    interruptCommitMs: 400,
     blightCost: 10,
     blightGain: 15,
     effects: [
@@ -240,6 +244,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.DEVOURING_CUT]: {
     implemented: true,
     quicknessCastTimeMs: 480,
+    // Devouring Cut lands at its 400 ms commit frame while retaining a 480 ms default cast.
+    interruptCommitMs: 400,
     blightCost: 5,
     effects: [{ type: 'strike', coefficient: 1, hits: 1 }],
     type: 'Profession',

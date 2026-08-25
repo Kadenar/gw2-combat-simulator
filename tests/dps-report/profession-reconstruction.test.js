@@ -135,6 +135,33 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
   assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
 });
 
+test('expands shortened Blood Is Power report casts through their uncancellable aftercast', () => {
+  const report = reportFixture(
+    'Harbinger',
+    [{ id: 10_544, skills: [{ castTime: 0, duration: 600, timeGained: -280 }] }],
+    { s10544: { name: 'Blood Is Power' } }
+  );
+  const catalog = {
+    skills: [
+      skill(10_544, 'Blood Is Power', {
+        type: 'utility',
+        quicknessCastTimeMs: 880,
+        retainsCastLockoutAfterInterrupt: true
+      })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.equal(result.actions[0].durationMs, 880);
+  assert.equal(result.actions[0].status, 'completed');
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === 'Blood Is Power'),
+    { name: 'Blood Is Power', skillId: 10_544 }
+  );
+  assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
+});
+
 test('coalesces Willbender composite casts and recovers an opening Jurisdiction', () => {
   const report = reportFixture(
     'Willbender',

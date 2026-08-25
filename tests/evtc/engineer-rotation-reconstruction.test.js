@@ -217,8 +217,8 @@ test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', 
   assert.deepEqual(
     result.rotation.filter((command) => ['Jade Mortar', 'Spark Revolver'].includes(command.name)),
     [
-      { name: 'Jade Mortar', skillId: 63121, offset: 500 },
-      { name: 'Spark Revolver', skillId: 63188, offset: 700 }
+      { name: 'Jade Mortar', skillId: 63121, offset: 520 },
+      { name: 'Spark Revolver', skillId: 63188, offset: 720 }
     ]
   );
 });
@@ -350,7 +350,10 @@ test('validates Engineer cast completion from observed strike packets', () => {
   const rifleActions = result.actions.filter((action) => action.name === 'Rifle Burst');
   const rifleCommands = result.rotation.filter((command) => command.name === 'Rifle Burst');
 
-  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.warnings, [
+    'EVTC recorded 1 interrupted Shrapnel Grenade cast; the simulator has an interrupt cutoff time of 360 ms, so reconstruction uses 360 ms instead of the EVTC timing.',
+    'EVTC recorded 1 interrupted Overcharged Shot cast; the simulator has an interrupt cutoff time of 0 ms, so reconstruction uses 0 ms instead of the EVTC timing.'
+  ]);
   assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'completed');
   assert.equal(result.actions.find((action) => action.name === 'Shrapnel Grenade')?.status, 'reduced');
   assert.deepEqual(
@@ -367,7 +370,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
     {
       name: 'Shrapnel Grenade',
       skillId: 5807,
-      interruptMs: 435
+      interruptMs: 360
     }
   );
 });
@@ -615,9 +618,9 @@ test('recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
     { name: 'Galvanic Bomb', skillId: 5822 },
     { name: 'Stow Bomb Kit', skillId: 6111 },
     { name: 'Thunderclap', skillId: 30713 },
-    { name: '__combat_start', offset: 167 },
+    { name: '__combat_start', offset: 160 },
     { name: 'Electro-whirl', skillId: 30088 },
-    { name: 'Detonate', skillId: 6162, offset: 325 }
+    { name: 'Detonate', skillId: 6162, offset: 320 }
   ]);
 });
 
@@ -732,7 +735,7 @@ test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
     { name: 'Evolve', skillId: 76642 },
     { name: 'Fire Bomb', skillId: 5823 },
     { name: 'Galvanic Bomb', skillId: 5822 },
-    { name: '__combat_start', offset: 521 },
+    { name: '__combat_start', offset: 520 },
     { name: 'Stow Bomb Kit', skillId: 6111 }
   ]);
   assert.ok(
@@ -741,7 +744,7 @@ test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
   );
   assert.deepEqual(
     result.rotation.find((command) => command.name === 'Grenade Kit'),
-    { name: 'Grenade Kit', skillId: 5805, offset: 159 }
+    { name: 'Grenade Kit', skillId: 5805, offset: 160 }
   );
 });
 

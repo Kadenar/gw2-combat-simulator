@@ -186,6 +186,9 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
       } as Readonly<Record<string | number, number>>
     )[skill.id] ?? 1;
   const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
+  const commitAt = skill.interruptCommitMs == null ? impactAt : context.start + Number(skill.interruptCommitMs) / 1000;
+  // A canceled throw must reach its launch/impact commit before it can consume Blight or apply any effects.
+  if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
   const empoweredProfile = necromancerBalanceProfile(
@@ -228,6 +231,11 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
 
 function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
+  // Devouring Cut must reach its declared commit frame before spending Blight or landing its packet.
+  if (skill.id === ID.DEVOURING_CUT && Math.round((at - context.start) * 1000) < Number(skill.interruptCommitMs || 0)) {
+    return true;
+  }
+
   // Blight skills have mid-cast hit frames; these fractions come from wiki frame data, not approximations.
   const impactProgress = skill.id === ID.DEVOURING_CUT ? 0.75 : skill.id === ID.VORACIOUS_ARC ? 20 / 21 : 1;
   const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;

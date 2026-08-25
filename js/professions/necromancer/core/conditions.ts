@@ -12,6 +12,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../platform/gw2/combat/query/combat-query.js';
 import { createRelicTimelineRuntime } from '../../../platform/gw2/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '../../../platform/gw2/equipment/relics/query.js';
+import { projectCastRelativeEffectTimingMs } from '../../../platform/gw2/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { emitBuff, emitCondition, emitDamage, hasTrait, necromancerBoonDuration } from './shared.js';
 import type {
@@ -221,6 +222,17 @@ export function transferNecromancerSelfConditions(
 }
 
 function corruption(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  if (skill.id === ID.BLOOD_IS_POWER) {
+    const strike = skill.effects?.find((effect) => effect.type === 'strike' && effect.atMs != null);
+    const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
+    const strikeAtMs =
+      strike?.timingScale === 'cast'
+        ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(strike.atMs))
+        : Number(strike?.atMs ?? runtimeCastMs);
+    // Declarative packets are discarded after this handler runs, so suppress self-corruption when no strike committed.
+    if (Math.round((context.effectiveEnd - context.start) * 1000) < Math.round(strikeAtMs)) return false;
+  }
+
   const mechanics = (
     CORRUPTION_SELF_CONDITIONS as Readonly<
       Record<

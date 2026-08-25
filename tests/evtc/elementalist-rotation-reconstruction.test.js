@@ -235,7 +235,7 @@ test('recovers the clipped power Tempest opener and legacy Flame Barrage command
   assert.equal(result.actions.filter((action) => action.name === 'Hurl').length, 1);
   assert.deepEqual(
     result.rotation.find((command) => command.name === '__combat_start'),
-    { name: '__combat_start', offset: 3_123 }
+    { name: '__combat_start', offset: 3_120 }
   );
   assert.equal(result.combatStartTimestampMs, 8_883);
 });
@@ -362,12 +362,12 @@ test('infers partial Arc Lightning channels from EVTC packet boundaries', () => 
     {
       name: 'Arc Lightning',
       skillId: ID.ARC_LIGHTNING,
-      interruptMs: 2_237
+      interruptMs: 2_240
     },
     {
       name: 'Arc Lightning',
       skillId: ID.ARC_LIGHTNING,
-      interruptMs: 161
+      interruptMs: 160
     }
   ]);
 });

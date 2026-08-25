@@ -32,6 +32,7 @@ import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './pr
 import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
 
 const TIMING_TOLERANCE_MS = 50;
+const EVTC_TIMING_QUANTUM_MS = 40;
 // Only a sustained gap after both EVTC and modeled cast completion is strong enough evidence for an explicit idle wait.
 const MINIMUM_CONFIRMED_IDLE_GAP_MS = 400;
 const TRANSITION_WINDOW_MS = 150;
@@ -69,6 +70,80 @@ interface ResolvedAction extends RecordedAction {
   readonly skill: ReturnType<typeof findRotationSkill>;
   readonly name: string;
   readonly skillId: string | number;
+}
+
+/** Snaps replay-only EVTC timing to the game's 40 ms execution frames. */
+function quantizeEvtcTimingMs(value: number): number {
+  return Math.max(0, Math.round(value / EVTC_TIMING_QUANTUM_MS) * EVTC_TIMING_QUANTUM_MS);
+}
+
+function interruptCommitMs(
+  action: RecordedAction,
+  catalog: EvtcRotationCatalog | null,
+  profile: EvtcRotationProfessionProfile
+): number | null {
+  const skill = findRotationSkill(
+    action.canonicalSkillId ?? action.rawSkillId,
+    action.canonicalName ?? action.rawName,
+    catalog,
+    profile
+  );
+  if (skill?.interruptCommitMs == null) return null;
+  const cutoff = Number(skill.interruptCommitMs);
+  return Number.isFinite(cutoff) ? Math.max(0, cutoff) : null;
+}
+
+/** Expands casts whose uncancellable aftercast keeps the simulator lane occupied through full completion. */
+function applyRetainedCastLockouts(
+  actions: readonly RecordedAction[],
+  catalog: EvtcRotationCatalog | null,
+  profile: EvtcRotationProfessionProfile
+): RecordedAction[] {
+  return actions.map((action) => {
+    const skill = findRotationSkill(
+      action.canonicalSkillId ?? action.rawSkillId,
+      action.canonicalName ?? action.rawName,
+      catalog,
+      profile
+    );
+    if (skill?.retainsCastLockoutAfterInterrupt !== true) return action;
+    const runtimeDuration = quicknessRuntimeDurationMs(skill);
+    if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
+    return {
+      ...action,
+      end: action.start + runtimeDuration,
+      status: 'completed',
+      replayCastEnd: action.start + runtimeDuration,
+      replayInterruptMs: undefined
+    };
+  });
+}
+
+/** Uses engine commit metadata whenever EVTC reports a cast ending at an interrupt boundary. */
+function applyEngineInterruptCutoffs(
+  actions: readonly RecordedAction[],
+  catalog: EvtcRotationCatalog | null,
+  profile: EvtcRotationProfessionProfile
+): RecordedAction[] {
+  return actions.map((action) => {
+    const cutoff = interruptCommitMs(action, catalog, profile);
+    if (cutoff == null) return action;
+    const observedDuration = Math.max(0, action.end - action.start);
+    const usesInterruptTiming =
+      action.replayInterruptMs != null ||
+      action.status === 'interrupted' ||
+      action.status === 'reduced' ||
+      observedDuration < cutoff;
+    return usesInterruptTiming ? { ...action, end: action.start + cutoff, replayInterruptMs: cutoff } : action;
+  });
+}
+
+function applyEngineReplayTiming(
+  actions: readonly RecordedAction[],
+  catalog: EvtcRotationCatalog | null,
+  profile: EvtcRotationProfessionProfile
+): RecordedAction[] {
+  return applyRetainedCastLockouts(applyEngineInterruptCutoffs(actions, catalog, profile), catalog, profile);
 }
 
 function addressHex(address: bigint): string {
@@ -704,12 +779,18 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
   const actualDuration = action.end - action.start;
   const runtimeDuration = quicknessRuntimeDurationMs(action.skill);
   if (action.replayInterruptMs != null) {
-    command.interruptMs = Math.max(0, action.replayInterruptMs);
+    command.interruptMs =
+      action.skill?.interruptCommitMs == null
+        ? quantizeEvtcTimingMs(action.replayInterruptMs)
+        : Math.max(0, Number(action.skill.interruptCommitMs));
   } else if (
     action.status === 'interrupted' ||
     (action.status === 'reduced' && actualDuration > 0 && actualDuration + 10 < runtimeDuration)
   ) {
-    command.interruptMs = actualDuration;
+    command.interruptMs =
+      action.skill?.interruptCommitMs == null
+        ? quantizeEvtcTimingMs(actualDuration)
+        : Math.max(0, Number(action.skill.interruptCommitMs));
   }
 
   if (action.doubleEdgeOutcome != null) {
@@ -764,12 +845,12 @@ function buildRotation(
       if (previousCastStart != null && overlapping) {
         rotation.push({
           name: '__combat_start',
-          offset: Math.max(0, at - previousCastStart)
+          offset: quantizeEvtcTimingMs(at - previousCastStart)
         });
       } else {
         const gap = Math.max(0, at - activeCastEnd);
         if (gap > TIMING_TOLERANCE_MS) {
-          rotation.push({ name: '__wait', waitMs: gap });
+          rotation.push({ name: '__wait', waitMs: quantizeEvtcTimingMs(gap) });
           activeCastEnd = at;
         }
 
@@ -799,13 +880,13 @@ function buildRotation(
       at >= previousCastStart &&
       at <= activeCastEnd + TIMING_TOLERANCE_MS;
     if (independent && previousCastStart != null && at >= previousCastStart) {
-      command.offset = at - previousCastStart;
+      command.offset = quantizeEvtcTimingMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
-      command.offset = Math.max(0, at - previousCastStart);
+      command.offset = quantizeEvtcTimingMs(at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
       if (gap > MINIMUM_CONFIRMED_IDLE_GAP_MS && !suppressGap) {
-        rotation.push({ name: '__wait', waitMs: gap });
+        rotation.push({ name: '__wait', waitMs: quantizeEvtcTimingMs(gap) });
       }
 
       activeCastEnd = at;
@@ -830,11 +911,13 @@ function buildRotation(
   return rotation;
 }
 
-function warningList(actions: readonly EvtcRotationAction[]): string[] {
+function warningList(actions: readonly EvtcRotationAction[], resolved: readonly ResolvedAction[]): string[] {
   const inferred = actions.filter((action) => action.evidence === 'effect');
   const unsupported = actions.filter((action) => !action.supportedByCatalog);
   const unfinished = actions.filter((action) => action.status === 'unknown');
-  const interrupted = actions.filter((action) => action.status === 'interrupted');
+  const interrupted = resolved.filter(
+    (action) => action.status === 'interrupted' && action.skill?.interruptCommitMs == null
+  );
   const warnings: string[] = [];
   if (inferred.length) {
     warnings.push(
@@ -861,6 +944,27 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   }
 
   return warnings;
+}
+
+/** Reports every engine cutoff substituted for an EVTC-recorded interrupt duration. */
+function engineInterruptCommitWarnings(actions: readonly ResolvedAction[]): string[] {
+  const substitutions = new Map<string, { readonly name: string; readonly cutoff: number; count: number }>();
+  for (const action of actions) {
+    if (action.replayInterruptMs == null || action.skill?.interruptCommitMs == null) continue;
+    const cutoff = Math.max(0, Number(action.skill.interruptCommitMs));
+    const key = `${action.name}:${cutoff}`;
+    const current = substitutions.get(key);
+    if (current) {
+      current.count += 1;
+    } else {
+      substitutions.set(key, { name: action.name, cutoff, count: 1 });
+    }
+  }
+
+  return [...substitutions.values()].map(
+    ({ name, cutoff, count }) =>
+      `EVTC recorded ${count} interrupted ${name} cast${count === 1 ? '' : 's'}; the simulator has an interrupt cutoff time of ${cutoff} ms, so reconstruction uses ${cutoff} ms instead of the EVTC timing.`
+  );
 }
 
 function rightAlignInferredAmmoFlips(actions: readonly ResolvedAction[]): ResolvedAction[] {
@@ -952,22 +1056,27 @@ export function reconstructWithProfile(
   ].filter(
     (action) => action.rawSkillId !== WEAPON_STOW_ANIMATION_ID && action.rawName.trim().toLowerCase() !== 'weapon stow'
   );
+  const replayNormalizedActions = applyEngineReplayTiming(genericActions, catalog, profile);
   const professionContext = {
     log,
     playerAddress: agent.address,
     profile,
     catalog,
-    recordedActions: genericActions,
+    recordedActions: replayNormalizedActions,
     selectedSkillNames: options.selectedSkillNames,
     selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig,
     timelineOriginMs: Math.min(
-      ...genericActions.map((action) => action.start),
+      ...replayNormalizedActions.map((action) => action.start),
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   };
   const reconstructedProfessionActions = reconstructProfessionActions(professionContext);
-  const professionActions = reconcileCastEffectPackets(professionContext, reconstructedProfessionActions);
+  const professionActions = applyEngineReplayTiming(
+    reconcileCastEffectPackets(professionContext, reconstructedProfessionActions),
+    catalog,
+    profile
+  );
   // Keep the EVTC diagnostic separate from replay reconciliation so report-based imports never emit it.
   const interruptCommitWarnings = missingInterruptCommitWarnings(professionContext, professionActions);
   if (options.includeCombatStart !== false && combatStart == null) {
@@ -1035,6 +1144,10 @@ export function reconstructWithProfile(
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: [...warningList(actions), ...interruptCommitWarnings]
+    warnings: [
+      ...warningList(actions, resolved),
+      ...engineInterruptCommitWarnings(resolved),
+      ...interruptCommitWarnings
+    ]
   };
 }

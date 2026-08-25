@@ -118,6 +118,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.BLOOD_IS_POWER]: {
     implemented: true,
     quicknessCastTimeMs: 880,
+    // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -1464,6 +1466,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.ENFEEBLING_BLOOD]: {
     implemented: true,
     quicknessCastTimeMs: 840,
+    // The ground packet launches by 638 ms and must survive a weapon-swap cancel until its delayed impact.
+    interruptCommitMs: 638,
     effects: [
       {
         type: 'strike',
@@ -1471,7 +1475,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         hits: 1,
         atMs: 1200,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -1480,7 +1485,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         duration: 10,
         atMs: 1200,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -1489,7 +1495,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
         duration: 6,
         atMs: 1200,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },

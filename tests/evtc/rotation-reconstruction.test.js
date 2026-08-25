@@ -282,7 +282,7 @@ test('registers an individual parser for every current profession specialization
   }
 });
 
-test('reconstructs casts, inferred instants, swaps, dodges, and exact timing', () => {
+test('reconstructs casts, inferred instants, swaps, dodges, and 40 ms replay timing', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 1 }),
@@ -341,8 +341,8 @@ test('reconstructs casts, inferred instants, swaps, dodges, and exact timing', (
   assert.deepEqual(result.rotation, [
     { name: '__combat_start' },
     { name: 'Mind Stab', skillId: 1_000 },
-    { name: 'Time Sink', skillId: 2_000, offset: 100 },
-    { name: 'Swap Weapons', skillId: -3, offset: 100 },
+    { name: 'Time Sink', skillId: 2_000, offset: 120 },
+    { name: 'Swap Weapons', skillId: -3, offset: 120 },
     { name: 'Dodge', skillId: -5 }
   ]);
   assert.match(result.warnings[0], /instant cast was inferred/);
@@ -383,7 +383,7 @@ test('keeps overlapping autoattacks serial and does not replay animation tails a
     autoattackCommands.every((command) => command.offset == null),
     true
   );
-  assert.equal(autoattackCommands[1].interruptMs, 140);
+  assert.equal(autoattackCommands[1].interruptMs, 160);
   assert.deepEqual(
     result.rotation.filter((command) => command.name === '__wait'),
     []
@@ -497,6 +497,28 @@ test('does not infer cast commitment when no effect packet was observed', () => 
   assert.equal(result.actions[0].status, 'interrupted');
   assert.ok(result.warnings.some((warning) => warning.includes('interrupted')));
   assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 0 }]);
+});
+
+test('uses the engine interrupt cutoff and warns instead of preserving EVTC timing', () => {
+  const fixture = log({
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 1_437, stateChange: 68, skillId: 1_000, value: 437, activation: 4 })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [{ ...catalog.skills[0], interruptCommitMs: 400 }]
+    },
+    { includeCombatStart: false, inferInstantCasts: false }
+  );
+
+  assert.equal(result.actions[0].durationMs, 400);
+  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 400 }]);
+  assert.deepEqual(result.warnings, [
+    'EVTC recorded 1 interrupted Mind Stab cast; the simulator has an interrupt cutoff time of 400 ms, so reconstruction uses 400 ms instead of the EVTC timing.'
+  ]);
 });
 
 test('right-aligns damage-inferred ammo flips within an active cast', () => {
@@ -746,6 +768,319 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
     result.actions.some((action) => action.name === 'Swap Weapons'),
     false
   );
+});
+
+test('reconstructs Plague Signet once per passive-buff removal', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: 'Fixture Harbinger'
+      }
+    ],
+    skills: [{ id: 72_368, name: 'Plague Signet' }],
+    events: [
+      event({
+        time: 1_000,
+        target: PLAYER,
+        skillId: 72_368,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71
+      }),
+      event({
+        time: 1_000,
+        target: PLAYER,
+        skillId: 72_368,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72
+      }),
+      event({
+        time: 3_000,
+        target: PLAYER,
+        skillId: 72_368,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71
+      }),
+      event({
+        time: 3_000,
+        target: PLAYER,
+        skillId: 72_368,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72
+      })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 10_562,
+          name: 'Plague Signet',
+          type: 'Utility',
+          slot: 'Utility_2',
+          castTimeMs: 0,
+          effects: [],
+          implemented: true
+        }
+      ]
+    },
+    {
+      includeCombatStart: false,
+      inferInstantCasts: false
+    }
+  );
+
+  assert.deepEqual(
+    result.actions.map((action) => ({
+      timestampMs: action.timestampMs,
+      name: action.name,
+      skillId: action.skillId,
+      evidence: action.evidence
+    })),
+    [
+      {
+        timestampMs: 0,
+        name: 'Plague Signet',
+        skillId: 10_562,
+        evidence: 'buff-transition'
+      },
+      {
+        timestampMs: 2_000,
+        name: 'Plague Signet',
+        skillId: 10_562,
+        evidence: 'buff-transition'
+      }
+    ]
+  );
+});
+
+test('places Plague Signet after an overlapping Blood Is Power cast completes', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: 'Fixture Harbinger'
+      }
+    ],
+    skills: [
+      { id: 10_544, name: 'Blood Is Power' },
+      { id: 72_368, name: 'Plague Signet' }
+    ],
+    events: [
+      event({ time: 1_000, skillId: 10_544, value: 1_320, stateChange: 67 }),
+      event({
+        time: 1_500,
+        target: PLAYER,
+        skillId: 72_368,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71
+      }),
+      event({
+        time: 1_600,
+        skillId: 10_544,
+        value: 600,
+        activation: 3,
+        stateChange: 68
+      })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 10_544,
+          name: 'Blood Is Power',
+          type: 'Utility',
+          slot: 'Utility_1',
+          castTimeMs: 880,
+          quicknessCastTimeMs: 880,
+          retainsCastLockoutAfterInterrupt: true,
+          effects: [],
+          implemented: true
+        },
+        {
+          id: 10_562,
+          name: 'Plague Signet',
+          type: 'Utility',
+          slot: 'Utility_2',
+          castTimeMs: 0,
+          effects: [],
+          implemented: true
+        }
+      ]
+    },
+    {
+      includeCombatStart: false,
+      inferInstantCasts: false
+    }
+  );
+
+  assert.deepEqual(
+    result.actions.map((action) => ({
+      name: action.name,
+      timestampMs: action.timestampMs,
+      durationMs: action.durationMs
+    })),
+    [
+      { name: 'Blood Is Power', timestampMs: 0, durationMs: 880 },
+      { name: 'Plague Signet', timestampMs: 880, durationMs: 0 }
+    ]
+  );
+  assert.deepEqual(result.rotation, [
+    { name: 'Blood Is Power', skillId: 10_544 },
+    { name: 'Plague Signet', skillId: 10_562 }
+  ]);
+  assert.deepEqual(result.warnings, []);
+});
+
+test('clamps reconstructed Devouring Cut cancels to their 400 ms commit', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: 'Fixture Harbinger'
+      }
+    ],
+    skills: [{ id: 62_672, name: 'Devouring Cut' }],
+    events: [
+      event({ time: 1_000, skillId: 62_672, value: 1_040, stateChange: 67 }),
+      event({
+        time: 1_360,
+        skillId: 62_672,
+        value: 360,
+        activation: 3,
+        stateChange: 68
+      }),
+      event({ time: 1_360, target: 0x2000n, skillId: 62_672, value: 100 })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 62_672,
+          name: 'Devouring Cut',
+          type: 'Profession',
+          slot: 'Weapon_3',
+          quicknessCastTimeMs: 480,
+          interruptCommitMs: 400,
+          effects: [
+            {
+              type: 'strike',
+              coefficient: 1,
+              hits: 1,
+              atMs: 360,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed'
+            }
+          ],
+          implemented: true
+        }
+      ]
+    },
+    {
+      includeCombatStart: false,
+      inferInstantCasts: false
+    }
+  );
+
+  assert.equal(result.actions[0].durationMs, 400);
+  assert.deepEqual(result.rotation, [{ name: 'Devouring Cut', skillId: 62_672, interruptMs: 400 }]);
+  assert.deepEqual(result.warnings, [
+    'EVTC recorded 1 interrupted Devouring Cut cast; the simulator has an interrupt cutoff time of 400 ms, so reconstruction uses 400 ms instead of the EVTC timing.'
+  ]);
+});
+
+test('clamps Dark Barrage and Enfeebling Blood EVTC cancels to their commit frames', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: 'Fixture Harbinger'
+      }
+    ],
+    skills: [
+      { id: 62_621, name: 'Dark Barrage' },
+      { id: 10_706, name: 'Enfeebling Blood' }
+    ],
+    events: [
+      event({ time: 1_000, skillId: 62_621, value: 1_240, stateChange: 67 }),
+      event({
+        time: 1_794,
+        skillId: 62_621,
+        value: 794,
+        activation: 3,
+        stateChange: 68
+      }),
+      event({ time: 2_500, skillId: 10_706, value: 1_200, stateChange: 67 }),
+      event({
+        time: 3_099,
+        skillId: 10_706,
+        value: 599,
+        activation: 3,
+        stateChange: 68
+      })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 62_621,
+          name: 'Dark Barrage',
+          type: 'Profession',
+          slot: 'Weapon_2',
+          quicknessCastTimeMs: 920,
+          interruptCommitMs: 800,
+          effects: [],
+          implemented: true
+        },
+        {
+          id: 10_706,
+          name: 'Enfeebling Blood',
+          type: 'Weapon',
+          slot: 'Weapon_2',
+          quicknessCastTimeMs: 840,
+          interruptCommitMs: 638,
+          effects: [],
+          implemented: true
+        }
+      ]
+    },
+    {
+      includeCombatStart: false,
+      inferInstantCasts: false
+    }
+  );
+
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__wait'),
+    [
+      { name: 'Dark Barrage', skillId: 62_621, interruptMs: 800 },
+      { name: 'Enfeebling Blood', skillId: 10_706, interruptMs: 638 }
+    ]
+  );
+  assert.deepEqual(result.warnings, [
+    'EVTC recorded 1 interrupted Dark Barrage cast; the simulator has an interrupt cutoff time of 800 ms, so reconstruction uses 800 ms instead of the EVTC timing.',
+    'EVTC recorded 1 interrupted Enfeebling Blood cast; the simulator has an interrupt cutoff time of 638 ms, so reconstruction uses 638 ms instead of the EVTC timing.'
+  ]);
 });
 
 test('reconstructs Distress from its consumed availability buff', () => {
@@ -1022,7 +1357,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
     { name: 'Summon Bone Minions', skillId: 10_541 },
     { name: "Ritualist's Shroud", skillId: 77_238 },
     { name: 'Anguish', skillId: 76_864 },
-    { name: '__combat_start', offset: 361 }
+    { name: '__combat_start', offset: 360 }
   ]);
   assert.deepEqual(
     result.actions.filter((action) => action.evidence === 'initial-state').map((action) => action.name),
@@ -1772,7 +2107,7 @@ test('reconstructs Spellbreaker precasts and collapses internal Warrior animatio
     { name: 'Signet of Fury', skillId: 14_410 },
     { name: 'Winds of Disenchantment', skillId: 45_333 },
     { name: 'Breaching Strike', skillId: 69_297 },
-    { name: '__combat_start', offset: 759 }
+    { name: '__combat_start', offset: 760 }
   ]);
   assert.deepEqual(
     result.actions
@@ -2072,8 +2407,8 @@ test('reconstructs Galeshot bundle, pet, and Path of Scars mechanics', () => {
   assert.deepEqual(result.rotation.slice(0, 5), [
     { name: 'Barrage', skillId: 12_469 },
     { name: 'Summon Cyclone Bow', skillId: 76_787, offset: 0 },
-    { name: 'Poisonous Cloud', skillId: 12_675, offset: 100 },
-    { name: '__combat_start', offset: 500 },
+    { name: 'Poisonous Cloud', skillId: 12_675, offset: 120 },
+    { name: '__combat_start', offset: 520 },
     { name: 'Bluster', skillId: 77_319 }
   ]);
   assert.deepEqual(
@@ -3065,7 +3400,9 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     inferInstantCasts: false
   });
 
-  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.warnings, [
+    'EVTC recorded 1 interrupted Dagger Strike cast; the simulator has an interrupt cutoff time of 0 ms, so reconstruction uses 0 ms instead of the EVTC timing.'
+  ]);
   assert.deepEqual(
     result.actions.map((action) => action.name),
     ['Dodge', 'Steal', "Assassin's Signet", 'Death Blossom', 'Dagger Strike']
@@ -3091,7 +3428,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     {
       name: 'Dagger Strike',
       skillId: 13_004,
-      interruptMs: 50
+      interruptMs: 0
     }
   );
 });

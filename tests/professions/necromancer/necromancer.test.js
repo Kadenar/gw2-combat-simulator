@@ -637,6 +637,82 @@ test('Dark Barrage retains every packet when interrupted at its 800 ms commit', 
   assert.equal(packets(committed, 'condition').length, 6);
 });
 
+test('Harbinger benchmark cancels retain only effects that reached their commit frames', () => {
+  const interrupt = (name, interruptMs, config = {}) =>
+    simulate(
+      'Harbinger',
+      [
+        { name, interruptMs },
+        { type: 'wait', durationMs: 1500 }
+      ],
+      {
+        boons: { quickness: true },
+        initialBlight: 25,
+        selectedSkills: ['Elixir of Risk', 'Elixir of Ambition'],
+        ...config
+      }
+    );
+  const riskPackets = (result) =>
+    result.events.filter(
+      (event) => event.skillId === ID.ELIXIR_OF_RISK && (event.type === 'damage' || event.type === 'condition')
+    );
+  const ambitionPackets = (result) =>
+    result.events.filter(
+      (event) => event.skillId === ID.ELIXIR_OF_AMBITION && (event.type === 'damage' || event.type === 'condition')
+    );
+  const enfeeblingPackets = (result) =>
+    result.events.filter(
+      (event) => event.skillId === ID.ENFEEBLING_BLOOD && (event.type === 'damage' || event.type === 'condition')
+    );
+
+  assert.equal(necromancerCatalog.skillsById.get(ID.ELIXIR_OF_RISK).interruptCommitMs, 440);
+  assert.equal(riskPackets(interrupt('Elixir of Risk', 439)).length, 0);
+  assert.equal(riskPackets(interrupt('Elixir of Risk', 440)).length, 3);
+  assert.equal(necromancerCatalog.skillsById.get(ID.ELIXIR_OF_AMBITION).interruptCommitMs, 400);
+  assert.equal(ambitionPackets(interrupt('Elixir of Ambition', 399)).length, 0);
+  assert.equal(ambitionPackets(interrupt('Elixir of Ambition', 400)).length, 6);
+  assert.equal(necromancerCatalog.skillsById.get(ID.ENFEEBLING_BLOOD).interruptCommitMs, 638);
+  assert.equal(enfeeblingPackets(interrupt('Enfeebling Blood', 637)).length, 0);
+  assert.equal(enfeeblingPackets(interrupt('Enfeebling Blood', 638)).length, 3);
+});
+
+test('Blood Is Power keeps its aftercast while Devouring Cut uses its explicit commit frame', () => {
+  const bloodIsPower = (interruptMs) =>
+    simulate(
+      'Harbinger',
+      [
+        { name: 'Blood Is Power', interruptMs },
+        { type: 'wait', durationMs: 1500 }
+      ],
+      {
+        boons: { quickness: true },
+        selectedSkills: ['Blood Is Power'],
+        selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
+      }
+    );
+  const devouringCut = (interruptMs) =>
+    simulate(
+      'Harbinger',
+      ['Harbinger Shroud', { name: 'Devouring Cut', interruptMs }, { type: 'wait', durationMs: 1500 }],
+      {
+        boons: { quickness: true },
+        initialResource: 100,
+        initialBlight: 5
+      }
+    );
+  const packets = (result, skillId) =>
+    result.events.filter((event) => event.skillId === skillId && ['damage', 'condition', 'buff'].includes(event.type));
+
+  assert.equal(necromancerCatalog.skillsById.get(ID.BLOOD_IS_POWER).interruptCommitMs, undefined);
+  assert.equal(necromancerCatalog.skillsById.get(ID.BLOOD_IS_POWER).retainsCastLockoutAfterInterrupt, true);
+  assert.equal(packets(bloodIsPower(559), ID.BLOOD_IS_POWER).length, 0);
+  assert.ok(packets(bloodIsPower(560), ID.BLOOD_IS_POWER).length > 0);
+  assert.equal(necromancerCatalog.skillsById.get(ID.DEVOURING_CUT).quicknessCastTimeMs, 480);
+  assert.equal(necromancerCatalog.skillsById.get(ID.DEVOURING_CUT).interruptCommitMs, 400);
+  assert.equal(packets(devouringCut(399), ID.DEVOURING_CUT).length, 0);
+  assert.equal(packets(devouringCut(400), ID.DEVOURING_CUT).length, 2);
+});
+
 test('Grasping Darkness commits at 120 ms and lands after combat starts', () => {
   const beforeCommit = simulate(
     'Reaper',
@@ -917,6 +993,24 @@ test('Gravedigger fully recharges when it hits below 50% target health', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(gravediggers.length, 2);
   assert.equal(gravediggers[1].start, gravediggers[0].end);
+});
+
+test('target-health scheduler refinement only reruns rotations that cast Gravedigger', () => {
+  const refine = necromancerProfession.simulation.refineSchedulerConfig;
+  const config = { target: { health: 100 } };
+  const damageResult = {
+    events: [{ type: 'action', skillId: ID.DUSK_STRIKE }],
+    resolvedEvents: [{ type: 'damage', at: 1, damage: 60 }]
+  };
+
+  assert.equal(refine(config, damageResult), null);
+
+  const refinement = refine(config, {
+    ...damageResult,
+    events: [{ type: 'action', skillId: ID.GRAVEDIGGER }]
+  });
+
+  assert.equal(refinement._schedulerFeedback.targetBelowHalfAt, 1);
 });
 
 test('Reaper and Harbinger shroud transitions emit the current weapon set', () => {

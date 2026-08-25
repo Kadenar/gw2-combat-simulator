@@ -224,6 +224,18 @@ function actionCommand(action: DpsReportResolvedAction): EvtcReconstructedComman
   return command;
 }
 
+/** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
+function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
+  if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action;
+  const runtimeDuration = Math.max(0, Number(action.skill.quicknessCastTimeMs || action.skill.castTimeMs || 0));
+  if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
+  return {
+    ...action,
+    end: action.start + runtimeDuration,
+    status: 'completed'
+  };
+}
+
 /**
  * True unless the action is an autoattack that was cancelled before its strike
  * committed. A cancelled autoattack never lands, so keeping it would emit a
@@ -449,6 +461,7 @@ export function reconstructDpsReportWithProfile(
   });
   const resolved = professionActions
     .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+    .map(applyRetainedCastLockout)
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
     .filter((action) => autoattackCommitted(report, action));
   if (!resolved.length) {
