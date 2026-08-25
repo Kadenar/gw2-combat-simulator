@@ -99,15 +99,18 @@ test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', 
   const skills = [
     skill(63345, 'Core Reactor Shot', {
       type: 'Profession',
-      slot: 'Profession_1'
+      slot: 'Profession_1',
+      independentCast: true
     }),
     skill(63121, 'Jade Mortar', {
       type: 'Profession',
-      slot: 'Profession_2'
+      slot: 'Profession_2',
+      independentCast: true
     }),
     skill(63188, 'Spark Revolver', {
       type: 'Profession',
-      slot: 'Profession_3'
+      slot: 'Profession_3',
+      independentCast: true
     }),
     skill(63095, 'Overclock Signet', {
       type: 'Elite',
@@ -209,6 +212,15 @@ test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', 
     ['Core Reactor Shot', 'Net Shot', 'Blunderbuss', 'Jade Mortar', 'Spark Revolver', 'Overclock Signet']
   );
   assert.equal(result.actions.filter((action) => action.name === 'Overclock Signet').length, 1);
+  // Mech commands retain their observed offsets without becoming anchors for
+  // the player's serial action timeline.
+  assert.deepEqual(
+    result.rotation.filter((command) => ['Jade Mortar', 'Spark Revolver'].includes(command.name)),
+    [
+      { name: 'Jade Mortar', skillId: 63121, offset: 500 },
+      { name: 'Spark Revolver', skillId: 63188, offset: 700 }
+    ]
+  );
 });
 
 test('validates Engineer cast completion from observed strike packets', () => {

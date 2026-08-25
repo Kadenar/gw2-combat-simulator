@@ -1400,6 +1400,37 @@ test('Mechanist commands are selected by traits and mech attacks persist', () =>
   );
 });
 
+test('Mechanist commands use a serial mech lane without reserving the engineer lane', () => {
+  const result = simulate('Mechanist', ['Refraction Cutter', 'Spark Revolver', 'Radiant Arc', 'Core Reactor Shot'], {
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Pistol',
+    selectedTraitIds: [
+      TRAIT.MECH_ARMS_JADE_CANNONS,
+      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+      TRAIT.MECH_CORE_JADE_DYNAMO
+    ]
+  });
+  const refraction = result.steps.find((step) => step.skill === 'Refraction Cutter');
+  const spark = result.steps.find((step) => step.skill === 'Spark Revolver');
+  const radiant = result.steps.find((step) => step.skill === 'Radiant Arc');
+  const reactor = result.steps.find((step) => step.skill === 'Core Reactor Shot');
+
+  // The engineer advances after its own cast while the second mech command
+  // waits for the first command's independent animation to finish.
+  assert.deepEqual(result.warnings, []);
+  assert.equal(spark.start, refraction.start);
+  assert.equal(radiant.start, refraction.end);
+  assert.ok(radiant.start < spark.end);
+  assert.equal(reactor.start, spark.end);
+
+  const instant = simulate('Mechanist', ['Spark Revolver', 'Crisis Zone'], {
+    selectedTraitIds: [TRAIT.MECH_ARMS_JADE_CANNONS, TRAIT.MECH_FRAME_CHANNELING_CONDUITS, TRAIT.MECH_CORE_JADE_DYNAMO]
+  }).steps;
+
+  assert.equal(instant[1].start, instant[0].start);
+  assert.equal(instant[1].start, instant[1].end);
+});
+
 test('Amalgam exposes only persisted F2-F4 morph choices', () => {
   const selected = simulate('Amalgam', [77103], {
     selectedMorphSkillIds: [77103, 77203, 76954]
@@ -1654,6 +1685,41 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   assert.equal(plasmatic.effects[1].ticks.length, 2);
 
   const spark = mechanic('Spark Revolver').effects[0];
+
+  const mechCommands = engineerCatalog.skills.filter(
+    (skill) =>
+      skill.specialization === 'Mechanist' && Number(skill.mechanicSlot) >= 1 && Number(skill.mechanicSlot) <= 3
+  );
+
+  assert.equal(mechCommands.length, 9);
+  assert.equal(
+    mechCommands.every((skill) => skill.independentCast === true),
+    true
+  );
+  const instantMechCommands = mechCommands.filter((skill) => skill.castTimeMs === 0);
+
+  assert.deepEqual(
+    instantMechCommands.map((skill) => skill.name),
+    ['Crisis Zone', 'Discharge Array']
+  );
+  assert.equal(
+    instantMechCommands.every((skill) => skill.independentCastCanOverlap === true),
+    true
+  );
+  assert.equal(
+    mechCommands.filter((skill) => skill.castTimeMs > 0).every((skill) => skill.independentCastCanOverlap !== true),
+    true
+  );
+  assert.deepEqual(
+    ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].map((name) => mechanic(name).quicknessCastTimeMs),
+    [1000, 1080, 1400]
+  );
+  assert.equal(
+    ['Core Reactor Shot', 'Jade Mortar', 'Spark Revolver'].every(
+      (name) => mechanic(name).rechargeAnchor === 'castStart'
+    ),
+    true
+  );
 
   assert.ok(Math.abs(spark.ticks.reduce((sum, packet) => sum + packet.coefficient, 0) - 2.112) < 1e-12);
   assert.equal(spark.ticks.length, 12);
@@ -4283,8 +4349,8 @@ test('Mech Fighter, Jade Dynamo, and J-Drive add their active effects', () => {
   });
   const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
 
-  assert.equal(mortarSteps[0].start, mortarSteps[0].end);
-  assert.equal(mortarSteps[1].start - mortarSteps[0].end, 16000);
+  assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
+  assert.equal(mortarSteps[1].start - mortarSteps[0].start, 16000);
   assert.equal(
     dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
       .length,

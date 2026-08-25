@@ -6,9 +6,21 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
+import { MECHANIST_COMMAND_DURATIONS } from './mechanics.js';
 
 // Crash Down and Recall Mech occupy the same profession-mechanic tile.
 const MECH_TOGGLE_PALETTE_TILE = 'engineer-mechanist-mech-toggle';
+
+// F1-F3 commands execute on the mech's own serial cast lane so their animations
+// can overlap the engineer without allowing non-instant mech commands to overlap.
+function mechCommand(fragment: SkillFragment): SkillFragment {
+  const instant = Number(fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
+  return {
+    ...fragment,
+    independentCast: true,
+    ...(instant ? { independentCastCanOverlap: true } : {})
+  };
+}
 
 export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
@@ -105,10 +117,13 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ]
   },
-  [ID.JADE_MORTAR]: {
+  [ID.JADE_MORTAR]: mechCommand({
     implemented: true,
     interruptCommitMs: 0,
-    castTimeMs: 0,
+    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
+    // Issuing the command starts recharge even though the mech remains busy
+    // on its independent lane for the measured animation.
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     effects: [
       {
@@ -147,8 +162,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 3
-  },
-  [ID.BARRIER_BURST]: {
+  }),
+  [ID.BARRIER_BURST]: mechCommand({
     implemented: true,
     castTimeMs: 3750,
     cooldown: 30,
@@ -167,7 +182,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 3
-  },
+  }),
   [ID.AERIAL_SUPPORT]: {
     implemented: true,
     castTimeMs: 0,
@@ -214,10 +229,11 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ]
   },
-  [ID.SPARK_REVOLVER]: {
+  [ID.SPARK_REVOLVER]: mechCommand({
     implemented: true,
     interruptCommitMs: 0,
-    castTimeMs: 0,
+    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.SPARK_REVOLVER] * 1000,
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     effects: [
       {
@@ -244,8 +260,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 1
-  },
-  [ID.SKY_CIRCUS]: {
+  }),
+  [ID.SKY_CIRCUS]: mechCommand({
     implemented: true,
     castTimeMs: 1500,
     cooldown: 30,
@@ -281,7 +297,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 3
-  },
+  }),
   [ID.FORCE_SIGNET]: {
     implemented: true,
     castTimeMs: 750,
@@ -348,7 +364,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ]
   },
-  [ID.CRISIS_ZONE]: {
+  [ID.CRISIS_ZONE]: mechCommand({
     implemented: true,
     castTimeMs: 0,
     cooldown: 30,
@@ -379,7 +395,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 2
-  },
+  }),
   [ID.HARD_STRIKE]: {
     implemented: true,
     castTimeMs: 250,
@@ -402,7 +418,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [],
     mechanicSlot: 4
   },
-  [ID.ROLLING_SMASH]: {
+  [ID.ROLLING_SMASH]: mechCommand({
     implemented: true,
     castTimeMs: 750,
     cooldown: 20,
@@ -423,11 +439,12 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 1
-  },
-  [ID.CORE_REACTOR_SHOT]: {
+  }),
+  [ID.CORE_REACTOR_SHOT]: mechCommand({
     implemented: true,
     interruptCommitMs: 0,
-    castTimeMs: 0,
+    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.CORE_REACTOR_SHOT] * 1000,
+    rechargeAnchor: 'castStart',
     cooldown: 25,
     effects: [
       {
@@ -455,14 +472,14 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 2
-  },
+  }),
   [ID.JADE_ENERGY_SHOT_ID_63348]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: []
   },
-  [ID.EXPLOSIVE_KNUCKLE]: {
+  [ID.EXPLOSIVE_KNUCKLE]: mechCommand({
     implemented: true,
     castTimeMs: 500,
     cooldown: 15,
@@ -486,8 +503,8 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 1
-  },
-  [ID.DISCHARGE_ARRAY]: {
+  }),
+  [ID.DISCHARGE_ARRAY]: mechCommand({
     implemented: true,
     castTimeMs: 0,
     cooldown: 30,
@@ -541,7 +558,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       }
     ],
     mechanicSlot: 2
-  },
+  }),
   [ID.JADE_BUSTER_CANNON]: {
     implemented: true,
     simulatorExcluded: true,

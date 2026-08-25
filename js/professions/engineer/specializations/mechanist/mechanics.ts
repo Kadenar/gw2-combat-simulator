@@ -8,12 +8,12 @@ export const ENGINEER_TRIGGERED_MECHANICS = Object.freeze({
   })
 });
 
-// How long the mech is busy executing each command (measured animation + 0.35 s
-// recovery before it resumes its basic attack chain).
+// Rounded Quickness animation durations measured from the mech's EVTC
+// activations; command recovery is applied separately before basic attacks resume.
 export const MECHANIST_COMMAND_DURATIONS: Readonly<Record<number, number>> = Object.freeze({
-  [ID.SPARK_REVOLVER]: 1.401,
+  [ID.SPARK_REVOLVER]: 1.4,
   [ID.CORE_REACTOR_SHOT]: 1,
-  [ID.JADE_MORTAR]: 1.085
+  [ID.JADE_MORTAR]: 1.08
 });
 
 export const MECHANIST_ATTACK_TIMING = Object.freeze({

@@ -5,7 +5,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../dat
 import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import { MECHANIST_ATTACK_TIMING, MECHANIST_COMMAND_DURATIONS } from './mechanics.js';
+import { MECHANIST_ATTACK_TIMING } from './mechanics.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '../../../../platform/gw2/equipment/weapons/strength.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
@@ -249,12 +249,11 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
   const at = context.effectiveEnd;
 
   if (state.mech.active && isEngineerMechCommand(skill)) {
-    const commandDuration = Number(MECHANIST_COMMAND_DURATIONS[Number(skill.id)] || 0);
+    // The command cast already reserves its measured animation on the mech lane;
+    // only its recovery extends the pause before the basic attack chain resumes.
+    const hasCommandAnimation = Number(skill.castTimeMs || 0) > 0;
     const busyUntil =
-      at +
-      (commandDuration > 0
-        ? commandDuration + engineerBalanceValue(context, PROFILE.attackTiming, 'durationMultiplier', 0.35)
-        : 0);
+      at + (hasCommandAnimation ? engineerBalanceValue(context, PROFILE.attackTiming, 'durationMultiplier', 0.35) : 0);
     state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
   }
 
