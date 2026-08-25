@@ -9,8 +9,8 @@ import type { ProfessionAppState } from '../../profession/types.js';
  * each call site, we snapshot the rotation inside `changed()` and diff it
  * against the last recorded state. A structural change pushes the previous
  * snapshot onto the undo stack; `undo`/`redo` restore a snapshot and re-run the
- * simulation via `changed(false)` — which is a no-op for the history because the
- * restored rotation already matches `current`.
+ * simulation through a deferred editor repaint — which is a no-op for the history
+ * because the restored rotation already matches `current`.
  */
 
 const HISTORY_LIMIT = 100;
@@ -67,7 +67,8 @@ export function undoRotation(app: ProfessionAppState): void {
   history.redo.push(history.current);
   history.current = previous;
   app.build.rotation = cloneRotation(previous);
-  app.changed(false);
+  // Keep the previous resolved timeline painted until the restored rotation's worker result is ready.
+  app.changed(false, false, { deferRotationRender: true });
 }
 
 export function redoRotation(app: ProfessionAppState): void {
@@ -77,7 +78,8 @@ export function redoRotation(app: ProfessionAppState): void {
   history.undo.push(history.current);
   history.current = next;
   app.build.rotation = cloneRotation(next);
-  app.changed(false);
+  // Redo uses the same single-paint path so result-derived rows never disappear between revisions.
+  app.changed(false, false, { deferRotationRender: true });
 }
 
 /** Reflect undo/redo availability on the toolbar buttons. */

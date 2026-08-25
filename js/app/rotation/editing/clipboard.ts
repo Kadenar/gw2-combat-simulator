@@ -127,7 +127,10 @@ export function pasteRotationClipboard(app: ProfessionAppState): boolean {
     awaitingEnd: false
   };
   app.rotationSelectionMode = false;
-  app.changed(false);
+  // Armed-cursor pastes use the same single-paint path as palette insertions so long timelines
+  // do not briefly collapse their result-derived rows while the replacement simulation runs.
+  if (activeInsertionIndex === null) app.changed(false);
+  else app.changed(false, false, { deferRotationRender: true });
   return true;
 }
 

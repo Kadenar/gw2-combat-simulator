@@ -291,7 +291,7 @@ test('rotation skill highlights group occurrences by displayed skill', () => {
 });
 
 test('palette additions insert at an armed cursor and advance it', () => {
-  let changeCount = 0;
+  const changes = [];
   const app = {
     build: {
       rotation: [
@@ -302,8 +302,8 @@ test('palette additions insert at an armed cursor and advance it', () => {
     rotationInsertionIndex: 1,
     skillById: new Map(),
     skillByName: new Map(),
-    changed: () => {
-      changeCount += 1;
+    changed: (...args) => {
+      changes.push(args);
     }
   };
 
@@ -321,7 +321,10 @@ test('palette additions insert at an armed cursor and advance it', () => {
     { type: 'cast', skillId: 'Last' }
   ]);
   assert.equal(app.rotationInsertionIndex, 4);
-  assert.equal(changeCount, 2);
+  assert.deepEqual(changes, [
+    [false, false, { deferRotationRender: true }],
+    [false, false, { deferRotationRender: true }]
+  ]);
 });
 
 test('Dragon Slash release projections respect Flow and traited charge caps', () => {

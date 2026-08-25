@@ -126,6 +126,9 @@ export function reconcileTimelineRows(
   rows: readonly TimelineRowRender[],
   createRow: (html: string) => HTMLElement = (html) => createTimelineRow(root, html)
 ): void {
+  // Row replacement can activate browser scroll anchoring on the trailing insertion cursor,
+  // so retain the user's timeline viewport while updating the rendered rows.
+  const scrollTop = root.scrollTop;
   const previous = timelineRowsByRoot.get(root) || new Map<string, RetainedTimelineRow>();
   const next = new Map<string, RetainedTimelineRow>();
   const nodes = rows.map(({ key, html }) => {
@@ -140,6 +143,7 @@ export function reconcileTimelineRows(
     if (current !== node) root.insertBefore(node, current);
   });
   while (root.children.length > nodes.length) root.removeChild(root.lastElementChild!);
+  root.scrollTop = scrollTop;
   timelineRowsByRoot.set(root, next);
 }
 
@@ -158,6 +162,13 @@ function timelineItem(command: RotationCommand): TimelineItem {
     command,
     name: command.type === 'combat-start' ? '__combat_start' : '__cooldown_reset'
   };
+}
+
+/** Prevents a newly changed rotation from displaying timings produced for the previous build revision. */
+export function currentTimelineResults(
+  app: Pick<ProfessionAppState, 'buildRevision' | 'resultRevision' | 'results'>
+): ProfessionAppState['results'] {
+  return app.resultRevision === app.buildRevision ? app.results : null;
 }
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
@@ -274,7 +285,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const skill = resolveEntrySkill(app, item.command);
   if (!skill) return false;
 
-  const step = app.results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
+  const step = currentTimelineResults(app)?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
   const catalogCastMs = Math.round(Number(skill.castTimeMs) || 0);
   const fullCastMs = timelineFullCastMs(step, skill);
   const behavior = item.concurrentOffsetMs != null || fullCastMs === 0 ? 'concurrent' : 'interrupt';
@@ -489,14 +500,15 @@ export function renderTimeline(app: ProfessionAppState): void {
   }
 
   element.classList.remove('is-empty');
-  const resultSteps = app.results?.steps || [];
+  const results = currentTimelineResults(app);
+  const resultSteps = results?.steps || [];
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SchedulerStep>(
     resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
-  const resourceSpends = shatterResourceSpends(app.results);
-  const automaticTomeStows = automaticTomeStowTimelineMarkers(app.results, app.build.rotation.length);
+  const resourceSpends = shatterResourceSpends(results);
+  const automaticTomeStows = automaticTomeStowTimelineMarkers(results, app.build.rotation.length);
   // Tome stow indexes act as weapon-row boundaries — the tome weapon line ends when pages run out.
   const automaticTomeStowIndexes = new Set(automaticTomeStows.map((marker) => marker.insertionIndex));
   const startingWeaponSet = app.build.startingWeaponSet;
@@ -527,11 +539,11 @@ export function renderTimeline(app: ProfessionAppState): void {
       });
     }
   });
-  const combatReferenceMs = resultCombatReferenceMs(app.results);
+  const combatReferenceMs = resultCombatReferenceMs(results);
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
-    app.results?.resolvedEvents || []
+    results?.resolvedEvents || []
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
@@ -546,12 +558,12 @@ export function renderTimeline(app: ProfessionAppState): void {
     trait_proc: '#77cc77',
     skill_proc: '#bb88ff'
   };
-  const procSteps = [...(app.results?.procSteps || [])].sort((a, b) => a.start - b.start);
+  const procSteps = [...(results?.procSteps || [])].sort((a, b) => a.start - b.start);
   const procVisibility = procSteps.length ? syncProcVisibility(app, procSteps) : new Set<string>();
   const overlayProcMarkers = [
-    ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(app.results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(app.results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(app.results, app.build.rotation.length) : [])
+    ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, app.build.rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, app.build.rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, app.build.rotation.length) : [])
   ].sort((left, right) => left.start - right.start);
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
@@ -560,7 +572,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     overlayProcMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const continuumEnds = continuumEndTimelineMarkers(app.results, app.build.rotation.length);
+  const continuumEnds = continuumEndTimelineMarkers(results, app.build.rotation.length);
   const continuumEndsByIndex = new Map<number, typeof continuumEnds>();
   for (const marker of continuumEnds) {
     const markers = continuumEndsByIndex.get(marker.insertionIndex) || [];
@@ -579,10 +591,10 @@ export function renderTimeline(app: ProfessionAppState): void {
     app.profession.ui.targetHealthThresholds?.({
       specialization: activeSpecialization(app),
       build: app.build,
-      professionState: professionEndState(app.results)
+      professionState: professionEndState(results)
     }) || [];
   const healthMarkers = targetHealthTimelineMarkers(
-    app.results,
+    results,
     app.build.targetHealth,
     targetThresholds,
     app.build.rotation.length

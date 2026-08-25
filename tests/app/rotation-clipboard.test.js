@@ -83,7 +83,7 @@ test('choosing the second endpoint automatically copies the loop', () => {
 });
 
 test('paste inserts at the active cursor and advances it for repeated loops', () => {
-  let changedCount = 0;
+  const changes = [];
   const app = {
     build: {
       rotation: [
@@ -98,9 +98,8 @@ test('paste inserts at the active cursor and advances it for repeated loops', ()
       { type: 'cast', skillId: 'Loop skill' },
       { type: 'wait', durationMs: 250 }
     ],
-    changed(rebuildStatic) {
-      assert.equal(rebuildStatic, false);
-      changedCount += 1;
+    changed(...args) {
+      changes.push(args);
     }
   };
 
@@ -121,7 +120,10 @@ test('paste inserts at the active cursor and advances it for repeated loops', ()
     endIndex: 5,
     awaitingEnd: false
   });
-  assert.equal(changedCount, 2);
+  assert.deepEqual(changes, [
+    [false, false, { deferRotationRender: true }],
+    [false, false, { deferRotationRender: true }]
+  ]);
   assert.notEqual(app.build.rotation[1], app.rotationClipboard[0]);
   assert.notEqual(app.build.rotation[3], app.rotationClipboard[0]);
 });

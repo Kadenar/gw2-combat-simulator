@@ -23,7 +23,7 @@ import {
   syncRotationFocusResults,
   updateFloatingDps
 } from '../../js/app/rotation/workspace.js';
-import { reconcileTimelineRows } from '../../js/app/rotation/timeline/view.js';
+import { currentTimelineResults, reconcileTimelineRows } from '../../js/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
@@ -96,6 +96,51 @@ test('keyed timeline reconciliation retains unchanged rows and replaces changed 
   );
   assert.deepEqual(root.children, [retainedC, originalA]);
   assert.equal(created, 4, 'reordering retained keys creates no DOM rows');
+});
+
+test('timeline reconciliation preserves its scroll position while replacing rows', () => {
+  const root = {
+    children: [],
+    scrollTop: 120,
+    get lastElementChild() {
+      return this.children.at(-1) || null;
+    },
+    insertBefore(node, before) {
+      const existingIndex = this.children.indexOf(node);
+
+      if (existingIndex >= 0) this.children.splice(existingIndex, 1);
+      const index = before == null ? this.children.length : this.children.indexOf(before);
+      this.children.splice(index, 0, node);
+      this.scrollTop = 999;
+    },
+    removeChild(node) {
+      this.children.splice(this.children.indexOf(node), 1);
+      this.scrollTop = 999;
+    }
+  };
+  const createRow = (html) => ({ html });
+
+  reconcileTimelineRows(root, [{ key: 'row', html: 'before' }], createRow);
+  assert.equal(root.scrollTop, 120);
+
+  root.scrollTop = 48;
+  reconcileTimelineRows(root, [{ key: 'row', html: 'after' }], createRow);
+  assert.equal(root.scrollTop, 48);
+});
+
+test('timeline timings use only results produced for the current build revision', () => {
+  const staleResults = { steps: [{ ri: 0, skill: 'Negative Bash', start: 0, end: 0, fullCastMs: 0 }] };
+  const currentResults = { steps: [{ ri: 0, skill: 'Negative Bash', start: 0, end: 640, fullCastMs: 640 }] };
+
+  assert.equal(
+    currentTimelineResults({ buildRevision: 2, resultRevision: 1, results: staleResults }),
+    null,
+    'a first-load build change must not reuse the previous simulation timing'
+  );
+  assert.equal(
+    currentTimelineResults({ buildRevision: 2, resultRevision: 2, results: currentResults }),
+    currentResults
+  );
 });
 
 test('rotation timeline sizes expose two larger display options', () => {

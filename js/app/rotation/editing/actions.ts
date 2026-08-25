@@ -76,7 +76,10 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Rot
     app.rotationInsertionIndex = insertionIndex + items.length;
   }
 
-  app.changed(false);
+  // Inserting into a long timeline would otherwise paint a command-only pending state and then
+  // repaint resolved markers, making both the document and timeline jump between geometries.
+  if (insertionIndex === null) app.changed(false);
+  else app.changed(false, false, { deferRotationRender: true });
   return true;
 }
 
