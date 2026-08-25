@@ -4,16 +4,13 @@ import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '../../../js/app/build/state/persistence.js';
+import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '../../../js/professions/mesmer/build-attributes.js';
 import {
-  calculateAttributes as calculateMesmerAttributes,
-  calculateModifierContributions,
-  computeModifierContributions,
-  mesmerAppAdapter,
-  modifierContributionRequest,
-  runSimulation,
-  simulationConfig
-} from '../../../js/professions/mesmer/app/app-definition.js';
-import { calculateCommonAttributes, finalizeBuildAttributes } from '../../../js/platform/gw2/builds/attributes.js';
+  calculateCommonAttributes,
+  createCalculateAttributes,
+  finalizeBuildAttributes
+} from '../../../js/platform/gw2/builds/attributes.js';
 import {
   calculateContributionComparisons,
   mergeModifierContributions,
@@ -23,7 +20,8 @@ import {
 import { aggregateSigilSet, setWeaponSigil } from '../../../js/platform/gw2/equipment/sigils/loadout.js';
 import { MESMER_SKILL_IDS } from '../../../js/professions/mesmer/data/ids.js';
 
-const calcAttributes = calculateMesmerAttributes;
+// Attribute assertions use the same calculator composed into the Mesmer adapter.
+const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
 
@@ -105,7 +103,7 @@ test('shared contribution comparisons omit deltas that render as zero', () => {
 test('core attribute calculation does not apply Mesmer build rules', () => {
   const build = createDefaultBuild();
   const common = calculateCommonAttributes(build);
-  const mesmer = calculateMesmerAttributes(build, [{ id: 10232, name: 'Signet of Domination' }]);
+  const mesmer = calcAttributes(build, [{ id: 10232, name: 'Signet of Domination' }]);
 
   assert.equal(common.activeTraits, undefined);
   assert.equal(common.attributes['Condition Damage'].traits, 0);
@@ -271,7 +269,7 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     ['Force', 'Accuracy'],
     ['Bursting', 'Malice']
   ];
-  const config = simulationConfig({
+  const config = mesmerAppAdapter.simulationConfig({
     build,
     attributeData: calcAttributes(build, [])
   });
@@ -347,9 +345,10 @@ test('Mesmer browser simulations retain weaponmaster training', () => {
     attributeData: calcAttributes(build, [])
   };
 
-  assert.equal(simulationConfig(app).weaponmasterTraining, true);
+  assert.equal(mesmerAppAdapter.simulationConfig(app).weaponmasterTraining, true);
   assert.deepEqual(
-    runSimulation(app)
+    mesmerAppAdapter
+      .runSimulation(app)
       .steps.filter((step) => step.invalid)
       .map((step) => step.skill),
     []
@@ -364,7 +363,7 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
     ['Bursting', 'Demons'],
     ['Bursting', 'Demons']
   ];
-  const config = simulationConfig({
+  const config = mesmerAppAdapter.simulationConfig({
     build,
     attributeData: calcAttributes(build, [])
   });
@@ -379,7 +378,7 @@ test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', (
 
   build.specializations.find((spec) => spec.name === 'Illusions').traits = '1-2-3';
   const attributeData = calcAttributes(build, []);
-  const config = simulationConfig({ build, attributeData });
+  const config = mesmerAppAdapter.simulationConfig({ build, attributeData });
 
   assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
   assert.equal(config.stats.conditionDurationBonuses.Confusion, undefined);
@@ -389,7 +388,7 @@ test('simulation config exposes the selected target skill activation rate', () =
   const build = createDefaultBuild();
 
   build.assumptions.targetSkillActivationsPerSecond = 1.25;
-  const config = simulationConfig({
+  const config = mesmerAppAdapter.simulationConfig({
     build,
     attributeData: calcAttributes(build, [])
   });
@@ -402,7 +401,7 @@ test('simulation config does not multiply duplicate sigil effects', () => {
   const build = createDefaultBuild();
 
   build.weaponSigils[0] = ['Force', 'Force'];
-  const config = simulationConfig({
+  const config = mesmerAppAdapter.simulationConfig({
     build,
     attributeData: calcAttributes(build, [])
   });
@@ -422,7 +421,9 @@ test('modifier contributions compare the active build against each modifier remo
     attributeWeaponSet: 1,
     skillByName: new Map()
   };
-  const contributions = computeModifierContributions(app);
+  const contributions = mesmerAppAdapter.calculateModifierContributions(
+    mesmerAppAdapter.modifierContributionRequest(app)
+  );
   const names = new Set(contributions.map((entry) => entry.name));
 
   assert.equal(names.has('Might'), true);
@@ -444,13 +445,17 @@ test('interactive simulation leaves contribution passes to the background worker
     skillByName: new Map()
   };
 
-  const result = runSimulation(app);
+  const result = mesmerAppAdapter.runSimulation(app);
 
   assert.equal(result.contributions, undefined);
 
-  const request = structuredClone(modifierContributionRequest(app));
+  const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app));
+  const contributions = mesmerAppAdapter.calculateModifierContributions(request);
 
-  assert.deepEqual(calculateModifierContributions(request), computeModifierContributions(app));
+  assert.deepEqual(
+    contributions,
+    mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app))
+  );
 });
 
 test('saved builds fall back when their relic is no longer available', () => {

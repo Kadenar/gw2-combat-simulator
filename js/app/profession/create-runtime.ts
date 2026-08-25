@@ -311,10 +311,6 @@ export function createProfessionRuntime({
     return calculateContributionComparisons({ rotation, baseConfig, comparisons }, simulateBuild);
   }
 
-  function computeModifierContributions(app: ProfessionAppState) {
-    return calculateModifierContributions(modifierContributionRequest(app));
-  }
-
   /**
    * @param {ProfessionAppState} app
    * @returns {RandomDistributionJobRequest | null}
@@ -442,10 +438,8 @@ export function createProfessionRuntime({
     eliteSpecialization,
     recalculate,
     simulationConfig,
-    modifierCandidates,
     modifierContributionRequest,
     calculateModifierContributions,
-    computeModifierContributions,
     randomDistributionRequest,
     relicComparisonRequest,
     calculateRandomDistribution,

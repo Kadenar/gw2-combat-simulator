@@ -6,6 +6,7 @@ import { loadProfession } from '../../../js/app/profession/registry.js';
 import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
 import { displayedSkillTiles } from '../../../js/app/rotation/palette/model.js';
 import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
+import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
@@ -13,21 +14,20 @@ import {
   migrateGuardianBuild,
   validateGuardianBuild
 } from '../../../js/professions/guardian/build.js';
+import { applyGuardianBuildAttributeRules } from '../../../js/professions/guardian/build-attributes.js';
 import { guardianCatalog } from '../../../js/professions/guardian/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/guardian/data/guardian-api-metadata.js';
 import { guardianProfession } from '../../../js/professions/guardian/definition.js';
-import {
-  calculateAttributes as calculateGuardianAttributes,
-  recalculate as recalculateGuardian,
-  runSimulation as runGuardianSimulation,
-  simulationConfig as guardianSimulationConfig
-} from '../../../js/professions/guardian/app/app-definition.js';
+import { guardianAppAdapter } from '../../../js/professions/guardian/app/app-definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../js/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/core/profiles.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/firebrand/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/willbender/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/luminary/profiles.js';
+
+// Attribute assertions use the same calculator composed into the Guardian adapter.
+const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
 
 const config = {
   stats: {
@@ -4036,8 +4036,8 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
     attributeWeaponSet: 1
   };
 
-  recalculateGuardian(app);
-  assert.equal(guardianSimulationConfig(app).stats.conditionDurationBonuses.Burning, undefined);
+  guardianAppAdapter.recalculate(app);
+  assert.equal(guardianAppAdapter.simulationConfig(app).stats.conditionDurationBonuses.Burning, undefined);
 });
 
 test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () => {

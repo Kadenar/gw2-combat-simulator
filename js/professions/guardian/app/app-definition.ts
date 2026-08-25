@@ -8,7 +8,8 @@ import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { guardianProfession } from '../definition.js';
 import type { GuardianApplicationBuild } from '../types.js';
 
-export const guardianApp = defineProfessionApp({
+// Exposes Guardian only through the shared browser application contract.
+export const guardianAppAdapter = defineProfessionApp({
   profession: guardianProfession,
   applyBuildAttributeRules: applyGuardianBuildAttributeRules,
   createDefaultTargetConditions,
@@ -31,16 +32,3 @@ export const guardianApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Focus')
 });
-
-export const {
-  appAdapter: guardianAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = guardianApp;

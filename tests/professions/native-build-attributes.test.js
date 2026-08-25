@@ -2,35 +2,42 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createEngineerBuildDefaults } from '../../js/professions/engineer/build.js';
+import { applyEngineerBuildAttributeRules } from '../../js/professions/engineer/build-attributes.js';
 import { engineerProfession } from '../../js/professions/engineer/definition.js';
 import { ENGINEER_TRAIT_IDS } from '../../js/professions/engineer/data/ids.js';
-import { calculateAttributes as calculateEngineerAttributes } from '../../js/professions/engineer/app/app-definition.js';
 import { createGuardianBuildDefaults } from '../../js/professions/guardian/build.js';
+import { applyGuardianBuildAttributeRules } from '../../js/professions/guardian/build-attributes.js';
 import { guardianProfession } from '../../js/professions/guardian/definition.js';
 import { GUARDIAN_TRAIT_IDS } from '../../js/professions/guardian/data/ids.js';
-import { calculateAttributes as calculateGuardianAttributes } from '../../js/professions/guardian/app/app-definition.js';
 import { createMesmerBuildDefaults } from '../../js/professions/mesmer/build.js';
-import { calculateAttributes as calculateMesmerAttributes } from '../../js/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '../../js/professions/mesmer/build-attributes.js';
 import { createNecromancerBuildDefaults } from '../../js/professions/necromancer/build.js';
-import { calculateAttributes as calculateNecromancerAttributes } from '../../js/professions/necromancer/app/app-definition.js';
+import { applyNecromancerBuildAttributeRules } from '../../js/professions/necromancer/build-attributes.js';
 import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
 import { NECROMANCER_TRAIT_IDS } from '../../js/professions/necromancer/data/ids.js';
 import { createNecromancerCoreState } from '../../js/professions/necromancer/core/state.js';
 import { createRevenantBuildDefaults } from '../../js/professions/revenant/build.js';
-import {
-  calculateAttributes as calculateRevenantAttributes,
-  recalculate as recalculateRevenant
-} from '../../js/professions/revenant/app/app-definition.js';
+import { applyRevenantBuildAttributeRules } from '../../js/professions/revenant/build-attributes.js';
+import { revenantAppAdapter } from '../../js/professions/revenant/app/app-definition.js';
 import { revenantProfession } from '../../js/professions/revenant/definition.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../../js/professions/revenant/data/ids.js';
 import { createThiefBuildDefaults } from '../../js/professions/thief/build.js';
-import { calculateAttributes as calculateThiefAttributes } from '../../js/professions/thief/app/app-definition.js';
+import { applyThiefBuildAttributeRules } from '../../js/professions/thief/build-attributes.js';
 import { thiefProfession } from '../../js/professions/thief/definition.js';
 import { THIEF_TRAIT_IDS } from '../../js/professions/thief/data/ids.js';
-import { resolveAttributeEffects } from '../../js/platform/gw2/builds/attributes.js';
+import { createCalculateAttributes, resolveAttributeEffects } from '../../js/platform/gw2/builds/attributes.js';
 import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { createWarriorBuildDefaults } from '../../js/professions/warrior/build.js';
-import { calculateAttributes as calculateWarriorAttributes } from '../../js/professions/warrior/app/app-definition.js';
+import { applyWarriorBuildAttributeRules } from '../../js/professions/warrior/build-attributes.js';
+
+// Attribute tests construct the same calculators composed into the production adapters.
+const calculateEngineerAttributes = createCalculateAttributes(applyEngineerBuildAttributeRules);
+const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
+const calculateMesmerAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
+const calculateNecromancerAttributes = createCalculateAttributes(applyNecromancerBuildAttributeRules);
+const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
+const calculateThiefAttributes = createCalculateAttributes(applyThiefBuildAttributeRules);
+const calculateWarriorAttributes = createCalculateAttributes(applyWarriorBuildAttributeRules);
 
 const engineerCoreRules = engineerProfession.resolveRuntime({});
 const guardianCoreRules = guardianProfession.resolveRuntime({});
@@ -486,7 +493,7 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
 
   const app = { build, attributeWeaponSet: 1, results: null };
 
-  recalculateRevenant(app);
+  revenantAppAdapter.recalculate(app);
   const assassin = app.attributeData.attributes;
 
   assert.equal(assassin.Power.traits, 150);
@@ -495,7 +502,7 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   assert.equal(assassin['Condition Damage'].traits, 75);
 
   build.selectedLegends = [LEGEND.DWARF, LEGEND.ENTITY];
-  recalculateRevenant(app);
+  revenantAppAdapter.recalculate(app);
   const dwarf = app.attributeData.attributes;
 
   assert.equal(dwarf.Power.traits, 75);

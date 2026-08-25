@@ -37,7 +37,7 @@ import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/chronomancer/profiles.js';
 import { toApplicationBuild } from '../../../js/professions/mesmer/build.js';
-import { recalculate, simulationConfig } from '../../../js/professions/mesmer/app/app-definition.js';
+import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
   assert.equal(
@@ -1900,8 +1900,8 @@ test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
-  const config = simulationConfig(app);
+  mesmerAppAdapter.recalculate(app);
+  const config = mesmerAppAdapter.simulationConfig(app);
   const result = simulateMesmer(build.rotation, config);
   const ineptitude = result.resolvedEvents.find(
     (event) => event.type === 'condition' && event.skillName === 'Rewinder' && event.name.includes('Ineptitude')

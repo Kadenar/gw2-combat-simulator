@@ -8,7 +8,8 @@ import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { mesmerProfession } from '../definition.js';
 import type { MesmerApplicationBuild } from '../types.js';
 
-export const mesmerApp = defineProfessionApp({
+// Exposes Mesmer only through the shared browser application contract.
+export const mesmerAppAdapter = defineProfessionApp({
   profession: mesmerProfession,
   applyBuildAttributeRules: applyMesmerBuildAttributeRules,
   createDefaultTargetConditions,
@@ -40,16 +41,3 @@ export const mesmerApp = defineProfessionApp({
     return 'Sword';
   }
 });
-
-export const {
-  appAdapter: mesmerAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = mesmerApp;

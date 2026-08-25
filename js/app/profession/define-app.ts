@@ -4,10 +4,10 @@ import { createProfessionRuntime } from './create-runtime.js';
 import type { Skill } from '../../platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,
-  ProfessionAppDefinition,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
-  ProfessionSkillAvailabilityContext
+  ProfessionSkillAvailabilityContext,
+  Gw2AppAdapter
 } from './types.js';
 
 /**
@@ -38,11 +38,11 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
 }
 
 /**
- * Composes a native profession's attribute calculator, application runtime,
- * and shared-shell adapter from one profession-level definition.
+ * Composes a native profession's attribute calculator and runtime into the
+ * single shared-shell adapter consumed by the browser application.
  *
  * @param {DefineProfessionAppOptions} options
- * @returns {Readonly<ProfessionAppDefinition>}
+ * @returns {Readonly<Gw2AppAdapter>}
  */
 export function defineProfessionApp({
   profession,
@@ -62,7 +62,7 @@ export function defineProfessionApp({
   runtime = {},
   isSkillAvailable = defaultIsSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
-}: DefineProfessionAppOptions): Readonly<ProfessionAppDefinition> {
+}: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
   const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules);
   const runtimeApi = createProfessionRuntime({
     profession,
@@ -95,10 +95,5 @@ export function defineProfessionApp({
     defaultOffhand
   });
 
-  const definition: ProfessionAppDefinition = {
-    appAdapter,
-    calculateAttributes,
-    ...runtimeApi
-  };
-  return Object.freeze(definition);
+  return appAdapter;
 }

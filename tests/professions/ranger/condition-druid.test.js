@@ -12,7 +12,7 @@ import { rangerProfession } from '../../../js/professions/ranger/definition.js';
 import { rangerCoreCriticalReactions } from '../../../js/professions/ranger/core/resolver.js';
 import { rangerCoreModifierRules } from '../../../js/professions/ranger/core/rules.js';
 import { druidModifierRules } from '../../../js/professions/ranger/specializations/druid/rules.js';
-import { rangerAppAdapter, recalculate, runSimulation } from '../../../js/professions/ranger/app/app-definition.js';
+import { rangerAppAdapter } from '../../../js/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

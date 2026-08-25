@@ -19,6 +19,7 @@ import {
   professionOptions,
   professionRoute
 } from '../../../js/app/profession/registry.js';
+import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
@@ -27,6 +28,7 @@ import {
   migrateRangerBuild,
   validateRangerBuild
 } from '../../../js/professions/ranger/build.js';
+import { applyRangerBuildAttributeRules } from '../../../js/professions/ranger/build-attributes.js';
 import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/ranger/data/ranger-api-metadata.js';
 import {
@@ -66,12 +68,10 @@ import {
 } from '../../../js/professions/ranger/specializations/soulbeast/rules.js';
 import { untamedCastRules } from '../../../js/professions/ranger/specializations/untamed/rules.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '../../../js/professions/ranger/state.js';
-import {
-  rangerAppAdapter,
-  calculateAttributes,
-  recalculate,
-  runSimulation
-} from '../../../js/professions/ranger/app/app-definition.js';
+import { rangerAppAdapter } from '../../../js/professions/ranger/app/app-definition.js';
+
+// Attribute assertions use the same calculator composed into the Ranger adapter.
+const calculateAttributes = createCalculateAttributes(applyRangerBuildAttributeRules);
 
 const RANGER_SKILL_MECHANICS = composeSkillMechanics('Ranger', [
   RANGER_CORE_BASE_SKILL_MECHANICS,

@@ -3,7 +3,8 @@ import { applyWarriorBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { warriorProfession } from '../definition.js';
 
-export const warriorApp = defineProfessionApp({
+// Exposes Warrior only through the shared browser application contract.
+export const warriorAppAdapter = defineProfessionApp({
   profession: warriorProfession,
   applyBuildAttributeRules: applyWarriorBuildAttributeRules,
   createDefaultTargetConditions,
@@ -20,16 +21,3 @@ export const warriorApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Axe')
 });
-
-export const {
-  appAdapter: warriorAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = warriorApp;

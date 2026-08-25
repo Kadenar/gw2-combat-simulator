@@ -21,6 +21,7 @@ import {
 } from '../../../js/app/rotation/palette/view.js';
 import { insertRotationItems } from '../../../js/app/rotation/editing/actions.js';
 import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
+import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
@@ -29,10 +30,8 @@ import {
   migrateRevenantBuild,
   validateRevenantBuild
 } from '../../../js/professions/revenant/build.js';
-import {
-  calculateAttributes as calculateRevenantAttributes,
-  modifierCandidates
-} from '../../../js/professions/revenant/app/app-definition.js';
+import { applyRevenantBuildAttributeRules } from '../../../js/professions/revenant/build-attributes.js';
+import { revenantAppAdapter } from '../../../js/professions/revenant/app/app-definition.js';
 import { revenantCatalog } from '../../../js/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
@@ -59,6 +58,9 @@ import {
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
 } from '../../../js/professions/revenant/legend-rules.js';
 import { REVENANT_LEGENDS, revenantLegendLoadout } from '../../../js/professions/revenant/legend-loadout.js';
+
+// Attribute assertions use the same calculator composed into the Revenant adapter.
+const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -293,7 +295,9 @@ test('modifier contribution candidates include every active Revenant trait', () 
     skillByName: revenantCatalog.skillsByName
   };
   const activeTraitNames = app.attributeData.activeTraits.map((trait) => trait.name).sort();
-  const candidateNames = modifierCandidates(app)
+  const candidateNames = revenantAppAdapter
+    .modifierContributionRequest(app)
+    .comparisons.map(({ modifier }) => modifier)
     .filter((candidate) => candidate.type === 'Trait')
     .map((candidate) => candidate.name)
     .sort();

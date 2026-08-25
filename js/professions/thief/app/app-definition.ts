@@ -8,7 +8,8 @@ import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { thiefProfession } from '../definition.js';
 import type { ThiefApplicationBuild } from '../types.js';
 
-export const thiefApp = defineProfessionApp({
+// Exposes Thief only through the shared browser application contract.
+export const thiefAppAdapter = defineProfessionApp({
   profession: thiefProfession,
   applyBuildAttributeRules: applyThiefBuildAttributeRules,
   createDefaultTargetConditions,
@@ -34,16 +35,3 @@ export const thiefApp = defineProfessionApp({
     return offHands[0] || '';
   }
 });
-
-export const {
-  appAdapter: thiefAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = thiefApp;

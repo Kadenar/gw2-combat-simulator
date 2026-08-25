@@ -27,12 +27,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '../../../js/professions/thief/data/ids.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/professions/thief/core/skills.js';
-import {
-  recalculate,
-  runSimulation,
-  simulationConfig,
-  thiefAppAdapter
-} from '../../../js/professions/thief/app/app-definition.js';
+import { thiefAppAdapter } from '../../../js/professions/thief/app/app-definition.js';
 import { thiefProfession } from '../../../js/professions/thief/definition.js';
 import { daredevilModifierRules } from '../../../js/professions/thief/specializations/daredevil/rules.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/thief/core/profiles.js';

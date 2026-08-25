@@ -6,7 +6,8 @@ import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import { rangerProfession } from '../definition.js';
 import type { RangerApplicationBuild } from '../types.js';
 
-export const rangerApp = defineProfessionApp({
+// Exposes Ranger only through the shared browser application contract.
+export const rangerAppAdapter = defineProfessionApp({
   profession: rangerProfession,
   applyBuildAttributeRules: applyRangerBuildAttributeRules,
   createDefaultTargetConditions,
@@ -44,16 +45,3 @@ export const rangerApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Axe')
 });
-
-export const {
-  appAdapter: rangerAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = rangerApp;

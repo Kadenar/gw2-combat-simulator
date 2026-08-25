@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild, replaceBuild } from '../../../js/app/build/state/persistence.js';
-import {
-  calculateAttributes,
-  mesmerAppAdapter,
-  simulationConfig
-} from '../../../js/professions/mesmer/app/app-definition.js';
+import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
+import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '../../../js/professions/mesmer/build-attributes.js';
 import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
 import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '../../../js/platform/gw2/combat/query/combat-query.js';
 
+// Attribute assertions use the same calculator composed into the Mesmer adapter.
+const calculateAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
 const defaults = () => createDefaultBuild(mesmerAppAdapter);
 
 test('legacy weapon prefixes migrate onto the alternate weapon set', () => {
@@ -70,7 +70,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
     skillById: mesmerProfession.catalog.skillsById,
     skillByName: mesmerProfession.catalog.skillsByName
   };
-  const config = simulationConfig(app);
+  const config = mesmerAppAdapter.simulationConfig(app);
   const query = createGw2CombatQuery({
     profession: resolveProfessionRuntime(mesmerProfession, config),
     config,

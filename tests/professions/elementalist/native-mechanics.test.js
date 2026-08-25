@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
 import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
@@ -12,17 +13,16 @@ import {
   rotationSelectedSlotSkills,
   weaponPaletteRows
 } from '../../../js/app/rotation/palette/model.js';
-import {
-  calculateAttributes,
-  elementalistAppAdapter,
-  recalculate,
-  simulationConfig
-} from '../../../js/professions/elementalist/app/app-definition.js';
+import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
+import { applyElementalistBuildAttributeRules } from '../../../js/professions/elementalist/build-attributes.js';
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 import { elementalistCoreModifierRules } from '../../../js/professions/elementalist/core/modifiers.js';
 import { weaverModifierRules } from '../../../js/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
+
+// Attribute assertions use the same calculator composed into the Elementalist adapter.
+const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
 
 test('all native Elementalist specializations use one weapon set', () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
@@ -87,7 +87,7 @@ function createNativeApp({ lines, rotation = [], ...extras }) {
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
+  elementalistAppAdapter.recalculate(app);
 
   return { app, commands };
 }
@@ -98,7 +98,7 @@ function runNative(options) {
   return simulateGw2({
     profession: elementalistProfession,
     rotation: commands,
-    config: simulationConfig(app)
+    config: elementalistAppAdapter.simulationConfig(app)
   });
 }
 

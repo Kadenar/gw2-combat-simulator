@@ -39,15 +39,7 @@ import { REAPER_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/
 import { SCOURGE_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/scourge/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/harbinger/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/ritualist/profiles.js';
-import {
-  calculateModifierContributions,
-  modifierCandidates,
-  modifierContributionRequest,
-  necromancerAppAdapter,
-  recalculate,
-  runSimulation,
-  simulationConfig
-} from '../../../js/professions/necromancer/app/app-definition.js';
+import { necromancerAppAdapter } from '../../../js/professions/necromancer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -4151,11 +4143,13 @@ test('modifier candidates include every active Necromancer trait', () => {
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
+  necromancerAppAdapter.recalculate(app);
 
   const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
   const candidateNames = new Set(
-    modifierCandidates(app)
+    necromancerAppAdapter
+      .modifierContributionRequest(app)
+      .comparisons.map(({ modifier }) => modifier)
       .filter((candidate) => candidate.type === 'Trait')
       .map((candidate) => candidate.name)
   );

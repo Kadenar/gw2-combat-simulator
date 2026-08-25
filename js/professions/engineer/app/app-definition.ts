@@ -8,7 +8,8 @@ import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { engineerProfession } from '../definition.js';
 import type { EngineerApplicationBuild, EngineerEvolveAttributePool } from '../types.js';
 
-export const engineerApp = defineProfessionApp({
+// Exposes Engineer only through the shared browser application contract.
+export const engineerAppAdapter = defineProfessionApp({
   profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
   createDefaultTargetConditions,
@@ -45,16 +46,3 @@ export const engineerApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Pistol')
 });
-
-export const {
-  appAdapter: engineerAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = engineerApp;

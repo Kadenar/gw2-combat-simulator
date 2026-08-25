@@ -38,7 +38,7 @@ import { scrapperModule } from '../../../js/professions/engineer/specializations
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperSchedulerHooks } from '../../../js/professions/engineer/specializations/scrapper/rules.js';
 import { createScrapperState } from '../../../js/professions/engineer/specializations/scrapper/state.js';
-import { recalculate, runSimulation, simulationConfig } from '../../../js/professions/engineer/app/app-definition.js';
+import { engineerAppAdapter } from '../../../js/professions/engineer/app/app-definition.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -3058,8 +3058,8 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
-  const config = simulationConfig(app);
+  engineerAppAdapter.recalculate(app);
+  const config = engineerAppAdapter.simulationConfig(app);
 
   assert.deepEqual(config.amalgamEvolveAttributePool, app.attributeData.amalgamEvolveAttributePool);
   assert.equal(config.stats.ferocity - config.amalgamEvolveAttributePool.Ferocity, 150);
@@ -3825,7 +3825,7 @@ test('Scrapper 1-3-2 converts 13% of Power into Concentration', () => {
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
+  engineerAppAdapter.recalculate(app);
 
   assert.ok(app.attributeData.activeTraits.some((trait) => trait.name === 'Kinetic Accelerators'));
   assert.equal(

@@ -8,7 +8,8 @@ import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { revenantProfession } from '../definition.js';
 import type { RevenantApplicationBuild } from '../types.js';
 
-export const revenantApp = defineProfessionApp({
+// Exposes Revenant only through the shared browser application contract.
+export const revenantAppAdapter = defineProfessionApp({
   profession: revenantProfession,
   applyBuildAttributeRules: applyRevenantBuildAttributeRules,
   createDefaultTargetConditions,
@@ -29,16 +30,3 @@ export const revenantApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Sword')
 });
-
-export const {
-  appAdapter: revenantAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = revenantApp;

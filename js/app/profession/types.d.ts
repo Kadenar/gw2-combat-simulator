@@ -511,10 +511,8 @@ export interface ProfessionRuntimeApi {
   eliteSpecialization(build: ProfessionApplicationBuild): string;
   recalculate(app: ProfessionAppState): void;
   simulationConfig(app: ProfessionAppState, disabled?: ProfessionModifier | null): Gw2Config;
-  modifierCandidates(app: ProfessionAppState): ProfessionModifier[];
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
-  computeModifierContributions(app: ProfessionAppState): ModifierContribution[];
   randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
   relicComparisonRequest(app: ProfessionAppState): RelicComparisonJobRequest | null;
   calculateRandomDistribution(
@@ -580,11 +578,6 @@ export interface DefineProfessionAppOptions {
   readonly runtime?: ProfessionRuntimeOverrides;
   readonly isSkillAvailable?: ProfessionIsSkillAvailable;
   readonly defaultOffhand?: ProfessionDefaultOffhand;
-}
-
-export interface ProfessionAppDefinition extends ProfessionRuntimeApi {
-  readonly appAdapter: Gw2AppAdapter;
-  readonly calculateAttributes: Gw2CalculateAttributes;
 }
 
 export interface Gw2SimulationConfigOptions {

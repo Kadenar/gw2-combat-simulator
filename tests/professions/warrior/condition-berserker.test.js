@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { recalculate, runSimulation } from '../../../js/professions/warrior/app/app-definition.js';
+import { warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
 import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/professions/warrior/build.js';
 import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 import { getActiveTraits } from '../../../js/professions/warrior/data/traits-data.js';
@@ -294,8 +294,8 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
       attributeWeaponSet: 1
     };
 
-    recalculate(app);
-    const result = runSimulation(app);
+    warriorAppAdapter.recalculate(app);
+    const result = warriorAppAdapter.runSimulation(app);
 
     assert.deepEqual(result.warnings, []);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.COMBUSTIVE_SHOT);
@@ -341,8 +341,8 @@ test('a delayed primal-burst critical hit immediately detonates its new fire aur
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
-  const result = runSimulation(app);
+  warriorAppAdapter.recalculate(app);
+  const result = warriorAppAdapter.runSimulation(app);
   const scorchedAction = result.events.find((event) => event.type === 'action' && event.skillId === ID.SCORCHED_EARTH);
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
 
@@ -366,8 +366,8 @@ test('a final persistent Berserker packet does not extend the rotation horizon',
     attributeWeaponSet: 1
   };
 
-  recalculate(app);
-  const result = runSimulation(app);
+  warriorAppAdapter.recalculate(app);
+  const result = warriorAppAdapter.runSimulation(app);
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
 
   assert.deepEqual(result.warnings, []);

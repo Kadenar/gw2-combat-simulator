@@ -26,7 +26,7 @@ import {
 import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 import { warriorNativeModules } from '../../../js/professions/warrior/modules.js';
 import { warriorCoreModule } from '../../../js/professions/warrior/core/module.js';
-import { recalculate, runSimulation, warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
+import { warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
 import { createWarriorCoreState } from '../../../js/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/core/profiles.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/warrior/data/warrior-api-metadata.js';

@@ -3,11 +3,7 @@ import test from 'node:test';
 
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import {
-  elementalistAppAdapter,
-  recalculate,
-  simulationConfig
-} from '../../../js/professions/elementalist/app/app-definition.js';
+import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 
 const catalog = elementalistProfession.catalog;
@@ -49,11 +45,11 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     results: null
   };
 
-  recalculate(app);
+  elementalistAppAdapter.recalculate(app);
   app.results = simulateGw2({
     profession: elementalistProfession,
     rotation: commands,
-    config: simulationConfig(app)
+    config: elementalistAppAdapter.simulationConfig(app)
   });
 
   return app;

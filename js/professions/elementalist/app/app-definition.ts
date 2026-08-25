@@ -37,7 +37,8 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
   return defaultIsSkillAvailable(skill, context);
 }
 
-export const elementalistApp = defineProfessionApp({
+// Exposes Elementalist only through the shared browser application contract.
+export const elementalistAppAdapter = defineProfessionApp({
   profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   createDefaultTargetConditions,
@@ -65,16 +66,3 @@ export const elementalistApp = defineProfessionApp({
   isSkillAvailable: isElementalistSkillAvailable,
   defaultOffhand: preferOffhand('Dagger')
 });
-
-export const {
-  appAdapter: elementalistAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = elementalistApp;

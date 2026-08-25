@@ -9,7 +9,8 @@ import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import { necromancerProfession } from '../definition.js';
 
-export const necromancerApp = defineProfessionApp({
+// Exposes Necromancer only through the shared browser application contract.
+export const necromancerAppAdapter = defineProfessionApp({
   profession: necromancerProfession,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
   createDefaultTargetConditions,
@@ -35,16 +36,3 @@ export const necromancerApp = defineProfessionApp({
   },
   defaultOffhand: preferOffhand('Dagger')
 });
-
-export const {
-  appAdapter: necromancerAppAdapter,
-  calculateAttributes,
-  eliteSpecialization,
-  recalculate,
-  simulationConfig,
-  modifierCandidates,
-  modifierContributionRequest,
-  calculateModifierContributions,
-  computeModifierContributions,
-  runSimulation
-} = necromancerApp;

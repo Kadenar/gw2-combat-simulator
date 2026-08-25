@@ -2905,8 +2905,7 @@ test('declarative professions keep skill ownership in runtime modules', async ()
       const localMechanics = await Promise.all(
         [
           path.join(root, profession, 'core', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'firebrand', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'luminary', 'mechanics.js')
+          path.join(root, profession, 'specializations', 'firebrand', 'mechanics.js')
         ].map(readSourceModule)
       );
       const handlers = (

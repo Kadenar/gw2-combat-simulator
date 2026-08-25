@@ -5,7 +5,6 @@ import test from 'node:test';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/professions/warrior/build.js';
 import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
-import { recalculate, runSimulation } from '../../../js/professions/warrior/app/app-definition.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../js/professions/warrior/data/ids.js';
 import { warriorProfession } from '../../../js/professions/warrior/definition.js';
 
