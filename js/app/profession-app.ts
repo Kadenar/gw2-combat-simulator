@@ -163,8 +163,10 @@ export class ProfessionApp implements ProfessionAppState {
     }
 
     updateTemplateSelection(this);
-    // Template replacements keep the prior builder intact until build and result state can be painted together.
-    if (options.deferRotationRender) this.deferredRotationRenderRevision = revision;
+    // Rotation-only edits keep the resolved builder intact until the worker can paint the new commands and results
+    // together; otherwise every edit briefly collapses result-derived timeline rows and causes visible flicker.
+    const deferRotationRender = !rebuildStatic || options.deferRotationRender === true;
+    if (deferRotationRender) this.deferredRotationRenderRevision = revision;
     else {
       this.deferredRotationRenderRevision = null;
       renderRotationEditor(this);

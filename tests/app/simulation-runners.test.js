@@ -17,7 +17,7 @@ function runTimersImmediately(t) {
   });
 }
 
-test('deferred template changes paint the builder once with their matching result', (t) => {
+test('rotation-only changes paint the builder once with their matching result', (t) => {
   const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
   t.after(() => {
     if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
@@ -56,7 +56,7 @@ test('deferred template changes paint the builder once with their matching resul
     }
   });
 
-  app.changed(false, false, { deferRotationRender: true });
+  app.changed(false);
   assert.equal(scheduledRevision, 2);
   assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
 
