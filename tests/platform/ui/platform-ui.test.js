@@ -5,6 +5,7 @@ import {
   activationDamageCommitMs,
   activationDamageCommitWarning,
   suggestedActivationInterruptMs,
+  validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
 } from '../../../js/platform/ui/activation-editor.js';
 import { chargeReleaseRowLabel } from '../../../js/platform/ui/charge-release-editor.js';
@@ -72,6 +73,10 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.equal(validateActivationInterruptMs('', 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+  assert.deepEqual(validateActivationConcurrentOffsetMs(0), { valid: true, value: 0 });
+  assert.deepEqual(validateActivationConcurrentOffsetMs('100.4'), { valid: true, value: 100 });
+  assert.equal(validateActivationConcurrentOffsetMs('').valid, false);
+  assert.equal(validateActivationConcurrentOffsetMs(-1).valid, false);
   assert.equal(
     activationDamageCommitMs({
       effects: [

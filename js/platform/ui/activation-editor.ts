@@ -4,11 +4,14 @@ export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;
   readonly skillName: string;
   readonly icon?: string;
+  readonly behavior?: 'interrupt' | 'concurrent';
   readonly interruptMs?: number | null;
+  readonly concurrentOffsetMs?: number | null;
   readonly fullCastMs?: number | null;
   readonly suggestedInterruptMs?: number | null;
+  readonly suggestedConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
-  readonly onApply: (interruptMs: number | null) => void;
+  readonly onApply: (timingMs: number | null) => void;
 }
 
 export interface ActivationEditorHandle {
@@ -98,6 +101,19 @@ export function validateActivationInterruptMs(
   return { valid: true, value };
 }
 
+/** Accepts a whole-millisecond offset from the previous cast start, including an immediate zero offset. */
+export function validateActivationConcurrentOffsetMs(rawValue: string | number): ActivationInterruptValidation {
+  const parsed = Number(rawValue);
+  if ((typeof rawValue === 'string' && rawValue.trim() === '') || !Number.isFinite(parsed) || parsed < 0) {
+    return {
+      valid: false,
+      error: 'Enter an offset of at least 0 ms.'
+    };
+  }
+
+  return { valid: true, value: Math.round(parsed) };
+}
+
 export function closeActivationEditor(): void {
   activeEditor?.close();
 }
@@ -105,6 +121,19 @@ export function closeActivationEditor(): void {
 export function openActivationEditor(options: ActivationEditorOptions): ActivationEditorHandle {
   closeActivationEditor();
 
+  // Instant casts edit their offset into the previous cast; cast-bar skills keep the interruption workflow.
+  const behavior = options.behavior || 'interrupt';
+  const isConcurrentBehavior = behavior === 'concurrent';
+  const configuredMs = isConcurrentBehavior ? options.concurrentOffsetMs : options.interruptMs;
+  const rawSuggestedMs = Number(
+    isConcurrentBehavior ? options.suggestedConcurrentOffsetMs : options.suggestedInterruptMs
+  );
+  const suggestedMs = Number.isFinite(rawSuggestedMs)
+    ? Math.max(isConcurrentBehavior ? 0 : 1, Math.round(rawSuggestedMs))
+    : isConcurrentBehavior
+      ? 100
+      : 1;
+  const minimumMs = isConcurrentBehavior ? 0 : 1;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
   editor.setAttribute('role', 'dialog');
@@ -122,11 +151,11 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       <span>Normal cast</span>
     </label>
     <label class="activation-editor-choice">
-      <input type="radio" name="activation-editor-mode" value="interrupt" />
-      <span>Interrupt after</span>
+      <input type="radio" name="activation-editor-mode" value="${behavior}" />
+      <span>${isConcurrentBehavior ? 'During previous cast' : 'Interrupt after'}</span>
     </label>
     <div class="activation-editor-input-row">
-      <input class="activation-editor-input" type="number" min="1" step="1" inputmode="numeric" />
+      <input class="activation-editor-input" type="number" min="${minimumMs}" step="1" inputmode="numeric" />
       <span>ms</span>
     </div>
     <div class="activation-editor-full-cast"></div>
@@ -143,7 +172,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const icon = editor.querySelector<HTMLImageElement>('.activation-editor-icon');
   const name = editor.querySelector<HTMLElement>('.activation-editor-name');
   const normalRadio = editor.querySelector<HTMLInputElement>('input[value="normal"]');
-  const interruptRadio = editor.querySelector<HTMLInputElement>('input[value="interrupt"]');
+  const configuredRadio = editor.querySelector<HTMLInputElement>(`input[value="${behavior}"]`);
   const input = editor.querySelector<HTMLInputElement>('.activation-editor-input');
   const inputRow = editor.querySelector<HTMLElement>('.activation-editor-input-row');
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
@@ -158,7 +187,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     !icon ||
     !name ||
     !normalRadio ||
-    !interruptRadio ||
+    !configuredRadio ||
     !input ||
     !inputRow ||
     !fullCast ||
@@ -177,37 +206,39 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   name.textContent = options.skillName;
 
   const fullCastMs = Math.round(Number(options.fullCastMs) || 0);
-  const currentInterruptMs = Number(options.interruptMs);
-  const hasInterrupt = options.interruptMs != null && Number.isFinite(currentInterruptMs) && currentInterruptMs >= 1;
-  normalRadio.checked = !hasInterrupt;
-  interruptRadio.checked = hasInterrupt;
-  input.value = String(
-    hasInterrupt ? Math.round(currentInterruptMs) : Math.max(1, Math.round(Number(options.suggestedInterruptMs) || 1))
-  );
-  if (fullCastMs > 1) input.max = String(fullCastMs - 1);
-  fullCast.textContent = fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
-  fullCast.hidden = fullCastMs <= 0;
-  damageCommit.textContent = activationDamageCommitLabel(options.damageCommitMs);
+  const currentConfiguredMs = Number(configuredMs);
+  const hasConfiguredTiming =
+    configuredMs != null && Number.isFinite(currentConfiguredMs) && currentConfiguredMs >= minimumMs;
+  normalRadio.checked = !hasConfiguredTiming;
+  configuredRadio.checked = hasConfiguredTiming;
+  input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
+  if (!isConcurrentBehavior && fullCastMs > 1) input.max = String(fullCastMs - 1);
+  fullCast.textContent = !isConcurrentBehavior && fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
+  fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
+  damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);
   damageCommit.hidden = !damageCommit.textContent;
 
   const updateDamageCommitWarning = (): void => {
-    const message = interruptRadio.checked ? activationDamageCommitWarning(input.value, options.damageCommitMs) : '';
+    const message =
+      !isConcurrentBehavior && configuredRadio.checked
+        ? activationDamageCommitWarning(input.value, options.damageCommitMs)
+        : '';
     warning.textContent = message;
     warning.hidden = !message;
   };
 
   const updateMode = (): void => {
-    const interrupted = interruptRadio.checked;
-    input.disabled = !interrupted;
-    inputRow.classList.toggle('is-disabled', !interrupted);
+    const configured = configuredRadio.checked;
+    input.disabled = !configured;
+    inputRow.classList.toggle('is-disabled', !configured);
     error.textContent = '';
     updateDamageCommitWarning();
   };
 
   normalRadio.addEventListener('change', updateMode);
-  interruptRadio.addEventListener('change', () => {
+  configuredRadio.addEventListener('change', () => {
     updateMode();
-    if (interruptRadio.checked) {
+    if (configuredRadio.checked) {
       input.focus();
       input.select();
     }
@@ -287,7 +318,9 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       return;
     }
 
-    const validation = validateActivationInterruptMs(input.value, fullCastMs);
+    const validation = isConcurrentBehavior
+      ? validateActivationConcurrentOffsetMs(input.value)
+      : validateActivationInterruptMs(input.value, fullCastMs);
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();
@@ -301,7 +334,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
 
   reset.addEventListener('click', () => {
     normalRadio.checked = true;
-    interruptRadio.checked = false;
+    configuredRadio.checked = false;
     updateMode();
     normalRadio.focus();
   });
@@ -321,7 +354,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   document.addEventListener('keydown', onKeyDown, true);
   document.addEventListener('scroll', onViewportChange, true);
   window.addEventListener('resize', onViewportChange);
-  if (hasInterrupt) {
+  if (hasConfiguredTiming) {
     input.focus();
     input.select();
   } else {

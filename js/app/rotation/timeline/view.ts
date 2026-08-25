@@ -66,7 +66,13 @@ import {
   timelineStepsWithChargeFills,
   timelineWeaponRows
 } from './model.js';
-import type { RotationCommand, SchedulerRecord, SchedulerStep, SkillId } from '../../../platform/engine/types.js';
+import type {
+  RotationCommand,
+  SchedulerRecord,
+  SchedulerStep,
+  Skill,
+  SkillId
+} from '../../../platform/engine/types.js';
 import type { Gw2ProcStep } from '../../../platform/gw2/resolver/types.js';
 import type { TimelineInteractionOptions } from '../../../platform/ui/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../../profession/types.js';
@@ -152,6 +158,19 @@ function timelineItem(command: RotationCommand): TimelineItem {
     command,
     name: command.type === 'combat-start' ? '__combat_start' : '__cooldown_reset'
   };
+}
+
+/** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
+function timelineFullCastMs(
+  step: SchedulerStep | null | undefined,
+  skill: Pick<Skill, 'castTimeMs'> | undefined
+): number {
+  const simulatedDuration = Number(step?.fullCastMs);
+  if (step?.fullCastMs != null && Number.isFinite(simulatedDuration)) {
+    return Math.max(0, Math.round(simulatedDuration));
+  }
+
+  return Math.max(0, Math.round(Number(skill?.castTimeMs) || 0));
 }
 
 // Merges new proc keys into the visible set. New procs auto-show; previously
@@ -244,12 +263,10 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
   return false;
 }
 
-// "Activation" here means cast behavior: how long the skill runs before it's
-// interrupted (early-cancelled to skip the aftercast). fullCastMs comes from the
-// simulation result because traits/haste can extend the catalog cast time; falls
-// back to catalog value when no sim result exists yet. The anchor is the whole
-// .rot-skill card rather than the edit button so the popover positions correctly.
-// interruptAfterMs omitted means no interruption; the editor removes it with undefined.
+// "Activation" here means either interrupting a cast-bar skill or placing an
+// instant skill during the previous cast. The simulated duration selects the
+// appropriate editor, including runtime instant-cast conversions. The anchor is
+// the whole .rot-skill card so the popover positions correctly.
 function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
@@ -259,7 +276,8 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 
   const step = app.results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
   const catalogCastMs = Math.round(Number(skill.castTimeMs) || 0);
-  const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
+  const fullCastMs = timelineFullCastMs(step, skill);
+  const behavior = item.concurrentOffsetMs != null || fullCastMs === 0 ? 'concurrent' : 'interrupt';
   const eventTarget = event?.currentTarget;
   const eventElement = eventTarget instanceof HTMLElement ? eventTarget : null;
   const anchor =
@@ -271,16 +289,22 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     anchor,
     skillName: String(skill.displayName || skill.name),
     icon: anchor.querySelector<HTMLImageElement>('img')?.getAttribute('src') || skill.icon || undefined,
-    interruptMs: item.interruptAfterMs == null ? null : Number(item.interruptAfterMs),
+    behavior,
+    interruptMs: behavior === 'interrupt' && item.interruptAfterMs != null ? Number(item.interruptAfterMs) : null,
+    concurrentOffsetMs:
+      behavior === 'concurrent' && item.concurrentOffsetMs != null ? Number(item.concurrentOffsetMs) : null,
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
-    onApply(interruptMs) {
+    onApply(timingMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
-      app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        interruptAfterMs: interruptMs ?? undefined
-      });
+      app.build.rotation[index] = updateRotationEntry(
+        currentEntry,
+        behavior === 'concurrent'
+          ? { concurrentOffsetMs: timingMs ?? undefined }
+          : { interruptAfterMs: timingMs ?? undefined }
+      );
       app.changed(false);
     }
   });
@@ -799,11 +823,8 @@ export function renderTimeline(app: ProfessionAppState): void {
         : '';
       const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
       const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
-      const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
-      const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
-      // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
-      const canEditActivation =
-        item.type === 'cast' && (item.interruptAfterMs != null || fullCastMs > 0 || catalogCastMs > 0);
+      // Every resolved cast exposes behavior editing: interrupts for cast bars and overlap offsets for instants.
+      const canEditActivation = item.type === 'cast' && skill != null;
       rowItems.push(
         rotationTimelineEntryHtml(
           index,

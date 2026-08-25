@@ -373,6 +373,29 @@ frame.addEventListener('load', async () => {
       app.build.rotation[1].concurrentOffsetMs === 250,
       'offset duration editor did not update the concurrent command'
     );
+    const instantActivation = document.querySelector(
+      '#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation'
+    );
+
+    assert(instantActivation, 'instant cast does not expose the activation editor');
+    instantActivation.click();
+    let activationEditor = document.querySelector('.rotation-activation-editor');
+    assert(
+      activationEditor?.querySelector('input[value="concurrent"]')?.checked &&
+        activationEditor.textContent.includes('During previous cast') &&
+        !activationEditor.textContent.includes('Interrupt after'),
+      'instant cast editor did not expose the previous-cast behavior'
+    );
+    activationEditor.querySelector('input[value="normal"]').click();
+    activationEditor.querySelector('.activation-editor-apply').click();
+    assert(app.build.rotation[1].concurrentOffsetMs === undefined, 'normal cast did not remove the concurrent offset');
+
+    document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation').click();
+    activationEditor = document.querySelector('.rotation-activation-editor');
+    activationEditor.querySelector('input[value="concurrent"]').click();
+    activationEditor.querySelector('.activation-editor-input').value = '125';
+    activationEditor.querySelector('.activation-editor-apply').click();
+    assert(app.build.rotation[1].concurrentOffsetMs === 125, 'instant cast editor did not add a concurrent offset');
 
     app.build.rotation = [];
     app.changed(false);
@@ -418,7 +441,7 @@ frame.addEventListener('load', async () => {
 
     assert(editActivation, 'normal cast does not expose the activation editor');
     editActivation.click();
-    let activationEditor = document.querySelector('.rotation-activation-editor');
+    activationEditor = document.querySelector('.rotation-activation-editor');
 
     assert(
       activationEditor &&
