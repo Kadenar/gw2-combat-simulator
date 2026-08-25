@@ -5,22 +5,7 @@ import type { NecromancerConfig, NecromancerCoreState } from '../types.js';
 
 export const NECROMANCER_BASE_HEALTH = 9212;
 
-export function selectedNecromancerTraits(config: NecromancerConfig = {}): Set<string | number> {
-  return new Set(
-    [...(config.traitIds || []), ...(config.selectedTraitIds || []), ...(config.selectedTraits || [])].map((value) =>
-      Number.isFinite(Number(value)) ? Number(value) : value
-    )
-  );
-}
-
-export function hasNecromancerTrait(
-  configOrTraits: NecromancerConfig | ReadonlySet<string | number>,
-  traitId: SkillId
-): boolean {
-  const traits =
-    typeof (configOrTraits as ReadonlySet<string | number>).has === 'function'
-      ? (configOrTraits as ReadonlySet<string | number>)
-      : selectedNecromancerTraits(configOrTraits as NecromancerConfig);
+export function hasNecromancerTrait(traits: ReadonlySet<string | number>, traitId: SkillId): boolean {
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
@@ -62,7 +47,10 @@ export function syncNecromancerResources<TState extends NecromancerCoreState>(st
 }
 
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
-  const traits = selectedNecromancerTraits(config);
+  // Normalize canonical selected IDs once for all initial state calculations.
+  const traits = new Set(
+    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
+  );
   const soulBattery = hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
   const maximumLifeForce = soulBattery ? 120 : 100;
   const maximumHealth = necromancerMaximumHealth(config, traits);

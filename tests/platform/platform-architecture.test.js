@@ -735,7 +735,7 @@ test('test profession runs end to end without importing Mesmer', () => {
       { type: 'cast', skillId: 900002 }
     ],
     config: {
-      traitIds: ['fixture.power'],
+      selectedTraitIds: ['fixture.power'],
       attributes: {
         power: 1000,
         precision: 1000,
@@ -1570,7 +1570,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     profession,
     rotation: ['Context Strike'],
     config: {
-      selectedTraits: [],
+      selectedTraitIds: [],
       selectedTraitIds: ['context-fixture.damage']
     }
   });

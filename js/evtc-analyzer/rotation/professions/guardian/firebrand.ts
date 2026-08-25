@@ -144,14 +144,14 @@ function omitAutomaticTomeStows(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const config = context.professionConfig || {};
-  const selectedTraits = new Set((Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []).map(Number));
-  const maximumPages = selectedTraits.has(ARCHIVIST_OF_WHISPERS) ? 8 : 5;
+  const selectedTraitIds = new Set((Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []).map(Number));
+  const maximumPages = selectedTraitIds.has(ARCHIVIST_OF_WHISPERS) ? 8 : 5;
   const configuredInitialPages = Number(config.initialTomePages ?? maximumPages);
   const normalizedInitialPages = Number.isFinite(configuredInitialPages) ? configuredInitialPages : maximumPages;
   const initialPages =
-    selectedTraits.has(ARCHIVIST_OF_WHISPERS) && normalizedInitialPages === 5 ? maximumPages : normalizedInitialPages;
+    selectedTraitIds.has(ARCHIVIST_OF_WHISPERS) && normalizedInitialPages === 5 ? maximumPages : normalizedInitialPages;
   let pages = Math.max(0, Math.min(maximumPages, initialPages));
-  const pageInterval = selectedTraits.has(LOREMASTER) ? 5_000 : 8_000;
+  const pageInterval = selectedTraitIds.has(LOREMASTER) ? 5_000 : 8_000;
   const timelineOriginMs = Math.min(context.timelineOriginMs, ...actions.map((action) => action.start));
   let nextPageAt = pages < maximumPages ? timelineOriginMs + pageInterval : Number.POSITIVE_INFINITY;
   let activeTomeId: number | null = null;
@@ -206,7 +206,7 @@ function omitAutomaticTomeStows(
     }
 
     if (event.kind === 'page-gain') {
-      if (selectedTraits.has(WEIGHTY_TERMS)) {
+      if (selectedTraitIds.has(WEIGHTY_TERMS)) {
         pages = Math.min(maximumPages, pages + 2);
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }

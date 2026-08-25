@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../../js/professions/mesmer/data/ids.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 const PLAYER = 0x1000n;
@@ -565,7 +566,7 @@ test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across C
 
   const replay = simulateMesmer(result.rotation, {
     specialization: 'Chronomancer',
-    selectedTraits: ['Shatter Storm'],
+    selectedTraitIds: [TRAIT.SHATTER_STORM],
     initialResource: 3
   });
   const replayedSplits = replay.steps.filter((step) => step.skill === 'Split Second');

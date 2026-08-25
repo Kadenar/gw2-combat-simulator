@@ -5,10 +5,9 @@ import type { ThiefConfig, ThiefCoreState } from '../types.js';
 export const THIEF_BASE_HEALTH = 1645;
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
+  // State initialization normalizes the canonical trait-ID selection once.
   return new Set(
-    [...(config.traitIds || []), ...(config.selectedTraitIds || []), ...(config.selectedTraits || [])].map((value) =>
-      Number.isFinite(Number(value)) ? Number(value) : value
-    )
+    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
   );
 }
 

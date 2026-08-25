@@ -63,7 +63,7 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
     reconstruction.rotation,
     defaultSimulationConfig({
       specialization: 'Virtuoso',
-      selectedTraits: [],
+      selectedTraitIds: [],
       selectedSkills: ['Mantra of Pain', 'Rain of Swords'],
       primaryWeapon: 'Spear',
       secondaryWeapon: '',

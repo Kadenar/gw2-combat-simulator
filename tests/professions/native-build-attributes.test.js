@@ -134,7 +134,7 @@ test('shared attribute provenance applies profession static rules once', () => {
 
   const engineerDirect = engineerCoreRules.modifyAttributes(
     {
-      config: { traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] }
+      config: { selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] }
     },
     { conditionDamage: 1000 }
   );
@@ -142,7 +142,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     {
       config: {
         ...applied,
-        traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS]
+        selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS]
       }
     },
     { conditionDamage: 1120 }
@@ -153,7 +153,7 @@ test('shared attribute provenance applies profession static rules once', () => {
 
   const guardianDirect = guardianCoreRules.modifyAttributes(
     {
-      config: { traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
+      config: { selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
       event: { skillWeapon: 'Greatsword' }
     },
     { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 }
@@ -162,7 +162,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     {
       config: {
         ...applied,
-        traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
       },
       event: { skillWeapon: 'Greatsword' }
     },
@@ -174,7 +174,7 @@ test('shared attribute provenance applies profession static rules once', () => {
 
   const necromancerDirect = necromancerCoreRules.modifyAttributes(
     {
-      config: { traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] }
+      config: { selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] }
     },
     { precision: 1000 }
   );
@@ -182,7 +182,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     {
       config: {
         ...applied,
-        traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE]
+        selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE]
       }
     },
     { precision: 1180 }
@@ -192,12 +192,12 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(necromancerBrowser.precision, necromancerDirect.precision);
 
   const necromancerDirectState = createNecromancerCoreState({
-    traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
+    selectedTraitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
     stats: { power: 1000, vitality: 1000 }
   });
   const necromancerBrowserState = createNecromancerCoreState({
     ...applied,
-    traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
+    selectedTraitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
     stats: { power: 1000, vitality: 1100 }
   });
 
@@ -205,7 +205,7 @@ test('shared attribute provenance applies profession static rules once', () => {
 
   const revenantDirect = revenantCoreRules.modifyConditionDuration(
     {
-      config: { traitIds: [TRAIT.PACT_OF_PAIN] },
+      config: { selectedTraitIds: [TRAIT.PACT_OF_PAIN] },
       condition: 'Torment'
     },
     1
@@ -214,7 +214,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     {
       config: {
         ...applied,
-        traitIds: [TRAIT.PACT_OF_PAIN]
+        selectedTraitIds: [TRAIT.PACT_OF_PAIN]
       },
       condition: 'Torment'
     },
@@ -232,7 +232,7 @@ test('shared attribute provenance applies profession static rules once', () => {
       config: {
         ...config,
         specialization: 'Daredevil',
-        traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE]
+        selectedTraitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE]
       }
     }).endState.profession;
   const thiefDirect = simulateDaredevil({
@@ -581,7 +581,7 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
         attributeProvenance: {
           professionStaticRulesApplied: true
         },
-        traitIds: [TRAIT.BRUTAL_MOMENTUM]
+        selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM]
       },
       runtime: {
         profession: { endurance: 50, maximumEndurance: 100 }

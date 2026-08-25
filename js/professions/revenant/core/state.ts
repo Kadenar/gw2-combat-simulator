@@ -2,20 +2,11 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { normalizeRevenantLegendIds } from '../legend-rules.js';
 import type { RevenantConfig, RevenantCoreState } from '../types.js';
 
-export function selectedRevenantTraits(config: RevenantConfig = {}): Set<string | number> {
-  return new Set(
-    [...(config.traitIds || []), ...(config.selectedTraitIds || []), ...(config.selectedTraits || [])].map((value) =>
-      Number.isFinite(Number(value)) ? Number(value) : value
-    )
+export function hasRevenantTrait(config: RevenantConfig = {}, traitId: string | number): boolean {
+  // Normalize canonical config IDs at the shared lookup boundary.
+  const traits = new Set(
+    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
   );
-}
-
-export function hasRevenantTrait(
-  configOrTraits: RevenantConfig | ReadonlySet<string | number> = {},
-  traitId: string | number
-): boolean {
-  const traits =
-    configOrTraits instanceof Set ? configOrTraits : selectedRevenantTraits(configOrTraits as RevenantConfig);
   return traits.has(traitId) || traits.has(String(traitId));
 }
 

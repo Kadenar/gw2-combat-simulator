@@ -18,9 +18,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly weaponSet2Primary?: string;
   readonly weaponSet2Secondary?: string;
   readonly sigilSets?: readonly Gw2SigilSet[];
-  readonly traitIds?: readonly (string | number)[];
   readonly selectedTraitIds?: readonly (string | number)[];
-  readonly selectedTraits?: readonly (string | number)[];
   readonly relic?: string;
   readonly food?: string;
   readonly timeOfDay?: 'day' | 'night';

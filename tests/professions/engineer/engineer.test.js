@@ -4499,7 +4499,7 @@ test('Mech Fighter, Jade Dynamo, and J-Drive add their active effects', () => {
 test('Energy Amplifier adds Power and Healing Power during regeneration', () => {
   const context = {
     config: {
-      traitIds: [TRAIT.ENERGY_AMPLIFIER],
+      selectedTraitIds: [TRAIT.ENERGY_AMPLIFIER],
       boons: { regeneration: true }
     },
     time: 0

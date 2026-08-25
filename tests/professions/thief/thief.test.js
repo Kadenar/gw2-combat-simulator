@@ -313,7 +313,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   assert.equal(coreInitiative.maximum, 12);
 
   const preparedInitiative = resourceViews('Core', {
-    traitIds: [TRAIT.PREPAREDNESS]
+    selectedTraitIds: [TRAIT.PREPAREDNESS]
   })[0];
 
   assert.equal(preparedInitiative.maximum, 15);
@@ -2738,7 +2738,7 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   const artifact = (name, meticulous = false) =>
     simulate('Antiquary', ['Skritt Swipe', name, { type: 'wait', durationMs: 6000 }], {
       ...config,
-      traitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : []
+      selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : []
     });
   const damage = (result, match) =>
     result.breakdown.find((entry) => (typeof match === 'function' ? match(entry) : entry.name === match))?.damage || 0;

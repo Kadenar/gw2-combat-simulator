@@ -73,7 +73,6 @@ export interface MesmerConfig extends Gw2Config {
   readonly infiniteForge?: boolean;
   readonly weaponmasterTraining?: boolean;
   readonly selectedSkills?: readonly MesmerSelectedSkill[] | Readonly<Record<string, MesmerSelectedSkill>>;
-  readonly selectedTraits?: readonly SkillId[];
   readonly selectedTraitIds?: readonly SkillId[];
 }
 

@@ -33,18 +33,14 @@ const TRAIT_BY_ID = new Map(
 );
 
 export function hasGuardianTrait(context: GuardianTraitContext, traitId: SkillId): boolean {
+  // Resolver contexts use normalized traits; raw configuration remains a
+  // fallback for application contexts that have not built a combat query.
   if (context.traits?.has(traitId) || context.traits?.has(String(traitId))) {
     return true;
   }
 
-  const traitName = TRAIT_BY_ID.get(Number(traitId))?.name;
-  const configured = [
-    ...(context.config?.traitIds || []),
-    ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || [])
-  ];
-  return configured.some(
-    (value) => value === traitId || String(value) === String(traitId) || Boolean(traitName && value === traitName)
+  return Boolean(
+    context.config?.selectedTraitIds?.some((value) => value === traitId || String(value) === String(traitId))
   );
 }
 

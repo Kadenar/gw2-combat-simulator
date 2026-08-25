@@ -98,7 +98,7 @@ test('Lingering Thoughts applies its packets and grants its clone 160ms later', 
     ],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0
@@ -135,7 +135,7 @@ test('Lingering Thoughts applies its packets and grants its clone 160ms later', 
 test('Lingering Thoughts creates two Confounding Bolts in an Ethereal field', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
-    selectedTraits: [],
+    selectedTraitIds: [],
     primaryWeapon: 'Staff',
     secondaryWeapon: '',
     weaponSet2Primary: 'Axe',
@@ -157,7 +157,7 @@ test('Lingering Thoughts creates two Confounding Bolts in an Ethereal field', ()
     [{ name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS }],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0
@@ -176,7 +176,7 @@ test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () 
       ['Rewinder', 'Rewinder'],
       defaultSimulationConfig({
         specialization: 'Chronomancer',
-        selectedTraits: ['Master of Misdirection'],
+        selectedTraitIds: [TRAIT.MASTER_OF_MISDIRECTION],
         initialResource
       })
     ).steps[1].start;
@@ -265,7 +265,7 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
     [{ name: '__wait', waitMs: 2010 }, 'Continuum Split'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Master of Misdirection'],
+      selectedTraitIds: [TRAIT.MASTER_OF_MISDIRECTION],
       initialResource: 3
     })
   );
@@ -275,12 +275,12 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
 });
 
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
-  const durationFor = (trait, kind, initialResource) => {
+  const durationFor = (traitId, traitName, kind, initialResource) => {
     const result = simulateMesmer(
       ['Split Second'],
       defaultSimulationConfig({
         specialization: 'Chronomancer',
-        selectedTraits: [trait],
+        selectedTraitIds: [traitId],
         initialResource,
         allies: { count: 4, strikesPerSecond: 1 },
         boons: { quickness: false, alacrity: false }
@@ -295,17 +295,17 @@ test('Chronomancer shatter-boon traits count the mesmer and scale per shattered 
     assert.equal(boon.recipients, 'party');
     assert.equal(boon.maximumRecipients, 5);
     assert.equal(boon.recipientCount, 5);
-    assert.ok(result.procSteps.some((step) => step.skill === trait && step.sourceSkill === 'Split Second'));
+    assert.ok(result.procSteps.some((step) => step.skill === traitName && step.sourceSkill === 'Split Second'));
 
     return boon.duration;
   };
 
-  for (const [trait, kind] of [
-    ['Seize the Moment', 'quickness'],
-    ['Stretched Time', 'alacrity']
+  for (const [traitId, traitName, kind] of [
+    [TRAIT.SEIZE_THE_MOMENT, 'Seize the Moment', 'quickness'],
+    [TRAIT.STRETCHED_TIME, 'Stretched Time', 'alacrity']
   ]) {
     assert.deepEqual(
-      [0, 1, 2, 3].map((clones) => durationFor(trait, kind, clones)),
+      [0, 1, 2, 3].map((clones) => durationFor(traitId, traitName, kind, clones)),
       [4, 5, 6, 7]
     );
   }
@@ -316,7 +316,7 @@ test('Chronomancer shatter boons use boon duration and include Continuum Split',
     [{ name: '__wait', waitMs: 2010 }, 'Continuum Split'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Seize the Moment'],
+      selectedTraitIds: [TRAIT.SEIZE_THE_MOMENT],
       initialResource: 1,
       stats: { concentration: 750 },
       boons: { quickness: false, alacrity: false }
@@ -358,7 +358,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
     createDefaultConfig(),
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Seize the Moment'],
+      selectedTraitIds: [TRAIT.SEIZE_THE_MOMENT],
       initialResource: 2,
       boons: { quickness: false, alacrity: false }
     }),
@@ -385,7 +385,7 @@ test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
   const baseline = simulateMesmer(['Blurred Frenzy', 'Blurred Frenzy'], config);
   const withTrait = simulateMesmer(['Blurred Frenzy', 'Blurred Frenzy'], {
     ...config,
-    selectedTraits: ["Fencer's Finesse"]
+    selectedTraitIds: [TRAIT.FENCERS_FINESSE]
   });
 
   assert.equal(baseline.steps[1].start, 8960);
@@ -397,7 +397,7 @@ test('Flow of Time increases clone critical chance while alacrity is active', ()
     ['Phase Retreat', { name: '__wait', waitMs: 2600 }],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Flow of Time'],
+      selectedTraitIds: [TRAIT.FLOW_OF_TIME],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
@@ -416,7 +416,7 @@ test('Phantasmal Fury increases phantasm critical chance', () => {
     ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Phantasmal Fury'],
+      selectedTraitIds: [TRAIT.PHANTASMAL_FURY],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
@@ -435,7 +435,7 @@ test('illusions do not inherit the mesmer Fury boon', () => {
     ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
@@ -454,7 +454,7 @@ test('clones do not inherit permanent Might while phantasms remain player-owned'
       ['Phase Retreat', 'Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
       defaultSimulationConfig({
         specialization: 'Core',
-        selectedTraits: [],
+        selectedTraitIds: [],
         primaryWeapon: 'Staff',
         secondaryWeapon: '',
         initialResource: 0,
@@ -608,7 +608,7 @@ test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays per
     ['Ether Feast', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Method of Madness'],
+      selectedTraitIds: [TRAIT.METHOD_OF_MADNESS],
       selectedSkills: ['Ether Feast']
     })
   );
@@ -694,7 +694,7 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
 });
 
 test('Phantasmal Swordsman converts on its measured base and Chronophantasma timelines', () => {
-  const conversionAt = (specialization, selectedTraits, waitMs) =>
+  const conversionAt = (specialization, selectedTraitIds, waitMs) =>
     simulateMesmer(
       ['Phantasmal Swordsman', { name: '__wait', waitMs }],
       defaultSimulationConfig({
@@ -702,13 +702,13 @@ test('Phantasmal Swordsman converts on its measured base and Chronophantasma tim
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Sword',
         initialResource: 0,
-        selectedTraits
+        selectedTraitIds
       })
     ).events.find((event) => event.type === 'resource' && event.reason === 'Phantasmal Swordsman phantasm conversion')
       ?.at;
 
   assert.equal(Number(conversionAt('Core', [], 4000)?.toFixed(3)), 4.28);
-  assert.equal(Number(conversionAt('Chronomancer', ['Chronophantasma'], 8000)?.toFixed(3)), 7.92);
+  assert.equal(Number(conversionAt('Chronomancer', [TRAIT.CHRONOPHANTASMA], 8000)?.toFixed(3)), 7.92);
 });
 
 test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
@@ -717,7 +717,7 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Sword',
     initialResource: 0,
-    selectedTraits: ["Fencer's Finesse"]
+    selectedTraitIds: [TRAIT.FENCERS_FINESSE]
   });
   const simulate = (interruptMs) =>
     simulateMesmer(
@@ -761,7 +761,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Core',
-      selectedTraits: []
+      selectedTraitIds: []
     })
   );
   const chronophantasma = simulateMesmer(
@@ -769,7 +769,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Chronomancer',
-      selectedTraits: ['Chronophantasma']
+      selectedTraitIds: [TRAIT.CHRONOPHANTASMA]
     })
   );
   const normalConversions = normal.events.filter((event) => event.reason === 'Phantasmal Warlock phantasm conversion');
@@ -833,7 +833,7 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
   const defaults = defaultSimulationConfig();
   const base = {
     specialization: 'Core',
-    selectedTraits: [],
+    selectedTraitIds: [],
     primaryWeapon: 'Staff',
     secondaryWeapon: '',
     initialResource: 0,
@@ -880,7 +880,7 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
     ['Phantasmal Mage', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['The Pledge'],
+      selectedTraitIds: [TRAIT.THE_PLEDGE],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0
@@ -923,7 +923,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
     ['Phantasmal Warlock', { name: '__wait', waitMs: 11000 }],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Chronophantasma', 'Compounding Power'],
+      selectedTraitIds: [TRAIT.CHRONOPHANTASMA, TRAIT.COMPOUNDING_POWER],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0
@@ -941,12 +941,12 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 });
 
 test('Compounding Power does not increase illusion attack damage', () => {
-  const simulate = (selectedTraits) =>
+  const simulate = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
       defaultSimulationConfig({
         specialization: 'Core',
-        selectedTraits,
+        selectedTraitIds,
         primaryWeapon: 'Staff',
         secondaryWeapon: '',
         initialResource: 0
@@ -957,7 +957,7 @@ test('Compounding Power does not increase illusion attack damage', () => {
       .filter((event) => event.type === 'damage' && event.name === 'Phantasmal Warlock')
       .reduce((sum, event) => sum + event.damage, 0);
 
-  assert.equal(warlockDamage(simulate(['Compounding Power'])), warlockDamage(simulate([])));
+  assert.equal(warlockDamage(simulate([TRAIT.COMPOUNDING_POWER])), warlockDamage(simulate([])));
 });
 
 test('Vicious Expression and Empowered Illusions respect illusion ownership', () => {
@@ -969,21 +969,21 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillName === skillName && event.source === source)
       .reduce((sum, event) => sum + event.damage, 0);
-  const simulateTroubadour = (selectedTraits) =>
+  const simulateTroubadour = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Swordsman', 'Lively Lute', { name: '__wait', waitMs: 4000 }],
       defaultSimulationConfig({
         specialization: 'Troubadour',
-        selectedTraits,
+        selectedTraitIds,
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Sword',
         initialResource: 3
       })
     );
   const baseline = simulateTroubadour([]);
-  const vicious = simulateTroubadour(['Vicious Expression']);
-  const empowered = simulateTroubadour(['Empowered Illusions']);
-  const both = simulateTroubadour(['Vicious Expression', 'Empowered Illusions']);
+  const vicious = simulateTroubadour([TRAIT.VICIOUS_EXPRESSION]);
+  const empowered = simulateTroubadour([TRAIT.EMPOWERED_ILLUSIONS]);
+  const both = simulateTroubadour([TRAIT.VICIOUS_EXPRESSION, TRAIT.EMPOWERED_ILLUSIONS]);
   const swordsmanDamage = (result, source) => damageBySource(result, 'Phantasmal Swordsman', source);
   const luteDamage = (result) => damageBySource(result, 'Lively Lute', 'Player');
 
@@ -996,22 +996,22 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
   assert.equal(luteDamage(empowered), luteDamage(baseline));
   assertMultiplier(luteDamage(both), luteDamage(baseline), 1.15);
 
-  const simulateClone = (selectedTraits) =>
+  const simulateClone = (selectedTraitIds) =>
     simulateMesmer(
       ['Mirror Images', { name: '__wait', waitMs: 1 }, { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY }],
       defaultSimulationConfig({
         specialization: 'Mirage',
         selectedSkills: ['Mirror Images'],
-        selectedTraits,
+        selectedTraitIds,
         primaryWeapon: 'Axe',
         secondaryWeapon: 'Torch',
         initialResource: 0
       })
     );
   const cloneBaseline = simulateClone([]);
-  const cloneVicious = simulateClone(['Vicious Expression']);
-  const cloneEmpowered = simulateClone(['Empowered Illusions']);
-  const cloneBoth = simulateClone(['Vicious Expression', 'Empowered Illusions']);
+  const cloneVicious = simulateClone([TRAIT.VICIOUS_EXPRESSION]);
+  const cloneEmpowered = simulateClone([TRAIT.EMPOWERED_ILLUSIONS]);
+  const cloneBoth = simulateClone([TRAIT.VICIOUS_EXPRESSION, TRAIT.EMPOWERED_ILLUSIONS]);
   const cloneDamage = (result) =>
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone')
@@ -1023,12 +1023,12 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
 });
 
 test('Compounding Power gives player strikes two percent and conditions one percent per stack', () => {
-  const simulate = (selectedTraits) =>
+  const simulate = (selectedTraitIds) =>
     simulateMesmer(
       ['Mirror Images', 'Winds of Chaos', 'Cry of Frustration', { name: '__wait', waitMs: 5000 }],
       defaultSimulationConfig({
         specialization: 'Core',
-        selectedTraits,
+        selectedTraitIds,
         primaryWeapon: 'Staff',
         secondaryWeapon: '',
         initialResource: 0
@@ -1042,7 +1042,7 @@ test('Compounding Power gives player strikes two percent and conditions one perc
     result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillName === 'Cry of Frustration' && event.source === 'Player'
     ).damage;
-  const withTrait = simulate(['Compounding Power']);
+  const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
   const withoutTrait = simulate([]);
 
   assert.ok(Math.abs(playerStrike(withTrait) / playerStrike(withoutTrait) - 1.04) < 1e-12);
@@ -1229,7 +1229,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
     specialization: 'Core',
     primaryWeapon: 'Greatsword',
     secondaryWeapon: '',
-    selectedTraits: [],
+    selectedTraitIds: [],
     modifiers: { strike: 1, condition: 1 }
   });
   const damageAt = (vulnerability) =>
@@ -1248,14 +1248,14 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
 });
 
 test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {
-  const coefficientAt = (selectedTraits) =>
+  const coefficientAt = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
       defaultSimulationConfig({
         specialization: 'Core',
         primaryWeapon: 'Greatsword',
         secondaryWeapon: '',
-        selectedTraits,
+        selectedTraitIds,
         initialResource: 0
       })
     )
@@ -1263,22 +1263,22 @@ test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction
       .reduce((sum, event) => sum + event.coefficient, 0);
 
   assert.ok(Math.abs(coefficientAt([]) - 2.4) < 1e-12);
-  assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 2.784) < 1e-12);
+  assert.ok(Math.abs(coefficientAt([TRAIT.BOUNTIFUL_BLADES]) - 2.784) < 1e-12);
 });
 
 test('Mirror Blade resolves target-facing bounce damage as separate hits', () => {
-  const simulateMirrorBlade = (selectedTraits) =>
+  const simulateMirrorBlade = (selectedTraitIds) =>
     simulateMesmer(
       ['Mirror Blade', { name: '__wait', waitMs: 1000 }],
       defaultSimulationConfig({
         specialization: 'Core',
         primaryWeapon: 'Greatsword',
         secondaryWeapon: '',
-        selectedTraits,
+        selectedTraitIds,
         initialResource: 0
       })
     );
-  const result = simulateMirrorBlade(['Bountiful Blades']);
+  const result = simulateMirrorBlade([TRAIT.BOUNTIFUL_BLADES]);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Mirror Blade');
   const baseHits = simulateMirrorBlade([]).resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Mirror Blade'
@@ -1305,7 +1305,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Core',
-      selectedTraits: []
+      selectedTraitIds: []
     })
   );
   const chronophantasma = simulateMesmer(
@@ -1313,7 +1313,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Chronomancer',
-      selectedTraits: ['Chronophantasma']
+      selectedTraitIds: [TRAIT.CHRONOPHANTASMA]
     })
   );
   const normalConversion = normal.events.find((event) => event.reason === 'Phantasmal Duelist phantasm conversion');
@@ -1378,7 +1378,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       skill: 'Phantasmal Berserker',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Sword',
-      traits: ['Chronophantasma', 'Bountiful Blades'],
+      traits: [TRAIT.CHRONOPHANTASMA, TRAIT.BOUNTIFUL_BLADES],
       initial: [717, 834, 883, 951, 1000, 1085, 1117, 1251],
       repeat: [3186, 3302, 3362, 3427, 3480, 3544, 3595, 3721]
     },
@@ -1396,7 +1396,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       [testCase.skill, { name: '__wait', waitMs: 9000 }],
       defaultSimulationConfig({
         specialization: 'Chronomancer',
-        selectedTraits: testCase.traits || ['Chronophantasma'],
+        selectedTraitIds: testCase.traits || [TRAIT.CHRONOPHANTASMA],
         primaryWeapon: testCase.primaryWeapon,
         secondaryWeapon: testCase.secondaryWeapon,
         initialResource: 0
@@ -1469,7 +1469,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
     ['Illusionary Wave', 'Mind Stab', 'Mirror Blade', 'Spatial Surge'],
     {
       specialization: 'Chronomancer',
-      selectedTraits: ['Bountiful Blades'],
+      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Sword'
     },
@@ -1684,7 +1684,7 @@ test('Mirror Strikes applies Bleeding and Torment once across its two hits', () 
       specialization: 'Mirage',
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
-      selectedTraits: []
+      selectedTraitIds: []
     })
   );
   const strikes = result.resolvedEvents.filter(
@@ -1709,7 +1709,7 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
     selectedSkills: ['Mirror Images'],
-    selectedTraits: [],
+    selectedTraitIds: [],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Torch',
     initialResource: 0
@@ -1767,7 +1767,7 @@ test('Imaginary Axes lands 360ms from cast start with two 3-stack torment hits',
     ['Dodge / Mirage Cloak', { name: 'Imaginary Axes', skillId: ID.IMAGINARY_AXES }],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0
@@ -1810,7 +1810,7 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
     ['Chaos Armor', 'Signet of Midnight', { name: '__wait', waitMs: 100 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       selectedSkills: ['Signet of Midnight'],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
@@ -1835,7 +1835,7 @@ test('Ineptitude direct blinds ignore the defiant-target interval', () => {
     ['Chaos Armor', 'Signet of Midnight', { name: '__wait', waitMs: 100 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       selectedSkills: ['Signet of Midnight'],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
@@ -1859,7 +1859,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
     ['Magic Bullet', 'Signet of Humility'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       selectedSkills: ['Signet of Humility'],
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
@@ -1911,7 +1911,7 @@ test('Chaos Armor applies three base confusion plus two from Ineptitude', () => 
     ['Chaos Armor'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0
@@ -1929,7 +1929,7 @@ test('Counterspell applies five base confusion plus two from Ineptitude', () => 
     ['Illusionary Counter', 'Counterspell'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
       initialResource: 0
@@ -1947,7 +1947,7 @@ test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
     ['Signet of Midnight'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Ineptitude'],
+      selectedTraitIds: [TRAIT.INEPTITUDE],
       selectedSkills: ['Signet of Midnight'],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
@@ -2001,7 +2001,7 @@ test('Continuum Shift restores Signet of Midnight passive expertise', () => {
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedSkills: ['Signet of Midnight'],
-      selectedTraits: ['Malicious Sorcery'],
+      selectedTraitIds: [TRAIT.MALICIOUS_SORCERY],
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
       initialResource: 3,
@@ -2027,7 +2027,7 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
   const defaults = defaultSimulationConfig();
   const config = {
     specialization: 'Core',
-    selectedTraits: ['Ineptitude'],
+    selectedTraitIds: [TRAIT.INEPTITUDE],
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Pistol',
     initialResource: 0
@@ -2067,7 +2067,7 @@ test('Blinding Dissipation triggers Ineptitude once per Rewinder strike', () => 
     ['Mirror Images', 'Rewinder'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Blinding Dissipation', 'Ineptitude'],
+      selectedTraitIds: [TRAIT.BLINDING_DISSIPATION, TRAIT.INEPTITUDE],
       selectedSkills: ['Mirror Images'],
       initialResource: 0
     })
@@ -2306,7 +2306,7 @@ test('weapon swaps activate only the equipped set duration sigils', () => {
     ['Confusing Images', 'Swap Weapons', 'Confusing Images', { name: '__wait', waitMs: 10000 }],
     defaultSimulationConfig({
       relic: '',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Sword',
       weaponSet2Primary: 'Scepter',
@@ -2429,7 +2429,7 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
   const rotation = ['Time Sink', 'Phantasmal Swordsman', { name: '__wait', waitMs: 6000 }];
   const config = defaultSimulationConfig({
     specialization: 'Chronomancer',
-    selectedTraits: [],
+    selectedTraitIds: [],
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Sword',
     initialResource: 3,
@@ -2439,11 +2439,11 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
   const base = simulateMesmer(rotation, config);
   const dangerTime = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Danger Time']
+    selectedTraitIds: [TRAIT.DANGER_TIME]
   });
   const timeBomb = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Time Bomb']
+    selectedTraitIds: [TRAIT.TIME_BOMB]
   });
   const claw = simulateMesmer(rotation, { ...config, relic: 'Claw' });
   const strikeDamage = (result, actorType) =>
@@ -2489,15 +2489,15 @@ test('Split Second shatter traits affect only the first strike from each source'
   const baseline = simulateMesmer(rotation, config);
   const timeCatchesUp = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Time Catches Up']
+    selectedTraitIds: [TRAIT.TIME_CATCHES_UP]
   });
   const mentalAnguish = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Mental Anguish']
+    selectedTraitIds: [TRAIT.MENTAL_ANGUISH]
   });
   const maim = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Maim the Disillusioned']
+    selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
   });
   const packets = (result) =>
     Object.values(
@@ -2827,7 +2827,7 @@ test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () =>
     ['Bladecall', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
       specialization: 'Virtuoso',
-      selectedTraits: ['Deadly Blades'],
+      selectedTraitIds: [TRAIT.DEADLY_BLADES],
       relic: 'Aristocracy',
       initialResource: 0,
       stats: {
@@ -2885,7 +2885,7 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
 test('Relic of Peitha does not grant its player damage bonus to phantasms', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
-    selectedTraits: [],
+    selectedTraitIds: [],
     initialResource: 0,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Sword',
@@ -3078,7 +3078,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
 test('Sharper Images uses deterministic expected-proc accumulation', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
-    selectedTraits: ['Sharper Images'],
+    selectedTraitIds: [TRAIT.SHARPER_IMAGES],
     initialResource: 0,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
@@ -3113,7 +3113,7 @@ test('Mesmer allied boons prioritize players before active clones', () => {
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
       initialResource: 3,
-      selectedTraits: ['Master Fencer'],
+      selectedTraitIds: [TRAIT.MASTER_FENCER],
       allies: { count: 2, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true,
       stats: { precision: 10000 }
@@ -3590,7 +3590,7 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
     ['Split Second', 'Split Second', 'Split Second'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Shatter Storm'],
+      selectedTraitIds: [TRAIT.SHATTER_STORM],
       initialResource: 3
     })
   );
@@ -3612,7 +3612,7 @@ test('Shatter Storm initializes Split Second ammo before first cast', () => {
     [],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Shatter Storm'],
+      selectedTraitIds: [TRAIT.SHATTER_STORM],
       initialResource: 0
     })
   );
@@ -3934,7 +3934,7 @@ test('Riddle of Sand applies to the first ambush and refreshes on shatter', () =
     ['Dodge / Mirage Cloak', 'Imaginary Axes', 'Mind Wrack', 'Sand through Glass', 'Imaginary Axes'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Riddle of Sand'],
+      selectedTraitIds: [TRAIT.RIDDLE_OF_SAND],
       selectedSkills: ['Sand through Glass'],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Pistol',
@@ -3954,7 +3954,7 @@ test('Infinite Horizon commands active clones to ambush when cloak is gained', (
     ['Dodge / Mirage Cloak'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Infinite Horizon'],
+      selectedTraitIds: [TRAIT.INFINITE_HORIZON],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 3
@@ -3978,7 +3978,7 @@ test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () =>
     ['Dodge / Mirage Cloak'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Deceptive Evasion', 'Infinite Horizon'],
+      selectedTraitIds: [TRAIT.DECEPTIVE_EVASION, TRAIT.INFINITE_HORIZON],
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
       initialResource: 0
@@ -3996,7 +3996,7 @@ test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () =>
 test('Self-Deception creates a clone only when another clone is active', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
-    selectedTraits: ['Self-Deception'],
+    selectedTraitIds: [TRAIT.SELF_DECEPTION],
     selectedSkills: ['Crystal Sands'],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Pistol'
@@ -4019,7 +4019,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     ['Distortion'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Desert Distortion'],
+      selectedTraitIds: [TRAIT.DESERT_DISTORTION],
       initialResource: 2
     })
   );
@@ -4032,7 +4032,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     ['Mind Wrack'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Dune Cloak'],
+      selectedTraitIds: [TRAIT.DUNE_CLOAK],
       initialResource: 3,
       boons: {
         ...defaultSimulationConfig().boons,
@@ -4048,7 +4048,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     ['Mind Wrack'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Dune Cloak'],
+      selectedTraitIds: [TRAIT.DUNE_CLOAK],
       initialResource: 2
     })
   );
@@ -4061,7 +4061,7 @@ test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
     ['Dodge / Mirage Cloak', { name: '__wait', waitMs: 1200 }],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Infinite Horizon'],
+      selectedTraitIds: [TRAIT.INFINITE_HORIZON],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 3
@@ -4159,7 +4159,7 @@ test('Mirage support and cloak traits emit their current effects', () => {
     ['Dodge / Mirage Cloak', 'Effervescence'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedTraits: ['Mirage Mantle', 'Renewing Oasis', 'Elusive Mind'],
+      selectedTraitIds: [TRAIT.MIRAGE_MANTLE, TRAIT.RENEWING_OASIS, TRAIT.ELUSIVE_MIND],
       primaryWeapon: 'Rifle',
       secondaryWeapon: '',
       initialResource: 0,
@@ -4182,12 +4182,12 @@ test('Mirage support and cloak traits emit their current effects', () => {
 });
 
 test("Nomad's Endurance and Phantom Pain add together while excluding phantasm strikes", () => {
-  const run = (selectedTraits) =>
+  const run = (selectedTraitIds) =>
     simulateMesmer(
       ['Mind Wrack', 'Phantasmal Mage', { name: '__wait', waitMs: 4000 }],
       defaultSimulationConfig({
         specialization: 'Mirage',
-        selectedTraits,
+        selectedTraitIds,
         initialResource: 3,
         primaryWeapon: 'Axe',
         secondaryWeapon: 'Torch',
@@ -4197,7 +4197,7 @@ test("Nomad's Endurance and Phantom Pain add together while excluding phantasm s
       })
     );
   const baseline = run([]);
-  const modified = run(["Nomad's Endurance", 'Phantom Pain']);
+  const modified = run([TRAIT.NOMADS_ENDURANCE, TRAIT.PHANTOM_PAIN]);
   const damage = (result, source) =>
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Mage' && event.source === source)
@@ -4221,7 +4221,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
     defaultSimulationConfig({
       specialization: 'Mirage',
       selectedSkills: ['Crystal Sands'],
-      selectedTraits: ['Dune Cloak'],
+      selectedTraitIds: [TRAIT.DUNE_CLOAK],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0,
@@ -4332,7 +4332,7 @@ test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {
   const without = simulateMesmer(['Mind Wrack', 'Mind Slash'], baseConfig);
   const withTrait = simulateMesmer(['Mind Wrack', 'Mind Slash'], {
     ...baseConfig,
-    selectedTraits: ["Nomad's Endurance"]
+    selectedTraitIds: [TRAIT.NOMADS_ENDURANCE]
   });
 
   assert.ok(withTrait.strikeDamage > without.strikeDamage);
@@ -4406,7 +4406,7 @@ test('Power Spike stays invalid even when another instant is chained into the ch
 test('Illusionary Reversion refunds one clone only after shattering three', () => {
   const config = defaultSimulationConfig({
     specialization: 'Chronomancer',
-    selectedTraits: ['Illusionary Reversion']
+    selectedTraitIds: [TRAIT.ILLUSIONARY_REVERSION]
   });
   const fullShatter = simulateMesmer(['Split Second'], {
     ...config,
@@ -4434,7 +4434,7 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
 test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
-    selectedTraits: ['Deadly Blades'],
+    selectedTraitIds: [TRAIT.DEADLY_BLADES],
     initialResource: 1
   });
   const completed = simulateMesmer(['Bladesong Harmony'], config);
@@ -4454,7 +4454,7 @@ test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => 
 test('Infinite Forge refunds two blades only after a completed five-blade Bladesong', () => {
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
-    selectedTraits: ['Infinite Forge']
+    selectedTraitIds: [TRAIT.INFINITE_FORGE]
   });
   const observeRefund = (shatter) => [shatter, { name: '__wait', waitMs: 1000 }];
   const fullShatter = simulateMesmer(observeRefund('Bladesong Harmony'), {
@@ -4746,7 +4746,7 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Virtuoso',
-      selectedTraits: []
+      selectedTraitIds: []
     })
   );
   const chronophantasma = simulateMesmer(
@@ -4754,7 +4754,7 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
     defaultSimulationConfig({
       ...baseConfig,
       specialization: 'Chronomancer',
-      selectedTraits: ['Chronophantasma']
+      selectedTraitIds: [TRAIT.CHRONOPHANTASMA]
     })
   );
   const normalCastEnd = normal.steps.find((step) => step.skill === 'Phantasmal Lancer').end / 1000;
@@ -4837,7 +4837,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
     specialization: 'Virtuoso',
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
-    selectedTraits: ['Jagged Mind'],
+    selectedTraitIds: [TRAIT.JAGGED_MIND],
     stats: {
       ...defaults.stats,
       precision: 3100
@@ -4955,7 +4955,7 @@ test('Flying Cutter commits its projectile before an interrupt and retains Cutte
 test('Virtuoso bladesongs use configured projectile packet trains', () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
-    selectedTraits: ['Jagged Mind'],
+    selectedTraitIds: [TRAIT.JAGGED_MIND],
     stats: {
       ...defaults.stats,
       precision: 3100
@@ -4996,7 +4996,7 @@ test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
   const result = simulateMesmer(
     ['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
-      selectedTraits: ['Cry of Pain'],
+      selectedTraitIds: [TRAIT.CRY_OF_PAIN],
       initialResource: 5
     })
   );
@@ -5018,7 +5018,7 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
     const result = simulateMesmer(
       [skillName, { name: '__wait', waitMs: 5000 }],
       defaultSimulationConfig({
-        selectedTraits: ['Maim the Disillusioned'],
+        selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED],
         initialResource: 5
       })
     );
@@ -5055,7 +5055,7 @@ test('Mental Anguish improves every damaging Virtuoso bladesong hit', () => {
     const config = defaultSimulationConfig({ initialResource: 5 });
     const baseline = damageEvents(simulateMesmer(rotation, config), skillName);
     const boosted = damageEvents(
-      simulateMesmer(rotation, { ...config, selectedTraits: ['Mental Anguish'] }),
+      simulateMesmer(rotation, { ...config, selectedTraitIds: [TRAIT.MENTAL_ANGUISH] }),
       skillName
     );
 
@@ -5104,7 +5104,7 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
       [testCase.skill],
       defaultSimulationConfig({
         specialization: testCase.specialization,
-        selectedTraits: ['Maim the Disillusioned'],
+        selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED],
         initialResource: testCase.initialResource
       })
     );
@@ -5144,7 +5144,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
     ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       specialization: 'Virtuoso',
-      selectedTraits: [],
+      selectedTraitIds: [],
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Pistol',
       initialResource: 0
@@ -5193,7 +5193,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     ['Ether Feast', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Method of Madness'],
+      selectedTraitIds: [TRAIT.METHOD_OF_MADNESS],
       selectedSkills: ['Ether Feast']
     })
   );
@@ -5206,7 +5206,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
       specialization: 'Virtuoso',
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
-      selectedTraits: ['Phantasmal Blades'],
+      selectedTraitIds: [TRAIT.PHANTASMAL_BLADES],
       initialResource: 0
     })
   );
@@ -5225,7 +5225,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
       specialization: 'Virtuoso',
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
-      selectedTraits: ['Phantasmal Blades'],
+      selectedTraitIds: [TRAIT.PHANTASMAL_BLADES],
       initialResource: 0,
       sigilSets: [
         { strike: 1.1, condition: 1 },
@@ -5242,7 +5242,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
       specialization: 'Troubadour',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
-      selectedTraits: ['Syncopate']
+      selectedTraitIds: [TRAIT.SYNCOPATE]
     })
   );
 
@@ -5252,7 +5252,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     ['Time Sink', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedTraits: ['Time Bomb'],
+      selectedTraitIds: [TRAIT.TIME_BOMB],
       initialResource: 1
     })
   );
@@ -5265,7 +5265,7 @@ test('Troubadour instruments use configured packets and normalized strength', ()
   const config = defaultSimulationConfig({
     specialization: 'Troubadour',
     initialResource: 3,
-    selectedTraits: ['Syncopate', 'Shredding', 'Fortissimo'],
+    selectedTraitIds: [TRAIT.SYNCOPATE, TRAIT.SHREDDING, TRAIT.FORTISSIMO],
     boons: { ...defaults.boons, quickness: true, alacrity: true }
   });
   const lute = simulateMesmer(['Lively Lute', { name: '__wait', waitMs: 1000 }], config);
@@ -5373,16 +5373,16 @@ test('Harmonious Harp has a two-second Quickness channel that commits when inter
 });
 
 test('Shatter Storm gives Lively Lute a second charge without a full cooldown', () => {
-  const config = (selectedTraits) =>
+  const config = (selectedTraitIds) =>
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3,
-      selectedTraits
+      selectedTraitIds
     });
   const ordinary = simulateMesmer(['Lively Lute', 'Lively Lute'], config([]));
-  const shatterStorm = simulateMesmer(['Lively Lute', 'Lively Lute'], config(['Shatter Storm']));
-  const shatterStormAfterOne = simulateMesmer(['Lively Lute'], config(['Shatter Storm']));
-  const shatterStormBeforeUse = simulateMesmer([], config(['Shatter Storm']));
+  const shatterStorm = simulateMesmer(['Lively Lute', 'Lively Lute'], config([TRAIT.SHATTER_STORM]));
+  const shatterStormAfterOne = simulateMesmer(['Lively Lute'], config([TRAIT.SHATTER_STORM]));
+  const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
   const paletteApp = (results) => ({
     build: { rotation: [] },
@@ -5414,7 +5414,7 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3,
-      selectedTraits: ['Syncopate', 'Dazzling']
+      selectedTraitIds: [TRAIT.SYNCOPATE, TRAIT.DAZZLING]
     })
   );
   const taleHits = result.resolvedEvents.filter(
@@ -5474,7 +5474,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
       specialization: 'Troubadour',
       primaryWeapon: 'Staff',
       selectedSkills: ['Flustering Flute', 'Tale of the Tortured Mastermind'],
-      selectedTraits: ['Chaotic Interruption'],
+      selectedTraitIds: [TRAIT.CHAOTIC_INTERRUPTION],
       target: { activatingSkills: true }
     })
   );
@@ -5665,7 +5665,7 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 0,
-      selectedTraits: ['Mayhem']
+      selectedTraitIds: [TRAIT.MAYHEM]
     })
   );
   const torment = mayhem.resolvedEvents.filter(
@@ -5695,7 +5695,7 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
     ['Tale of the Soulkeeper'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
-      selectedTraits: ['Raconteur'],
+      selectedTraitIds: [TRAIT.RACONTEUR],
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
     })
@@ -5717,7 +5717,7 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
-      selectedTraits: ['Life of the Party'],
+      selectedTraitIds: [TRAIT.LIFE_OF_THE_PARTY],
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
     })
@@ -5758,7 +5758,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 3,
-      selectedTraits: ['Call and Response']
+      selectedTraitIds: [TRAIT.CALL_AND_RESPONSE]
     })
   );
   const afterimageHits = response.resolvedEvents.filter(
@@ -5779,7 +5779,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 0,
-      selectedTraits: ['Fortissimo']
+      selectedTraitIds: [TRAIT.FORTISSIMO]
     })
   );
 
@@ -5795,7 +5795,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
-      selectedTraits: ['Altered Chord', 'Syncopate']
+      selectedTraitIds: [TRAIT.ALTERED_CHORD, TRAIT.SYNCOPATE]
     })
   );
 
@@ -5813,7 +5813,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
-      selectedTraits: ['Altered Chord']
+      selectedTraitIds: [TRAIT.ALTERED_CHORD]
     })
   );
 
@@ -5828,7 +5828,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     defaultSimulationConfig({
       specialization: 'Troubadour',
       initialResource: 1,
-      selectedTraits: ['Altered Chord']
+      selectedTraitIds: [TRAIT.ALTERED_CHORD]
     })
   );
 
@@ -5849,7 +5849,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
       defaultSimulationConfig({
         specialization: 'Troubadour',
         initialResource,
-        selectedTraits: ['Altered Chord']
+        selectedTraitIds: [TRAIT.ALTERED_CHORD]
       })
     ).endState.cooldowns.Crescendo.readyAt;
 
@@ -5861,7 +5861,7 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
     ['Phantasmal Berserker', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       specialization: 'Virtuoso',
-      selectedTraits: ['Bountiful Blades'],
+      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
       initialResource: 0
@@ -5884,7 +5884,7 @@ test('Rain of Swords pulses after its cast with fixed damage and vulnerability t
   const result = simulateMesmer(['Rain of Swords', 'Rain of Swords'], {
     ...defaults,
     specialization: 'Virtuoso',
-    selectedTraits: [],
+    selectedTraitIds: [],
     selectedSkills: ['Rain of Swords'],
     boons: {
       ...defaults.boons,
@@ -5968,7 +5968,7 @@ test('Virtuoso cast-end blade spends retain timeline metadata', () => {
     rotation,
     defaultSimulationConfig({
       specialization: 'Virtuoso',
-      selectedTraits: ['Bountiful Blades', 'Infinite Forge'],
+      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.INFINITE_FORGE],
       selectedSkills: [
         'Signet of the Ether',
         'Phantasmal Disenchanter',
@@ -6035,7 +6035,7 @@ test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', 
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
       initialResource: 0,
-      selectedTraits: ['Syncopate'],
+      selectedTraitIds: [TRAIT.SYNCOPATE],
       relic: 'Shackles'
     })
   );
@@ -6179,7 +6179,7 @@ test('relic and trait activations are exposed as proc timeline steps', () => {
     defaultSimulationConfig({
       specialization: 'Core',
       primaryWeapon: 'Sword',
-      selectedTraits: ["Fencer's Finesse"],
+      selectedTraitIds: [TRAIT.FENCERS_FINESSE],
       relic: 'Thief',
       initialResource: 0
     })

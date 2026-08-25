@@ -8,7 +8,7 @@ import { simulateMesmer } from './mesmer-simulation.js';
 export function defaultSimulationConfig(overrides = {}) {
   return {
     specialization: 'Virtuoso',
-    selectedTraits: [],
+    selectedTraitIds: [],
     selectedSkills: [],
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',

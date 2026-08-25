@@ -6,7 +6,7 @@ export function createDefaultConfig() {
   return {
     duration: 30,
     specialization: 'Virtuoso',
-    selectedTraits: [],
+    selectedTraitIds: [],
     selectedSkills: [],
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',

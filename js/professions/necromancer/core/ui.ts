@@ -166,12 +166,12 @@ function necromancerCorePaletteAvailability(
 ): PaletteSkillAvailability {
   const state = necromancerUiState(context);
   const active = String(state.activeShroud || '');
-  const selectedTraits = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-  if (skill.id === ID.DEVOURING_DARKNESS && !selectedTraits.has('Lingering Curse')) {
+  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
+  if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {
     return { available: false, message: 'Requires Lingering Curse' };
   }
 
-  if (skill.id === ID.FEAST_OF_CORRUPTION && selectedTraits.has('Lingering Curse')) {
+  if (skill.id === ID.FEAST_OF_CORRUPTION && activeTraitNames.has('Lingering Curse')) {
     return {
       available: false,
       message: 'Replaced by Devouring Darkness'

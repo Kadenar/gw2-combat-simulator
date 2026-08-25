@@ -593,7 +593,6 @@ export interface Gw2SimulationConfigOptions {
   readonly attributeDataByWeaponSet?: readonly ProfessionAttributeData[];
   readonly specialization: string;
   readonly disabled?: ProfessionModifier | null;
-  readonly selectedTraits?: readonly string[];
   readonly selectedTraitIds?: readonly SkillId[];
   readonly initialResource?: number;
   readonly adjustConditionDurationBonus?: (name: string, bonus: number) => number;

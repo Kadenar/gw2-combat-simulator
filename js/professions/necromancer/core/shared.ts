@@ -51,16 +51,9 @@ interface EmitEventOptions {
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
-export function traits(context: { readonly config: NecromancerConfig }): Set<string | number> {
-  return new Set([
-    ...(context.config?.traitIds || []),
-    ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || [])
-  ]);
-}
-
 export function hasTrait(context: { readonly config: NecromancerConfig }, traitId: SkillId): boolean {
-  return hasNecromancerTrait(traits(context), traitId);
+  // Adapt the canonical config IDs to the set-based state helper at the lookup boundary.
+  return hasNecromancerTrait(new Set(context.config?.selectedTraitIds || []), traitId);
 }
 
 export function emitState(context: NecromancerSchedulerContext, at: number, reason = ''): void {

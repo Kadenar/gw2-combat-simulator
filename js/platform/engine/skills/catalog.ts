@@ -853,9 +853,10 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): CanonicalCa
     }
   }
 
-  const traitIds = new Set();
+  // Track catalog identities separately so duplicate trait definitions fail fast.
+  const seenTraitIds = new Set();
   for (const trait of catalog?.traits || []) {
-    if (trait.id === undefined || trait.id === null || traitIds.has(trait.id)) {
+    if (trait.id === undefined || trait.id === null || seenTraitIds.has(trait.id)) {
       throw new Error(`Duplicate or missing trait id: ${trait.id}`);
     }
 
@@ -863,7 +864,7 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): CanonicalCa
       throw new Error(`Trait ${trait.id} has no name.`);
     }
 
-    traitIds.add(trait.id);
+    seenTraitIds.add(trait.id);
   }
 
   const specializationIds = new Set();

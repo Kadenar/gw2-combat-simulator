@@ -170,7 +170,6 @@ export function createProfessionRuntime({
       attributeDataByWeaponSet,
       specialization,
       disabled,
-      selectedTraits: activeTraits.map((trait) => trait.name),
       selectedTraitIds: activeTraits.map((trait) => trait.id).filter((id) => id != null),
       ...(buildConfigInputs
         ? buildConfigInputs(app, {

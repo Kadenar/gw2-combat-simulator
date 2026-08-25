@@ -3002,14 +3002,14 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
     [0, 40, 80]
   );
 
-  const tome = (traitIds) =>
+  const tome = (selectedTraitIds) =>
     simulateGw2({
       profession: guardianProfession,
       rotation: ['Tome of Justice', 'Chapter 1: Searing Spell', { type: 'wait', durationMs: 3000 }],
       config: {
         ...config,
         specialization: 'Firebrand',
-        selectedTraitIds: traitIds
+        selectedTraitIds
       }
     });
   const normal = tome([]);

@@ -16,12 +16,10 @@ export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'kineticCharges'
 ] as const satisfies readonly (keyof EngineerCoreState)[]);
 
-// merges three config paths for backward compatibility — callers use whichever field their API returns
+// Normalizes canonical trait IDs for state initialization.
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
   return new Set(
-    [...(config.traitIds || []), ...(config.selectedTraitIds || []), ...(config.selectedTraits || [])].map((value) =>
-      Number.isFinite(Number(value)) ? Number(value) : value
-    )
+    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
   );
 }
 

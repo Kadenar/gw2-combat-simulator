@@ -24,24 +24,24 @@ const SCOURGE_SKILLS = Object.freeze([
 ]);
 
 function scourgeSkillBarIds(context: NecromancerUiContext): readonly (string | number)[] {
-  const selectedTraits = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
+  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
   return [
     ID.MANIFEST_SAND_SHADE,
     ID.NEFARIOUS_FAVOR,
     ID.SAND_CASCADE,
     ID.GARISH_PILLAR,
     // Herald of Sorrow replaces Desert Shroud (F4) with Sandstorm Shroud (F5) in the skill bar
-    selectedTraits.has('Herald of Sorrow') ? ID.SANDSTORM_SHROUD : ID.DESERT_SHROUD
+    activeTraitNames.has('Herald of Sorrow') ? ID.SANDSTORM_SHROUD : ID.DESERT_SHROUD
   ];
 }
 
 function scourgePaletteAvailability(context: NecromancerUiContext, skill: NecromancerSkill): PaletteSkillAvailability {
-  const selectedTraits = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-  if (skill.id === ID.SANDSTORM_SHROUD && !selectedTraits.has('Herald of Sorrow')) {
+  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
+  if (skill.id === ID.SANDSTORM_SHROUD && !activeTraitNames.has('Herald of Sorrow')) {
     return { available: false, message: 'Requires Herald of Sorrow' };
   }
 
-  if (skill.id === ID.DESERT_SHROUD && selectedTraits.has('Herald of Sorrow')) {
+  if (skill.id === ID.DESERT_SHROUD && activeTraitNames.has('Herald of Sorrow')) {
     return {
       available: false,
       message: 'Replaced by Sandstorm Shroud'

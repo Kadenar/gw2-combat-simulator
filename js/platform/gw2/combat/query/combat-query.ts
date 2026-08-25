@@ -68,24 +68,17 @@ interface HookContextOptions {
  * @param {{readonly traits?: readonly CatalogEntity[]}} [catalog]
  * @returns {Set<string | number>}
  */
-// Merges three legacy config fields into one set and ensures every recognized
-// trait is present under both its numeric ID and its string name. This lets
-// trait membership checks throughout the codebase use either form.
+// Expands canonical trait IDs to both ID and name forms so existing internal
+// consumers can migrate independently without duplicating catalog lookups.
 export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
-  const values = new Set<string | number>([
-    ...(Array.isArray(config.traitIds) ? config.traitIds : []),
-    ...(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []),
-    ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : [])
-  ]);
+  const values = new Set<string | number>(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []);
   const byId = new Map<number, CatalogEntity>();
-  const byName = new Map<string, CatalogEntity>();
   for (const trait of catalog?.traits || []) {
     byId.set(Number(trait.id), trait);
-    byName.set(trait.name, trait);
   }
 
   for (const value of [...values]) {
-    const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
+    const trait = byId.get(Number(value));
     if (trait) {
       values.add(Number(trait.id));
       values.add(trait.name);

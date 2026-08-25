@@ -35,16 +35,18 @@ export const testProfession = defineProfession({
   name: 'Fixture',
   catalog,
   build: {
+    // Keep the fixture on the supported trait-selection contract so generic
+    // architecture tests exercise the same configuration shape as GW2 builds.
     createBuildDefaults: () => ({
       schemaVersion: 3,
       profession: 'fixture',
-      traitIds: ['fixture.power'],
+      selectedTraitIds: ['fixture.power'],
       rotation: []
     }),
     migrateBuild: (saved) => ({
       schemaVersion: 3,
       profession: 'fixture',
-      traitIds: Array.isArray(saved?.traitIds) ? saved.traitIds : [],
+      selectedTraitIds: Array.isArray(saved?.selectedTraitIds) ? saved.selectedTraitIds : [],
       rotation: Array.isArray(saved?.rotation) ? saved.rotation : []
     }),
     validateBuild: (build) => ({
@@ -58,7 +60,7 @@ export const testProfession = defineProfession({
   attributeRules: {
     modifyAttributes: (context, attributes) => ({
       ...attributes,
-      power: attributes.power + (context.config.traitIds?.includes('fixture.power') ? 100 : 0)
+      power: attributes.power + (context.config.selectedTraitIds?.includes('fixture.power') ? 100 : 0)
     })
   },
   resolverHooks: {

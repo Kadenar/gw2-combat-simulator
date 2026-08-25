@@ -22,7 +22,6 @@ export function createGw2SimulationConfig({
   attributeDataByWeaponSet,
   specialization,
   disabled = null,
-  selectedTraits = [],
   selectedTraitIds = [],
   initialResource = 0,
   adjustConditionDurationBonus = (_name, bonus) => bonus
@@ -107,7 +106,6 @@ export function createGw2SimulationConfig({
     patchId: app.patchId || 'current',
     patchValues: app.profession?.patchValuesFor?.(app.patchId || 'current') || Object.freeze({}),
     specialization,
-    selectedTraits,
     selectedTraitIds: selectedTraitIds as readonly SkillId[],
     selectedSkills: app.adapter?.slotLoadout
       ? app.adapter.slotLoadout

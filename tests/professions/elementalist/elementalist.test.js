@@ -11,6 +11,7 @@ import {
 } from '../../../js/app/profession/registry.js';
 import { PROFESSION_ROUTES, professionRoute } from '../../../js/app/profession/selector.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
+import { selectedGw2TraitValues } from '../../../js/platform/gw2/combat/query/combat-query.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
@@ -20,7 +21,10 @@ import {
 } from '../../../js/professions/elementalist/build.js';
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '../../../js/professions/elementalist/data/ids.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/professions/elementalist/core/elemental-profile.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
@@ -177,14 +181,18 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     ),
     100
   );
+  // Mirror the production simulation boundary by deriving internal name aliases
+  // from the canonical selected trait IDs before invoking lifecycle logic.
+  const traitConfig = {
+    selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT],
+    boons: {}
+  };
   assert.equal(
     elementalistAttunementRechargeDuration(
       {
         catalog: preview,
-        config: {
-          selectedTraits: ['Elemental Enchantment'],
-          boons: {}
-        }
+        config: traitConfig,
+        traits: selectedGw2TraitValues(traitConfig, preview)
       },
       10
     ),

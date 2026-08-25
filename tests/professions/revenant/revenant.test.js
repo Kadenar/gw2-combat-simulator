@@ -2196,7 +2196,7 @@ test('Corruption traits update attributes, duration, and chill triggers', () => 
   assert.equal(
     revenantAttributeRules.modifyConditionDamage(
       {
-        config: { traitIds: [TRAIT.ACOLYTE_OF_TORMENT] },
+        config: { selectedTraitIds: [TRAIT.ACOLYTE_OF_TORMENT] },
         event: { actorType: 'player' },
         condition: 'Torment'
       },
@@ -2219,7 +2219,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
     {
       config: {
         specialization: 'Core',
-        traitIds: [TRAIT.NOTORIETY],
+        selectedTraitIds: [TRAIT.NOTORIETY],
         boons: { might: 25 }
       },
       time: 0,
@@ -2238,7 +2238,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
 test('Retribution and Invocation traits use live combat state', () => {
   const player = { actorType: 'player' };
   const context = (traitId, extra = {}) => ({
-    config: { traitIds: [traitId], ...(extra.config || {}) },
+    config: { selectedTraitIds: [traitId], ...(extra.config || {}) },
     event: player,
     time: 1,
     runtime: { totals: { strike: 0, condition: 0 }, ...(extra.runtime || {}) },
@@ -2272,7 +2272,7 @@ test('Retribution and Invocation traits use live combat state', () => {
     revenantAttributeRules.modifyCriticalChance(
       {
         config: {
-          traitIds: [TRAIT.ROILING_MISTS],
+          selectedTraitIds: [TRAIT.ROILING_MISTS],
           boons: { fury: true }
         },
         event: player,
@@ -2304,7 +2304,7 @@ test('Retribution and Invocation traits use live combat state', () => {
 test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
   const modifierContext = (traitId, { healthDamage = 0, secondaryWeapon = '', targetBoons = {} } = {}) => ({
     config: {
-      traitIds: [traitId],
+      selectedTraitIds: [traitId],
       secondaryWeapon,
       target: { health: 100, boons: targetBoons }
     },
@@ -2408,7 +2408,7 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
   );
   const notorietyStats = revenantAttributeRules.modifyAttributes(
     {
-      config: { traitIds: [TRAIT.NOTORIETY], boons: { might: 0 } },
+      config: { selectedTraitIds: [TRAIT.NOTORIETY], boons: { might: 0 } },
       time: 1,
       runtime: {
         boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2 }]]])
@@ -2735,7 +2735,7 @@ test('Shared Empowerment grants one stack of eight-second Might on a one-second 
     selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
     startingLegend: LEGEND.DEMON,
     initialEnergy: 100,
-    traitIds: [TRAIT.SHARED_EMPOWERMENT],
+    selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
     stats: { concentration: 0 },
     allies: { count: 4 }
   });
@@ -2759,14 +2759,14 @@ test('Elevated Compassion grants 1.25 seconds of Quickness once per second at si
     selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DRAGON,
     initialEnergy: 100,
-    traitIds: [TRAIT.ELEVATED_COMPASSION],
+    selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
     stats: { concentration: 0 }
   });
   const atThreshold = simulate('Herald', ['Facet of Chaos', 'Facet of Strength', { type: 'wait', durationMs: 2100 }], {
     selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DRAGON,
     initialEnergy: 100,
-    traitIds: [TRAIT.ELEVATED_COMPASSION],
+    selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
     stats: { concentration: 0 }
   });
   const thresholdReentry = simulate(
@@ -2782,7 +2782,7 @@ test('Elevated Compassion grants 1.25 seconds of Quickness once per second at si
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
       initialEnergy: 100,
-      traitIds: [TRAIT.ELEVATED_COMPASSION],
+      selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
       stats: { concentration: 0 }
     }
   );
@@ -3389,8 +3389,8 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   assert.equal(nourishment.flatStrikeMultiplier, 1.06);
   assert.ok(Math.abs(nourishment.damage - 344.5) < 1e-9);
 
-  const modifierContext = (traitIds, condition = null) => ({
-    config: { specialization: 'Renegade', traitIds, boons: {} },
+  const modifierContext = (selectedTraitIds, condition = null) => ({
+    config: { specialization: 'Renegade', selectedTraitIds, boons: {} },
     event: { actorType: 'player' },
     condition,
     time: 1,
@@ -3481,7 +3481,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
       {
         config: {
           specialization: 'Renegade',
-          traitIds: [TRAIT.PACT_OF_PAIN, TRAIT.YEARNING_EMPOWERMENT, TRAIT.BLOOD_FURY],
+          selectedTraitIds: [TRAIT.PACT_OF_PAIN, TRAIT.YEARNING_EMPOWERMENT, TRAIT.BLOOD_FURY],
           boons: { fury: true }
         },
         condition: 'Bleeding',
@@ -3497,7 +3497,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
       {
         config: {
           specialization: 'Renegade',
-          traitIds: [TRAIT.PACT_OF_PAIN],
+          selectedTraitIds: [TRAIT.PACT_OF_PAIN],
           attributeProvenance: {
             professionStaticRulesApplied: true
           }
@@ -3551,7 +3551,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
   const context = (traitId, extra = {}) => ({
     config: {
       specialization: 'Renegade',
-      traitIds: [traitId],
+      selectedTraitIds: [traitId],
       boons: {},
       ...(extra.config || {})
     },
@@ -4118,7 +4118,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
       {
         config: {
           specialization: 'Vindicator',
-          traitIds: [TRAIT.FEROCIOUS_AGGRESSION, TRAIT.FORERUNNER_OF_DEATH],
+          selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION, TRAIT.FORERUNNER_OF_DEATH],
           boons: { fury: true }
         },
         event: {
@@ -5065,7 +5065,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100,
-    traitIds: [TRAIT.SHARED_WISDOM]
+    selectedTraitIds: [TRAIT.SHARED_WISDOM]
   });
 
   assert.equal(beguiling.warnings.length, 0);
@@ -5113,7 +5113,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100,
-    traitIds: [TRAIT.SHARED_WISDOM]
+    selectedTraitIds: [TRAIT.SHARED_WISDOM]
   });
 
   assert.equal(defense.steps[0].fullCastMs, 40);
@@ -5132,7 +5132,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
       startingLegend: LEGEND.ENTITY,
       initialEnergy: 100,
-      traitIds: [TRAIT.SHARED_WISDOM]
+      selectedTraitIds: [TRAIT.SHARED_WISDOM]
     },
     observationTail(1000)
   );
@@ -5466,7 +5466,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100,
-    traitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
+    selectedTraitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
   });
 
   assert.equal(withoutConductive.endState.profession.affinity, 0);
@@ -5484,7 +5484,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 100,
-    traitIds: [TRAIT.LINGERING_DETERMINATION]
+    selectedTraitIds: [TRAIT.LINGERING_DETERMINATION]
   });
 
   assert.equal(lingering.endState.profession.affinity, 2);
@@ -5507,7 +5507,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 100,
-    traitIds: [TRAIT.EXPANDED_CONSCIOUSNESS]
+    selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS]
   });
 
   assert.equal(expanded.endState.profession.affinity, 5);
@@ -5518,7 +5518,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   const kinetic = simulate('Conduit', ['Release Potential: Warrior'], {
     selectedLegends: [LEGEND.DWARF, LEGEND.ENTITY],
     startingLegend: LEGEND.DWARF,
-    traitIds: [TRAIT.KINETIC_INSIGHT]
+    selectedTraitIds: [TRAIT.KINETIC_INSIGHT]
   });
 
   assert.equal(
@@ -5530,7 +5530,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100,
-    traitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
+    selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
   });
 
   assert.equal(cosmic.endState.profession.legendSwapReadyAt, 6);
@@ -5562,7 +5562,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     primaryWeapon: 'Spear',
     secondaryWeapon: '',
     initialEnergy: 100,
-    traitIds: [TRAIT.MISTFIRE]
+    selectedTraitIds: [TRAIT.MISTFIRE]
   });
   const disableProcs = disable.events.filter((event) => event.skillName === 'Mistfire');
 
@@ -5578,7 +5578,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
   const context = {
     config: {
       specialization: 'Conduit',
-      traitIds: [TRAIT.KINETIC_INSIGHT]
+      selectedTraitIds: [TRAIT.KINETIC_INSIGHT]
     },
     time: 1,
     event: { skillName: 'Release Potential: Warrior', actorType: 'player' },
@@ -5615,7 +5615,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       attributeProvenance: {
         professionStaticRulesApplied: true
       },
-      traitIds: [
+      selectedTraitIds: [
         TRAIT.DETERMINED_RESOLUTION,
         TRAIT.SERENE_REJUVENATION,
         TRAIT.CONTAINED_TEMPER,

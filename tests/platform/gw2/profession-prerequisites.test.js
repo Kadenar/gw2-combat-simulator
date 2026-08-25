@@ -140,6 +140,7 @@ test('combat lookups normalize once per query without stale cross-query state', 
   assert.equal(hasTrait({ config, traits }, '123'), true);
   assert.equal(hasTrait({ config, traits }, 456), false);
   assert.equal(hasTrait({ config }, '123'), true);
+  assert.equal(hasTrait({ config, catalog: { traits: [{ id: 123, name: 'Fixture Trait' }] } }, 'Fixture Trait'), true);
 
   const first = createGw2CombatQuery({ profession: queryProfession, config });
 

@@ -32,7 +32,7 @@ test('Beguiling Haze follow-up charges waive only Beguiling Haze energy costs', 
 });
 
 test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
-  const context = { config: { traitIds: [TRAIT.ANGSIYANS_TRUST] } };
+  const context = { config: { selectedTraitIds: [TRAIT.ANGSIYANS_TRUST] } };
 
   assert.equal(
     applyVindicatorEnergyCostRules(context, { id: SKILL.ENERGY_MELD, handlerId: 'revenant.energy-meld' }, 10),
@@ -41,7 +41,7 @@ test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
   assert.equal(applyVindicatorEnergyCostRules(context, { id: SKILL.CALL_OF_THE_ALLIANCE }, 10), 10);
   assert.equal(
     applyVindicatorEnergyCostRules(
-      { config: { traitIds: [] } },
+      { config: { selectedTraitIds: [] } },
       { id: SKILL.ENERGY_MELD, handlerId: 'revenant.energy-meld' },
       10
     ),

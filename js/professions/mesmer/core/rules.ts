@@ -42,7 +42,7 @@ import {
 } from './profiles.js';
 import { MESMER_FLIP_CHILD_BY_PARENT_ID, mesmerRuntimeFor } from './runtime.js';
 import { mesmerAvailability } from './availability.js';
-import type { CatalogEntity, SimulationEvent, SimulationEventInput, SkillId } from '../../../platform/engine/types.js';
+import type { SimulationEvent, SimulationEventInput, SkillId } from '../../../platform/engine/types.js';
 import type {
   MesmerActiveEmission,
   MesmerCastContext,
@@ -77,35 +77,6 @@ const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
 const BRIEF_AUTOATTACK_CHAIN_PRESERVING_CAST_MS = 400;
 // Stable task owner for Signet of Illusions' passive resource cycle.
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
-/**
- * Builds a mixed trait set containing both numeric IDs and names so
- * ID-oriented scheduler code and name-oriented data tables share one lookup.
- *
- * @param {object} config Mesmer build configuration.
- * @param {object} catalog Mesmer catalog containing normalized traits.
- * @returns {Set<number|string>} Selected traits indexed by both identity forms.
- */
-function traitSet(config: MesmerSchedulerContext['config'], catalog: MesmerCatalog): Set<number> {
-  const configured = new Set<MesmerSelectedSkill>([
-    ...(config.selectedTraits || []),
-    ...(config.selectedTraitIds || []).map(Number),
-    ...(config.traitIds || []).map(Number)
-  ]);
-  const byId = new Map<number, CatalogEntity>();
-  const byName = new Map<string, CatalogEntity>();
-  for (const trait of catalog.traits || []) {
-    byId.set(Number(trait.id), trait);
-    byName.set(trait.name, trait);
-  }
-
-  const values = new Set<number>();
-  for (const value of configured) {
-    const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
-    if (trait) values.add(Number(trait.id));
-  }
-
-  return values;
-}
 
 /**
  * Normalizes array- and slot-object-shaped selected skill configuration.
@@ -203,7 +174,8 @@ function runtimeTraitsPhantasmSpawnModifiers(
  */
 function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
   const { state, config, catalog } = context;
-  const traits = traitSet(config, catalog);
+  // Normalize canonical selected IDs once for all Mesmer controllers.
+  const traits = new Set((config.selectedTraitIds || []).map(Number));
   const baseResourceDefinition = mesmerResourceDefinition(config.specialization);
   const resourceDefinition = {
     ...baseResourceDefinition,

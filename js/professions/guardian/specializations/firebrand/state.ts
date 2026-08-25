@@ -5,18 +5,18 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { GuardianConfig, GuardianFirebrandState, GuardianSchedulerContext } from '../../types.js';
 
 export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
-  const selectedTraits = new Set((config.selectedTraitIds || []).map(Number));
-  const traitMaximum = selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) ? 8 : 5;
+  const selectedTraitIds = new Set((config.selectedTraitIds || []).map(Number));
+  const traitMaximum = selectedTraitIds.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) ? 8 : 5;
   // config.maximumTomePages can override upward (e.g. test harness or future
   // traits), but never below what the selected traits already grant.
   const maximumTomePages = Math.max(traitMaximum, Number(config.maximumTomePages || traitMaximum));
-  const tomePageInterval = selectedTraits.has(GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8;
+  const tomePageInterval = selectedTraitIds.has(GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8;
   const configuredInitialPages = Number(config.initialTomePages ?? traitMaximum);
   // If Archivist of Whispers raised the cap from 5 to 8 but the caller passed
   // the old default of 5, silently upgrade to the new maximum so the sim
   // doesn't start with fewer pages than the trait provides.
   const initialPages =
-    selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) && configuredInitialPages === 5
+    selectedTraitIds.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) && configuredInitialPages === 5
       ? traitMaximum
       : configuredInitialPages;
   const tomePages = Math.max(0, Math.min(maximumTomePages, initialPages));
@@ -89,19 +89,19 @@ export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFireb
 
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
   const state = firebrandState.from(context);
-  const selectedTraits = new Set((context.config.selectedTraitIds || []).map(Number));
+  const selectedTraitIds = new Set((context.config.selectedTraitIds || []).map(Number));
   const resources = guardianBalanceProfile(context, PROFILE.resources);
   const defaultMaximum = Number(resources?.maximumStacks || 5);
-  const traitMaximum = selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
+  const traitMaximum = selectedTraitIds.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
     ? Number(guardianBalanceProfile(context, PROFILE.archivistOfWhispers)?.maximumStacks || 8)
     : defaultMaximum;
   state.maximumTomePages = Math.max(traitMaximum, Number(context.config.maximumTomePages || traitMaximum));
-  state.tomePageInterval = selectedTraits.has(GUARDIAN_TRAIT_IDS.LOREMASTER)
+  state.tomePageInterval = selectedTraitIds.has(GUARDIAN_TRAIT_IDS.LOREMASTER)
     ? Number(guardianBalanceProfile(context, PROFILE.loremaster)?.pulseInterval || 5)
     : Number(resources?.pulseInterval || 8);
   const configuredInitialPages = Number(context.config.initialTomePages ?? traitMaximum);
   const initialPages =
-    selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) && configuredInitialPages === defaultMaximum
+    selectedTraitIds.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) && configuredInitialPages === defaultMaximum
       ? traitMaximum
       : configuredInitialPages;
   state.tomePages = Math.max(0, Math.min(state.maximumTomePages, initialPages));

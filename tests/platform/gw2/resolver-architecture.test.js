@@ -8,6 +8,7 @@ import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/pla
 import { buildScheduledEventStream } from '../../../js/platform/engine/events/scheduled-stream.js';
 import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import { createCloneAttackScheduler } from '../../../js/professions/mesmer/core/clone-attacks.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
 import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolver/event-handlers.js';
 
 test('Mesmer skill damage scheduling is split into focused modules', () => {
@@ -600,14 +601,14 @@ test('Bloodsong needs real bleeding and does not treat blade hits as bleeding', 
     ['Unstable Bladestorm', { name: '__wait', waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong']
+      selectedTraitIds: [TRAIT.BLOODSONG]
     })
   );
   const withJaggedMind = simulateMesmer(
     ['Unstable Bladestorm', { name: '__wait', waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong', 'Jagged Mind']
+      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND]
     })
   );
 
@@ -633,7 +634,7 @@ test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () =>
     ['Phantasmal Swordsman', { name: '__wait', waitMs: 7000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong', 'Jagged Mind', 'Sharper Images', 'Phantasmal Blades'],
+      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND, TRAIT.SHARPER_IMAGES, TRAIT.PHANTASMAL_BLADES],
       stats: {
         ...defaults.stats,
         precision: 4000
@@ -682,7 +683,7 @@ test('Thousand Cuts spreads ten packets and triggers Bloodsong', () => {
     ['Thousand Cuts', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong', 'Jagged Mind'],
+      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
       stats: {
         ...defaults.stats,
         precision: 4000
@@ -714,7 +715,7 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
     ['Unstable Bladestorm', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong', 'Jagged Mind'],
+      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
       stats: {
         ...defaults.stats,
         precision: 4000
@@ -1055,7 +1056,7 @@ test("Egotism starts after the target falls below the Mesmer's health percentage
   const base = simulateMesmer(rotation, config);
   const egotism = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ['Egotism']
+    selectedTraitIds: [TRAIT.EGOTISM]
   });
   const strike = (result, name) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === name).damage;
@@ -1253,7 +1254,7 @@ test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', ()
 
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
-    selectedTraits: ['Jagged Mind', 'Deadly Blades'],
+    selectedTraitIds: [TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES],
     stats: {
       ...defaults.stats,
       precision: 1945
@@ -1314,7 +1315,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
       'Flying Cutter'
     ],
     defaultSimulationConfig({
-      selectedTraits: ['Master Fencer'],
+      selectedTraitIds: [TRAIT.MASTER_FENCER],
       stats: {
         ...defaults.stats,
         precision: 2995
@@ -1364,7 +1365,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
     ['Flying Cutter'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedTraits: ['Master Fencer'],
+      selectedTraitIds: [TRAIT.MASTER_FENCER],
       initialResource: 2,
       stats: {
         ...defaults.stats,
@@ -1392,7 +1393,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
   const isolated = simulateMesmer(
     ['Flying Cutter'],
     defaultSimulationConfig({
-      selectedTraits: ['Master Fencer'],
+      selectedTraitIds: [TRAIT.MASTER_FENCER],
       stats: {
         ...defaults.stats,
         precision: 2995
@@ -1416,7 +1417,7 @@ test('Sharper Images samples illusion criticals instead of accumulating expected
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
     specialization: 'Core',
-    selectedTraits: ['Sharper Images'],
+    selectedTraitIds: [TRAIT.SHARPER_IMAGES],
     initialResource: 0,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
@@ -1503,12 +1504,12 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
     }
   }
 
-  const run = (selectedTraits) =>
+  const run = (selectedTraitIds) =>
     simulateMesmer(
       [...flyingCutters, 'Bladesong Harmony'],
       defaultSimulationConfig({
         initialResource: 0,
-        selectedTraits,
+        selectedTraitIds,
         stats: {
           ...defaults.stats,
           precision: 4000
@@ -1519,7 +1520,7 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
         ]
       })
     );
-  const result = run(['Bloodsong']);
+  const result = run([TRAIT.BLOODSONG]);
   const earth = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Sigil of Earth'
   );
@@ -1552,7 +1553,7 @@ test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
     ],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ['Bloodsong', 'Jagged Mind'],
+      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
       stats: {
         ...defaults.stats,
         precision: 4000
@@ -1632,7 +1633,7 @@ test('slot-skill strikes select utility weapon strength generically', () => {
 
 test('Egotism does not increase condition damage', () => {
   const defaults = defaultSimulationConfig();
-  const run = (selectedTraits) =>
+  const run = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Swordsman', { name: '__wait', waitMs: 6000 }],
       defaultSimulationConfig({
@@ -1640,7 +1641,7 @@ test('Egotism does not increase condition damage', () => {
         primaryWeapon: 'Sword',
         secondaryWeapon: '',
         initialResource: 0,
-        selectedTraits: ['Sharper Images', ...selectedTraits],
+        selectedTraitIds: [TRAIT.SHARPER_IMAGES, ...selectedTraitIds],
         target: {
           ...defaults.target,
           health: 3970000
@@ -1649,7 +1650,7 @@ test('Egotism does not increase condition damage', () => {
     );
   const bleeding = (result) => result.conditionBreakdown.find((entry) => entry.name === 'Bleeding')?.damage || 0;
 
-  assert.equal(bleeding(run(['Egotism'])), bleeding(run([])));
+  assert.equal(bleeding(run([TRAIT.EGOTISM])), bleeding(run([])));
 });
 
 test('weapon-swap sigils resolve locally on the destination weapon set', () => {
