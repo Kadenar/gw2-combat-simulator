@@ -46,17 +46,17 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   },
   [ID.SHREDDER_GYRO]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 520,
     cooldown: 20,
     effects: [
       {
         type: 'strike',
-        coefficient: 57.599999999999994,
+        coefficient: 4.8,
         hits: 12,
-        atMs: 30.24,
-        intervalMs: 30.24,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        atMs: 360,
+        intervalMs: 520,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         name: 'Shredder Gyro',
         actorType: 'effect'
       }
