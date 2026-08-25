@@ -60,7 +60,7 @@ export function handleVirtuosoExpectedProcTask(
   }
 
   const payloadEvent = task.payload.event;
-  const canonicalEvent = context.events.find((candidate) => candidate.__order === payloadEvent.__order);
+  const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
   const stochastic = context.config.randomness?.mode === 'stochastic';
   if (stochastic && typeof event.didCrit !== 'boolean') {

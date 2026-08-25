@@ -251,15 +251,46 @@ test('RNG explanations compare variable combat facts in low and high DPS cohorts
   assert.equal(distribution.explanation.drivers[0].estimatedDpsDelta, 180);
 });
 
-test('RNG trials partition across available worker cores without changing seeds', () => {
+test('RNG trials scale worker count gradually from combined timeline workload', () => {
   assert.equal(randomDistributionWorkerCount(500, 16), 8);
   assert.equal(randomDistributionWorkerCount(500, 8), 7);
   assert.equal(randomDistributionWorkerCount(500, 4), 3);
   assert.equal(randomDistributionWorkerCount(500, 2), 1);
   assert.equal(randomDistributionWorkerCount(500, 0), 4);
   assert.equal(randomDistributionWorkerCount(0, 8), 0);
-  assert.equal(randomDistributionWorkerCount(500, 16, 999), 8);
-  assert.equal(randomDistributionWorkerCount(500, 16, 1000), 2);
+  assert.equal(
+    randomDistributionWorkerCount(500, 16, {
+      scheduledEvents: 1000,
+      resolvedEvents: 1000,
+      conditionTicks: 1999
+    }),
+    8
+  );
+  assert.equal(
+    randomDistributionWorkerCount(500, 16, {
+      scheduledEvents: 1000,
+      resolvedEvents: 1000,
+      conditionTicks: 2000
+    }),
+    4
+  );
+  assert.equal(
+    randomDistributionWorkerCount(500, 16, {
+      scheduledEvents: 3000,
+      resolvedEvents: 3000,
+      conditionTicks: 5999
+    }),
+    4
+  );
+  assert.equal(
+    randomDistributionWorkerCount(500, 16, {
+      scheduledEvents: 3000,
+      resolvedEvents: 3000,
+      conditionTicks: 6000
+    }),
+    2
+  );
+  assert.equal(randomDistributionWorkerCount(3, 16, { conditionTicks: 12_000 }), 2);
   assert.deepEqual(partitionRandomDistributionTrials(10, 3), [
     { trials: 4, seedStart: 1 },
     { trials: 3, seedStart: 5 },

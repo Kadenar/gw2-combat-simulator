@@ -51,7 +51,7 @@ export function handleDeadlyBladesCriticalTask(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const payloadEvent = task.payload.event;
-  const canonicalEvent = context.events.find((candidate) => candidate.__order === payloadEvent.__order);
+  const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
   const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'condition');
   const vulnerabilityStacks =

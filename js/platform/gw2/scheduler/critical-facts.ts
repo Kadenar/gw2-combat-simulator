@@ -57,7 +57,7 @@ export function resolveCriticalTrigger(
     const didCrit = state.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
 
     // Persist the result on the canonical event for resolver reactions.
-    const canonicalEvent = context.events.find((candidate) => candidate.__order === event.__order) || event;
+    const canonicalEvent = context.eventByOrder(Number(event.__order)) || event;
     const cause = context.replaceEvent(canonicalEvent, { didCrit });
 
     // Only an eligible actual crit can trigger critical sigils.

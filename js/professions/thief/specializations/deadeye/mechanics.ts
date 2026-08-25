@@ -132,8 +132,7 @@ export function resolveDeadeyeMaliceHit(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<{ readonly eventOrder?: number }>
 ): void {
-  const event = context.events.find((candidate) => candidate.__order === task.payload.eventOrder) as
-    ThiefSimulationEvent | undefined;
+  const event = context.eventByOrder(Number(task.payload.eventOrder)) as ThiefSimulationEvent | undefined;
   const activationId = event?.activationId;
   if (!event || typeof activationId !== 'string' || !markedAt(context, task.at)) {
     return;

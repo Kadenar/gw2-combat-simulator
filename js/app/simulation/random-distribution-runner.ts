@@ -134,12 +134,16 @@ export class RandomDistributionRunner {
       if (requestId !== this.requestId) return;
 
       if (typeof Worker === 'function') {
-        // Baseline event count estimates per-worker memory before starting parallel stochastic copies.
-        const workerCount = randomDistributionWorkerCount(
-          request.trials,
-          globalThis.navigator?.hardwareConcurrency,
-          results.resolvedEvents?.length ?? 0
+        // The full baseline shape estimates both retained result memory and transient condition-tick queue pressure.
+        const conditionTicks = (results.resolvedEvents || []).reduce(
+          (count, event) => count + (Array.isArray(event.damageTicks) ? event.damageTicks.length : 0),
+          0
         );
+        const workerCount = randomDistributionWorkerCount(request.trials, globalThis.navigator?.hardwareConcurrency, {
+          scheduledEvents: results.events?.length ?? 0,
+          resolvedEvents: results.resolvedEvents?.length ?? 0,
+          conditionTicks
+        });
         const batches = partitionRandomDistributionTrials(request.trials, workerCount);
         if (!batches.length) {
           applyDistribution(summarizeRandomDistribution([]));

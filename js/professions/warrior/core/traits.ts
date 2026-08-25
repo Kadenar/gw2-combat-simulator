@@ -571,8 +571,7 @@ export function handleWarriorArmsCriticalTask(context: WarriorSchedulerContext, 
     readonly eventOrder?: number;
     readonly firstBurstHit?: boolean;
   } | null;
-  const event = context.events.find((candidate) => candidate.__order === Number(payload?.eventOrder)) as
-    WarriorSimulationEvent | undefined;
+  const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
   if (!event) return;
   applyArmsCriticalTraits(context, event, Boolean(payload?.firstBurstHit));
 }

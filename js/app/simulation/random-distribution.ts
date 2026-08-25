@@ -23,11 +23,17 @@ export const MAX_RANDOM_DISTRIBUTION_WORKERS = 8;
 /** Conservative worker count when the browser does not expose CPU capacity. */
 export const DEFAULT_RANDOM_DISTRIBUTION_WORKERS = 4;
 
-/** Event-heavy simulations retain enough runtime memory to require lower parallelism. */
-export const MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_EVENT_COUNT = 1_000;
+/** Combined event/tick score where RNG simulations begin using moderate parallelism. */
+export const MEDIUM_RANDOM_DISTRIBUTION_WORKLOAD = 4_000;
 
-/** Worker cap used when a baseline reaches the event-heavy threshold. */
-export const MAX_MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_WORKERS = 2;
+/** Combined event/tick score where RNG simulations retain the conservative worker cap. */
+export const HEAVY_RANDOM_DISTRIBUTION_WORKLOAD = 12_000;
+
+/** Worker cap for moderately event-heavy simulations. */
+export const MAX_MEDIUM_RANDOM_DISTRIBUTION_WORKERS = 4;
+
+/** Worker cap for the heaviest simulations. */
+export const MAX_HEAVY_RANDOM_DISTRIBUTION_WORKERS = 2;
 
 const EXPLANATION_COHORT_PERCENT = 10;
 const MAX_EXPLANATION_DRIVERS = 5;
@@ -45,22 +51,42 @@ export interface RandomDistributionBatch {
   readonly seedStart: number;
 }
 
+export interface RandomDistributionWorkload {
+  readonly scheduledEvents?: number;
+  readonly resolvedEvents?: number;
+  readonly conditionTicks?: number;
+}
+
+function workloadCount(value: unknown): number {
+  return Math.max(0, Math.trunc(Number(value) || 0));
+}
+
+/** Estimates per-worker allocation and queue pressure from the complete baseline timeline shape. */
+export function randomDistributionWorkloadScore(workload: RandomDistributionWorkload = {}): number {
+  return (
+    workloadCount(workload.scheduledEvents) +
+    workloadCount(workload.resolvedEvents) +
+    workloadCount(workload.conditionTicks)
+  );
+}
+
 export function randomDistributionWorkerCount(
   trialCount: number,
   hardwareConcurrency = 0,
-  baselineEventCount = 0
+  workload: RandomDistributionWorkload = {}
 ): number {
   const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers = hardware > 0 ? Math.max(1, hardware - 1) : DEFAULT_RANDOM_DISTRIBUTION_WORKERS;
-  const eventCount = Math.max(0, Math.trunc(Number(baselineEventCount) || 0));
-  // Large resolved timelines make each worker memory-intensive, so run fewer copies concurrently to avoid
-  // browser worker termination while retaining parallel distribution progress.
+  const workloadScore = randomDistributionWorkloadScore(workload);
+  // Gradual caps avoid the old single-event worker cliff while keeping high-allocation timelines conservative.
   const workloadWorkerLimit =
-    eventCount >= MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_EVENT_COUNT
-      ? MAX_MEMORY_INTENSIVE_RANDOM_DISTRIBUTION_WORKERS
-      : MAX_RANDOM_DISTRIBUTION_WORKERS;
+    workloadScore >= HEAVY_RANDOM_DISTRIBUTION_WORKLOAD
+      ? MAX_HEAVY_RANDOM_DISTRIBUTION_WORKERS
+      : workloadScore >= MEDIUM_RANDOM_DISTRIBUTION_WORKLOAD
+        ? MAX_MEDIUM_RANDOM_DISTRIBUTION_WORKERS
+        : MAX_RANDOM_DISTRIBUTION_WORKERS;
   return Math.min(trials, workloadWorkerLimit, availableWorkers);
 }
 

@@ -162,8 +162,7 @@ export function handleRenegadeCriticalTraitsTask(
   task: RevenantScheduledTask<{ readonly eventOrder: number }>
 ): void {
   const eventOrder = Number(task.payload?.eventOrder);
-  const event = context.events.find((candidate) => candidate.__order === eventOrder) as
-    RevenantSimulationEvent | undefined;
+  const event = context.eventByOrder(eventOrder) as RevenantSimulationEvent | undefined;
   if (!event) {
     throw new Error(`Missing Renegade critical event ${String(eventOrder)}.`);
   }

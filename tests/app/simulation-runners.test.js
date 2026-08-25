@@ -231,7 +231,7 @@ test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   assert.equal(renderCount, 1);
 });
 
-test('RNG runner limits parallel workers for an event-heavy baseline', (t) => {
+test('RNG runner limits parallel workers for a condition-tick-heavy baseline', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
   const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
@@ -276,7 +276,10 @@ test('RNG runner limits parallel workers for an event-heavy baseline', (t) => {
 
   const app = {
     build: { rotation: STRIKE_ROTATION },
-    results: { resolvedEvents: Array.from({ length: 1000 }, () => ({})) },
+    results: {
+      events: Array.from({ length: 4000 }, () => ({})),
+      resolvedEvents: Array.from({ length: 4000 }, () => ({ damageTicks: [{}] }))
+    },
     adapter: {
       randomDistributionRequest() {
         return { trials: 500 };

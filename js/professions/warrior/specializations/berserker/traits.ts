@@ -278,8 +278,7 @@ export function reactToBerserkerAura(context: WarriorResolverContext, event: War
 
 export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as { readonly eventOrder?: number } | null;
-  const event = context.events.find((candidate) => candidate.__order === Number(payload?.eventOrder)) as
-    WarriorSimulationEvent | undefined;
+  const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
   if (!event) return;
 
   const state = berserkerState.from(context);
