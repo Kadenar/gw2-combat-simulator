@@ -10,13 +10,20 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
   const interval = 0.75 / hits;
   // First hit lands one interval after cast start, not at start, matching the in-game projectile travel delay.
   const at = context.start + interval;
-  emitDamage(context, skill, 4.8, {
-    at,
-    hits,
-    interval
-  });
+  // The trait replacement remains a channel, so an interruption preserves only the rapid hits already fired.
+  const landedHits = Array.from({ length: hits }, (_, index) => at + index * interval).filter(
+    (hitAt) => hitAt <= context.effectiveEnd + context.epsilon
+  ).length;
+  if (landedHits > 0) {
+    emitDamage(context, skill, 0.6 * landedHits, {
+      at,
+      hits: landedHits,
+      interval,
+      metadata: { totalHits: hits }
+    });
+  }
   // Each of the 8 hits independently applies 1 stack of Torment — conditions are emitted per-hit so they each get their own expiry timestamp.
-  for (let index = 0; index < hits; index += 1) {
+  for (let index = 0; index < landedHits; index += 1) {
     emitCondition(context, skill, 'Torment', 1, 3, {
       at: at + index * interval
     });

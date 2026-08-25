@@ -616,25 +616,46 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
   assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 0);
 });
 
-test('Dark Barrage retains every packet when interrupted at its 800 ms commit', () => {
+test('Dark Barrage interruption retains only the channel packets that have landed', () => {
   const run = (interruptMs) =>
     simulate('Harbinger', ['Harbinger Shroud', { name: 'Dark Barrage', interruptMs }], {
       boons: { quickness: true }
     });
+  const firstVolley = run(680);
   const beforeCommit = run(799);
   const committed = run(800);
   const skill = necromancerCatalog.skillsById.get(ID.DARK_BARRAGE);
   const packets = (result, type) =>
     result.events.filter((event) => event.type === type && event.skillId === ID.DARK_BARRAGE);
+  const packetOffsets = (result, type) => {
+    const start = result.steps[1].start;
 
+    return packets(result, type).map((event) => Math.round(event.at * 1000 - start));
+  };
+
+  assert.equal(skill.interruptMode, 'per-packet');
   assert.equal(skill.interruptCommitMs, 800);
   assert.equal(committed.steps[1].end, 800);
   assert.equal(committed.steps[1].fullCastMs, 920);
   assert.equal(committed.steps[1].interrupted, true);
-  assert.equal(packets(beforeCommit, 'damage').length, 0);
-  assert.equal(packets(beforeCommit, 'condition').length, 0);
+  assert.deepEqual(packetOffsets(firstVolley, 'damage'), [600, 680, 680]);
+  assert.deepEqual(packetOffsets(firstVolley, 'condition'), [600, 680, 680]);
+  assert.deepEqual(packetOffsets(beforeCommit, 'damage'), [600, 680, 680]);
+  assert.deepEqual(packetOffsets(beforeCommit, 'condition'), [600, 680, 680]);
   assert.equal(packets(committed, 'damage').length, 6);
   assert.equal(packets(committed, 'condition').length, 6);
+});
+
+test('Doom Approaches Dark Barrage keeps only its landed channel prefix after interruption', () => {
+  const result = simulate('Harbinger', ['Harbinger Shroud', { name: 'Dark Barrage', interruptMs: 400 }], {
+    boons: { quickness: true },
+    selectedTraitIds: [TRAIT.DOOM_APPROACHES]
+  });
+  const packets = (type) => result.events.filter((event) => event.type === type && event.skillId === ID.DARK_BARRAGE);
+
+  // At 400 ms, the first four rapid packets have fired and the remaining four are canceled with the channel.
+  assert.equal(packets('damage').length, 4);
+  assert.equal(packets('condition').length, 4);
 });
 
 test('Harbinger benchmark cancels retain only effects that reached their commit frames', () => {

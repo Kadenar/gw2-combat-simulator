@@ -146,7 +146,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.DARK_BARRAGE]: {
     implemented: true,
     quicknessCastTimeMs: 920,
-    // All six strike and Torment packets resolve by 800 ms, so interrupting the remaining aftercast keeps them.
+    // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
+    interruptMode: 'per-packet',
     interruptCommitMs: 800,
     effects: [
       {
