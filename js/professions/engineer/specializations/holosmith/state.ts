@@ -12,7 +12,8 @@ export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
   'overheated',
   'solarFocusingLensStacks',
   'solarFocusingLensReadyAt',
-  'solarFocusingLensUntil'
+  'solarFocusingLensUntil',
+  'kitLockoutUntil'
 ] as const satisfies readonly (keyof HolosmithState)[]);
 
 export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HolosmithState>> = Object.freeze({
@@ -23,7 +24,8 @@ export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Holosmit
   overheated: false,
   solarFocusingLensStacks: 0,
   solarFocusingLensReadyAt: 0,
-  solarFocusingLensUntil: 0
+  solarFocusingLensUntil: 0,
+  kitLockoutUntil: 0
 });
 
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
@@ -34,6 +36,7 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
     heat: initialHeat,
     maximumHeat,
     heatUpdatedAt: 0,
+    overheatCheckAt: null,
     photonForgeActive: false,
     // null = forge has never been exited (no cooling yet); 0 = treat as exited at t=0 so
     // the passive cooling schedule starts immediately when initialHeat > 0.

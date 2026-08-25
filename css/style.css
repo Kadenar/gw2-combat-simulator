@@ -4492,6 +4492,11 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   cursor: default;
 }
 
+/* Separate automatic state changes from the authored skill immediately before them. */
+.rot-skill.rot-automatic-transition {
+  margin-left: 6px;
+}
+
 .rot-proc-overlay {
   width: 34px;
   border-style: dotted;

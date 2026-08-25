@@ -1,7 +1,12 @@
 import type { RotationCommand, SchedulerStep } from '../../../platform/engine/types.js';
 import type { Gw2ProcStep } from '../../../platform/gw2/resolver/types.js';
 import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
-import { eventTimelineMarkers, rotationEntryName, timelineRows } from '../../../platform/ui/rotation/timeline.js';
+import {
+  eventTimelineMarkers,
+  rotationEntryName,
+  timelineRows,
+  type TimelineRow
+} from '../../../platform/ui/rotation/timeline.js';
 import { targetHealthBreakpointSnapshots } from '../../../platform/ui/results/result-transform.js';
 
 const WEAPON_SET_REFRESH_SKILLS = new Set([
@@ -233,6 +238,35 @@ export function continuumEndTimelineMarkers(result: Gw2SimulationResult | null |
     result,
     rotationLength,
     (event) => event.type === 'marker' && event.name === 'Continuum Shift' && event.detail === 'split expired'
+  );
+}
+
+export function automaticPhotonForgeExitTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0
+) {
+  // Overheat exits Photon Forge without an authored deactivation cast; expose
+  // that state change as both a timeline item and a Forge lane boundary.
+  return eventTimelineMarkers(
+    result,
+    rotationLength,
+    (event) => event.type === 'engineer.state' && event.reason === 'overheat'
+  ).map((marker) => ({
+    ...marker,
+    skill: 'Overheat',
+    detail: 'automatic forge exit'
+  }));
+}
+
+export function timelineWeaponLineExitMarkerRowIndex(
+  rows: readonly TimelineRow[],
+  insertionIndex: number,
+  weaponLine: string
+): number {
+  // Automatic exits visually belong at the tail of the transformation lane
+  // they close, even though their insertion index precedes the next command.
+  return rows.findIndex(
+    (row) => row.weaponLine === weaponLine && Number(row.skills.at(-1)?.index) + 1 === insertionIndex
   );
 }
 

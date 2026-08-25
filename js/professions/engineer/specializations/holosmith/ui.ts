@@ -61,6 +61,8 @@ function holosmithProfessionSkills(context: EngineerUiContext) {
 
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: EngineerSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
+  const now = Number(context.time || 0);
+  const kitLockoutUntil = Number(state.kitLockoutUntil || 0);
   // The shared tile projector selects the active Photon Forge transition while
   // this contract remains the sole source of its state availability.
   if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
@@ -80,6 +82,16 @@ function holosmithPaletteAvailability(context: EngineerUiContext, skill: Enginee
 
   if (skill.forgeSkill && !state.photonForgeActive) {
     return { available: false, message: 'Enter Photon Forge first' };
+  }
+
+  // Project the Forge kit lockout as a retryable context cooldown so kit tiles
+  // show a countdown while remaining click-queueable for their ready time.
+  if (skill.handlerId === 'engineer.kit-equip' && now < kitLockoutUntil) {
+    return {
+      available: false,
+      message: 'Kits are disabled briefly after entering Photon Forge.',
+      retryAt: kitLockoutUntil
+    };
   }
 
   return { available: true, message: '' };

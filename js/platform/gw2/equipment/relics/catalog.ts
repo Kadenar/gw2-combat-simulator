@@ -49,7 +49,9 @@ export const RELIC_DATA = {
   },
   Steamshrieker: {
     trigger: 'Combo a water field with a leap or blast finisher',
-    cooldown: 0
+    cooldown: 0,
+    // Keep relic-owned result rows on the relic artwork instead of falling back to the triggering skill icon.
+    icon: 'https://render.guildwars2.com/file/23B0F0A5BF05E05C9F527BF7EB4962C9F49C6F42/3441975.png'
   },
   Aristocracy: {
     trigger: 'Apply weakness or vulnerability',

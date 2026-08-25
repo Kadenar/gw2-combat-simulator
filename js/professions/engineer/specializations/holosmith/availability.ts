@@ -65,8 +65,8 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
     return denyEngineerCast(skill, 'engineer.forge-inactive', 'Photon Forge is not active.');
   }
 
-  // Kits are locked for 6 s after entering Photon Forge. This prevents
-  // immediately swapping out to avoid the bar-swap animation on the forge itself.
+  // Kits use Photon Forge's six-second base recharge lockout after entry. The
+  // stored ready time already includes recharge modifiers such as Alacrity.
   if (skill.handlerId === 'engineer.kit-equip' && context.start < Number(state.kitLockoutUntil || 0)) {
     return denyEngineerCast(
       skill,

@@ -112,7 +112,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     implemented: true,
     quicknessCastTimeMs: 800,
     cooldown: 6,
-    // Flame Blast launches around 480 ms, but cancelling afterward keeps the serial lane locked through the full animation while recharge starts early.
+    // Flame Blast launches its blast finisher around 480 ms, but a committed cancel keeps the serial lane locked through the full animation.
     retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
@@ -125,6 +125,13 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
         timingScale: 'fixed',
         interruptCommitMs: 480,
         actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
         metadata: {
           damageKind: 'explosion'
         },

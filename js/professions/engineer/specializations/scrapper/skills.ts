@@ -9,7 +9,7 @@ import type { SkillFragment } from '../../../../platform/engine/types.js';
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 25,
     comboFields: [
       {
@@ -99,7 +99,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   },
   [ID.MEDIC_GYRO]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 20,
     comboFields: [
       {

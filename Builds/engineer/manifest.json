@@ -86,7 +86,7 @@
         "label": "Condition Quickness (Spear)",
         "build": "Builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "Rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
-        "benchmarkDps": 30886,
+        "benchmarkDps": 33171,
         "upToDate": true
       },
       {

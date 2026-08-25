@@ -50,6 +50,7 @@ import {
 } from '../editing/double-edge.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '../result/model.js';
 import {
+  automaticPhotonForgeExitTimelineMarkers,
   automaticTomeStowTimelineMarkers,
   continuumEndTimelineMarkers,
   groupConsecutiveProcSteps,
@@ -64,6 +65,7 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
+  timelineWeaponLineExitMarkerRowIndex,
   timelineWeaponRows
 } from './model.js';
 import type {
@@ -508,9 +510,13 @@ export function renderTimeline(app: ProfessionAppState): void {
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(results);
+  const automaticPhotonForgeExits = automaticPhotonForgeExitTimelineMarkers(results, app.build.rotation.length);
   const automaticTomeStows = automaticTomeStowTimelineMarkers(results, app.build.rotation.length);
-  // Tome stow indexes act as weapon-row boundaries — the tome weapon line ends when pages run out.
-  const automaticTomeStowIndexes = new Set(automaticTomeStows.map((marker) => marker.insertionIndex));
+  // Automatic transformation exits act as weapon-row boundaries even though
+  // no authored deactivation or stow command exists at that position.
+  const automaticWeaponLineEndIndexes = new Set(
+    [...automaticPhotonForgeExits, ...automaticTomeStows].map((marker) => marker.insertionIndex)
+  );
   const startingWeaponSet = app.build.startingWeaponSet;
   const specialization = activeSpecialization(app);
   const startingWeaponLine =
@@ -525,7 +531,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     startingWeaponSet,
     startingWeaponLine,
     weaponSwapChangesSet: app.profession.ui.weaponSwapChangesSet !== false && Boolean(app.build.alternateWeapons?.[0]),
-    weaponLineEndIndexes: automaticTomeStowIndexes,
+    weaponLineEndIndexes: automaticWeaponLineEndIndexes,
     skillName: (entry) => resolveEntrySkill(app, entry)?.name || rotationEntryName(entry),
     weaponLineTransition: (entry, current) => {
       const item = timelineItem(entry);
@@ -580,6 +586,24 @@ export function renderTimeline(app: ProfessionAppState): void {
     continuumEndsByIndex.set(marker.insertionIndex, markers);
   }
 
+  const automaticPhotonForgeExitsByIndex = new Map<number, typeof automaticPhotonForgeExits>();
+  for (const marker of automaticPhotonForgeExits) {
+    const markers = automaticPhotonForgeExitsByIndex.get(marker.insertionIndex) || [];
+    markers.push(marker);
+    automaticPhotonForgeExitsByIndex.set(marker.insertionIndex, markers);
+  }
+
+  const automaticPhotonForgeExitsByRow = new Map<number, typeof automaticPhotonForgeExits>();
+  const automaticPhotonForgeExitRowMarkers = new Set<(typeof automaticPhotonForgeExits)[number]>();
+  for (const marker of automaticPhotonForgeExits) {
+    const rowIndex = timelineWeaponLineExitMarkerRowIndex(rows, marker.insertionIndex, 'Photon Forge');
+    if (rowIndex < 0) continue;
+    const markers = automaticPhotonForgeExitsByRow.get(rowIndex) || [];
+    markers.push(marker);
+    automaticPhotonForgeExitsByRow.set(rowIndex, markers);
+    automaticPhotonForgeExitRowMarkers.add(marker);
+  }
+
   const automaticTomeStowsByIndex = new Map<number, typeof automaticTomeStows>();
   for (const marker of automaticTomeStows) {
     const markers = automaticTomeStowsByIndex.get(marker.insertionIndex) || [];
@@ -613,9 +637,26 @@ export function renderTimeline(app: ProfessionAppState): void {
       `Continuum Split ended automatically at ${time}`,
       'Cooldown state restored'
     ].join('\n');
-    return `<div class="rot-skill rot-injected" title="${esc(detail)}"
+    return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
             style="--att-border:#d6b46b">
             <img src="${esc(ACTION_ICONS['Continuum Shift'])}" alt="" />
+            <span class="rot-injected-badge">AUTO</span>
+            <span class="rot-time">${time}</span>
+        </div>`;
+  };
+
+  const renderAutomaticPhotonForgeExit = (marker: (typeof automaticPhotonForgeExits)[number]): string => {
+    const time = formatTime(marker.start);
+    const detail = ['Overheat', `Photon Forge ended automatically at ${time}`, 'Tool-belt cooldowns applied'].join(
+      '\n'
+    );
+    const icon =
+      app.activeCatalog.skillsByName.get('Deactivate Photon Forge')?.icon ||
+      ACTION_ICONS['Deactivate Photon Forge'] ||
+      PLACEHOLDER_ICON;
+    return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
+            style="--att-border:#e5a72d">
+            <img src="${esc(icon)}" alt="" />
             <span class="rot-injected-badge">AUTO</span>
             <span class="rot-time">${time}</span>
         </div>`;
@@ -741,6 +782,11 @@ export function renderTimeline(app: ProfessionAppState): void {
 
       for (const marker of continuumEndsByIndex.get(index) || []) {
         rowItems.push(renderContinuumEnd(marker));
+      }
+
+      for (const marker of automaticPhotonForgeExitsByIndex.get(index) || []) {
+        if (automaticPhotonForgeExitRowMarkers.has(marker)) continue;
+        rowItems.push(renderAutomaticPhotonForgeExit(marker));
       }
 
       for (const marker of automaticTomeStowsByIndex.get(index) || []) {
@@ -894,6 +940,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         )
       );
     });
+    for (const marker of automaticPhotonForgeExitsByRow.get(rowNumber) || []) {
+      rowItems.push(renderAutomaticPhotonForgeExit(marker));
+    }
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
       for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
@@ -909,6 +958,11 @@ export function renderTimeline(app: ProfessionAppState): void {
 
       for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
         rowItems.push(renderContinuumEnd(marker));
+      }
+
+      for (const marker of automaticPhotonForgeExitsByIndex.get(app.build.rotation.length) || []) {
+        if (automaticPhotonForgeExitRowMarkers.has(marker)) continue;
+        rowItems.push(renderAutomaticPhotonForgeExit(marker));
       }
 
       for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {

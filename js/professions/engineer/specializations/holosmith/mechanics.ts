@@ -3,6 +3,9 @@ export const HOLOSMITH_HEAT = Object.freeze({
   basePassivePerSecond: 2,
   // Additional heat/s from Light Density Amplifier trait.
   lightDensityBonusPerSecond: 1,
+  // Overheat is polled on the game's one-second resource tick instead of
+  // firing immediately when a Forge skill fills the heat bar.
+  overheatCheckInterval: 1,
   // How long Solar Focusing Lens charges remain active (seconds).
   solarFocusingLensDuration: 4,
   // Heat at or above which Enhanced Capacity Storage Unit buffs activate (max heat = 150 with ECSU, threshold stays 100).

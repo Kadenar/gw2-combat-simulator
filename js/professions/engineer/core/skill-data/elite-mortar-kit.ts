@@ -6,8 +6,17 @@ import type { Skill, SkillFragment } from '../../../../platform/engine/types.js'
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_SHELL]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 560,
     cooldown: 24,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Water',
+        duration: 5,
+        startAnchor: 'castEnd',
+        inclusiveExpiry: true
+      }
+    ],
     effects: [],
     kit: 'Elite Mortar Kit'
   },
@@ -101,7 +110,8 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   [ID.POISON_GAS_SHELL]: {
     interruptCommitMs: 0,
     implemented: true,
-    quicknessCastTimeMs: 520,
+    // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
+    quicknessCastTimeMs: 560,
     cooldown: 10,
     comboFields: [
       {

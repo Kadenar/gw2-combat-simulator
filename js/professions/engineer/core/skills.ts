@@ -3151,7 +3151,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 2,
         hits: 1,
         name: 'Devastator',
-        actorType: 'player'
+        actorType: 'player',
+        // Only the primary impact is the blast; focused follow-up packets must not create extra combos.
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'condition',
@@ -3275,6 +3283,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     castTimeMs: 520,
     unaffectedByQuickness: true,
     cooldown: 5,
+    // The dash completes one leap combo at impact, where the replacement handler also applies Focused.
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {

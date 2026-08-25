@@ -552,7 +552,11 @@ export function renderPalette(app: ProfessionAppState): void {
     '#cbb8ea',
     utilitySkillAvailable,
     utilitySkillUnavailableMessage,
-    'utility-palette-group'
+    'utility-palette-group',
+    undefined,
+    [],
+    '',
+    professionPaletteRetryAt
   );
 
   const paletteWeaponSkills = (skills: readonly Skill[], context: SchedulerRecord = {}): Skill[] =>

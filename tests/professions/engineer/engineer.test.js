@@ -5,8 +5,13 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
 import { weaponSetLabelVisible } from '../../../js/app/build/panels/skills.js';
 import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
-import { renderPalette } from '../../../js/app/rotation/palette/view.js';
+import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';
+import {
+  automaticPhotonForgeExitTimelineMarkers,
+  timelineWeaponLineExitMarkerRowIndex,
+  timelineWeaponRows
+} from '../../../js/app/rotation/timeline/model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
 import {
@@ -672,6 +677,82 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
   );
 });
 
+test('Photon Forge kit lockout is shortened by Alacrity', () => {
+  // Kit availability must use the Forge lockout's effective recharge rather than its raw six-second base.
+  const kitStart = (alacrity) => {
+    const result = simulate('Holosmith', ['Engage Photon Forge', 'Grenade Kit'], {
+      boons: { alacrity }
+    });
+
+    assert.equal(result.warnings.length, 0);
+    return result.steps.find((step) => step.skill === 'Grenade Kit').start;
+  };
+
+  assert.equal(kitStart(false), 6000);
+  assert.equal(kitStart(true), 4800);
+});
+
+test('Photon Forge kit lockout renders as a queueable palette cooldown', async () => {
+  const result = simulate('Holosmith', ['Engage Photon Forge'], {
+    boons: { alacrity: true }
+  });
+  const kit = mechanic('Grenade Kit');
+  const context = {
+    specialization: 'Holosmith',
+    professionState: result.endState.profession,
+    time: result.endState.time / 1000
+  };
+  const availability = engineerProfession.ui.paletteSkillAvailability(context, kit);
+  const view = paletteSkillView(
+    { results: result },
+    kit,
+    availability.available,
+    availability.message,
+    availability.retryAt
+  );
+
+  assert.equal(result.endState.profession.kitLockoutUntil, 4.8);
+  assert.deepEqual(availability, {
+    available: false,
+    message: 'Kits are disabled briefly after entering Photon Forge.',
+    retryAt: 4.8
+  });
+  assert.equal(view.disabled, true);
+  assert.equal(view.contextDisabled, false);
+  assert.equal(view.cooldownLabel, '4.8s');
+  assert.deepEqual(engineerProfession.ui.paletteSkillAvailability({ ...context, time: 4.8 }, kit), {
+    available: true,
+    message: ''
+  });
+
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const build = adapter.toApplicationBuild(createEngineerBuildDefaults());
+  const app = {
+    build,
+    adapter,
+    profession: engineerProfession,
+    skills: engineerCatalog.skills,
+    skillById: engineerCatalog.skillsById,
+    skillByName: engineerCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: result
+  };
+  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  // The selected utility tile is a separate palette surface from the kit skill row.
+  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">4\.8s<\/span>/);
+});
+
 test('Engineer kit palettes stack and include their linked stow skills', () => {
   const paletteGroups = engineerProfession.ui.paletteGroups({
     specialization: 'Core',
@@ -1035,7 +1116,7 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
   assert.equal(outside.endState.profession.overheated, false);
   assert.equal(outside.endState.profession.photonForgeActive, false);
 
-  const inside = simulate('Holosmith', ['Engage Photon Forge', 'Corona Burst', { type: 'wait', durationMs: 1000 }], {
+  const inside = simulate('Holosmith', ['Engage Photon Forge', 'Corona Burst', { type: 'wait', durationMs: 2000 }], {
     initialHeat: 145,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
@@ -1099,6 +1180,99 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
 
   assert.equal(fullyCooled.endState.profession.heat, 0);
   assert.equal(fullyCooled.endState.profession.overheated, false);
+});
+
+test('Photon Forge waits for its resource tick before ejecting at maximum heat', () => {
+  // A skill can fill the heat bar between resource ticks, leaving a short window
+  // for an already-authored tool-belt action before Overheat applies its cooldown.
+  const result = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Holographic Shockwave', 'Grenade Barrage', { type: 'wait', durationMs: 1000 }],
+    {
+      initialHeat: 99,
+      selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+    }
+  );
+  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(barrage.start, 750);
+  assert.equal(overheat.at, 1);
+  assert.equal(result.endState.profession.photonForgeActive, false);
+});
+
+test('Overheat injects an automatic Photon Forge timeline exit and closes its lane', () => {
+  const rotation = ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Blunderbuss'];
+  const result = simulate('Holosmith', rotation, { initialHeat: 90 });
+  const exits = automaticPhotonForgeExitTimelineMarkers(result, rotation.length);
+  const transition = engineerProfession.ui.timelineWeaponLineTransition;
+  const rows = timelineWeaponRows(rotation, {
+    weaponSwapChangesSet: false,
+    weaponLineEndIndexes: new Set(exits.map((marker) => marker.insertionIndex)),
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === 'string' ? entry : entry.name;
+
+      return transition({
+        entry: { name },
+        skill: engineerCatalog.skillsByName.get(name),
+        specialization: 'Holosmith',
+        ...current
+      });
+    }
+  });
+
+  assert.deepEqual(exits, [
+    {
+      insertionIndex: 2,
+      skill: 'Overheat',
+      start: 5000,
+      detail: 'automatic forge exit'
+    }
+  ]);
+  assert.deepEqual(
+    rows.map((row) => row.weaponLine),
+    [null, 'Photon Forge', null]
+  );
+  assert.equal(timelineWeaponLineExitMarkerRowIndex(rows, exits[0].insertionIndex, 'Photon Forge'), 1);
+
+  const manual = simulate('Holosmith', ['Engage Photon Forge', 'Deactivate Photon Forge']);
+
+  assert.deepEqual(automaticPhotonForgeExitTimelineMarkers(manual, 2), []);
+});
+
+test('Overheat puts tool-belt skills on a minimum cooldown without extending longer cooldowns', () => {
+  // Overheat starts five seconds after entering Forge from 90 heat in these minimal rotations.
+  const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {
+    const result = simulate('Holosmith', rotation, {
+      initialHeat: 90,
+      selectedTraitIds
+    });
+
+    assert.equal(result.warnings.length, 0);
+    return result.steps.filter((step) => step.skill === 'Grenade Barrage').map((step) => step.start);
+  };
+
+  assert.deepEqual(
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Grenade Barrage']),
+    [20000]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts(
+      ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Grenade Barrage'],
+      [TRAIT.PHOTONIC_BLASTING_MODULE]
+    ),
+    [10000]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts([
+      'Grenade Barrage',
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 5000 },
+      'Grenade Barrage'
+    ]),
+    [0, 26020]
+  );
 });
 
 test('Holosmith offensive traits consume forge heat and attack charges', () => {
@@ -4099,7 +4273,7 @@ test('Poison Gas Shell pulses its five-second poison field', () => {
 
   assert.equal(poison.length, 5);
   assert.deepEqual(
-    poison.map((event) => event.at - poison[0].at),
+    poison.map((event) => Number((event.at - poison[0].at).toFixed(9))),
     [0, 1, 2, 3, 4]
   );
   assert.ok(poison.every((event) => event.duration === 3));
