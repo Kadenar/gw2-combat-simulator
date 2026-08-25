@@ -14,6 +14,9 @@ const SKILL_SIZE = 68;
 const EVENT_SIZE = 64;
 const ARCDPS_FOOTER_SIZE = 24;
 const decoder = new TextDecoder('utf-8', { fatal: false });
+const EVTC_SKILL_NAME_ALIASES: Readonly<Record<string, string>> = Object.freeze({
+  'Master Tuning Crystal': 'Tuning Icicle'
+});
 
 /**
  * ArcDPS may append a 24-byte zero-padded footer after the combat records.
@@ -31,6 +34,11 @@ function hasArcDpsFooter(bytes: Uint8Array, offset: number): boolean {
 function readString(bytes: Uint8Array): string {
   const end = bytes.indexOf(0);
   return decoder.decode(end < 0 ? bytes : bytes.subarray(0, end));
+}
+
+/** Canonicalizes equivalent EVTC labels so imports use one simulator item. */
+function canonicalEvtcSkillName(name: string): string {
+  return EVTC_SKILL_NAME_ALIASES[name] || name;
 }
 
 function ensureRange(
@@ -119,7 +127,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
     const record = offset + index * SKILL_SIZE;
     skills.push({
       id: view.getUint32(record, true),
-      name: readString(bytes.subarray(record + 4, record + SKILL_SIZE))
+      name: canonicalEvtcSkillName(readString(bytes.subarray(record + 4, record + SKILL_SIZE)))
     });
   }
 

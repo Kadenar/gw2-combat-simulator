@@ -36,7 +36,7 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     ]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.speedOfSynergy, 'Speed of Synergy', {
-    minimumStacks: 5,
+    minimumStacks: 7,
     threshold: 7,
     maximumStacks: 12
   }),

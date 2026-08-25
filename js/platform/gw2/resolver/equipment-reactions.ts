@@ -13,8 +13,8 @@ import {
   isResolverCriticalSigil
 } from '../equipment/sigils/proc-events.js';
 import {
-  handleBlastComboRelic,
   handleBoonRelics,
+  handleComboRelic,
   handleConditionRelics,
   handleControlRelics,
   handlePeithaRelic,
@@ -240,11 +240,8 @@ export function createGw2EquipmentReactionContributions({
       {
         id: 'relic.combo',
         order: GW2_REACTION_ORDER.COMMON,
-        handler: (ctx, event) => {
-          if (event.finisherType === 'Blast') {
-            handleBlastComboRelic(ctx, event);
-          }
-        }
+        // All successful combos reach the relic runtime so Steamshrieker can accept leaps as well as blasts.
+        handler: (ctx, event) => handleComboRelic(ctx, event)
       }
     ],
     'buff.applied': [

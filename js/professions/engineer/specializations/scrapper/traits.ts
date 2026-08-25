@@ -48,8 +48,8 @@ function emitBuff(
 }
 
 export function applyScrapperCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
-  // Speed of Synergy (master trait): healing toolbelt skills grant superspeed.
-  // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 5s.
+  // Speed of Synergy: healing toolbelt skills grant superspeed.
+  // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 7s.
   if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingToolbeltSkill(context, skill)) {
     emitBuff(
       context,

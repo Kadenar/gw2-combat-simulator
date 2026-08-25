@@ -101,7 +101,7 @@ export interface Gw2RelicRule {
     event: SimulationEvent
   ) => unknown;
   readonly boon?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
-  readonly blastCombo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly combo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly strikeMultiplier?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => number;
   readonly outgoingDamageBonus?: (
     context: Gw2RelicRuntimeContext,

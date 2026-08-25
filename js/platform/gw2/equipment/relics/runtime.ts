@@ -347,7 +347,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       expiresAt: 0,
       buffUntil: 0
     }),
-    blastCombo(ctx, state, event) {
+    combo(ctx, state, event) {
+      // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
+      if (event.finisherType !== 'Blast') return;
       // Volatility cannot accumulate while Fervor is active.
       if (Number(state.buffUntil || 0) > event.at) return;
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
@@ -724,6 +726,34 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       }
 
       ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
+    }
+  }),
+
+  Steamshrieker: defineRelic({
+    combo(ctx, _state, event) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        event.fieldType !== 'Water' ||
+        !['Blast', 'Leap'].includes(String(event.finisherType || ''))
+      ) {
+        return;
+      }
+
+      // Steamshrieker is a shared relic: every profession's successful player-owned water blast or leap burns once.
+      enqueueOrdered(ctx.queue, {
+        type: 'condition',
+        at: event.at,
+        source: 'Relic',
+        sourceId: 'relic.steamshrieker',
+        actorType: 'effect',
+        skillName: 'Relic of Steamshrieker',
+        name: 'Relic of Steamshrieker — Burning',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 5,
+        triggeredBy: event.skillName
+      });
+      ctx.recordProc('relic', 'Relic of Steamshrieker', event.at, event.skillName);
     }
   }),
 

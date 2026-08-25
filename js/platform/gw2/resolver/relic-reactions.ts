@@ -17,11 +17,9 @@ export function handleBoonRelics(ctx: Gw2RelicContext, event: SimulationEvent): 
   invokeRelicHook(ctx, 'boon', event);
 }
 
-/**
- * Applies selected relic triggers after a successful blast combo.
- */
-export function handleBlastComboRelic(ctx: Gw2RelicContext, event: SimulationEvent): void {
-  invokeRelicHook(ctx, 'blastCombo', event);
+/** Applies selected relic triggers after a successful combo; each relic gates the eligible finisher types. */
+export function handleComboRelic(ctx: Gw2RelicContext, event: SimulationEvent): void {
+  invokeRelicHook(ctx, 'combo', event);
 }
 
 /**

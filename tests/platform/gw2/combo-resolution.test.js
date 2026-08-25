@@ -209,6 +209,30 @@ test('Whirl applications do not multiply combos and authored double Blasts do', 
   assert.equal(burning.length, 4);
 });
 
+test('Steamshrieker burns from water blasts and leaps without broadening Bloodstone triggers', () => {
+  const comboEvents = [
+    field('water:relic', 'Water'),
+    finisher('water:blast', { kind: 'field-id', fieldId: 'water:relic' }, { finisherType: 'Blast' }),
+    finisher('water:leap', { kind: 'field-id', fieldId: 'water:relic' }, { at: 2, effectAt: 2, finisherType: 'Leap' })
+  ];
+  const steamshrieker = resolve(comboEvents, { relic: 'Steamshrieker' });
+
+  // The relic is equipment-owned, so both supported finisher types work for every profession through the shared resolver.
+  assert.equal(
+    steamshrieker.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === 'relic.steamshrieker'
+    ).length,
+    2
+  );
+  assert.equal(steamshrieker.procSteps.filter((step) => step.skill === 'Relic of Steamshrieker').length, 2);
+
+  const bloodstone = resolve(comboEvents.slice(0, 1).concat(comboEvents[2]), { relic: 'Bloodstone' });
+  assert.equal(
+    bloodstone.procSteps.some((step) => step.skill === 'Bloodstone Volatility' || step.skill === 'Relic of Bloodstone'),
+    false
+  );
+});
+
 test('target death prevents later authoritative combo outcomes', () => {
   const result = resolve(
     [

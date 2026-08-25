@@ -157,32 +157,6 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   context.recordProc('trait', 'Vicious Empowerment', event.at, event.skillName);
 }
 
-export function applySteamshrieker(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  if (
-    event.actorType !== 'player' ||
-    context.config.relic !== 'Steamshrieker' ||
-    !['Blast', 'Leap'].includes(String(event.finisherType || '')) ||
-    event.fieldType !== 'Water'
-  ) {
-    return;
-  }
-
-  enqueueOrdered(context.queue, {
-    type: 'condition',
-    at: event.at,
-    source: 'Relic',
-    sourceId: 'relic.steamshrieker',
-    actorType: 'effect',
-    skillName: 'Relic of Steamshrieker',
-    name: 'Relic of Steamshrieker — Burning',
-    condition: 'Burning',
-    stacks: 1,
-    duration: 5,
-    triggeredBy: event.skillName
-  });
-  context.recordProc('relic', 'Relic of Steamshrieker', event.at, event.skillName);
-}
-
 /**
  * Elemental Empowerment starts with three permanent stacks. Timed grants fill
  * the remaining seven slots and replace the oldest timed stack at the cap.

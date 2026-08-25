@@ -3723,6 +3723,16 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   assert.ok(result.procSteps.some((step) => step.skill === 'Applied Force'));
   assert.equal(result.endState.ammo['Function Gyro'].maximum, 2);
 
+  const reconstructionField = simulate('Scrapper', ['Reconstruction Field'], {
+    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+    selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
+  });
+
+  // Current F1 evidence retains seven seconds of Speed of Synergy superspeed after Reconstruction Field completes.
+  assert.ok(
+    reconstructionField.events.some((event) => event.name === 'Speed of Synergy — superspeed' && event.duration === 7)
+  );
+
   const base = simulate('Scrapper', ['Puncturing Jab'], {
     target: { conditions: {} }
   });

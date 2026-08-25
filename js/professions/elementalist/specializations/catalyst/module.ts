@@ -13,7 +13,6 @@ import {
   applyCatalystComboTraits,
   applyCatalystResolverAura,
   applyCatalystResolvedDamage,
-  applySteamshrieker,
   applyViciousEmpowerment
 } from './resolver.js';
 import {
@@ -63,10 +62,6 @@ export const catalystModule = defineNativeModule({
       onComboResolved({
         id: 'elementalist.catalyst-combo-traits',
         handler: applyCatalystComboTraits
-      }),
-      onComboResolved({
-        id: 'elementalist.catalyst-steamshrieker',
-        handler: applySteamshrieker
       })
     ]
   },
