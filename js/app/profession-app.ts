@@ -22,6 +22,9 @@ import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from './rotation/timeline/proc-overlays.js';
 import { mountPatchPreviewControls } from './simulation/patch-preview-view.js';
+import { BaselineSimulationRunner } from './simulation/baseline-simulation-runner.js';
+import { renderRotationEditor, renderSimulationOutput } from './rotation/index.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from './profession/navigation.js';
 
 import type {
   BuildTemplatePreset,
@@ -29,6 +32,8 @@ import type {
   Gw2AppAdapter,
   ProfessionAppResult,
   ProfessionAppState,
+  BaselineSimulationOutput,
+  ProfessionChangeOptions,
   ProfessionAttributeData,
   ProfessionApplicationBuild,
   ProfessionRotationDragState,
@@ -53,6 +58,10 @@ export class ProfessionApp implements ProfessionAppState {
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
+  buildRevision: number;
+  resultRevision: number;
+  simulationStatus: ProfessionAppState['simulationStatus'];
+  simulationError: string;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
   rotationSelection: ProfessionAppState['rotationSelection'];
@@ -67,7 +76,9 @@ export class ProfessionApp implements ProfessionAppState {
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
   readonly relicComparisonRunner: RelicComparisonRunner;
+  readonly baselineSimulationRunner: BaselineSimulationRunner;
   private initialRenderGeneration: number;
+  private deferredRotationRenderRevision: number | null;
 
   constructor(adapter: Gw2AppAdapter) {
     if (!adapter?.profession) {
@@ -91,6 +102,10 @@ export class ProfessionApp implements ProfessionAppState {
     this.attributeWeaponSet = 1;
     this.attributeData = null;
     this.results = null;
+    this.buildRevision = 0;
+    this.resultRevision = 0;
+    this.simulationStatus = 'idle';
+    this.simulationError = '';
     this.dragState = null;
     this.rotationInsertionIndex = null;
     this.rotationSelection = null;
@@ -106,15 +121,23 @@ export class ProfessionApp implements ProfessionAppState {
     this.modifierContributionRunner = new ModifierContributionRunner(this);
     this.randomDistributionRunner = new RandomDistributionRunner(this);
     this.relicComparisonRunner = new RelicComparisonRunner(this);
+    this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.initialRenderGeneration = 0;
+    this.deferredRotationRenderRevision = null;
   }
 
   async init(): Promise<void> {
     mountPatchPreviewControls(this);
     mountRotationClipboard(this);
     bindPageControls(this);
+    document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
+      const results = document.getElementById('rotation-results');
+      if (document.body?.dataset.simulatorView === 'analysis' && results?.dataset.analysisStale === 'true') {
+        this.adapter.renderResults(this);
+      }
+    });
     const templatesReady = initBuildTemplates(this);
-    this.updateSimulationState();
+    this.updateSimulationStateSynchronously();
     renderGear(this);
     renderTraits(this);
     renderAttributes(this);
@@ -129,9 +152,10 @@ export class ProfessionApp implements ProfessionAppState {
     this.scheduleInitialDeferredRender();
   }
 
-  changed(rebuildStatic = true, rebuildGear = rebuildStatic): void {
+  changed(rebuildStatic = true, rebuildGear = rebuildStatic, options: ProfessionChangeOptions = {}): void {
     this.initialRenderGeneration += 1;
-    this.updateSimulationState();
+    const revision = this.prepareSimulationState();
+    this.baselineSimulationRunner.schedule(revision);
     if (rebuildStatic) {
       if (rebuildGear) renderGear(this);
       renderTraits(this);
@@ -141,23 +165,68 @@ export class ProfessionApp implements ProfessionAppState {
     }
 
     updateTemplateSelection(this);
-    this.adapter.renderRotationBuilder(this);
+    // Template replacements keep the prior builder intact until build and result state can be painted together.
+    if (options.deferRotationRender) this.deferredRotationRenderRevision = revision;
+    else {
+      this.deferredRotationRenderRevision = null;
+      renderRotationEditor(this);
+    }
   }
 
-  private updateSimulationState(): void {
+  /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
+  private prepareSimulationState(): number {
     recordRotationHistory(this);
-    const previousContributions = this.results?.contributions;
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
-    this.results = this.adapter.runSimulation(this) as ProfessionAppResult;
-    if (Array.isArray(previousContributions)) {
-      this.results.contributions = previousContributions;
-    }
+    saveBuild(this.build, this.adapter);
+    this.buildRevision += 1;
+    this.simulationStatus = 'queued';
+    this.simulationError = '';
+    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    return this.buildRevision;
+  }
 
+  /** Preserves synchronous first paint while all edit-triggered baselines use the worker. */
+  private updateSimulationStateSynchronously(): void {
+    const revision = this.prepareSimulationState();
+    const output = this.adapter.calculateBaselineSimulation(this.adapter.baselineSimulationRequest(this));
+    this.commitBaselineSimulation(output, revision, false);
+  }
+
+  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void {
+    this.commitBaselineSimulation(output, revision, true);
+  }
+
+  /** Rejects stale completions before publishing any result-dependent UI or follow-up work. */
+  private commitBaselineSimulation(output: BaselineSimulationOutput, revision: number, render: boolean): void {
+    if (revision !== this.buildRevision) return;
+    const renderDeferredRotation = this.deferredRotationRenderRevision === revision;
+    if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
+    const previousContributions = this.results?.contributions;
+    this.results = output.result as ProfessionAppResult;
+    this.patchComparison = output.patchComparison;
+    if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
+    this.resultRevision = revision;
+    this.simulationStatus = 'idle';
+    this.simulationError = '';
+    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();
-    saveBuild(this.build, this.adapter);
+    if (render) {
+      if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
+      else renderSimulationOutput(this);
+    }
+  }
+
+  failBaselineSimulation(error: unknown, revision: number): void {
+    if (revision !== this.buildRevision) return;
+    const renderDeferredRotation = this.deferredRotationRenderRevision === revision;
+    if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
+    this.simulationStatus = 'error';
+    this.simulationError = error instanceof Error ? error.message : String(error || 'Simulation failed.');
+    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
   }
 
   private scheduleInitialDeferredRender(): void {

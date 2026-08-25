@@ -83,6 +83,8 @@ export function defineProfessionApp({
     simulateBuild: runtimeApi.simulateBuild,
     simulationConfig: runtimeApi.simulationConfig,
     rotationEndStateAt: runtimeApi.rotationEndStateAt,
+    baselineSimulationRequest: runtimeApi.baselineSimulationRequest,
+    calculateBaselineSimulation: runtimeApi.calculateBaselineSimulation,
     runSimulation: runtimeApi.runSimulation,
     modifierContributionRequest: runtimeApi.modifierContributionRequest,
     calculateModifierContributions: runtimeApi.calculateModifierContributions,

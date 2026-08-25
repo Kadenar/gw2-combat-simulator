@@ -57,8 +57,9 @@ export function mountRotationInsertionCursor({
   const scope = root.closest('.rotation-panel') || root;
 
   root.querySelectorAll<HTMLButtonElement>('.rot-insertion-gap').forEach((gap) => {
-    gap.addEventListener('mousedown', (event) => event.stopPropagation());
-    gap.addEventListener('click', (event) => {
+    // Property handlers are replaced when keyed timeline nodes survive a render.
+    gap.onmousedown = (event) => event.stopPropagation();
+    gap.onclick = (event) => {
       event.preventDefault();
       event.stopPropagation();
       const index = Number(gap.dataset.insertionIndex);
@@ -67,7 +68,7 @@ export function mountRotationInsertionCursor({
       if (index === displayActive) return;
       if (index === rotationLength) onClear();
       else onSelect(index);
-    });
+    };
   });
 
   const handleEscape = (event: KeyboardEvent): void => {

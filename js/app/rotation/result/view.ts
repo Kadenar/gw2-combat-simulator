@@ -1,7 +1,7 @@
 import { mountRotationResults, SKILL_COLS } from '../../../platform/ui/rotation-results.js';
 import { syncRotationFocusResults, updateFloatingDps } from '../workspace.js';
 import { targetHealthBreakpointSnapshots } from '../../../platform/ui/result-transform.js';
-import type { ProfessionAppState } from '../../profession/types.js';
+import type { ProfessionAppResult, ProfessionAppState } from '../../profession/types.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '../shared/icons.js';
 import { renderPatchComparison } from '../../simulation/patch-preview-view.js';
 import type { ResultIconRow } from '../shared/icons.js';
@@ -43,18 +43,88 @@ const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Condition', value: '—', className: 'condi' }
 ]);
 
-export function renderResults(app: ProfessionAppState): void {
+// Before navigation mounts, the URL hash still identifies whether detailed Analysis is visible.
+function analysisViewIsActive(): boolean {
+  const body = document.body;
+  if (!body) return true;
+  const mountedView = body.dataset.simulatorView;
+  if (mountedView) return mountedView === 'analysis';
+  return document.defaultView?.location.hash === '#analysis';
+}
+
+/** Projects RNG state independently so Workspace can render it without materializing Analysis tables and charts. */
+function randomDistributionResultModel(result: ProfessionAppResult) {
+  return {
+    randomDistribution: result.randomDistribution || null,
+    randomDistributionRequested: result.randomDistributionRequested === true,
+    randomDistributionStale: result.randomDistributionStale === true,
+    randomDistributionTrials: Number(result.randomDistributionTrials || 0),
+    randomDistributionProgress: result.randomDistributionProgress || null,
+    randomDistributionError: result.randomDistributionError || ''
+  };
+}
+
+/** Updates the small always-visible metrics without building the detailed Analysis DOM. */
+export function renderResultSummary(app: ProfessionAppState): void {
+  const summaryStrip = document.getElementById('rotation-dps-summary');
+  const stale = app.resultRevision !== app.buildRevision;
+  if (summaryStrip?.dataset) {
+    summaryStrip.dataset.buildRevision = String(app.buildRevision);
+    summaryStrip.dataset.resultRevision = String(app.resultRevision);
+    summaryStrip.toggleAttribute?.('aria-busy', stale);
+  }
+
+  const result = app.results;
+  if (!app.build.rotation.length || !result) {
+    updateFloatingDps(null);
+    mountRotationResults(summaryStrip, {
+      metrics: EMPTY_RESULT_METRICS,
+      summaryPlaceholder: true
+    });
+    return;
+  }
+
+  const metrics = resultSummaryMetrics(result).map((metric) =>
+    result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
+  );
+  updateFloatingDps(metrics.find((metric) => metric.className === 'dps')?.value);
+  mountRotationResults(summaryStrip, { metrics });
+}
+
+/** Keeps Workspace-only snapshots and RNG controls interactive while detailed Analysis remains lazy. */
+export function renderWorkspaceResults(app: ProfessionAppState): void {
+  const element = document.getElementById('rotation-results');
+  if (!element) return;
+  if (element.dataset) element.dataset.analysisStale = 'true';
+  const result = app.results;
+  if (!app.build.rotation.length || !result) {
+    element.innerHTML = '';
+    return;
+  }
+
+  mountRotationResults(
+    element,
+    {
+      showSummary: false,
+      breakpoints: targetHealthBreakpointSnapshots(result, app.build.targetHealth),
+      ...randomDistributionResultModel(result)
+    },
+    {
+      onRunRandomDistribution() {
+        app.runRandomDistribution();
+      }
+    }
+  );
+}
+
+/** Builds charts, tables, and loop analysis only when the Analysis view is visible. */
+export function renderDetailedResults(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-results');
   const summaryStrip = document.getElementById('rotation-dps-summary');
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
-    updateFloatingDps(null);
     removeRotationLoopAnalysis(element);
-    mountRotationResults(summaryStrip, {
-      metrics: EMPTY_RESULT_METRICS,
-      summaryPlaceholder: true
-    });
     element.innerHTML = `<div class="analysis-empty-state">
       <strong>No analysis yet</strong>
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
@@ -67,9 +137,6 @@ export function renderResults(app: ProfessionAppState): void {
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
   );
-  updateFloatingDps(metrics.find((metric) => metric.className === 'dps')?.value);
-  // The builder owns the live strip; the results root only renders detailed analysis.
-  mountRotationResults(summaryStrip, { metrics });
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];
   const series = buildChartSeries(result);
@@ -97,12 +164,7 @@ export function renderResults(app: ProfessionAppState): void {
         : null,
       contributions,
       contributionsStale: result.modifierContributionsStale === true,
-      randomDistribution: result.randomDistribution || null,
-      randomDistributionRequested: result.randomDistributionRequested === true,
-      randomDistributionStale: result.randomDistributionStale === true,
-      randomDistributionTrials: Number(result.randomDistributionTrials || 0),
-      randomDistributionProgress: result.randomDistributionProgress || null,
-      randomDistributionError: result.randomDistributionError || '',
+      ...randomDistributionResultModel(result),
       chartSeries: series,
       relicComparison: result.relicComparison || null,
       relicComparisonAvailable: result.relicComparisonAvailable === true,
@@ -150,4 +212,18 @@ export function renderResults(app: ProfessionAppState): void {
 
   renderPatchComparison(element, app);
   syncRotationFocusResults(document);
+}
+
+/** Keeps Workspace edits cheap and materializes stale detailed output on demand. */
+export function renderResults(app: ProfessionAppState): void {
+  renderResultSummary(app);
+  const element = document.getElementById('rotation-results');
+  if (!element) return;
+  if (!analysisViewIsActive()) {
+    renderWorkspaceResults(app);
+    return;
+  }
+
+  if (element.dataset) delete element.dataset.analysisStale;
+  renderDetailedResults(app);
 }

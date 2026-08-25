@@ -11,6 +11,12 @@ import { renderRotationStateSnapshot } from './state-snapshot/view.js';
 import { renderTimeline } from './timeline/view.js';
 
 export function renderRotationBuilder(app: ProfessionAppState): void {
+  renderRotationEditor(app);
+  renderSimulationDetails(app);
+}
+
+/** Refreshes authoring controls immediately without waiting for a new simulation result. */
+export function renderRotationEditor(app: ProfessionAppState): void {
   renderStartResource(app);
   renderPalette(app);
   renderRotationClipboardControls(app);
@@ -18,6 +24,20 @@ export function renderRotationBuilder(app: ProfessionAppState): void {
   renderTimeline(app);
   renderRotationStateSnapshot(app);
   renderRotationHistoryControls(app);
+}
+
+/** Refreshes views whose data is produced by the baseline simulation. */
+export function renderSimulationOutput(app: ProfessionAppState): void {
+  // Cooldowns, ammo, autoattack chains, and state-gated skills all come from the newly committed end state.
+  renderPalette(app);
+  mountRotationHotkeys(document.getElementById('rotation-palette'));
+  renderTimeline(app);
+  renderRotationStateSnapshot(app);
+  renderSimulationDetails(app);
+}
+
+/** Refreshes analysis-only output without repainting the already-current authoring surface. */
+function renderSimulationDetails(app: ProfessionAppState): void {
   renderWarnings(app);
   renderEventLog(app);
   renderResults(app);

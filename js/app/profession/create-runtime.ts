@@ -12,6 +12,8 @@ import type { ObservationPolicy, RotationCommand, Skill } from '../../platform/e
 import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
 import type { Gw2ProfessionContract, Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
 import type {
+  BaselineSimulationOutput,
+  BaselineSimulationRequest,
   ModifierContributionRequest,
   ProfessionApplicationBuild,
   ProfessionAppState,
@@ -393,24 +395,46 @@ export function createProfessionRuntime({
     return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app)).endState;
   }
 
-  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
-    const baselineConfig = baselineSimulationConfig(app);
-    const previewId = profession.preview?.id;
-    if (!previewId) {
-      app.patchComparison = null;
-      app.results = simulateBuild(app.build.rotation, baselineConfig);
-      return app.results;
+  /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
+  function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
+    return {
+      professionId: profession.id,
+      rotation: app.build.rotation.map((command) =>
+        typeof command === 'object' && command !== null ? { ...command } : command
+      ),
+      baseConfig: baselineSimulationConfig(app),
+      selectedPatchId: app.patchId,
+      ...(profession.preview?.id ? { previewPatchId: profession.preview.id } : null)
+    };
+  }
+
+  /** Runs a serialized baseline job without depending on browser application state. */
+  function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
+    const { rotation, baseConfig, selectedPatchId, previewPatchId } = request;
+    if (!previewPatchId) {
+      return {
+        result: simulateBuild(rotation, baseConfig),
+        patchComparison: null
+      };
     }
 
     const configForPatch = (patchId: string): Gw2Config => ({
-      ...baselineConfig,
+      ...baseConfig,
       patchId,
       patchValues: profession.patchValuesFor?.(patchId) || Object.freeze({})
     });
-    const current = simulateBuild(app.build.rotation, configForPatch('current'));
-    const preview = simulateBuild(app.build.rotation, configForPatch(previewId));
-    app.patchComparison = { patchId: previewId, current, preview };
-    app.results = app.patchId === previewId ? preview : current;
+    const current = simulateBuild(rotation, configForPatch('current'));
+    const preview = simulateBuild(rotation, configForPatch(previewPatchId));
+    return {
+      result: selectedPatchId === previewPatchId ? preview : current,
+      patchComparison: { patchId: previewPatchId, current, preview }
+    };
+  }
+
+  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
+    const output = calculateBaselineSimulation(baselineSimulationRequest(app));
+    app.patchComparison = output.patchComparison;
+    app.results = output.result;
     return app.results;
   }
 
@@ -427,6 +451,8 @@ export function createProfessionRuntime({
     relicComparisonRequest,
     calculateRandomDistribution,
     rotationEndStateAt,
+    baselineSimulationRequest,
+    calculateBaselineSimulation,
     runSimulation
   };
   return api;

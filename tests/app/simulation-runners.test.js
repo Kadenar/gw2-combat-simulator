@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { ProfessionApp } from '../../js/app/profession-app.js';
 import { ModifierContributionRunner } from '../../js/app/simulation/modifier-contribution-runner.js';
+import { BaselineSimulationRunner } from '../../js/app/simulation/baseline-simulation-runner.js';
 import { RandomDistributionRunner } from '../../js/app/simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from '../../js/app/simulation/relic-comparison-runner.js';
 
@@ -14,6 +16,130 @@ function runTimersImmediately(t) {
     return 0;
   });
 }
+
+test('deferred template changes paint the builder once with their matching result', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} } }
+  });
+
+  let scheduledRevision = null;
+  let renderedResults = [];
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    initialRenderGeneration: 0,
+    deferredRotationRenderRevision: null,
+    buildRevision: 2,
+    resultRevision: 1,
+    simulationStatus: 'idle',
+    simulationError: '',
+    results: { id: 'old', contributions: [] },
+    patchComparison: null,
+    templateContainer: null,
+    prepareSimulationState: () => 2,
+    baselineSimulationRunner: {
+      schedule(revision) {
+        scheduledRevision = revision;
+      }
+    },
+    randomDistributionRunner: { schedule() {} },
+    modifierContributionRunner: { schedule() {} },
+    relicComparisonRunner: { schedule() {} },
+    adapter: {
+      renderRotationBuilder(renderedApp) {
+        renderedResults.push(renderedApp.results.id);
+      }
+    }
+  });
+
+  app.changed(false, false, { deferRotationRender: true });
+  assert.equal(scheduledRevision, 2);
+  assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
+
+  app.publishBaselineSimulation({ result: { id: 'new' }, patchComparison: null }, 2);
+  assert.deepEqual(renderedResults, ['new']);
+  assert.equal(app.resultRevision, 2);
+  assert.equal(app.deferredRotationRenderRevision, null);
+});
+
+test('baseline runner publishes only the newest revision and reuses one worker', (t) => {
+  runTimersImmediately(t);
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  t.after(() => {
+    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    else delete globalThis.Worker;
+  });
+
+  const workers = [];
+  class ControlledWorker {
+    constructor() {
+      this.listeners = new Map();
+      this.messages = [];
+      workers.push(this);
+    }
+
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+
+    postMessage(message) {
+      this.messages.push(message);
+    }
+
+    terminate() {}
+
+    respond(message) {
+      this.listeners.get('message')?.({ data: message });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: ControlledWorker
+  });
+
+  const published = [];
+  const app = {
+    buildRevision: 1,
+    simulationStatus: 'idle',
+    simulationError: '',
+    adapter: {
+      baselineSimulationRequest() {
+        return {
+          professionId: 'necromancer',
+          rotation: [],
+          baseConfig: {},
+          selectedPatchId: 'current'
+        };
+      }
+    },
+    publishBaselineSimulation(output, revision) {
+      published.push([output.result.id, revision]);
+    },
+    failBaselineSimulation(error) {
+      assert.fail(error);
+    }
+  };
+  const runner = new BaselineSimulationRunner(app);
+
+  runner.schedule(1);
+  app.buildRevision = 2;
+  runner.schedule(2);
+  assert.equal(workers.length, 1);
+  assert.equal(workers[0].messages.length, 1, 'newer work waits instead of running concurrently');
+
+  workers[0].respond({ requestId: 1, revision: 1, output: { result: { id: 'old' }, patchComparison: null } });
+  assert.deepEqual(published, [], 'the superseded result is not published');
+  assert.equal(workers[0].messages.length, 2);
+
+  workers[0].respond({ requestId: 2, revision: 2, output: { result: { id: 'new' }, patchComparison: null } });
+  assert.deepEqual(published, [['new', 2]]);
+  assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
+});
 
 test('modifier fallback clears stale state when calculation fails', (t) => {
   runTimersImmediately(t);

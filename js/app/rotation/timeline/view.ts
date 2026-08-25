@@ -83,6 +83,60 @@ type TimelineItem = SchedulerRecord & {
   durationMs?: number;
 };
 
+export interface TimelineRowRender {
+  readonly key: string;
+  readonly html: string;
+}
+
+interface RetainedTimelineRow {
+  readonly html: string;
+  readonly node: HTMLElement;
+}
+
+const timelineRowsByRoot = new WeakMap<HTMLElement, Map<string, RetainedTimelineRow>>();
+const timelineCommandKeys = new WeakMap<object, number>();
+let nextTimelineCommandKey = 1;
+
+function timelineCommandKey(command: RotationCommand): number {
+  const object = command as object;
+  const existing = timelineCommandKeys.get(object);
+  if (existing) return existing;
+  const key = nextTimelineCommandKey++;
+  timelineCommandKeys.set(object, key);
+  return key;
+}
+
+function createTimelineRow(root: HTMLElement, html: string): HTMLElement {
+  const template = root.ownerDocument.createElement('template');
+  template.innerHTML = html.trim();
+  const row = template.content.firstElementChild;
+  if (!(row instanceof HTMLElement)) throw new Error('Timeline row rendering produced no element.');
+  return row;
+}
+
+/** Reuses unchanged keyed rows and changes only DOM positions whose rendered HTML differs. */
+export function reconcileTimelineRows(
+  root: HTMLElement,
+  rows: readonly TimelineRowRender[],
+  createRow: (html: string) => HTMLElement = (html) => createTimelineRow(root, html)
+): void {
+  const previous = timelineRowsByRoot.get(root) || new Map<string, RetainedTimelineRow>();
+  const next = new Map<string, RetainedTimelineRow>();
+  const nodes = rows.map(({ key, html }) => {
+    const retained = previous.get(key);
+    const entry = retained?.html === html ? retained : { html, node: createRow(html) };
+    next.set(key, entry);
+    return entry.node;
+  });
+
+  nodes.forEach((node, index) => {
+    const current = root.children[index] || null;
+    if (current !== node) root.insertBefore(node, current);
+  });
+  while (root.children.length > nodes.length) root.removeChild(root.lastElementChild!);
+  timelineRowsByRoot.set(root, next);
+}
+
 // Projects canonical commands into the uniform fields needed by timeline rendering.
 function timelineItem(command: RotationCommand): TimelineItem {
   if (command.type === 'cast') {
@@ -362,7 +416,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
 }
 
 export function renderTimeline(app: ProfessionAppState): void {
-  // Close any open popover editors — their anchors are about to be replaced by innerHTML.
+  // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
   closeActivationEditor();
   closeChargeReleaseEditor();
   closeDoubleEdgeEditor();
@@ -370,8 +424,11 @@ export function renderTimeline(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-timeline');
   const procElement = document.getElementById('rotation-procs');
   if (!element) return;
+  element.dataset.buildRevision = String(app.buildRevision);
+  element.dataset.resultRevision = String(app.resultRevision);
+  element.toggleAttribute('aria-busy', app.resultRevision !== app.buildRevision);
   const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
-  // Capture open state before innerHTML wipes the element, so the panel stays open after re-render.
+  // Capture open state before rebuilding the proc panel so it stays open after rendering.
   const procPanelWasOpen = procPanel?.open ?? false;
   element.ondragover = null;
   element.ondragleave = null;
@@ -383,6 +440,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <strong>Build your rotation</strong>
             <span>Click or drag skills from the palette above</span>
         </div>`;
+    timelineRowsByRoot.delete(element);
     if (procElement) procElement.innerHTML = '';
     app.rotationInsertionIndex = mountRotationInsertionCursor({
       root: element,
@@ -621,137 +679,136 @@ export function renderTimeline(app: ProfessionAppState): void {
         </div>`;
   };
 
-  let timelineHtml = rows
-    .map((row, rowNumber) => {
-      const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
-      const weaponLabel = row.weaponLine || weapons.filter(Boolean).join('/') || 'Unequipped';
-      const rowLabel = row.weaponLine ? row.weaponLine.replace(/ Kit$/, '') : `W${row.weaponSet}`;
-      const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
-      const rowItems: string[] = [];
-      row.skills.forEach(({ entry, index }) => {
-        for (const marker of deadTimesByIndex.get(index) || []) {
-          rowItems.push(renderDeadTime(marker));
-        }
+  const timelineRows = rows.map((row, rowNumber) => {
+    const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
+    const weaponLabel = row.weaponLine || weapons.filter(Boolean).join('/') || 'Unequipped';
+    const rowLabel = row.weaponLine ? row.weaponLine.replace(/ Kit$/, '') : `W${row.weaponSet}`;
+    const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
+    const rowItems: string[] = [];
+    row.skills.forEach(({ entry, index }) => {
+      for (const marker of deadTimesByIndex.get(index) || []) {
+        rowItems.push(renderDeadTime(marker));
+      }
 
-        for (const marker of overlayProcMarkersByIndex.get(index) || []) {
-          rowItems.push(renderOverlayProcMarker(marker));
-        }
+      for (const marker of overlayProcMarkersByIndex.get(index) || []) {
+        rowItems.push(renderOverlayProcMarker(marker));
+      }
 
-        for (const marker of healthMarkersByIndex.get(index) || []) {
-          rowItems.push(renderHealthMarker(marker));
-        }
+      for (const marker of healthMarkersByIndex.get(index) || []) {
+        rowItems.push(renderHealthMarker(marker));
+      }
 
-        for (const marker of continuumEndsByIndex.get(index) || []) {
-          rowItems.push(renderContinuumEnd(marker));
-        }
+      for (const marker of continuumEndsByIndex.get(index) || []) {
+        rowItems.push(renderContinuumEnd(marker));
+      }
 
-        for (const marker of automaticTomeStowsByIndex.get(index) || []) {
-          rowItems.push(renderAutomaticTomeStow(marker));
-        }
+      for (const marker of automaticTomeStowsByIndex.get(index) || []) {
+        rowItems.push(renderAutomaticTomeStow(marker));
+      }
 
-        const item = timelineItem(entry);
-        const highlightKey = rotationSkillHighlightKey(entry);
-        const skill = resolveEntrySkill(app, item.command);
-        const step = steps.get(index);
-        const invalid = Boolean(step?.invalid);
-        const display =
-          item.type === 'wait'
-            ? 'Wait'
-            : item.type === 'combat-start'
-              ? 'Combat Start'
-              : item.type === 'cooldown-reset'
-                ? 'Cooldown Reset'
-                : String(skill?.displayName || skill?.name || item.name);
-        const defaultIcon =
-          item.type === 'wait'
-            ? WAIT_ICON
-            : item.type === 'combat-start'
-              ? COMBAT_START_ICON
-              : item.type === 'cooldown-reset'
-                ? COOLDOWN_RESET_ICON
-                : skill?.icon || (skill?.name ? ACTION_ICONS[skill.name] : '') || PLACEHOLDER_ICON;
-        const icon =
-          app.profession.ui.timelineSkillIcon?.({
-            entry: item.command,
-            index,
-            rotation: app.build.rotation,
-            build: app.build,
-            catalog: app.activeCatalog,
-            skill,
-            defaultIcon
-          }) || defaultIcon;
-        const time = step && !invalid ? formatTime(step.start) : '';
-        const resourceSpend = resourceSpends.get(index);
-        const resourceSingular = resourceSpend?.resource.endsWith('s')
-          ? resourceSpend.resource.slice(0, -1)
-          : resourceSpend?.resource;
-        // Blades and notes are consumed on cast end (when the hit lands); other resources on cast start.
-        const resourceSpendTiming =
-          resourceSpend?.resource === 'blades' || resourceSpend?.resource === 'notes' ? 'cast end' : 'cast start';
-        const resourceLabel = resourceSpend
-          ? `${resourceSpend.count} ${
-              resourceSpend.count === 1 ? resourceSingular : resourceSpend.resource
-            } consumed at ${resourceSpendTiming}`
+      const item = timelineItem(entry);
+      const highlightKey = rotationSkillHighlightKey(entry);
+      const skill = resolveEntrySkill(app, item.command);
+      const step = steps.get(index);
+      const invalid = Boolean(step?.invalid);
+      const display =
+        item.type === 'wait'
+          ? 'Wait'
+          : item.type === 'combat-start'
+            ? 'Combat Start'
+            : item.type === 'cooldown-reset'
+              ? 'Cooldown Reset'
+              : String(skill?.displayName || skill?.name || item.name);
+      const defaultIcon =
+        item.type === 'wait'
+          ? WAIT_ICON
+          : item.type === 'combat-start'
+            ? COMBAT_START_ICON
+            : item.type === 'cooldown-reset'
+              ? COOLDOWN_RESET_ICON
+              : skill?.icon || (skill?.name ? ACTION_ICONS[skill.name] : '') || PLACEHOLDER_ICON;
+      const icon =
+        app.profession.ui.timelineSkillIcon?.({
+          entry: item.command,
+          index,
+          rotation: app.build.rotation,
+          build: app.build,
+          catalog: app.activeCatalog,
+          skill,
+          defaultIcon
+        }) || defaultIcon;
+      const time = step && !invalid ? formatTime(step.start) : '';
+      const resourceSpend = resourceSpends.get(index);
+      const resourceSingular = resourceSpend?.resource.endsWith('s')
+        ? resourceSpend.resource.slice(0, -1)
+        : resourceSpend?.resource;
+      // Blades and notes are consumed on cast end (when the hit lands); other resources on cast start.
+      const resourceSpendTiming =
+        resourceSpend?.resource === 'blades' || resourceSpend?.resource === 'notes' ? 'cast end' : 'cast start';
+      const resourceLabel = resourceSpend
+        ? `${resourceSpend.count} ${
+            resourceSpend.count === 1 ? resourceSingular : resourceSpend.resource
+          } consumed at ${resourceSpendTiming}`
+        : '';
+      const resourceShortLabel = resourceSpend
+        ? resourceSpend.resource === 'dragon charges'
+          ? `⚡${resourceSpend.count}`
+          : `${resourceSpend.count}${
+              resourceSpend.resource === 'blades'
+                ? 'B'
+                : resourceSpend.resource === 'clones'
+                  ? 'C'
+                  : resourceSpend.resource === 'notes'
+                    ? 'N'
+                    : 'R'
+            }`
+        : '';
+      const dragonOutcome = resourceSpend?.resource === 'dragon charges' ? resourceSpend : null;
+      const requestedCharges =
+        item.releaseAtCharges == null ? Number(dragonOutcome?.maximumCharges) : Number(item.releaseAtCharges);
+      const actualCharges = Number(dragonOutcome?.chargesReached ?? dragonOutcome?.count);
+      // Mismatch means the sim ran out of flow before reaching the requested charge count.
+      const chargeMismatch =
+        Boolean(dragonOutcome) &&
+        Number.isFinite(requestedCharges) &&
+        Number.isFinite(actualCharges) &&
+        requestedCharges !== actualCharges;
+      const chargeOutcomeDetails = dragonOutcome
+        ? [
+            `Charges reached: ${actualCharges}`,
+            `Time spent charging: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
+            `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
+          ]
+        : [];
+      const skillTooltip =
+        step && !invalid && item.type === 'cast'
+          ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, chargeOutcomeDetails)
+          : display;
+      const titleSuffix = invalid
+        ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`
+        : step && item.type !== 'cast'
+          ? `\n${formatTimelineCastDetails(step, formatTime)}`
           : '';
-        const resourceShortLabel = resourceSpend
-          ? resourceSpend.resource === 'dragon charges'
-            ? `⚡${resourceSpend.count}`
-            : `${resourceSpend.count}${
-                resourceSpend.resource === 'blades'
-                  ? 'B'
-                  : resourceSpend.resource === 'clones'
-                    ? 'C'
-                    : resourceSpend.resource === 'notes'
-                      ? 'N'
-                      : 'R'
-              }`
-          : '';
-        const dragonOutcome = resourceSpend?.resource === 'dragon charges' ? resourceSpend : null;
-        const requestedCharges =
-          item.releaseAtCharges == null ? Number(dragonOutcome?.maximumCharges) : Number(item.releaseAtCharges);
-        const actualCharges = Number(dragonOutcome?.chargesReached ?? dragonOutcome?.count);
-        // Mismatch means the sim ran out of flow before reaching the requested charge count.
-        const chargeMismatch =
-          Boolean(dragonOutcome) &&
-          Number.isFinite(requestedCharges) &&
-          Number.isFinite(actualCharges) &&
-          requestedCharges !== actualCharges;
-        const chargeOutcomeDetails = dragonOutcome
-          ? [
-              `Charges reached: ${actualCharges}`,
-              `Time spent charging: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
-              `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
-            ]
-          : [];
-        const skillTooltip =
-          step && !invalid && item.type === 'cast'
-            ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, chargeOutcomeDetails)
-            : display;
-        const titleSuffix = invalid
-          ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`
-          : step && item.type !== 'cast'
-            ? `\n${formatTimelineCastDetails(step, formatTime)}`
-            : '';
-        const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
-        const concurrentLabel =
-          item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
-        const interruptLabel =
-          item.interruptAfterMs != null ? formatInterruptTimelineBadge(item.interruptAfterMs, time) : '';
-        const chargeReleaseLabel = skill?.dragonSlash
-          ? `⚡${item.releaseAtCharges == null ? 'Max' : Number(item.releaseAtCharges)}${time ? `\n${time}` : ''}`
-          : '';
-        const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
-        const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
-        const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
-        const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
-        // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
-        const canEditActivation =
-          item.type === 'cast' && (item.interruptAfterMs != null || fullCastMs > 0 || catalogCastMs > 0);
-        rowItems.push(
-          rotationTimelineEntryHtml(
-            index,
-            app.rotationInsertionIndex ?? app.build.rotation.length,
-            `<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
+      const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
+      const concurrentLabel =
+        item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
+      const interruptLabel =
+        item.interruptAfterMs != null ? formatInterruptTimelineBadge(item.interruptAfterMs, time) : '';
+      const chargeReleaseLabel = skill?.dragonSlash
+        ? `⚡${item.releaseAtCharges == null ? 'Max' : Number(item.releaseAtCharges)}${time ? `\n${time}` : ''}`
+        : '';
+      const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
+      const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
+      const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
+      const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
+      // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
+      const canEditActivation =
+        item.type === 'cast' && (item.interruptAfterMs != null || fullCastMs > 0 || catalogCastMs > 0);
+      rowItems.push(
+        rotationTimelineEntryHtml(
+          index,
+          app.rotationInsertionIndex ?? app.build.rotation.length,
+          `<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
@@ -796,40 +853,46 @@ export function renderTimeline(app: ProfessionAppState): void {
                     }
                     ${item.durationMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.durationMs}ms</span>` : ''}
                 </div>`
-          )
-        );
-      });
-      // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
-      if (rowNumber === rows.length - 1) {
-        for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
-          rowItems.push(renderOverlayProcMarker(marker));
-        }
-
-        rowItems.push(
-          rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length)
-        );
-        for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
-          rowItems.push(renderHealthMarker(marker));
-        }
-
-        for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
-          rowItems.push(renderContinuumEnd(marker));
-        }
-
-        for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {
-          rowItems.push(renderAutomaticTomeStow(marker));
-        }
+        )
+      );
+    });
+    // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
+    if (rowNumber === rows.length - 1) {
+      for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
+        rowItems.push(renderOverlayProcMarker(marker));
       }
 
-      const skills = rowItems.join('');
-      const finalSkill = row.skills.at(-1);
-      const insertAt = finalSkill ? finalSkill.index + 1 : 0;
-      return `<div class="rot-row" style="--row-color:#9d7bd0">
+      rowItems.push(
+        rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length)
+      );
+      for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
+        rowItems.push(renderHealthMarker(marker));
+      }
+
+      for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
+        rowItems.push(renderContinuumEnd(marker));
+      }
+
+      for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {
+        rowItems.push(renderAutomaticTomeStow(marker));
+      }
+    }
+
+    const skills = rowItems.join('');
+    const finalSkill = row.skills.at(-1);
+    const insertAt = finalSkill ? finalSkill.index + 1 : 0;
+    const firstCommand = row.skills[0]?.entry;
+    const rowKey = firstCommand
+      ? `${row.weaponSet}:${row.weaponLine || ''}:${timelineCommandKey(firstCommand)}`
+      : `${row.weaponSet}:${row.weaponLine || ''}:empty:${rowNumber}`;
+    return {
+      key: rowKey,
+      html: `<div class="rot-row" style="--row-color:#9d7bd0">
             <div class="rot-row-label" title="${esc(rowTitle)}">${esc(rowLabel)}</div>
             <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
-        </div>`;
-    })
-    .join('');
+        </div>`
+    };
+  });
 
   if (procSteps.length) {
     const procOptions = [...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values()].sort((a, b) =>
@@ -908,7 +971,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             </div>
         </details>`;
   } else if (procElement) procElement.innerHTML = '';
-  element.innerHTML = timelineHtml;
+  reconcileTimelineRows(element, timelineRows);
   app.rotationInsertionIndex = mountRotationInsertionCursor({
     root: element,
     insertionIndex: app.rotationInsertionIndex,
@@ -940,6 +1003,8 @@ export function renderTimeline(app: ProfessionAppState): void {
   };
 
   element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
+    if (skill.dataset.highlightBound === 'true') return;
+    skill.dataset.highlightBound = 'true';
     skill.addEventListener('click', (event) => {
       const index = Number(skill.dataset.idx);
       const selectionResult = Number.isInteger(index) ? handleRotationSelectionClick(app, index, event) : 'ignored';

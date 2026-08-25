@@ -357,6 +357,10 @@ export interface ProfessionAppState {
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
+  buildRevision: number;
+  resultRevision: number;
+  simulationStatus: 'idle' | 'queued' | 'running' | 'error';
+  simulationError: string;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex?: number | null;
   rotationSelection: RotationSelectionRange | null;
@@ -395,7 +399,12 @@ export interface ProfessionAppState {
     schedule(): void;
     run(): void;
   };
-  changed(rebuildStatic?: boolean, rebuildGear?: boolean): void;
+  baselineSimulationRunner: {
+    schedule(revision: number): void;
+  };
+  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void;
+  failBaselineSimulation(error: unknown, revision: number): void;
+  changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
   renderGear(): void;
   renderTraits(): void;
   renderAttributes(): void;
@@ -408,10 +417,30 @@ export interface ProfessionAppState {
   selectPatch(patchId: string): void;
 }
 
+export interface ProfessionChangeOptions {
+  /** Holds replacement-heavy rotation UI until its matching simulation result is ready. */
+  readonly deferRotationRender?: boolean;
+}
+
 export interface PatchComparison {
   readonly patchId: string;
   readonly current: Gw2SimulationResult;
   readonly preview: Gw2SimulationResult;
+}
+
+/** Serializable input sent to the dedicated baseline-simulation worker. */
+export interface BaselineSimulationRequest {
+  readonly professionId: string;
+  readonly rotation: readonly RotationCommand[];
+  readonly baseConfig: Gw2Config;
+  readonly selectedPatchId: string;
+  readonly previewPatchId?: string;
+}
+
+/** Complete baseline output, including both sides of an optional patch preview. */
+export interface BaselineSimulationOutput {
+  readonly result: Gw2SimulationResult;
+  readonly patchComparison: PatchComparison | null;
 }
 
 export interface ProfessionRotationDragState extends SchedulerRecord {
@@ -494,6 +523,8 @@ export interface ProfessionRuntimeApi {
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
   rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'];
+  baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
+  calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;
 }
 
@@ -511,6 +542,8 @@ export interface Gw2AppAdapterOptions {
   readonly simulateBuild: ProfessionRuntimeApi['simulateBuild'];
   readonly simulationConfig: ProfessionRuntimeApi['simulationConfig'];
   readonly rotationEndStateAt: ProfessionRuntimeApi['rotationEndStateAt'];
+  readonly baselineSimulationRequest: ProfessionRuntimeApi['baselineSimulationRequest'];
+  readonly calculateBaselineSimulation: ProfessionRuntimeApi['calculateBaselineSimulation'];
   readonly runSimulation: ProfessionRuntimeApi['runSimulation'];
   readonly modifierContributionRequest: ProfessionRuntimeApi['modifierContributionRequest'];
   readonly calculateModifierContributions: ProfessionRuntimeApi['calculateModifierContributions'];

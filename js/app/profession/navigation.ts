@@ -35,6 +35,8 @@ export function simulatorViewHref(pathname: string, view: SimulatorView): string
   return `${route}${VIEW_HASHES[view]}`;
 }
 
+export const SIMULATOR_VIEW_CHANGE_EVENT = 'simulator-viewchange';
+
 /** Creates a tab anchor, tagging it with `data-simulator-view` when a view is given. */
 function createNavigationLink(root: Document, label: string, href: string, view?: SimulatorView): HTMLAnchorElement {
   const link = root.createElement('a');
@@ -116,6 +118,12 @@ function updateActiveView(root: Document, view: SimulatorView): void {
     link.classList.toggle('simulator-view-tab-active', active);
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
+  }
+
+  // The app lazily materializes expensive Analysis content when this view becomes active.
+  const CustomEventConstructor = root.defaultView?.CustomEvent;
+  if (CustomEventConstructor) {
+    root.dispatchEvent(new CustomEventConstructor(SIMULATOR_VIEW_CHANGE_EVENT, { detail: { view } }));
   }
 }
 

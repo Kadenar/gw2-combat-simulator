@@ -420,13 +420,13 @@ export async function loadTemplateAction(
 
       app.build = replaceBuildRotation(rotationItems, app.build, app.adapter);
       app.currentTemplate = null;
-      app.changed(false);
+      app.changed(false, false, { deferRotationRender: true });
     } else if (action === 'build') {
       const buildData = await fetchJsonAsset(preset.build);
       validateBuildProfession(app, buildData);
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.currentTemplate = null;
-      app.changed();
+      app.changed(true, true, { deferRotationRender: true });
     } else {
       const { buildData, rotationItems } = await loadPresetBundle(preset);
       validateBuildProfession(app, buildData);
@@ -436,7 +436,7 @@ export async function loadTemplateAction(
 
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.build = replaceBuildRotation(Array.isArray(rotationItems) ? rotationItems : [], app.build, app.adapter);
-      app.changed();
+      app.changed(true, true, { deferRotationRender: true });
       app.currentTemplate = {
         build: preset.build,
         signature: buildSignature(app.build)
@@ -482,7 +482,7 @@ export function undoTemplateLoad(app: ProfessionAppState): void {
   app.build = app.templateUndoBuild;
   app.templateUndoBuild = null;
   app.currentTemplate = null;
-  app.changed();
+  app.changed(true, true, { deferRotationRender: true });
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
   if (toast) toast.hidden = true;
 }

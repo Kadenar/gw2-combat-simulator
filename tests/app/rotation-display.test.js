@@ -23,6 +23,7 @@ import {
   syncRotationFocusResults,
   updateFloatingDps
 } from '../../js/app/rotation/workspace.js';
+import { reconcileTimelineRows } from '../../js/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
@@ -39,6 +40,63 @@ function storageRoot(initialValues = {}) {
     }
   };
 }
+
+test('keyed timeline reconciliation retains unchanged rows and replaces changed rows', () => {
+  const root = {
+    children: [],
+    get lastElementChild() {
+      return this.children.at(-1) || null;
+    },
+    insertBefore(node, before) {
+      const existingIndex = this.children.indexOf(node);
+
+      if (existingIndex >= 0) this.children.splice(existingIndex, 1);
+      const index = before == null ? this.children.length : this.children.indexOf(before);
+      this.children.splice(index, 0, node);
+    },
+    removeChild(node) {
+      this.children.splice(this.children.indexOf(node), 1);
+    }
+  };
+  let created = 0;
+  const createRow = (html) => ({ html, instance: ++created });
+
+  reconcileTimelineRows(
+    root,
+    [
+      { key: 'a', html: 'A' },
+      { key: 'b', html: 'B' }
+    ],
+    createRow
+  );
+  const originalA = root.children[0];
+  const originalB = root.children[1];
+
+  reconcileTimelineRows(
+    root,
+    [
+      { key: 'a', html: 'A' },
+      { key: 'b', html: 'B changed' },
+      { key: 'c', html: 'C' }
+    ],
+    createRow
+  );
+  assert.equal(root.children[0], originalA);
+  assert.notEqual(root.children[1], originalB);
+  assert.equal(created, 4);
+
+  const retainedC = root.children[2];
+  reconcileTimelineRows(
+    root,
+    [
+      { key: 'c', html: 'C' },
+      { key: 'a', html: 'A' }
+    ],
+    createRow
+  );
+  assert.deepEqual(root.children, [retainedC, originalA]);
+  assert.equal(created, 4, 'reordering retained keys creates no DOM rows');
+});
 
 test('rotation timeline sizes expose two larger display options', () => {
   assert.deepEqual(

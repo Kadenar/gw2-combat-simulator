@@ -683,6 +683,72 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.equal(summaryMirror.innerHTML, '');
 });
 
+test('workspace renders RNG controls while detailed analysis stays lazy', () => {
+  const runButton = {};
+  const results = {
+    dataset: {},
+    innerHTML: '',
+    querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null),
+    querySelectorAll: () => []
+  };
+  const summaryStrip = {
+    dataset: {},
+    innerHTML: '',
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    toggleAttribute() {}
+  };
+  const previousDocument = globalThis.document;
+  let runCount = 0;
+  const mockDocument = {
+    body: { dataset: {} },
+    defaultView: { location: { hash: '#workspace' } },
+    addEventListener() {},
+    getElementById: (id) => (id === 'rotation-results' ? results : id === 'rotation-dps-summary' ? summaryStrip : null)
+  };
+  results.ownerDocument = mockDocument;
+  summaryStrip.ownerDocument = mockDocument;
+  globalThis.document = mockDocument;
+  try {
+    renderResults({
+      build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
+      buildRevision: 2,
+      resultRevision: 2,
+      results: {
+        duration: 1,
+        totalDamage: 100,
+        dps: 100,
+        strikeDamage: 100,
+        conditionDamage: 0,
+        randomDistributionRequested: true,
+        randomDistributionTrials: 500
+      },
+      runRandomDistribution() {
+        runCount += 1;
+      }
+    });
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  assert.match(results.innerHTML, /Simulation RNG distribution/);
+  assert.match(results.innerHTML, /Run 500 outcomes/);
+  assert.doesNotMatch(results.innerHTML, /Damage Breakdown|result-charts/);
+  assert.equal(results.dataset.analysisStale, 'true');
+  assert.equal(typeof runButton.onclick, 'function');
+  runButton.onclick();
+  assert.equal(runCount, 1);
+  assert.match(summaryStrip.innerHTML, /Baseline DPS/);
+});
+
+test('published simulation results refresh result-dependent palette state', async () => {
+  const source = await readFile(new URL('../../js/app/rotation/index.ts', import.meta.url), 'utf8');
+  const outputRenderer = source.slice(source.indexOf('export function renderSimulationOutput'));
+
+  assert.match(outputRenderer, /renderPalette\(app\);/);
+  assert.ok(outputRenderer.indexOf('renderPalette(app)') < outputRenderer.indexOf('renderTimeline(app)'));
+});
+
 test('current rotation DPS stays above the footer and hides in the professions view', async () => {
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 
@@ -1152,7 +1218,8 @@ test('Necromancer preset builds keep rotation data separate', async () => {
       'Power (Greatsword / Spear)',
       'Power (Greatsword / Spear)',
       'Condition Quickness (Pistol / Dagger + Scepter / Torch)',
-      'Condition (Pistol / Torch + Scepter / Dagger)'
+      'Condition (Pistol / Torch + Scepter / Dagger)',
+      'Condition (Dagger / Dagger + Pistol / Torch)'
     ]
   );
   for (const preset of presets) {

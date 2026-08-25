@@ -195,27 +195,30 @@ test('template actions load paired or partial state and support undo', async (t)
   await loadTemplateAction(templateApp, preset, 'template', createButton());
   assert.equal(templateApp.build.marker, 'template');
   assert.deepEqual(templateApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
-  assert.deepEqual(templateApp.changedCalls, [[]]);
+  assert.deepEqual(templateApp.changedCalls, [[true, true, { deferRotationRender: true }]]);
   assert.equal(templateApp.currentTemplate.build, preset.build);
 
   undoTemplateLoad(templateApp);
   assert.equal(templateApp.build.marker, 'current');
   assert.deepEqual(templateApp.build.rotation, [{ type: 'cast', skillId: 'Current rotation' }]);
-  assert.deepEqual(templateApp.changedCalls, [[], []]);
+  assert.deepEqual(templateApp.changedCalls, [
+    [true, true, { deferRotationRender: true }],
+    [true, true, { deferRotationRender: true }]
+  ]);
 
   const buildOnlyApp = createApp();
 
   await loadTemplateAction(buildOnlyApp, preset, 'build', createButton());
   assert.equal(buildOnlyApp.build.marker, 'template');
   assert.deepEqual(buildOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Current rotation' }]);
-  assert.deepEqual(buildOnlyApp.changedCalls, [[]]);
+  assert.deepEqual(buildOnlyApp.changedCalls, [[true, true, { deferRotationRender: true }]]);
 
   const rotationOnlyApp = createApp();
 
   await loadTemplateAction(rotationOnlyApp, preset, 'rotation', createButton());
   assert.equal(rotationOnlyApp.build.marker, 'current');
   assert.deepEqual(rotationOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
-  assert.deepEqual(rotationOnlyApp.changedCalls, [[false]]);
+  assert.deepEqual(rotationOnlyApp.changedCalls, [[false, false, { deferRotationRender: true }]]);
 });
 
 test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
