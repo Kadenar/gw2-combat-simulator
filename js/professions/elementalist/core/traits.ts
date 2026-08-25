@@ -33,6 +33,11 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
+// Trait-skill packets carry canonical artwork so result tables do not fall back to the triggering attunement icon.
+const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
+const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
+const EARTHEN_BLAST_ICON = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
+
 export function triggerSunspot(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) {
     return;
@@ -54,6 +59,7 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
     sourceId,
     actorType: 'effect',
     skillName: 'Sunspot',
+    icon: SUNSPOT_ICON,
     coefficient: elementalistEffectValue(context, PROFILE.sunspot, 'strike', 'coefficient', 0.6, 'Sunspot'),
     skillWeapon: 'Unequipped',
     noCrit: true
@@ -67,7 +73,8 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
     name: 'Sunspot',
     procType: 'trait',
     sourceId,
-    sourceSkill: context.catalog.skillsById.get(sourceId)?.name
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+    icon: SUNSPOT_ICON
   });
 }
 
@@ -115,6 +122,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     sourceId,
     actorType: 'effect',
     skillName: 'Flame Expulsion',
+    icon: FLAME_EXPULSION_ICON,
     coefficient: baseCoefficient + coefficientPerMight * cappedMight,
     skillWeapon: 'Unequipped'
   });
@@ -137,7 +145,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     procType: 'trait',
     sourceId,
     sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
-    icon: 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png'
+    icon: FLAME_EXPULSION_ICON
   });
 }
 
@@ -196,6 +204,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     sourceId,
     actorType: 'effect',
     skillName: 'Earthen Blast',
+    icon: EARTHEN_BLAST_ICON,
     coefficient: elementalistEffectValue(context, PROFILE.earthenBlast, 'strike', 'coefficient', 0.36),
     skillWeapon: 'Unequipped',
     noCrit: true
@@ -205,7 +214,8 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     name: 'Earthen Blast',
     procType: 'trait',
     sourceId,
-    sourceSkill: context.catalog.skillsById.get(sourceId)?.name
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+    icon: EARTHEN_BLAST_ICON
   });
 }
 

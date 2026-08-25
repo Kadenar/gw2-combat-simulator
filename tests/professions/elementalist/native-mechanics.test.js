@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
+import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/palette/resource-view.js';
@@ -1656,6 +1657,51 @@ test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent 5-se
 
   assert.equal(procs(nonFire, 'Sunspot').length, attempts(nonFire, 'enter').length);
   assert.equal(procs(nonFire, 'Flame Expulsion').length, attempts(nonFire, 'exit').length);
+});
+
+test('Flame Expulsion uses its own icon in the damage breakdown', () => {
+  const result = runNative({
+    lines: [['Fire', '1-1-2'], ['Air'], ['Arcane']],
+    rotation: ['Flame Uprising', 'Air Attunement'],
+    startAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger']
+  });
+  const expectedIcon = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
+  const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Expulsion');
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Flame Expulsion');
+
+  assert.equal(packet?.icon, expectedIcon);
+  assert.equal(row?.icon, expectedIcon);
+});
+
+test('Sunspot uses its own icon in the damage breakdown', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Lightning Strike', 'Fire Attunement'],
+    startAttunement: 'Air',
+    weapons: ['Scepter', 'Dagger']
+  });
+  const expectedIcon = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
+  const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Sunspot');
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Sunspot');
+
+  assert.equal(packet?.icon, expectedIcon);
+  assert.equal(row?.icon, expectedIcon);
+});
+
+test('Earthen Blast uses its own icon in the damage breakdown', () => {
+  const result = runNative({
+    lines: [['Earth'], ['Air'], ['Arcane']],
+    rotation: ['Lightning Strike', 'Earth Attunement'],
+    startAttunement: 'Air',
+    weapons: ['Scepter', 'Dagger']
+  });
+  const expectedIcon = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
+  const packet = result.events.find((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Earthen Blast');
+
+  assert.equal(packet?.icon, expectedIcon);
+  assert.equal(row?.icon, expectedIcon);
 });
 
 test('Air-specialized Evoker leaves Electric Discharge without an internal cooldown', () => {
