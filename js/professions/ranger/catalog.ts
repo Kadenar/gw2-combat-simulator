@@ -2,7 +2,6 @@ import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../..
 import { rangerNativeModules } from './modules.js';
 import type { RangerSkill } from './types.js';
 
-export const RANGER_ELITE_SPECIALIZATIONS = Object.freeze(['Druid', 'Soulbeast', 'Untamed', 'Galeshot']);
 export const rangerCatalog = assembleNativeApplicationCatalog(rangerNativeModules);
 export const RANGER_SKILLS = rangerCatalog.skills;
 

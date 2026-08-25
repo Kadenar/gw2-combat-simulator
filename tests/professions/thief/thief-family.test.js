@@ -4,14 +4,15 @@ import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import {
-  THIEF_ELITE_SPECIALIZATIONS,
-  thiefCatalog,
-  thiefSkillRuntimeOwner
-} from '../../../js/professions/thief/catalog.js';
+import { thiefCatalog, thiefSkillRuntimeOwner } from '../../../js/professions/thief/catalog.js';
 import { thiefCoreModule } from '../../../js/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/professions/thief/core/skills.js';
 import { thiefProfession } from '../../../js/professions/thief/definition.js';
+
+// Tests derive elite names from the same canonical catalog consumed by production.
+function eliteSpecializationNames(catalog) {
+  return catalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name);
+}
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -185,7 +186,7 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
 
 test('Thief runtimes exclude inactive elite state, catalogs, and registries', () => {
   assert.equal(thiefProfession.catalog, thiefCatalog);
-  for (const active of ['Core', ...THIEF_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(thiefCatalog)]) {
     const config = { specialization: active };
     const runtime = thiefProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);

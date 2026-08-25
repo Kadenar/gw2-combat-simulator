@@ -52,9 +52,8 @@ const GEAR_STATS_BY_NAME = GEAR_STATS as Readonly<Record<string, unknown>>;
  * canonical build and returns `{ valid, errors }`, including errors supplied by
  * `validateExtra`.
  *
- * `toApplicationBuild()` migrates first, then converts canonical stable-ID
- * rotation commands to the name-based compatibility entries consumed by the
- * browser application.
+ * `toApplicationBuild()` migrates and normalizes an unknown candidate into the
+ * canonical build shape consumed by the browser application.
  *
  * @template {Gw2CanonicalBuild} TBuild
  * @param {Gw2BuildCodecOptions<TBuild>} [options]

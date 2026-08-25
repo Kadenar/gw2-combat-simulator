@@ -12,7 +12,7 @@ import { createScheduler } from '../../js/platform/engine/execution/scheduler.js
 import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
 import { composeSkillMechanics } from '../helpers/skill-mechanics.js';
-import { ENGINEER_ELITE_SPECIALIZATIONS, engineerCatalog } from '../../js/professions/engineer/catalog.js';
+import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
 import { engineerProfession } from '../../js/professions/engineer/definition.js';
 import { engineerCoreModule } from '../../js/professions/engineer/core/module.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '../../js/professions/engineer/core/skills.js';
@@ -25,28 +25,28 @@ import { mechanistModule } from '../../js/professions/engineer/specializations/m
 import { MECHANIST_SKILL_MECHANICS } from '../../js/professions/engineer/specializations/mechanist/skills.js';
 import { scrapperModule } from '../../js/professions/engineer/specializations/scrapper/module.js';
 import { SCRAPPER_SKILL_MECHANICS } from '../../js/professions/engineer/specializations/scrapper/skills.js';
-import { NECROMANCER_ELITE_SPECIALIZATIONS, necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
 import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
 import { necromancerCoreModule } from '../../js/professions/necromancer/core/module.js';
 import { harbingerModule } from '../../js/professions/necromancer/specializations/harbinger/module.js';
 import { reaperModule } from '../../js/professions/necromancer/specializations/reaper/module.js';
 import { ritualistModule } from '../../js/professions/necromancer/specializations/ritualist/module.js';
 import { scourgeModule } from '../../js/professions/necromancer/specializations/scourge/module.js';
-import { GUARDIAN_ELITE_SPECIALIZATIONS, guardianCatalog } from '../../js/professions/guardian/catalog.js';
+import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { guardianProfession } from '../../js/professions/guardian/definition.js';
 import { guardianCoreModule } from '../../js/professions/guardian/core/module.js';
 import { dragonhunterModule } from '../../js/professions/guardian/specializations/dragonhunter/module.js';
 import { firebrandModule } from '../../js/professions/guardian/specializations/firebrand/module.js';
 import { luminaryModule } from '../../js/professions/guardian/specializations/luminary/module.js';
 import { willbenderModule } from '../../js/professions/guardian/specializations/willbender/module.js';
-import { MESMER_ELITE_SPECIALIZATIONS, mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
+import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
 import { mesmerCoreModule } from '../../js/professions/mesmer/core/module.js';
 import { chronomancerModule } from '../../js/professions/mesmer/specializations/chronomancer/module.js';
 import { mirageModule } from '../../js/professions/mesmer/specializations/mirage/module.js';
 import { troubadourModule } from '../../js/professions/mesmer/specializations/troubadour/module.js';
 import { virtuosoModule } from '../../js/professions/mesmer/specializations/virtuoso/module.js';
-import { REVENANT_ELITE_SPECIALIZATIONS, revenantCatalog } from '../../js/professions/revenant/catalog.js';
+import { revenantCatalog } from '../../js/professions/revenant/catalog.js';
 import { revenantProfession } from '../../js/professions/revenant/definition.js';
 import { revenantCoreModule } from '../../js/professions/revenant/core/module.js';
 import { REVENANT_SKILL_IDS } from '../../js/professions/revenant/data/ids.js';
@@ -68,6 +68,11 @@ import { tempestModule } from '../../js/professions/elementalist/specializations
 import { weaverModule } from '../../js/professions/elementalist/specializations/weaver/module.js';
 import { catalystModule } from '../../js/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '../../js/professions/elementalist/specializations/evoker/module.js';
+
+// Tests derive elite names from the same canonical catalog consumed by production.
+function eliteSpecializationNames(catalog) {
+  return catalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name);
+}
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -794,7 +799,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
   assert.equal(necromancerProfession.catalog, necromancerCatalog);
   assert.equal(necromancerProfession.catalog.specializations.length, 9);
 
-  for (const active of ['Core', ...NECROMANCER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(necromancerCatalog)]) {
     const config = { specialization: active };
     const runtime = necromancerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -814,7 +819,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
       runtime.catalog.skills.some(
         (skill) =>
           skill.type !== 'Weapon' &&
-          NECROMANCER_ELITE_SPECIALIZATIONS.includes(skill.specialization) &&
+          eliteSpecializationNames(necromancerCatalog).includes(skill.specialization) &&
           skill.specialization !== activeElite
       ),
       false,
@@ -839,7 +844,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
 });
 
 test('Necromancer runtime UI exposes only active specialization resources', () => {
-  for (const active of ['Core', ...NECROMANCER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(necromancerCatalog)]) {
     const config = { specialization: active };
     const runtime = necromancerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -993,7 +998,7 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
     guardianCatalog
   );
 
-  for (const active of ['Core', ...GUARDIAN_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
     const runtime = guardianProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1044,7 +1049,7 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
 });
 
 test('Guardian runtime UI and public projection preserve their contracts', () => {
-  for (const active of ['Core', ...GUARDIAN_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
     const runtime = guardianProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1208,7 +1213,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
   const skillOwner = nativeSkillOwnerMap(mesmerSlices, mesmerCatalog);
 
   assert.equal(mesmerProfession.catalog, mesmerCatalog);
-  for (const active of ['Core', ...MESMER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1267,7 +1272,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
 });
 
 test('Mesmer runtime UI exposes only the active specialization resource', () => {
-  for (const active of ['Core', ...MESMER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1431,7 +1436,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
   }
 
   assert.equal(revenantProfession.catalog, revenantCatalog);
-  for (const active of ['Core', ...REVENANT_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
     const runtime = revenantProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1481,7 +1486,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
 });
 
 test('Revenant runtime UI and public projection preserve their contracts', () => {
-  for (const active of ['Core', ...REVENANT_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
     const runtime = revenantProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1655,7 +1660,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
   assert.ok(sharedSwordIds.every((skillId) => skillOwner.get(skillId) === 'Core'));
 
   assert.equal(engineerProfession.catalog, engineerCatalog);
-  for (const active of ['Core', ...ENGINEER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
     const runtime = engineerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
@@ -1730,7 +1735,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
 });
 
 test('Engineer runtime UI and public projection preserve their contracts', () => {
-  for (const active of ['Core', ...ENGINEER_ELITE_SPECIALIZATIONS]) {
+  for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
     const runtime = engineerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);

@@ -23,7 +23,7 @@ import {
   migrateWarriorBuild,
   validateWarriorBuild
 } from '../../../js/professions/warrior/build.js';
-import { WARRIOR_ELITE_SPECIALIZATIONS, warriorCatalog } from '../../../js/professions/warrior/catalog.js';
+import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
 import { warriorNativeModules } from '../../../js/professions/warrior/modules.js';
 import { warriorCoreModule } from '../../../js/professions/warrior/core/module.js';
 import { recalculate, runSimulation, warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
@@ -95,7 +95,10 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(warriorCatalog.specializations.length, 9);
   assert.equal(warriorCatalog.traits.length, 108);
   assert.equal(warriorCatalog.skills.length, 209);
-  assert.deepEqual(WARRIOR_ELITE_SPECIALIZATIONS, ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']);
+  assert.deepEqual(
+    warriorCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
+    ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
+  );
   assert.equal(warriorCatalog.weaponHands.get('Torch'), 'oh');
   assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).name, 'Eviscerate');
   assert.equal(

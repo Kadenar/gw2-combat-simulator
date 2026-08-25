@@ -27,7 +27,7 @@ import {
   migrateRangerBuild,
   validateRangerBuild
 } from '../../../js/professions/ranger/build.js';
-import { RANGER_ELITE_SPECIALIZATIONS, rangerCatalog } from '../../../js/professions/ranger/catalog.js';
+import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/ranger/data/ranger-api-metadata.js';
 import {
   RANGER_SKILL_IDS as ID,
@@ -227,7 +227,10 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
       .every((skill) => skill.independentCast),
     true
   );
-  assert.deepEqual(RANGER_ELITE_SPECIALIZATIONS, ['Druid', 'Soulbeast', 'Untamed', 'Galeshot']);
+  assert.deepEqual(
+    rangerCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
+    ['Druid', 'Soulbeast', 'Untamed', 'Galeshot']
+  );
   assert.equal(SPECIALIZATION.DRUID, 5);
   assert.equal(SPECIALIZATION.SOULBEAST, 55);
   assert.equal(SPECIALIZATION.UNTAMED, 72);

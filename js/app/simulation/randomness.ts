@@ -45,10 +45,7 @@ export const DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS: Readonly<SimulationRando
 export function normalizeSimulationRandomnessAssumptions(
   assumptions: SimulationRandomnessAssumptions = {}
 ): SimulationRandomnessAssumptions {
-  // Seeds are an internal reproducibility mechanism, not a user-facing build
-  // choice. Drop values persisted by the short-lived seeded-run UI.
-  const { simulationSeed: _legacySeed, ...currentAssumptions } = assumptions;
-  return normalizeProfessionAssumptions(currentAssumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
+  return normalizeProfessionAssumptions(assumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
 }
 
 export function validateSimulationRandomnessAssumptions(assumptions: SimulationRandomnessAssumptions = {}): string[] {

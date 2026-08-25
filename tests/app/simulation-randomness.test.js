@@ -111,7 +111,6 @@ test('every native profession exposes persisted simulation randomness', () => {
 
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, 'deterministic');
-    assert.equal(Object.hasOwn(build.assumptions, 'simulationSeed'), false);
   }
 
   const engineer = createEngineerBuildDefaults();
@@ -120,13 +119,11 @@ test('every native profession exposes persisted simulation randomness', () => {
     ...engineer,
     assumptions: {
       ...engineer.assumptions,
-      simulationMode: 'invalid',
-      simulationSeed: 9876
+      simulationMode: 'invalid'
     }
   });
 
   assert.equal(migratedEngineer.assumptions.simulationMode, 'deterministic');
-  assert.equal(Object.hasOwn(migratedEngineer.assumptions, 'simulationSeed'), false);
   assert.equal(
     validateEngineerBuild({
       ...engineer,
