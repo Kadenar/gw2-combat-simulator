@@ -6,6 +6,7 @@ import { createSimulationRandom } from '../../js/platform/engine/core/simulation
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,
+  randomDistributionMetrics,
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
@@ -251,6 +252,28 @@ test('RNG explanations compare variable combat facts in low and high DPS cohorts
   assert.equal(distribution.explanation.drivers[0].estimatedDpsDelta, 180);
 });
 
+test('RNG explanations retain condition damage when equal application counts tick differently', () => {
+  const outcomes = Array.from({ length: 20 }, (_unused, index) => ({
+    dps: 1000 + index * 10,
+    metrics: randomDistributionMetrics({
+      dps: 1000 + index * 10,
+      resolvedEvents: [
+        {
+          type: 'condition',
+          sourceId: 2202,
+          name: 'Blade Strike — Jagged Mind',
+          condition: 'Bleeding',
+          stacks: 1,
+          damage: 100 + index * 10
+        }
+      ]
+    })
+  }));
+  const labels = summarizeRandomDistributionOutcomes(outcomes).explanation?.drivers.map((driver) => driver.label);
+
+  assert.deepEqual(labels, ['Jagged Mind bleeding damage']);
+});
+
 test('RNG trials scale worker count gradually from combined timeline workload', () => {
   assert.equal(randomDistributionWorkerCount(500, 16), 8);
   assert.equal(randomDistributionWorkerCount(500, 8), 7);
@@ -340,7 +363,7 @@ test('RNG analysis is available while detailed Engineer results stay determinist
   );
 });
 
-test('Mesmer distributions explain illusion criticals and their bleeding', () => {
+test('Mesmer distributions explain illusion criticals and their bleeding damage', () => {
   const rotation = ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }];
   const distribution = calculateRandomDistribution(
     {
@@ -372,7 +395,7 @@ test('Mesmer distributions explain illusion criticals and their bleeding', () =>
   const labels = distribution.explanation?.drivers.map((driver) => driver.label);
 
   assert.ok(labels?.includes('Illusion critical hits'));
-  assert.ok(labels?.includes('Sharper Images bleeding stacks applied'));
+  assert.ok(labels?.includes('Sharper Images bleeding damage'));
 });
 
 test('Engineer random trait procs repeat by seed and vary across seeds', () => {

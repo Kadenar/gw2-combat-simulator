@@ -239,6 +239,92 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
   assert.equal(result.conditionDamage, 143.5);
 });
 
+function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0 } = {}) {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: 'condition',
+        at: 0,
+        name: 'Observed Bleed',
+        skillName: 'Observed Bleed',
+        condition: 'Bleeding',
+        duration,
+        stacks: 1,
+        source: 'Player',
+        sourceId: 'observed-bleed'
+      }
+    ],
+    rotationEndTime
+  });
+
+  return resolveTestGw2Stream({
+    stream,
+    config: {
+      target: targetHealth > 0 ? { health: targetHealth } : {},
+      sigilSets: [{ names: [] }]
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 1000,
+        expertise: 0
+      }),
+      critical: () => ({ chance: 0.05, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1000
+    }
+  });
+}
+
+test('observation horizons omit future condition ticks without creating endpoint damage', () => {
+  const clipped = resolveBleedThrough(1.5);
+  const extended = resolveBleedThrough(2);
+  const clippedApplication = clipped.resolvedEvents.find((event) => event.type === 'condition');
+  const extendedApplication = extended.resolvedEvents.find((event) => event.type === 'condition');
+
+  assert.deepEqual(
+    clippedApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
+    [{ at: 1, fraction: 1 }]
+  );
+  assert.deepEqual(
+    extendedApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
+    [
+      { at: 1, fraction: 1 },
+      { at: 2, fraction: 1 }
+    ]
+  );
+  assert.equal(clipped.conditionDamage, extendedApplication.damageTicks[0].damage);
+});
+
+test('target death occurs on natural condition ticks rather than the observation horizon', () => {
+  const beforeNextTick = resolveBleedThrough(1.5, { targetHealth: 100 });
+  const throughNextTick = resolveBleedThrough(2, { targetHealth: 100 });
+  const throughNaturalRemainder = resolveBleedThrough(2, { duration: 1.5, targetHealth: 100 });
+  const remainderApplication = throughNaturalRemainder.resolvedEvents.find((event) => event.type === 'condition');
+
+  assert.equal(beforeNextTick.deathTime, null);
+  assert.ok(beforeNextTick.totalDamage < 100);
+  assert.equal(throughNextTick.deathTime, 2);
+  assert.equal(throughNaturalRemainder.deathTime, 1.5);
+  assert.deepEqual(
+    remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
+    [
+      { at: 1, fraction: 1 },
+      { at: 1.5, fraction: 0.5 }
+    ]
+  );
+});
+
 test('precombat conditions carry across an explicit combat start', () => {
   const stream = buildScheduledEventStream({
     events: [

@@ -76,11 +76,20 @@ export function createGw2ConditionResolution({
     return ctx.conditionState.get(name)!;
   }
 
-  function scheduleApplicationTicks(ctx: Gw2ResolverRuntime, application: Gw2ResolvedConditionApplication): void {
-    const activeDuration = application.activeDuration;
-    // Schedule one event per damaging stack-second. A horizon-clipped remainder
-    // becomes a fractional final tick so short applications retain their share.
-    const fullTicks = Math.floor(activeDuration + EPSILON);
+  /**
+   * Schedules only the packets produced by the condition's natural lifetime.
+   * Whole stack-seconds tick from the application timestamp, while a fractional
+   * remainder belongs to natural expiration. The observation horizon filters
+   * those packets; it is not itself a tick or expiration timestamp.
+   */
+  function enqueueNaturalConditionTicks(ctx: Gw2ResolverRuntime, application: Gw2ResolvedConditionApplication): void {
+    const naturalDuration = application.effectiveDuration;
+    const observableDuration = Math.max(0, ctx.horizon - application.at);
+    // Bound whole ticks by both natural duration and the visible window without
+    // converting the unobserved portion into endpoint damage.
+    const naturalFullTicks = Math.floor(naturalDuration + EPSILON);
+    const observableFullTicks = Math.floor(observableDuration + EPSILON);
+    const fullTicks = Math.min(naturalFullTicks, observableFullTicks);
     for (let index = 1; index <= fullTicks; index += 1) {
       enqueueOrdered(ctx.queue, {
         type: 'condition_tick',
@@ -95,11 +104,13 @@ export function createGw2ConditionResolution({
       });
     }
 
-    const remainder = Math.max(0, activeDuration - fullTicks);
-    if (remainder > EPSILON) {
+    const remainder = Math.max(0, naturalDuration - naturalFullTicks);
+    // A fractional packet is real only when the condition naturally expires
+    // within the observation window.
+    if (remainder > EPSILON && application.naturalExpiresAt <= ctx.horizon + EPSILON) {
       enqueueOrdered(ctx.queue, {
         type: 'condition_tick',
-        at: application.at + activeDuration,
+        at: application.naturalExpiresAt,
         source: application.source,
         sourceId: application.sourceId,
         actorType: application.actorType,
@@ -156,7 +167,7 @@ export function createGw2ConditionResolution({
       weight: stacks,
       application
     });
-    scheduleApplicationTicks(ctx, application);
+    enqueueNaturalConditionTicks(ctx, application);
 
     reactions.dispatch('condition.applied', ctx, application, {
       application,
@@ -187,7 +198,7 @@ export function createGw2ConditionResolution({
     application.damage += damage;
     application.damagingStackSeconds += stackSeconds;
     // damagingStackSeconds is the integral used by result tables to report
-    // average stacks, including fractional ticks at the horizon.
+    // average stacks, including fractional ticks at natural expiration.
     application.damageTicks.push({
       at: event.at,
       damage,

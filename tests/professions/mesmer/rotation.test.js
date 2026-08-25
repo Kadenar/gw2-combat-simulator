@@ -4844,7 +4844,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
     }
   });
   const consecutive = simulateMesmer(
-    ['Flying Cutter', 'Flying Cutter', 'Flying Cutter', { name: '__wait', waitMs: 1000 }],
+    ['Flying Cutter', 'Flying Cutter', 'Flying Cutter', { name: '__wait', waitMs: 1500 }],
     config
   );
   const burst = consecutive.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Cutter Burst');
