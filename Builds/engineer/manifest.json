@@ -18,14 +18,21 @@
         "upToDate": true
       },
       {
-        "label": "Condition Alacrity (2 Kit)",
+        "label": "Condition Alacrity Spear (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "benchmarkDps": 35638,
         "upToDate": true
       },
       {
-        "label": "Condition (3 Kit)",
+        "label": "Condition Alacrity (Pistol / Pistol - Tools)",
+        "build": "Builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
+        "rotation": "Rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-evtc.json",
+        "benchmarkDps": 36018,
+        "upToDate": true
+      },
+      {
+        "label": "Condition Spear (3 Kit)",
         "build": "Builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "benchmarkDps": 42877,
@@ -59,7 +66,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "Builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
-        "benchmarkDps": 40637,
+        "benchmarkDps": 40148,
         "upToDate": true
       },
       {

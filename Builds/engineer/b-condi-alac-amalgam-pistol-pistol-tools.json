@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 3,
+  "profession": "engineer",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Sinister",
+    "Chest": "Viper's",
+    "Gloves": "Sinister",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Sinister",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": ["Pistol", "Pistol"],
+  "alternateWeapons": ["", ""],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Earth", "Bursting"],
+    ["Force", "Accuracy"]
+  ],
+  "relic": "Fractal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Tools",
+      "traits": "3-3-2"
+    },
+    {
+      "name": "Firearms",
+      "traits": "1-2-3"
+    },
+    {
+      "name": "Amalgam",
+      "traits": "2-1-2"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "Healing Turret",
+    "Utility1": "Bomb Kit",
+    "Utility2": "Flamethrower",
+    "Utility3": "Plasmatic State",
+    "Elite": "Flux State"
+  },
+  "selectedMorphSkillIds": [77163, 76901, 76568],
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "inDamagingField": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialHeat": 0,
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": []
+}

@@ -2,7 +2,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 
-// Grenade projectiles commit together during the quickened cast, so later impacts survive aftercast truncation.
+// Grenade projectiles commit together during the quickened cast, but their serial recovery still occupies the full throw animation after a weapon-kit transition.
 const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 
 // Owns the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit.
@@ -20,6 +20,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     quicknessCastTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -58,6 +59,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     quicknessCastTimeMs: 680,
     cooldown: 5,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -125,8 +127,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    // Freeze Grenade is an explosion and does not perform a projectile combo finisher.
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -163,7 +165,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 25,
-    // Grenade Barrage is an explosion and does not perform a projectile combo finisher.
     effects: [
       {
         type: 'strike',
@@ -189,6 +190,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     quicknessCastTimeMs: 680,
     cooldown: 0,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
+    retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {
         ownerId: 'engineer',

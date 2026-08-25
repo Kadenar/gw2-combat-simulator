@@ -164,9 +164,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         type: 'strike',
         coefficient: 0.4,
         hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Fragmentation Shot',
-        // Pistol projectiles launch before their cancelable aftercasts end, so a later kit swap must not discard the hit.
-        interruptCommitMs: 0,
+        interruptCommitMs: 360,
         persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
@@ -178,7 +180,10 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        interruptCommitMs: 0,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        interruptCommitMs: 360,
         persistsAfterInterrupt: true,
         actorType: 'player'
       }
@@ -246,9 +251,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 0.4,
         hits: 1,
         name: 'Static Shot',
-        // The projectile remains live when its aftercast is canceled, including cancellations reconstructed from EVTC.
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
           projectile: true
@@ -259,14 +261,10 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Confusion',
         stacks: 3,
         duration: 5,
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player'
       },
       {
         type: 'blind',
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]
@@ -289,9 +287,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 2.5,
         hits: 1,
         name: 'Glue Shot',
-        // Glue Shot's launched projectile and resulting field survive an immediate weapon-kit transition.
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player',
         metadata: {
           projectile: true
@@ -307,8 +302,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         ],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player'
       },
       {
@@ -316,16 +309,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Immobilized',
         stacks: 1,
         duration: 1.5,
-        interruptCommitMs: 0,
-        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]
   },
   [ID.BLOWTORCH]: {
-    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 560,
+    interruptCommitMs: 360,
     cooldown: 12,
     effects: [
       {
@@ -333,7 +324,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 2,
         hits: 1,
         name: 'Maximum Damage',
-        persistsAfterInterrupt: true,
         actorType: 'player'
       },
       {
@@ -341,7 +331,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         condition: 'Burning',
         stacks: 3,
         duration: 4.5,
-        persistsAfterInterrupt: true,
         actorType: 'player'
       }
     ]
@@ -1329,7 +1318,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     ]
   },
   [ID.OVERCHARGED_SHOT]: {
-    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 400,
     cooldown: 14,
@@ -1345,8 +1333,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         actorType: 'player',
         metadata: {
           projectile: true
-        },
-        persistsAfterInterrupt: true
+        }
       },
       {
         type: 'control',
@@ -2495,7 +2482,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     ]
   },
   [ID.THUNDERCLAP]: {
-    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 750,
     cooldown: 20,
@@ -2518,8 +2504,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Thunderclap',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -2531,13 +2516,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         atMs: 750,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -3173,7 +3156,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     ]
   },
   [ID.DEVASTATOR]: {
-    interruptCommitMs: 0,
     implemented: true,
     handlerId: 'engineer.devastator',
     castTimeMs: 1000,
@@ -3185,16 +3167,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 2,
         hits: 1,
         name: 'Devastator',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Burning',
         stacks: 3,
         duration: 4,
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       }
     ]
   },
@@ -3331,6 +3311,8 @@ const extraSkills: Skill[] = [
     type: 'Action',
     slot: 'Action',
     handlerId: 'engineer.dodge',
+    // Quickness does not shorten the fixed evade animation recorded for ordinary dodge rolls.
+    unaffectedByQuickness: true,
     castTimeMs: 800,
     cooldown: 0,
     implemented: true,

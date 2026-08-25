@@ -73,11 +73,31 @@ export function openingDamageSkillNames(
   );
 }
 
+function preserveCastsAcrossKitTransitions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const kitSwapTimes = actions.filter((action) => action.rawName === 'Swap Weapons').map((action) => action.start);
+  if (!kitSwapTimes.length) return [...actions];
+
+  return actions.map((action) => {
+    const skill = skillForAction(context, action);
+    // Engineer kit transitions are concurrent bar changes, so an EVTC weapon-swap marker inside a cast cannot cancel it.
+    const crossesKitSwap =
+      action.rawName !== 'Swap Weapons' &&
+      Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0) > 0 &&
+      kitSwapTimes.some((time) => action.start <= time && action.end >= time);
+    return crossesKitSwap ? { ...action, forceCompleteReplay: true } : action;
+  });
+}
+
 export function normalizeKitTransitions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  const sorted = preserveCastsAcrossKitTransitions(context, actions).sort(
+    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
+  );
   const result: EvtcRecordedRotationAction[] = [];
   let activeKit: string | null = null;
 

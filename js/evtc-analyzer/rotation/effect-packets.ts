@@ -226,6 +226,8 @@ export function missingInterruptCommitWarnings(
   const validatePackets = createStrikePacketMatcher(context);
   const missingBySkill = new Map<string, number>();
   for (const action of actions) {
+    // Profession evidence can prove that a boundary (such as an Engineer kit transition) completed rather than interrupted the cast.
+    if (action.forceCompleteReplay) continue;
     if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
     const skill = skillForAction(context, action);
     const name = skill?.name || action.canonicalName || action.rawName;

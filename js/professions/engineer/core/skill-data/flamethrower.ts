@@ -109,10 +109,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.FLAME_BLAST]: {
-    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 800,
-    measuredCancelMs: 480,
     cooldown: 6,
     effects: [
       {
@@ -120,6 +118,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
         coefficient: 1.3,
         hits: 1,
         name: 'Flame Blast',
+        interruptCommitMs: 600,
         actorType: 'player',
         metadata: {
           damageKind: 'explosion'
@@ -131,6 +130,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
         condition: 'Burning',
         stacks: 1,
         duration: 6,
+        interruptCommitMs: 600,
         actorType: 'player',
         persistsAfterInterrupt: true
       }

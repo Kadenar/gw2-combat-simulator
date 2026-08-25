@@ -36,6 +36,8 @@ const EVTC_TIMING_QUANTUM_MS = 40;
 // Only a sustained gap after both EVTC and modeled cast completion is strong enough evidence for an explicit idle wait.
 const MINIMUM_CONFIRMED_IDLE_GAP_MS = 400;
 const TRANSITION_WINDOW_MS = 150;
+const STANDARD_DODGE_ANIMATION_ID = 23275;
+const STANDARD_DODGE_STOP_ACTIVATION = 6;
 const WEAPON_STOW_ANIMATION_ID = 23285;
 const TRANSITION_GAIN_BUFF_IDS = new Set(
   EVTC_ROTATION_PROFILES.flatMap((profile) =>
@@ -285,6 +287,8 @@ function selectPlayerAgent(
 }
 
 function skillName(names: ReadonlyMap<number, string>, skillId: number): string {
+  // arcdps emits ordinary dodge rolls through an unnamed animation ID; naming it here lets every profession resolve it to its simulator Dodge action.
+  if (skillId === STANDARD_DODGE_ANIMATION_ID) return 'Dodge';
   return names.get(skillId)?.trim() || `Unknown ${skillId}`;
 }
 
@@ -298,6 +302,10 @@ function activationStatus(activation: number): EvtcRotationActionStatus {
   if (activation === EVTC_ACTIVATION.CANCEL_FIRE) return 'completed';
   if (activation === EVTC_ACTIVATION.RESET) return 'completed';
   return 'unknown';
+}
+
+function isStandardDodgeStop(event: ParsedEvtcEvent): boolean {
+  return event.skillId === STANDARD_DODGE_ANIMATION_ID && event.activation === STANDARD_DODGE_STOP_ACTIVATION;
 }
 
 function pairAnimationEvents(
@@ -332,7 +340,8 @@ function pairAnimationEvents(
       event.stateChange === endStateChange &&
       (event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
         event.activation === EVTC_ACTIVATION.CANCEL_CANCEL ||
-        event.activation === EVTC_ACTIVATION.RESET)
+        event.activation === EVTC_ACTIVATION.RESET ||
+        isStandardDodgeStop(event))
     ) {
       ends.push({ event, eventIndex });
     }
@@ -378,7 +387,7 @@ function pairAnimationEvents(
         rawSkillId: end.event.skillId,
         rawName,
         evidence,
-        status: activationStatus(end.event.activation),
+        status: isStandardDodgeStop(end.event) ? 'completed' : activationStatus(end.event.activation),
         eventIndex: end.eventIndex,
         precast
       });
@@ -396,7 +405,7 @@ function pairAnimationEvents(
       rawSkillId: start.event.skillId,
       rawName: skillName(names, start.event.skillId),
       evidence,
-      status: activationStatus(end.event.activation),
+      status: isStandardDodgeStop(end.event) ? 'completed' : activationStatus(end.event.activation),
       eventIndex: start.eventIndex
     });
   }

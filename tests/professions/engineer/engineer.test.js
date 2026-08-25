@@ -39,6 +39,7 @@ import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/s
 import { scrapperSchedulerHooks } from '../../../js/professions/engineer/specializations/scrapper/rules.js';
 import { createScrapperState } from '../../../js/professions/engineer/specializations/scrapper/state.js';
 import { engineerAppAdapter } from '../../../js/professions/engineer/app/app-definition.js';
+import { AMALGAM_SKILL_MECHANICS } from '../../../js/professions/engineer/specializations/amalgam/skills.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -80,6 +81,62 @@ function mechanic(name) {
 }
 
 const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
+
+test('Engineer interrupt timing avoids zero-millisecond placeholders', () => {
+  // Kit transitions are reconstructed as concurrent actions; they are not evidence that these skills commit immediately.
+  const skillsWithoutVerifiedCommit = ['Static Shot', 'Glue Shot', 'Overcharged Shot', 'Thunderclap', 'Devastator'];
+
+  for (const name of skillsWithoutVerifiedCommit) {
+    const catalogSkill = mechanic(name);
+
+    assert.equal(catalogSkill.interruptCommitMs, undefined, name);
+    assert.ok(
+      catalogSkill.effects.every((effect) => effect.interruptCommitMs !== 0),
+      name
+    );
+  }
+
+  assert.equal(mechanic('Blowtorch').interruptCommitMs, 360);
+
+  for (const name of ['Grenade', 'Poison Grenade', 'Shrapnel Grenade', 'Freeze Grenade']) {
+    assert.equal(mechanic(name).retainsCastLockoutAfterInterrupt, true, name);
+  }
+
+  const fragmentationShot = mechanic('Fragmentation Shot');
+  const flameBlast = mechanic('Flame Blast');
+
+  // Effect-level cutoffs preserve EVTC's observed interruption duration instead of replacing every shortened cast with one skill-wide value.
+  assert.equal(fragmentationShot.interruptCommitMs, undefined);
+  assert.ok(fragmentationShot.effects.every((effect) => effect.interruptCommitMs === 360));
+  assert.ok(fragmentationShot.effects.every((effect) => effect.persistsAfterInterrupt === true));
+  assert.equal(flameBlast.interruptCommitMs, undefined);
+  assert.equal('measuredCancelMs' in flameBlast, false);
+  assert.ok(flameBlast.effects.every((effect) => effect.interruptCommitMs === 600));
+  assert.ok(flameBlast.effects.every((effect) => effect.persistsAfterInterrupt === true));
+});
+
+test('Fragmentation Shot and Flame Blast retain packets only after their measured commit boundaries', () => {
+  const damageCount = (skillName, interruptAfterMs) => {
+    const flameBlast = skillName === 'Flame Blast';
+    const result = simulate(
+      'Core',
+      [...(flameBlast ? ['Flamethrower'] : []), { name: skillName, interruptAfterMs }],
+      flameBlast
+        ? {
+            selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate']
+          }
+        : {},
+      observationTail(1_000)
+    );
+
+    return result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skillName).length;
+  };
+
+  assert.equal(damageCount('Fragmentation Shot', 359), 0);
+  assert.equal(damageCount('Fragmentation Shot', 360), 1);
+  assert.equal(damageCount('Flame Blast', 599), 0);
+  assert.equal(damageCount('Flame Blast', 600), 1);
+});
 
 test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
@@ -1536,7 +1593,6 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   );
   assert.equal(mechanic('Flame Blast').cooldown, 6);
   assert.equal(mechanic('Flame Blast').quicknessCastTimeMs, 800);
-  assert.equal(mechanic('Flame Blast').measuredCancelMs, 480);
   assert.equal(mechanic('Flame Blast').effects[0].metadata.damageKind, 'explosion');
   assert.deepEqual(
     [
@@ -2365,18 +2421,25 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
   );
 });
 
-test('measured Quickness animations and Flame Blast cancellation drive steps', () => {
-  const grenades = simulate('Amalgam', ['Grenade Kit', 'Shrapnel Grenade'], {
-    boons: { quickness: true },
-    selectedMorphSkillIds: [77103, 77104, 76705]
-  });
+test('measured Quickness animations and Flame Blast commitment drive steps', () => {
+  const grenades = simulate(
+    'Amalgam',
+    ['Grenade Kit', { name: 'Shrapnel Grenade', interruptAfterMs: 360 }, 'Freeze Grenade'],
+    {
+      boons: { quickness: true },
+      selectedMorphSkillIds: [77103, 77104, 76705]
+    }
+  );
   const shrapnel = grenades.steps.find((step) => step.skill === 'Shrapnel Grenade');
+  const freeze = grenades.steps.find((step) => step.skill === 'Freeze Grenade');
 
-  assert.equal(shrapnel.end - shrapnel.start, 680);
+  // The grenade launches at its commit point, while the next serial action remains locked to the full throw animation.
+  assert.equal(shrapnel.end - shrapnel.start, 360);
+  assert.equal(freeze.start - shrapnel.start, 680);
 
   const flamethrower = simulate(
     'Amalgam',
-    ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 480 }, { type: 'wait', durationMs: 500 }],
+    ['Flamethrower', { name: 'Flame Blast', interruptAfterMs: 600 }, { type: 'wait', durationMs: 500 }],
     {
       boons: { quickness: true },
       selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate'],
@@ -2385,7 +2448,7 @@ test('measured Quickness animations and Flame Blast cancellation drive steps', (
   );
   const flameBlast = flamethrower.steps.find((step) => step.skill === 'Flame Blast');
 
-  assert.equal(flameBlast.end - flameBlast.start, 480);
+  assert.equal(flameBlast.end - flameBlast.start, 600);
   assert.equal(flameBlast.fullCastMs, 800);
   assert.equal(flameBlast.interrupted, true);
   assert.equal(
@@ -3519,6 +3582,17 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
 });
 
 test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () => {
+  const amalgamReplacementToolbeltSkills = Object.values(AMALGAM_SKILL_MECHANICS).filter(
+    (mechanics) => Number(mechanics.mechanicSlot) >= 2 && Number(mechanics.mechanicSlot) <= 5
+  );
+
+  assert.ok(amalgamReplacementToolbeltSkills.length > 0);
+  assert.ok(amalgamReplacementToolbeltSkills.every((mechanics) => mechanics.countsAsToolbeltSkill === true));
+
+  const quickDodge = simulate('Core', ['Dodge'], { boons: { quickness: true } });
+
+  assert.equal(quickDodge.steps[0].end - quickDodge.steps[0].start, 800);
+
   const toolbelt = simulate(
     'Core',
     ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Surprise Shot (engineer skill)', 'Med Pack Drop'],
@@ -3592,6 +3666,20 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.equal(
     forgeMechanic.events.some((event) => event.type === 'buff' && event.kind === 'vigor'),
     false
+  );
+
+  const amalgamToolbelt = simulate('Amalgam', [77163, 'Evolve', 'Dodge'], {
+    selectedMorphSkillIds: [77163, 76901, 76568],
+    selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.OPTIMIZED_ACTIVATION, TRAIT.ADRENAL_IMPLANT]
+  });
+
+  // Amalgam F2-F5 mechanics replace tool-belt slots and retain every Tools interaction attached to those slots.
+  assert.equal(amalgamToolbelt.endState.cooldowns['Defensive Protocol: Thorns'].readyAt, 16000);
+  assert.equal(
+    amalgamToolbelt.events.filter(
+      (event) => event.type === 'buff' && event.kind === 'vigor' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION
+    ).length,
+    2
   );
 });
 

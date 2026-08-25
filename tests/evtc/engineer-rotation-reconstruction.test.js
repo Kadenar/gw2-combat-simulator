@@ -287,14 +287,12 @@ test('validates Engineer cast completion from observed strike packets', () => {
     skill(6154, 'Overcharged Shot', {
       slot: 'Weapon_4',
       quicknessCastTimeMs: 400,
-      interruptCommitMs: 0,
       effects: [
         {
           type: 'strike',
           atMs: 451,
           timingAnchor: 'castStart',
-          timingScale: 'fixed',
-          persistsAfterInterrupt: true
+          timingScale: 'fixed'
         }
       ]
     })
@@ -351,8 +349,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
   const rifleCommands = result.rotation.filter((command) => command.name === 'Rifle Burst');
 
   assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Shrapnel Grenade cast; the simulator has an interrupt cutoff time of 360 ms, so reconstruction uses 360 ms instead of the EVTC timing.',
-    'EVTC recorded 1 interrupted Overcharged Shot cast; the simulator has an interrupt cutoff time of 0 ms, so reconstruction uses 0 ms instead of the EVTC timing.'
+    'EVTC recorded 1 interrupted Shrapnel Grenade cast; the simulator has an interrupt cutoff time of 360 ms, so reconstruction uses 360 ms instead of the EVTC timing.'
   ]);
   assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'completed');
   assert.equal(result.actions.find((action) => action.name === 'Shrapnel Grenade')?.status, 'reduced');
@@ -360,7 +357,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
     rifleActions.map((action) => action.status),
     ['completed', 'completed']
   );
-  assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'reduced');
+  assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'completed');
   assert.deepEqual(rifleCommands, [
     { name: 'Rifle Burst', skillId: 6003 },
     { name: 'Rifle Burst', skillId: 6003 }
@@ -500,6 +497,146 @@ function animation(skillId, start, duration, overrides = {}) {
     })
   ];
 }
+
+test('preserves observed Engineer cast stops when only effect packets declare commit cutoffs', () => {
+  const skills = [
+    skill(5827, 'Fragmentation Shot', {
+      slot: 'Weapon_1',
+      quicknessCastTimeMs: 520,
+      effects: [
+        {
+          type: 'strike',
+          atMs: 400,
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          interruptCommitMs: 360,
+          persistsAfterInterrupt: true
+        }
+      ]
+    }),
+    skill(5931, 'Flame Blast', {
+      quicknessCastTimeMs: 800,
+      effects: [
+        {
+          type: 'strike',
+          atMs: 600,
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          interruptCommitMs: 600,
+          persistsAfterInterrupt: true
+        }
+      ]
+    })
+  ];
+  const interruptedAnimation = (skillId, start, duration) => [
+    event({ time: start, skillId, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+    event({
+      time: start + duration,
+      value: duration,
+      skillId,
+      activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    })
+  ];
+  const fixture = engineerLog(skills, [
+    event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    ...interruptedAnimation(5827, 2_000, 400),
+    event({ time: 2_400, target: TARGET, value: 1_000, skillId: 5827 }),
+    ...interruptedAnimation(5931, 3_000, 680),
+    event({ time: 3_600, target: TARGET, value: 1_000, skillId: 5931 })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  // Packet cutoffs prove that delayed hits survive without flattening the EVTC's per-cast animation timing.
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Fragmentation Shot' || command.name === 'Flame Blast'),
+    [
+      { name: 'Fragmentation Shot', skillId: 5827, interruptMs: 400 },
+      { name: 'Flame Blast', skillId: 5931, interruptMs: 680 }
+    ]
+  );
+});
+
+test('replays a committed grenade through its full retained cast lockout', () => {
+  const shrapnelGrenade = skill(5807, 'Shrapnel Grenade', {
+    quicknessCastTimeMs: 680,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: [
+      {
+        type: 'strike',
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      }
+    ]
+  });
+  const fixture = engineerLog(
+    [shrapnelGrenade],
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(5807, 2_000, 484),
+      event({ time: 2_400, target: TARGET, value: 1_000, skillId: 5807 })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [shrapnelGrenade] });
+  const action = result.actions.find((candidate) => candidate.name === 'Shrapnel Grenade');
+
+  // EVTC can end the visible grenade animation at a kit swap, while the next serial cast remains locked to 680 ms.
+  assert.equal(action?.durationMs, 680);
+  assert.equal(action?.status, 'completed');
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Shrapnel Grenade'),
+    [{ name: 'Shrapnel Grenade', skillId: 5807 }]
+  );
+});
+
+test('treats a near-zero post-dodge autoattack stop as an animation artifact when its hit and lane timing complete', () => {
+  const fragmentationShot = skill(5827, 'Fragmentation Shot', {
+    slot: 'Weapon_1',
+    quicknessCastTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        interruptCommitMs: 360,
+        persistsAfterInterrupt: true
+      }
+    ]
+  });
+  const fixture = engineerLog(
+    [fragmentationShot],
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 2_000, skillId: 5827, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 2_030,
+        value: 30,
+        skillId: 5827,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      }),
+      event({ time: 2_400, target: TARGET, value: 1_000, skillId: 5827 }),
+      ...animation(5827, 2_500, 318)
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [fragmentationShot] });
+  const action = result.actions.find((candidate) => candidate.name === 'Fragmentation Shot');
+
+  assert.equal(action?.durationMs, 30);
+  assert.equal(action?.status, 'completed');
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Fragmentation Shot'),
+    [{ name: 'Fragmentation Shot', skillId: 5827 }]
+  );
+});
 
 test('recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence', () => {
   const skills = [
@@ -872,5 +1009,133 @@ test('maps Engineer kit swaps, Amalgam morphs, and passive packets', () => {
   assert.equal(
     result.actions.some((action) => action.name === 'Aim-Assisted Rocket'),
     false
+  );
+});
+
+test('keeps an Engineer cast complete across its concurrent kit transition', () => {
+  const skills = [
+    skill(5828, 'Poison Dart Volley', {
+      quicknessCastTimeMs: 840,
+      effects: [
+        {
+          type: 'strike',
+          name: 'Poison Dart Volley',
+          coefficient: 1,
+          hits: 1,
+          actorType: 'player'
+        }
+      ]
+    }),
+    skill(5812, 'Bomb Kit', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      kitName: 'Bomb Kit',
+      handlerId: 'engineer.kit-equip'
+    }),
+    skill(5823, 'Fire Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600,
+      effects: [
+        {
+          type: 'strike',
+          name: 'Fire Bomb',
+          coefficient: 1,
+          hits: 1,
+          actorType: 'player'
+        }
+      ]
+    }),
+    skill(6111, 'Stow Bomb Kit', {
+      type: 'Bundle',
+      slot: 'Bundle',
+      kit: 'Bomb Kit',
+      handlerId: 'engineer.kit-stow'
+    })
+  ];
+  const fixture = engineerLog(skills, [
+    event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    ...animation(5828, 2_000, 300),
+    event({ time: 2_200, target: 2n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+    event({ time: 2_840, target: TARGET, value: 1_000, skillId: 5828 }),
+    ...animation(5823, 3_000, 300),
+    event({ time: 3_200, target: 4n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+    event({ time: 3_600, target: TARGET, value: 1_000, skillId: 5823 })
+  ]);
+
+  const result = reconstructEvtcRotation(
+    fixture,
+    { skills },
+    {
+      selectedSkillNames: ['Bomb Kit']
+    }
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.rotation.filter((command) =>
+      ['Poison Dart Volley', 'Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit'].includes(command.name)
+    ),
+    [
+      { name: 'Poison Dart Volley', skillId: 5828 },
+      { name: 'Bomb Kit', skillId: 5812, offset: 200 },
+      { name: 'Fire Bomb', skillId: 5823 },
+      { name: 'Stow Bomb Kit', skillId: 6111, offset: 200 }
+    ]
+  );
+});
+
+test('reconstructs unnamed standard dodge animation packets as Engineer Dodge actions', () => {
+  const dodgeAnimationId = 23275;
+  const fixture = engineerLog(
+    [
+      skill(-5, 'Dodge', {
+        type: 'Action',
+        slot: 'Action',
+        castTimeMs: 800,
+        quicknessCastTimeMs: 800
+      })
+    ],
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        time: 2_000,
+        skillId: dodgeAnimationId,
+        buffDamage: 800,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+      }),
+      event({
+        time: 2_800,
+        skillId: dodgeAnimationId,
+        value: 800,
+        buffDamage: 800,
+        activation: 6,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [skill(-5, 'Dodge')] });
+  const dodge = result.actions.find((action) => action.name === 'Dodge');
+
+  // Standard dodges use an animation-only EVTC identifier and a non-cast stop code, but still represent completed simulator actions.
+  assert.deepEqual(dodge, {
+    timestampMs: 1_000,
+    endTimestampMs: 1_800,
+    durationMs: 800,
+    expectedDurationMs: 800,
+    rawSkillId: dodgeAnimationId,
+    skillId: -5,
+    name: 'Dodge',
+    kind: 'dodge',
+    evidence: 'animation',
+    status: 'completed',
+    supportedByCatalog: true
+  });
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === 'Dodge'),
+    {
+      name: 'Dodge',
+      skillId: -5
+    }
   );
 });
