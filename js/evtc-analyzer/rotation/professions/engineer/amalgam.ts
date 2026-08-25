@@ -129,18 +129,36 @@ function inferThornsActions(context: EvtcProfessionReconstructionContext): EvtcR
   });
 }
 
-function hasInitialEvolve(context: EvtcProfessionReconstructionContext): boolean {
-  return context.log.events.some(
-    (event) =>
-      event.target === context.playerAddress &&
-      event.skillId === EVOLVED_BUFF &&
-      event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-      event.buffDamage > event.value &&
-      event.buffDamage - event.value >= EVOLVE_EFFECT_DELAY_MS
-  );
+function initialEvolveAction(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction | null {
+  const initial = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .find(
+      ({ event }) =>
+        event.target === context.playerAddress &&
+        event.skillId === EVOLVED_BUFF &&
+        event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
+        event.value > 0 &&
+        event.buffDamage >= event.value
+    );
+  if (!initial) return null;
+
+  const identity = selectedIdentity(context, EVOLVE.name, EVOLVE.skillId);
+  const duration = castDuration(context, identity);
+  // BUFF_INITIAL stores Evolved's full and remaining durations. Backtrack its
+  // elapsed duration and effect delay to recover an Evolve cast hidden before logging began.
+  const elapsed = initial.event.buffDamage - initial.event.value;
+  const start = initial.event.time - elapsed - EVOLVE_EFFECT_DELAY_MS;
+  return {
+    ...canonicalAction(initial.eventIndex, start, identity, identity.skillId, 'initial-state'),
+    end: start + duration,
+    expectedDuration: duration,
+    status: 'completed',
+    precast: true
+  };
 }
 
 function openingPrecastActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const initialEvolve = initialEvolveAction(context);
   // Rifle openings expose the truncated Galvanic Bomb animation instead of a
   // weapon cast, so use that boundary to rebuild the otherwise missing setup.
   const opening = findOpeningPrecast(
@@ -151,7 +169,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
       [GALVANIC_BOMB.name, GALVANIC_BOMB]
     ])
   );
-  if (!opening) return [];
+  if (!opening) return initialEvolve ? [initialEvolve] : [];
   const openingIsBomb = PRECOMBAT_BOMBS.some((identity) => identity.name === opening.rawName);
   const initialBombNames = openingDamageSkillNames(context);
   const bombs = selectedSkill(context, 'Bomb Kit')
@@ -163,7 +181,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
     }
   > = [];
   for (const bomb of bombs) {
-    if (bomb.name === 'Fire Bomb' && hasInitialEvolve(context)) {
+    if (bomb.name === 'Fire Bomb' && initialEvolve) {
       ordered.push({ ...EVOLVE, evidence: 'initial-state' });
     }
 
@@ -172,7 +190,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
     }
   }
 
-  if (!bombs.length && hasInitialEvolve(context)) {
+  if (!bombs.length && initialEvolve) {
     ordered.push({ ...EVOLVE, evidence: 'initial-state' });
   }
 
