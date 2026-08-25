@@ -6,7 +6,7 @@
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '../core/clock.js';
-import { foldAvailability } from '../skills/availability.js';
+import { assertAvailabilityResult, CAST_READY, denyCast, foldAvailability, retryCast } from '../skills/availability.js';
 import { createEvent } from '../events/events.js';
 import { effectFirstAt, materializeSkillEffectApplications } from '../effects/materializer.js';
 import { createCooldownController } from './cooldowns.js';
@@ -210,24 +210,15 @@ const CORE_CAST_COMPLETE = 'platform.cast-complete';
  * @returns {AvailabilityResult}
  */
 function unavailable(reason: string, code = 'platform.unavailable', retryAt: number | null = null): AvailabilityResult {
-  return { ready: false, retryAt, reason, code };
+  return retryAt == null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 
 /**
- * @param {readonly (AvailabilityResult | boolean | null | undefined)[]} results
+ * @param {readonly AvailabilityResult[]} results
  * @returns {AvailabilityResult}
  */
-function combineAvailability(
-  results: readonly (AvailabilityResult | boolean | null | undefined)[]
-): AvailabilityResult {
-  return foldAvailability(
-    (function* () {
-      for (const result of results) {
-        if (result == null || result === true) continue;
-        yield result === false ? unavailable('The skill is unavailable.') : result;
-      }
-    })()
-  );
+function combineAvailability(results: readonly AvailabilityResult[]): AvailabilityResult {
+  return foldAvailability(results);
 }
 
 /**
@@ -856,8 +847,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ammo: state.ammo.get(skill.id) || null
     };
     const professionAvailability = activeProfession.availability(preliminaryContext, skill);
-    // A permanent profession denial cannot become valid after shared state is
-    // refreshed, so return it before running policy/legacy validation.
+    // A command-scoped profession denial cannot become valid after shared state
+    // is refreshed, so return it before running shared and policy availability.
     if (professionAvailability?.ready === false && professionAvailability.retryAt == null) {
       return {
         result: professionAvailability,
@@ -870,15 +861,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ...preliminaryContext,
       ammo: shared.ammo
     };
-    const policyAvailability = schedulerPolicy.availability?.(castContext, skill);
-    const legacyReady =
-      schedulerPolicy.validateCast?.(castContext, skill) !== false && activeProfession.validateCast(castContext, skill);
-    const result = combineAvailability([
-      shared.result,
-      policyAvailability,
-      professionAvailability,
-      legacyReady ? null : unavailable(`${skill.name} is unavailable.`, 'platform.legacy-validation')
-    ]);
+    const policyAvailability = assertAvailabilityResult(
+      schedulerPolicy.availability?.(castContext, skill) ?? CAST_READY,
+      'Scheduler policy availability'
+    );
+    const result = combineAvailability([shared.result, policyAvailability, professionAvailability]);
     return { result, castContext };
   }
 

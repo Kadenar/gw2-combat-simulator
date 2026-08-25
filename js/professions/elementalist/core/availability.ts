@@ -1,4 +1,5 @@
 import type { AvailabilityResult, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type { ElementalistPrecastContext as ElementalistCastContext, ElementalistSchedulerContext } from '../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, elementalistCoreState, type ElementalistCoreState } from './state.js';
 import {
@@ -23,15 +24,6 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceVa
 
 function ready(): AvailabilityResult {
   return { ready: true };
-}
-
-function unavailable(skill: Skill, code: string, reason: string, retryAt: number | null = null): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${reason}`
-  };
 }
 
 function selectedSkillNames(context: ElementalistCastContext): Set<string> {

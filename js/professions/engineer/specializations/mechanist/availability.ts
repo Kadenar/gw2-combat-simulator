@@ -1,5 +1,5 @@
 import { mechanistState } from './state.js';
-import { denyEngineerCast } from '../../core/availability.js';
+import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '../../types.js';
 

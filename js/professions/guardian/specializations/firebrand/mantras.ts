@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { CAST_READY, denyCast, retryCast } from '../../../../platform/engine/skills/availability.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import { firebrandState } from './state.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
@@ -145,50 +146,36 @@ export function advanceFirebrandMantras(context: GuardianSchedulerContext, targe
 }
 
 /** Gates preparation, normal charges, and the distinct final-charge flip. */
-export function firebrandMantraAvailability(
-  context: GuardianPrecastContext,
-  skill: GuardianSkill
-): boolean | AvailabilityResult {
+export function firebrandMantraAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
   if (root) {
     return mantraFlipActive(context, root)
-      ? {
-          ready: false,
-          retryAt: null,
-          code: 'guardian.mantra-prepared',
-          reason: `${skill.name} is already prepared.`
-        }
-      : true;
+      ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
+      : CAST_READY;
   }
 
   const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
   const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
   const definition = normal || final;
-  if (!definition) return true;
+  if (!definition) return CAST_READY;
   const expectedId = normal ? definition.normalId : definition.finalId;
   const preparedAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
   // preparedAt > start means the mantra is currently in full-recharge (not yet
   // armed), so give the scheduler a concrete retry time rather than blocking
   // forever with retryAt: null.
   if (preparedAt > context.start + context.epsilon) {
-    return {
-      ready: false,
-      retryAt: preparedAt,
-      code: 'guardian.mantra-charge',
-      reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`
-    };
+    return retryCast(
+      preparedAt,
+      'guardian.mantra-charge',
+      `${skill.name} is unavailable until ${definition.rootName} is prepared.`
+    );
   }
 
   // The flip being absent means this specific charge variant (normal vs. final)
   // is not the one currently available; no retry time because the scheduler
   // already controls which flip is live.
-  if (professionCoreState(context).availableFlips[expectedId]) return true;
-  return {
-    ready: false,
-    retryAt: null,
-    code: 'guardian.mantra-charge',
-    reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`
-  };
+  if (professionCoreState(context).availableFlips[expectedId]) return CAST_READY;
+  return denyCast('guardian.mantra-charge', `${skill.name} is unavailable until ${definition.rootName} is prepared.`);
 }
 
 /** Commits mantra preparation, charge flipping, and final-charge recharge. */

@@ -1,16 +1,8 @@
 import { specterState } from './state.js';
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import { denySkillCast as deny } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '../../types.js';
-
-function deny(skill: ThiefSkill, code: string, cause: string): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt: null,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  };
-}
 
 export function specterCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(context);

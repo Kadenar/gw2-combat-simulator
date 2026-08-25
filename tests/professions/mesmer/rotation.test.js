@@ -5593,7 +5593,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     result.endState.profession.activeInstruments.map((instrument) => instrument.name),
     ['Lute', 'Flute']
   );
-  const resourceView = mesmerProfession
+  const notesView = mesmerProfession
     .resolveRuntime({
       specialization: 'Troubadour'
     })
@@ -5602,13 +5602,13 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
       professionState: result.endState.profession
     })[0];
 
-  assert.equal(resourceView.pipStyle, 'mesmer-notes');
-  assert.equal(resourceView.statusItemsLabel, 'Playing');
+  assert.equal(notesView.pipStyle, 'mesmer-notes');
+  assert.equal(notesView.statusItemsLabel, 'Playing');
   assert.deepEqual(
-    resourceView.statusItems.map((item) => item.label),
+    notesView.statusItems.map((item) => item.label),
     ['Lute', 'Flute']
   );
-  assert.ok(resourceView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
+  assert.ok(notesView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
   const resourceHtml = activeResourceGroup({
     profession: mesmerProfession,
     adapter: { eliteSpecialization: () => 'Troubadour' },

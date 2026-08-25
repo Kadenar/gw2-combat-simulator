@@ -1,9 +1,10 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { CAST_READY, denyCast } from '../../../../platform/engine/skills/availability.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { cloneNecromancerAttributes, necromancerRuntimeSpecializationState } from '../../core/rules.js';
-import type { SchedulerRecord } from '../../../../platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { NecromancerAmmoModifierContext, NecromancerRechargeModifierContext } from '../../types.js';
 import type {
@@ -59,11 +60,23 @@ function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maxim
     : maximum;
 }
 
-function validateScourgeBuild(context: NecromancerPrecastContext, skill: NecromancerSkill): boolean {
+/** Selects the one Scourge F5 variant enabled by Herald of Sorrow for this command attempt. */
+function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityResult {
   // Herald of Sorrow owns the mutually exclusive F5 replacement at the Scourge boundary.
-  if (skill.id === ID.SANDSTORM_SHROUD) return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW);
-  if (skill.id === ID.DESERT_SHROUD) return !hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW);
-  return true;
+  if (skill.id === ID.SANDSTORM_SHROUD) {
+    return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW)
+      ? CAST_READY
+      : denyCast('necromancer.trait-replacement', `${skill.name} is unavailable — requires Herald of Sorrow.`);
+  }
+  if (skill.id === ID.DESERT_SHROUD) {
+    return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW)
+      ? denyCast(
+          'necromancer.trait-replacement',
+          `${skill.name} is unavailable — replaced by Sandstorm Shroud while Herald of Sorrow is selected.`
+        )
+      : CAST_READY;
+  }
+  return CAST_READY;
 }
 
 function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
@@ -134,10 +147,10 @@ export const scourgeAttributeRules = Object.freeze({
 });
 
 export const scourgeCastRules = Object.freeze({
-  validateCast: {
+  availability: {
     id: 'scourge.build',
-    order: 20,
-    handler: validateScourgeBuild
+    order: 120,
+    handler: scourgeBuildAvailability
   },
   modifyRechargeDuration: modifyScourgeRechargeDuration,
   modifyMaximumAmmo: modifyScourgeMaximumAmmo

@@ -12,6 +12,8 @@ import { handleRadiantWeaponEquipped } from './traits.js';
 import { buildGuardianStrike, emitGuardianEvent } from '../../core/events.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { CAST_READY, denyCast } from '../../../../platform/engine/skills/availability.js';
+import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -69,28 +71,54 @@ function emitForgeTransition(
 
 /**
  * Determines whether a forge transition or forge-only skill is currently
- * castable. Unrelated skills return no opinion.
+ * castable. Unrelated skills return ready under the shared result contract.
  *
  * @param {GuardianPrecastContext} context Cast-validation context.
  * @param {GuardianSkill} skill Candidate skill.
- * @returns {boolean|undefined} Whether the relevant forge skill is castable.
+ * @returns {AvailabilityResult} Whether the relevant forge skill is castable.
  */
-export function validateRadiantForgeCast(context: GuardianPrecastContext, skill: GuardianSkill): boolean | undefined {
+export function radiantForgeAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
+  const forgeActive = luminaryState.from(context).radiantForge;
   if (skill.type === 'Weapon' && luminaryState.from(context).radiantForge) {
-    return false;
+    return denyCast(
+      'guardian.radiant-forge-weapon-lockout',
+      `${skill.name} is unavailable — exit Radiant Forge first.`
+    );
   }
 
   if (skill.radiantForgeSkill) {
-    return Boolean(luminaryState.from(context).radiantForge);
+    return forgeActive
+      ? CAST_READY
+      : denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
   }
 
   if (skill.name === 'Enter Radiant Forge') {
-    return selectedGuardianSpecialization(context) === 'Luminary' && !luminaryState.from(context).radiantForge;
+    if (selectedGuardianSpecialization(context) !== 'Luminary') {
+      return denyCast(
+        'guardian.luminary-specialization',
+        `${skill.name} is unavailable — requires the Luminary specialization.`
+      );
+    }
+
+    return forgeActive
+      ? denyCast('guardian.radiant-forge-active', `${skill.name} is unavailable — Radiant Forge is already active.`)
+      : CAST_READY;
   }
 
   if (skill.name === 'Exit Radiant Forge') {
-    return selectedGuardianSpecialization(context) === 'Luminary' && luminaryState.from(context).radiantForge;
+    if (selectedGuardianSpecialization(context) !== 'Luminary') {
+      return denyCast(
+        'guardian.luminary-specialization',
+        `${skill.name} is unavailable — requires the Luminary specialization.`
+      );
+    }
+
+    return forgeActive
+      ? CAST_READY
+      : denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
   }
+
+  return CAST_READY;
 }
 
 /**

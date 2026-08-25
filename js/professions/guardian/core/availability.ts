@@ -1,19 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { CAST_READY } from '../../../platform/engine/skills/availability.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { denySkillCast } from '../../lib/availability.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { GuardianAvailabilityContext, GuardianPrecastContext, GuardianSkill } from '../types.js';
-
-const READY: Readonly<AvailabilityResult> = Object.freeze({ ready: true });
-
-function deny(skill: GuardianSkill, code: string, cause: string): Readonly<AvailabilityResult> {
-  return Object.freeze({
-    ready: false,
-    retryAt: null,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  });
-}
 
 export function selectedGuardianSpecialization(context: GuardianAvailabilityContext = {}): string {
   const config = context.config || context;
@@ -32,24 +23,32 @@ export function selectedGuardianSpecialization(context: GuardianAvailabilityCont
 
 /**
  * Permanent build gating. These decisions cannot change while a rotation is
- * running, so they remain boolean validation rather than waitable state.
+ * running, so they deny the current command without advertising a retry time.
  */
-export function validateGuardianBuild(context: GuardianAvailabilityContext, skill: GuardianSkill): boolean {
-  if (!skill.implemented) return false;
+export function guardianBuildAvailability(
+  context: GuardianAvailabilityContext,
+  skill: GuardianSkill
+): Readonly<AvailabilityResult> {
+  if (!skill.implemented)
+    return denySkillCast(skill, 'guardian.not-implemented', 'it is not implemented by the simulator.');
   const specialization = selectedGuardianSpecialization(context) || 'Core';
   if (skill.type !== 'Weapon' && skill.specialization && specialization !== skill.specialization) {
-    return false;
+    return denySkillCast(skill, 'guardian.specialization', `requires the ${skill.specialization} specialization.`);
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) {
-    return !hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+    return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART)
+      ? denySkillCast(skill, 'guardian.trait-replacement', 'Glacial Blow replaces it while Glacial Heart is selected.')
+      : CAST_READY;
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) {
-    return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+    return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART)
+      ? CAST_READY
+      : denySkillCast(skill, 'guardian.trait-replacement', 'requires the Glacial Heart trait.');
   }
 
-  return true;
+  return CAST_READY;
 }
 
 /**
@@ -65,22 +64,26 @@ export function guardianCastAvailability(
     skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
     Number(state.availableFlips[GUARDIAN_SKILL_IDS.ZEALOTS_FIRE] || 0) > context.start + context.epsilon
   ) {
-    return deny(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
+    return denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
   }
 
   if (skill.flipParentId != null) {
     // Active specializations can own persistent or resource-driven flips whose
     // retry semantics cannot be represented by Core's short-lived flip window.
-    if (skill.tags?.includes('specialization-managed-flip')) return READY;
+    if (skill.tags?.includes('specialization-managed-flip')) return CAST_READY;
     return Number(state.availableFlips[skill.id] || 0) > context.start + context.epsilon
-      ? READY
-      : deny(skill, 'guardian.flip-not-armed', 'not currently armed.');
+      ? CAST_READY
+      : denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.');
   }
 
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (!chain) return READY;
+  if (!chain) return CAST_READY;
   const expected = state.autoattackChains[chain.root] || chain.root;
-  if (expected === skill.id) return READY;
+  if (expected === skill.id) return CAST_READY;
   const expectedSkill = context.catalog.skillsById.get(expected);
-  return deny(skill, 'guardian.autoattack-chain', `cast ${expectedSkill?.name || 'the earlier chain skill'} first.`);
+  return denySkillCast(
+    skill,
+    'guardian.autoattack-chain',
+    `cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
+  );
 }

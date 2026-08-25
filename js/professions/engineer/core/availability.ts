@@ -2,6 +2,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import { engineerEnduranceReadyAt } from './resources.js';
+import { denySkillCast as denyEngineerCast } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { EngineerConfig, EngineerCoreState, EngineerPrecastContext, EngineerSkill } from '../types.js';
 
@@ -9,21 +10,6 @@ import type { EngineerConfig, EngineerCoreState, EngineerPrecastContext, Enginee
 export function selectedEngineerSkillNames(config: EngineerConfig): Set<string> {
   const source = config.selectedSkills || [];
   return new Set((Array.isArray(source) ? source : Object.values(source)).map(String));
-}
-
-// retryAt=null means the scheduler has no timestamp hint and won't retry until the next natural scan
-export function denyEngineerCast(
-  skill: EngineerSkill,
-  code: string,
-  cause: string,
-  retryAt: number | null = null
-): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  };
 }
 
 // autoattackChains[root] tracks the NEXT expected skill in the chain; absent = expect root (first hit)

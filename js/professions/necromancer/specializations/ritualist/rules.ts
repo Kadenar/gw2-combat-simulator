@@ -1,6 +1,7 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { CAST_READY } from '../../../../platform/engine/skills/availability.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   cloneNecromancerAttributes,
@@ -27,10 +28,10 @@ const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
 function ritualistAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
-): Readonly<AvailabilityResult> | null {
+): Readonly<AvailabilityResult> {
   const spirit = INNERVATE_SPIRIT.get(skill.id);
-  if (!spirit) return null;
-  if (ritualistState.from(context).activeSpirits[spirit]) return { ready: true };
+  if (!spirit) return CAST_READY;
+  if (ritualistState.from(context).activeSpirits[spirit]) return CAST_READY;
   // Innervate availability follows the matching specialization-owned spirit lifetime.
   return {
     ready: false,

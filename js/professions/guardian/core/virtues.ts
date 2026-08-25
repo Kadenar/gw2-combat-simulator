@@ -13,7 +13,6 @@ import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2ConditionResolution } from '../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
-  GuardianPrecastContext,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSkill,
@@ -26,19 +25,6 @@ interface JusticeHitDependencies {
 }
 
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
-
-/**
- * Allows only the F1-F3 virtue variants belonging to the selected
- * specialization. Non-virtue skills return no opinion.
- *
- * @param {GuardianPrecastContext} context Cast-validation context.
- * @param {GuardianSkill} skill Candidate skill.
- * @returns {boolean|undefined} Whether the relevant virtue is valid.
- */
-export function validateVirtueCast(context: GuardianPrecastContext, skill: GuardianSkill): boolean | undefined {
-  if (!skill.categories?.includes('Virtue') || !/^Profession_[1-3]$/.test(String(skill.slot || ''))) return;
-  return true;
-}
 
 /**
  * Activates the virtue represented by the skill's profession slot and emits

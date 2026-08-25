@@ -3,22 +3,9 @@ import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { revenantEnduranceReadyAt } from './energy.js';
 import { effectiveRevenantEnergyCost } from '../energy.js';
+import { denySkillCast as denyRevenantSkill } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '../types.js';
-
-export function denyRevenantSkill(
-  skill: RevenantSkill,
-  code: string,
-  cause: string,
-  retryAt: number | null = null
-): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  };
-}
 
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);

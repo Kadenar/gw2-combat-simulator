@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { GUARDIAN_SKILL_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled, guardianTimedBuffActive, latestGuardianTimedBuff } from '../../core/rules.js';
-import { advanceRadiantForgeState, validateRadiantForgeCast } from './radiant-forge.js';
+import { advanceRadiantForgeState, radiantForgeAvailability } from './radiant-forge.js';
 import { observeLuminaryScheduledEvent, updateLuminaryTraitCastState } from './traits.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianSchedulerContext, GuardianSkill } from '../../types.js';
@@ -79,11 +79,11 @@ export const luminaryAttributeRules = Object.freeze({
 });
 
 export const luminaryCastRules = Object.freeze({
-  validateCast: Object.freeze([
+  availability: Object.freeze([
     {
       id: 'guardian.radiant-forge',
-      order: 40,
-      handler: validateRadiantForgeCast
+      order: 120,
+      handler: radiantForgeAvailability
     }
   ])
 });

@@ -17,6 +17,7 @@ import { emitGuardianEvent } from '../../core/events.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { hasGuardianTrait } from '../../core/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { CAST_READY, denyCast, retryCast } from '../../../../platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
@@ -35,64 +36,69 @@ interface AshesHitDependencies {
 
 /**
  * Determines whether a tome page or Stow Tome is compatible with the currently
- * active Firebrand tome. Unrelated skills return no opinion.
+ * active Firebrand tome. Unrelated skills return ready so every hook follows
+ * the structured availability contract.
  *
  * @param {GuardianPrecastContext} context Cast-validation context.
  * @param {GuardianSkill} skill Candidate skill.
- * @returns {boolean|undefined} Whether the relevant tome skill is castable.
+ * @returns {AvailabilityResult} Whether the relevant tome skill is castable.
  */
-export function validateTomeCast(context: GuardianPrecastContext, skill: GuardianSkill): boolean | undefined {
-  // Returning false (not undefined) permanently blocks the skill from casting.
-  // Weapon skills are completely locked out while any tome is active.
-  if (skill.type === 'Weapon' && firebrandState.from(context).activeTome) {
-    return false;
+export function tomeStateAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
+  const activeTome = firebrandState.from(context).activeTome;
+  if (skill.type === 'Weapon' && activeTome) {
+    return denyCast('guardian.tome-weapon-lockout', `${skill.name} is unavailable — stow the active tome first.`);
   }
 
   if (skill.tome) {
     // A tome-page skill is only valid when the matching tome is open; returning
     // false here (wrong or no tome) causes the scheduler to skip it entirely
     // rather than waiting (page gating via tomePageAvailability handles waits).
-    return (
-      selectedGuardianSpecialization(context) === 'Firebrand' && firebrandState.from(context).activeTome === skill.tome
-    );
+    if (selectedGuardianSpecialization(context) !== 'Firebrand') {
+      return denyCast(
+        'guardian.firebrand-specialization',
+        `${skill.name} is unavailable — requires the Firebrand specialization.`
+      );
+    }
+
+    return activeTome === skill.tome
+      ? CAST_READY
+      : denyCast(
+          'guardian.tome-inactive',
+          `${skill.name} is unavailable — requires the ${skill.tome} tome to be active.`
+        );
   }
 
   if (skill.name === 'Stow Tome') {
-    return Boolean(firebrandState.from(context).activeTome);
+    return activeTome
+      ? CAST_READY
+      : denyCast('guardian.tome-inactive', `${skill.name} is unavailable — requires an active tome.`);
   }
-  // Returning undefined means "no opinion" — the platform's default rules apply.
+  return CAST_READY;
 }
 
 /**
  * Tome page cost is a regenerating resource, so an insufficient balance is a
  * wait rather than a permanent denial. Once the open tome and specialization
- * match (handled as permanent gating by validateTomeCast), the scheduler can
+ * match (handled as permanent gating by tomeStateAvailability), the scheduler can
  * pause until the next page lands instead of discarding the cast.
  *
  * @param {GuardianPrecastContext} context Cast-availability context.
  * @param {GuardianSkill} skill Candidate tome skill.
- * @returns {boolean | AvailabilityResult} True when ready, or a retry
- * descriptor when pages are insufficient.
+ * @returns {AvailabilityResult} Ready or a retry descriptor when pages are insufficient.
  */
-export function tomePageAvailability(
-  context: GuardianPrecastContext,
-  skill: GuardianSkill
-): boolean | AvailabilityResult {
+export function tomePageAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const state = firebrandState.from(context);
   if (!skill.tome || selectedGuardianSpecialization(context) !== 'Firebrand' || state.activeTome !== skill.tome)
-    return true;
+    return CAST_READY;
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
-  if (state.tomePages >= pageCost) return true;
+  if (state.tomePages >= pageCost) return CAST_READY;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
   // terminating condition. A non-finite next page (tome already at maximum)
   // leaves retryAt null so the denial stays final rather than looping forever.
-  const retryAt = Number.isFinite(state.nextTomePageAt) ? state.nextTomePageAt : null;
-  return {
-    ready: false,
-    retryAt,
-    code: 'guardian.tome-pages',
-    reason: `${skill.name} is unavailable — requires ${pageCost} tome ` + `page${pageCost === 1 ? '' : 's'}.`
-  };
+  const reason = `${skill.name} is unavailable — requires ${pageCost} tome page${pageCost === 1 ? '' : 's'}.`;
+  return Number.isFinite(state.nextTomePageAt)
+    ? retryCast(state.nextTomePageAt, 'guardian.tome-pages', reason)
+    : denyCast('guardian.tome-pages', reason);
 }
 
 /**

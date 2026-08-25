@@ -353,7 +353,6 @@ export interface ProfessionAppState {
   relicNames: readonly string[];
   specializations: CanonicalCatalog['specializations'];
   resourceDefinitions(specialization: string): ProfessionResourceView[];
-  resourceDefinition(specialization: string): ProfessionResourceView | null;
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;

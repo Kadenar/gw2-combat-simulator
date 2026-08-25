@@ -3,7 +3,7 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianBoonActive } from '../../core/rules.js';
-import { advanceTomeState, tomePageAvailability, validateTomeCast } from './tomes.js';
+import { advanceTomeState, tomePageAvailability, tomeStateAvailability } from './tomes.js';
 import { observeFirebrandScheduledEvent, updateFirebrandCastState } from './traits.js';
 import {
   advanceFirebrandMantras,
@@ -47,16 +47,14 @@ export const firebrandCastRules = Object.freeze({
       handler: firebrandMantraAvailability
     },
     {
-      id: 'guardian.tome-pages',
+      id: 'guardian.tome-state',
       order: 30,
-      handler: tomePageAvailability
-    }
-  ]),
-  validateCast: Object.freeze([
+      handler: tomeStateAvailability
+    },
     {
-      id: 'guardian.tomes',
-      order: 30,
-      handler: validateTomeCast
+      id: 'guardian.tome-pages',
+      order: 40,
+      handler: tomePageAvailability
     }
   ])
 });

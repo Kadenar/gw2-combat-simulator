@@ -1,4 +1,5 @@
 import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
+import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
@@ -9,15 +10,6 @@ import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
-}
-
-function unavailable(skill: Skill, code: string, reason: string, retryAt: number | null = null): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${reason}`
-  };
 }
 
 function attunementVariantBaseName(name: string): string {

@@ -1,6 +1,6 @@
 import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../engine/skills/handlers.js';
-import type { SkillHandlerStrategy, SkillId } from '../../engine/types.js';
+import type { AvailabilityResult, SkillHandlerStrategy, SkillId } from '../../engine/types.js';
 import type { NativeResolvedDamageDetails, NativeResolvedReaction, NativeSchedulerMechanic } from './module-types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime, Gw2ResolverStage } from '../resolver/types.js';
 
@@ -8,6 +8,12 @@ type OrderedEscapeHandler = Readonly<{
   id: string;
   order?: number;
   handler: (...args: never[]) => object | boolean | number | string | null | void;
+}>;
+
+type AvailabilityEscapeHandler = Readonly<{
+  id: string;
+  order?: number;
+  handler: (...args: never[]) => AvailabilityResult;
 }>;
 
 function resolvedReaction<
@@ -283,7 +289,7 @@ function schedulerMechanic(
 }
 
 /** Creates an ordered scheduler mechanic that controls skill availability. */
-export function skillAvailability(declaration: OrderedEscapeHandler): NativeSchedulerMechanic {
+export function skillAvailability(declaration: AvailabilityEscapeHandler): NativeSchedulerMechanic {
   return schedulerMechanic('availability', declaration);
 }
 

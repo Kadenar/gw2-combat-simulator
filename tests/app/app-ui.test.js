@@ -13,6 +13,7 @@ import {
 } from '../../js/app/build/panels/options.js';
 import { getBuildExportPayload } from '../../js/app/build/io/files.js';
 import { skillBarDisplaySkill } from '../../js/app/build/panels/skills.js';
+import { clampStartingResourceValues } from '../../js/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/state/persistence.js';
 import { groupedOptions, option } from '../../js/platform/ui/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '../../js/app/profession/registry.js';
@@ -56,6 +57,28 @@ import { guardianProfession } from '../../js/professions/guardian/definition.js'
 import { createMesmerBuildDefaults } from '../../js/professions/mesmer/build.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
+
+test('starting resource clamps cover every active resource view', () => {
+  const app = {
+    build: {
+      initialResource: 25,
+      initialBlight: 15,
+      unchanged: 9
+    },
+    resourceDefinitions: (specialization) => {
+      assert.equal(specialization, 'Multi Resource');
+      return [{ maximum: 10 }, { buildKey: 'initialBlight', maximum: 5 }, { buildKey: 'missingResource', maximum: 3 }];
+    }
+  };
+
+  clampStartingResourceValues(app, 'Multi Resource');
+
+  assert.deepEqual(app.build, {
+    initialResource: 10,
+    initialBlight: 5,
+    unchanged: 9
+  });
+});
 
 test('target armor presets use base by default and allow custom values', () => {
   assert.equal(DEFAULT_TARGET_ARMOR, 2597);

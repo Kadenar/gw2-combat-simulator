@@ -54,7 +54,6 @@ export class ProfessionApp implements ProfessionAppState {
   readonly relicNames: ProfessionAppState['relicNames'];
   readonly specializations: ProfessionAppState['specializations'];
   readonly resourceDefinitions: ProfessionAppState['resourceDefinitions'];
-  readonly resourceDefinition: ProfessionAppState['resourceDefinition'];
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
@@ -98,7 +97,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
     this.specializations = adapter.specializations;
     this.resourceDefinitions = (specialization: string) => this.profession.ui.resourceViews({ specialization });
-    this.resourceDefinition = (specialization: string) => this.resourceDefinitions(specialization)[0] || null;
     this.attributeWeaponSet = 1;
     this.attributeData = null;
     this.results = null;

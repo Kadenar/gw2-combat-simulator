@@ -26,7 +26,7 @@ import {
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
 import { necromancerMinionTaskHandlers } from './minions.js';
-import { necromancerCastAvailability, requiredShroud, validateNecromancerBuild } from './availability.js';
+import { necromancerBuildAvailability, necromancerCastAvailability, requiredShroud } from './availability.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
@@ -289,16 +289,18 @@ export const necromancerCoreSkillMechanicHandlers = Object.freeze({
  * Necromancer resource/form availability and build-validation rules.
  */
 export const necromancerCastRules = Object.freeze({
-  availability: {
-    id: 'necromancer.cast-state',
-    order: 10,
-    handler: necromancerCastAvailability
-  },
-  validateCast: {
-    id: 'necromancer.build',
-    order: 10,
-    handler: validateNecromancerBuild
-  }
+  availability: Object.freeze([
+    {
+      id: 'necromancer.cast-state',
+      order: 10,
+      handler: necromancerCastAvailability
+    },
+    {
+      id: 'necromancer.build',
+      order: 100,
+      handler: necromancerBuildAvailability
+    }
+  ])
 });
 
 /**

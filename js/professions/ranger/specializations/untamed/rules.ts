@@ -3,6 +3,7 @@ import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/s
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
+import { denySkillCast as deny } from '../../../lib/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { untamedState } from './state.js';
@@ -10,14 +11,6 @@ import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } f
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
-
-function deny(skill: RangerSkill, code: string, cause: string): AvailabilityResult {
-  return {
-    ready: false,
-    code,
-    reason: `${skill.name} is unavailable - ${cause}`
-  };
-}
 
 export function untamedCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = untamedState.from(context);

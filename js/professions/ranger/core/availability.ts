@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { denySkillCast } from '../../lib/availability.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RangerPrecastContext, RangerSkill } from '../types.js';
@@ -6,14 +7,6 @@ import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from './hammer.j
 import { rangerEnduranceReadyAt } from './resources.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './weapon-state.js';
-
-function deny(skill: RangerSkill, code: string, cause: string): AvailabilityResult {
-  return {
-    ready: false,
-    code,
-    reason: `${skill.name} is unavailable - ${cause}`
-  };
-}
 
 export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = professionCoreState(context);
@@ -30,14 +23,14 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
   }
 
   if (skill.id === ID.PET_SWAP && !state.petActive) {
-    return deny(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
+    return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
   if (
     isRangerHammerVariant(skill.id) &&
     !normalizeRangerHammerSkillIds(context.config.selectedHammerSkillIds).includes(Number(skill.id))
   ) {
-    return deny(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
+    return denySkillCast(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
   }
 
   const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
@@ -49,7 +42,7 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
     (flipParent?.flipSkillId === skill.id || isSpearStealthAttack) &&
     Number(state.availableFlips[Number(skill.id)] || 0) <= context.start
   ) {
-    return deny(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
+    return denySkillCast(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
   }
 
   if (
@@ -60,20 +53,20 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
       Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start) ||
       (spearStealthFlipId != null && Number(state.availableFlips[spearStealthFlipId] || 0) > context.start))
   ) {
-    return deny(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
+    return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
   }
 
   if (!skill.petSkill) return { ready: true };
   if (skill.petAutonomousSkill) {
-    return deny(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
+    return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }
 
   if (!state.petActive) {
-    return deny(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
+    return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
   if (!state.activePetSkillIds.includes(skill.id)) {
-    return deny(skill, 'ranger.inactive-pet', 'select the pet that owns this Beast skill.');
+    return denySkillCast(skill, 'ranger.inactive-pet', 'select the pet that owns this Beast skill.');
   }
 
   return { ready: true };

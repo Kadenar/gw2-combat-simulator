@@ -2,6 +2,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from './state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { denySkillCast as deny } from '../../lib/availability.js';
 import type { AvailabilityResult, SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerPrecastContext, NecromancerCoreState, NecromancerSkill } from '../types.js';
 
@@ -39,20 +40,6 @@ export function requiredShroud(skill?: NecromancerSkill): string {
 }
 
 const READY: Readonly<AvailabilityResult> = Object.freeze({ ready: true });
-
-// Structured availability denial. Reasons keep the "<skill> is unavailable"
-// prefix so rotations read consistently, then append a specific cause and carry
-// a machine-readable code. retryAt stays null for these gates: necromancer
-// resource/state gates (life force, shroud sequencing, chains) have no fixed
-// ready-time under a scripted rotation, so a denial is final rather than a wait.
-function deny(skill: NecromancerSkill, code: string, cause: string): Readonly<AvailabilityResult> {
-  return Object.freeze({
-    ready: false,
-    retryAt: null,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  });
-}
 
 // Autoattack-chain position gate shared by in-shroud and baseline skills: a
 // chain link is castable only when it is the expected next link.
@@ -219,17 +206,31 @@ const CAST_STATE_GATES: readonly CastStateGate[] = Object.freeze([
 ]);
 
 /**
- * Permanent build gating: nothing here can become valid mid-rotation, so it
- * stays a boolean validator rather than a waitable availability constraint.
+ * Permanent build gating: nothing here can become valid by advancing time, so
+ * failures deny the current command without advertising a retry timestamp.
  */
-export function validateNecromancerBuild(context: NecromancerPrecastContext, skill: NecromancerSkill): boolean {
-  if (!skill.implemented || skill.simulatorExcluded) return false;
+export function necromancerBuildAvailability(
+  context: NecromancerPrecastContext,
+  skill: NecromancerSkill
+): Readonly<AvailabilityResult> {
+  if (!skill.implemented) {
+    return deny(skill, 'necromancer.not-implemented', 'it is not implemented by the simulator.');
+  }
+  if (skill.simulatorExcluded) {
+    return deny(skill, 'necromancer.simulator-excluded', 'it is excluded from simulation.');
+  }
   if (skill.type !== 'Weapon' && skill.specialization && skill.specialization !== specialization(context)) {
-    return false;
+    return deny(skill, 'necromancer.specialization', `requires the ${skill.specialization} specialization.`);
   }
 
-  if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(context, TRAIT.LINGERING_CURSE)) return false;
-  return true;
+  if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(context, TRAIT.LINGERING_CURSE)) {
+    return deny(
+      skill,
+      'necromancer.trait-replacement',
+      'Devouring Darkness replaces it while Lingering Curse is selected.'
+    );
+  }
+  return READY;
 }
 
 /**

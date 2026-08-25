@@ -8,10 +8,9 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianState } from '../types.js';
-import { guardianCastAvailability, validateGuardianBuild } from './availability.js';
+import { guardianBuildAvailability, guardianCastAvailability } from './availability.js';
 import { advanceSpearIlluminationState, updateSpearIlluminationState } from './spear.js';
 import { observeGuardianScheduledEvent, updateGuardianTraitCastState } from './traits.js';
-import { validateVirtueCast } from './virtues.js';
 import { updateWeaponCastState } from './weapon-state.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from './profiles.js';
 
@@ -416,21 +415,16 @@ export const guardianCoreAttributeRules = Object.freeze({
 });
 
 export const guardianCoreCastRules = Object.freeze({
-  availability: {
-    id: 'guardian.cast-state',
-    order: 10,
-    handler: guardianCastAvailability
-  },
-  validateCast: Object.freeze([
+  availability: Object.freeze([
     {
-      id: 'guardian.build',
+      id: 'guardian.cast-state',
       order: 10,
-      handler: validateGuardianBuild
+      handler: guardianCastAvailability
     },
     {
-      id: 'guardian.virtues',
-      order: 20,
-      handler: validateVirtueCast
+      id: 'guardian.build',
+      order: 100,
+      handler: guardianBuildAvailability
     }
   ]),
   modifyCastDuration: modifyGuardianCastDuration,

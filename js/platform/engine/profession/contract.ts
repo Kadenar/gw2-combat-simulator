@@ -3,7 +3,6 @@
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
 import type {
-  AvailabilityResult,
   CanonicalCatalog,
   NormalizedProfessionContract,
   PaletteSkillAvailability,
@@ -14,7 +13,7 @@ import type {
 } from '../types.js';
 import { createCanonicalCatalog } from '../skills/catalog.js';
 import { toEntries } from '../core/collections.js';
-import { foldAvailability } from '../skills/availability.js';
+import { assertAvailabilityResult, CAST_READY, foldAvailability } from '../skills/availability.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -37,7 +36,6 @@ const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] 
   ['prepareEvent', ['scheduler']],
   ['initialize', ['scheduler']],
   ['availability', ['scheduler', 'cast']],
-  ['validateCast', ['scheduler', 'cast']],
   ['scheduleSkill', ['scheduler', 'cast']],
   ['afterCast', ['scheduler']],
   ['advance', ['scheduler']],
@@ -71,8 +69,7 @@ export const ATTRIBUTE_HOOK_NAMES = hookNamesWith('attribute');
 
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
-const VALID_CAST: ComposableHook = (..._args) => true;
-const READY_CAST: ComposableHook = (..._args) => ({ ready: true });
+const READY_CAST: ComposableHook = (..._args) => CAST_READY;
 
 const UI_CALLBACK_NAMES = Object.freeze([
   'chargeReleaseProjection',
@@ -87,7 +84,6 @@ const UI_CALLBACK_NAMES = Object.freeze([
   'paletteWeaponSkills',
   'renderWeaponPalette',
   'resolvePaletteAction',
-  'resourceView',
   'resourceViews',
   'skillBarGroups',
   'startControls',
@@ -147,7 +143,7 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
 
 /**
  * Reduces normalized hooks into one callable function with semantics tailored
- * to the hook family: validators must all pass, modifiers chain their return
+ * to the hook family: availability results fold, modifiers chain their return
  * values, and ordinary hooks simply run in order.
  */
 function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
@@ -158,46 +154,12 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
       foldAvailability(
         (function* () {
           for (const hook of hooks) {
-            const next = hook.handler(context, skill);
-            if (next == null || next === true) continue;
-            const availability =
-              next === false
-                ? {
-                    ready: false,
-                    retryAt: null,
-                    code: `${hook.id}.unavailable`,
-                    reason: `${skill.name} is unavailable.`
-                  }
-                : (next as AvailabilityResult);
+            const availability = assertAvailabilityResult(hook.handler(context, skill), `${hook.id} availability hook`);
             if (availability.ready !== false) continue;
-            if (availability.retryAt == null) {
-              yield {
-                ready: false,
-                retryAt: null,
-                code: String(availability.code || `${hook.id}.unavailable`),
-                reason: String(availability.reason || `${skill.name} is unavailable.`)
-              };
-              continue;
-            }
-
-            const retryAt = Number(availability.retryAt);
-            if (!Number.isFinite(retryAt)) {
-              throw new TypeError(`${hook.id} returned a non-finite cast retry time.`);
-            }
-
-            yield {
-              ready: false,
-              retryAt,
-              code: String(availability.code || `${hook.id}.not-ready`),
-              reason: String(availability.reason || `${skill.name} is not ready until ${retryAt.toFixed(3)}.`)
-            };
+            yield availability;
           }
         })()
       );
-  }
-
-  if (hookName === 'validateCast') {
-    return (context: SchedulerRecord, skill: Skill) => hooks.every((hook) => hook.handler(context, skill) !== false);
   }
 
   if (hookName === 'scheduleSkill') {
@@ -469,13 +431,9 @@ export function defineProfession<TProfessionState extends object>(
   assertSkillMechanicTriggers(definition.catalog, skillMechanicHandlers, definition.id);
   const catalogSkillHandlers =
     definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();
-  const legacyResourceView = ui.resourceView || (() => null);
-  const resourceViews =
-    ui.resourceViews ||
-    ((context: SchedulerRecord) => {
-      const view = legacyResourceView(context);
-      return view ? [view] : [];
-    });
+  // Resource presentation is plural throughout the contract; professions
+  // without resource UI normalize directly to an empty collection.
+  const resourceViews = ui.resourceViews || (() => []);
   const structuredPaletteAvailability = ui.paletteSkillAvailability;
   const paletteSkillAvailability = structuredPaletteAvailability
     ? (context: SchedulerRecord, skill: Skill) =>
@@ -484,7 +442,7 @@ export function defineProfession<TProfessionState extends object>(
         available: ui.isPaletteSkillAvailable?.(context, skill) !== false,
         message: String(ui.paletteSkillUnavailableMessage?.(context, skill) || '')
       });
-      
+
   const normalizedUi: ProfessionUiContract = {
     ...ui,
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
@@ -494,7 +452,6 @@ export function defineProfession<TProfessionState extends object>(
     paletteWeaponSkills: ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
     renderWeaponPalette: ui.renderWeaponPalette || (() => null),
     resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
-    resourceView: (context: SchedulerRecord) => resourceViews(context)[0] || null,
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
     paletteSkillAvailability,
@@ -519,7 +476,6 @@ export function defineProfession<TProfessionState extends object>(
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
     availability: castRules.availability ?? schedulerHooks.availability,
-    validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
     scheduleSkill: castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
@@ -548,11 +504,9 @@ export function defineProfession<TProfessionState extends object>(
     const fallback =
       name === 'availability'
         ? READY_CAST
-        : name === 'validateCast'
-          ? VALID_CAST
-          : name === 'prepareEvent' || name.startsWith('modify')
-            ? IDENTITY_SECOND_ARGUMENT
-            : NOOP;
+        : name === 'prepareEvent' || name.startsWith('modify')
+          ? IDENTITY_SECOND_ARGUMENT
+          : NOOP;
     hooks[name] = composeHooks(sources[name], name, fallback);
   }
 
@@ -585,7 +539,6 @@ export function defineProfession<TProfessionState extends object>(
     }),
     eventReactions: createEventReactions(resolverHooks.eventReactions || definition.eventReactions),
     paletteGroups: normalizedUi.paletteGroups,
-    resourceView: (context: SchedulerRecord) => resourceViews(context)[0] || null,
     resourceViews,
     ui: Object.freeze(normalizedUi),
     simulation: normalizeSimulation(definition.simulation)

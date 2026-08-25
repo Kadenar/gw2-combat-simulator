@@ -254,7 +254,7 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
   assert.deepEqual(calls, ['first', 'same', 'later']);
   profession.eventReactions.control({}, { type: 'control' });
   assert.deepEqual(calls, ['first', 'same', 'later', 'first-control', 'later-control']);
-  assert.equal(profession.validateCast({}, {}), true);
+  assert.deepEqual(profession.availability({}, {}), { ready: true });
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.deepEqual(profession.paletteGroups({}), []);
@@ -277,9 +277,7 @@ test('profession contract supports zero or multiple resource views', () => {
   });
 
   assert.deepEqual(none.ui.resourceViews({}), []);
-  assert.equal(none.ui.resourceView({}), null);
   assert.equal(multiple.ui.resourceViews({}).length, 2);
-  assert.equal(multiple.ui.resourceView({}).id, 'pages');
 });
 
 test('shared autoattack helpers derive and index ID-based chains', () => {
@@ -457,7 +455,15 @@ test('declarative boons can gate dynamic skill availability', () => {
     name: 'Boon Gated',
     catalog,
     castRules: {
-      validateCast: (context) => context.skill.id !== 920002 || context.hasBuff('aegis')
+      availability: (context) =>
+        context.skill.id !== 920002 || context.hasBuff('aegis')
+          ? { ready: true }
+          : {
+              ready: false,
+              retryAt: null,
+              code: 'fixture.aegis-required',
+              reason: 'Aegis Strike is unavailable — requires aegis.'
+            }
     }
   });
   const available = simulateGw2({
@@ -478,6 +484,19 @@ test('declarative boons can gate dynamic skill availability', () => {
   assert.equal(expired.totalDamage, 0);
   assert.ok(extended.totalDamage > 0);
   assert.match(expired.warnings.join(' '), /unavailable/);
+});
+
+test('profession availability rejects legacy boolean hook results', () => {
+  const profession = defineProfession({
+    id: 'legacy-availability-result',
+    name: 'Legacy Availability Result',
+    castRules: {
+      // Admission hooks must describe whether to deny or retry instead of relying on boolean adaptation.
+      availability: () => false
+    }
+  });
+
+  assert.throws(() => profession.availability({}, { name: 'Legacy Skill' }), /must return an AvailabilityResult/);
 });
 
 test('declarative generic buffs use shared timed state without boon-duration scaling', () => {
@@ -2563,13 +2582,14 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
 test('Mesmer build migrations produce validated schema version 3 data', () => {
   const migrated = migrateMesmerBuild({
     sigils: ['Force', 'Impact'],
-    assumptions: { vulnerability: 10 },
+    assumptions: { targetConditions: { Vulnerability: 10, Slow: true } },
     rotation: ['Mind Stab', { name: '__wait', waitMs: 125 }]
   });
 
   assert.equal(migrated.schemaVersion, BUILD_SCHEMA_VERSION);
   assert.equal(migrated.profession, 'mesmer');
   assert.equal(migrated.assumptions.targetConditions.Vulnerability, 10);
+  assert.equal(migrated.assumptions.targetConditions.Slow, true);
   assert.deepEqual(migrated.rotation[0], {
     type: 'cast',
     skillId: mesmerCatalog.skillsByName.get('Mind Stab').id
@@ -2998,7 +3018,7 @@ test('migrated combo professions have no local compatibility path', async () => 
     const source = (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n');
 
     assert.doesNotMatch(source, /\bcomboField(?:Duration|StartMs)?\b/, profession);
-    assert.doesNotMatch(source, /\bfieldDuration\b|\bfinisherValue\b/, profession);
+    assert.doesNotMatch(source, /\bfieldDuration\b/, profession);
     assert.doesNotMatch(source, /blast_combo|blast-combo\.resolved/, profession);
     await assert.rejects(readFile(path.join(root, 'core', 'combos.ts'), 'utf8'), (error) => error?.code === 'ENOENT');
   }

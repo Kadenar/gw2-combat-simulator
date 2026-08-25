@@ -71,24 +71,12 @@ export function resourceDisplayViews(
   profession: ProfessionAppContract,
   context: SchedulerRecord
 ): ProfessionResourceView[] {
-  // resourceViews is the multi-resource contract. resourceView is retained as a
-  // compatibility fallback for professions exposing a single mechanic.
-  const views = profession.ui.resourceViews
-    ? profession.ui.resourceViews(context)
-    : [profession.ui.resourceView(context)].filter((view): view is ProfessionResourceView => view != null);
+  const views = profession.ui.resourceViews(context);
   if (!Array.isArray(views)) {
     throw new TypeError('Profession resourceViews must return an array.');
   }
 
   return views.filter((view): view is ProfessionResourceView => view != null).map(normalizeResourceView);
-}
-
-/** Returns the first normalized resource for legacy single-resource callers. */
-export function resourceDisplayView(
-  profession: ProfessionAppContract,
-  context: SchedulerRecord
-): ProfessionResourceView | null {
-  return resourceDisplayViews(profession, context)[0] || null;
 }
 
 /** Formats a finite resource value with at most three decimal places. */

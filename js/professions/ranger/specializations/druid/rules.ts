@@ -1,4 +1,5 @@
 import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
+import { denySkillCast as deny } from '../../../lib/availability.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { gw2StatsForWeaponSet } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
@@ -221,14 +222,6 @@ export const druidSchedulerHooks = Object.freeze({
     [DRUID_ASTRAL_FORCE_DAMAGE_TASK]: handleDruidAstralForceDamageTask
   }
 });
-
-function deny(skill: RangerSkill, code: string, cause: string): AvailabilityResult {
-  return {
-    ready: false,
-    code,
-    reason: `${skill.name} is unavailable - ${cause}`
-  };
-}
 
 export function druidCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = druidState.from(context);

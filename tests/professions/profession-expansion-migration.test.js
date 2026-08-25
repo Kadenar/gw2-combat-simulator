@@ -210,7 +210,6 @@ function assertUiContracts(entry, profession, specialization) {
     'isSlotSkillSelectable',
     'paletteSkillUnavailableMessage',
     'paletteGroups',
-    'resourceView',
     'resourceViews',
     'skillBarGroups',
     'targetHealthThresholds',

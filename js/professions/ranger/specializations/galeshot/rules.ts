@@ -2,6 +2,7 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
+import { denySkillCast as deny } from '../../../lib/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '../../types.js';
 import { rangerPetByName } from '../../core/state.js';
@@ -110,14 +111,6 @@ export const galeshotSchedulerHooks = Object.freeze({
     'ranger.galeshot-disable': handleGaleshotDisableTask
   })
 });
-
-function deny(skill: RangerSkill, code: string, cause: string): AvailabilityResult {
-  return {
-    ready: false,
-    code,
-    reason: `${skill.name} is unavailable - ${cause}`
-  };
-}
 
 export function galeshotCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);

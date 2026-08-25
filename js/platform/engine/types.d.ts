@@ -516,12 +516,20 @@ export interface TaskQueue<TContext = unknown, TPayload = unknown> {
   has(id: string | number): boolean;
 }
 
-export interface AvailabilityResult {
-  readonly ready: boolean;
-  readonly retryAt?: number | null;
-  readonly reason?: string;
-  readonly code?: string;
-}
+export type AvailabilityResult =
+  | Readonly<{ ready: true }>
+  | Readonly<{
+      ready: false;
+      retryAt: null;
+      reason: string;
+      code: string;
+    }>
+  | Readonly<{
+      ready: false;
+      retryAt: number;
+      reason: string;
+      code: string;
+    }>;
 
 export interface SchedulerConfig extends SchedulerRecord {
   readonly boons?: Readonly<Record<string, boolean | number>>;
@@ -554,11 +562,7 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     event: SimulationEventInput
   ) => SimulationEventInput | undefined;
   readonly initialize?: (context: SchedulerContext<TProfessionState>) => unknown;
-  readonly availability?: (
-    context: CastContext<TProfessionState>,
-    skill: Skill
-  ) => AvailabilityResult | boolean | null | undefined;
-  readonly validateCast?: (context: CastContext<TProfessionState>, skill: Skill) => boolean | void;
+  readonly availability?: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
   readonly castDuration?: (
     context: CastContext<TProfessionState>,
     skill: Skill,
@@ -920,7 +924,6 @@ export interface ProfessionUiContract {
   ) => RotationCommand | RotationCommand[] | null | undefined;
   /** Applies a profession-owned palette control action to mutable build state. */
   readonly updatePaletteControl: (context: SchedulerRecord, controlId: string) => boolean;
-  readonly resourceView: (context: SchedulerRecord) => ProfessionResourceView | null;
   readonly resourceViews: (context: SchedulerRecord) => ProfessionResourceView[];
   readonly skillBarGroups: (context: SchedulerRecord) => ProfessionSkillBarGroup[];
   readonly startControls: (context: SchedulerRecord) => ProfessionStartControl[];
@@ -955,7 +958,6 @@ export interface ProfessionSchedulerHookDefinition {
   readonly prepareEvent?: unknown;
   readonly initialize?: unknown;
   readonly availability?: unknown;
-  readonly validateCast?: unknown;
   readonly scheduleSkill?: unknown;
   readonly afterCast?: unknown;
   readonly advance?: unknown;
@@ -1074,7 +1076,6 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   ) => SimulationEventInput;
   readonly initialize: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
-  readonly validateCast: (context: CastContext<TProfessionState>, skill: Skill) => boolean;
   readonly scheduleSkill: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => boolean | void;
   readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly advance: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
@@ -1103,7 +1104,6 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly modifyConditionBaseDuration: (context: SchedulerRecord, multiplier: number) => number;
   readonly modifyConditionDuration: (context: SchedulerRecord, multiplier: number) => number;
   readonly paletteGroups: (context: SchedulerRecord) => ProfessionPaletteGroup[];
-  readonly resourceView: (context: SchedulerRecord) => ProfessionResourceView | null;
   readonly resourceViews: (context: SchedulerRecord) => ProfessionResourceView[];
 }
 

@@ -17,7 +17,7 @@ import {
   revenantRuntimeSpecializationState,
   revenantTargetVulnerability
 } from '../../core/rules.js';
-import { denyRevenantSkill } from '../../core/availability.js';
+import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
 import {
   completeBeguilingHaze,

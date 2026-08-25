@@ -25,7 +25,6 @@ export const firebrandModule = defineNativeModule({
   mechanics: {
     modifiers: firebrandAttributeRules,
     availability: firebrandCastRules.availability.map(skillAvailability),
-    castRules: { validateCast: firebrandCastRules.validateCast },
     schedulerHooks: firebrandSchedulerHooks,
     reactions: [
       ...firebrandEventReactions.damage.map(onResolvedDamage),

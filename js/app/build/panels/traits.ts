@@ -5,6 +5,17 @@ import type { ProfessionAppState, ProfessionSpecialization } from '../../profess
 const SPEC_BG = (name: string): string =>
   `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(name)}_specialization.png`;
 
+/** Clamps every persisted starting resource after a specialization changes its available resource views. */
+export function clampStartingResourceValues(app: ProfessionAppState, specialization: string): void {
+  for (const definition of app.resourceDefinitions(specialization)) {
+    const buildKey = definition.buildKey || 'initialResource';
+    const value = Number(app.build[buildKey]);
+    if (Number.isFinite(value)) {
+      app.build[buildKey] = Math.min(value, definition.maximum);
+    }
+  }
+}
+
 /**
  * @param {ProfessionAppState} app
  * @returns {void}
@@ -76,14 +87,7 @@ export function renderTraits(app: ProfessionAppState): void {
         });
       }
 
-      const definition = app.resourceDefinition(app.adapter.eliteSpecialization(app.build));
-      if (definition) {
-        const buildKey = definition.buildKey || 'initialResource';
-        const value = Number(app.build[buildKey]);
-        if (Number.isFinite(value)) {
-          app.build[buildKey] = Math.min(value, definition.maximum);
-        }
-      }
+      clampStartingResourceValues(app, app.adapter.eliteSpecialization(app.build));
 
       app.changed();
     });

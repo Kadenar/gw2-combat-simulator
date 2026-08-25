@@ -28,6 +28,7 @@
 import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from './proc-materializer.js';
 import { createGw2ComboMaterializer, GW2_COMBO_MATERIALIZE_EVENT_TASK } from './combo-materializer.js';
 import { createGw2EventPreparer } from './event-preparer.js';
+import { CAST_READY, denyCast } from '../../engine/skills/availability.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
@@ -238,8 +239,10 @@ export function createGw2SchedulerPolicy(
       return Number(config.startingWeaponSet) === 2 ? 2 : 1;
     },
 
-    validateCast(context: CastContext, skill: Skill) {
-      return isGw2WeaponSkillEquipped(context, skill, matcher, catalog);
+    availability(context: CastContext, skill: Skill) {
+      return isGw2WeaponSkillEquipped(context, skill, matcher, catalog)
+        ? CAST_READY
+        : denyCast('gw2.weapon-not-equipped', `${skill.name} is unavailable — its required weapon is not equipped.`);
     },
 
     effectDuration(_context, _skill, effect, baseDuration) {

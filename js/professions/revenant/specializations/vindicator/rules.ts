@@ -9,7 +9,7 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
-import { denyRevenantSkill } from '../../core/availability.js';
+import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { hasRevenantTrait } from '../../core/state.js';

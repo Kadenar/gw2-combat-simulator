@@ -2,7 +2,8 @@ import { holosmithState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
-import { denyEngineerCast, expectedEngineerChainSkill } from '../../core/availability.js';
+import { expectedEngineerChainSkill } from '../../core/availability.js';
+import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '../../types.js';
 

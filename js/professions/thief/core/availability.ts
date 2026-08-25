@@ -3,17 +3,9 @@ import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { thiefEnduranceReadyAt, thiefInitiativeRegenerationRate } from './resources.js';
 import { spearChainStageForSkill } from './conditions.js';
 import { storedStolenSkillChoices } from './steal.js';
+import { denySkillCast as deny } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
-
-function deny(skill: ThiefSkill, code: string, cause: string, retryAt: number | null = null): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  };
-}
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   return context.state.activeWeaponSet === 2

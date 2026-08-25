@@ -1,16 +1,8 @@
 import { antiquaryState } from './state.js';
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import { denySkillCast as deny } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '../../types.js';
-
-function deny(skill: ThiefSkill, code: string, cause: string, retryAt: number | null = null): AvailabilityResult {
-  return {
-    ready: false,
-    retryAt,
-    code,
-    reason: `${skill.name} is unavailable — ${cause}`
-  };
-}
 
 export function antiquaryCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(context);

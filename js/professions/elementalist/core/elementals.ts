@@ -28,6 +28,7 @@ import type {
   Skill,
   SkillEffect
 } from '../../../platform/engine/types.js';
+import { denyCast, retryCast } from '../../../platform/engine/skills/availability.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext,
@@ -78,12 +79,9 @@ function ready(): AvailabilityResult {
 }
 
 function unavailable(reason: string, retryAt?: number): AvailabilityResult {
-  return {
-    ready: false,
-    code: 'elementalist.summoned-elemental',
-    reason,
-    ...(retryAt == null ? {} : { retryAt })
-  };
+  return retryAt == null
+    ? denyCast('elementalist.summoned-elemental', reason)
+    : retryCast(retryAt, 'elementalist.summoned-elemental', reason);
 }
 
 // Normalizes the loadout's selectedSkills (array or keyed object) into a name set.

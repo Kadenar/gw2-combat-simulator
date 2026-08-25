@@ -22,7 +22,7 @@ import {
   HERALD_ELEVATED_COMPASSION_TASK,
   syncElevatedCompassion
 } from './upkeep.js';
-import { denyRevenantSkill } from '../../core/availability.js';
+import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import type { RevenantCastContext, RevenantPrecastContext, RevenantSkill } from '../../types.js';
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
