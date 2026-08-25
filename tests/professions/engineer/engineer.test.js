@@ -138,6 +138,32 @@ test('Fragmentation Shot and Flame Blast retain packets only after their measure
   assert.equal(damageCount('Flame Blast', 600), 1);
 });
 
+test('Poison Dart Volley interruption retains only the channel packets that have landed', () => {
+  const packetCounts = (interruptAfterMs) => {
+    const result = simulate(
+      'Core',
+      [{ name: 'Poison Dart Volley', interruptAfterMs }],
+      { boons: { quickness: true } },
+      observationTail(1_000)
+    );
+
+    return ['damage', 'condition'].map(
+      (type) => result.events.filter((event) => event.type === type && event.skillId === ID.POISON_DART_VOLLEY).length
+    );
+  };
+
+  assert.equal(mechanic('Poison Dart Volley').interruptMode, 'per-packet');
+  assert.deepEqual(packetCounts(167), [0, 0]);
+  assert.deepEqual(packetCounts(168), [1, 1]);
+  assert.deepEqual(packetCounts(600), [3, 3]);
+  assert.deepEqual(packetCounts(839), [4, 4]);
+});
+
+test('Poison Dart Volley and Static Shot are not combo finishers', () => {
+  assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
+  assert.equal(mechanic('Static Shot').comboFinishers, undefined);
+});
+
 test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(engineerCatalog.specializations.length, 9);

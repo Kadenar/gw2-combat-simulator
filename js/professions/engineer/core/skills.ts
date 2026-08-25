@@ -193,15 +193,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 8,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
+    // Poison Dart Volley is a channel: interruption retains landed darts and cancels only its future packets.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
@@ -236,15 +229,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     quicknessCastTimeMs: 320,
     cooldown: 12,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Projectile',
-        chance: 0.2,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
     effects: [
       {
         type: 'strike',
