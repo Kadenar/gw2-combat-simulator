@@ -1,5 +1,6 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
+import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {
   PaletteSkillAvailability,
@@ -317,7 +318,10 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       canStart: false,
       displayMode: 'bar',
       shortLabel: 'End',
-      statusLabel: 'Current'
+      statusLabel: 'Current',
+      // Keep the conditional Tools endurance meter with the Dodge action that
+      // spends it, matching the shared palette placement used by professions.
+      paletteSkillId: ID.DODGE
     };
     // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
     if (usesToolsTraitline(context)) views.push(endurance);

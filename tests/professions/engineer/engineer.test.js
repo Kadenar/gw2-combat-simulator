@@ -385,6 +385,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
   const endurance = tools.find((view) => view.id === 'endurance');
 
   assert.equal(endurance.displayMode, 'bar');
+  assert.equal(endurance.paletteSkillId, ID.DODGE);
   assert.equal(Object.hasOwn(endurance, 'pipStyle'), false);
 
   const holosmith = engineerProfession.ui.resourceViews({
@@ -402,6 +403,43 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     ['heat']
   );
   assert.equal(holosmith[0].pipStyle, 'compact-profession-resource-holosmith-heat');
+});
+
+test('Engineer Tools endurance renders beneath Dodge instead of as a standalone resource', async () => {
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const canonicalBuild = createEngineerBuildDefaults();
+  canonicalBuild.specializations = [
+    { name: 'Tools', traits: '1-2-3' },
+    { name: 'Explosives', traits: '3-2-3' },
+    { name: 'Firearms', traits: '1-2-3' }
+  ];
+  const build = adapter.toApplicationBuild(canonicalBuild);
+  const app = {
+    build,
+    adapter,
+    profession: engineerProfession,
+    skills: engineerCatalog.skills,
+    skillById: engineerCatalog.skillsById,
+    skillByName: engineerCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: null
+  };
+  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  // Skill-attached resources render inside Dodge and are excluded from the standalone resource section.
+  assert.match(palette.innerHTML, /class="[^"]*pal-has-resource[^"]*" data-skill="Dodge"/);
+  assert.match(palette.innerHTML, /data-resource-id="endurance"/);
+  assert.doesNotMatch(palette.innerHTML, /class="active-resource" data-resource-id="endurance"/);
 });
 
 test('Engineer kits render beneath weapons while Holosmith mechanics stay grouped', async () => {
