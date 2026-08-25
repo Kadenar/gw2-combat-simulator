@@ -1,6 +1,6 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/equipment/weapons/skill-matcher.js';
-import type { NormalizedPaletteGroup } from '../../../platform/ui/types.js';
+import type { NormalizedPaletteGroup } from '../../../platform/ui/rotation/palette.js';
 import type {
   ProfessionAppContract,
   ProfessionAppState,

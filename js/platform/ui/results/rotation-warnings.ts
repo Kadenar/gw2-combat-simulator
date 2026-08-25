@@ -1,4 +1,4 @@
-import { escapeHtml } from './html.js';
+import { escapeHtml } from '../shared/html.js';
 
 export interface RotationWarning {
   readonly message?: unknown;

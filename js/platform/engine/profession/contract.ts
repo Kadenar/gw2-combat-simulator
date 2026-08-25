@@ -484,6 +484,7 @@ export function defineProfession<TProfessionState extends object>(
         available: ui.isPaletteSkillAvailable?.(context, skill) !== false,
         message: String(ui.paletteSkillUnavailableMessage?.(context, skill) || '')
       });
+      
   const normalizedUi: ProfessionUiContract = {
     ...ui,
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
@@ -513,6 +514,7 @@ export function defineProfession<TProfessionState extends object>(
     updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
     weaponSwapChangesSet: ui.weaponSwapChangesSet !== false
   };
+
   const sources: SchedulerRecord = {
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
@@ -540,6 +542,7 @@ export function defineProfession<TProfessionState extends object>(
     modifyConditionBaseDuration: attributeRules.modifyConditionBaseDuration,
     modifyConditionDuration: attributeRules.modifyConditionDuration
   };
+
   const hooks: SchedulerRecord = {};
   for (const name of HOOK_NAMES) {
     const fallback =

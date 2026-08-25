@@ -1,4 +1,4 @@
-import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/html.js';
+import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/shared/html.js';
 
 import type { ProfessionAppState, ProfessionSpecialization } from '../../profession/types.js';
 

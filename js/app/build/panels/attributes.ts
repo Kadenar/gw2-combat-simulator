@@ -1,4 +1,4 @@
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import {
   DERIVED_ATTRIBUTES,
   PERCENT_ATTRIBUTES,

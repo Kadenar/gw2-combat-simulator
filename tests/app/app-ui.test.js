@@ -14,7 +14,7 @@ import {
 import { getBuildExportPayload } from '../../js/app/build/io/files.js';
 import { skillBarDisplaySkill } from '../../js/app/build/panels/skills.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/state/persistence.js';
-import { groupedOptions, option } from '../../js/platform/ui/html.js';
+import { groupedOptions, option } from '../../js/platform/ui/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '../../js/app/profession/registry.js';
 import { professionRoute } from '../../js/app/profession/selector.js';
 import {
@@ -808,7 +808,7 @@ test('shared app and platform helpers are profession neutral', async () => {
     readFile(new URL('../../js/app/app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/simulation/config.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/platform/ui/rotation-results.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../js/platform/ui/results/rotation-results.ts', import.meta.url), 'utf8')
   ]);
   const professionTerms = professionRegistry.flatMap((entry) => [entry.id, entry.name]);
 

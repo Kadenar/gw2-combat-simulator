@@ -1,6 +1,6 @@
-import { mountRotationResults, SKILL_COLS } from '../../../platform/ui/rotation-results.js';
+import { mountRotationResults, SKILL_COLS } from '../../../platform/ui/results/rotation-results.js';
 import { syncRotationFocusResults, updateFloatingDps } from '../workspace.js';
-import { targetHealthBreakpointSnapshots } from '../../../platform/ui/result-transform.js';
+import { targetHealthBreakpointSnapshots } from '../../../platform/ui/results/result-transform.js';
 import type { ProfessionAppResult, ProfessionAppState } from '../../profession/types.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '../shared/icons.js';
 import { renderPatchComparison } from '../../simulation/patch-preview-view.js';

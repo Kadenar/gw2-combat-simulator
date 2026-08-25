@@ -9,7 +9,7 @@
  */
 
 import { embedRoute, isEmbedded } from '../embed.js';
-import { mountGw2IconFallback } from '../../platform/ui/gw2-icon-fallback.js';
+import { mountGw2IconFallback } from '../../platform/ui/shared/gw2-icon-fallback.js';
 import { mountRotationTimelineSize } from '../rotation/timeline/size.js';
 import { mountRotationWorkspace } from '../rotation/workspace.js';
 import { mountSimulatorTutorial } from '../tutorial.js';

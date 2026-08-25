@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../../platform/ui/html.js';
+import { escapeHtml } from '../../../platform/ui/shared/html.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 import { resultSkillIcon } from '../shared/icons.js';
 import type {

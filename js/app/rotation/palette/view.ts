@@ -10,21 +10,24 @@
  * The palette is rebuilt after application changes; event handlers therefore
  * read current build and result state instead of retaining DOM-local state.
  */
-import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
-import { activationDamageCommitMs, openActivationEditor } from '../../../platform/ui/activation-editor.js';
-import { openDurationEditor, validateDurationMs } from '../../../platform/ui/duration-editor.js';
+import { ammoDisplayView } from '../../../platform/ui/rotation/ammo-display.js';
+import {
+  activationDamageCommitMs,
+  openActivationEditor
+} from '../../../platform/ui/rotation/editors/activation-editor.js';
+import { openDurationEditor, validateDurationMs } from '../../../platform/ui/rotation/editors/duration-editor.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '../../../platform/ui/palette.js';
-import { clearTimelineDropIndicators, rotationEntryName } from '../../../platform/ui/timeline.js';
-import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/html.js';
+} from '../../../platform/ui/rotation/palette.js';
+import { clearTimelineDropIndicators, rotationEntryName } from '../../../platform/ui/rotation/timeline.js';
+import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/shared/html.js';
 import { createRotationItem, insertRotationItems } from '../editing/actions.js';
 import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
 import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '../editing/double-edge.js';
-import { normalizeRotationInsertionIndex } from '../../../platform/ui/insertion-cursor.js';
+import { normalizeRotationInsertionIndex } from '../../../platform/ui/rotation/insertion-cursor.js';
 import {
   rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
@@ -56,7 +59,7 @@ import type {
   SchedulerRecord,
   Skill
 } from '../../../platform/engine/types.js';
-import type { PaletteSkillView } from '../../../platform/ui/types.js';
+import type { PaletteSkillView } from '../../../platform/ui/rotation/palette.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 
 const CONCURRENT_OFFSET_MS = 100;

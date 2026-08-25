@@ -11,7 +11,7 @@ import { createGw2CombatQuery } from '../../../js/platform/gw2/combat/query/comb
 import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
 import { normalizeRotation } from '../../../js/platform/engine/execution/rotation.js';
 import { resourceDisplayViews } from '../../../js/app/rotation/palette/resource-view.js';
-import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
+import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
 import {
   createThiefBuildDefaults,
   migrateThiefBuild,

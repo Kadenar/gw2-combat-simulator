@@ -31,7 +31,7 @@ Create `run-engineer.mjs` in the repository root:
 ```js
 import { prepareSimulationConfig } from './js/platform/engine/config.js';
 import { simulateGw2 } from './js/platform/gw2/index.js';
-import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
+import { skillBreakdownRows } from './js/platform/ui/results/result-tables.js';
 import { engineerProfession } from './js/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../../platform/ui/html.js';
+import { escapeHtml } from '../../../platform/ui/shared/html.js';
 import { parseGw2HotkeyBindingsXml } from './gw2-keybind-import.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';

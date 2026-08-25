@@ -1,4 +1,4 @@
-import type { Skill } from '../engine/types.js';
+import type { Skill } from '../../../engine/types.js';
 
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;

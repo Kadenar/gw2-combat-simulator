@@ -1,4 +1,4 @@
-import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/html.js';
+import { escapeHtml as esc, gw2ApiText } from '../../../platform/ui/shared/html.js';
 import { isSlotSkillSelectable } from '../state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '../../../platform/engine/types.js';
@@ -8,7 +8,7 @@ import type {
   ProfessionSlotLoadoutSelector
 } from '../../profession/types.js';
 import { groupWeaponSkillsByAttunement, weaponBarSkillStacks } from '../../profession/weapon-attunement-groups.js';
-import { requiredElement } from '../../../platform/ui/dom.js';
+import { requiredElement } from '../../../platform/ui/shared/dom.js';
 
 export function weaponSetLabelVisible(professionId: string, hasSecondWeaponSet: boolean): boolean {
   return hasSecondWeaponSet || professionId === 'engineer';

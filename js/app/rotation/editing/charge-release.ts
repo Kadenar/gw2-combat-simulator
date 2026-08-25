@@ -2,7 +2,7 @@ import {
   openChargeReleaseEditor,
   type ChargeReleaseEditorHandle,
   type ChargeReleaseEditorRow
-} from '../../../platform/ui/charge-release-editor.js';
+} from '../../../platform/ui/rotation/editors/charge-release-editor.js';
 import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 

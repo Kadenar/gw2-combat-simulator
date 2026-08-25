@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
-import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
+import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
 import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
 import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/palette/resource-view.js';

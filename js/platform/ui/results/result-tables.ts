@@ -1,6 +1,6 @@
-import type { SimulationActorType, SkillId } from '../engine/types.js';
-import { gw2EventActorType } from '../gw2/combat/state/event-ownership.js';
-import type { Gw2DamageBreakdownEntry, Gw2ResolverEvent, Gw2ResolverResult } from '../gw2/resolver/types.js';
+import type { SimulationActorType, SkillId } from '../../engine/types.js';
+import { gw2EventActorType } from '../../gw2/combat/state/event-ownership.js';
+import type { Gw2DamageBreakdownEntry, Gw2ResolverEvent, Gw2ResolverResult } from '../../gw2/resolver/types.js';
 
 export interface SkillBreakdownRow {
   readonly [field: string]: unknown;

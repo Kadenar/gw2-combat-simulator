@@ -23,7 +23,7 @@ import { insertRotationItems } from '../../../js/app/rotation/editing/actions.js
 import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
-import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
+import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,

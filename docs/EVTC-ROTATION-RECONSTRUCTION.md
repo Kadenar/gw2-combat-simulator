@@ -396,7 +396,7 @@ The most commonly useful fields are:
 For a ready-to-use per-skill breakdown:
 
 ```js
-import { skillBreakdownRows } from './js/platform/ui/result-tables.js';
+import { skillBreakdownRows } from './js/platform/ui/results/result-tables.js';
 
 const rows = skillBreakdownRows(result);
 

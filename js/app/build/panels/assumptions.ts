@@ -1,4 +1,4 @@
-import { escapeHtml as esc, option } from '../../../platform/ui/html.js';
+import { escapeHtml as esc, option } from '../../../platform/ui/shared/html.js';
 import { assumptionControlsForSpecialization } from '../../profession/assumptions.js';
 import { isSimulationRandomnessControl } from '../../simulation/randomness.js';
 import {
@@ -7,7 +7,7 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from './options.js';
-import { requiredInput, requiredSelect } from '../../../platform/ui/dom.js';
+import { requiredInput, requiredSelect } from '../../../platform/ui/shared/dom.js';
 
 import type {
   ProfessionAppState,

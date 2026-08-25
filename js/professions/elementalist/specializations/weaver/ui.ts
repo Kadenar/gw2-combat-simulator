@@ -10,7 +10,7 @@ import type {
   SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
-import { escapeHtml as esc } from '../../../../platform/ui/html.js';
+import { escapeHtml as esc } from '../../../../platform/ui/shared/html.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_WEAVER_SKILL_IDS } from '../../data/ids.js';
 import { getActiveTraits } from '../../data/traits-data.js';
 import type { ElementalistBuildSpecialization } from '../../types.js';

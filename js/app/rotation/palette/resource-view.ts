@@ -13,8 +13,8 @@
  */
 import type { ProfessionResourceView, SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '../../profession/types.js';
-import type { PaletteResourceView } from '../../../platform/ui/types.js';
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import type { PaletteResourceView } from '../../../platform/ui/rotation/palette.js';
+import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import { activeSpecialization, paletteProfessionState, professionEndState } from '../shared/context.js';
 
 function normalizeResourceView(view: ProfessionResourceView): ProfessionResourceView {

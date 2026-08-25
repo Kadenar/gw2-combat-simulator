@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { criticalChanceTooltip } from '../../../js/platform/ui/state-snapshot.js';
+import { criticalChanceTooltip } from '../../../js/platform/ui/rotation/state-snapshot.js';
 
 test('critical chance tooltips list contributors and cap behavior', () => {
   const event = {

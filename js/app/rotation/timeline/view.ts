@@ -8,21 +8,21 @@ import {
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
-} from '../../../platform/ui/timeline.js';
+} from '../../../platform/ui/rotation/timeline.js';
 import {
   activationDamageCommitMs,
   closeActivationEditor,
   openActivationEditor,
   suggestedActivationInterruptMs
-} from '../../../platform/ui/activation-editor.js';
-import { closeChargeReleaseEditor } from '../../../platform/ui/charge-release-editor.js';
-import { closeDurationEditor, openDurationEditor } from '../../../platform/ui/duration-editor.js';
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
+} from '../../../platform/ui/rotation/editors/activation-editor.js';
+import { closeChargeReleaseEditor } from '../../../platform/ui/rotation/editors/charge-release-editor.js';
+import { closeDurationEditor, openDurationEditor } from '../../../platform/ui/rotation/editors/duration-editor.js';
+import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import {
   mountRotationInsertionCursor,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
-} from '../../../platform/ui/insertion-cursor.js';
+} from '../../../platform/ui/rotation/insertion-cursor.js';
 import { activeSpecialization, professionEndState } from '../shared/context.js';
 import {
   ACTION_ICONS,
@@ -74,7 +74,7 @@ import type {
   SkillId
 } from '../../../platform/engine/types.js';
 import type { Gw2ProcStep } from '../../../platform/gw2/resolver/types.js';
-import type { TimelineInteractionOptions } from '../../../platform/ui/types.js';
+import type { TimelineInteractionOptions } from '../../../platform/ui/rotation/timeline.js';
 import type { ProfessionAppState, RotationActionOptions } from '../../profession/types.js';
 
 type TimelineItem = SchedulerRecord & {

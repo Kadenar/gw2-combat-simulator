@@ -3,7 +3,7 @@ import { downloadJson, getBuildExportPayload, readJsonFile } from './io/files.js
 import { bindRotationImportDialog } from './io/rotation-import-dialog.js';
 import { createDefaultBuild, replaceBuildConfiguration } from './state/persistence.js';
 import { redoRotation, undoRotation } from '../rotation/editing/history.js';
-import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../platform/ui/dom.js';
+import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../platform/ui/shared/dom.js';
 
 import type { ProfessionAppState } from '../profession/types.js';
 

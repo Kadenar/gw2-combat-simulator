@@ -3,7 +3,7 @@
  * The view hides empty snapshots so the timeline only reserves space for state
  * that the user can inspect.
  */
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 import { formatResultTimelineTime } from '../result/model.js';
 import { rotationStateSnapshot } from './model.js';

@@ -1,7 +1,39 @@
-import type { SimulationEvent } from '../engine/types.js';
-import type { Gw2ResolverResult } from '../gw2/resolver/types.js';
-import type { EventLogMountOptions, EventLogRow, NormalizedEventLogDescriptor } from './types.js';
-import { escapeHtml } from './html.js';
+import type { SimulationEvent } from '../../engine/types.js';
+import type { Gw2ResolverResult } from '../../gw2/resolver/types.js';
+import { escapeHtml } from '../shared/html.js';
+
+export interface EventLogDescriptor {
+  readonly type: string;
+  readonly description: string;
+  readonly className?: string;
+  readonly order?: number;
+  readonly flags?: string[];
+}
+
+export interface NormalizedEventLogDescriptor extends EventLogDescriptor {
+  readonly className: string;
+  readonly order: number;
+  readonly flags: string[];
+}
+
+export interface EventLogRow extends EventLogDescriptor {
+  readonly at: number;
+  readonly rowClassName?: string;
+  readonly phantasmClone?: boolean;
+}
+
+export interface EventLogFilter {
+  readonly id: string;
+  readonly label: string;
+  readonly predicate?: (row: EventLogRow) => boolean;
+}
+
+export interface EventLogMountOptions {
+  readonly filters?: readonly EventLogFilter[];
+  readonly initiallyOpen?: boolean;
+  readonly title?: string;
+  readonly filename?: string;
+}
 
 export const EVENT_LOG_ORDER: Readonly<Record<string, number>> = Object.freeze({
   combat_start: 5,

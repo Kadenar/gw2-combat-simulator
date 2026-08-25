@@ -5,8 +5,8 @@ import { RUNE_GROUPS } from '../../../platform/gw2/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '../../../platform/gw2/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '../../../platform/gw2/equipment/consumables/utilities.js';
 import { setWeaponSigil } from '../../../platform/gw2/equipment/sigils/loadout.js';
-import { groupedOptions, option } from '../../../platform/ui/html.js';
-import { requiredElement, requiredInput, requiredSelect } from '../../../platform/ui/dom.js';
+import { groupedOptions, option } from '../../../platform/ui/shared/html.js';
+import { requiredElement, requiredInput, requiredSelect } from '../../../platform/ui/shared/dom.js';
 
 import type { ProfessionAppState } from '../../profession/types.js';
 

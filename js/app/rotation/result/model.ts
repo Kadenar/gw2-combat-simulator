@@ -1,14 +1,17 @@
 import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
 import { durationStackingBoonCapSeconds } from '../../../platform/gw2/combat/state/boons.js';
-import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '../../../platform/ui/charts.js';
-import { formatTimelineDuration, timelineDeadTimeMarkers } from '../../../platform/ui/timeline.js';
+import {
+  buildChartSeries as buildSharedChartSeries,
+  chartValueAt
+} from '../../../platform/ui/results/charts/time-series.js';
+import { formatTimelineDuration, timelineDeadTimeMarkers } from '../../../platform/ui/rotation/timeline.js';
 import {
   skillBreakdownRows as transformSkillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
-} from '../../../platform/ui/result-tables.js';
-import { resultSummaryMetrics as transformResultSummaryMetrics } from '../../../platform/ui/result-transform.js';
-import type { ResultSummaryMetricDetail } from '../../../platform/ui/result-transform.js';
+} from '../../../platform/ui/results/result-tables.js';
+import { resultSummaryMetrics as transformResultSummaryMetrics } from '../../../platform/ui/results/result-transform.js';
+import type { ResultSummaryMetricDetail } from '../../../platform/ui/results/result-transform.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '../timeline/model.js';
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {

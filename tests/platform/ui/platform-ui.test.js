@@ -7,38 +7,38 @@ import {
   suggestedActivationInterruptMs,
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
-} from '../../../js/platform/ui/activation-editor.js';
-import { chargeReleaseRowLabel } from '../../../js/platform/ui/charge-release-editor.js';
-import { validateDurationMs } from '../../../js/platform/ui/duration-editor.js';
+} from '../../../js/platform/ui/rotation/editors/activation-editor.js';
+import { chargeReleaseRowLabel } from '../../../js/platform/ui/rotation/editors/charge-release-editor.js';
+import { validateDurationMs } from '../../../js/platform/ui/rotation/editors/duration-editor.js';
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   chartValueAt,
   mountTimeSeriesCharts
-} from '../../../js/platform/ui/charts.js';
-import { eventLogCsv, eventLogRows, mountEventLog } from '../../../js/platform/ui/event-log.js';
+} from '../../../js/platform/ui/results/charts/time-series.js';
+import { eventLogCsv, eventLogRows, mountEventLog } from '../../../js/platform/ui/results/event-log.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '../../../js/platform/ui/palette.js';
-import { escapeHtml, gw2ApiText } from '../../../js/platform/ui/html.js';
+} from '../../../js/platform/ui/rotation/palette.js';
+import { escapeHtml, gw2ApiText } from '../../../js/platform/ui/shared/html.js';
 import {
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
-} from '../../../js/platform/ui/insertion-cursor.js';
-import { targetHealthBreakpointSnapshots } from '../../../js/platform/ui/result-transform.js';
+} from '../../../js/platform/ui/rotation/insertion-cursor.js';
+import { targetHealthBreakpointSnapshots } from '../../../js/platform/ui/results/result-transform.js';
 import {
   dismissResultMetricDetails,
-  mountRotationWarnings,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
-} from '../../../js/platform/ui/rotation-results.js';
+} from '../../../js/platform/ui/results/rotation-results.js';
+import { mountRotationWarnings } from '../../../js/platform/ui/results/rotation-warnings.js';
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -48,7 +48,7 @@ import {
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
-} from '../../../js/platform/ui/timeline.js';
+} from '../../../js/platform/ui/rotation/timeline.js';
 
 function inertContainer() {
   return {

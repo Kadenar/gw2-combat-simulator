@@ -10,7 +10,7 @@ import { simulationEventLogRows } from '../../../js/app/rotation/result/event-lo
 import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';
 import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends, timelineStepsWithChargeFills } from '../../../js/app/rotation/timeline/model.js';
-import { timelineDeadTimeMarkers } from '../../../js/platform/ui/timeline.js';
+import { timelineDeadTimeMarkers } from '../../../js/platform/ui/rotation/timeline.js';
 import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';

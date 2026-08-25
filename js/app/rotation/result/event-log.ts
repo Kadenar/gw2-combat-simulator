@@ -5,8 +5,8 @@ import {
   eventLogCsv,
   mountEventLog,
   normalizeEventLogDescriptor
-} from '../../../platform/ui/event-log.js';
-import type { EventLogRow } from '../../../platform/ui/types.js';
+} from '../../../platform/ui/results/event-log.js';
+import type { EventLogRow } from '../../../platform/ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../../profession/types.js';
 import { professionEndState } from '../shared/context.js';
 import { effectName, resultCombatReferenceMs } from './model.js';

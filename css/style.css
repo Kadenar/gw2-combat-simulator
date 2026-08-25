@@ -1308,18 +1308,7 @@ header .community-actions {
   }
 }
 
-/* ─── Legacy Elementalist presets bar ─── */
-.presets-bar {
-  max-width: 860px;
-  margin: 0 auto 12px;
-}
-
-#presets-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
+/* ─── Shared build-template preset groups ─── */
 .presets-group {
   display: flex;
   align-items: center;
@@ -1346,40 +1335,6 @@ header .community-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-}
-
-.preset-btn {
-  font-size: 0.78rem;
-  padding: 3px 11px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    color 0.15s,
-    background 0.15s;
-}
-
-.preset-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--bg-panel-alt);
-}
-
-.preset-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* ─── Presets legend ─── */
-.presets-legend {
-  display: flex;
-  gap: 14px;
-  justify-content: flex-end;
-  margin-top: 5px;
-  padding-right: 2px;
 }
 
 /* ─── Loading ─── */

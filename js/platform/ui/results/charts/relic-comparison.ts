@@ -1,4 +1,4 @@
-import { escapeHtml } from './html.js';
+import { escapeHtml } from '../../shared/html.js';
 
 // Structural shapes matching the app-layer break-even model. Declared locally so
 // this platform-layer chart does not depend on the app layer; any object with
@@ -77,13 +77,24 @@ function createScale(points: readonly RelicComparisonPoint[], startMs: number, e
   };
 }
 
-function polyline(points: readonly RelicComparisonPoint[], color: string, pick: (point: RelicComparisonPoint) => number, scale: Scale): string {
-  const coordinates = points.map((point) => `${scale.xFor(point.tMs).toFixed(1)},${scale.yFor(pick(point)).toFixed(1)}`).join(' ');
+function polyline(
+  points: readonly RelicComparisonPoint[],
+  color: string,
+  pick: (point: RelicComparisonPoint) => number,
+  scale: Scale
+): string {
+  const coordinates = points
+    .map((point) => `${scale.xFor(point.tMs).toFixed(1)},${scale.yFor(pick(point)).toFixed(1)}`)
+    .join(' ');
   return `<polyline fill="none" stroke="${color}" stroke-width="${LINE_WIDTH}" stroke-linejoin="round" stroke-linecap="round" points="${coordinates}" />`;
 }
 
 /** Linearly samples one curve at an arbitrary time, for the crossover marker. */
-function valueAt(points: readonly RelicComparisonPoint[], tMs: number, pick: (point: RelicComparisonPoint) => number): number {
+function valueAt(
+  points: readonly RelicComparisonPoint[],
+  tMs: number,
+  pick: (point: RelicComparisonPoint) => number
+): number {
   if (!points.length) return 0;
   for (let index = 1; index < points.length; index += 1) {
     const previous = points[index - 1];
@@ -98,7 +109,11 @@ function valueAt(points: readonly RelicComparisonPoint[], tMs: number, pick: (po
   return pick(points[points.length - 1]);
 }
 
-function crossoverMarkup(model: RelicComparisonModel, plotPoints: readonly RelicComparisonPoint[], scale: Scale): string {
+function crossoverMarkup(
+  model: RelicComparisonModel,
+  plotPoints: readonly RelicComparisonPoint[],
+  scale: Scale
+): string {
   if (model.crossoverMs == null) return '';
   const x = scale.xFor(model.crossoverMs);
   const y = scale.yFor(valueAt(plotPoints, model.crossoverMs, (point) => point.opponentDps));
@@ -133,7 +148,10 @@ function axisMarkup(plotPoints: readonly RelicComparisonPoint[], startMs: number
  * the crossover point marked. Returns a short empty-state note when there are no
  * comparable samples.
  */
-export function relicComparisonChartSvg(model: RelicComparisonModel, options: RelicComparisonChartOptions = {}): string {
+export function relicComparisonChartSvg(
+  model: RelicComparisonModel,
+  options: RelicComparisonChartOptions = {}
+): string {
   const opponentColor = options.opponentColor || DEFAULT_OPPONENT_COLOR;
   const thornsColor = options.thornsColor || DEFAULT_THORNS_COLOR;
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);

@@ -4,7 +4,7 @@ import {
   GW2_ICON_PLACEHOLDER,
   gw2BackupIconUrl,
   nextGw2IconFallback
-} from '../../../js/platform/ui/gw2-icon-fallback.js';
+} from '../../../js/platform/ui/shared/gw2-icon-fallback.js';
 
 const RENDER_ICON = 'https://render.guildwars2.com/file/617705CDC4E6D5CA0EB9F492B94B4D060F354980/1012459.png';
 const BACKUP_ICON = 'https://www.qjv.dev.br/armory/data/icons/1012459.webp';

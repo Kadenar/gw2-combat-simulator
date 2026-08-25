@@ -3,7 +3,7 @@ import { isJsonRotationFile, readEvtcRotationFile } from './evtc-rotation-import
 import { readDpsReportRotationData, readDpsReportRotationUrl } from './dps-report-rotation-import.js';
 import { isDpsReportData } from '../../../dps-report-analyzer/parser.js';
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
-import { errorMessage } from '../../../platform/ui/dom.js';
+import { errorMessage } from '../../../platform/ui/shared/dom.js';
 
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';

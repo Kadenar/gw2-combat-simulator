@@ -1,6 +1,36 @@
-import type { RotationCommand, SchedulerRecord, SchedulerStep, SimulationEvent } from '../engine/types.js';
-import type { Gw2SimulationResult } from '../gw2/simulation/types.js';
-import type { TimelineInteractionOptions } from './types.js';
+import type { RotationCommand, SchedulerRecord, SchedulerStep, SimulationEvent, SkillId } from '../../engine/types.js';
+import type { Gw2SimulationResult } from '../../gw2/simulation/types.js';
+
+export interface RotationDragState extends SchedulerRecord {
+  readonly source?: string;
+  readonly index?: number;
+  readonly name?: string;
+  readonly skillId?: SkillId;
+}
+
+export interface TimelineInteractionOptions {
+  readonly rotation: RotationCommand[];
+  readonly getDragState: () => RotationDragState | null | undefined;
+  readonly setDragState: (value: RotationDragState | null) => void;
+  /** Applies a timeline drag through the application-owned rotation editing layer. */
+  readonly moveEntry: (fromIndex: number, toIndex: number) => boolean;
+  /** Applies one resolved palette item or macro through the application-owned editing layer. */
+  readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => boolean;
+  readonly resolvePaletteEntry?: (
+    name: string,
+    drag: RotationDragState | null | undefined,
+    insertAt: number
+  ) => RotationCommand | RotationCommand[] | null | undefined;
+  readonly onChanged?: () => void;
+  readonly onRemove?: (index: number, event?: Event) => unknown;
+  readonly onTruncate?: (index: number, event?: Event) => unknown;
+  readonly onEditOffset?: (index: number, event?: Event) => unknown;
+  readonly onEditActivation?: (index: number, event?: Event) => unknown;
+  readonly onEditInterrupt?: (index: number, event?: Event) => unknown;
+  readonly onEditReleaseAtCharges?: (index: number, event?: Event) => unknown;
+  readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => unknown;
+  readonly onEditWait?: (index: number, event?: Event) => unknown;
+}
 
 export type TimelineRotationEntry = RotationCommand;
 

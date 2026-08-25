@@ -1,4 +1,4 @@
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '../io/files.js';
 import { replaceBuildConfiguration, replaceBuildRotation } from '../state/persistence.js';
 

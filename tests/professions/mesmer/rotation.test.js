@@ -6,14 +6,14 @@ import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simula
 import { prepareSimulationConfig } from '../../../js/platform/engine/config.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '../../../js/platform/gw2/authoring/patches.js';
-import { chartValueAt } from '../../../js/platform/ui/charts.js';
+import { chartValueAt } from '../../../js/platform/ui/results/charts/time-series.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails
-} from '../../../js/platform/ui/timeline.js';
+} from '../../../js/platform/ui/rotation/timeline.js';
 import { moveRotationEntry } from '../../../js/app/rotation/editing/operations.js';
-import { nextResultSortState, sortResultRows } from '../../../js/platform/ui/rotation-results.js';
+import { nextResultSortState, sortResultRows } from '../../../js/platform/ui/results/rotation-results.js';
 import {
   buildChartSeries,
   formatResultTimelineTime,
