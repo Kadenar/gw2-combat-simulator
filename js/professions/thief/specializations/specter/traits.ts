@@ -1,5 +1,6 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
 import { emitThiefState } from '../../core/shared.js';
@@ -39,7 +40,7 @@ function emitShadeStepBoon(context: ThiefCastContext, boon: string, duration: nu
     name: `Shade Step - ${boon}`,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, context.skill, boon, duration),
     stacks: 1,
     recipients: 'party',
     recipientCount: party.count + 1

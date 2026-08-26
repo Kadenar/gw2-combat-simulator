@@ -70,6 +70,8 @@ export interface Gw2ResolvedStats extends SchedulerRecord {
   readonly expertise: number;
   readonly concentration: number;
   readonly healingPower: number;
+  readonly boonDurationBonus: number;
+  readonly boonDurationBonuses: Readonly<Record<string, number>>;
   readonly conditionDurationBonus: number;
   readonly conditionDurationBonuses: Readonly<Record<string, number>>;
 }

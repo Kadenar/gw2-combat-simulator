@@ -5,6 +5,7 @@ import {
   gw2AlliedPlayerAssumptions,
   gw2AlliedPlayerProcTimeline
 } from '../../../../platform/gw2/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { emitRevenantState } from '../../core/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
@@ -72,8 +73,9 @@ function emitProfileEffects(
     const statusDuration =
       baseDuration == null
         ? undefined
-        : (context.schedulerPolicy.effectDuration?.(context, eventSkill as Skill, effect, baseDuration) ??
-          baseDuration);
+        : effect.type === 'boon'
+          ? gw2SchedulerBoonDuration(context, eventSkill as Skill, String(effect.boon || ''), baseDuration)
+          : baseDuration;
     const applications = materializeSkillEffectApplications({
       skill: profileSkill as BalanceProfile & Skill,
       effect,

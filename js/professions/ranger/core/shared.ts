@@ -1,5 +1,4 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { rangerPetCompanionId } from './pets.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '../types.js';
 
@@ -84,24 +83,6 @@ export function queueCondition(
     stacks,
     triggeredBy: event.skillName
   });
-}
-
-export function rangerBoonDuration(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-  kind: string,
-  baseDuration: number
-): number {
-  const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
-  const stats = context.query.statsAt(event.at, event, context);
-  const configuredStats = gw2StatsForWeaponSet(context.config, context.activeWeaponSet);
-  const sigil = context.query.activeSigilSetAt(event.at);
-  const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(configuredStats.boonDurationBonus || 0) / 100 +
-    Number(configuredStats.boonDurationBonuses?.[name] || 0) / 100 +
-    Number(sigil?.boonDurationBonus || 0) / 100;
-  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }
 
 export function isPlayerStrike(event: RangerResolverEvent): boolean {

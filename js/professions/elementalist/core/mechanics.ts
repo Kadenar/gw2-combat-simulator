@@ -1,9 +1,10 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from './state.js';
-import { BOON_KINDS, ETCHING_CHAINS } from './constants.js';
+import { ETCHING_CHAINS } from './constants.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
@@ -42,7 +43,11 @@ export function emitElementalistBuff(
   recipients: 'self' | 'party' = 'self'
 ): void {
   const normalizedKind = kind.toLowerCase();
-  const adjustedDuration = elementalistBuffDuration(context, normalizedKind, duration, source, sourceId);
+  const sourceSkill =
+    context.catalog.skillsById.get(sourceId) ||
+    context.catalog.skillsByName.get(source) ||
+    ({ id: sourceId, name: source } as Skill);
+  const adjustedDuration = gw2SchedulerBoonDuration(context, sourceSkill, normalizedKind, duration);
   context.emit({
     type: 'buff',
     at,
@@ -56,30 +61,6 @@ export function emitElementalistBuff(
     priority,
     ...(recipients === 'party' ? { recipients: 'party', maximumRecipients: 5 } : {})
   });
-}
-
-export function elementalistBuffDuration(
-  context: ElementalistSchedulerContext,
-  kind: string,
-  duration: number,
-  source: string,
-  sourceId: Skill['id']
-): number {
-  const normalizedKind = kind.toLowerCase();
-  if (!BOON_KINDS.has(normalizedKind)) return duration;
-  const sourceSkill =
-    context.catalog.skillsById.get(Number(sourceId)) ||
-    context.catalog.skillsByName.get(source) ||
-    context.catalog.skills[0];
-  if (!sourceSkill) return duration;
-  return (
-    context.schedulerPolicy.effectDuration?.(
-      context,
-      sourceSkill,
-      { type: 'boon', boon: normalizedKind, duration },
-      duration
-    ) ?? duration
-  );
 }
 
 export const emitBuff = emitElementalistBuff;

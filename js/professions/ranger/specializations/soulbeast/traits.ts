@@ -1,4 +1,5 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
@@ -17,7 +18,12 @@ export function applyUnstoppableUnion(context: RangerCastContext, skill: RangerS
     skillId: skill.id,
     skillName: 'Unstoppable Union',
     kind: String(effect?.boon || 'protection'),
-    duration: Number(effect?.duration ?? 2.5),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      skill,
+      String(effect?.boon || 'protection'),
+      Number(effect?.duration ?? 2.5)
+    ),
     stacks: Number(effect?.stacks ?? 1)
   });
 }

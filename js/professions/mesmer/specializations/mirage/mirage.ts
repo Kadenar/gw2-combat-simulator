@@ -37,6 +37,7 @@ interface MirageActionControllerOptions {
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
+  readonly boonDuration: (sourceSkill: string, boon: string, baseDuration: number) => number;
 }
 
 /**
@@ -56,7 +57,8 @@ export function createMirageActionController({
   addDamage,
   activePrimaryWeapon,
   queueResources,
-  balanceProfile
+  balanceProfile,
+  boonDuration
 }: MirageActionControllerOptions): MesmerMirageController {
   // Returns the numeric value of a given field from a balance profile, or a fallback if not found.
   const profileValue = (id: SkillId, field: string, fallback: number) => {
@@ -101,7 +103,7 @@ export function createMirageActionController({
       actorType,
       kind: String(boon.name || '').toLowerCase(),
       stacks: Number(boon.stacks || 1),
-      duration: Number(boon.duration || 0),
+      duration: boonDuration(sourceSkill, String(boon.name || ''), Number(boon.duration || 0)),
       skillName: sourceSkill,
       sourceSkill,
       ...(boonRecipients === 'party'

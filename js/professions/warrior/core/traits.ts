@@ -11,7 +11,9 @@ import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timi
  */
 import type { ScheduledTask } from '../../../platform/engine/types.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { gainWarriorEndurance } from './resources.js';
 import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '../resources.js';
@@ -62,7 +64,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
       name: 'Lesser Signet of Might',
       kind,
       stacks: Number(effect.stacks || 1),
-      duration: Number(effect.duration || 0)
+      duration: gw2ResolverBoonDuration(context, event, kind, Number(effect.duration || 0))
     });
   }
 
@@ -151,7 +153,7 @@ export function applyWarriorBurstSpendTraits(
     kind: 'swiftness',
     boon: 'swiftness',
     stacks: Number(swiftness?.stacks || 1),
-    duration: Number(swiftness?.duration || 3)
+    duration: gw2SchedulerBoonDuration(context, skill, 'swiftness', Number(swiftness?.duration || 3))
   });
 }
 
@@ -219,7 +221,7 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
     kind: 'might',
     boon: 'might',
     stacks: Number(might?.stacks || 2),
-    duration: Number(might?.duration || 5)
+    duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration || 5))
   });
 }
 
@@ -337,7 +339,7 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
       kind: 'stability',
       boon: 'stability',
       stacks: Number(stability?.stacks || 1),
-      duration: Number(stability?.duration || 5)
+      duration: gw2SchedulerBoonDuration(context, skill, 'stability', Number(stability?.duration || 5))
     });
   }
 }
@@ -391,7 +393,7 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
       kind: 'protection',
       boon: 'protection',
       stacks: 1,
-      duration: 3
+      duration: gw2SchedulerBoonDuration(context, skill, 'protection', 3)
     });
   }
 
@@ -578,6 +580,7 @@ function emitTraitBoon(
   stacks = 1,
   recipients: 'party' | 'allies' | 'self' = 'self'
 ): void {
+  const sourceSkill = context.catalog.skillsById.get(cause.skillId ?? '') || ({ id: traitId, name } as WarriorSkill);
   context.emitDerived(cause, {
     type: 'buff',
     at: cause.at,
@@ -589,7 +592,7 @@ function emitTraitBoon(
     name,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
     stacks,
     recipients,
     ...(recipients === 'allies' ? { affectsSelf: false } : {})
@@ -890,6 +893,7 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
   if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return;
   const empowerAllies = warriorBalanceProfile(context, PROFILE.empowerAllies);
   const might = warriorBalanceProfileEffect(empowerAllies, 'boon');
+  const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
   const interval = Number(empowerAllies?.pulseInterval || 10);
   while (state.empowerAlliesNextAt <= target + context.epsilon) {
     const at = state.empowerAlliesNextAt;
@@ -903,7 +907,7 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
       kind: 'might',
       boon: 'might',
       stacks: Number(might?.stacks || 5),
-      duration: Number(might?.duration || 10),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration || 10)),
       recipients: 'party'
     });
     state.empowerAlliesNextAt += interval;
@@ -937,7 +941,7 @@ export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill:
       kind: 'fury',
       boon: 'fury',
       stacks: Number(fury?.stacks || 1),
-      duration: Number(fury?.duration || 2.5)
+      duration: gw2SchedulerBoonDuration(context, skill, 'fury', Number(fury?.duration || 2.5))
     });
   }
 }

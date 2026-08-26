@@ -1,5 +1,6 @@
 import type { ScheduledTask, SkillId } from '../../../../platform/engine/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../resources.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
@@ -39,6 +40,7 @@ function emitBoon(
   stacks = 1,
   affectsSelf = true
 ): void {
+  const sourceSkill = context.catalog.skillsById.get(sourceId) || ({ id: sourceId, name: skillName } as WarriorSkill);
   context.emit({
     type: 'buff',
     at,
@@ -50,7 +52,7 @@ function emitBoon(
     name: `${skillName} — ${boon}`,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
     stacks,
     recipients: affectsSelf ? 'party' : 'allies',
     affectsSelf

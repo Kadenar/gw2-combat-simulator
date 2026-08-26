@@ -4,6 +4,7 @@ import { hasRevenantTrait } from '../../core/state.js';
 import { activeKallasFervorStacks, grantKallasFervor, isBandTogetherReady } from './renegade.js';
 import { RENEGADE_PROFILE_IDS } from './skills.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
@@ -14,18 +15,6 @@ import type {
 } from '../../types.js';
 
 export const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
-
-function scaledBoonDuration(context: RevenantSchedulerContext, boon: string, duration: number): number {
-  // Trait-triggered boons have no cast skill, so identify Endless Enmity explicitly
-  // when applying shared boon-duration rules.
-  const skill = {
-    id: TRAIT.ENDLESS_ENMITY,
-    name: 'Endless Enmity'
-  } as RevenantSkill;
-  return (
-    context.schedulerPolicy.effectDuration?.(context, skill, { type: 'boon', boon, duration }, duration) ?? duration
-  );
-}
 
 function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulationEvent): number {
   const state = renegadeState.from(context);
@@ -63,6 +52,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.endlessEnmity);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
   if (!profile || !effect) return;
+  const sourceSkill = { id: TRAIT.ENDLESS_ENMITY, name: 'Endless Enmity' } as RevenantSkill;
   state.endlessEnmityReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
   context.emitDerived(event, {
     type: 'buff',
@@ -74,7 +64,12 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
     skillName: 'Endless Enmity',
     name: 'Endless Enmity — fury',
     kind: 'fury',
-    duration: scaledBoonDuration(context, String(effect.boon || effect.kind || 'fury'), Number(effect.duration || 0)),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      sourceSkill,
+      String(effect.boon || effect.kind || 'fury'),
+      Number(effect.duration || 0)
+    ),
     stacks: Number(effect.stacks || 1),
     recipients: effect.recipients || 'party'
   });

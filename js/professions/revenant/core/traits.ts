@@ -10,6 +10,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasRevenantTrait } from './state.js';
 import { emitRevenantBoon } from './boons.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { revenantCombatActive } from './legend.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
@@ -365,6 +366,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.brutality);
     const boon = effectByType(profile, 'boon');
     const at = Number(event.endsAt ?? event.at);
+    const sourceSkill =
+      context.catalog.skillsById.get(event.skillId ?? '') ||
+      ({ id: TRAIT.BRUTALITY, name: 'Brutality' } as RevenantSkill);
     professionCoreState(context).traitProcReadyAt.brutality = at + Number(profile.cooldown || 0);
     context.emitDerived(event, {
       type: 'buff',
@@ -376,7 +380,12 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       skillName: 'Brutality',
       name: 'Brutality — quickness',
       kind: String(boon.boon || 'quickness'),
-      duration: Number(boon.duration || 0),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        sourceSkill,
+        String(boon.boon || 'quickness'),
+        Number(boon.duration || 0)
+      ),
       stacks: Number(boon.stacks || 0)
     });
   }
@@ -430,6 +439,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
       const boon = effectByType(profile, 'boon');
+      const sourceSkill =
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.ASSASSINS_PRESENCE, name: "Assassin's Presence" } as RevenantSkill);
       state.traitProcReadyAt.assassinsPresence = event.at + Number(profile.cooldown || 0);
       context.emitDerived(event, {
         type: 'buff',
@@ -441,7 +453,12 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         skillName: "Assassin's Presence",
         name: "Assassin's Presence — fury",
         kind: String(boon.boon || 'fury'),
-        duration: Number(boon.duration || 0),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          sourceSkill,
+          String(boon.boon || 'fury'),
+          Number(boon.duration || 0)
+        ),
         stacks: Number(boon.stacks || 0)
       });
     }
@@ -453,6 +470,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal);
       const boon = effectByType(profile, 'boon');
+      const sourceSkill =
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.VICIOUS_REPRISAL, name: 'Vicious Reprisal' } as RevenantSkill);
       state.traitProcReadyAt.viciousReprisal = event.at + Number(profile.cooldown || 0);
       context.emitDerived(event, {
         type: 'buff',
@@ -464,7 +484,12 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         skillName: 'Vicious Reprisal',
         name: 'Vicious Reprisal — might',
         kind: String(boon.boon || 'might'),
-        duration: Number(boon.duration || 0),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          sourceSkill,
+          String(boon.boon || 'might'),
+          Number(boon.duration || 0)
+        ),
         stacks: Number(boon.stacks || 0)
       });
     }

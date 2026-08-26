@@ -7,6 +7,7 @@ import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/pro
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { MECHANIST_ATTACK_TIMING } from './mechanics.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '../../../../platform/gw2/equipment/weapons/strength.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
   EngineerCastContext,
@@ -287,7 +288,12 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
       name: 'Jade Dynamo — quickness',
       kind: 'quickness',
       stacks: engineerBalanceEffectValue(context, PROFILE.jadeDynamo, 'boon', 'stacks', 1),
-      duration: engineerBalanceEffectValue(context, PROFILE.jadeDynamo, 'boon', 'duration', 2.5)
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        'quickness',
+        engineerBalanceEffectValue(context, PROFILE.jadeDynamo, 'boon', 'duration', 2.5)
+      )
     });
   }
 }

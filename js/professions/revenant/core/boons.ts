@@ -1,4 +1,5 @@
 import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import type { RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 type RevenantBoonContext = RevenantSchedulerContext & {
@@ -31,7 +32,7 @@ export function emitRevenantBoon(
     skillName: skill.name,
     name: options.name ?? `${skill.name} — ${boon}`,
     kind: boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, skill, boon, duration),
     stacks,
     ...(options.recipients ? { recipients: options.recipients } : {})
   });

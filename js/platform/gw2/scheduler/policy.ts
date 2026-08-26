@@ -35,9 +35,8 @@ import {
   isStandardBoon,
   remainingDurationStackSeconds
 } from '../combat/state/boons.js';
-import { clamp } from '../combat/numeric.js';
 import { relicWeaponSwapRechargeMultiplier } from '../equipment/relics/catalog.js';
-import { gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
+import { gw2BoonDurationMultiplier, gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
 import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skills/timing.js';
 import type {
   CanonicalCatalog,
@@ -107,11 +106,6 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
   };
 }
 
-function titleCase(value: unknown): string {
-  const normalized = String(value || '').toLowerCase();
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
-
 export function gw2BuffActiveForAudience<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   kind: string,
@@ -141,6 +135,27 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
       Number(event.stacks || 1) > 0 &&
       event.at <= at + context.epsilon &&
       event.at + Math.max(0, Number(event.duration || 0)) > at + context.epsilon
+  );
+}
+
+/** Applies the shared GW2 boon-duration policy to a scheduler-owned base duration. */
+export function gw2SchedulerBoonDuration<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  skill: Skill,
+  boon: string,
+  baseDuration: number,
+  { fixedDuration = false }: { readonly fixedDuration?: boolean } = {}
+): number {
+  // Manual profession emissions use the same policy boundary as declarative
+  // skill boons so live profession attributes and the active weapon set agree.
+  if (fixedDuration || !isStandardBoon(boon)) return baseDuration;
+  return (
+    context.schedulerPolicy?.effectDuration?.(
+      context,
+      skill,
+      { type: 'boon', boon, duration: baseDuration, fixedDuration },
+      baseDuration
+    ) ?? baseDuration
   );
 }
 
@@ -249,13 +264,12 @@ export function createGw2SchedulerPolicy(
       const boon = effect.boon || effect.kind || effect.name;
       // Generic positive buffs have fixed durations. Concentration and boon-
       // duration bonuses apply only to authored standard-boon applications.
-      if (effect.type !== 'boon' || !isStandardBoon(boon)) {
+      if (effect.fixedDuration === true || effect.type !== 'boon' || !isStandardBoon(boon)) {
         return baseDuration;
       }
 
-      const name = titleCase(boon);
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
-      const sigils = config.sigilSets?.[weaponSet - 1] || {};
+      const sigils = gw2SigilSet(config, weaponSet);
       const staticStats = gw2StatsForWeaponSet(config, weaponSet);
       const runtime = {
         ...materializer.state,
@@ -281,13 +295,7 @@ export function createGw2SchedulerPolicy(
         },
         staticStats
       ) as Gw2Stats;
-      const bonus =
-        Number(stats.concentration || 0) / 1500 +
-        Number(stats.boonDurationBonus || 0) / 100 +
-        Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
-        Number(sigils.boonDurationBonus || 0) / 100;
-      // GW2 boon duration cannot be reduced below base here and caps at +100%.
-      return baseDuration * clamp(1 + bonus, 1, 2);
+      return baseDuration * gw2BoonDurationMultiplier(String(boon), stats, sigils);
     },
 
     buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {

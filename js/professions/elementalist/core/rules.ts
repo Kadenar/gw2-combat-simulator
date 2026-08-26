@@ -25,12 +25,7 @@ import { shareAttunementVariantRecharge, updateAutoattackChainState } from './we
 
 export { elementalistCoreAvailability } from './availability.js';
 export { elementalistAlacrityAdjustedDuration, elementalistAttunementRechargeDuration } from './attunements.js';
-export {
-  applyElementalistAura,
-  elementalistBuffDuration,
-  emitElementalistBuff,
-  emitElementalistProc
-} from './mechanics.js';
+export { applyElementalistAura, emitElementalistBuff, emitElementalistProc } from './mechanics.js';
 export {
   grantElementalistRockSolid,
   triggerBountifulPower,

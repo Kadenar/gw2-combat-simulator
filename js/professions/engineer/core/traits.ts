@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasEngineerTrait } from './state.js';
 import { emitEngineerState } from './events.js';
@@ -52,6 +53,7 @@ function emitBuff(
   duration: number,
   { at = context.effectiveEnd, stacks = 1, sourceId = skill.id, name = skill.name }: EmitBuffOptions = {}
 ): void {
+  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, Number(duration || 0));
   context.emit({
     type: 'buff',
     at,
@@ -63,7 +65,7 @@ function emitBuff(
     name,
     kind,
     // GW2 hard cap on superspeed duration is 10s
-    duration: String(kind).toLowerCase() === 'superspeed' ? Math.min(10, Number(duration || 0)) : Number(duration || 0),
+    duration: String(kind).toLowerCase() === 'superspeed' ? Math.min(10, adjustedDuration) : adjustedDuration,
     stacks
   });
 }

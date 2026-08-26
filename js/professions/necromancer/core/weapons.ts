@@ -24,8 +24,7 @@ import {
   emitControl,
   emitState,
   gainNecromancerLifeForce,
-  hasTrait,
-  necromancerBoonDuration
+  hasTrait
 } from './shared.js';
 import type { ScheduledTask, SchedulerRecord } from '../../../platform/engine/types.js';
 import type {
@@ -189,7 +188,7 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
     Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
   if (!conditionCount) return;
-  emitBuff(context, skill, 'might', necromancerBoonDuration(context, 'Might', 8), conditionCount * 2, {
+  emitBuff(context, skill, 'might', 8, conditionCount * 2, {
     metadata: { recipients: 'party', maximumRecipients: 5 }
   });
 }

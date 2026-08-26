@@ -3,8 +3,8 @@ import { EPSILON } from '../../../platform/engine/core/clock.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import { onResolvedCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/gw2/resolver/types.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
@@ -25,20 +25,6 @@ const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
   'Ring of Fire',
   'Lava Font',
   'Wildfire'
-]);
-const BOON_KINDS = new Set([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
 ]);
 function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
   const profession = context.profession as {
@@ -66,37 +52,6 @@ export function applyElementalistResolverAttunement(
 
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {
   return String(event.skillName || event.name || event.source || '');
-}
-
-function titleCase(value: string): string {
-  const normalized = value.toLowerCase();
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
-
-// Apply boon-duration stats and named bonuses with GW2's lower and upper duration
-// bounds before a resolver-owned buff is queued.
-function buffDuration(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, kind: string, duration: number): number {
-  const normalized = kind.toLowerCase();
-  if (!BOON_KINDS.has(normalized)) return duration;
-  const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
-  const stats = context.query.statsAt(
-    event.at,
-    {
-      ...event,
-      type: 'buff',
-      actorType: 'player',
-      kind: normalized
-    },
-    context
-  );
-  const staticStats = gw2StatsForWeaponSet(context.config, weaponSet);
-  const sigils = context.config.sigilSets?.[weaponSet - 1] || {};
-  const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(staticStats.boonDurationBonus || 0) / 100 +
-    Number(staticStats.boonDurationBonuses?.[titleCase(normalized)] || 0) / 100 +
-    Number(sigils.boonDurationBonus || 0) / 100;
-  return duration * Math.min(2, Math.max(1, 1 + bonus));
 }
 
 // Build Elementalist attribution around a derived condition and apply it
@@ -142,7 +97,7 @@ export function queueElementalistBuff(
   duration: number,
   source: string
 ): void {
-  const adjustedDuration = buffDuration(context, event, kind, duration);
+  const adjustedDuration = gw2ResolverBoonDuration(context, event, kind, duration);
   const application: Gw2ResolverEvent = {
     type: 'buff',
     at: event.at,

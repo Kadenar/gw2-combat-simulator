@@ -1,6 +1,7 @@
 import { holosmithState } from './state.js';
 import { decorateHolosmithHeatEvent } from './heat-tiers.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
@@ -148,6 +149,10 @@ function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
 }
 
 function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number): void {
+  const sourceSkill = {
+    id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
+    name: 'Enhanced Capacity Storage Unit'
+  } as EngineerSkill;
   context.emit({
     type: 'buff',
     at,
@@ -156,7 +161,12 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
     actorType: 'player',
     name: 'Enhanced Capacity Storage Unit — might',
     kind: 'might',
-    duration: engineerBalanceEffectValue(context, PROFILE.enhancedCapacity, 'boon', 'duration', 6),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      sourceSkill,
+      'might',
+      engineerBalanceEffectValue(context, PROFILE.enhancedCapacity, 'boon', 'duration', 6)
+    ),
     stacks: engineerBalanceEffectValue(context, PROFILE.enhancedCapacity, 'boon', 'stacks', 2)
   });
 }
@@ -545,7 +555,12 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
     skillName: skill.name,
     name: 'Thermal Release Valve — vigor',
     kind: 'vigor',
-    duration: engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'duration', 3),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      skill,
+      'vigor',
+      engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'duration', 3)
+    ),
     stacks: engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'stacks', 1)
   });
   if (state.heat <= 0 || (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated))

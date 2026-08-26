@@ -1,4 +1,5 @@
 import type { SkillEffect } from '../../../../platform/engine/types.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -27,9 +28,7 @@ const triggerShatterBoon = (
   const kind = String(effect.boon || fallbackBoon);
   const baseDuration =
     Number(effect.duration ?? 3) + (resolution.spent + 1) * mesmerBalanceValue(context, traitId, 'durationPerTier', 1);
-  const duration =
-    context.schedulerPolicy.effectDuration?.(context, { id: traitId, name: traitName }, effect, baseDuration) ??
-    baseDuration;
+  const duration = gw2SchedulerBoonDuration(context, { id: traitId, name: traitName }, kind, baseDuration);
   runtime.addEvent({
     type: 'buff',
     at: resolution.at,

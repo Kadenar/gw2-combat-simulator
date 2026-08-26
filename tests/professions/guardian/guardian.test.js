@@ -562,6 +562,25 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   );
 });
 
+test('Inspired Virtue emits its base boon through the shared boon-duration policy', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Virtue of Courage'],
+    config: {
+      ...config,
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE],
+      stats: { ...config.stats, concentration: 750 }
+    }
+  });
+  const protection = result.events.find(
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE
+  );
+
+  assert.ok(protection);
+  assert.equal(protection.kind, 'protection');
+  assert.equal(protection.duration, 7.5);
+});
+
 test('Spear Symbol of Luminance keeps all spear skills illuminated while active', () => {
   const spearConfig = { ...config, primaryWeapon: 'Spear' };
 

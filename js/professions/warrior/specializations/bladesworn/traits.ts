@@ -1,4 +1,5 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
@@ -86,7 +87,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
       kind: 'might',
       boon: 'might',
       stacks: Number(might?.stacks ?? 2),
-      duration: Number(might?.duration ?? 8),
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'might', Number(might?.duration ?? 8)),
       recipients: 'party'
     });
   }
@@ -192,7 +193,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
       kind: 'stability',
       boon: 'stability',
       stacks: Number(stability?.stacks ?? 1),
-      duration: Number(stability?.duration ?? 3)
+      duration: gw2SchedulerBoonDuration(context, skill, 'stability', Number(stability?.duration ?? 3))
     });
   }
 }
@@ -278,7 +279,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
       kind: 'alacrity',
       boon: 'alacrity',
       stacks: 1,
-      duration: 10,
+      duration: gw2SchedulerBoonDuration(context, skill, 'alacrity', 10),
       recipients: 'party'
     });
   }

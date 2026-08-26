@@ -1,8 +1,8 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerPetCompanionId } from './pets.js';
 import {
@@ -12,7 +12,6 @@ import {
   petDerivedConditionMetadata,
   queueBleeding,
   queueCondition,
-  rangerBoonDuration,
   targetHealthFraction
 } from './shared.js';
 import type {
@@ -32,25 +31,6 @@ import {
 
 function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
-}
-
-// Apply the active weapon set's boon-duration stats and named bonus within GW2's
-// duration cap before a trait boon is emitted.
-function boonDuration(context: RangerCastContext, kind: string, baseDuration: number): number {
-  const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
-  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
-  const sigil = context.config.sigilSets?.[weaponSet - 1];
-  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
-  const lingeringMagic =
-    hasTrait(context, TRAIT.LINGERING_MAGIC) && !professionStaticRulesApplied(context.config)
-      ? rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240)
-      : 0;
-  const bonus =
-    (Number(stats.concentration || 0) + lingeringMagic) / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
-    Number(sigil?.boonDurationBonus || 0) / 100;
-  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }
 
 function emitPartyBoon(
@@ -73,7 +53,7 @@ function emitPartyBoon(
     name: `${sourceName} - ${kind}`,
     kind,
     boon: kind,
-    duration: boonDuration(context, kind, baseDuration),
+    duration: gw2SchedulerBoonDuration(context, skill, kind, baseDuration),
     stacks,
     recipients: 'party',
     affectsSummons: true,
@@ -288,7 +268,12 @@ export function applyRangerWeaponSwapTraits(
       skillId: skill.id,
       skillName: 'Tail Wind',
       kind: String(effect?.boon || 'swiftness'),
-      duration: Number(effect?.duration ?? 9),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(effect?.boon || 'swiftness'),
+        Number(effect?.duration ?? 9)
+      ),
       stacks: Number(effect?.stacks ?? 1)
     });
   }
@@ -307,7 +292,12 @@ export function applyRangerWeaponSwapTraits(
       skillId: skill.id,
       skillName: 'Quick Draw',
       kind: String(effect?.boon || 'quickness'),
-      duration: Number(effect?.duration ?? 3),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(effect?.boon || 'quickness'),
+        Number(effect?.duration ?? 3)
+      ),
       stacks: Number(effect?.stacks ?? 1)
     });
   }
@@ -325,7 +315,7 @@ export function applyRangerWeaponSwapTraits(
       skillId: skill.id,
       skillName: 'Furious Grip',
       kind: String(effect?.boon || 'fury'),
-      duration: Number(effect?.duration ?? 5),
+      duration: gw2SchedulerBoonDuration(context, skill, String(effect?.boon || 'fury'), Number(effect?.duration ?? 5)),
       stacks: Number(effect?.stacks ?? 1)
     });
   }
@@ -564,7 +554,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolve
     skillName: "Hunter's Gaze",
     name: "Hunter's Gaze - Might",
     kind: String(might?.boon || 'might'),
-    duration: rangerBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 5)),
+    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 5)),
     stacks,
     triggeredBy: event.skillName
   });
@@ -691,7 +681,7 @@ function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerR
     skillName: '"Strength of the Pack!"',
     name: '"Strength of the Pack!" - Might',
     kind: String(might?.boon || 'might'),
-    duration: Number(might?.duration ?? 8),
+    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 8)),
     stacks: Number(might?.stacks ?? 1),
     affectsSelf: false,
     affectsSummons: true,

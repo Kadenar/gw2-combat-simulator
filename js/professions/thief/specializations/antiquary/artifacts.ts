@@ -2,6 +2,7 @@ import { antiquaryState } from './state.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
 import { emitThiefState, gainThiefInitiative } from '../../core/shared.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import type {
   AntiquaryState,
@@ -51,6 +52,7 @@ function emitBoon(
   stacks: number,
   name: string
 ): void {
+  const sourceSkill = context.skill || ({ id: name, name } as ThiefSkill);
   context.emit({
     type: 'buff',
     at,
@@ -62,7 +64,7 @@ function emitBoon(
     name,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
     stacks
   });
 }

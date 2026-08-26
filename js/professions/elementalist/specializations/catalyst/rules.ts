@@ -8,7 +8,8 @@ import type {
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
-import { applyElementalistAura, elementalistBuffDuration, emitElementalistBuff } from '../../core/rules.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
+import { applyElementalistAura, emitElementalistBuff } from '../../core/rules.js';
 import type { ElementalistAttunement } from '../../core/state.js';
 import type { CatalystEmpowermentPool } from '../../types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
@@ -176,12 +177,11 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
       skillName: skill.name,
       kind: 'quickness',
       stacks: Number(quickness?.stacks ?? 1),
-      duration: elementalistBuffDuration(
-        context as never,
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
         'quickness',
-        Number(quickness?.duration ?? SPECTACULAR_SPHERE_QUICKNESS_DURATION) * durationMultiplier,
-        skill.name,
-        skill.id
+        Number(quickness?.duration ?? SPECTACULAR_SPHERE_QUICKNESS_DURATION) * durationMultiplier
       ),
       recipients: 'party',
       maximumRecipients: 5,
@@ -205,12 +205,11 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
       skillName: skill.name,
       kind: String(profiledBoon?.boon || boon[1]),
       stacks: Number(profiledBoon?.stacks ?? boon[2]),
-      duration: elementalistBuffDuration(
-        context as never,
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
         String(profiledBoon?.boon || boon[1]),
-        Number(profiledBoon?.duration ?? boon[3]) * durationMultiplier,
-        skill.name,
-        skill.id
+        Number(profiledBoon?.duration ?? boon[3]) * durationMultiplier
       ),
       recipients: 'party',
       maximumRecipients: 5,

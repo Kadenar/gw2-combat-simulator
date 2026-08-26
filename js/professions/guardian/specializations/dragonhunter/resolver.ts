@@ -1,4 +1,5 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { gw2ResolverBoonDuration } from '../../../../platform/gw2/resolver/boon-duration.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
@@ -153,7 +154,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
     skillName: 'Heavy Light',
     kind: 'stability',
     stacks: Number(stability?.stacks || 1),
-    duration: Number(stability?.duration || 6)
+    duration: gw2ResolverBoonDuration(context, event, 'stability', Number(stability?.duration || 6))
   });
   context.recordProc(
     'trait',

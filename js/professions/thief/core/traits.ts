@@ -1,7 +1,8 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/combat/state/targets.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasThiefTrait } from './state.js';
 import { emitThiefCondition, emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';
@@ -35,7 +36,7 @@ function emitStealBoon(context: ThiefCastContext, at: number, boon: string, dura
     name: `Steal — ${boon}`,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, context.skill, boon, duration),
     stacks
   });
 }
@@ -261,24 +262,6 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
 
 const EPSILON = 1e-9;
 
-function thiefBoonDuration(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  kind: string,
-  baseDuration: number
-): number {
-  const stats = context.query.statsAt(event.at, event, context);
-  const configuredStats = gw2StatsForWeaponSet(context.config, context.activeWeaponSet);
-  const sigil = context.query.activeSigilSetAt(event.at);
-  const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
-  const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(configuredStats.boonDurationBonus || 0) / 100 +
-    Number(configuredStats.boonDurationBonuses?.[name] || 0) / 100 +
-    Number(sigil?.boonDurationBonus || 0) / 100;
-  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
-}
-
 // Queue a trait boon with live duration scaling and explicit self or party
 // recipient semantics.
 function queueThiefBoon(
@@ -310,7 +293,7 @@ function queueThiefBoon(
     skillName: traitName,
     name: `${traitName} - ${boon}`,
     kind: boon.toLowerCase(),
-    duration: thiefBoonDuration(context, event, boon, duration),
+    duration: gw2ResolverBoonDuration(context, event, boon, duration),
     stacks,
     recipients,
     maximumRecipients: recipients === 'party' ? 5 : 1,

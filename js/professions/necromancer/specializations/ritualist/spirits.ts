@@ -1,5 +1,4 @@
 import { ritualistState } from './state.js';
-import { gw2StatsForWeaponSet } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
@@ -394,20 +393,12 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
   }
 }
 
-function painfulBondDuration(context: NecromancerCastContext): number {
-  const stats = gw2StatsForWeaponSet(context.config, context.state.activeWeaponSet);
-  const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.['Painful Bond'] || 0) / 100;
-  const baseDuration = Number(
+function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
+  // Painful Bond is a profession status rather than a standard boon, so its
+  // authored duration remains fixed even when the build has Concentration.
+  const duration = Number(
     balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.painfulBond), 'buff')?.duration || 10
   );
-  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
-}
-
-function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
-  const duration = painfulBondDuration(context);
   context.emit({
     type: 'buff',
     at,

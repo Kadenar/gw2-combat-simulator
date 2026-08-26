@@ -1,5 +1,6 @@
 import { firebrandState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 /**
  * @fileoverview Implements Firebrand tome cast gating, shared page
  * regeneration and spending, tome state replay, and Ashes of the Just damage
@@ -192,7 +193,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
         name: 'Legendary Lore',
         kind: String(boon.boon || ''),
         stacks: Number(boon.stacks || 1),
-        duration: Number(boon.duration || 0)
+        duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0))
       });
     }
   }
@@ -235,7 +236,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       name: 'Might',
       kind: 'might',
       stacks: Number(might?.stacks || 8),
-      duration: Number(might?.duration || 10),
+      duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration || 10)),
       recipients: 'party',
       recipientCount: party.count + 1
     });
@@ -422,7 +423,7 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
         name: 'Tome of Courage — Passive Aegis',
         kind: 'aegis',
         stacks: Number(aegis?.stacks || 1),
-        duration: Number(aegis?.duration || 40)
+        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration || 40))
       });
     }
 

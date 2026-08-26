@@ -1,5 +1,9 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../../platform/gw2/scheduler/policy.js';
+import {
+  GW2_ALACRITY_RECHARGE_RATE,
+  gw2BuffActiveForAudience,
+  gw2SchedulerBoonDuration
+} from '../../../../platform/gw2/scheduler/policy.js';
 import type { ScheduledTask, SimulationEvent } from '../../../../platform/engine/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
@@ -286,7 +290,12 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
     skillName: 'Flock Together',
     kind: String(quickness?.boon || 'quickness'),
     boon: String(quickness?.boon || 'quickness'),
-    duration: Number(quickness?.duration ?? 5),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      skill,
+      String(quickness?.boon || 'quickness'),
+      Number(quickness?.duration ?? 5)
+    ),
     stacks: Number(quickness?.stacks ?? 1),
     recipients: 'party',
     affectsSummons: true,

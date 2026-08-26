@@ -1,6 +1,7 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled } from '../../core/rules.js';
 import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
@@ -83,7 +84,7 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
         name: 'Shield of Courage — Passive Aegis',
         kind: 'aegis',
         stacks: Number(aegis?.stacks || 1),
-        duration: Number(aegis?.duration || 20)
+        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration || 20))
       });
     }
 

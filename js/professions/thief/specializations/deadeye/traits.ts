@@ -1,7 +1,8 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
 import { gainThiefInitiative } from '../../core/shared.js';
-import type { ThiefCastContext, ThiefEmissionContext } from '../../types.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
+import type { ThiefCastContext, ThiefEmissionContext, ThiefSkill } from '../../types.js';
 import { deadeyeState } from './state.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -27,6 +28,8 @@ export function emitDeadeyeBoon(
   source = 'Deadeye',
   party = false
 ): void {
+  const sourceSkill =
+    context.skill || ({ id: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`, name: source } as ThiefSkill);
   context.emit({
     type: 'buff',
     at,
@@ -38,7 +41,7 @@ export function emitDeadeyeBoon(
     name: `${source} — ${boon}`,
     kind: boon.toLowerCase(),
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
     stacks,
     ...(party ? { recipients: 'party', maximumRecipients: 5 } : {})
   });

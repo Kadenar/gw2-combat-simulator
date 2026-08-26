@@ -1,4 +1,5 @@
 import { EPSILON } from '../../../../platform/engine/core/clock.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { createMirageActionController } from './mirage.js';
@@ -10,7 +11,7 @@ import {
   MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS,
   MESMER_MIRAGE_PEITHA_SKILLS
 } from './mechanics.js';
-import type { MesmerMirageController, MesmerRuntime, MesmerSchedulerContext } from '../../types.js';
+import type { MesmerMirageController, MesmerRuntime, MesmerSchedulerContext, MesmerSkill } from '../../types.js';
 import { MIRAGE_AMBUSH_PROFILE_IDS, mesmerProfiledAmbush } from './profiles.js';
 
 /** Returns the controller installed only by the Mirage runtime. */
@@ -47,7 +48,11 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     addDamage: runtime.addDamage,
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
-    balanceProfile: runtime.balanceProfile
+    balanceProfile: runtime.balanceProfile,
+    boonDuration: (sourceSkill, boon, baseDuration) => {
+      const skill = context.catalog.skillsByName.get(sourceSkill) || ({ id: 0, name: sourceSkill } as MesmerSkill);
+      return gw2SchedulerBoonDuration(context, skill, boon, baseDuration);
+    }
   });
   runtime.mirage = mirage;
   // Ambush casts replace the shared skill-effect path and stay owned by the active Mirage runtime.

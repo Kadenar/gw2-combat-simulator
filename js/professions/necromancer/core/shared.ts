@@ -1,6 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
-import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -176,6 +176,7 @@ export function emitBuff(
     readonly metadata?: Readonly<Record<string, unknown>>;
   } = {}
 ): void {
+  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
   context.emit({
     type: 'buff',
     at,
@@ -185,7 +186,7 @@ export function emitBuff(
     skillId: skill.id,
     skillName: skill.name,
     kind,
-    duration,
+    duration: adjustedDuration,
     stacks,
     ...metadata
   });
@@ -221,28 +222,6 @@ export function necromancerActiveBoonCompanionIds(
     .filter(([, active]) => active)
     .map(([key]) => `spirit:${key}`);
   return Object.freeze([...necromancerActiveMinionCompanionIds(context), ...spiritIds]);
-}
-
-// Resolve boon duration from live stats, configured bonuses, and active sigils
-// within GW2's duration bounds.
-export function necromancerBoonDuration(
-  context: NecromancerCastContext,
-  boon: string,
-  baseDuration: number,
-  at = context.effectiveEnd
-): number {
-  const stats = gw2StatsForWeaponSet(context.config, context.state.activeWeaponSet);
-  let concentration = Number(stats.concentration || 0);
-  for (const modifier of boonConcentrationModifiers.get(context.state)?.values() || []) {
-    concentration = modifier(context, concentration, at);
-  }
-
-  const name = String(boon || '');
-  const bonus =
-    concentration / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.[name] || 0) / 100;
-  return Number(baseDuration) * Math.max(1, Math.min(2, 1 + bonus));
 }
 
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
@@ -334,26 +313,9 @@ export function runCreatureSummonReactions(
   }
 }
 
-type BoonConcentrationModifier = (context: NecromancerCastContext, concentration: number, at: number) => number;
 type CreatureStrikeMultiplier = (context: NecromancerCastContext) => number;
 
-const boonConcentrationModifiers = new WeakMap<object, Map<string, BoonConcentrationModifier>>();
 const creatureStrikeMultipliers = new WeakMap<object, Map<string, CreatureStrikeMultiplier>>();
-
-/** Registers an active module's boon-duration contribution without importing that module into Core. */
-export function registerNecromancerBoonConcentrationModifier(
-  context: NecromancerSchedulerContext,
-  id: string,
-  modifier: BoonConcentrationModifier
-): void {
-  let modifiers = boonConcentrationModifiers.get(context.state);
-  if (!modifiers) {
-    modifiers = new Map();
-    boonConcentrationModifiers.set(context.state, modifiers);
-  }
-
-  modifiers.set(id, modifier);
-}
 
 /** Registers specialization-owned multipliers that must be stamped onto Core creature attacks. */
 export function registerNecromancerCreatureStrikeMultiplier(

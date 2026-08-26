@@ -11,6 +11,7 @@ import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attri
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { clamp } from '../../../platform/gw2/combat/numeric.js';
 import {
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -317,12 +318,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     criticalChance: (event) => context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     emitEvent: (cause, event) => context.emitDerived(cause, event),
     boonDuration: (boon, duration) =>
-      context.schedulerPolicy.effectDuration?.(
-        context,
-        { id: TRAIT.MASTER_FENCER, name: 'Master Fencer' },
-        { type: 'boon', boon, duration },
-        duration
-      ) ?? duration,
+      gw2SchedulerBoonDuration(context, { id: TRAIT.MASTER_FENCER, name: 'Master Fencer' }, boon, duration),
     addTraitProc,
     balanceProfile: runtime.balanceProfile
   });

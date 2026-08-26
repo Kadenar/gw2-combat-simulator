@@ -1,6 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
+import {
+  GW2_ALACRITY_RECHARGE_RATE,
+  gw2BuffActiveForAudience,
+  gw2SchedulerBoonDuration
+} from '../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type {
   ScheduledTask,
@@ -307,7 +311,15 @@ function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, 
         skillId: skill.id,
         skillName: skill.name
       },
-      statusDuration: effectDuration(effect)
+      statusDuration:
+        effect.type === 'boon'
+          ? gw2SchedulerBoonDuration(
+              context,
+              skill,
+              String(effect.boon || effect.kind || ''),
+              effectDuration(effect) || 0
+            )
+          : effectDuration(effect)
     });
     for (const application of applications) {
       context.tasks.schedule({

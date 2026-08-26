@@ -1,5 +1,6 @@
 import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 /**
  * Trait effects triggered by invoking a legend.
  *
@@ -39,7 +40,17 @@ export function emitLegendInvocationSkill(
         skillId: skill.id,
         skillName: skill.name
       },
-      skillWeaponFallback: 'Unequipped'
+      skillWeaponFallback: 'Unequipped',
+      ...(effect.type === 'boon'
+        ? {
+            statusDuration: gw2SchedulerBoonDuration(
+              context,
+              skill,
+              String(effect.boon || effect.kind || ''),
+              Number(effect.duration || 0)
+            )
+          }
+        : {})
     });
     for (const application of applications) {
       context.emit(application.event);
@@ -74,7 +85,17 @@ export function emitLegendInvocationProfile(
         skillId: profile.id,
         skillName: profile.name
       },
-      skillWeaponFallback: 'Unequipped'
+      skillWeaponFallback: 'Unequipped',
+      ...(effect.type === 'boon'
+        ? {
+            statusDuration: gw2SchedulerBoonDuration(
+              context,
+              materializerProfile,
+              String(effect.boon || effect.kind || ''),
+              Number(effect.duration || 0)
+            )
+          }
+        : {})
     });
     for (const application of applications) {
       context.emit(application.event);

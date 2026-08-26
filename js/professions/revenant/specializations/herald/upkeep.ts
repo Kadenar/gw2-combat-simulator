@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { emitRevenantBoon } from '../../core/boons.js';
 import { emitRevenantState } from '../../core/shared.js';
 import { hasRevenantTrait } from '../../core/state.js';
@@ -42,7 +43,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
   if (!effect) throw new Error('Elevated Compassion is missing its quickness effect.');
   const baseDuration = Math.max(0, Number(effect.duration || 0));
   const skill = { id: TRAIT.ELEVATED_COMPASSION, name: 'Elevated Compassion' } as RevenantSkill;
-  const duration = context.schedulerPolicy.effectDuration?.(context, skill, effect, baseDuration) ?? baseDuration;
+  const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'quickness'), baseDuration);
 
   // Emit one self-affecting party boon and reserve the next legal pulse so threshold re-entry cannot bypass the ICD.
   context.emit({

@@ -5,8 +5,8 @@ import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '../equipment/consumables/food.js';
 import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
 import { onResolvedPlayerCriticalHit } from '../authoring/mechanics.js';
-import { clamp, consumeExpectedCriticalProgress } from '../combat/numeric.js';
-import { gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
+import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
+import { gw2SigilSet } from '../combat/query/runtime-rules.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
@@ -23,6 +23,7 @@ import {
   handleWeaknessVulnerabilityRelic
 } from './relic-reactions.js';
 import { skillForEvent } from './event-skill.js';
+import { gw2ResolverBoonDuration } from './boon-duration.js';
 
 import type { NativeResolvedDamageDetails } from '../authoring/module-types.js';
 import type { Gw2ConditionHelpers } from '../equipment/relics/types.js';
@@ -143,20 +144,13 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
   let foodEvent: Gw2ResolverEvent;
   if (conditionalEffect?.type === 'boon') {
     const name = conditionalEffect.name;
-    const sigils = ctx.query.activeSigilSetAt(event.at);
-    const stats = gw2StatsForWeaponSet(ctx.config, ctx.activeWeaponSet);
-    const bonus =
-      Number(stats.concentration || 0) / 1500 +
-      Number(stats.boonDurationBonus || 0) / 100 +
-      Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
-      Number(sigils.boonDurationBonus || 0) / 100;
     foodEvent = {
       ...commonEvent,
       type: 'buff',
       name: `${proc.name} — ${name}`,
       kind: name.toLowerCase(),
       stacks: conditionalEffect.stacks,
-      duration: conditionalEffect.duration * clamp(1 + bonus, 1, 2)
+      duration: gw2ResolverBoonDuration(ctx, event, name, conditionalEffect.duration)
     } as Gw2ResolverEvent;
   } else if (conditionalEffect?.type === 'condition') {
     foodEvent = {

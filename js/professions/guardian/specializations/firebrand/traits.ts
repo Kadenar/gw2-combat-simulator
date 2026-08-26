@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';
 import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
@@ -153,6 +154,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   ) {
     const profile = guardianBalanceProfile(context, PROFILE.stalwartSpeed);
     const quickness = guardianBalanceProfileEffect(profile, 'boon');
+    const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STALWART_SPEED, name: 'Stalwart Speed' } as GuardianSkill;
     state.stalwartSpeedReadyAt = event.at + Number(profile?.internalCooldown || 7);
     context.emit({
       type: 'buff',
@@ -164,7 +166,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
       skillName: 'Stalwart Speed',
       kind: 'quickness',
       stacks: Number(quickness?.stacks || 1),
-      duration: Number(quickness?.duration || 2),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'quickness', Number(quickness?.duration || 2)),
       recipients: 'party',
       triggeredBy: event.skillName
     });
@@ -189,6 +191,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
   ) {
     const profile = guardianBalanceProfile(context, PROFILE.stoicDemeanor);
+    const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
     for (const buff of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
       context.emit({
         type: 'buff',
@@ -200,7 +203,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
         skillName: 'Stoic Demeanor',
         kind: String(buff.boon || ''),
         stacks: Number(buff.stacks || 1),
-        duration: Number(buff.duration || 0),
+        duration: gw2SchedulerBoonDuration(context, sourceSkill, String(buff.boon || ''), Number(buff.duration || 0)),
         triggeredBy: event.skillName
       });
     }

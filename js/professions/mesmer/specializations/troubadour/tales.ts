@@ -1,5 +1,6 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { troubadourState } from './state.js';
 import type { MesmerSchedulerContext, MesmerSkill } from '../../types.js';
@@ -48,7 +49,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
       at,
       kind: String(boon.boon || ''),
       stacks: Number(boon.stacks || 1),
-      duration: Number(boon.duration || 0),
+      duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0)),
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients
@@ -76,7 +77,12 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
       at,
       kind: String(protection?.boon || 'protection'),
       stacks: Number(protection?.stacks || 1),
-      duration: Number(protection?.duration || 3),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(protection?.boon || 'protection'),
+        Number(protection?.duration || 3)
+      ),
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients

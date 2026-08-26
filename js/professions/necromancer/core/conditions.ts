@@ -14,7 +14,7 @@ import { createRelicTimelineRuntime } from '../../../platform/gw2/equipment/reli
 import { relicConditionDurationBonus } from '../../../platform/gw2/equipment/relics/query.js';
 import { projectCastRelativeEffectTimingMs } from '../../../platform/gw2/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { emitBuff, emitCondition, emitDamage, hasTrait, necromancerBoonDuration } from './shared.js';
+import { emitBuff, emitCondition, emitDamage, hasTrait } from './shared.js';
 import type {
   NecromancerCastContext,
   NecromancerCoreState,
@@ -282,7 +282,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
   }
 
   if (skill.id === ID.BLOOD_IS_POWER) {
-    emitBuff(context, skill, 'might', necromancerBoonDuration(context, 'Might', 20), 5, {
+    emitBuff(context, skill, 'might', 20, 5, {
       metadata: { recipients: 'party', maximumRecipients: 5 }
     });
   }

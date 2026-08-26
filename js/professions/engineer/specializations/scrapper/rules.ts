@@ -1,9 +1,5 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import {
-  gw2BoonDurationMultiplier,
-  gw2SigilSet,
-  gw2StatsForWeaponSet
-} from '../../../../platform/gw2/combat/query/runtime-rules.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, playerStrike } from '../../core/rule-helpers.js';
@@ -11,7 +7,7 @@ import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/pro
 import { hasEngineerTrait } from '../../core/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../../platform/engine/types.js';
-import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '../../types.js';
+import type { EngineerMaximumAmmoContext, EngineerSchedulerContext, EngineerSkill } from '../../types.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { scrapperState } from './state.js';
 import { applyScrapperCastTraits } from './traits.js';
@@ -39,9 +35,10 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
 
 function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
   if (!kineticAcceleratorsTriggerAllowed(context, event)) return;
-  const weaponSet = context.state.activeWeaponSet;
-  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
-  const sigils = gw2SigilSet(context.config, weaponSet);
+  const sourceSkill =
+    context.catalog?.skillsById.get(event.skillId ?? '') ||
+    context.catalog?.skillsByName.get(String(event.skillName || '')) ||
+    ({ id: TRAIT.KINETIC_ACCELERATORS, name: 'Kinetic Accelerators' } as EngineerSkill);
   const emitBoon = (kind: string, baseDuration: number, stacks: number): void => {
     // Keep this as a canonical buff event: the scheduler needs it for cast
     // timing and the result timeline needs it for effects-over-time graphs.
@@ -55,7 +52,7 @@ function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event:
       skillName: event.skillName,
       name: `Kinetic Accelerators — ${kind}`,
       kind,
-      duration: baseDuration * gw2BoonDurationMultiplier(kind, stats, sigils),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, kind, baseDuration),
       stacks,
       recipients: 'party'
     });

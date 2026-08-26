@@ -1,6 +1,7 @@
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
@@ -119,7 +120,7 @@ export function applyWillbenderVirtueActivationTraits(
       name: 'Restorative Virtues — Vigor',
       kind: 'vigor',
       stacks: Number(vigor?.stacks || 1),
-      duration: Number(vigor?.duration || 3)
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'vigor', Number(vigor?.duration || 3))
     });
   }
 
@@ -136,7 +137,7 @@ export function applyWillbenderVirtueActivationTraits(
       name: 'Phoenix Protocol — Activation Alacrity',
       kind: 'alacrity',
       stacks: Number(alacrity?.stacks || 1),
-      duration: Number(alacrity?.duration || 5),
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration || 5)),
       recipients: 'self',
       affectsSelf: true
     });
@@ -341,6 +342,9 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
   const at = Number(task.at);
   const state = willbenderState.from(context);
   const sourceSkill = String(payload.sourceSkillName || '');
+  const boonSourceSkill =
+    context.catalog.skillsByName.get(sourceSkill) ||
+    ({ id: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO, name: sourceSkill || 'Willbender Virtue' } as GuardianSkill);
 
   // Materialize one completed virtue hit cycle, resetting its counter before
   // emitting Lethal Tempo, cooldown reductions, and virtue-specific boons.
@@ -389,7 +393,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
           name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
           kind,
           stacks: Number(boon.stacks || 1),
-          duration: Number(boon.duration || 4),
+          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration || 4)),
           triggeredBy: sourceSkill
         });
       }
@@ -412,7 +416,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         name: 'Phoenix Protocol — Alacrity',
         kind: 'alacrity',
         stacks: Number(alacrity?.stacks || 1),
-        duration: Number(alacrity?.duration || 1),
+        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration || 1)),
         triggeredBy: sourceSkill
       });
     }

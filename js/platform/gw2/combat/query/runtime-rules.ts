@@ -91,6 +91,10 @@ export function gw2StaticAttributes(
     expertise: Number(stats.expertise || 0),
     concentration: Number(stats.concentration || 0),
     healingPower: Number(stats.healingPower || 0),
+    boonDurationBonus: Number(stats.boonDurationBonus || 0),
+    boonDurationBonuses: {
+      ...(stats.boonDurationBonuses || {})
+    },
     conditionDurationBonus: Number(stats.conditionDurationBonus || 0),
     conditionDurationBonuses: {
       ...(stats.conditionDurationBonuses || {})

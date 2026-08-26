@@ -19,15 +19,18 @@
  * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
-import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
+import {
+  GW2_ALACRITY_RECHARGE_RATE,
+  gw2BuffActiveForAudience,
+  gw2SchedulerBoonDuration
+} from '../../../platform/gw2/scheduler/policy.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
   SchedulerRecord,
   SimulationEvent,
-  Skill,
-  SkillEffect
+  Skill
 } from '../../../platform/engine/types.js';
 import { denyCast, retryCast } from '../../../platform/engine/skills/availability.js';
 import type {
@@ -484,26 +487,11 @@ function emitPlayerOwnedCondition(
   });
 }
 
-// Runs a boon's base duration through the summoning glyph's effect-duration policy
-// (concentration / boon-duration modifiers) so Might/Protection scale with the build.
-function boonDuration(context: ElementalistSchedulerContext, boon: string, duration: number): number {
-  const element = professionCoreState(context).summonedElemental.element;
-  const sourceSkill =
-    element === 'Earth'
-      ? context.catalog.skillsByName.get('Glyph of Elementals (Earth)')
-      : context.catalog.skillsByName.get('Glyph of Elementals');
-  if (!sourceSkill) return duration;
-  const effect: SkillEffect = {
-    type: 'boon',
-    boon,
-    duration
-  };
-  return context.schedulerPolicy.effectDuration?.(context, sourceSkill, effect, duration) ?? duration;
-}
-
 // Flame Burst shares Might to the 5-player party.
 function emitFlameBurstMight(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
+  const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals');
+  if (!sourceSkill) return;
   context.emit({
     type: 'buff',
     activationId: task.payload?.activationId,
@@ -516,7 +504,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
     name: 'Flame Burst — Might',
     kind: 'might',
     stacks: profile.mightStacks,
-    duration: boonDuration(context, 'might', profile.mightDuration),
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', profile.mightDuration),
     recipients: 'party',
     maximumRecipients: 5
   });
@@ -525,6 +513,8 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
 // Stomp shares Protection to the 5-player party.
 function emitStompProtection(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
+  const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals (Earth)');
+  if (!sourceSkill) return;
   context.emit({
     type: 'buff',
     activationId: task.payload?.activationId,
@@ -537,7 +527,7 @@ function emitStompProtection(context: ElementalistSchedulerContext, task: Schedu
     name: 'Stomp — Protection',
     kind: 'protection',
     stacks: 1,
-    duration: boonDuration(context, 'protection', profile.protectionDuration),
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, 'protection', profile.protectionDuration),
     recipients: 'party',
     maximumRecipients: 5
   });

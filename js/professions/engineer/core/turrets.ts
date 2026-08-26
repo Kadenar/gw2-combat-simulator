@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { emitEngineerState } from './events.js';
 import type { SchedulerRecord, Skill, SkillEffect, SkillId } from '../../../platform/engine/types.js';
@@ -101,7 +102,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
       name: skill.name,
       kind: 'regeneration',
       stacks: 1,
-      duration: 3
+      duration: gw2SchedulerBoonDuration(context, skill, 'regeneration', 3)
     });
   }
 

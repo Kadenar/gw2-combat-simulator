@@ -7,6 +7,7 @@ import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2AlliedEffectRecipients } from '../../../platform/gw2/combat/state/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type {
@@ -376,7 +377,12 @@ export function reactToNecromancerCoreDamage(
       skillName: "Reaper's Might",
       kind: String(effect?.boon || 'might'),
       stacks: Number(effect?.stacks || 1),
-      duration: Number(effect?.duration || 15),
+      duration: gw2ResolverBoonDuration(
+        context,
+        event,
+        String(effect?.boon || 'might'),
+        Number(effect?.duration || 15)
+      ),
       source: 'Trait',
       sourceId: TRAIT.REAPERS_MIGHT,
       actorType: 'effect',
@@ -400,7 +406,7 @@ export function reactToNecromancerCoreDamage(
       skillName: 'Siphoned Power',
       kind: String(effect?.boon || 'might'),
       stacks: Number(effect?.stacks || 3),
-      duration: Number(effect?.duration || 8),
+      duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration || 8)),
       source: 'Trait',
       sourceId: TRAIT.SIPHONED_POWER,
       actorType: 'effect',

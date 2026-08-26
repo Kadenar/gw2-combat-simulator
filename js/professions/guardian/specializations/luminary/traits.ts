@@ -4,6 +4,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skills/timing.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import {
@@ -374,6 +375,9 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
   }
 
   if (event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LUMINOUS_STAFF) {
+    const sourceSkill =
+      context.catalog.skillsById.get(event.skillId) ||
+      ({ id: event.skillId, name: event.skillName || 'Luminous Staff' } as GuardianSkill);
     context.emit({
       type: 'buff',
       at: event.at,
@@ -384,7 +388,7 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
       skillName: event.skillName,
       kind: 'resolution',
       stacks: 1,
-      duration: 1
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'resolution', 1)
     });
   }
 }

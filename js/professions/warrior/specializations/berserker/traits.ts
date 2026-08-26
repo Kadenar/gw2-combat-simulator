@@ -1,5 +1,6 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { ScheduledTask } from '../../../../platform/engine/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
@@ -44,7 +45,7 @@ function emitBoon(
     name,
     kind: boon,
     boon,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, skill, boon, duration),
     stacks,
     ...(recipients ? { recipients } : {})
   });

@@ -15,11 +15,7 @@ import type {
 } from '../../types.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import {
-  gainNecromancerLifeForce,
-  hasTrait as hasNecromancerTrait,
-  registerNecromancerBoonConcentrationModifier
-} from '../../core/shared.js';
+import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
 import { purgeScourgeTimedState, scourgeState } from './state.js';
 
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
@@ -39,8 +35,10 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
     (necromancerRuntimeSpecializationState(context).shades || []).some((expiresAt: number) => expiresAt > context.time)
   ) {
     const bonus = Number(necromancerBalanceProfile(context, PROFILE.sandSage)?.attributeBonus || 225);
-    result.concentration += bonus;
-    result.expertise += bonus;
+    // Dynamic attribute queries may begin from sparse scheduler stats, so normalize
+    // absent duration attributes before applying Sand Sage's active-shade bonus.
+    result.concentration = Number(result.concentration || 0) + bonus;
+    result.expertise = Number(result.expertise || 0) + bonus;
   }
 
   return result;
@@ -58,14 +56,6 @@ function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maxim
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
     ? Number(necromancerBalanceProfile(context, PROFILE.sandSavant)?.maximumStacks || 1)
     : maximum;
-}
-
-function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
-  registerNecromancerBoonConcentrationModifier(context, 'scourge.sand-sage', (runtime, concentration, at) => {
-    const activeShade = scourgeState.from(runtime).shades.some((expiresAt: number) => expiresAt > at);
-    if (!activeShade || !hasNecromancerTrait(runtime, TRAIT.SAND_SAGE)) return concentration;
-    return concentration + Number(necromancerBalanceProfile(runtime, PROFILE.sandSage)?.attributeBonus || 225);
-  });
 }
 
 /** Selects the one Scourge F5 variant enabled by Herald of Sorrow for this command attempt. */
@@ -106,11 +96,6 @@ function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: Ne
 }
 
 export const scourgeSchedulerHooks = Object.freeze({
-  initialize: {
-    id: 'scourge.initialize-runtime',
-    order: 10,
-    handler: initializeScourgeRuntime
-  },
   advance: {
     id: 'scourge.purge-shades',
     order: -10,

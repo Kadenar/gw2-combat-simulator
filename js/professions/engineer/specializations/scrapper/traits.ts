@@ -1,6 +1,7 @@
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../../types.js';
 
@@ -31,6 +32,7 @@ function emitBuff(
   sourceId: number,
   name: string
 ): void {
+  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
   context.emit({
     type: 'buff',
     at: context.effectiveEnd,
@@ -42,7 +44,7 @@ function emitBuff(
     name,
     kind,
     // GW2 caps superspeed at 10s regardless of source; other statuses are uncapped here
-    duration: kind === 'superspeed' ? Math.min(10, duration) : duration,
+    duration: kind === 'superspeed' ? Math.min(10, adjustedDuration) : adjustedDuration,
     stacks: 1
   });
 }

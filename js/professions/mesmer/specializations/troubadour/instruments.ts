@@ -1,5 +1,6 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { troubadourState } from './state.js';
 import type { MesmerCastContext, MesmerInstrument, MesmerRuntime, MesmerSkill } from '../../types.js';
@@ -139,7 +140,12 @@ function instrumentAttack(
       at: damageAt,
       kind: String(quickness?.boon || 'quickness'),
       stacks: Number(quickness?.stacks || 1),
-      duration: Number(quickness?.duration || 6),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(quickness?.boon || 'quickness'),
+        Number(quickness?.duration || 6)
+      ),
       skillName: skill.name,
       sourceSkill: skill.name,
       recipients: 'party',
@@ -150,7 +156,7 @@ function instrumentAttack(
       at: damageAt,
       kind: String(might?.boon || 'might'),
       stacks: Number(might?.stacks || 5),
-      duration: Number(might?.duration || 8),
+      duration: gw2SchedulerBoonDuration(context, skill, String(might?.boon || 'might'), Number(might?.duration || 8)),
       skillName: skill.name,
       sourceSkill: skill.name,
       recipients: 'party',
@@ -254,7 +260,12 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         at: damageAt,
         kind: String(effect?.boon || kind),
         stacks: Number(effect?.stacks || stacks),
-        duration: Number(effect?.duration || duration),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          String(effect?.boon || kind),
+          Number(effect?.duration || duration)
+        ),
         skillName: skill.name,
         sourceSkill: skill.name,
         recipients: 'party',

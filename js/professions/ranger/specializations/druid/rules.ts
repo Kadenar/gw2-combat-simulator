@@ -1,7 +1,7 @@
 import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
 import { denySkillCast as deny } from '../../../lib/availability.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { gw2StatsForWeaponSet } from '../../../../platform/gw2/combat/query/runtime-rules.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
@@ -19,17 +19,6 @@ import {
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-// Grace of the Land emits alacrity; duration scales with concentration/boon duration like any boon
-function druidBoonDuration(context: RangerCastContext, baseDuration: number): number {
-  const stats = gw2StatsForWeaponSet(context.config, context.state.activeWeaponSet);
-  const bonus =
-    Number(stats?.concentration || 0) / 1500 +
-    Number(stats?.boonDurationBonus || 0) / 100 +
-    Number(stats?.boonDurationBonuses?.Alacrity || 0) / 100;
-  // Clamped to [1, 2]: boon duration can't go below base and is hard-capped at +100%
-  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
-}
-
 function emitGraceOfTheLand(context: RangerCastContext, skill: RangerSkill, at: number): void {
   const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.graceOfTheLand), 'boon');
   context.emit({
@@ -42,7 +31,12 @@ function emitGraceOfTheLand(context: RangerCastContext, skill: RangerSkill, at: 
     skillName: 'Grace of the Land',
     name: 'Grace of the Land - Alacrity',
     kind: String(effect?.boon || 'alacrity'),
-    duration: druidBoonDuration(context, Number(effect?.duration ?? 1)),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      skill,
+      String(effect?.boon || 'alacrity'),
+      Number(effect?.duration ?? 1)
+    ),
     stacks: Number(effect?.stacks ?? 1),
     triggeredBy: skill.name
   });

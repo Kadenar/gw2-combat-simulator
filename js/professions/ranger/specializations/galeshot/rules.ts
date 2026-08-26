@@ -1,5 +1,6 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import { denySkillCast as deny } from '../../../lib/availability.js';
@@ -38,7 +39,12 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
       name: `Cloudburst - ${kind}`,
       kind,
       boon: kind,
-      duration: Number(effect?.duration ?? (boonIndex === 0 ? (hawkeye ? 8 : 4) : 10)),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        kind,
+        Number(effect?.duration ?? (boonIndex === 0 ? (hawkeye ? 8 : 4) : 10))
+      ),
       stacks: Number(effect?.stacks ?? (boonIndex === 0 ? 1 : hawkeye ? 8 : 4)),
       recipients: 'party',
       maximumRecipients: 5,

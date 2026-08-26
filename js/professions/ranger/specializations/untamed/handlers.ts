@@ -1,4 +1,5 @@
 import { untamedState } from './state.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -70,7 +71,12 @@ export const untamedSkillHandlers = Object.freeze({
         skillName: skill.name,
         name: `${skill.name} - ${boon}`,
         kind: boon,
-        duration: Number(effect?.duration ?? (rangerWasUnleashed ? 10 : 4)),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          boon,
+          Number(effect?.duration ?? (rangerWasUnleashed ? 10 : 4))
+        ),
         stacks: Number(effect?.stacks ?? (rangerWasUnleashed ? 8 : 1))
       });
     }

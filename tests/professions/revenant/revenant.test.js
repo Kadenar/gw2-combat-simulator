@@ -5154,7 +5154,10 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     [443, 562, 682, 802, 920, 1039].map((at) => [at, 0.2])
   );
   assert.ok(
-    vortex.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 3)
+    vortex.events.some(
+      (event) =>
+        event.type === 'buff' && event.kind === 'resolution' && Math.abs(event.duration - 3 * (1 + 75 / 1500)) < 1e-9
+    )
   );
 });
 
@@ -5426,7 +5429,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
         event.skillName === 'Release Potential: Dervish' &&
         event.kind === 'might' &&
         event.stacks === 10 &&
-        event.duration === 8
+        Math.abs(event.duration - 8 * (1 + 75 / 1500)) < 1e-9
     )
   );
 
@@ -5442,12 +5445,15 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
         event.skillName === 'Release Potential: Dervish' &&
         event.kind === 'might' &&
         event.stacks === 10 &&
-        event.duration === 8
+        Math.abs(event.duration - 8 * (1 + 225 / 1500)) < 1e-9
     )
   );
   assert.ok(
     dervishCentaur.events.some(
-      (event) => event.skillName === 'Release Potential: Dervish' && event.kind === 'fury' && event.duration === 8
+      (event) =>
+        event.skillName === 'Release Potential: Dervish' &&
+        event.kind === 'fury' &&
+        Math.abs(event.duration - 8 * (1 + 225 / 1500)) < 1e-9
     )
   );
 });

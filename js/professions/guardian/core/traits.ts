@@ -4,6 +4,8 @@ import { SPECIALIZATIONS } from '../data/guardian-api-metadata.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { buildGuardianStrike } from './events.js';
 import {
   GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
@@ -92,6 +94,7 @@ export function emitGuardianBuff(
   duration: number,
   extra: SchedulerRecord = {}
 ): void {
+  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
   context.emit({
     type: 'buff',
     at,
@@ -102,7 +105,7 @@ export function emitGuardianBuff(
     skillName: skill.name,
     kind,
     stacks: 1,
-    duration,
+    duration: adjustedDuration,
     ...extra
   });
 }
@@ -271,12 +274,6 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   const virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
   if (virtueSlot) {
-    const boonDuration = (boon: string, duration: number): number => {
-      return (
-        context.schedulerPolicy.effectDuration?.(context, skill, { type: 'boon', boon, duration }, duration) ?? duration
-      );
-    };
-
     if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) {
       const inspired = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.inspiredVirtue),
@@ -284,7 +281,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         virtueSlot === 'Profession_1' ? 0 : virtueSlot === 'Profession_2' ? 1 : 2
       );
       const boon = String(inspired?.boon || 'protection');
-      emitGuardianBuff(context, skill, at, boon, boonDuration(boon, Number(inspired?.duration || 5)), {
+      emitGuardianBuff(context, skill, at, boon, Number(inspired?.duration || 5), {
         stacks: Number(inspired?.stacks || 1),
         sourceId: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
         name: 'Inspired Virtue'
@@ -296,17 +293,10 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         guardianBalanceProfile(context, PROFILE.virtueOfResolution),
         'boon'
       );
-      emitGuardianBuff(
-        context,
-        skill,
-        at,
-        'resolution',
-        boonDuration('resolution', Number(resolution?.duration || 3)),
-        {
-          sourceId: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
-          name: 'Virtue of Resolution'
-        }
-      );
+      emitGuardianBuff(context, skill, at, 'resolution', Number(resolution?.duration || 3), {
+        sourceId: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+        name: 'Virtue of Resolution'
+      });
     }
 
     if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) {
@@ -322,7 +312,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         guardianBalanceProfile(context, PROFILE.indomitableCourage),
         'boon'
       );
-      emitGuardianBuff(context, skill, at, 'stability', boonDuration('stability', Number(stability?.duration || 4)), {
+      emitGuardianBuff(context, skill, at, 'stability', Number(stability?.duration || 4), {
         stacks: Number(stability?.stacks || 3),
         sourceId: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
         name: 'Indomitable Courage'
@@ -484,6 +474,12 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
   }
 
   if (skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION) {
+    const sourceSkill =
+      skill ||
+      ({
+        id: GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION,
+        name: event.skillName || 'Symbol of Resolution'
+      } as GuardianSkill);
     context.emit({
       type: 'buff',
       at: event.at,
@@ -494,7 +490,7 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
       skillName: event.skillName,
       kind: 'resolution',
       stacks: 1,
-      duration: 1
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'resolution', 1)
     });
   }
 }
@@ -540,6 +536,18 @@ function queueResolverBuff(
     readonly priority?: number;
   }
 ): void {
+  const durationEvent = {
+    type: 'buff',
+    at,
+    source: 'guardian',
+    sourceId,
+    actorType: 'player',
+    skillId: sourceId,
+    skillName,
+    kind,
+    duration,
+    stacks
+  } as GuardianResolverEvent;
   enqueueOrdered(context.queue, {
     type: 'buff',
     at,
@@ -550,7 +558,7 @@ function queueResolverBuff(
     skillId: sourceId,
     skillName,
     kind,
-    duration,
+    duration: gw2ResolverBoonDuration(context, durationEvent, kind, duration),
     stacks
   });
 }

@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
 import { emitEngineerState } from '../../core/events.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { AMALGAM_NEW_GENES_BOONS } from './mechanics.js';
@@ -39,6 +40,10 @@ function emitBuff(
   at: number,
   { kind, duration, stacks = 1, sourceId, name }: AmalgamBuff
 ): void {
+  const sourceSkill =
+    context.catalog.skillsById.get(sourceId) ||
+    context.catalog.skillsByName.get(name) ||
+    ({ id: sourceId, name } as EngineerSkill);
   context.emit({
     type: 'buff',
     at,
@@ -48,7 +53,7 @@ function emitBuff(
     skillName: name,
     name,
     kind,
-    duration,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, kind, duration),
     stacks
   });
 }
