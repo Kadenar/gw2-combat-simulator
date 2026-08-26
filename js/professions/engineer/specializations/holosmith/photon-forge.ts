@@ -66,6 +66,22 @@ function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   return heatPerSecond * HOLOSMITH_HEAT.heatTickInterval;
 }
 
+function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): number {
+  const state = holosmithState.from(context);
+  if (state.photonForgeActive || state.forgeExitedAt == null) return 0;
+  if (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
+
+  const elapsedSinceExit = at - state.forgeExitedAt;
+  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + context.epsilon) return 0;
+  const coolingPerSecond =
+    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt + context.epsilon
+      ? HOLOSMITH_HEAT.slowCoolingPerSecond
+      : HOLOSMITH_HEAT.fastCoolingPerSecond;
+
+  // Scale both cooling phases to the shared cadence: 5%/s and 10%/s become 0.5% and 1% per tick.
+  return coolingPerSecond * HOLOSMITH_HEAT.heatTickInterval;
+}
+
 function nextPassiveHeatTick(at: number): number {
   // Keep repeated 100 ms additions on stable decimal boundaries for event ordering.
   return Math.round((at + HOLOSMITH_HEAT.heatTickInterval) * 1e9) / 1e9;
@@ -94,33 +110,6 @@ function appendHeatSegment(
     rate
   });
   state.heat = Math.max(0, Math.min(state.maximumHeat, startHeat + (segmentEnd - start) * rate));
-}
-
-// Applies passive heat decay while Photon Forge is inactive.
-// Cooling schedule after forge exit: 0-3 s flat, 3-8 s at -5/s, 8 s+ at -10/s.
-// Photonic Blasting Module suppresses all decay until the overheat has actually fired,
-// because the trait holds heat at maximum to enable the delayed explosion.
-function coolInactiveForge(context: EngineerSchedulerContext, target: number, segments: HeatSegment[]): void {
-  const state = holosmithState.from(context);
-  if (state.photonForgeActive || state.heat <= 0) return;
-  const exit = Number(state.forgeExitedAt ?? state.heatUpdatedAt);
-  const from = Math.max(Number(state.heatUpdatedAt || 0), exit);
-  if (!(target > from)) return;
-
-  if (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) {
-    appendHeatSegment(segments, state, from, target, 0);
-    return;
-  }
-
-  const slowStart = exit + 3;
-  const fastStart = exit + 8;
-  appendHeatSegment(segments, state, from, Math.min(target, slowStart), 0);
-  appendHeatSegment(segments, state, Math.max(from, slowStart), Math.min(target, fastStart), -5);
-  appendHeatSegment(segments, state, Math.max(from, fastStart), target, -10);
-  if (state.heat <= context.epsilon) {
-    state.heat = 0;
-    state.overheated = false;
-  }
 }
 
 function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
@@ -309,9 +298,9 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
   state.photonForgeActive = false;
-  state.passiveHeatAt = null;
   state.forgeExitedAt = at;
   state.overheated = true;
+  startPassiveHeatCadence(context, at);
   professionCoreState(context).activeKit = '';
   scheduleToolbeltOverheatPenalty(
     context,
@@ -341,13 +330,9 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   const previousOverheated = state.overheated;
   const segments: HeatSegment[] = [];
 
-  if (state.photonForgeActive) {
-    // Passive heat is applied by the 100 ms resource task. Keep a flat
-    // segment here so heat-tier pulses still advance between scheduler events.
-    appendHeatSegment(segments, state, from, target, 0);
-  } else {
-    coolInactiveForge(context, target, segments);
-  }
+  // Passive gain and cooling are discrete 100 ms tasks. Keep heat flat between
+  // those boundaries so heat-tier pulses observe the value active in each interval.
+  appendHeatSegment(segments, state, from, target, 0);
 
   materializeEnhancedCapacityMight(context, segments);
   state.heatUpdatedAt = target;
@@ -370,31 +355,56 @@ function schedulePassiveHeat(context: EngineerSchedulerContext, at: number): voi
   });
 }
 
+function startPassiveHeatCadence(context: EngineerSchedulerContext, at: number): void {
+  const state = holosmithState.from(context);
+  state.passiveHeatAt = nextPassiveHeatTick(at);
+  schedulePassiveHeat(context, state.passiveHeatAt);
+}
+
+export function initializePhotonForgeHeat(context: EngineerSchedulerContext): void {
+  const state = holosmithState.from(context);
+  // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
+  if (state.heat > context.epsilon && state.forgeExitedAt != null) {
+    startPassiveHeatCadence(context, Math.max(context.state.time, state.forgeExitedAt));
+  }
+}
+
 export function handlePhotonForgePassiveHeat(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<PhotonForgePassiveHeatPayload>
 ): void {
   const state = holosmithState.from(context);
-  if (
-    !state.photonForgeActive ||
-    state.passiveHeatAt == null ||
-    Math.abs(state.passiveHeatAt - task.at) > context.epsilon
-  )
-    return;
-
-  // The Forge-relative tick ejects only when heat was already capped at tick
-  // start, so passive heat that fills the bar gets one final 100 ms window.
-  if (state.heat >= state.maximumHeat - context.epsilon) {
-    forceOverheat(context, task.at);
-    return;
-  }
+  if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;
 
   const previousHeat = state.heat;
-  state.heat = Math.min(state.maximumHeat, Math.round((state.heat + passiveHeatPerTick(context)) * 1e9) / 1e9);
-  triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
+  if (state.photonForgeActive) {
+    // The Forge-relative tick ejects only when heat was already capped at tick
+    // start, so passive heat that fills the bar gets one final 100 ms window.
+    if (state.heat >= state.maximumHeat - context.epsilon) {
+      forceOverheat(context, task.at);
+      return;
+    }
+
+    state.heat = Math.min(state.maximumHeat, Math.round((state.heat + passiveHeatPerTick(context)) * 1e9) / 1e9);
+    triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
+  } else {
+    state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, task.at)) * 1e9) / 1e9);
+    if (state.heat <= context.epsilon) {
+      state.heat = 0;
+      state.overheated = false;
+    }
+  }
+
   if (state.heat !== previousHeat) emitEngineerState(context, task.at, 'passive-heat');
-  state.passiveHeatAt = nextPassiveHeatTick(task.at);
-  schedulePassiveHeat(context, state.passiveHeatAt);
+  const coolingGraceActive =
+    !state.photonForgeActive &&
+    state.forgeExitedAt != null &&
+    task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + context.epsilon;
+  if (state.photonForgeActive || state.heat > context.epsilon || coolingGraceActive) {
+    startPassiveHeatCadence(context, task.at);
+  } else {
+    state.passiveHeatAt = null;
+  }
 }
 
 export function handlePhotonForgeOverheatPenalty(
@@ -412,8 +422,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   coreState.activeKit = '';
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
-  state.passiveHeatAt = nextPassiveHeatTick(at);
-  schedulePassiveHeat(context, state.passiveHeatAt);
+  startPassiveHeatCadence(context, at);
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.
   state.kitLockoutUntil = at + context.rechargeDurationFor({ ...skill, cooldown: baseKitLockout }, at);
@@ -426,8 +435,8 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   const state = holosmithState.from(context);
   const at = context.effectiveEnd;
   state.photonForgeActive = false;
-  state.passiveHeatAt = null;
   state.forgeExitedAt = at;
+  startPassiveHeatCadence(context, at);
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
   emitEngineerBarSwap(context, skill, at);
   emitEngineerState(context, at, 'exit-forge');
@@ -585,8 +594,8 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
   if (skill.handlerId !== 'engineer.kit-equip' || !holosmithState.from(context).photonForgeActive) return;
   const at = context.effectiveEnd;
   holosmithState.from(context).photonForgeActive = false;
-  holosmithState.from(context).passiveHeatAt = null;
   holosmithState.from(context).forgeExitedAt = at;
+  startPassiveHeatCadence(context, at);
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
 }
 

@@ -1125,6 +1125,14 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
 
   assert.equal(preheatedGrace.endState.profession.heat, 100);
 
+  const firstCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 3100 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  // The first cooling tick after the three-second delay loses 0.5 heat.
+  assert.equal(firstCoolingTick.endState.profession.heat, 99.5);
+
   const preheatedCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 5200 }], {
     initialHeat: 100,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
@@ -1132,14 +1140,29 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
 
   assert.equal(preheatedCooling.endState.profession.heat, 89);
 
+  const beforeFastCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 8000 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(beforeFastCooling.endState.profession.heat, 75);
+
+  const firstFastCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 8100 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  // After eight seconds, the fast phase loses 1 heat on each 100 ms tick.
+  assert.equal(firstFastCoolingTick.endState.profession.heat, 74);
+
   const hot = simulate('Holosmith', [
     'Engage Photon Forge',
     { type: 'wait', durationMs: 5000 },
     'Deactivate Photon Forge',
-    { type: 'wait', durationMs: 3000 }
+    { type: 'wait', durationMs: 3100 }
   ]);
 
-  assert.equal(hot.endState.profession.heat, 10);
+  assert.equal(hot.endState.profession.heat, 9.5);
   assert.equal(hot.endState.profession.photonForgeActive, false);
 
   const cooled = simulate('Holosmith', [

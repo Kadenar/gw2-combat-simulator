@@ -10,6 +10,7 @@ import {
   handlePhotonForgeHeat,
   handlePhotonForgeOverheatPenalty,
   handlePhotonForgePassiveHeat,
+  initializePhotonForgeHeat,
   observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
 } from './photon-forge.js';
@@ -25,6 +26,11 @@ function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerS
 }
 
 export const holosmithSchedulerHooks = Object.freeze({
+  initialize: {
+    id: 'engineer.photon-forge-initialize',
+    order: 20,
+    handler: initializePhotonForgeHeat
+  },
   onEventScheduled: {
     id: 'engineer.holosmith-events',
     order: 30,

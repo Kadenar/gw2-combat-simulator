@@ -10,6 +10,11 @@ export const HOLOSMITH_HEAT = Object.freeze({
   lightDensityBonusPerSecond: 1,
   // Passive heat and Overheat both advance every 100 ms from Forge entry.
   heatTickInterval: 0.1,
+  // Cooling waits three seconds, loses 5%/s through eight seconds, then loses 10%/s.
+  coolingDelay: 3,
+  slowCoolingPerSecond: 5,
+  fastCoolingStartsAt: 8,
+  fastCoolingPerSecond: 10,
   // How long Solar Focusing Lens charges remain active (seconds).
   solarFocusingLensDuration: 4,
   // Heat at or above which Enhanced Capacity Storage Unit buffs activate.
