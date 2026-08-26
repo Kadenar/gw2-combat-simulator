@@ -15,6 +15,8 @@ const CHANT_OF_ACTION = Object.freeze({
 });
 const CHANT_OF_ACTION_BUFF = 76865;
 
+// ArcDPS has emitted multiple IDs for the same Paragon profession skills.
+// Normalize them before catalog lookup so the replay uses one stable identity.
 export const PARAGON_SKILL_ID_ALIASES = Object.freeze({
   69297: 45252,
   69433: 45252,
@@ -22,6 +24,12 @@ export const PARAGON_SKILL_ID_ALIASES = Object.freeze({
   80263: 80203
 });
 
+/**
+ * Reconstructs the Paragon opener from initial self-buffs when Bull's Charge
+ * supplies a reliable combat-start anchor. Bull's Charge crosses EnterCombat
+ * by one millisecond so it remains the opening attack; the preceding signets
+ * and chant are packed backward in their known order.
+ */
 function paragonPrecasts(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
   const bullsCharge = detectedWarriorCorePrecastIdentity(context, 'bullsCharge');
@@ -46,6 +54,7 @@ function paragonPrecasts(context: EvtcProfessionReconstructionContext): EvtcReco
   ];
 }
 
+/** Prepends only the Paragon opening casts proven by the initial-state snapshot. */
 export function reconstructParagonActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

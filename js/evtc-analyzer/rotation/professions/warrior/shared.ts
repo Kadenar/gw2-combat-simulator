@@ -3,13 +3,16 @@ import { EVTC_STATE_CHANGE } from '../../../types.js';
 import { findRotationSkill } from '../../catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
+/** Canonical skill identity used when raw EVTC evidence names a buff or effect instead of the player action. */
 export interface WarriorActionIdentity {
   readonly name: string;
   readonly skillId: number;
 }
 
+// Signals inside this window are treated as evidence for the same activation.
 export const SIGNAL_WINDOW_MS = 150;
 
+/** Returns the player's first explicit EnterCombat event, which anchors inferred opening casts. */
 export function combatStart(context: EvtcProfessionReconstructionContext): number | null {
   return (
     context.log.events.find(
@@ -18,6 +21,7 @@ export function combatStart(context: EvtcProfessionReconstructionContext): numbe
   );
 }
 
+/** Tests whether the initial-state snapshot proves that a self-applied buff was already active. */
 export function playerInitialBuff(context: EvtcProfessionReconstructionContext, buffSkillId: number): boolean {
   return context.log.events.some(
     (event) =>
@@ -29,10 +33,12 @@ export function playerInitialBuff(context: EvtcProfessionReconstructionContext, 
   );
 }
 
+/** Resolves an inferred action through the active build's catalog and profile aliases. */
 export function skillFor(context: EvtcProfessionReconstructionContext, identity: WarriorActionIdentity): Skill | null {
   return findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
 }
 
+/** Uses the replay duration for an inferred cast, preferring the Quickness-adjusted value recorded by the catalog. */
 export function recordedDuration(
   context: EvtcProfessionReconstructionContext,
   identity: WarriorActionIdentity
@@ -41,6 +47,7 @@ export function recordedDuration(
   return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
 }
 
+/** Builds a completed precast whose activation was omitted but whose resulting initial state survived in the log. */
 export function initialAction(
   context: EvtcProfessionReconstructionContext,
   identity: WarriorActionIdentity,
@@ -63,6 +70,11 @@ export function initialAction(
   };
 }
 
+/**
+ * Packs an inferred opening sequence backward from a known end time. Walking
+ * backward lets every action retain catalog duration while preserving the
+ * caller's intended cast order.
+ */
 export function sequentialInitialActions(
   context: EvtcProfessionReconstructionContext,
   identities: readonly WarriorActionIdentity[],
@@ -80,6 +92,7 @@ export function sequentialInitialActions(
   return reversed.reverse();
 }
 
+/** Creates a zero-duration action recovered from an instantaneous EVTC side effect. */
 export function instantAction(
   eventIndex: number,
   time: number,
@@ -102,6 +115,10 @@ export function instantAction(
   };
 }
 
+/**
+ * Deduplicates inferred evidence against both raw and canonical action
+ * identities because profile aliasing may have changed either ID or name.
+ */
 export function hasActionNear(
   actions: readonly EvtcRecordedRotationAction[],
   identity: WarriorActionIdentity,
@@ -119,6 +136,7 @@ export function hasActionNear(
   );
 }
 
+/** Accepts both legacy untyped buff events and modern explicit BuffApply events. */
 export function isBuffApplication(stateChange: number): boolean {
   return stateChange === EVTC_STATE_CHANGE.NONE || stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
 }

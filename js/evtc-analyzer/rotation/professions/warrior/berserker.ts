@@ -23,6 +23,11 @@ const BERSERK_ENTRY_DURATION_MS = 20_000;
 const OUTRAGE_EXTENSION_MS = 3_000;
 const OPENING_WINDOW_MS = 1_000;
 
+/**
+ * Recovers Berserk from the long self-buff application produced when entering
+ * Berserk mode. Shorter applications extend an existing mode and must not be
+ * mistaken for another Berserk input.
+ */
 function berserkEntryActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -45,6 +50,11 @@ function berserkEntryActions(
   });
 }
 
+/**
+ * Recovers instant Outrage casts from exact three-second Berserk extensions.
+ * The same buff timeline also receives duration changes from every Rage skill,
+ * so recorded Rage casts claim their nearest signal before inference begins.
+ */
 function outrageActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -81,6 +91,9 @@ function outrageActions(
           !claimedDurationChanges.has(eventIndex) && Math.abs(event.time - action.end) <= SIGNAL_WINDOW_MS
       )
       .sort(
+        // At equal distance, let the recorded Rage cast consume a less
+        // diagnostic non-three-second change and leave the exact Outrage
+        // signature available for inference.
         (left, right) =>
           Math.abs(left.event.time - action.end) - Math.abs(right.event.time - action.end) ||
           Number(Math.max(left.event.value, left.event.buffDamage) === OUTRAGE_EXTENSION_MS) -
@@ -99,6 +112,8 @@ function outrageActions(
       return [];
     }
 
+    // Weapon swaps and instant Outrage can share a timestamp. Put Outrage one
+    // millisecond first so replay breaks the Head Butt stun before swapping.
     const precedingSwap = actions
       .filter(
         (action) => action.rawName === 'Swap Weapons' && action.start <= event.time && event.time - action.start <= 150
@@ -109,6 +124,11 @@ function outrageActions(
   });
 }
 
+/**
+ * Rebuilds the condition Berserker setup that may occur before ArcDPS starts
+ * recording activations. A Berserk entry immediately after EnterCombat plus an
+ * equipped Head Butt provides the anchor for the omitted opening sequence.
+ */
 function openingPrecasts(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
@@ -143,6 +163,8 @@ function openingPrecasts(
     .sort((left, right) => Math.abs(left.end - atCombat) - Math.abs(right.end - atCombat))[0];
   const headButtStart = recordedHeadButt?.start ?? atCombat - headButtDuration;
   const inferred: EvtcRecordedRotationAction[] = [];
+  // Flames of War's initial buff proves the weapon skill was cast before Head
+  // Butt; the intervening weapon swap returns to the combat weapon set.
   if (
     playerInitialBuff(context, FLAMES_OF_WAR_BUFF) &&
     !actions.some(
@@ -172,6 +194,8 @@ function openingPrecasts(
     inferred.push(initialAction(context, HEAD_BUTT, headButtStart, firstEntry.eventIndex - 2));
   }
 
+  // A later unclaimed Outrage signal proves the instant stunbreak is equipped;
+  // infer the omitted opening use that clears Head Butt's self-stun.
   if (outrages.length > 0 && !hasActionNear(actions, OUTRAGE, atCombat, OPENING_WINDOW_MS)) {
     inferred.push({
       ...instantAction(
@@ -189,6 +213,7 @@ function openingPrecasts(
   return inferred;
 }
 
+/** Adds buff-derived Berserk/Outrage actions and any evidenced precombat setup to the normalized Warrior stream. */
 export function reconstructBerserkerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

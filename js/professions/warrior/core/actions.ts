@@ -1,5 +1,31 @@
 import type { Skill } from '../../../platform/engine/types.js';
 
+// Keep the imported Weapon Stow action visually distinct in the simulator timeline.
+const WEAPON_STOW_ICON = new URL('../../../../assets/warrior/weapon-stow.png', import.meta.url).href;
+
+export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
+  id: -6,
+  name: 'Weapon Stow',
+  description: 'Stow the active weapon and occupy one action frame.',
+  icon: WEAPON_STOW_ICON,
+  type: 'Action',
+  weapon: '',
+  slot: 'Action',
+  specialization: '',
+  categories: [],
+  cooldown: 0,
+  ammo: 0,
+  ammoRecharge: 0,
+  nextChainId: null,
+  flipSkillId: null,
+  castTimeMs: 80,
+  unaffectedByQuickness: true,
+  interruptCommitMs: 0,
+  implemented: true,
+  simulatorExcluded: false,
+  effects: []
+});
+
 export const WARRIOR_DODGE: Skill = Object.freeze({
   id: -5,
   name: 'Dodge',

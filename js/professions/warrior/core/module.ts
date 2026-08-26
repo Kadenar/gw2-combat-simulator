@@ -1,7 +1,7 @@
 import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
 import { onBuffApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
 import { createWarriorModuleData } from '../catalog-data.js';
-import { WARRIOR_CORE_SKILL_MECHANICS, WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from './skills.js';
+import { WARRIOR_CORE_SKILL_MECHANICS, WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, WARRIOR_WEAPON_STOW } from './skills.js';
 import { warriorCoreSkillHandlers } from './handlers.js';
 import { warriorCoreSkillMechanicHandlers } from './traits.js';
 import { warriorCoreAttributeRules, warriorCoreCastRules, warriorCoreSchedulerHooks } from './rules.js';
@@ -17,7 +17,7 @@ export const warriorCoreModule = defineNativeModule({
   data: createWarriorModuleData('Core', {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
     balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
-    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS],
+    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, WARRIOR_WEAPON_STOW],
     handlers: warriorCoreSkillHandlers
   }),
   state: {

@@ -55,6 +55,9 @@ const TRIGGERGUARD_AEGIS_DURATION_MS = 2_000;
 const PEITHA_EFFECT_STATE_CHANGE = 57;
 const PEITHA_TRIGGER_GRACE_MS = 500;
 
+// Gunsaber is represented as a persistent mode buff in EVTC. Translating its
+// gain and loss recovers the player's bundle transitions and suppresses the
+// generic weapon swaps emitted for the same state change.
 export const BLADESWORN_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
   {
     buffSkillId: GUNSABER_MODE_BUFF,
@@ -64,6 +67,7 @@ export const BLADESWORN_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] 
   }
 ];
 
+/** Counts separately recorded initial buff stacks; Bladesworn's opening signature depends on their multiplicity. */
 function initialBuffCount(context: EvtcProfessionReconstructionContext, skillId: number): number {
   return context.log.events.filter(
     (event) =>
@@ -75,6 +79,12 @@ function initialBuffCount(context: EvtcProfessionReconstructionContext, skillId:
   ).length;
 }
 
+/**
+ * Reconstructs the fixed Bladesworn precombat setup only when the initial buff
+ * snapshot contains its complete signature. The first recorded Dragon Trigger
+ * anchors the omitted casts so partial or unrelated buff state cannot invent
+ * an opener.
+ */
 function bladeswornPrecasts(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -106,6 +116,11 @@ function bladeswornPrecasts(
   return sequentialInitialActions(context, identities, firstTrigger.start, -4000);
 }
 
+/**
+ * Removes the Gunsaber gain synthesized at Dragon Trigger's timestamp. Entering
+ * Dragon Trigger changes the mode automatically, so replaying Unsheathe as a
+ * separate player input would duplicate the transition.
+ */
 function removeAutomaticDragonTriggerUnsheathes(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
@@ -121,6 +136,11 @@ function removeAutomaticDragonTriggerUnsheathes(
   );
 }
 
+/**
+ * Recovers Flow Stabilizer from a cluster of at least two eight-second Positive
+ * Flow applications. Grouping nearby stack events turns one skill activation
+ * into one inferred action.
+ */
 function flowStabilizerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -160,6 +180,7 @@ function flowStabilizerActions(
   });
 }
 
+/** Recovers Triggerguard from its distinctive two-second self-applied Aegis buff. */
 function triggerguardActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -182,6 +203,11 @@ function triggerguardActions(
   });
 }
 
+/**
+ * Uses Relic of Peitha triggers during Dragon Trigger as evidence of Flicker
+ * Step. Each channel can contribute at most one action, placed inside the
+ * channel even when the relic event arrives just after its animation ends.
+ */
 function flickerStepActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -212,6 +238,7 @@ function flickerStepActions(
   });
 }
 
+/** Merges the evidenced Bladesworn precast and instant mechanics after removing automatic mode transitions. */
 export function reconstructBladeswornActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

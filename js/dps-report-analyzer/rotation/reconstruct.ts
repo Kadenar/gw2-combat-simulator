@@ -9,6 +9,7 @@ import type { EvtcRotationCatalog } from '../../evtc-analyzer/rotation/catalog.j
 import type { EvtcRotationProfessionProfile } from '../../evtc-analyzer/rotation/profiles.js';
 import type { EvtcReconstructedCommand, EvtcRotationActionStatus } from '../../evtc-analyzer/types.js';
 import type { Skill } from '../../platform/engine/types.js';
+import { observedCommittedInterruptMs, quicknessReferenceCastTimeMs } from '../../platform/gw2/skills/timing.js';
 import { DpsReportError } from '../errors.js';
 import type {
   DpsReportCast,
@@ -206,6 +207,11 @@ function resolveAction(
   };
 }
 
+/** Returns a safe, action-tick-aligned observed duration only when the skill declares its commit contract. */
+function observedInterruptMs(action: DpsReportResolvedAction): number | null {
+  return observedCommittedInterruptMs(action.skill, action.end - action.start);
+}
+
 function actionCommand(action: DpsReportResolvedAction): EvtcReconstructedCommand {
   const command: {
     name: string;
@@ -213,13 +219,10 @@ function actionCommand(action: DpsReportResolvedAction): EvtcReconstructedComman
     offset?: number;
     interruptMs?: number;
   } = { name: action.name, skillId: action.skillId };
-  const actualDuration = action.end - action.start;
-  const runtimeDuration = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
-  // EI reports the observed duration but not the underlying ArcDPS stop event.
-  // Preserve materially shortened casts so subsequent actions keep their cadence.
-  if (action.status === 'interrupted' && actualDuration > 0 && actualDuration + 10 < runtimeDuration) {
-    command.interruptMs = actualDuration;
-  }
+  const interruptMs = observedInterruptMs(action);
+  // EI's observed cast duration is authoritative only when catalog metadata
+  // proves that replaying it will not cancel the skill before it commits.
+  if (interruptMs != null) command.interruptMs = interruptMs;
 
   return command;
 }
@@ -227,7 +230,10 @@ function actionCommand(action: DpsReportResolvedAction): EvtcReconstructedComman
 /** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
 function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action;
-  const runtimeDuration = Math.max(0, Number(action.skill.quicknessCastTimeMs || action.skill.castTimeMs || 0));
+  // Safe observed durations are replayed as interruptions; the scheduler then
+  // retains the ordinary cast lane while still allowing instant actions.
+  if (observedInterruptMs(action) != null) return action;
+  const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
   if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
   return {
     ...action,
@@ -257,6 +263,7 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
     return actualDurationMs + TIMING_TOLERANCE_MS >= explicitCommitOffsetMs;
   }
   // Explicit packet timing is the precise commitment contract for attacks such as Guardian pistol's early projectile.
+
   const firstStrikeOffsetMs = firstStrikePacketOffsetMs(action.skill, runtimeDurationMs, { explicitOnly: true });
   if (firstStrikeOffsetMs != null) return actualDurationMs + TIMING_TOLERANCE_MS >= firstStrikeOffsetMs;
   const commitmentDurationMs =

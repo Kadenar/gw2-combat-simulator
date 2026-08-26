@@ -10,6 +10,8 @@ type WarriorActionTransform = (
   actions: readonly EvtcRecordedRotationAction[]
 ) => EvtcRecordedRotationAction[];
 
+// Core normalization runs for every Warrior, while this table limits each
+// specialization's evidence heuristics to logs where those mechanics exist.
 const specializationAnalyzers: ReadonlyMap<string, WarriorActionTransform> = new Map([
   ['berserker', reconstructBerserkerActions],
   ['bladesworn', reconstructBladeswornActions],
@@ -17,6 +19,11 @@ const specializationAnalyzers: ReadonlyMap<string, WarriorActionTransform> = new
   ['spellbreaker', reconstructSpellbreakerActions]
 ]);
 
+/**
+ * Runs the Warrior EVTC pipeline in dependency order: normalize shared
+ * animations, recover specialization-only actions, then discard inputs that
+ * ArcDPS recorded after the encounter target had left combat or died.
+ */
 export function reconstructWarriorProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {

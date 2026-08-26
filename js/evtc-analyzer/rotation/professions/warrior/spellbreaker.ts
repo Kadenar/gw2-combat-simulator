@@ -10,6 +10,11 @@ const WINDS_OF_DISENCHANTMENT = Object.freeze({
 const BREACHING_STRIKE_IDS = new Set([45252, 69297, 69433]);
 const INITIAL_SIGNAL_WINDOW_MS = 1000;
 
+/**
+ * Rebuilds a Spellbreaker opener when a precombat Breaching Strike has no
+ * paired recorded action but its animation-stop event survives. That stop
+ * anchors both Breaching Strike and any initial-state core precasts.
+ */
 function spellbreakerPrecasts(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -31,6 +36,8 @@ function spellbreakerPrecasts(
     );
   if (!unmatchedBreachingStop) return [];
 
+  // Retain the observed variant ID so logs/catalogs from either ArcDPS ID
+  // generation still resolve the same Breaching Strike cast.
   const breachingIdentity: WarriorActionIdentity = {
     name: 'Breaching Strike',
     skillId: unmatchedBreachingStop.event.skillId
@@ -43,6 +50,8 @@ function spellbreakerPrecasts(
     evidence: 'animation'
   };
 
+  // Winds may begin before the log but leave its first damaging/effect pulse
+  // near EnterCombat. Place it immediately before the Breaching Strike anchor.
   const firstWindsPulse = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
     .find(
@@ -70,6 +79,7 @@ function spellbreakerPrecasts(
   ];
 }
 
+/** Prepends a Spellbreaker opening sequence only when surviving animation evidence proves its timing. */
 export function reconstructSpellbreakerActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]

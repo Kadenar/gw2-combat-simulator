@@ -25,6 +25,21 @@ export function quicknessReferenceCastTimeMs(skill: Skill | null, fallbackBaseMs
   return quantizeGw2ActionDurationUp(baseMs / GW2_QUICKNESS_ACTION_RATE);
 }
 
+/**
+ * Accepts an observed cast interruption only when skill metadata proves the
+ * action committed, and snaps that observation to the nearest action tick.
+ */
+export function observedCommittedInterruptMs(skill: Skill | null, observedDurationMs: number): number | null {
+  if (skill?.interruptCommitMs == null) return null;
+  const commitMs = Number(skill.interruptCommitMs);
+  if (!Number.isFinite(commitMs) || commitMs < 0) return null;
+  const observedMs = Math.round(Math.max(0, Number(observedDurationMs)) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS;
+  const runtimeMs = quicknessReferenceCastTimeMs(skill);
+  // Interrupting exactly at the commit point is valid because the skill has committed on that action tick.
+  if (!(observedMs > 0) || observedMs < commitMs || observedMs >= runtimeMs) return null;
+  return observedMs;
+}
+
 /** Projects a Quickness-authored effect timeline onto the actual cast length. */
 export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: number): number {
   if (skill.unaffectedByQuickness === true) return 1;

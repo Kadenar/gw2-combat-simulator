@@ -236,7 +236,7 @@ export function missingInterruptCommitWarnings(
 
   return [...missingBySkill.entries()].map(
     ([name, count]) =>
-      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.`
+      `EVTC observed ${count} interrupted ${name} cast${count === 1 ? '' : 's'} dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; reconstruction uses the simulator's default Quickness cast time.`
   );
 }
 
@@ -295,6 +295,7 @@ export function reconcileCastEffectPackets(
     if (action.status !== 'completed' && action.status !== 'interrupted' && action.status !== 'reduced') {
       return action;
     }
+
     const wasInterrupted = action.status === 'interrupted' || action.status === 'reduced';
 
     const packets = validatePackets(action);
@@ -384,6 +385,7 @@ export function reconcileCastEffectPackets(
         replayCastEnd: action.start + replayDuration
       };
     }
+
     if (
       action.expectedDuration != null &&
       action.expectedDuration > 0 &&

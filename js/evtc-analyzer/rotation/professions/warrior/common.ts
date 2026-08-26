@@ -5,6 +5,8 @@ import { findRotationSkill } from '../../catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import { playerInitialBuff, sequentialInitialActions, type WarriorActionIdentity } from './shared.js';
 
+// Stable identities for core skills that specialization openers may recover
+// from the buffs present in ArcDPS's initial-state snapshot.
 export const WARRIOR_CORE_ACTIONS = Object.freeze({
   healingSignet: Object.freeze({ name: 'Healing Signet', skillId: 14389 }),
   mending: Object.freeze({ name: 'Mending', skillId: 14401 }),
@@ -23,6 +25,9 @@ const SIGNET_OF_MIGHT_ACTIVE_BUFF = 36781;
 const SIGNET_OF_FURY_ACTIVE_BUFF = 51664;
 const PEAK_PERFORMANCE_BUFF = 46853;
 
+// Initial snapshots contain resulting buffs, not the casts that produced
+// them. Some skills intentionally share a marker, so callers decide which
+// skill is valid for the specialization's known opening sequence.
 const CORE_PRECAST_BUFFS: Readonly<Record<WarriorCorePrecastId, number>> = {
   healingSignet: RESISTANCE_BUFF,
   mending: PEAK_PERFORMANCE_BUFF,
@@ -33,11 +38,14 @@ const CORE_PRECAST_BUFFS: Readonly<Record<WarriorCorePrecastId, number>> = {
   bullsCharge: PEAK_PERFORMANCE_BUFF
 };
 
+// ArcDPS emits these as a second animation row even though the player issued
+// only the preceding Rush or Rend input.
 const COMPOSITE_FOLLOW_UP_ANIMATION_IDS = new Set([
   14493, // Rush impact animation
   80224 // Rend follow-up animation
 ]);
 
+/** Reports whether the initial buff snapshot proves that the requested core precast occurred before logging began. */
 export function detectedWarriorCorePrecast(
   context: EvtcProfessionReconstructionContext,
   id: WarriorCorePrecastId
@@ -45,6 +53,7 @@ export function detectedWarriorCorePrecast(
   return playerInitialBuff(context, CORE_PRECAST_BUFFS[id]);
 }
 
+/** Returns the action identity only when its corresponding initial-state marker is present. */
 export function detectedWarriorCorePrecastIdentity(
   context: EvtcProfessionReconstructionContext,
   id: WarriorCorePrecastId
@@ -52,6 +61,7 @@ export function detectedWarriorCorePrecastIdentity(
   return detectedWarriorCorePrecast(context, id) ? WARRIOR_CORE_ACTIONS[id] : null;
 }
 
+/** Filters a requested opener to detected core precasts and packs those casts backward from the supplied anchor. */
 export function sequentialWarriorCorePrecasts(
   context: EvtcProfessionReconstructionContext,
   ids: readonly WarriorCorePrecastId[],
@@ -69,10 +79,18 @@ export function sequentialWarriorCorePrecasts(
   );
 }
 
+// Dual-wield skills can override the ordinary Quickness duration, so packet
+// commitment checks must use the same duration that replay will use.
 function runtimeCastDurationMs(skill: Skill): number {
   return Math.max(0, Number(skill.dualWieldCastTimeMs || skill.quicknessCastTimeMs || skill.castTimeMs || 0));
 }
 
+/**
+ * Converts Warrior-specific ArcDPS animation artifacts into replayable player
+ * inputs. Composite follow-up rows are folded into their parent cast, and a
+ * cast is completed when an interrupted animation reached its commitment point
+ * or produced observed strike evidence.
+ */
 export function normalizeWarriorCommonActions(
   context: EvtcProfessionReconstructionContext,
   recordedActions: readonly EvtcRecordedRotationAction[]
@@ -85,6 +103,8 @@ export function normalizeWarriorCommonActions(
     toleranceMs: 150,
     runtimeDurationMs: runtimeCastDurationMs
   });
+  // Fold an internal animation into the most recent non-instant action. The
+  // extended end time preserves the total input lockout without adding a cast.
   const absorbAnimation = (action: EvtcRecordedRotationAction): void => {
     let previousIndex = normalized.length - 1;
     while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
@@ -116,11 +136,16 @@ export function normalizeWarriorCommonActions(
     const commitMs = skill ? firstStrikePacketOffsetMs(skill, runtimeCastDurationMs(skill)) : null;
     const duration = Math.max(0, action.end - action.start);
     const committedStrike = skill != null && commitMs != null && validatePackets(action).anyObserved;
-    if (autoattack && !committedStrike && commitMs != null && duration < commitMs) {
+    // Keep genuine cancelled autoattack inputs so replay spends their observed
+    // cast time without advancing the chain; only non-interrupted packet artifacts are folded away.
+    if (autoattack && action.status !== 'interrupted' && !committedStrike && commitMs != null && duration < commitMs) {
       absorbAnimation(action);
       continue;
     }
 
+    // ArcDPS may label a cast interrupted even after its first packet proves
+    // commitment. Replay the full catalog lockout so the completed skill is
+    // not shortened to the animation-stop timestamp.
     if (action.status === 'interrupted' && commitMs != null && (duration >= commitMs || committedStrike)) {
       const replayDuration = Math.max(duration, skill ? runtimeCastDurationMs(skill) : 0);
       normalized.push({
@@ -137,6 +162,11 @@ export function normalizeWarriorCommonActions(
   return normalized;
 }
 
+/**
+ * Removes Warrior inputs after the encounter's primary target first exits
+ * combat or dies. Target agents use the encounter ID as their profession code
+ * in EVTC, which distinguishes them from ordinary adds and player agents.
+ */
 export function removePostEncounterWarriorActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
