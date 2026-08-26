@@ -108,7 +108,7 @@
       "Vulnerability": 25
     }
   },
-  "initialHeat": 100,
+  "initialHeat": 101,
   "startingWeaponSet": 1,
   "targetHealth": 3966303,
   "targetArmor": 2597,
