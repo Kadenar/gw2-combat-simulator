@@ -142,7 +142,7 @@ test('timeline cast details include start, end, and elapsed cast time', () => {
   );
 });
 
-test('timeline dead time excludes explicit waits, concurrent casts, and gap-fill attacks', () => {
+test('timeline dead time includes explicit waits and excludes concurrent casts and gap-fill attacks', () => {
   const markers = timelineDeadTimeMarkers([
     { ri: 0, skill: 'Long Cast', start: 0, end: 1000 },
     { ri: 1, skill: 'Instant Cast', start: 200, end: 200 },
@@ -164,12 +164,29 @@ test('timeline dead time excludes explicit waits, concurrent casts, and gap-fill
     }
   ]);
 
-  assert.deepEqual(markers, [{ insertionIndex: 4, start: 1950, end: 2000, durationMs: 50 }]);
+  assert.deepEqual(markers, [
+    { insertionIndex: 2, start: 1000, end: 1400, durationMs: 400, reason: 'explicit-wait' },
+    { insertionIndex: 4, start: 1950, end: 2000, durationMs: 50 }
+  ]);
   assert.equal(formatTimelineDuration(400), '400ms');
   assert.equal(formatTimelineDuration(1000), '1s');
   assert.equal(formatTimelineDuration(1250), '1.25s');
   assert.equal(formatTimelineDuration(12_500), '12.5s');
   assert.equal(formatTimelineDuration(100_000), '100s');
+});
+
+test('timeline overlays suppress wait shapes and retain only excess dead time', () => {
+  const markers = timelineDeadTimeMarkers(
+    [
+      { ri: 0, skill: 'First Cast', start: 0, end: 1000 },
+      { ri: 1, skill: 'Wait', start: 1000, end: 1400, type: 'wait' },
+      { ri: 2, skill: 'Next Cast', start: 1500, end: 1900 }
+    ],
+    [],
+    { includeExplicitWaits: false }
+  );
+
+  assert.deepEqual(markers, [{ insertionIndex: 2, start: 1400, end: 1500, durationMs: 100 }]);
 });
 
 test('timeline dead time excludes forced post-interrupt cast lockout', () => {

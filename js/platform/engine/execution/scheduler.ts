@@ -938,6 +938,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           : bypassesSelfStun
             ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
             : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
+    // A marker or explicit wait can move the clock past an instant skill's
+    // requested overlap. Queue that instant at the earliest reachable time so
+    // command ordering is preserved and stunbreaks still execute.
+    if (concurrent && instant && start < state.time - epsilon) {
+      start = state.time;
+    }
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;

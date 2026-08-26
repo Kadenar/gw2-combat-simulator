@@ -17,6 +17,7 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly timingToleranceMs?: number;
   readonly quantizeMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
+  readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
   readonly commandFor: (action: Action) => ReconstructedRotationCommand;
   readonly canEmit?: (action: Action) => boolean;
   readonly isBoundaryTransition?: (action: Action, activeCastEnd: number, previousCastStart: number | null) => boolean;
@@ -47,7 +48,15 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const rightTime = right.type === 'action' ? right.action.start : right.at;
     const leftIndex = left.type === 'action' ? left.action.eventIndex : left.index;
     const rightIndex = right.type === 'action' ? right.action.eventIndex : right.index;
-    return leftTime - rightTime || leftIndex - rightIndex;
+    const timeOrder = leftTime - rightTime;
+    if (timeOrder !== 0) return timeOrder;
+    // Source-specific replay semantics may need a deterministic priority for
+    // simultaneous actions while retaining the original event order otherwise.
+    if (left.type === 'action' && right.type === 'action') {
+      const actionOrder = policy.compareSimultaneousActions?.(left.action, right.action) ?? 0;
+      if (actionOrder !== 0) return actionOrder;
+    }
+    return leftIndex - rightIndex;
   });
 
   const rotation: ReconstructedCommand[] = [];

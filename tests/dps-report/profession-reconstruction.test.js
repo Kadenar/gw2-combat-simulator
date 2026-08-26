@@ -191,6 +191,75 @@ test('collapses Rend animation rows into one Warrior cast', () => {
   assert.equal(result.rotation.filter((command) => command.name === 'Rend').length, 1);
 });
 
+test('orders simultaneous dps.report instant casts before cast-time skills', () => {
+  const report = reportFixture(
+    'Berserker',
+    [
+      { id: 30_343, skills: [{ castTime: -800, duration: 800, timeGained: 0 }] },
+      { id: 14_504, skills: [{ castTime: 77, duration: 680, timeGained: 0 }] },
+      { id: 30_258, skills: [{ castTime: 77, duration: 0, timeGained: 0 }] }
+    ],
+    {
+      s30343: { name: 'Head Butt' },
+      s14504: { name: 'Pin Down' },
+      s30258: { name: 'Outrage', isInstantCast: true }
+    },
+    1_000
+  );
+  const catalog = {
+    skills: [
+      skill(30_343, 'Head Butt', { type: 'elite', quicknessCastTimeMs: 800, selfStunMs: 1_000 }),
+      skill(14_504, 'Pin Down', { type: 'weapon', quicknessCastTimeMs: 680 }),
+      skill(30_258, 'Outrage', { type: 'utility', castTimeMs: 0, stunbreak: true })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Head Butt', 'Outrage', 'Pin Down']
+  );
+  assert.deepEqual(
+    result.rotation.map((command) => command.name),
+    ['Head Butt', '__combat_start', '__wait', 'Outrage', 'Pin Down']
+  );
+});
+
+test('does not add waits for retained cast lockout already modeled by the skill', () => {
+  const report = reportFixture(
+    'Berserker',
+    [
+      { id: 14_519, skills: [{ castTime: 0, duration: 318, timeGained: 242 }] },
+      { id: 14_365, skills: [{ castTime: 560, duration: 520, timeGained: 0 }] }
+    ],
+    {
+      s14519: { name: 'Fan of Fire' },
+      s14365: { name: 'Gash' }
+    },
+    1_200
+  );
+  const catalog = {
+    skills: [
+      skill(14_519, 'Fan of Fire', {
+        type: 'weapon',
+        quicknessCastTimeMs: 560,
+        interruptCommitMs: 240,
+        retainsCastLockoutAfterInterrupt: true
+      }),
+      skill(14_365, 'Gash', { type: 'weapon', quicknessCastTimeMs: 520 })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.rotation.map((command) => command.name),
+    ['__combat_start', 'Fan of Fire', 'Gash']
+  );
+  assert.deepEqual(result.rotation[1], { name: 'Fan of Fire', skillId: 14_519, interruptMs: 320 });
+});
+
 test('uses rounded EI cast durations only when skill commit metadata makes them safe', () => {
   const report = reportFixture(
     'Berserker',

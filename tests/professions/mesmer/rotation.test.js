@@ -6245,6 +6245,26 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
   });
 });
 
+test('result summary includes explicit wait shapes in total idle time', () => {
+  const metrics = resultSummaryMetrics({
+    duration: 1,
+    deathTime: null,
+    events: [],
+    steps: [
+      { ri: 0, skill: 'First Cast', start: 0, end: 500 },
+      { ri: 1, skill: 'Wait', start: 500, end: 900, type: 'wait' },
+      { ri: 2, skill: 'Second Cast', start: 900, end: 1000 }
+    ]
+  });
+
+  assert.deepEqual(metrics[1], {
+    label: 'Total Idle Time',
+    value: '400ms',
+    className: '',
+    details: [{ label: 'Explicit waits', value: '400ms' }]
+  });
+});
+
 test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
   const metrics = resultSummaryMetrics({
     duration: 1,

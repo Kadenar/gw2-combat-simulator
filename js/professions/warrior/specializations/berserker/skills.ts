@@ -331,6 +331,10 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   [ID.FLAMING_FLURRY]: {
     implemented: true,
     skillWeapon: 'Sword',
+    // Flaming Flurry safely commits by its final 1560ms packet; per-packet
+    // interruptions retain only the strike and burning packets already fired.
+    interruptCommitMs: 1560,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',

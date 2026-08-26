@@ -230,6 +230,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     quicknessCastTimeMs: 520,
     dualWieldCastTimeMs: 360,
+    // Gash lands its strike at 280ms, but the activation is not safely
+    // interruptible until 380ms and still retains its remaining cast lane.
+    interruptCommitMs: 380,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',

@@ -650,6 +650,36 @@ test('Berserker gates primal bursts behind berserk mode', () => {
   assert.equal(result.totalDamage > 0, true);
 });
 
+test('Outrage queued after a wait clears the remaining Head Butt self-stun', () => {
+  const locked = simulate('Berserker', [ID.HEAD_BUTT, { type: 'wait', durationMs: 77 }, ID.SUNDERING_LEAP], {
+    boons: { quickness: true }
+  });
+  const broken = simulate(
+    'Berserker',
+    [
+      ID.HEAD_BUTT,
+      { type: 'combat-start', concurrentOffsetMs: 700 },
+      { type: 'wait', durationMs: 77 },
+      { type: 'cast', skillId: ID.OUTRAGE, concurrentOffsetMs: 0 },
+      ID.SUNDERING_LEAP
+    ],
+    { boons: { quickness: true } }
+  );
+
+  assert.equal(locked.steps.find((step) => step.skill === 'Sundering Leap').start, 1800);
+  assert.deepEqual(broken.warnings, []);
+  assert.deepEqual(
+    broken.steps.map((step) => [step.skill, step.start]),
+    [
+      ['Head Butt', 0],
+      ['Combat Start', 700],
+      ['Wait', 800],
+      ['Outrage', 877],
+      ['Sundering Leap', 877]
+    ]
+  );
+});
+
 test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', () => {
   const result = simulate('Berserker', ['Berserk', 'Arc Divider', 'Outrage'], {
     initialResource: 30,
@@ -1230,6 +1260,73 @@ test('Warrior packets use their configured Quickness offsets', () => {
     packetOffsets('Whirling Axe', swordAxe),
     [245, 367, 490, 612, 734, 857, 979, 1102, 1224, 1346, 1469, 1591, 1714, 1836, 1958]
   );
+});
+
+test('Gash commits when interrupted at 380ms while retaining its full cast lockout', () => {
+  const early = simulate('Core', ['Sever Artery', { type: 'cast', skillId: ID.GASH, interruptAfterMs: 379 }], {
+    primaryWeapon: 'Sword',
+    boons: { quickness: true }
+  });
+  const result = simulate(
+    'Core',
+    ['Sever Artery', { type: 'cast', skillId: ID.GASH, interruptAfterMs: 380 }, 'Savage Leap'],
+    {
+      primaryWeapon: 'Sword',
+      boons: { quickness: true }
+    }
+  );
+  const gash = result.steps.find((step) => step.skill === 'Gash');
+  const savageLeap = result.steps.find((step) => step.skill === 'Savage Leap');
+
+  assert.equal(
+    early.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.GASH),
+    false
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(gash.end - gash.start, 380);
+  assert.equal(gash.castLockoutEnd - gash.start, 520);
+  assert.equal(savageLeap.start, gash.castLockoutEnd);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.GASH),
+    true
+  );
+});
+
+test('Flaming Flurry commits at 1560ms and retains only completed packets when interrupted earlier', () => {
+  const config = {
+    initialResource: 30,
+    primaryWeapon: 'Sword',
+    boons: { quickness: true }
+  };
+  const normal = simulate('Berserker', ['Berserk', ID.FLAMING_FLURRY], config);
+  const completed = simulate(
+    'Berserker',
+    ['Berserk', { type: 'cast', skillId: ID.FLAMING_FLURRY, interruptAfterMs: 1560 }],
+    config
+  );
+  const partial = simulate(
+    'Berserker',
+    ['Berserk', { type: 'cast', skillId: ID.FLAMING_FLURRY, interruptAfterMs: 1000 }],
+    config
+  );
+  const packetOffsets = (result, type) => {
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.FLAMING_FLURRY);
+
+    return result.events
+      .filter((event) => event.type === type && event.activationId === action.activationId)
+      .map((event) => Math.round((event.at - action.at) * 1000));
+  };
+  const normalStep = normal.steps.find((step) => step.skill === 'Flaming Flurry');
+  const completedStep = completed.steps.find((step) => step.skill === 'Flaming Flurry');
+
+  assert.equal(normalStep.end - normalStep.start, 1600);
+  assert.equal(normalStep.interrupted, false);
+  assert.equal(completedStep.end - completedStep.start, 1560);
+  assert.equal(completedStep.interrupted, true);
+  assert.deepEqual(packetOffsets(completed, 'damage'), [400, 640, 880, 1120, 1320, 1560]);
+  assert.deepEqual(packetOffsets(completed, 'condition'), [400, 640, 880, 1120, 1320, 1560]);
+  assert.deepEqual(packetOffsets(partial, 'damage'), [400, 640, 880]);
+  assert.deepEqual(packetOffsets(partial, 'condition'), [400, 640, 880]);
 });
 
 test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {

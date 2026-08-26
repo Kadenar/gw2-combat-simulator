@@ -62,8 +62,12 @@ export interface TimelineDeadTimeMarker {
   readonly start: number;
   readonly end: number;
   readonly durationMs: number;
-  readonly reason?: 'zero-damage-cast' | 'cancelled-before-commit';
+  readonly reason?: 'explicit-wait' | 'zero-damage-cast' | 'cancelled-before-commit';
   readonly skill?: string;
+}
+
+export interface TimelineDeadTimeOptions {
+  readonly includeExplicitWaits?: boolean;
 }
 
 interface TimelineDeadTimeStep extends SchedulerStep {
@@ -156,8 +160,10 @@ export function timelineSkillCastOrdinals(steps: readonly SchedulerStep[] = []):
 /** Reports idle gaps plus the full attempted duration of casts that failed to commit. */
 export function timelineDeadTimeMarkers(
   steps: readonly TimelineDeadTimeStep[] = [],
-  resolvedEvents: readonly SimulationEvent[] = []
+  resolvedEvents: readonly SimulationEvent[] = [],
+  { includeExplicitWaits = true }: TimelineDeadTimeOptions = {}
 ): TimelineDeadTimeMarker[] {
+  const explicitWaitMarkers: TimelineDeadTimeMarker[] = [];
   const intervals: Array<{
     start: number;
     end: number;
@@ -175,6 +181,17 @@ export function timelineDeadTimeMarkers(
     const insertionIndex = Number(step.ri);
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
       intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
+      // Wait commands are known idle intervals. Keep them in the occupancy
+      // union to suppress duplicate gap markers, but report their full shape.
+      if (includeExplicitWaits && !isSkill && end > start) {
+        explicitWaitMarkers.push({
+          insertionIndex,
+          start,
+          end,
+          durationMs: end - start,
+          reason: 'explicit-wait'
+        });
+      }
     }
 
     if (!isSkill) continue;
@@ -204,7 +221,7 @@ export function timelineDeadTimeMarkers(
     }
   }
 
-  const markers: TimelineDeadTimeMarker[] = [];
+  const markers: TimelineDeadTimeMarker[] = [...explicitWaitMarkers];
   const futureContainsSkill = new Array<boolean>(busy.length);
   let containsFutureSkill = false;
   for (let index = busy.length - 1; index >= 0; index -= 1) {

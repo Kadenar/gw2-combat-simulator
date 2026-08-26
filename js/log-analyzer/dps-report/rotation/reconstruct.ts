@@ -242,6 +242,26 @@ function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportRes
   };
 }
 
+/** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
+function replayActionEnd(action: DpsReportResolvedAction): number {
+  if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action.end;
+  const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+  return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
+}
+
+function instantReplayAction(action: DpsReportResolvedAction): boolean {
+  return action.status === 'instant' || action.end <= action.start || Number(action.skill?.castTimeMs) === 0;
+}
+
+/** Runs simultaneous instant inputs before cast-time skills, preserving EI order within each class. */
+function compareSimultaneousActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
+  return Number(instantReplayAction(right)) - Number(instantReplayAction(left)) || left.eventIndex - right.eventIndex;
+}
+
+function compareResolvedActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
+  return left.start - right.start || compareSimultaneousActions(left, right);
+}
+
 /** Keeps only autoattacks with report evidence that their first packet committed. */
 function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedAction): boolean {
   if (skillMetadata(report, action.rawSkillId)?.autoAttack !== true) return true;
@@ -282,6 +302,8 @@ function buildRotation(
 ): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     commandFor: actionCommand,
+    replayEnd: replayActionEnd,
+    compareSimultaneousActions,
     // Weapon Swap is a supported simulator action even when no catalog entry was supplied.
     canEmit: (action) => action.skill != null || (action.isSwap && normalized(action.rawName) === 'weapon swap')
   });
@@ -416,7 +438,7 @@ export function reconstructDpsReportWithProfile(
   const resolved = professionActions
     .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
     .map(applyRetainedCastLockout)
-    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
+    .sort(compareResolvedActions)
     .filter((action) => autoattackCommitted(report, action));
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');

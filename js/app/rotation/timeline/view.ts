@@ -555,7 +555,10 @@ export function renderTimeline(app: ProfessionAppState): void {
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
-    results?.resolvedEvents || []
+    results?.resolvedEvents || [],
+    // The authored Wait tile already represents its own duration. Overlay only
+    // idle time beyond that shape so the timeline does not render it twice.
+    { includeExplicitWaits: false }
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
@@ -699,21 +702,26 @@ export function renderTimeline(app: ProfessionAppState): void {
   const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
     const duration = formatTimelineDuration(marker.durationMs);
     const detail =
-      marker.reason != null
-        ? marker.reason === 'cancelled-before-commit'
-          ? [
-              `Idle time: ${duration} wasted`,
-              `${marker.skill || 'Skill'} was interrupted before its interruptCommitMs cutoff`
-            ].join('\n')
+      marker.reason === 'explicit-wait'
+        ? [
+            `Idle time: ${duration} explicit wait`,
+            `Wait from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
+          ].join('\n')
+        : marker.reason != null
+          ? marker.reason === 'cancelled-before-commit'
+            ? [
+                `Idle time: ${duration} wasted`,
+                `${marker.skill || 'Skill'} was interrupted before its interruptCommitMs cutoff`
+              ].join('\n')
+            : [
+                `Idle time: ${duration} wasted`,
+                `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
+                'No interruptCommitMs is configured'
+              ].join('\n')
           : [
               `Idle time: ${duration} wasted`,
-              `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
-              'No interruptCommitMs is configured'
-            ].join('\n')
-        : [
-            `Idle time: ${duration} wasted`,
-            `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
-          ].join('\n');
+              `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
+            ].join('\n');
     return `<div class="rot-skill rot-injected rot-dead-time" role="note"
             aria-label="${esc(detail)}" title="${esc(detail)}">
             <span class="rot-dead-time-label">Dead</span>

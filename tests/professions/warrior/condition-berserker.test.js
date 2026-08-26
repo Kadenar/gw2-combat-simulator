@@ -90,6 +90,11 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     ]
   );
 
+  const gash = skill(ID.GASH);
+
+  assert.equal(gash.interruptCommitMs, 380);
+  assert.equal(gash.retainsCastLockoutAfterInterrupt, true);
+
   const arcingArrow = skill(ID.ARCING_ARROW);
 
   assert.equal(arcingArrow.ammo, 2);
@@ -270,6 +275,9 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const flamingFlurry = skill(ID.FLAMING_FLURRY);
 
   assert.equal(flamingFlurry.skillWeapon, 'Sword');
+  assert.equal(flamingFlurry.interruptCommitMs, 1560);
+  assert.equal(flamingFlurry.defaultInterruptMs, undefined);
+  assert.equal(flamingFlurry.interruptMode, 'per-packet');
   assert.deepEqual(
     flamingFlurry.effects[1].ticks.map(({ duration }) => duration),
     [3.5, 3.5, 3.5, 3.5, 3.5, 3.5]

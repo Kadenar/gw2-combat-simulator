@@ -672,6 +672,24 @@ test('generic simulation starts combat at a delayed marker within a cast', () =>
   assert.equal(result.dps, result.totalDamage);
 });
 
+test('queued instant casts use the combat marker when their requested overlap has passed', () => {
+  const result = createScheduler({ profession: testProfession }).run([
+    { type: 'cast', skillId: 900001 },
+    { type: 'combat-start', concurrentOffsetMs: 500 },
+    { type: 'cast', skillId: 900002, concurrentOffsetMs: 0 }
+  ]);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => [step.skill, step.start]),
+    [
+      ['Fixture Slash', 0],
+      ['Combat Start', 500],
+      ['Fixture Charge', 500]
+    ]
+  );
+});
+
 test('generic simulation uses the first hit after a standalone combat marker', () => {
   const result = simulateGw2({
     profession: testProfession,
