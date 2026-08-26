@@ -7,6 +7,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  */
 
 import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
+import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
@@ -1378,7 +1379,11 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: 0.25,
-    when: (context) => context.condition === 'Confusion' && hasTrait(context, TRAIT.MALICIOUS_SORCERY)
+    // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
+    when: (context) =>
+      context.condition === 'Confusion' &&
+      hasTrait(context, TRAIT.MALICIOUS_SORCERY) &&
+      !professionStaticRulesApplied(context.config)
   }
 ]);
 

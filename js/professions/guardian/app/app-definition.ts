@@ -16,15 +16,6 @@ export const guardianAppAdapter = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: 'Zeal',
   runtime: {
-    buildConfigInputs(_app, { activeTraits }) {
-      const hasRadiantFire = activeTraits.some((trait) => trait.name === 'Radiant Fire');
-      return {
-        // This trait is resolved at hit time, not as an equipment bonus.
-        adjustConditionDurationBonus(name: string, bonus: number) {
-          return name === 'Burning' && hasRadiantFire ? bonus - 20 : bonus;
-        }
-      };
-    },
     buildConfigExtras: (app) => {
       const build = app.build as GuardianApplicationBuild;
       return { initialTomePages: build.initialTomePages };

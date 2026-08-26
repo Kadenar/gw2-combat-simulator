@@ -161,6 +161,11 @@ export function applyThiefBuildAttributeRules(
     }
   ];
 
+  // Static condition-duration traits belong in panel stats so simulation provenance can prevent rebaking them.
+  if (hasTrait('Potent Poison')) {
+    traitDurations['Poison Duration'] = 33;
+  }
+
   return finalizeProfessionBuildAttributes(common, {
     activeTraits,
     attributeEffects,

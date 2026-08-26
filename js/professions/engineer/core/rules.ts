@@ -30,7 +30,7 @@ import type { EngineerRechargeContext } from '../types.js';
 
 export { snapshotEngineerState } from '../state.js';
 
-// condition duration modifier for Chemical Rounds (pistol skills only)
+// Chemical Rounds extends pistol-skill base durations before the normal capped condition-duration multiplier.
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
   if (!hasTrait(context, TRAIT.CHEMICAL_ROUNDS)) return multiplier;
   const event = engineerEvent(context);
@@ -43,17 +43,7 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
     return multiplier;
   }
 
-  const skillName = skill?.name || event?.skillName || event?.application?.skillName;
-  const condition = context.condition || event?.condition || event?.application?.condition;
-  // Blowtorch and Glue Shot have unique per-skill multipliers sourced from the wiki
-  if (skillName === 'Blowtorch' && condition === 'Burning') {
-    return multiplier * 1.2;
-  }
-
-  if (skillName === 'Glue Shot') {
-    return condition === 'Crippled' ? multiplier * 1.5 : multiplier;
-  }
-
+  // Apply the skill-specific increase uniformly so every pistol condition keeps it beyond the global duration cap.
   return multiplier * (4 / 3);
 }
 
@@ -217,7 +207,11 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       engineerBalanceValue(context, PROFILE.serratedSteel, 'durationMultiplier', parameters.durationMultiplier),
-    when: (context) => context.condition === 'Bleeding' && hasTrait(context, TRAIT.SERRATED_STEEL)
+    // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
+    when: (context) =>
+      context.condition === 'Bleeding' &&
+      hasTrait(context, TRAIT.SERRATED_STEEL) &&
+      !professionStaticRulesApplied(context.config)
   },
   {
     id: 'engineer.incendiary-powder-duration',
@@ -228,7 +222,10 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       engineerBalanceValue(context, PROFILE.incendiaryPowder, 'durationMultiplier', parameters.durationMultiplier),
-    when: (context) => context.condition === 'Burning' && hasTrait(context, TRAIT.INCENDIARY_POWDER)
+    when: (context) =>
+      context.condition === 'Burning' &&
+      hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
+      !professionStaticRulesApplied(context.config)
   },
   {
     id: 'engineer.hematic-focus',

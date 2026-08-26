@@ -11,6 +11,8 @@ import { guardianProfession } from '../../js/professions/guardian/definition.js'
 import { GUARDIAN_TRAIT_IDS } from '../../js/professions/guardian/data/ids.js';
 import { createMesmerBuildDefaults } from '../../js/professions/mesmer/build.js';
 import { applyMesmerBuildAttributeRules } from '../../js/professions/mesmer/build-attributes.js';
+import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
+import { MESMER_TRAIT_IDS } from '../../js/professions/mesmer/data/ids.js';
 import { createNecromancerBuildDefaults } from '../../js/professions/necromancer/build.js';
 import { applyNecromancerBuildAttributeRules } from '../../js/professions/necromancer/build-attributes.js';
 import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
@@ -40,8 +42,11 @@ const calculateThiefAttributes = createCalculateAttributes(applyThiefBuildAttrib
 const calculateWarriorAttributes = createCalculateAttributes(applyWarriorBuildAttributeRules);
 
 const engineerCoreRules = engineerProfession.resolveRuntime({});
+const engineerAmalgamRules = engineerProfession.resolveRuntime({ specialization: 'Amalgam' });
 const guardianCoreRules = guardianProfession.resolveRuntime({});
+const mesmerCoreRules = mesmerProfession.resolveRuntime({});
 const necromancerCoreRules = necromancerProfession.resolveRuntime({});
+const thiefCoreRules = thiefProfession.resolveRuntime({});
 const revenantCoreRules = revenantProfession.resolveRuntime({});
 const revenantRenegadeRules = revenantProfession.resolveRuntime({
   specialization: 'Renegade'
@@ -158,6 +163,39 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(engineerDirect.conditionDamage, 1120);
   assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
 
+  for (const [rules, traitId, condition, staticBonus] of [
+    [engineerCoreRules, ENGINEER_TRAIT_IDS.SERRATED_STEEL, 'Bleeding', 0.33],
+    [engineerCoreRules, ENGINEER_TRAIT_IDS.INCENDIARY_POWDER, 'Burning', 0.33],
+    [engineerAmalgamRules, ENGINEER_TRAIT_IDS.CARBOLIC_COMPOSITION, 'Poisoned', 0.33],
+    [mesmerCoreRules, MESMER_TRAIT_IDS.MALICIOUS_SORCERY, 'Confusion', 0.25],
+    [guardianCoreRules, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'Burning', 0.2],
+    [thiefCoreRules, THIEF_TRAIT_IDS.POTENT_POISON, 'Poisoned', 0.33]
+  ]) {
+    const baseDuration = 1.1;
+    const directDuration = rules.modifyConditionDuration(
+      {
+        config: { selectedTraitIds: [traitId] },
+        condition,
+        event: { condition }
+      },
+      baseDuration
+    );
+    const browserDuration = rules.modifyConditionDuration(
+      {
+        config: {
+          ...applied,
+          selectedTraitIds: [traitId]
+        },
+        condition,
+        event: { condition }
+      },
+      baseDuration + staticBonus
+    );
+
+    assert.ok(Math.abs(directDuration - (baseDuration + staticBonus)) < 1e-12);
+    assert.equal(browserDuration, directDuration);
+  }
+
   const guardianDirect = guardianCoreRules.modifyAttributes(
     {
       config: { selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
@@ -269,6 +307,31 @@ test('Engineer exposes current unconditional trait attributes', () => {
   firearms.specializations = [{ name: 'Firearms', traits: '1-2-1' }];
   assert.equal(traitDelta(calculateEngineerAttributes, firearms, 'Chemical Rounds', 'Condition Damage'), 120);
   assert.equal(traitDelta(calculateEngineerAttributes, firearms, 'Thermal Vision', 'Expertise'), 150);
+});
+
+test('Engineer exposes Firearms condition-duration traits', () => {
+  const firearms = createEngineerBuildDefaults();
+
+  firearms.specializations = [{ name: 'Firearms', traits: '1-2-3' }];
+  const attributes = calculateEngineerAttributes(firearms).attributes;
+  const withoutSerrated = calculateEngineerAttributes(firearms, [], 1, 'Serrated Steel').attributes;
+  const withoutIncendiary = calculateEngineerAttributes(firearms, [], 1, 'Incendiary Powder').attributes;
+
+  assert.equal(attributes['Bleeding Duration'].traits, 33);
+  assert.equal(attributes['Burning Duration'].traits, 33);
+  assert.equal(withoutSerrated['Bleeding Duration']?.traits || 0, 0);
+  assert.equal(withoutIncendiary['Burning Duration']?.traits || 0, 0);
+});
+
+test('Engineer exposes Carbolic Composition poison duration', () => {
+  const amalgam = createEngineerBuildDefaults();
+
+  amalgam.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
+  const attributes = calculateEngineerAttributes(amalgam).attributes;
+  const withoutCarbolic = calculateEngineerAttributes(amalgam, [], 1, 'Carbolic Composition').attributes;
+
+  assert.equal(attributes['Poison Duration'].traits, 33);
+  assert.equal(withoutCarbolic['Poison Duration']?.traits || 0, 0);
 });
 
 test('Engineer omits conditional and obsolete attribute effects', () => {
@@ -635,6 +698,17 @@ test('Thief weapon traits use the displayed weapon set', () => {
 
   assert.equal(dagger.Power.traits, 160);
   assert.equal(sword.Power.traits, 80);
+});
+
+test('Thief exposes Potent Poison duration', () => {
+  const build = createThiefBuildDefaults();
+
+  build.specializations = [{ name: 'Deadly Arts', traits: '1-1-1' }];
+  const attributes = calculateThiefAttributes(build).attributes;
+  const withoutPotentPoison = calculateThiefAttributes(build, [], 1, 'Potent Poison').attributes;
+
+  assert.equal(attributes['Poison Duration'].traits, 33);
+  assert.equal(withoutPotentPoison['Poison Duration'], undefined);
 });
 
 test("Thief eligible power traits feed Marauder's Resilience", () => {

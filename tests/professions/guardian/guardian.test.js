@@ -4037,7 +4037,7 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
   };
 
   guardianAppAdapter.recalculate(app);
-  assert.equal(guardianAppAdapter.simulationConfig(app).stats.conditionDurationBonuses.Burning, undefined);
+  assert.equal(guardianAppAdapter.simulationConfig(app).stats.conditionDurationBonuses.Burning, 20);
 });
 
 test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () => {

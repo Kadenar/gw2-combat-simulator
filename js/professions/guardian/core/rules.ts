@@ -318,9 +318,13 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   {
     id: 'guardian.radiant-fire-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) => context.condition === 'Burning' && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+    operation: 'add',
+    amount: 0.2,
+    // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
+    when: (context) =>
+      context.condition === 'Burning' &&
+      hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE) &&
+      !attributeProvenance(context.config).professionStaticRulesApplied
   }
 ]);
 

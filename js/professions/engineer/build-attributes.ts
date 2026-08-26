@@ -103,6 +103,19 @@ export function applyEngineerBuildAttributeRules(
     }
   ];
 
+  // Surface static condition-duration traits in the panel so the same finalized values can seed simulation stats.
+  if (hasTrait('Serrated Steel')) {
+    traitDurations['Bleeding Duration'] = 33;
+  }
+
+  if (hasTrait('Incendiary Powder')) {
+    traitDurations['Burning Duration'] = 33;
+  }
+
+  if (hasTrait('Carbolic Composition')) {
+    traitDurations['Poison Duration'] = 33;
+  }
+
   const finalized = finalizeProfessionBuildAttributes(common, {
     activeTraits,
     attributeEffects,

@@ -42,6 +42,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     implemented: true,
     quicknessCastTimeMs: 1760,
     cooldown: 25,
+    // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',

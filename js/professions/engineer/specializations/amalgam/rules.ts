@@ -1,3 +1,4 @@
+import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -78,7 +79,11 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: 0.33,
-    when: (context) => context.condition === 'Poisoned' && hasTrait(context, TRAIT.CARBOLIC_COMPOSITION)
+    // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
+    when: (context) =>
+      context.condition === 'Poisoned' &&
+      hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) &&
+      !professionStaticRulesApplied(context.config)
   }
 ]);
 

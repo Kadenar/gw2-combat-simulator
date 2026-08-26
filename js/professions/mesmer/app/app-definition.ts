@@ -17,17 +17,10 @@ export const mesmerAppAdapter = defineProfessionApp({
   specializationFallback: 'Domination',
   storageVersion: 2,
   runtime: {
-    buildConfigInputs(app, { specialization, activeTraits }) {
+    buildConfigInputs(app, { specialization }) {
       const build = app.build as MesmerApplicationBuild;
       const startsWithClones = mesmerProfession.ui.resourceViews({ specialization })[0]?.singular === 'clone';
-      const hasMaliciousSorcery = activeTraits.some((trait) => trait.name === 'Malicious Sorcery');
-      return {
-        initialResource: startsWithClones ? 0 : build.initialResource,
-        // This trait is resolved at hit time, not as an equipment bonus.
-        adjustConditionDurationBonus(name: string, bonus: number) {
-          return name === 'Confusion' && hasMaliciousSorcery ? bonus - 25 : bonus;
-        }
-      };
+      return { initialResource: startsWithClones ? 0 : build.initialResource };
     },
     buildConfigExtras() {
       return { weaponmasterTraining: true };

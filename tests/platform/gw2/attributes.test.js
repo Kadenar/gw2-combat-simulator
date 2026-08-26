@@ -373,7 +373,7 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
   assert.equal(config.sigilSets[0].conditionDurationBonuses.Torment, 20);
 });
 
-test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', () => {
+test('Mesmer runtime includes Malicious Sorcery once through panel-derived stats', () => {
   const build = createDefaultBuild();
 
   build.specializations.find((spec) => spec.name === 'Illusions').traits = '1-2-3';
@@ -381,7 +381,7 @@ test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', (
   const config = mesmerAppAdapter.simulationConfig({ build, attributeData });
 
   assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
-  assert.equal(config.stats.conditionDurationBonuses.Confusion, undefined);
+  assert.equal(config.stats.conditionDurationBonuses.Confusion, 25);
 });
 
 test('simulation config exposes the selected target skill activation rate', () => {
