@@ -10,6 +10,7 @@ export interface ActivationEditorOptions {
   readonly fullCastMs?: number | null;
   readonly suggestedInterruptMs?: number | null;
   readonly suggestedConcurrentOffsetMs?: number | null;
+  readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
   readonly onApply: (timingMs: number | null) => void;
 }
@@ -101,13 +102,24 @@ export function validateActivationInterruptMs(
   return { valid: true, value };
 }
 
-/** Accepts a whole-millisecond offset from the previous cast start, including an immediate zero offset. */
-export function validateActivationConcurrentOffsetMs(rawValue: string | number): ActivationInterruptValidation {
+/** Accepts a whole-millisecond offset from the previous cast start, optionally including signed marker offsets. */
+export function validateActivationConcurrentOffsetMs(
+  rawValue: string | number,
+  minimumMs: number | null = 0
+): ActivationInterruptValidation {
   const parsed = Number(rawValue);
-  if ((typeof rawValue === 'string' && rawValue.trim() === '') || !Number.isFinite(parsed) || parsed < 0) {
+  const normalizedMinimum = minimumMs == null ? null : Math.round(Number(minimumMs) || 0);
+  if (
+    (typeof rawValue === 'string' && rawValue.trim() === '') ||
+    !Number.isFinite(parsed) ||
+    (normalizedMinimum != null && parsed < normalizedMinimum)
+  ) {
     return {
       valid: false,
-      error: 'Enter an offset of at least 0 ms.'
+      error:
+        normalizedMinimum == null
+          ? 'Enter a finite offset in milliseconds.'
+          : `Enter an offset of at least ${normalizedMinimum} ms.`
     };
   }
 
@@ -128,12 +140,18 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const rawSuggestedMs = Number(
     isConcurrentBehavior ? options.suggestedConcurrentOffsetMs : options.suggestedInterruptMs
   );
+  const minimumMs = isConcurrentBehavior
+    ? options.minimumConcurrentOffsetMs === null
+      ? null
+      : Math.round(Number(options.minimumConcurrentOffsetMs) || 0)
+    : 1;
+  const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
   const suggestedMs = Number.isFinite(rawSuggestedMs)
-    ? Math.max(isConcurrentBehavior ? 0 : 1, Math.round(rawSuggestedMs))
+    ? Math.max(suggestedFloor, Math.round(rawSuggestedMs))
     : isConcurrentBehavior
-      ? 100
+      ? Math.max(suggestedFloor, 100)
       : 1;
-  const minimumMs = isConcurrentBehavior ? 0 : 1;
+  const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
   editor.setAttribute('role', 'dialog');
@@ -155,7 +173,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       <span>${isConcurrentBehavior ? 'During previous cast' : 'Interrupt after'}</span>
     </label>
     <div class="activation-editor-input-row">
-      <input class="activation-editor-input" type="number" min="${minimumMs}" step="1" inputmode="numeric" />
+      <input class="activation-editor-input" type="number"${inputMinimum} step="1" inputmode="numeric" />
       <span>ms</span>
     </div>
     <div class="activation-editor-full-cast"></div>
@@ -208,7 +226,9 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   const fullCastMs = Math.round(Number(options.fullCastMs) || 0);
   const currentConfiguredMs = Number(configuredMs);
   const hasConfiguredTiming =
-    configuredMs != null && Number.isFinite(currentConfiguredMs) && currentConfiguredMs >= minimumMs;
+    configuredMs != null &&
+    Number.isFinite(currentConfiguredMs) &&
+    (minimumMs == null || currentConfiguredMs >= minimumMs);
   normalRadio.checked = !hasConfiguredTiming;
   configuredRadio.checked = hasConfiguredTiming;
   input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
@@ -319,7 +339,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     }
 
     const validation = isConcurrentBehavior
-      ? validateActivationConcurrentOffsetMs(input.value)
+      ? validateActivationConcurrentOffsetMs(input.value, minimumMs)
       : validateActivationInterruptMs(input.value, fullCastMs);
     if (!validation.valid) {
       error.textContent = validation.error;

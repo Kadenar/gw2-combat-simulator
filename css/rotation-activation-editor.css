@@ -1,4 +1,5 @@
-.rot-edit-activation {
+.rot-edit-activation,
+.rot-edit-wait {
   position: absolute;
   top: -5px;
   left: -5px;
@@ -24,20 +25,26 @@
 }
 
 .rot-skill:hover .rot-edit-activation,
+.rot-skill:hover .rot-edit-wait,
 .rot-skill:focus-within .rot-edit-activation,
-.rot-edit-activation:focus-visible {
+.rot-skill:focus-within .rot-edit-wait,
+.rot-edit-activation:focus-visible,
+.rot-edit-wait:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
 
 .rot-edit-activation:hover,
-.rot-edit-activation:focus-visible {
+.rot-edit-activation:focus-visible,
+.rot-edit-wait:hover,
+.rot-edit-wait:focus-visible {
   background: #9675c8;
   outline: none;
   transform: scale(1.08);
 }
 
-.rot-skill.dragging .rot-edit-activation {
+.rot-skill.dragging .rot-edit-activation,
+.rot-skill.dragging .rot-edit-wait {
   opacity: 0;
   pointer-events: none;
 }
@@ -270,7 +277,8 @@
 }
 
 @media (hover: none) {
-  .rot-edit-activation {
+  .rot-edit-activation,
+  .rot-edit-wait {
     opacity: 1;
     pointer-events: auto;
   }

@@ -484,14 +484,15 @@ export function bindTimelineInteractions(
       };
     }
 
-    const editActivation = item.querySelector<HTMLElement>('.rot-edit-activation');
-    if (editActivation) {
-      editActivation.setAttribute('draggable', 'false');
-      editActivation.onmousedown = (event) => {
+    // Editor pencils must behave as controls instead of starting a timeline drag.
+    const editControl = item.querySelector<HTMLElement>('.rot-edit-activation, .rot-edit-wait');
+    if (editControl) {
+      editControl.setAttribute('draggable', 'false');
+      editControl.onmousedown = (event) => {
         event.stopPropagation();
       };
 
-      editActivation.ondragstart = (event) => {
+      editControl.ondragstart = (event) => {
         event.preventDefault();
         event.stopPropagation();
       };
@@ -595,7 +596,7 @@ export function bindTimelineInteractions(
   bindEdit('.rot-edit-activation, .rot-interrupt-badge', options.onEditActivation || options.onEditInterrupt);
   bindEdit('.rot-charge-release-badge', options.onEditReleaseAtCharges);
   bindEdit('.rot-double-edge-badge', options.onEditDoubleEdgeOutcome);
-  bindEdit('.rot-wait-badge', options.onEditWait);
+  bindEdit('.rot-edit-wait, .rot-wait-badge', options.onEditWait);
 
   return { applyDrop, cleanup };
 }

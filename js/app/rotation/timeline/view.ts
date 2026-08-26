@@ -285,12 +285,15 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
-  if (!skill) return false;
+  const isCombatStart = item.type === 'combat-start';
+  if (!skill && !isCombatStart) return false;
 
   const step = currentTimelineResults(app)?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
-  const catalogCastMs = Math.round(Number(skill.castTimeMs) || 0);
+  const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
   const fullCastMs = timelineFullCastMs(step, skill);
-  const behavior = item.concurrentOffsetMs != null || fullCastMs === 0 ? 'concurrent' : 'interrupt';
+  // Combat Start has no cast bar, but its optional offset uses the same normal-versus-overlap
+  // contract as an instant skill so users can move the marker into the preceding cast.
+  const behavior = isCombatStart || item.concurrentOffsetMs != null || fullCastMs === 0 ? 'concurrent' : 'interrupt';
   const eventTarget = event?.currentTarget;
   const eventElement = eventTarget instanceof HTMLElement ? eventTarget : null;
   const anchor =
@@ -300,12 +303,15 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 
   openActivationEditor({
     anchor,
-    skillName: String(skill.displayName || skill.name),
-    icon: anchor.querySelector<HTMLImageElement>('img')?.getAttribute('src') || skill.icon || undefined,
+    skillName: isCombatStart ? 'Combat Start' : String(skill?.displayName || skill?.name),
+    icon:
+      anchor.querySelector<HTMLImageElement>('img')?.getAttribute('src') ||
+      (isCombatStart ? COMBAT_START_ICON : skill?.icon || undefined),
     behavior,
     interruptMs: behavior === 'interrupt' && item.interruptAfterMs != null ? Number(item.interruptAfterMs) : null,
     concurrentOffsetMs:
       behavior === 'concurrent' && item.concurrentOffsetMs != null ? Number(item.concurrentOffsetMs) : null,
+    minimumConcurrentOffsetMs: isCombatStart ? null : 0,
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
@@ -886,8 +892,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         : '';
       const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
       const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
-      // Every resolved cast exposes behavior editing: interrupts for cast bars and overlap offsets for instants.
-      const canEditActivation = item.type === 'cast' && skill != null;
+      // Casts and Combat Start share behavior editing; waits expose their duration through the same pencil affordance.
+      const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
+      const canEditWait = item.type === 'wait';
       rowItems.push(
         rotationTimelineEntryHtml(
           index,
@@ -900,7 +907,10 @@ export function renderTimeline(app: ProfessionAppState): void {
                       canEditActivation
                         ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
                         title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
-                        : ''
+                        : canEditWait
+                          ? `<button type="button" class="rot-edit-wait" data-idx="${index}"
+                        title="Edit wait duration" aria-label="Edit Wait duration" aria-haspopup="dialog">&#9998;</button>`
+                          : ''
                     }
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
@@ -943,6 +953,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     for (const marker of automaticPhotonForgeExitsByRow.get(rowNumber) || []) {
       rowItems.push(renderAutomaticPhotonForgeExit(marker));
     }
+
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
       for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {

@@ -411,13 +411,43 @@ frame.addEventListener('load', async () => {
       app.build.rotation[0]?.type === 'wait' && app.build.rotation[0]?.durationMs === 750,
       'wait duration editor did not add the wait'
     );
-    const waitBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-wait-badge');
+    const editWait = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-edit-wait');
 
-    waitBadge.click();
+    assert(editWait, 'wait does not expose the duration editor pencil');
+    editWait.click();
     durationEditor = document.querySelector('.rotation-duration-editor');
     durationEditor.querySelector('.activation-editor-input').value = '900';
     durationEditor.querySelector('.activation-editor-apply').click();
     assert(app.build.rotation[0].durationMs === 900, 'wait duration editor did not update the wait');
+
+    app.build.rotation = [castCommand('Bladecall'), { type: 'combat-start' }];
+    app.changed(false);
+    const editCombatStart = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
+
+    assert(editCombatStart, 'Combat Start does not expose the cast behavior editor');
+    editCombatStart.click();
+    activationEditor = document.querySelector('.rotation-activation-editor');
+    assert(
+      activationEditor?.querySelector('input[value="normal"]')?.checked &&
+        activationEditor.textContent.includes('During previous cast'),
+      'Combat Start editor did not open with normal and previous-cast behaviors'
+    );
+    activationEditor.querySelector('input[value="concurrent"]').click();
+    activationEditor.querySelector('.activation-editor-input').value = '225';
+    activationEditor.querySelector('.activation-editor-apply').click();
+    assert(
+      app.build.rotation[1].concurrentOffsetMs === 225,
+      'Combat Start editor did not move the marker into the previous cast'
+    );
+
+    document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation').click();
+    activationEditor = document.querySelector('.rotation-activation-editor');
+    activationEditor.querySelector('input[value="normal"]').click();
+    activationEditor.querySelector('.activation-editor-apply').click();
+    assert(
+      app.build.rotation[1].concurrentOffsetMs === undefined,
+      'normal Combat Start did not remove the previous-cast offset'
+    );
 
     app.build.rotation = [];
     app.changed(false);

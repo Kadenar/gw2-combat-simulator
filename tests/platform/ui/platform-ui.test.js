@@ -75,6 +75,7 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
   assert.deepEqual(validateActivationConcurrentOffsetMs(0), { valid: true, value: 0 });
   assert.deepEqual(validateActivationConcurrentOffsetMs('100.4'), { valid: true, value: 100 });
+  assert.deepEqual(validateActivationConcurrentOffsetMs(-440, null), { valid: true, value: -440 });
   assert.equal(validateActivationConcurrentOffsetMs('').valid, false);
   assert.equal(validateActivationConcurrentOffsetMs(-1).valid, false);
   assert.equal(
@@ -1179,6 +1180,39 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   assert.equal(getSkillDropInsertionIndex(tile, 31), 4);
   assert.equal(getSkillDropInsertionIndex({ dataset: {} }, 0), null);
   assert.equal(getSkillDropInsertionIndex({ dataset: { idx: '' } }, 0), null);
+});
+
+test('timeline binding routes the wait pencil to duration editing', () => {
+  let editedIndex = null;
+  let propagationStopped = false;
+  const waitPencil = { dataset: { idx: '2' } };
+  const root = {
+    classList: { add() {}, remove() {} },
+    querySelectorAll(selector) {
+      return selector === '.rot-edit-wait, .rot-wait-badge' ? [waitPencil] : [];
+    }
+  };
+
+  // The pencil opens the editor without reporting a completed timeline mutation until Apply is used.
+  bindTimelineInteractions(root, {
+    rotation: [],
+    getDragState: () => null,
+    setDragState() {},
+    moveEntry: () => false,
+    insertEntries: () => false,
+    onEditWait(index) {
+      editedIndex = index;
+      return false;
+    }
+  });
+  waitPencil.onclick({
+    stopPropagation() {
+      propagationStopped = true;
+    }
+  });
+
+  assert.equal(editedIndex, 2);
+  assert.equal(propagationStopped, true);
 });
 
 test('event logs order stably and CSV escapes cells', () => {
