@@ -6,7 +6,7 @@ import type {
   RotationActionStatus
 } from '../../lib/rotation/model.js';
 import type { RotationProfessionProfile } from '../../lib/rotation/profiles.js';
-import { buildReplayTimeline } from '../../lib/rotation/timeline.js';
+import { buildReplayTimeline, replayCombatStart } from '../../lib/rotation/timeline.js';
 import { firstStrikePacketOffsetMs } from '../../lib/rotation/timing.js';
 import type { Skill } from '../../../platform/engine/types.js';
 import { observedCommittedInterruptMs, quicknessReferenceCastTimeMs } from '../../../platform/gw2/skills/timing.js';
@@ -244,6 +244,12 @@ function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportRes
 
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
 function replayActionEnd(action: DpsReportResolvedAction): number {
+  // A profession-proven combat marker inside an opening cast must use the
+  // simulator's cast lane, not EI's slightly shorter animation observation.
+  if (action.combatStartOverride != null) {
+    const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+    if (runtimeDuration > 0) return Math.max(action.end, action.start + runtimeDuration);
+  }
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action.end;
   const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
@@ -444,7 +450,8 @@ export function reconstructDpsReportWithProfile(
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }
 
-  const origin = Math.min(resolved[0].start, phase.start);
+  const combatStart = replayCombatStart(resolved, phase.start) ?? phase.start;
+  const origin = Math.min(resolved[0].start, combatStart);
   const actions: DpsReportRotationAction[] = resolved
     .filter((action) => action.control == null)
     .map((action) => ({
@@ -480,9 +487,9 @@ export function reconstructDpsReportWithProfile(
       end: phase.end
     },
     timelineOriginMs: origin,
-    combatStartTimestampMs: phase.start - origin,
+    combatStartTimestampMs: combatStart - origin,
     actions,
-    rotation: buildRotation(resolved, origin, phase.start),
+    rotation: buildRotation(resolved, origin, combatStart),
     warnings: warningList(actions, resolved)
   };
 }

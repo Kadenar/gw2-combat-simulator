@@ -11,6 +11,8 @@ export interface ReplayTimelineAction {
   readonly control?: 'cooldown-reset';
   readonly independentTimeline?: boolean;
   readonly followingWaitMs?: number;
+  /** Profession evidence may place combat before a source phase/EVTC boundary so an opening hit remains observable. */
+  readonly combatStartOverride?: number;
 }
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
@@ -27,6 +29,19 @@ function identityMilliseconds(value: number): number {
   return Math.max(0, value);
 }
 
+/** Applies the earliest profession-proven combat boundary without moving a later source boundary forward. */
+export function replayCombatStart(
+  actions: readonly { readonly combatStartOverride?: number }[],
+  sourceCombatStart: number | null
+): number | null {
+  const overrides = actions
+    .map((action) => Number(action.combatStartOverride))
+    .filter((value) => Number.isFinite(value));
+  if (!overrides.length) return sourceCombatStart;
+  const earliestOverride = Math.min(...overrides);
+  return sourceCombatStart == null ? earliestOverride : Math.min(sourceCombatStart, earliestOverride);
+}
+
 /** Converts one normalized action timeline into executable commands so both log sources preserve the same gaps and overlaps. */
 export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   actions: readonly Action[],
@@ -38,11 +53,12 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
+  const effectiveCombatStart = replayCombatStart(actions, combatStart);
   const entries: Array<
     | { readonly type: 'action'; readonly action: Action }
     | { readonly type: 'combat-start'; readonly at: number; readonly index: number }
   > = actions.map((action) => ({ type: 'action', action }));
-  if (combatStart != null) entries.push({ type: 'combat-start', at: combatStart, index: -1 });
+  if (effectiveCombatStart != null) entries.push({ type: 'combat-start', at: effectiveCombatStart, index: -1 });
   entries.sort((left, right) => {
     const leftTime = left.type === 'action' ? left.action.start : left.at;
     const rightTime = right.type === 'action' ? right.action.start : right.at;

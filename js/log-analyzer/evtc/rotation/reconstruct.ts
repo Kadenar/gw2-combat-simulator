@@ -30,7 +30,7 @@ import {
 } from './effect-packets.js';
 import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
 import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
-import { buildReplayTimeline } from '../../lib/rotation/timeline.js';
+import { buildReplayTimeline, replayCombatStart } from '../../lib/rotation/timeline.js';
 import { observedCommittedInterruptMs } from '../../../platform/gw2/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
@@ -1021,6 +1021,9 @@ export function reconstructWithProfile(
         .map((action) => action.inferredCombatStart)
         .filter((time): time is number => time != null && Number.isFinite(time))
         .sort((left, right) => left - right)[0] ?? null;
+  }
+  if (options.includeCombatStart !== false) {
+    combatStart = replayCombatStart(professionActions, combatStart);
   }
 
   const initialSummons = initialSummonActions(

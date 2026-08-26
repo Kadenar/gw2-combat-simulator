@@ -26,6 +26,8 @@ export interface DpsReportRecordedAction {
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;
   readonly independentTimeline?: boolean;
+  /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */
+  readonly combatStartOverride?: number;
   readonly inference?:
     | 'initial-kit'
     | 'mine-setup'

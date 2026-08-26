@@ -1,5 +1,7 @@
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { firstStrikePacketOffsetMs } from '../../effect-packets.js';
+import { openingStrikeCombatStartMs } from '../../../../lib/rotation/timing.js';
 import {
   combatStart,
   hasActionNear,
@@ -22,6 +24,34 @@ const FLAMES_OF_WAR_BUFF = 31708;
 const BERSERK_ENTRY_DURATION_MS = 20_000;
 const OUTRAGE_EXTENSION_MS = 3_000;
 const OPENING_WINDOW_MS = 1_000;
+
+/** Anchors combat to Head Butt's opening strike instead of its later animation/phase boundary. */
+function alignOpeningHeadButtCombatStart(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const atCombat = combatStart(context);
+  if (atCombat == null) return [...actions];
+  const runtimeDuration = recordedDuration(context, HEAD_BUTT);
+  const skill = skillFor(context, HEAD_BUTT);
+  const strikeOffset = firstStrikePacketOffsetMs(skill, runtimeDuration, { explicitOnly: true });
+  if (strikeOffset == null) return [...actions];
+
+  const opening = actions
+    .filter(
+      (action) =>
+        (action.rawSkillId === HEAD_BUTT.skillId ||
+          action.canonicalSkillId === HEAD_BUTT.skillId ||
+          action.rawName.trim().toLowerCase() === HEAD_BUTT.name.toLowerCase() ||
+          action.canonicalName?.trim().toLowerCase() === HEAD_BUTT.name.toLowerCase()) &&
+        action.start <= atCombat &&
+        atCombat <= Math.max(action.end, action.start + runtimeDuration) + SIGNAL_WINDOW_MS
+    )
+    .sort((left, right) => right.start - left.start)[0];
+  if (!opening) return [...actions];
+  const combatStartOverride = openingStrikeCombatStartMs(opening.start, strikeOffset, atCombat);
+  return actions.map((action) => (action === opening ? { ...action, combatStartOverride } : action));
+}
 
 /**
  * Recovers Berserk from the long self-buff application produced when entering
@@ -220,5 +250,10 @@ export function reconstructBerserkerActions(
 ): EvtcRecordedRotationAction[] {
   const entries = berserkEntryActions(context, actions);
   const outrages = outrageActions(context, actions);
-  return [...openingPrecasts(context, actions, entries, outrages), ...actions, ...entries, ...outrages];
+  return alignOpeningHeadButtCombatStart(context, [
+    ...openingPrecasts(context, actions, entries, outrages),
+    ...actions,
+    ...entries,
+    ...outrages
+  ]);
 }

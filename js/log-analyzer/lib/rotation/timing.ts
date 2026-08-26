@@ -39,3 +39,12 @@ export function firstStrikePacketOffsetMs(
   });
   return offsets.length ? Math.min(...offsets) : null;
 }
+
+/** Places combat one 40 ms action frame before an opening strike so the marker resolves before its damage packet. */
+export function openingStrikeCombatStartMs(
+  castStartMs: number,
+  strikeOffsetMs: number,
+  sourceCombatStartMs: number
+): number {
+  return Math.min(sourceCombatStartMs, castStartMs + Math.max(0, strikeOffsetMs - 40));
+}

@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { reconstructEvtcRotation } from '../../js/log-analyzer/evtc/rotation/index.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
+import { warriorCatalog } from '../../js/professions/warrior/catalog.js';
+import { warriorProfession } from '../../js/professions/warrior/definition.js';
 
 const PLAYER = 0x1000n;
 
@@ -97,6 +100,36 @@ function animation(skillId, start, end, options = {}) {
     })
   ];
 }
+
+test('places EVTC combat start at the opening Head Butt strike so replay retains its damage', () => {
+  const headButtAnimation = animation(30_343, 1_000, 1_765, { modern: true });
+  const fixture = warriorLog(
+    18,
+    [{ id: 30_343, name: 'Head Butt' }],
+    [headButtAnimation[0], event({ time: 1_760, stateChange: 1 }), headButtAnimation[1]]
+  );
+  const reconstruction = reconstructEvtcRotation(fixture, warriorCatalog, { inferInstantCasts: false });
+  const simulation = simulateGw2({
+    profession: warriorProfession,
+    rotation: reconstruction.rotation,
+    config: {
+      specialization: 'Berserker',
+      stats: { power: 2_000, precision: 1_500, ferocity: 500, conditionDamage: 0, expertise: 0 },
+      target: { armor: 2_597, health: 1_000_000, conditions: { Vulnerability: 25 }, defiant: true }
+    },
+    mode: 'sequence'
+  });
+
+  assert.deepEqual(reconstruction.rotation, [
+    { name: 'Head Butt', skillId: 30_343 },
+    { name: '__combat_start', offset: 720 }
+  ]);
+  assert.ok(
+    simulation.resolvedEvents.some(
+      (resolved) => resolved.type === 'damage' && resolved.skillName === 'Head Butt' && resolved.damage > 0
+    )
+  );
+});
 
 test('reconstructs Spellbreaker core and specialization precasts', () => {
   const skills = [

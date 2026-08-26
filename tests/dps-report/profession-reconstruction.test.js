@@ -5,6 +5,8 @@ import { parseDpsReport } from '../../js/log-analyzer/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '../../js/log-analyzer/dps-report/rotation/index.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
+import { warriorProfession } from '../../js/professions/warrior/definition.js';
+import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
@@ -195,7 +197,7 @@ test('orders simultaneous dps.report instant casts before cast-time skills', () 
   const report = reportFixture(
     'Berserker',
     [
-      { id: 30_343, skills: [{ castTime: -800, duration: 800, timeGained: 0 }] },
+      { id: 30_343, skills: [{ castTime: -765, duration: 766, timeGained: 7 }] },
       { id: 14_504, skills: [{ castTime: 77, duration: 680, timeGained: 0 }] },
       { id: 30_258, skills: [{ castTime: 77, duration: 0, timeGained: 0 }] }
     ],
@@ -208,7 +210,12 @@ test('orders simultaneous dps.report instant casts before cast-time skills', () 
   );
   const catalog = {
     skills: [
-      skill(30_343, 'Head Butt', { type: 'elite', quicknessCastTimeMs: 800, selfStunMs: 1_000 }),
+      skill(30_343, 'Head Butt', {
+        type: 'elite',
+        quicknessCastTimeMs: 800,
+        selfStunMs: 1_000,
+        effects: [{ type: 'strike', atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }]
+      }),
       skill(14_504, 'Pin Down', { type: 'weapon', quicknessCastTimeMs: 680 }),
       skill(30_258, 'Outrage', { type: 'utility', castTimeMs: 0, stunbreak: true })
     ]
@@ -223,6 +230,19 @@ test('orders simultaneous dps.report instant casts before cast-time skills', () 
   assert.deepEqual(
     result.rotation.map((command) => command.name),
     ['Head Butt', '__combat_start', '__wait', 'Outrage', 'Pin Down']
+  );
+  assert.deepEqual(result.rotation[1], { name: '__combat_start', offset: 720 });
+  assert.equal(result.combatStartTimestampMs, 720);
+  const simulation = simulateGw2({
+    profession: warriorProfession,
+    rotation: result.rotation.slice(0, 2),
+    config: defaultSimulationConfig({ specialization: 'Berserker' }),
+    mode: 'sequence'
+  });
+  assert.ok(
+    simulation.resolvedEvents.some(
+      (event) => event.type === 'damage' && event.skillName === 'Head Butt' && event.damage > 0
+    )
   );
 });
 

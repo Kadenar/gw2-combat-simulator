@@ -22,6 +22,8 @@ export interface EvtcRecordedRotationAction {
   readonly replayInterruptMs?: number;
   readonly forceCompleteReplay?: boolean;
   readonly suppressFollowingWait?: boolean;
+  /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */
+  readonly combatStartOverride?: number;
   // Profession reconstruction can recover a missing EVTC combat boundary from an action's effect packets.
   readonly inferredCombatStart?: number;
 }
