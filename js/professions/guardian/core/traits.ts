@@ -4,6 +4,7 @@ import { SPECIALIZATIONS } from '../data/guardian-api-metadata.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { buildGuardianStrike } from './events.js';
@@ -659,7 +660,7 @@ function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianRe
 function reactToZealotsResolution(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = resolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
-  const damageDone = Number(context.totals?.strike || 0) + Number(context.totals?.condition || 0);
+  const damageDone = combinedTargetDamage(context);
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||

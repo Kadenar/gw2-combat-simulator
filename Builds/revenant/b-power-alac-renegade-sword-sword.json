@@ -87,7 +87,7 @@
   },
   "initialEnergy": 50,
   "startingWeaponSet": 1,
-  "targetHealth": 3970000,
+  "targetHealth": 4000000,
   "targetArmor": 2597,
   "initialResource": 0
 }

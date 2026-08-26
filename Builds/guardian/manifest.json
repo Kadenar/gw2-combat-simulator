@@ -22,7 +22,7 @@
         "label": "Condition (Scepter / Pistol + Pistol / Torch)",
         "build": "Builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "Rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
-        "benchmarkDps": 42385,
+        "benchmarkDps": 42381,
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true
@@ -36,7 +36,7 @@
         "label": "Condition (Axe / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condition-firebrand.json",
         "rotation": "Rotations/guardian/r-condition-firebrand-bench.json",
-        "benchmarkDps": 41589,
+        "benchmarkDps": 41584,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -44,7 +44,7 @@
         "label": "Condition Quickness (Axe / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "Rotations/guardian/r-condi-qfb-ritualists-bench.json",
-        "benchmarkDps": 33145,
+        "benchmarkDps": 33128,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true

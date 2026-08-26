@@ -1,6 +1,7 @@
 import { EPSILON } from '../../engine/core/clock.js';
 import { sortQueuedEvents, takeNextEvent } from '../../engine/events/queue.js';
 import { HandlerRegistry } from '../../engine/resolution/handler-registry.js';
+import { combinedTargetDamage } from '../combat/state/target-health.js';
 
 import type {
   Gw2ResolverEvent,
@@ -120,7 +121,7 @@ export function runGw2ResolverEventLoop(
       throw new Error(`No event handler registered for required type: ${event.type}`);
     }
 
-    if (ctx.deathTime == null && ctx.totals.strike + ctx.totals.condition >= hp) {
+    if (ctx.deathTime == null && combinedTargetDamage(ctx) >= hp) {
       ctx.deathTime = event.at;
       lethalActivationKey = combatActivationKey(event);
     }

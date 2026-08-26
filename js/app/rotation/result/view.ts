@@ -37,8 +37,8 @@ const EFFECT_COLORS: Readonly<Record<string, string>> = {
 const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Duration', value: '—', className: '' },
   { label: 'Total Idle Time', value: '—', className: '' },
-  { label: 'Total Damage', value: '—', className: '' },
-  { label: 'DPS', value: '—', className: 'dps' },
+  { label: 'Player Damage', value: '—', className: '' },
+  { label: 'Player DPS', value: '—', className: 'dps' },
   { label: 'Strike', value: '—', className: '' },
   { label: 'Condition', value: '—', className: 'condi' }
 ]);
@@ -85,7 +85,9 @@ export function renderResultSummary(app: ProfessionAppState): void {
   }
 
   const metrics = resultSummaryMetrics(result).map((metric) =>
-    result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
+    result.randomDistributionRequested && metric.label === 'Player DPS'
+      ? { ...metric, label: 'Baseline Player DPS' }
+      : metric
   );
   updateFloatingDps(metrics.find((metric) => metric.className === 'dps')?.value);
   mountRotationResults(summaryStrip, { metrics });
@@ -135,7 +137,9 @@ export function renderDetailedResults(app: ProfessionAppState): void {
   }
 
   const metrics = resultSummaryMetrics(result).map((metric) =>
-    result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
+    result.randomDistributionRequested && metric.label === 'Player DPS'
+      ? { ...metric, label: 'Baseline Player DPS' }
+      : metric
   );
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];

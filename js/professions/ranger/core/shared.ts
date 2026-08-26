@@ -1,4 +1,5 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { remainingTargetHealthFraction } from '../../../platform/gw2/combat/state/target-health.js';
 import { rangerPetCompanionId } from './pets.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '../types.js';
 
@@ -90,7 +91,5 @@ export function isPlayerStrike(event: RangerResolverEvent): boolean {
 }
 
 export function targetHealthFraction(context: RangerResolverContext): number {
-  const maximum = Number(context.config.target?.health || 0);
-  if (!(maximum > 0)) return 1;
-  return Math.max(0, 1 - (Number(context.totals.strike || 0) + Number(context.totals.condition || 0)) / maximum);
+  return remainingTargetHealthFraction(context.config, context) ?? 1;
 }

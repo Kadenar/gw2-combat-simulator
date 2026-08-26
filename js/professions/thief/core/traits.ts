@@ -1,6 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/combat/state/targets.js';
+import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
@@ -621,7 +622,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
 
   if (application.condition === 'Bleeding' && Number(application.bonusAboveNinetyStacks || 0) > 0) {
     const maximum = Number(context.config?.target?.health || 0);
-    const damage = Number(context.totals?.strike || 0) + Number(context.totals?.condition || 0);
+    const damage = combinedTargetDamage(context);
     if (!(maximum > 0) || damage / maximum < 0.1) {
       enqueueOrdered(context.queue, {
         ...application,

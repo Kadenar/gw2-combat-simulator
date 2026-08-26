@@ -5,6 +5,7 @@ import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '../data/traits-data.js';
 import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2AlliedEffectRecipients } from '../../../platform/gw2/combat/state/allied-players.js';
 import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
@@ -139,7 +140,7 @@ export function queueTraitCoefficientDamage(
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   const maximum = Number(context.config.target?.health || 0);
   if (!(maximum > 0)) return false;
-  return Number(context.totals.strike || 0) + Number(context.totals.condition || 0) > maximum * 0.5;
+  return combinedTargetDamage(context) > maximum * 0.5;
 }
 
 // Both packet variants explicitly use the granting trait's artwork so the

@@ -12,6 +12,7 @@ import {
   isGw2PlayerActorEvent,
   isGw2PlayerModifierOwnedEvent
 } from '../../combat/state/event-ownership.js';
+import { combinedTargetDamage } from '../../combat/state/target-health.js';
 
 import type { SimulationEvent, Skill } from '../../../engine/types.js';
 import type {
@@ -476,7 +477,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       // Activates when cumulative damage dealt (strike + condition) reaches
       // 50% of target health — not remaining health; it's a threshold on total output.
       const targetHealth = Number(ctx.config.target?.health || 0);
-      return targetHealth > 0 && ctx.totals.strike + ctx.totals.condition >= targetHealth * 0.5 ? 1.1 : 1;
+      return targetHealth > 0 && combinedTargetDamage(ctx) >= targetHealth * 0.5 ? 1.1 : 1;
     }
   }),
 

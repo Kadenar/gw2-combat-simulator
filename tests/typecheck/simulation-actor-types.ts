@@ -6,5 +6,5 @@ type Equal<Left, Right> =
 
 // Mesmer illusion subtypes cannot leak into the shared actor ownership union.
 export type SimulationActorTypeAssertions = [
-  Assert<Equal<SimulationActorType, 'player' | 'summon' | 'effect' | 'unknown'>>
+  Assert<Equal<SimulationActorType, 'player' | 'summon' | 'effect' | 'environment' | 'unknown'>>
 ];

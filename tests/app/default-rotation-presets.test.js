@@ -29,6 +29,9 @@ test('native build manifests and assets stay profession-scoped', async () => {
       assert.equal(build.profession, profession);
       assert.equal(Number.isInteger(build.schemaVersion), true, profession);
       assert.equal(build.schemaVersion > 0, true, profession);
+      // Manifest presets are training-golem benchmarks and use the real health
+      // pool now that environment conditions contribute separately.
+      assert.equal(build.targetHealth, 4_000_000, preset.build);
 
       if (preset.rotation) {
         assert.match(preset.rotation, new RegExp(`^Rotations/${profession}/[^/]+\\.json$`));

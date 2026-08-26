@@ -1,5 +1,6 @@
 import { clamp } from '../numeric.js';
 import { CANONICAL_TARGET_CONDITIONS, canonicalTargetConditionName, targetHasCondition } from '../state/targets.js';
+import { remainingTargetHealthFraction } from '../state/target-health.js';
 import type { Skill, SkillId } from '../../../engine/types.js';
 import type { Gw2ModifierContext } from '../modifiers/types.js';
 import type { Gw2TimedBuffApplication } from '../state/types.js';
@@ -55,11 +56,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   const configured = Number(context.config?.targetHealthFraction ?? context.config?.target?.healthFraction);
   if (Number.isFinite(configured)) return clamp(configured, 0, 1);
 
-  const maximum = Number(context.config?.target?.health ?? 0);
-  if (!(maximum > 0)) return 1;
-  const totals = context.runtime?.totals as { readonly strike?: number; readonly condition?: number } | undefined;
-  const damage = Number(totals?.strike || 0) + Number(totals?.condition || 0);
-  return clamp(1 - damage / maximum, 0, 1);
+  return remainingTargetHealthFraction(context.config, context.runtime) ?? 1;
 }
 
 /** Normalizes the configured player-health assumption to the valid fraction range. */

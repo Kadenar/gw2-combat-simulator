@@ -10,6 +10,7 @@ import { createSimulationRandom } from '../../../js/platform/engine/core/simulat
 import { createCloneAttackScheduler } from '../../../js/professions/mesmer/core/clone-attacks.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
 import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolver/event-handlers.js';
+import { createGw2ConditionResolution } from '../../../js/platform/gw2/resolver/condition-resolution.js';
 
 test('Mesmer skill damage scheduling is split into focused modules', () => {
   const core = new URL('../../../js/professions/mesmer/core/', import.meta.url);
@@ -439,23 +440,266 @@ test('shared buff handling prioritizes allied players over summon recipients', (
   assert.equal(application.recipientCount, 5);
 });
 
-test('permanent damaging target conditions are assumptions, not player damage', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    [{ name: '__wait', waitMs: 2000 }],
-    defaultSimulationConfig({
-      target: {
-        ...defaults.target,
-        conditions: {
-          Bleeding: 25,
-          Burning: true
-        }
-      }
-    })
+/** Resolves a minimal stream against permanent target conditions with player-neutral numeric facts. */
+function resolveEnvironmentConditions({
+  conditions = {},
+  events = [],
+  rotationEndTime = 2,
+  targetHealth = 10_000,
+  target = {},
+  professionReactions = {}
+} = {}) {
+  const config = {
+    target: {
+      armor: 1000,
+      health: targetHealth,
+      conditions,
+      ...target
+    },
+    sigilSets: [{ names: [] }]
+  };
+  const stream = buildScheduledEventStream({ events, rotationEndTime });
+  return resolveTestGw2Stream({
+    stream,
+    config,
+    traits: new Set(),
+    professionReactions,
+    query: {
+      statsAt: () => ({
+        power: 1000,
+        precision: 1000,
+        toughness: 1000,
+        vitality: 1000,
+        ferocity: 0,
+        conditionDamage: 9000,
+        expertise: 0,
+        concentration: 0,
+        healingPower: 0
+      }),
+      critical: () => ({ chance: 0, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      conditionBaseDurationMultiplier: () => 1,
+      vulnerabilityStacksAt: () => Number(conditions.Vulnerability || 0),
+      activeWeaponSetAt: () => 1
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1000
+    }
+  });
+}
+
+test('permanent damaging target conditions use environment formulas and diagnostics', () => {
+  const result = resolveEnvironmentConditions({
+    conditions: {
+      Bleeding: 1,
+      Burning: true,
+      Poisoned: true,
+      Torment: 1,
+      Confusion: 1,
+      Chilled: true
+    },
+    rotationEndTime: 1,
+    target: {
+      moving: true,
+      confusionActivationsPerSecond: 100
+    }
+  });
+  const damageByCondition = Object.fromEntries(
+    result.environmentConditionBreakdown.map((entry) => [entry.name, entry.damage])
   );
 
+  assert.deepEqual(damageByCondition, {
+    Burning: 131,
+    Poisoned: 33.5,
+    Torment: 31.8,
+    Bleeding: 22,
+    Confusion: 18.25
+  });
+  assert.ok(Math.abs(result.environmentDamage - 236.55) < 1e-12);
+  assert.equal(result.environmentDps, result.environmentDamage);
   assert.equal(result.totalDamage, 0);
+  assert.equal(result.dps, 0);
+  assert.equal(result.strikeDamage, 0);
+  assert.equal(result.conditionDamage, 0);
+  assert.equal(result.firstHitTime, null);
+  assert.equal(result.lastHitTime, null);
+  assert.deepEqual(result.breakdown, []);
   assert.deepEqual(result.conditionBreakdown, []);
+});
+
+test('environment condition ticks reduce target health and can kill the target', () => {
+  const result = resolveEnvironmentConditions({
+    conditions: { Bleeding: 1 },
+    rotationEndTime: 5,
+    targetHealth: 30
+  });
+
+  assert.equal(result.deathTime, 2);
+  assert.equal(result.environmentDamage, 44);
+  assert.deepEqual(
+    result.environmentConditionBreakdown[0].damageTicks.map((tick) => tick.at),
+    [1, 2]
+  );
+  assert.equal(result.totalDamage, 0);
+  assert.equal(result.firstHitTime, null);
+});
+
+test('environment condition damage applies target Vulnerability without player attributes', () => {
+  const result = resolveEnvironmentConditions({
+    conditions: { Bleeding: 1, Vulnerability: 25 },
+    rotationEndTime: 1
+  });
+
+  assert.equal(result.environmentDamage, 27.5);
+});
+
+test('environment conditions do not change player attribution over an equal observation window', () => {
+  const events = [
+    {
+      type: 'damage',
+      at: 0.5,
+      source: 'Player',
+      sourceId: 'fixed-hit-one',
+      actorType: 'player',
+      name: 'Fixed Hit One',
+      flatDamage: 50,
+      noCrit: true
+    },
+    {
+      type: 'damage',
+      at: 1.5,
+      source: 'Player',
+      sourceId: 'fixed-hit-two',
+      actorType: 'player',
+      name: 'Fixed Hit Two',
+      flatDamage: 50,
+      noCrit: true
+    }
+  ];
+  const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 2.5 });
+  const ambient = resolveEnvironmentConditions({ conditions: { Bleeding: 1 }, events, rotationEndTime: 2.5 });
+
+  for (const field of ['totalDamage', 'dps', 'strikeDamage', 'conditionDamage', 'firstHitTime', 'lastHitTime']) {
+    assert.equal(ambient[field], baseline[field], field);
+  }
+  assert.deepEqual(ambient.breakdown, baseline.breakdown);
+  assert.ok(ambient.environmentDamage > 0);
+});
+
+test('environment damage can end a player sequence early without entering player totals', () => {
+  const events = [0.5, 1.5, 2.5].map((at, index) => ({
+    type: 'damage',
+    at,
+    source: 'Player',
+    sourceId: `early-hit-${index}`,
+    actorType: 'player',
+    name: `Early Hit ${index}`,
+    flatDamage: 20,
+    noCrit: true
+  }));
+  const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 3, targetHealth: 75 });
+  const ambient = resolveEnvironmentConditions({
+    conditions: { Bleeding: 1 },
+    events,
+    rotationEndTime: 3,
+    targetHealth: 75
+  });
+
+  assert.equal(baseline.deathTime, null);
+  assert.equal(baseline.totalDamage, 60);
+  assert.equal(ambient.deathTime, 2);
+  assert.equal(ambient.totalDamage, 40);
+  assert.equal(ambient.environmentDamage, 44);
+  assert.ok(ambient.totalDamage + ambient.environmentDamage >= 75);
+});
+
+test('environment scheduling preserves permanent status counts without duplicating runtime stacks', () => {
+  const resolution = createGw2ConditionResolution({
+    reactions: { dispatch: () => {} },
+    config: { target: { conditions: { Bleeding: 2 } } }
+  });
+  const context = {
+    horizon: 2,
+    queue: createEventQueue(),
+    conditionState: new Map(),
+    environmentConditions: new Map()
+  };
+
+  resolution.initializeEnvironment(context);
+
+  assert.equal(resolution.activeConditionStackCount(context, 'Bleeding', 1), 2);
+  assert.equal(context.conditionState.size, 0);
+  assert.equal(context.environmentConditions.get('Bleeding').stacks, 2);
+  assert.equal(context.queue.length, 2);
+});
+
+test('non-damaging permanent target conditions do not schedule environment ticks', () => {
+  const result = resolveEnvironmentConditions({
+    conditions: { Chilled: true, Weakness: true, Blindness: true },
+    rotationEndTime: 3
+  });
+
+  assert.equal(result.environmentDamage, 0);
+  assert.deepEqual(result.environmentConditionBreakdown, []);
+  assert.equal(result.deathTime, null);
+});
+
+test('target-health coefficient thresholds include environment damage', () => {
+  const events = [
+    {
+      type: 'damage',
+      at: 0.5,
+      source: 'Player',
+      sourceId: 'threshold-opening',
+      actorType: 'player',
+      name: 'Threshold Opening',
+      coefficient: 0.04,
+      noCrit: true
+    },
+    {
+      type: 'damage',
+      at: 1.5,
+      source: 'Player',
+      sourceId: 'threshold-finisher',
+      actorType: 'player',
+      name: 'Threshold Finisher',
+      coefficient: 0.04,
+      coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }],
+      noCrit: true
+    }
+  ];
+  const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 2, targetHealth: 100 });
+  const ambient = resolveEnvironmentConditions({
+    conditions: { Bleeding: 1 },
+    events,
+    rotationEndTime: 2,
+    targetHealth: 100
+  });
+  const finisher = (result) => result.resolvedEvents.find((event) => event.name === 'Threshold Finisher').damage;
+
+  assert.equal(finisher(baseline), 40);
+  assert.equal(finisher(ambient), 80);
+});
+
+test('environment ticks bypass player condition reactions and proc accounting', () => {
+  let conditionTickReactions = 0;
+  const result = resolveEnvironmentConditions({
+    conditions: { Bleeding: 1 },
+    rotationEndTime: 2,
+    professionReactions: {
+      'condition-tick.resolved': () => {
+        conditionTickReactions += 1;
+      }
+    }
+  });
+
+  assert.equal(result.environmentDamage, 44);
+  assert.equal(conditionTickReactions, 0);
+  assert.deepEqual(result.procSteps, []);
 });
 
 test('DPS excludes elapsed time before the first hit', () => {

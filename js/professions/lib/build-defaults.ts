@@ -2,7 +2,7 @@ import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '../../app/simulation/
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import type { RotationCommand, SchedulerRecord } from '../../platform/engine/types.js';
 
-export const DEFAULT_TARGET_HEALTH = 3_970_000;
+export const DEFAULT_TARGET_HEALTH = 4_000_000;
 export const DEFAULT_TARGET_ARMOR = 2597;
 export const DEFAULT_STARTING_WEAPON_SET = 1;
 

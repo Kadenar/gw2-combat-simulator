@@ -1,6 +1,6 @@
 import type { SimulationEventInput } from '../../../engine/types.js';
 
-export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'unknown';
+export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 
 // Ownership controls which effects may trigger player-only procs. It is
 // intentionally independent from display-oriented source labels.
@@ -8,6 +8,7 @@ export const GW2_EVENT_ACTOR_TYPES = Object.freeze({
   PLAYER: 'player',
   SUMMON: 'summon',
   EFFECT: 'effect',
+  ENVIRONMENT: 'environment',
   UNKNOWN: 'unknown'
 });
 
@@ -24,6 +25,7 @@ const NON_WEAPON_EFFECT_SOURCES = new Set(['equipment', 'food', 'relic', 'sigil'
  */
 export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
   if (source === 'Player') return GW2_EVENT_ACTOR_TYPES.PLAYER;
+  if (source === 'Environment') return GW2_EVENT_ACTOR_TYPES.ENVIRONMENT;
   if (typeof source === 'string' && SUMMON_SOURCES.has(source)) {
     return GW2_EVENT_ACTOR_TYPES.SUMMON;
   }
@@ -83,6 +85,7 @@ export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventInpu
 export function isGw2NonWeaponEffectEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   return (
     event?.actorType === GW2_EVENT_ACTOR_TYPES.EFFECT ||
+    event?.actorType === GW2_EVENT_ACTOR_TYPES.ENVIRONMENT ||
     NON_WEAPON_EFFECT_SOURCES.has(String(event?.source || '').toLowerCase())
   );
 }

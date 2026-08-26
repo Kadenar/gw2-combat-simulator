@@ -10,6 +10,17 @@ import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engin
 import { skillDamageIdentityKey } from '../../../js/platform/ui/results/result-tables.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
+  assert.equal(
+    assertSimulationEvent({
+      type: 'condition_tick',
+      at: 1,
+      source: 'Environment',
+      sourceId: 'environment.bleeding',
+      actorType: 'environment',
+      ownerActorType: 'environment'
+    }).actorType,
+    'environment'
+  );
   assert.throws(
     () =>
       assertSimulationEvent({

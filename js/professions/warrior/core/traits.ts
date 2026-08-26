@@ -11,6 +11,7 @@ import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timi
  */
 import type { ScheduledTask } from '../../../platform/engine/types.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
@@ -35,7 +36,7 @@ import type {
 // reserving its ICD before queuing the delayed boon package.
 export function reactToWarriorDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const targetHealth = Number(context.config.target?.health || 0);
-  const damageDone = Number(context.totals.strike || 0) + Number(context.totals.condition || 0);
+  const damageDone = combinedTargetDamage(context);
   const state = professionCoreState(context);
   if (
     event.actorType !== 'player' ||

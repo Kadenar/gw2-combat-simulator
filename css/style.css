@@ -5497,6 +5497,13 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   min-width: 80px;
 }
 
+/* Separate target-wide damage from player attribution and anchor that pair to the summary's right edge. */
+.res-stat-target-start {
+  padding-left: 16px;
+  margin-left: auto;
+  border-left: 1px solid var(--border-light);
+}
+
 .res-label-row {
   display: flex;
   align-items: center;
@@ -5635,6 +5642,14 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 
 .res-val.dps {
   color: var(--health);
+}
+
+.res-val.environment {
+  color: var(--text);
+}
+
+.res-val.target-damage {
+  color: var(--text-bright);
 }
 
 .benchmark-info {
@@ -10444,6 +10459,12 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
   body[data-rotation-focus] .rotation-dps-summary .res-stat {
     min-width: 0;
+  }
+
+  body[data-rotation-focus] .rotation-dps-summary .res-stat-target-start {
+    padding-left: 0;
+    margin-left: 0;
+    border-left: 0;
   }
 
   body[data-rotation-focus] .rotation-results .res-breakpoint-grid {

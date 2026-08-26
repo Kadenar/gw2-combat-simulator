@@ -30,7 +30,10 @@ import {
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
 } from '../../../js/platform/ui/rotation/insertion-cursor.js';
-import { targetHealthBreakpointSnapshots } from '../../../js/platform/ui/results/result-transform.js';
+import {
+  resultSummaryMetrics,
+  targetHealthBreakpointSnapshots
+} from '../../../js/platform/ui/results/result-transform.js';
 import {
   dismissResultMetricDetails,
   mountRotationResults,
@@ -437,6 +440,60 @@ test('target health breakpoints use cumulative damage and individual condition t
   assert.deepEqual(targetHealthBreakpointSnapshots({}, 0), []);
 });
 
+test('target health breakpoints use environment damage for timing but player damage for DPS', () => {
+  const snapshots = targetHealthBreakpointSnapshots(
+    {
+      dpsStartTime: 0.5,
+      resolvedEvents: [{ type: 'damage', at: 0.5, damage: 100 }],
+      environmentConditionBreakdown: [
+        {
+          name: 'Burning',
+          damageTicks: [{ at: 1, damage: 120 }]
+        }
+      ]
+    },
+    400,
+    [50]
+  );
+
+  assert.deepEqual(snapshots, [
+    {
+      healthPercent: 50,
+      at: 1,
+      elapsed: 0.5,
+      damage: 100,
+      dps: 200,
+      environmentDamage: 120,
+      targetDamage: 220
+    }
+  ]);
+});
+
+test('summary metrics separate player attribution from right-grouped target damage', () => {
+  const metrics = resultSummaryMetrics({
+    duration: 2,
+    deathTime: null,
+    totalDamage: 100,
+    dps: 50,
+    strikeDamage: 100,
+    conditionDamage: 0,
+    environmentDamage: 44,
+    environmentDps: 22,
+    environmentConditionBreakdown: [{ name: 'Bleeding', damage: 44 }]
+  });
+  const environment = metrics.find((metric) => metric.label === 'Environment Damage');
+
+  assert.equal(metrics.find((metric) => metric.label === 'Player Damage').value, '100');
+  assert.equal(metrics.find((metric) => metric.label === 'Player DPS').value, '50');
+  assert.equal(environment.value, '44');
+  assert.equal(environment.group, 'target');
+  assert.equal(metrics.find((metric) => metric.label === 'Target Damage').value, '144');
+  assert.deepEqual(environment.details, [
+    { label: 'Environment DPS', value: '22' },
+    { label: 'Bleeding', value: '44' }
+  ]);
+});
+
 test('phase DPS is recalculated from damage within the selected health range', () => {
   assert.deepEqual(
     buildPhaseDpsSeries(
@@ -674,7 +731,11 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   mountRotationResults(
     container,
     {
-      metrics: [{ label: 'DPS', value: '1,234', className: 'dps' }],
+      metrics: [
+        { label: 'Player DPS', value: '1,234', className: 'dps' },
+        { label: 'Environment Damage', value: '50', className: 'environment', group: 'target' },
+        { label: 'Target Damage', value: '1,284', className: 'target-damage', group: 'target' }
+      ],
       breakpoints: [{ healthPercent: 80, dps: 1234, elapsed: 3.25 }],
       skillColumns: [
         { key: 'name', label: 'Skill', numeric: false },
@@ -745,6 +806,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   );
 
   assert.match(container.innerHTML, /res-summary/);
+  assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
   assert.match(container.innerHTML, /DPS snapshots/);
   assert.match(container.innerHTML, /80%<\/b> target health/);
   assert.match(container.innerHTML, />1,234</);

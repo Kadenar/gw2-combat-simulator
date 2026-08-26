@@ -7,7 +7,7 @@ import type { QueuedEvent, SimulationActorType, SimulationEvent } from '../types
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
-const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'unknown']);
+const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
 const LEGACY_EVENT_TYPES = new Set(['boon', 'cooldown_snapshot', 'self_condition']);
 
 /**

@@ -114,7 +114,7 @@ frame.addEventListener('load', async () => {
     app.build.specializations[2] = { name: 'Virtuoso', traits: '3-3-3' };
     app.renderSkills();
 
-    assert(document.getElementById('target-hp')?.value === '3970000', 'target HP control missing');
+    assert(document.getElementById('target-hp')?.value === '4000000', 'target HP control missing');
     assert(
       document.querySelector('#perma-boons [data-effect-type="condition"][data-effect-key="Slow"]')?.checked,
       'permanent target conditions are not rendered'
@@ -295,7 +295,7 @@ frame.addEventListener('load', async () => {
     );
     assert(
       [...document.querySelectorAll('#rotation-results .res-label')].map((label) => label.textContent).join('|') ===
-        'Duration|Total Idle Time|Total Damage|DPS|Strike|Condition',
+        'Duration|Total Idle Time|Player Damage|Player DPS|Strike|Condition',
       'result summary metric order is incorrect'
     );
     assert(

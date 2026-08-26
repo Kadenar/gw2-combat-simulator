@@ -280,7 +280,7 @@ test('simulation config aggregates each weapon set sigils independently', () => 
   assert.equal(config.sigilSets[1].conditionDurationBonus, 10);
   assert.equal(config.target.activatingSkills, false);
   assert.equal(config.target.confusionActivationsPerSecond, 0);
-  assert.equal(config.target.health, 3970000);
+  assert.equal(config.target.health, 4000000);
   assert.equal(config.target.conditions.Vulnerability, 25);
   assert.equal(config.target.conditions.Slow, true);
   assert.equal(config.target.conditions.Bleeding, 1);

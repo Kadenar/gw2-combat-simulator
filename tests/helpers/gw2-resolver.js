@@ -9,16 +9,18 @@ import { createGw2ResolverRuntimeState } from '../../js/platform/gw2/resolver/ru
  * Resolves a hand-built canonical stream in architecture tests without a
  * profession-specific resolver wrapper.
  */
-export function resolveTestGw2Stream({ stream, config, traits, query, helpers }) {
+export function resolveTestGw2Stream({ stream, config, traits, query, helpers, professionReactions = {} }) {
   const extensions = createGw2ResolverExtensions({
     config,
-    events: stream.events
+    events: stream.events,
+    professionReactions
   });
   const hits = createGw2HitResolution({
     strikeMultiplier: extensions.strikeMultiplier
   });
   const conditions = createGw2ConditionResolution({
-    reactions: extensions.reactions
+    reactions: extensions.reactions,
+    config
   });
   const commonHandlers = createGw2ResolverEventHandlers({
     hitResolution: {
@@ -27,7 +29,8 @@ export function resolveTestGw2Stream({ stream, config, traits, query, helpers })
     },
     conditions: {
       activeStackCount: conditions.activeConditionStackCount,
-      tick: conditions.handleConditionTick
+      tick: conditions.handleConditionTick,
+      environmentTick: conditions.handleEnvironmentConditionTick
     },
     reactions: extensions.reactions
   });
@@ -45,6 +48,7 @@ export function resolveTestGw2Stream({ stream, config, traits, query, helpers })
         createEquipmentState: extensions.createEquipmentState
       }),
     commonHandlers,
-    beforeResolveTimeline: extensions.beforeResolveTimeline
+    beforeResolveTimeline: extensions.beforeResolveTimeline,
+    initializeEnvironment: conditions.initializeEnvironment
   });
 }

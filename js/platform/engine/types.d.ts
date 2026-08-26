@@ -13,7 +13,7 @@ export type ObservationPolicy =
 
 export type NormalizedObservationPolicy = ObservationPolicy;
 
-export type SimulationActorType = 'player' | 'summon' | 'effect' | 'unknown';
+export type SimulationActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 
 export type CommonSimulationEventType =
   | 'action'

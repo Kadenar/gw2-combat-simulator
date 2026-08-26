@@ -1137,8 +1137,9 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
-import type { Gw2QueryRuntime, Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.js';
+import type { Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.js';
 
 const MODIFIER_EPSILON = 0.0001;
 
@@ -1218,7 +1219,7 @@ function superiorityComplexFactor(
   parameters: Readonly<Record<string, number>>
 ): number {
   const targetHealth = Number(context.config?.target?.health || 0);
-  const totalDamage = resolvedTotalDamage(context);
+  const totalDamage = combinedTargetDamage(context.runtime);
   const target = context.config?.target;
   // Generic disables apply only to non-defiant targets, while configured Fear
   // or Taunt remains an explicit control condition on defiant targets.
@@ -1227,19 +1228,6 @@ function superiorityComplexFactor(
     (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
     ? parameters.lowHealthOrDisabledFactor
     : parameters.highHealthFactor;
-}
-
-function resolvedTotalDamage(context: Gw2ModifierContext): number {
-  const runtime = context.runtime as
-    | (Gw2QueryRuntime & {
-        readonly totals?: {
-          readonly strike?: number;
-          readonly condition?: number;
-        };
-      })
-    | null
-    | undefined;
-  return Number(runtime?.totals?.strike || 0) + Number(runtime?.totals?.condition || 0);
 }
 
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -1362,7 +1350,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       hasTrait(context, TRAIT.EGOTISM) &&
       !illusionSource(context) &&
       Number(context.config?.target?.health || 0) > 0 &&
-      resolvedTotalDamage(context) > 0
+      combinedTargetDamage(context.runtime) > 0
   },
   {
     id: 'mesmer.event-final-multiplier',

@@ -51,7 +51,7 @@ interface NormalizedAutoattackChains {
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
 const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
-const EFFECT_ACTOR_TYPES = new Set(['player', 'summon', 'effect', 'unknown']);
+const EFFECT_ACTOR_TYPES = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);

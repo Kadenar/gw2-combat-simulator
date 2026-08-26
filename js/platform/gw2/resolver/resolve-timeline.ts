@@ -2,6 +2,7 @@ import { EPSILON } from '../../engine/core/clock.js';
 import { createEventQueue } from '../../engine/events/queue.js';
 import { assertScheduledEventStream as assertPlatformStream } from '../../engine/events/scheduled-stream.js';
 import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from './event-loop.js';
+import { playerDamageTotal } from '../combat/state/target-health.js';
 
 import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from './types.js';
 
@@ -53,7 +54,7 @@ function buildResolverResult(
   scheduled: ReturnType<typeof assertPlatformStream>,
   handoff: Readonly<Gw2ResolverHandoff>
 ): Gw2ResolverResult {
-  const totalDamage = ctx.totals.strike + ctx.totals.condition;
+  const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
   const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
@@ -64,6 +65,12 @@ function buildResolverResult(
   const dpsStart = ctx.firstHitTime ?? (handoff.hasExplicitCombatStart ? explicitCombatStart : 0);
   const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
   const damagePerSecond = (damage: number): number => (dpsWindow > 0 ? damage / dpsWindow : 0);
+  // Environment DPS uses the target-active window and never borrows the
+  // player's first-hit observation boundary.
+  const environmentStart = handoff.hasExplicitCombatStart ? explicitCombatStart : 0;
+  const environmentWindow = Math.max(0, effectiveEnd - environmentStart);
+  const environmentDamagePerSecond = (damage: number): number =>
+    environmentWindow > 0 ? damage / environmentWindow : 0;
 
   return {
     duration: scheduled.rotationEndTime,
@@ -78,6 +85,8 @@ function buildResolverResult(
     dps: damagePerSecond(totalDamage),
     strikeDamage: ctx.totals.strike,
     conditionDamage: ctx.totals.condition,
+    environmentDamage: ctx.environmentDamage,
+    environmentDps: environmentDamagePerSecond(ctx.environmentDamage),
     breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({
@@ -85,6 +94,17 @@ function buildResolverResult(
         damage: entry.damage,
         dps: damagePerSecond(entry.damage),
         averageStacks: damagePerSecond(entry.stackSeconds)
+      }))
+      .sort((left, right) => right.damage - left.damage),
+    environmentConditionBreakdown: [...ctx.environmentConditions.values()]
+      .filter((entry) => entry.damage > 0)
+      .map((entry) => ({
+        name: entry.name,
+        damage: entry.damage,
+        dps: environmentDamagePerSecond(entry.damage),
+        averageStacks: environmentDamagePerSecond(entry.stackSeconds),
+        stacks: entry.stacks,
+        damageTicks: [...entry.damageTicks]
       }))
       .sort((left, right) => right.damage - left.damage),
     events: effectiveEvents,
@@ -118,6 +138,7 @@ export function resolveGw2Timeline({
   commonHandlers,
   reactions,
   beforeResolveTimeline,
+  initializeEnvironment,
   professionHandlers = {},
   professionState = {},
   eventFilterState = {},
@@ -147,6 +168,9 @@ export function resolveGw2Timeline({
     ctx.combatStartTime = handoff.combatStartTime;
   }
 
+  // Ambient target conditions join the queue only after the explicit combat
+  // boundary is known, so they cannot create a player combat-start window.
+  initializeEnvironment(ctx);
   beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
 
   for (const event of scheduled.events) {

@@ -5,6 +5,7 @@ export interface ResultSummaryMetric {
   readonly label: string;
   readonly value: string;
   readonly className: string;
+  readonly group?: 'player' | 'target';
   readonly details?: readonly ResultSummaryMetricDetail[];
 }
 
@@ -19,6 +20,8 @@ export interface TargetHealthBreakpointSnapshot {
   readonly elapsed: number;
   readonly damage: number;
   readonly dps: number;
+  readonly environmentDamage: number;
+  readonly targetDamage: number;
 }
 
 /**
@@ -50,8 +53,8 @@ export function resultSummaryMetrics(
           }
         ];
   metrics.push(
-    { label: 'Total Damage', value: format(result.totalDamage), className: '' },
-    { label: 'DPS', value: format(result.dps), className: 'dps' },
+    { label: 'Player Damage', value: format(result.totalDamage), className: '', group: 'player' },
+    { label: 'Player DPS', value: format(result.dps), className: 'dps', group: 'player' },
     { label: 'Strike', value: format(result.strikeDamage), className: '' },
     {
       label: 'Condition',
@@ -59,13 +62,37 @@ export function resultSummaryMetrics(
       className: 'condi'
     }
   );
+  if (Number(result.environmentDamage || 0) > 0) {
+    // Keep external damage visually separate while still exposing the combined damage that reduced target health.
+    metrics.push(
+      {
+        label: 'Environment Damage',
+        value: format(result.environmentDamage),
+        className: 'environment',
+        group: 'target',
+        details: [
+          { label: 'Environment DPS', value: format(result.environmentDps) },
+          ...(result.environmentConditionBreakdown || []).map((entry) => ({
+            label: entry.name,
+            value: format(entry.damage)
+          }))
+        ]
+      },
+      {
+        label: 'Target Damage',
+        value: format(Number(result.totalDamage || 0) + Number(result.environmentDamage || 0)),
+        className: 'target-damage',
+        group: 'target'
+      }
+    );
+  }
   return metrics;
 }
 
 /**
  * Returns cumulative average-DPS snapshots when the target reaches each
- * remaining-health milestone. Damage landing at the same timestamp is grouped
- * so resolver event ordering cannot change a snapshot.
+ * remaining-health milestone. Combined damage selects the timestamp, while
+ * the displayed damage and DPS remain player-only attribution.
  */
 export function targetHealthBreakpointSnapshots(
   result: Gw2SimulationResult | null | undefined,
@@ -75,12 +102,14 @@ export function targetHealthBreakpointSnapshots(
   const health = Number(targetHealth || 0);
   if (!(health > 0)) return [];
 
-  const damageByTime = new Map<number, number>();
-  const addDamage = (at: unknown, damage: unknown): void => {
+  const damageByTime = new Map<number, { player: number; environment: number }>();
+  const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {
     const time = Number(at);
     const amount = Number(damage);
     if (!Number.isFinite(time) || !(amount > 0)) return;
-    damageByTime.set(time, (damageByTime.get(time) || 0) + amount);
+    const current = damageByTime.get(time) || { player: 0, environment: 0 };
+    current[owner] += amount;
+    damageByTime.set(time, current);
   };
 
   for (const event of result?.resolvedEvents || []) {
@@ -89,9 +118,14 @@ export function targetHealthBreakpointSnapshots(
         readonly at?: unknown;
         readonly damage?: unknown;
       }>;
-      for (const tick of ticks) addDamage(tick.at, tick.damage);
+      for (const tick of ticks) addDamage(tick.at, tick.damage, 'player');
     } else if (event.type === 'damage') {
-      addDamage(event.at, event.damage);
+      addDamage(event.at, event.damage, 'player');
+    }
+  }
+  for (const condition of result?.environmentConditionBreakdown || []) {
+    for (const tick of condition.damageTicks) {
+      addDamage(tick.at, tick.damage, 'environment');
     }
   }
 
@@ -105,20 +139,25 @@ export function targetHealthBreakpointSnapshots(
     }));
   const snapshots: TargetHealthBreakpointSnapshot[] = [];
   const dpsStartTime = Math.max(0, Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0));
-  let cumulativeDamage = 0;
+  let playerDamage = 0;
+  let environmentDamage = 0;
   let milestoneIndex = 0;
 
   for (const [at, damage] of [...damageByTime.entries()].sort((left, right) => left[0] - right[0])) {
-    cumulativeDamage += damage;
-    while (milestoneIndex < milestones.length && cumulativeDamage >= milestones[milestoneIndex]!.damageThreshold) {
+    playerDamage += damage.player;
+    environmentDamage += damage.environment;
+    const targetDamage = playerDamage + environmentDamage;
+    while (milestoneIndex < milestones.length && targetDamage >= milestones[milestoneIndex]!.damageThreshold) {
       const milestone = milestones[milestoneIndex]!;
       const elapsed = Math.max(0, at - dpsStartTime);
       snapshots.push({
         healthPercent: milestone.healthPercent,
         at,
         elapsed,
-        damage: cumulativeDamage,
-        dps: elapsed > 0 ? cumulativeDamage / elapsed : 0
+        damage: playerDamage,
+        dps: elapsed > 0 ? playerDamage / elapsed : 0,
+        environmentDamage,
+        targetDamage
       });
       milestoneIndex += 1;
     }

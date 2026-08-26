@@ -1,5 +1,6 @@
 import { expectedCritMultiplier, strikeDamage } from '../combat/damage/calculations.js';
 import { resolvedWeaponStrength } from './weapon-strength-resolution.js';
+import { remainingTargetHealthFraction } from '../combat/state/target-health.js';
 
 import type {
   Gw2HitResolution,
@@ -30,10 +31,7 @@ export function createGw2HitResolution({
   // Remaining target health as a fraction, or null when the encounter has no
   // configured target health. Shared by every "target-health-below" gate.
   function currentHealthFraction(ctx: Gw2ResolverRuntime): number | null {
-    const maximum = Number(ctx.config.target?.health || 0);
-    if (!(maximum > 0)) return null;
-    const currentDamage = Number(ctx.totals.strike || 0) + Number(ctx.totals.condition || 0);
-    return Math.max(0, 1 - currentDamage / maximum);
+    return remainingTargetHealthFraction(ctx.config, ctx);
   }
 
   function coefficientMultiplier(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): number {

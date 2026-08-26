@@ -33,7 +33,7 @@ export function defaultSimulationConfig(overrides = {}) {
     },
     target: {
       armor: 2597,
-      health: 3970000,
+      health: 4000000,
       conditions: {
         Bleeding: 1,
         Burning: true,

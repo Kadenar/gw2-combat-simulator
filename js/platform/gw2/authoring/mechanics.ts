@@ -174,7 +174,7 @@ export interface ResolvedCriticalHitOptions<
   readonly id: string;
   readonly order?: number;
   readonly chanceOnCriticalHit?: number | ((context: TContext, event: TEvent) => number);
-  readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'unknown')[];
+  readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
   readonly sourceIds?: readonly SkillId[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
   readonly materialization?: CriticalProcMaterialization;

@@ -2,6 +2,7 @@ import { EPSILON } from '../../engine/core/clock.js';
 import { enqueueOrdered } from '../../engine/events/queue.js';
 import { conditionTickDamage } from '../combat/damage/condition-formulas.js';
 import { clamp } from '../combat/numeric.js';
+import { GW2_EVENT_ACTOR_TYPES } from '../combat/state/event-ownership.js';
 import { createPermanentTargetConditionStacks } from '../combat/state/targets.js';
 
 import type {
@@ -23,6 +24,7 @@ interface CreateGw2ConditionResolutionOptions {
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
 const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
+const ENVIRONMENT_DAMAGING_CONDITIONS = Object.freeze(['Bleeding', 'Burning', 'Poisoned', 'Torment', 'Confusion']);
 
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
@@ -74,6 +76,39 @@ export function createGw2ConditionResolution({
     }
 
     return ctx.conditionState.get(name)!;
+  }
+
+  /**
+   * Schedules permanent golem conditions as environment-owned full-second
+   * ticks without inserting duplicate stacks into player condition state.
+   */
+  function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
+    const startsAt = Number(ctx.combatStartTime ?? 0);
+    for (const condition of ENVIRONMENT_DAMAGING_CONDITIONS) {
+      const stacks = permanentTargetConditionStacks(condition);
+      if (!(stacks > 0)) continue;
+
+      ctx.environmentConditions.set(condition, {
+        name: condition,
+        stacks,
+        damage: 0,
+        stackSeconds: 0,
+        damageTicks: []
+      });
+      for (let at = startsAt + 1; at <= ctx.horizon + EPSILON; at += 1) {
+        enqueueOrdered(ctx.queue, {
+          type: 'condition_tick',
+          at,
+          source: 'Environment',
+          sourceId: `environment.target-condition.${condition.toLowerCase()}`,
+          actorType: GW2_EVENT_ACTOR_TYPES.ENVIRONMENT,
+          ownerActorType: GW2_EVENT_ACTOR_TYPES.ENVIRONMENT,
+          condition,
+          stacks,
+          fraction: 1
+        });
+      }
+    }
   }
 
   /**
@@ -218,9 +253,30 @@ export function createGw2ConditionResolution({
     return { application, damage, fraction, perStack, stackSeconds };
   }
 
+  /** Applies only the condition's base formula and target Vulnerability, never player-owned outgoing effects. */
+  function handleEnvironmentConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+    const condition = ctx.helpers.conditionName(event.condition);
+    const stacks = Math.max(0, Number(event.stacks || 0));
+    const entry = ctx.environmentConditions.get(condition);
+    if (!entry || !(stacks > 0)) return;
+
+    // Permanent training conditions have zero Condition Damage. Confusion is
+    // passive-only, while conditionTickDamage keeps Torment stationary here.
+    const vulnerabilityMultiplier = 1 + Number(ctx.query.vulnerabilityStacksAt(event.at, ctx) || 0) / 100;
+    const damage = conditionTickDamage(condition, 0) * stacks * vulnerabilityMultiplier;
+    if (!(damage > 0)) return;
+
+    ctx.environmentDamage += damage;
+    entry.damage += damage;
+    entry.stackSeconds += stacks;
+    entry.damageTicks.push({ at: event.at, damage });
+  }
+
   return Object.freeze({
     activeConditionStackCount,
     applyCondition,
-    handleConditionTick
+    handleConditionTick,
+    initializeEnvironment,
+    handleEnvironmentConditionTick
   });
 }

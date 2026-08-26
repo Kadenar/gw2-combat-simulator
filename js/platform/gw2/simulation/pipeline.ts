@@ -151,7 +151,8 @@ function simulateDeclarativeGw2Pass({
     },
     conditions: {
       activeStackCount: conditionResolution.activeConditionStackCount,
-      tick: conditionResolution.handleConditionTick
+      tick: conditionResolution.handleConditionTick,
+      environmentTick: conditionResolution.handleEnvironmentConditionTick
     },
     reactions: extensions.reactions
   });
@@ -180,6 +181,7 @@ function simulateDeclarativeGw2Pass({
     commonHandlers,
     reactions: extensions.reactions,
     beforeResolveTimeline: extensions.beforeResolveTimeline,
+    initializeEnvironment: conditionResolution.initializeEnvironment,
     professionHandlers: runtimeProfession.eventHandlers,
     professionState:
       // Resolver state is always time-zero state. Scheduler changes that matter

@@ -15,6 +15,7 @@ import {
   remainingDurationStackSeconds
 } from '../combat/state/boons.js';
 import { createGw2ComboResolution } from './combo-resolution.js';
+import { GW2_EVENT_ACTOR_TYPES } from '../combat/state/event-ownership.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: {
@@ -24,6 +25,7 @@ interface CreateGw2ResolverEventHandlersOptions {
   readonly conditions: {
     readonly activeStackCount: Gw2ConditionResolution['activeConditionStackCount'];
     readonly tick: Gw2ConditionResolution['handleConditionTick'];
+    readonly environmentTick: Gw2ConditionResolution['handleEnvironmentConditionTick'];
   };
   readonly reactions: Gw2ResolverReactionRegistry;
 }
@@ -88,7 +90,11 @@ export function createGw2ResolverEventHandlers({
   reactions
 }: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
   const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } = hitResolution;
-  const { activeStackCount: activeConditionStackCount, tick: handleConditionTick } = conditions;
+  const {
+    activeStackCount: activeConditionStackCount,
+    tick: handleConditionTick,
+    environmentTick: handleEnvironmentConditionTick
+  } = conditions;
   const handlers: Gw2ResolverEventHandlers = {
     ...createGw2ComboResolution({ reactions }),
     // These event types are canonical timeline/reporting records with no shared
@@ -121,6 +127,13 @@ export function createGw2ResolverEventHandlers({
     },
 
     condition_tick(ctx, event) {
+      // Environment ticks reduce target health but cannot enter any player or
+      // equipment reaction pipeline.
+      if (event.actorType === GW2_EVENT_ACTOR_TYPES.ENVIRONMENT) {
+        handleEnvironmentConditionTick(ctx, event);
+        return;
+      }
+
       const resolved = handleConditionTick(ctx, event);
       reactions.dispatch('condition-tick.resolved', ctx, event, { resolved });
     },

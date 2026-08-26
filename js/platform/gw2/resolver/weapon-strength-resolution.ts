@@ -14,7 +14,9 @@ function streamActor(event: Gw2ResolverEvent): string {
     return 'summon';
   }
 
-  return event.actorType === 'effect' ? 'effect' : 'player';
+  if (event.actorType === 'effect') return 'effect';
+  if (event.actorType === 'environment') return 'environment';
+  return 'player';
 }
 
 function generatedActivationId(context: Gw2ResolverRuntime): string {

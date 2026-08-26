@@ -27,6 +27,11 @@ export interface Gw2RuntimeConditionEntry extends SchedulerRecord {
 
 export interface Gw2RuntimeStateLike extends SchedulerRecord {
   readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
+  readonly totals?: {
+    readonly strike?: number;
+    readonly condition?: number;
+  };
+  readonly environmentDamage?: number;
 }
 
 export interface Gw2TimedBuffApplication {

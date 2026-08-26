@@ -27,6 +27,14 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
     }
   }
 
+  // Scheduler feedback uses the same combined target-health timeline as the
+  // resolver while keeping environment damage out of player result totals.
+  for (const condition of result.environmentConditionBreakdown || []) {
+    for (const tick of condition.damageTicks) {
+      addDamage(Number(tick.at), Number(tick.damage));
+    }
+  }
+
   let damage = 0;
   for (const [at, amount] of [...damageByTime].sort((left, right) => left[0] - right[0])) {
     damage += amount;

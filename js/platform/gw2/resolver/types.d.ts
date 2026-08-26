@@ -152,6 +152,16 @@ export interface Gw2ConditionBreakdownEntry {
   stackSeconds: number;
 }
 
+export interface Gw2EnvironmentConditionTick {
+  readonly at: number;
+  readonly damage: number;
+}
+
+export interface Gw2EnvironmentConditionBreakdownEntry extends Gw2ConditionBreakdownEntry {
+  readonly stacks: number;
+  damageTicks: Gw2EnvironmentConditionTick[];
+}
+
 export interface Gw2ProcStep {
   ri: number;
   type: string;
@@ -190,6 +200,8 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   eventFilterState: object;
   breakdown: Map<string, Gw2DamageBreakdownEntry>;
   conditions: Map<string, Gw2ConditionBreakdownEntry>;
+  environmentDamage: number;
+  environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
   conditionState: Map<string, Gw2ResolverConditionState>;
   conditionApplications: Gw2ResolvedConditionApplication[];
   resolved: Gw2ResolverEvent[];
@@ -271,6 +283,8 @@ export interface Gw2ConditionResolution {
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
+  initializeEnvironment(context: Gw2ResolverRuntime): void;
+  handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
 }
 
 export type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
@@ -345,12 +359,22 @@ export interface Gw2ResolverResult extends SchedulerRecord {
   readonly dps: number;
   readonly strikeDamage: number;
   readonly conditionDamage: number;
+  readonly environmentDamage: number;
+  readonly environmentDps: number;
   readonly breakdown: Gw2DamageBreakdownEntry[];
   readonly conditionBreakdown: Array<{
     name: string;
     damage: number;
     dps: number;
     averageStacks: number;
+  }>;
+  readonly environmentConditionBreakdown: Array<{
+    name: string;
+    damage: number;
+    dps: number;
+    averageStacks: number;
+    stacks: number;
+    damageTicks: Gw2EnvironmentConditionTick[];
   }>;
   readonly events: readonly SimulationEvent[];
   readonly resolvedEvents: Gw2ResolverEvent[];
@@ -376,6 +400,7 @@ export interface ResolveGw2TimelineOptions {
   readonly commonHandlers: Gw2ResolverEventHandlers;
   readonly reactions?: Gw2ResolverReactionRegistry;
   readonly beforeResolveTimeline: Gw2ResolverExtensions['beforeResolveTimeline'];
+  readonly initializeEnvironment: Gw2ConditionResolution['initializeEnvironment'];
   readonly professionHandlers?: Gw2ResolverEventHandlers;
   readonly professionState?: object;
   readonly eventFilterState?: object;

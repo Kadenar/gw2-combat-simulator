@@ -40,6 +40,7 @@ export interface ResultMetric {
   readonly label: string;
   readonly value: unknown;
   readonly className?: string;
+  readonly group?: 'player' | 'target';
   readonly details?: readonly ResultMetricDetail[];
 }
 
@@ -53,6 +54,8 @@ export interface ResultBreakpoint {
   readonly dps: number;
   readonly elapsed: number;
   readonly damage?: number;
+  readonly environmentDamage?: number;
+  readonly targetDamage?: number;
 }
 
 export interface ResultCondition {
@@ -331,7 +334,8 @@ function skillRowsHtml(
   const preferredOrder = new Map([
     ['Player', 0],
     ['Entities', 1],
-    ['Other', 2]
+    ['Environment', 2],
+    ['Other', 3]
   ]);
   const groupNames = [...grouped.keys()].sort(
     (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
@@ -483,15 +487,17 @@ export function mountRotationResults(
           summaryPlaceholder ? ' aria-label="Rotation metrics unavailable until skills are added"' : ''
         }>
     ${metrics
-      .map(
-        (metric) => `<div class="res-stat">
+      .map((metric, index) => {
+        // The first target-owned metric creates a right-anchored group distinct from player attribution.
+        const startsTargetGroup = metric.group === 'target' && metrics[index - 1]?.group !== 'target';
+        return `<div class="res-stat${metric.group === 'target' ? ' res-stat-target' : ''}${startsTargetGroup ? ' res-stat-target-start' : ''}">
       <div class="res-label-row">
         <span class="res-label">${escapeHtml(metric.label)}</span>
         ${resultMetricDetailsHtml(metric)}
       </div>
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}">${escapeHtml(metric.value)}</span>
-    </div>`
-      )
+    </div>`;
+      })
       .join('')}
   </div>`
       : ''

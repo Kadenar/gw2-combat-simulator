@@ -14,6 +14,12 @@ function skill(id) {
   return warriorCatalog.skillsById.get(id);
 }
 
+test('default Condition Berserker uses the full training-golem health pool', async () => {
+  const build = JSON.parse(await readFile(buildUrl, 'utf8'));
+
+  assert.equal(build.targetHealth, 4_000_000);
+});
+
 test('Condition Berserker skill data uses configured values and packet timing', () => {
   const quicknessCastTimes = {
     [ID.DUAL_SHOT]: 840,

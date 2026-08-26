@@ -11,7 +11,7 @@ export interface SkillBreakdownRow {
   readonly skillId: SkillId | null;
   readonly sourceId: SkillId | null;
   readonly actorType: SimulationActorType;
-  readonly group: 'Player' | 'Entities';
+  readonly group: 'Player' | 'Entities' | 'Environment';
   readonly strike: number;
   readonly condition: number;
   readonly hits: number;
@@ -39,7 +39,7 @@ interface GroupedSkillBreakdown {
   skillId: SkillId | null;
   sourceId: SkillId | null;
   actorType: SimulationActorType;
-  group: 'Player' | 'Entities';
+  group: 'Player' | 'Entities' | 'Environment';
   strike: number;
   condition: number;
   hits: number;
@@ -66,8 +66,8 @@ function breakdownActorType(
   });
 }
 
-const breakdownGroup = (actorType: SimulationActorType): 'Player' | 'Entities' =>
-  actorType === 'summon' ? 'Entities' : 'Player';
+const breakdownGroup = (actorType: SimulationActorType): 'Player' | 'Entities' | 'Environment' =>
+  actorType === 'summon' ? 'Entities' : actorType === 'environment' ? 'Environment' : 'Player';
 
 const CHRONOPHANTASMA_SUFFIX = ' - Chronophantasma';
 const PARENT_SKILL_SEPARATOR = ' \u2014 ';
@@ -76,7 +76,7 @@ function breakdownDisplayName(
   entry: Gw2DamageBreakdownEntry,
   sourceSkill: string,
   parentSkill: string,
-  group: 'Player' | 'Entities',
+  group: 'Player' | 'Entities' | 'Environment',
   damageBreakdownName: string
 ): string {
   if (group !== 'Entities' || !parentSkill) return sourceSkill;
@@ -89,7 +89,8 @@ function breakdownDisplayName(
 const eventIdentity = (id: SkillId | null | undefined, name: string): string =>
   id == null ? '' : `${String(id)}|${name}`;
 
-export const skillBreakdownKey = (group: 'Player' | 'Entities', name: string): string => `${group}|${name}`;
+export const skillBreakdownKey = (group: 'Player' | 'Entities' | 'Environment', name: string): string =>
+  `${group}|${name}`;
 
 interface ResolvedLookup {
   readonly resolvedByName: Map<string, Gw2ResolverEvent>;
@@ -119,7 +120,7 @@ function buildResolvedLookup(result: Gw2ResolverResult): ResolvedLookup {
 }
 
 interface BreakdownAttribution {
-  readonly group: 'Player' | 'Entities';
+  readonly group: 'Player' | 'Entities' | 'Environment';
   readonly name: string;
   readonly sourceSkill: string;
   readonly parentSkill: string;

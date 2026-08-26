@@ -33,7 +33,7 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "Builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "Rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44406,
+        "benchmarkDps": 44332,
         "upToDate": true
       }
     ]

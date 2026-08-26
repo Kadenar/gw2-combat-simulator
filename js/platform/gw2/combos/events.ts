@@ -32,7 +32,7 @@ export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze(
   'Whirl'
 ]);
 
-const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'unknown']);
+const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'environment', 'unknown']);
 const FIELD_TYPES_BY_LOWERCASE = new Map(COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]));
 const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]));
 

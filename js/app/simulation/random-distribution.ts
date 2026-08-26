@@ -208,6 +208,10 @@ function criticalMetric(event: Gw2ResolverEvent): Readonly<{
     return { id: 'effect', label: 'Triggered-effect critical hits' };
   }
 
+  if (event.actorType === 'environment') {
+    return { id: 'environment', label: 'Environment critical hits' };
+  }
+
   return { id: 'player', label: 'Player critical hits' };
 }
 

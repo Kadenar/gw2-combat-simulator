@@ -699,7 +699,7 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
   assert.deepEqual(
     [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
-    ['Duration', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
   assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 6);
   assert.match(results.innerHTML, /No analysis yet/);
@@ -761,7 +761,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   assert.equal(typeof runButton.onclick, 'function');
   runButton.onclick();
   assert.equal(runCount, 1);
-  assert.match(summaryStrip.innerHTML, /Baseline DPS/);
+  assert.match(summaryStrip.innerHTML, /Baseline Player DPS/);
 });
 
 test('published simulation results refresh result-dependent palette state', async () => {

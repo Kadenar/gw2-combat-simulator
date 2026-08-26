@@ -20,7 +20,7 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46035
+        "benchmarkDps": 46031
       }
     ]
   },
@@ -50,7 +50,7 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "Builds/mesmer/b-condi-virtuoso.json",
         "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39896
+        "benchmarkDps": 39899
       }
     ]
   },

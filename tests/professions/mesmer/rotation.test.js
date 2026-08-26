@@ -6212,7 +6212,7 @@ test('result summary uses the expected metric order', () => {
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Duration', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Duration', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
 });
 
@@ -6433,7 +6433,7 @@ test('result summary includes kill time when target health is exhausted', () => 
 
   assert.deepEqual(
     resultSummaryMetrics(result).map((metric) => metric.label),
-    ['Kill Time', 'Total Idle Time', 'Total Damage', 'DPS', 'Strike', 'Condition']
+    ['Kill Time', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));
 });

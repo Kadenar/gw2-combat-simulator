@@ -12,6 +12,7 @@ import { weaponStrengthProfileIdForEvent } from '../../../js/platform/gw2/equipm
 
 test('non-weapon effect ownership has one canonical classifier', () => {
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'effect' }), true);
+  assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'environment' }), true);
   for (const source of ['Trait', 'SIGIL', 'relic', 'Food', 'equipment']) {
     assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'player', source }), true, source);
   }
@@ -41,6 +42,9 @@ test('modifier ownership is independent from proc actor ownership', () => {
   assert.equal(isGw2PlayerModifierOwnedEvent(playerOwnedEffect), true);
   assert.equal(gw2EventOwnerActorType(playerOwnedEffect), 'player');
   assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: 'summon' }), false);
+  assert.equal(isGw2PlayerActorEvent({ actorType: 'environment' }), false);
+  assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: 'environment' }), false);
+  assert.equal(gw2EventOwnerActorType({ actorType: 'environment' }), 'environment');
   assert.equal(
     gw2EventOwnerActorType({
       actorType: 'effect',

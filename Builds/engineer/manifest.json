@@ -21,7 +21,7 @@
         "label": "Condition Alacrity Spear (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
-        "benchmarkDps": 35514,
+        "benchmarkDps": 35508,
         "upToDate": true
       },
       {
@@ -48,21 +48,21 @@
         "label": "Condition (Pistol / Pistol)",
         "build": "Builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
-        "benchmarkDps": 43321,
+        "benchmarkDps": 43307,
         "upToDate": true
       },
       {
         "label": "Condition (Pistol / Pistol - Tools TRV)",
         "build": "Builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
         "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
-        "benchmarkDps": 36504,
+        "benchmarkDps": 36528,
         "upToDate": true
       },
       {
         "label": "Power (Sword / Pistol)",
         "build": "Builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
-        "benchmarkDps": 41629,
+        "benchmarkDps": 41661,
         "upToDate": true
       }
     ]
@@ -93,7 +93,7 @@
         "label": "Condition Quickness (Spear)",
         "build": "Builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "Rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
-        "benchmarkDps": 33171,
+        "benchmarkDps": 33142,
         "upToDate": true
       },
       {
