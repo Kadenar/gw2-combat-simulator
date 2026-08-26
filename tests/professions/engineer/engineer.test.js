@@ -35,6 +35,7 @@ import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/sp
 import { amalgamAttributeRules } from '../../../js/professions/engineer/specializations/amalgam/rules.js';
 import { holosmithModule } from '../../../js/professions/engineer/specializations/holosmith/module.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/holosmith/profiles.js';
+import { holosmithProfileStrikeFactor } from '../../../js/professions/engineer/specializations/holosmith/heat-tiers.js';
 import { holosmithModifierRules } from '../../../js/professions/engineer/specializations/holosmith/rules.js';
 import { mechanistModule } from '../../../js/professions/engineer/specializations/mechanist/module.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/mechanist/profiles.js';
@@ -166,6 +167,22 @@ test('Poison Dart Volley interruption retains only the channel packets that have
   assert.deepEqual(packetCounts(839), [4, 4]);
 });
 
+test('Napalm interruption retains only volleys fired before the cutoff', () => {
+  const result = simulate(
+    'Core',
+    ['Flamethrower', { name: 'Napalm', interruptAfterMs: 900 }],
+    {
+      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Rifle Turret', 'Supply Crate']
+    },
+    observationTail(1_000)
+  );
+  const packetCounts = ['damage', 'condition'].map(
+    (type) => result.events.filter((event) => event.type === type && event.skillId === ID.NAPALM).length
+  );
+
+  assert.deepEqual(packetCounts, [5, 5]);
+});
+
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
@@ -183,6 +200,27 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
     engineerCatalog.skillsByName.get('Shrapnel Grenade').icon,
     'https://render.guildwars2.com/file/' + '467E6BF83D152F95BC5D0B3573F4D2D71F5A4BFA/102830.png'
   );
+  assert.equal(
+    engineerCatalog.skillsByName.get('Vent Exhaust').icon,
+    'https://render.guildwars2.com/file/' + '3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png'
+  );
+  const ventExhaust = engineerCatalog.skillsByName.get('Vent Exhaust');
+
+  // Vent Exhaust is an invoked skill, so its packets and heat loss live on the skill without a cast handler.
+  assert.equal(ventExhaust.handlerId, undefined);
+  assert.equal(ventExhaust.heatGain, undefined);
+  assert.equal(ventExhaust.heatLoss, 15);
+  assert.equal(ventExhaust.effects[0].coefficient, 1.1);
+  assert.equal(ventExhaust.effects[0].canCrit, false);
+  assert.equal(ventExhaust.effects[1].condition, 'Burning');
+  assert.equal(ventExhaust.effects[1].stacks, 2);
+  assert.equal(ventExhaust.effects[1].duration, 6);
+  const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(
+    HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve
+  );
+
+  assert.equal(thermalReleaseValve.resourceCost, undefined);
+  assert.deepEqual(thermalReleaseValve.effects, [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]);
   assert.equal(
     engineerCatalog.skillsByName.get('Orbital Command Strike').icon,
     'https://render.guildwars2.com/file/' + '99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png'
@@ -264,7 +302,24 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
 
   assert.equal(profile('Core', ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.resourceCost, 50);
   assert.equal(profile('Scrapper', SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).patchableFields.attributePerStack, 30);
-  assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).patchableFields.threshold, 100);
+  assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.maximumStacks, undefined);
+  assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.threshold, undefined);
+  assert.equal(
+    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).patchableFields.maximumStacks,
+    undefined
+  );
+  assert.equal(
+    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).patchableFields.threshold,
+    undefined
+  );
+  assert.equal(
+    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).patchableFields.enhancedStrikeFactor,
+    1.35
+  );
+  assert.equal(
+    modules.get('Holosmith').skills.find((skill) => skill.id === ID.VENT_EXHAUST).patchableFields.heatLoss,
+    15
+  );
   assert.equal(profile('Mechanist', MECHANIST_BALANCE_PROFILE_IDS.resources).patchableFields.attributeConversion, 0.5);
   assert.equal(
     profile('Amalgam', AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).patchableFields.rechargeReduction,
@@ -300,8 +355,8 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
       [SCRAPPER_BALANCE_PROFILE_IDS.appliedForce]: {
         fields: { attributePerStack: { from: 30, to: 35 } }
       },
-      [HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity]: {
-        fields: { threshold: { from: 100, to: 90 } }
+      [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
+        fields: { enhancedStrikeFactor: { from: 1.35, to: 1.5 } }
       },
       [MECHANIST_BALANCE_PROFILE_IDS.resources]: {
         fields: { attributeConversion: { from: 0.5, to: 0.6 } }
@@ -315,7 +370,10 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.skillsById.get(ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle).effects[0].coefficient, 0.8);
   assert.equal(preview.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 45);
   assert.equal(preview.balanceProfilesById.get(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).attributePerStack, 35);
-  assert.equal(preview.balanceProfilesById.get(HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).threshold, 90);
+  assert.equal(
+    preview.balanceProfilesById.get(HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).enhancedStrikeFactor,
+    1.5
+  );
   assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).attributeConversion, 0.6);
   assert.equal(preview.balanceProfilesById.get(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).rechargeReduction, 3);
 
@@ -1129,11 +1187,12 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
 test('Photon Blitz gains two heat for each completed projectile', () => {
   const partial = simulate('Holosmith', ['Engage Photon Forge', { name: 'Photon Blitz', interruptMs: 600 }]);
 
-  assert.ok(Math.abs(partial.endState.profession.heat - 7.2) < 1e-9);
+  assert.equal(partial.endState.profession.heat, 6);
 
   const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
 
-  assert.equal(full.endState.profession.heat, 19.96);
+  // Three projectiles commit before 600 ms; the full cast also crosses one passive-heat tick.
+  assert.equal(full.endState.profession.heat, 18);
 });
 
 test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
@@ -1200,6 +1259,69 @@ test('Photon Forge waits for its resource tick before ejecting at maximum heat',
   assert.equal(barrage.start, 750);
   assert.equal(overheat.at, 1);
   assert.equal(result.endState.profession.photonForgeActive, false);
+});
+
+test('Photon Forge keeps the simulation-global overheat cadence across manual exits', () => {
+  // The second entry reaches maximum heat at 2.20s. It must use the next
+  // simulation-global boundary at 3.00s instead of restarting a check at 2.45s.
+  const result = simulate(
+    'Holosmith',
+    [
+      { type: 'wait', durationMs: 250 },
+      'Engage Photon Forge',
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 1200 },
+      'Engage Photon Forge',
+      'Holographic Shockwave',
+      'Grenade Barrage'
+    ],
+    {
+      initialHeat: 90,
+      selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+    }
+  );
+  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(barrage.start, 2200);
+  assert.equal(overheat.at, 3);
+  assert.equal(result.endState.profession.photonForgeActive, false);
+});
+
+test('Photon Forge passive heat restarts its cadence on each entry', () => {
+  const result = simulate('Holosmith', [
+    { type: 'wait', durationMs: 250 },
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 1250 },
+    'Deactivate Photon Forge',
+    { type: 'wait', durationMs: 250 },
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 1000 }
+  ]);
+  const passiveHeatTimes = result.events
+    .filter((event) => event.type === 'engineer.state' && event.reason === 'passive-heat')
+    .map((event) => event.at);
+
+  // Each Forge entry owns a fresh one-second passive timer; manual exit invalidates the old timer.
+  assert.deepEqual(passiveHeatTimes, [1.25, 2.75]);
+});
+
+test('Overheat exits Forge before weapon actions at the same resource boundary', () => {
+  // Scheduled resource work resolves before the next authored action, so a
+  // weapon cast at the Overheat boundary sees the normal weapon bar again.
+  const result = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 250 }, 'Glue Shot'],
+    { initialHeat: 90 }
+  );
+  const glueShot = result.steps.find((step) => step.skill === 'Glue Shot');
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(overheat.at, 1);
+  assert.equal(glueShot.start, 1000);
+  assert.equal(glueShot.invalid, undefined);
 });
 
 test('Overheat injects an automatic Photon Forge timeline exit and closes its lane', () => {
@@ -1329,7 +1451,28 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
   assert.ok(stormPackets.every((event) => event.damageKind === 'explosion'));
 });
 
-test('Holosmith benchmark projectiles retain packets only after their observed launch cutoffs', () => {
+test('Holosmith benchmark attacks retain packets only after their observed commit cutoffs', () => {
+  const lightStrike = engineerCatalog.skillsById.get(ID.LIGHT_STRIKE);
+
+  assert.equal(lightStrike.interruptCommitMs, 200);
+  assert.equal(lightStrike.effects[0].atMs, 200);
+  assert.equal(lightStrike.effects[0].persistsAfterInterrupt, true);
+
+  const interruptedLightStrike = (interruptMs) =>
+    simulate('Holosmith', ['Engage Photon Forge', { name: 'Light Strike', skillId: ID.LIGHT_STRIKE, interruptMs }]);
+  const beforeLightStrike = interruptedLightStrike(199);
+  const committedLightStrike = interruptedLightStrike(200);
+
+  assert.equal(
+    beforeLightStrike.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike').length,
+    0
+  );
+  assert.equal(
+    committedLightStrike.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike').length,
+    1
+  );
+  assert.equal(committedLightStrike.endState.profession.heat - beforeLightStrike.endState.profession.heat, 2);
+
   const brightSlash = engineerCatalog.skillsById.get(ID.BRIGHT_SLASH_STORM);
 
   assert.equal(brightSlash.interruptCommitMs, 280);
@@ -1350,6 +1493,21 @@ test('Holosmith benchmark projectiles retain packets only after their observed l
 
   assert.equal(interruptedBrightSlash(279).length, 0);
   assert.equal(interruptedBrightSlash(280).length, 1);
+
+  const heatAfterBrightSlash = (interruptMs) =>
+    simulate(
+      'Holosmith',
+      [
+        'Engage Photon Forge',
+        ID.LIGHT_STRIKE_STORM,
+        { name: 'Bright Slash—Storm', skillId: ID.BRIGHT_SLASH_STORM, interruptMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      { selectedTraitIds: [TRAIT.CRYSTAL_CONFIGURATION_STORM] }
+    ).endState.profession.heat;
+
+  // Heat commits with the launched projectile even when the remaining animation is cancelled.
+  assert.equal(heatAfterBrightSlash(280) - heatAfterBrightSlash(279), 3);
 
   const staticShock = engineerCatalog.skillsById.get(ID.STATIC_SHOCK);
 
@@ -1381,6 +1539,14 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
 
   assert.equal(vent.coefficient, 1.1);
   assert.equal(vent.noCrit, true);
+  assert.equal(vent.canCrit, false);
+  assert.equal(vent.sourceId, ID.VENT_EXHAUST);
+  assert.equal(vent.triggeredBy, 'Dodge');
+  const ventProc = vented.procSteps.find((step) => step.skill === 'Vent Exhaust');
+
+  assert.equal(ventProc.type, 'skill_proc');
+  assert.equal(ventProc.sourceSkill, 'Dodge');
+  assert.equal(ventProc.icon, engineerCatalog.skillsById.get(ID.VENT_EXHAUST).icon);
   assert.ok(vented.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
   assert.ok(
     vented.events.some(
@@ -1433,19 +1599,13 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
 
   const swordTierRule = holosmithModifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
   const swordTierFactor = (heat, selectedTraitIds = []) =>
-    swordTierRule.factor(
+    holosmithProfileStrikeFactor(
       {
         config: { selectedTraitIds },
-        event: { type: 'damage', actorType: 'player', skillName: 'Sun Edge' },
-        runtime: {
-          profession: {
-            core: {},
-            specialization: { kind: 'Holosmith', state: { heat } }
-          }
-        }
+        catalog: engineerCatalog
       },
-      'strikeDamage',
-      swordTierRule.parameters
+      HOLOSMITH_BALANCE_PROFILE_IDS.swordHeatTier,
+      { heat, enhancedCapacitySelected: selectedTraitIds.includes(TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) }
     );
 
   assert.deepEqual(
@@ -1457,6 +1617,10 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
       swordTierFactor(101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT])
     ],
     [1, 1.2, 1.2, 1.2, 1.3]
+  );
+  assert.equal(
+    swordTierRule.factor({ event: { holosmithStrikeFactor: 1.3 } }, 'strikeDamage', swordTierRule.parameters),
+    1.3
   );
 
   const blasting = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6600 }], {
@@ -1504,6 +1668,9 @@ test('Prime Light Beam creates its damaging field only above 50 heat', () => {
     );
 
   assert.equal(beamDamage(cast(0)).length, 1);
+  // Passive forge heat crosses 50 during this cast, but the activation was cold.
+  assert.equal(beamDamage(cast(49)).length, 1);
+  assert.equal(beamBurning(cast(49)).length, 0);
   const hot = cast(60);
 
   assert.equal(beamDamage(hot).length, 11);
@@ -1526,7 +1693,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 
   const coldDisk = run(['Laser Disk', { type: 'wait', durationMs: 7000 }], 0);
   const hotDisk = run(['Laser Disk', { type: 'wait', durationMs: 10000 }], 60);
-  const enhancedDisk = run(['Laser Disk', { type: 'wait', durationMs: 10000 }], 100, [
+  const enhancedDisk = run(['Laser Disk', { type: 'wait', durationMs: 10000 }], 101, [
     TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
   ]);
   const hotDiskDamage = skillEvents(hotDisk, 'damage', 'Laser Disk');
@@ -1543,14 +1710,14 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
     )
   );
   assert.ok(
-    enhancedDiskDamage.every(
-      (event, index) =>
-        event.enhancedCapacityTier === true && Math.abs(event.damage / hotDiskDamage[index].damage - 1.35) < 1e-12
-    )
+    enhancedDiskDamage.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35)
   );
 
   const coldWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 0);
   const hotWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 60);
+  const enhancedWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 101, [
+    TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  ]);
 
   assert.equal(skillEvents(coldWall, 'damage', 'Launch Wall').length, 1);
   assert.equal(skillEvents(hotWall, 'damage', 'Launch Wall').length, 3);
@@ -1562,6 +1729,11 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
   assert.ok(
     skillEvents(hotWall, 'condition', 'Launch Wall').every(
       (event) => event.condition === 'Vulnerability' && event.stacks === 3 && event.duration === 5
+    )
+  );
+  assert.ok(
+    skillEvents(enhancedWall, 'damage', 'Launch Wall').every(
+      (event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35
     )
   );
 
@@ -1595,7 +1767,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
     );
   }
 
-  const beam = run(['Prime Light Beam', { type: 'wait', durationMs: 11000 }], 100, [
+  const beam = run(['Prime Light Beam', { type: 'wait', durationMs: 11000 }], 101, [
     TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
   ]);
   const field = skillEvents(beam, 'damage', 'Prime Light Beam').filter((event) => event.name === 'Field Damage');
@@ -1603,9 +1775,169 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 
   assert.equal(field.length, 10);
   assert.ok(field.every((event) => event.coefficient === 0.5 && event.damageKind === 'explosion'));
+  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.2));
   assert.equal(burning.length, 10);
   assert.ok(
     burning.every((event) => event.condition === 'Burning' && event.duration === 3 && event.effectiveDuration === 4.5)
+  );
+
+  const cappedBeam = simulate('Holosmith', ['Prime Light Beam', { type: 'wait', durationMs: 11000 }], {
+    initialHeat: 101,
+    selectedSkills,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    stats: { expertise: 1500, precision: 1000, ferocity: 0 },
+    target: { conditions: {} }
+  });
+  const cappedBurning = skillEvents(cappedBeam, 'condition', 'Prime Light Beam');
+
+  // The ECSU-specific 50% is part of PLB's base duration, then the normal +100% cap applies.
+  assert.ok(cappedBurning.every((event) => event.effectiveDuration === 9));
+});
+
+test('Holosmith direct heat variants apply profile factors to their eligible packets', () => {
+  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills, packetName = skillName) => {
+    const result = simulate('Holosmith', [skillName, { type: 'wait', durationMs: 1000 }], {
+      initialHeat,
+      selectedTraitIds,
+      selectedSkills,
+      stats: { precision: 1000, ferocity: 0 }
+    });
+
+    return result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillName === skillName && event.name === packetName
+    );
+  };
+  const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const singularitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Hard Light Arena', 'Prime Light Beam'];
+  const ratio = (variant, base) => variant.damage / base.damage;
+
+  const baseBladeBurst = packetFor('Blade Burst', 0, [], utilitySkills);
+  const baseParticleAccelerator = packetFor('Particle Accelerator', 0, [], utilitySkills);
+  const baseSingularityExplosion = packetFor('Prismatic Singularity', 0, [], singularitySkills, 'Explosion Damage');
+  const baseSingularityPull = packetFor('Prismatic Singularity', 0, [], singularitySkills, 'Pull Damage');
+  const enhancedSingularityExplosion = packetFor(
+    'Prismatic Singularity',
+    101,
+    [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    singularitySkills,
+    'Explosion Damage'
+  );
+  const enhancedSingularityPull = packetFor(
+    'Prismatic Singularity',
+    101,
+    [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    singularitySkills,
+    'Pull Damage'
+  );
+
+  assert.ok(Math.abs(ratio(packetFor('Blade Burst', 60, [], utilitySkills), baseBladeBurst) - 1.25) < 1e-12);
+  assert.ok(
+    Math.abs(
+      ratio(packetFor('Blade Burst', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills), baseBladeBurst) - 1.25
+    ) < 1e-12
+  );
+  assert.ok(
+    Math.abs(
+      ratio(packetFor('Blade Burst', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills), baseBladeBurst) - 1.35
+    ) < 1e-12
+  );
+  assert.ok(
+    Math.abs(ratio(packetFor('Particle Accelerator', 60, [], utilitySkills), baseParticleAccelerator) - 1.1) < 1e-12
+  );
+  assert.ok(
+    Math.abs(
+      ratio(
+        packetFor('Particle Accelerator', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills),
+        baseParticleAccelerator
+      ) - 1.1
+    ) < 1e-12
+  );
+  assert.ok(
+    Math.abs(
+      ratio(
+        packetFor('Particle Accelerator', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills),
+        baseParticleAccelerator
+      ) - 1.35
+    ) < 1e-12
+  );
+  assert.ok(
+    Math.abs(
+      ratio(
+        packetFor(
+          'Prismatic Singularity',
+          100,
+          [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+          singularitySkills,
+          'Explosion Damage'
+        ),
+        baseSingularityExplosion
+      ) - 1
+    ) < 1e-12
+  );
+  assert.ok(
+    Math.abs(
+      ratio(enhancedSingularityExplosion, enhancedSingularityPull) /
+        ratio(baseSingularityExplosion, baseSingularityPull) -
+        1.25
+    ) < 1e-12
+  );
+  assert.equal(
+    ratio(
+      packetFor('Prismatic Singularity', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], singularitySkills, 'Pull Damage'),
+      baseSingularityPull
+    ),
+    1
+  );
+});
+
+test('Holosmith heat-profile patches tune tier effects without changing heat topology', () => {
+  const runtime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
+  const catalog = applyBalanceProfilePatch(runtime.catalog, {
+    balanceProfiles: {
+      [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
+        fields: { enhancedStrikeFactor: { from: 1.35, to: 1.5 } }
+      },
+      [HOLOSMITH_BALANCE_PROFILE_IDS.primeLightBeamHeatTier]: {
+        fields: {
+          enhancedStrikeFactor: { from: 1.2, to: 1.4 },
+          enhancedConditionBaseDurationFactor: { from: 1.5, to: 2 }
+        }
+      }
+    }
+  });
+  const profession = Object.freeze({ ...runtime, catalog });
+  const patchedSimulation = (rotation) =>
+    simulateGw2({
+      profession,
+      rotation,
+      config: {
+        ...baseConfig,
+        specialization: 'Holosmith',
+        initialHeat: 101,
+        selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+        selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam']
+      }
+    });
+  const disk = patchedSimulation(['Laser Disk', { type: 'wait', durationMs: 10000 }]);
+  const diskPackets = disk.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Laser Disk'
+  );
+
+  assert.equal(disk.endState.profession.maximumHeat, 150);
+  assert.equal(diskPackets.length, 18);
+  assert.ok(diskPackets.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.5));
+
+  const beam = patchedSimulation(['Prime Light Beam', { type: 'wait', durationMs: 11000 }]);
+  const field = beam.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Prime Light Beam' && event.name === 'Field Damage'
+  );
+  const burning = beam.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Prime Light Beam'
+  );
+
+  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.4));
+  assert.ok(
+    burning.every((event) => event.holosmithConditionBaseDurationFactor === 2 && event.effectiveDuration === 6)
   );
 });
 
@@ -1822,6 +2154,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   );
   assert.equal(mechanic('Napalm').quicknessCastTimeMs, 1760);
   assert.equal(mechanic('Napalm').cooldown, 25);
+  assert.equal(mechanic('Napalm').interruptMode, 'per-packet');
   assert.deepEqual(
     mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs),
     [280, 441, 560, 679, 842, 955, 1077, 1240, 1361, 1482]
@@ -1862,6 +2195,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   assert.equal(mechanic('Static Shot').effects[1].duration, 5);
   assert.equal(mechanic('Glue Shot').effects[0].coefficient, 2.5);
   assert.equal(mechanic('Blowtorch').effects[0].coefficient, 2);
+  assert.equal(mechanic('Blowtorch').effects[1].duration, 4.5);
   assert.deepEqual(
     mechanic('Corona Burst')
       .effects.filter((effect) => effect.type === 'strike')
@@ -1877,6 +2211,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
     mechanic('Photon Blitz').effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
     5.12
   );
+  assert.equal(mechanic('Photon Blitz').effects[0].ticks[0].atMs, 280);
   assert.deepEqual(
     ['Laser Disk', 'Photon Wall', 'Launch Wall', 'Prime Light Beam'].map((name) => [
       name,
@@ -3772,7 +4107,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const thermalBurn = pistolBurn([TRAIT.THERMAL_VISION]);
 
   assert.ok(
-    Math.abs((chemicalBurn.naturalExpiresAt - chemicalBurn.at) / (baseBurn.naturalExpiresAt - baseBurn.at) - 1.2) <
+    Math.abs((chemicalBurn.naturalExpiresAt - chemicalBurn.at) / (baseBurn.naturalExpiresAt - baseBurn.at) - 4 / 3) <
       1e-12
   );
   assert.ok(Math.abs(thermalBurn.damageTicks[0].damage / baseBurn.damageTicks[0].damage - 1.05) < 1e-12);
@@ -3796,6 +4131,38 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
         1.03
     ) < 1e-12
   );
+});
+
+test('Chemical Rounds extends every pistol condition beyond the condition-duration cap', () => {
+  // At +100% condition duration, each pistol condition must still gain the trait's separate 4/3 base multiplier.
+  const conditionDuration = (skillName, condition, selectedTraitIds) => {
+    const result = simulate('Core', [skillName], {
+      selectedTraitIds,
+      stats: { expertise: 1500 },
+      target: { conditions: {} }
+    });
+    const application = result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.skillName === skillName && event.condition === condition
+    );
+
+    return application.naturalExpiresAt - application.at;
+  };
+
+  const pistolConditions = [
+    ['Fragmentation Shot', 'Bleeding'],
+    ['Poison Dart Volley', 'Poisoned'],
+    ['Static Shot', 'Confusion'],
+    ['Glue Shot', 'Crippled'],
+    ['Glue Shot', 'Immobilized'],
+    ['Blowtorch', 'Burning']
+  ];
+
+  for (const [skillName, condition] of pistolConditions) {
+    const base = conditionDuration(skillName, condition, []);
+    const chemical = conditionDuration(skillName, condition, [TRAIT.CHEMICAL_ROUNDS]);
+
+    assert.ok(Math.abs(chemical / base - 4 / 3) < 1e-12, `${skillName} — ${condition}`);
+  }
 });
 
 test('Incendiary Powder tracks player and mech cooldowns independently', () => {

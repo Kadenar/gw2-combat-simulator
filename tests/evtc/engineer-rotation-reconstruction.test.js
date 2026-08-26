@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
+import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -477,6 +478,175 @@ test('maps Holosmith Forge transitions and preserves automatic overheat boundari
     result.actions.some((action) => action.name === 'Overheat'),
     false
   );
+  // The observed recovery after the cast spanning Overheat remains replayable instead of being dropped as EVTC noise.
+  assert.ok(result.rotation.some((command) => command.name === '__wait' && command.waitMs === 200));
+});
+
+test('recovers a clipped Holosmith opener that begins on a Photon Forge weapon skill', () => {
+  const skills = [
+    skill(42938, 'Engage Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
+    }),
+    skill(41123, 'Deactivate Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
+    }),
+    skill(44530, 'Corona Burst', {
+      slot: 'Weapon_3',
+      quicknessCastTimeMs: 480,
+      forgeSkill: true
+    }),
+    skill(45783, 'Photon Blitz', {
+      slot: 'Weapon_4',
+      quicknessCastTimeMs: 1_320,
+      forgeSkill: true
+    }),
+    skill(42009, 'Prime Light Beam', {
+      type: 'Elite',
+      quicknessCastTimeMs: 1_160
+    })
+  ];
+  const fixture = engineerLog(
+    skills,
+    [
+      ...animation(44530, 3_600, 480),
+      event({ time: 4_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(45783, 4_080, 1_320),
+      ...animation(42009, 5_400, 1_160),
+      event({
+        time: 6_560,
+        target: 4n,
+        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
+      })
+    ],
+    { elite: 57 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Engage Photon Forge', 'Corona Burst', 'Photon Blitz', 'Prime Light Beam', 'Deactivate Photon Forge']
+  );
+  assert.deepEqual(result.rotation.slice(0, 2), [
+    { name: 'Engage Photon Forge', skillId: 42938 },
+    { name: 'Corona Burst', skillId: 44530 }
+  ]);
+});
+
+test('preserves observed recovery gaps between Holosmith Forge cycles', () => {
+  const skills = [
+    skill(42938, 'Engage Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
+    }),
+    skill(41123, 'Deactivate Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
+    }),
+    skill(44530, 'Corona Burst', {
+      slot: 'Weapon_3',
+      quicknessCastTimeMs: 480,
+      forgeSkill: true
+    }),
+    skill(5829, 'Static Shot', {
+      slot: 'Weapon_2',
+      quicknessCastTimeMs: 400
+    })
+  ];
+  const fixture = engineerLog(
+    skills,
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(5829, 1_000, 400),
+      event({ time: 2_000, target: 3n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+      ...animation(44530, 2_000, 480),
+      event({ time: 3_000, target: 4n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+      ...animation(5829, 3_200, 400),
+      event({ time: 8_000, target: 3n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+      ...animation(44530, 8_000, 480)
+    ],
+    { elite: 57 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const forgeEntries = result.rotation
+    .map((command, index) => ({ command, index }))
+    .filter(({ command }) => command.name === 'Engage Photon Forge');
+
+  // The second Forge entry stays 4.4 seconds after the preceding weapon cast instead of collapsing the cooling gap.
+  assert.equal(forgeEntries.length, 2);
+  assert.deepEqual(result.rotation[forgeEntries[1].index - 1], { name: '__wait', waitMs: 4_400 });
+});
+
+test('does not duplicate a recorded Holosmith opening precast', () => {
+  const laserDisk = skill(42842, 'Laser Disk', {
+    type: 'Utility',
+    slot: 'Utility_1',
+    quicknessCastTimeMs: 960
+  });
+  const refractionCutter = skill(44110, 'Refraction Cutter', {
+    slot: 'Weapon_2',
+    quicknessCastTimeMs: 520
+  });
+  const fixture = engineerLog(
+    [laserDisk, refractionCutter],
+    [
+      ...animation(42842, 1_000, 960),
+      event({ time: 1_520, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(44110, 2_000, 520)
+    ],
+    { elite: 57 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [laserDisk, refractionCutter] });
+  const laserActions = result.actions.filter((action) => action.name === 'Laser Disk');
+
+  // The generic animation action and opening-precast recovery refer to one player input.
+  assert.equal(laserActions.length, 1);
+  assert.equal(result.rotation.filter((command) => command.name === 'Laser Disk').length, 1);
+  assert.equal(result.combatStartTimestampMs, 520);
+});
+
+test('keeps trait-triggered Vent Exhaust effect packets out of Holosmith rotations', () => {
+  const dodgeAnimationId = 23275;
+  const fixture = engineerLog(
+    [skill(43630, 'Vent Exhaust')],
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        time: 2_000,
+        skillId: dodgeAnimationId,
+        buffDamage: 800,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+      }),
+      event({ time: 2_200, target: TARGET, value: 1_000, skillId: 43630 }),
+      event({
+        time: 2_800,
+        skillId: dodgeAnimationId,
+        value: 800,
+        buffDamage: 800,
+        activation: 6,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      })
+    ],
+    { elite: 57 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, engineerCatalog);
+
+  // The damage packet proves the Dodge proc occurred, but only Dodge is a replayable player input.
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ['Dodge']
+  );
+  assert.equal(
+    result.rotation.some((command) => command.name === 'Vent Exhaust'),
+    false
+  );
 });
 
 function animation(skillId, start, duration, overrides = {}) {
@@ -593,6 +763,48 @@ test('replays a committed grenade through its full retained cast lockout', () =>
   assert.deepEqual(
     result.rotation.filter((command) => command.name === 'Shrapnel Grenade'),
     [{ name: 'Shrapnel Grenade', skillId: 5807 }]
+  );
+});
+
+test('preserves a modeled Engineer aftercast when every timed EVTC packet landed', () => {
+  const napalm = skill(5929, 'Napalm', {
+    quicknessCastTimeMs: 1760,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 280, coefficient: 0.5 },
+          { atMs: 1480, coefficient: 0.5 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  });
+  const fragmentationShot = skill(5827, 'Fragmentation Shot', {
+    slot: 'Weapon_1',
+    quicknessCastTimeMs: 520
+  });
+  const fixture = engineerLog(
+    [napalm, fragmentationShot],
+    [
+      event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(5929, 2_000, 1_560),
+      event({ time: 2_280, target: TARGET, value: 1_000, skillId: 5929 }),
+      event({ time: 3_480, target: TARGET, value: 1_000, skillId: 5929 }),
+      ...animation(5827, 3_560, 520)
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [napalm, fragmentationShot] });
+  const action = result.actions.find((candidate) => candidate.name === 'Napalm');
+
+  // The public action retains the observed 1,560 ms animation while replay uses the catalog's 1,760 ms lane.
+  assert.equal(action?.durationMs, 1_560);
+  assert.equal(action?.status, 'completed');
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === 'Napalm'),
+    { name: 'Napalm', skillId: 5929 }
   );
 });
 

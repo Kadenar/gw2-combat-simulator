@@ -1,7 +1,7 @@
 /** Holosmith-only Engineer mechanics, including the heat-aware sword variants. */
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SkillFragment } from '../../../../platform/engine/types.js';
-export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+import type { HolosmithSkillFragment } from './types.js';
+export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
     implemented: true,
@@ -444,10 +444,10 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
   },
   [ID.VENT_EXHAUST]: {
     implemented: true,
-    handlerId: 'engineer.heat',
     castTimeMs: 0,
     cooldown: 0,
-    heatGain: 15,
+    // Vent Exhaust owns both its combat packets and the heat it vents; Thermal Release Valve only invokes it.
+    heatLoss: 15,
     effects: [
       {
         type: 'strike',
@@ -455,6 +455,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         hits: 1,
         name: 'Vent Exhaust',
         actorType: 'player',
+        canCrit: false,
         metadata: {
           noCrit: true
         }
@@ -630,6 +631,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     implemented: true,
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 360,
+    interruptCommitMs: 200,
     cooldown: 0,
     heatGain: 2,
     effects: [
@@ -637,6 +639,10 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Light Strike',
         actorType: 'player'
       }
@@ -715,7 +721,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'strike',
         ticks: [
-          { atMs: 240, coefficient: 0.64 },
+          { atMs: 280, coefficient: 0.64 },
           { atMs: 400, coefficient: 0.64 },
           { atMs: 480, coefficient: 0.64 },
           { atMs: 640, coefficient: 0.64 },
@@ -735,7 +741,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       {
         type: 'condition',
         ticks: [
-          { atMs: 240, condition: 'Burning', stacks: 1, duration: 3 },
+          { atMs: 280, condition: 'Burning', stacks: 1, duration: 3 },
           { atMs: 400, condition: 'Burning', stacks: 1, duration: 3 },
           { atMs: 480, condition: 'Burning', stacks: 1, duration: 3 },
           { atMs: 640, condition: 'Burning', stacks: 1, duration: 3 },
@@ -789,7 +795,10 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         coefficient: 1.2,
         hits: 1,
         name: 'Explosion Damage',
-        actorType: 'player'
+        actorType: 'player',
+        metadata: {
+          damageKind: 'explosion'
+        }
       },
       {
         type: 'control',

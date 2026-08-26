@@ -3,6 +3,7 @@ import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction 
 
 const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const MINE_SETUP_WAIT_MS = 5000;
+const TRIGGERED_PROC_SKILL_IDS = new Set([43630]);
 
 function normalized(value: unknown): string {
   return String(value || '')
@@ -115,6 +116,8 @@ export function reconstructEngineerDependencies(
   let inferredOpeningMine = false;
 
   for (const action of sorted) {
+    // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
+    if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
     const skill = actionSkill(action, context);
     if (unavailableToolbeltAction(skill, context)) continue;
     const equippedKit = kitName(skill);

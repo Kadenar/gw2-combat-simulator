@@ -307,6 +307,27 @@ test('drops inaccurate Engineer toolbelt rows that the active build cannot equip
   );
 });
 
+test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relying on EI metadata', () => {
+  const fixture = reportFixture();
+  fixture.players[0].rotation.push({ id: 43630, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });
+  fixture.skillMap.s43630 = { name: 'Vent Exhaust', isInstantCast: true };
+  const catalog = catalogFixture();
+  catalog.skills.push(skill(43630, 'Vent Exhaust', { type: 'profession', castTimeMs: 0 }));
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
+    selectedSkillIds: [76927, 77104]
+  });
+
+  assert.equal(
+    result.actions.some((action) => action.name === 'Vent Exhaust'),
+    false
+  );
+  assert.equal(
+    result.rotation.some((command) => command.name === 'Vent Exhaust'),
+    false
+  );
+});
+
 test('the app importer previews fetched dps.report data before applying it', async () => {
   const imported = await readDpsReportRotationData(reportFixture(), appFixture());
 

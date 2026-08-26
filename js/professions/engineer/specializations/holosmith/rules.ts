@@ -1,13 +1,15 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { engineerEvent, engineerSpecializationState, eventSkill, playerStrike } from '../../core/rule-helpers.js';
+import { engineerSpecializationState, playerStrike } from '../../core/rule-helpers.js';
 import { holosmithCastAvailability } from './availability.js';
+import { holosmithEventMetadata, holosmithEventStrikeFactor } from './heat-tiers.js';
 import {
   advancePhotonForgeState,
   handleHolosmithKitEquip,
   handlePhotonForgeHeat,
   handlePhotonForgeOverheatCheck,
+  handlePhotonForgePassiveHeat,
   observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
 } from './photon-forge.js';
@@ -40,7 +42,8 @@ export const holosmithSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     'engineer.photon-forge-heat': handlePhotonForgeHeat,
-    'engineer.photon-forge-overheat-check': handlePhotonForgeOverheatCheck
+    'engineer.photon-forge-overheat-check': handlePhotonForgeOverheatCheck,
+    'engineer.photon-forge-passive-heat': handlePhotonForgePassiveHeat
   })
 });
 
@@ -49,64 +52,11 @@ export const holosmithSchedulerHooks = Object.freeze({
 // have access to cast context, so dodge-triggered TRV must go through castLifecycle.
 export const { afterCast: holosmithAfterCast, ...holosmithAdvancedSchedulerHooks } = holosmithSchedulerHooks;
 
-// Heat-tier bonus multipliers applied per-hit. Sword skills (Sun Edge etc.) and
-// some forge skills have unique scaling distinct from the general ECSU tier check.
-const HEAT_TIER_STRIKE_PARAMETERS: Readonly<Record<string, number>> = Object.freeze({
-  highHeatThreshold: 50,
-  enhancedHeatThreshold: 100,
-  swordHighFactor: 1.2,
-  swordEnhancedFactor: 1.3,
-  bladeBurstHighFactor: 1.25,
-  bladeBurstEnhancedFactor: 1.35,
-  particleHighFactor: 1.1,
-  particleEnhancedFactor: 1.35,
-  generalEnhancedFactor: 1.35,
-  singularityFactor: 1.25,
-  beamFactor: 1.2
-});
-
-function heatTierStrikeFactor(context: Gw2ModifierContext, parameters: Readonly<Record<string, number>>): number {
-  const heat = Number(engineerSpecializationState(context, 'Holosmith').heat || 0);
-  const event = engineerEvent(context);
-  const skillName = String(eventSkill(context)?.name || event?.skillName || '');
-  if (['Sun Edge', 'Sun Ripper', 'Gleam Saber'].includes(skillName)) {
-    // Sword heat tiers are exclusive: +20% above 50 heat, or +30% above 100 heat with ECSU.
-    if (heat > parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
-      return parameters.swordEnhancedFactor;
-    }
-
-    return heat > parameters.highHeatThreshold ? parameters.swordHighFactor : 1;
-  }
-
-  if (skillName === 'Blade Burst' && heat > parameters.highHeatThreshold) {
-    if (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
-      return parameters.bladeBurstEnhancedFactor;
-    }
-
-    return parameters.bladeBurstHighFactor;
-  }
-
-  const enhancedCapacityTier =
-    event?.enhancedCapacityTier === true ||
-    (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT));
-  if (skillName === 'Particle Accelerator' && heat > parameters.highHeatThreshold) {
-    return enhancedCapacityTier ? parameters.particleEnhancedFactor : parameters.particleHighFactor;
-  }
-
-  if (!enhancedCapacityTier) return 1;
-  if (['Laser Disk', 'Launch Wall'].includes(skillName)) {
-    return parameters.generalEnhancedFactor;
-  }
-
-  if (skillName === 'Prismatic Singularity' && event?.name === 'Explosion Damage') {
-    return parameters.singularityFactor;
-  }
-
-  if (skillName === 'Prime Light Beam' && event?.name === 'Field Damage') {
-    return parameters.beamFactor;
-  }
-
-  return 1;
+// Skill resolvers attach authored base-duration factors before ordinary condition
+// duration bonuses are capped, keeping the modifier layer skill-agnostic.
+function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
+  const factor = Number(holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1);
+  return multiplier * (Number.isFinite(factor) ? Math.max(0, factor) : 1);
 }
 
 export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -144,30 +94,25 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      playerStrike(context) && hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) && context.event?.solarFocusingLens === true
+      playerStrike(context) &&
+      hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) &&
+      holosmithEventMetadata(context.event).solarFocusingLens === true
   },
   {
     id: 'engineer.enhanced-capacity-damage-tier',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: HEAT_TIER_STRIKE_PARAMETERS,
-    factor: (context, _target, parameters) => heatTierStrikeFactor(context, parameters),
-    when: (context) => playerStrike(context) && heatTierStrikeFactor(context, HEAT_TIER_STRIKE_PARAMETERS) > 1
-  },
-  {
-    id: 'engineer.enhanced-capacity-prime-light-beam-duration',
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: 'add',
-    amount: 0.5,
-    when: (context) =>
-      context.condition === 'Burning' &&
-      context.event?.skillName === 'Prime Light Beam' &&
-      hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
-      context.event?.enhancedCapacityTier === true
+    parameters: { defaultFactor: 1 },
+    // Heat-sensitive emitters own skill selection and tuning; this rule applies
+    // either a delayed packet's captured factor or a direct packet's live profile tier.
+    factor: (context, _target, parameters) =>
+      holosmithEventStrikeFactor(context, context.event || {}, parameters.defaultFactor),
+    when: (context) => playerStrike(context) && holosmithEventStrikeFactor(context, context.event || {}) > 1
   }
 ]);
 
 export const holosmithAttributeRules = Object.freeze({
+  modifyConditionBaseDuration: modifyHolosmithConditionBaseDuration,
   modifierRules: holosmithModifierRules
 });
 

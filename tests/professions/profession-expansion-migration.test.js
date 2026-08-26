@@ -461,7 +461,7 @@ test('ready native professions expose deliberate public end-state keys', async (
       'comboProgress',
       'procReadyAt'
     ],
-    engineer: ['heatUpdatedAt', 'overheatCheckAt', 'lightningRodActivationId', 'traitProcReadyAt'],
+    engineer: ['heatUpdatedAt', 'overheatCheckAt', 'passiveHeatAt', 'lightningRodActivationId', 'traitProcReadyAt'],
     guardian: ['ashesNextTriggerAt', 'daybreakingSlashChainStep', 'furiousFocusReadyAt', 'radiantForgeEnteredAt'],
     mesmer: ['bloodsongProgress', 'pendingResources', 'traitReadyAt'],
     necromancer: [

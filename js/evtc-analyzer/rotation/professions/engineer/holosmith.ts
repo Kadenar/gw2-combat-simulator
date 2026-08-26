@@ -75,6 +75,15 @@ function preserveOverheatBoundaries(
       .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
     if (spanning) {
       complete.add(spanning);
+      // Preserve the observed recovery after the cast spanning Overheat. That
+      // short gap is what keeps the following normal-weapon input behind the exit.
+      preserve.add(spanning);
+      const preceding = actions
+        .filter((action) => action.end <= spanning.start)
+        .sort((left, right) => right.end - left.end || right.eventIndex - left.eventIndex)[0];
+      // A tiny autoattack artifact spanning Overheat may be removed later. Keep
+      // the preceding stable cast as a second timing anchor so its gap survives.
+      if (preceding) preserve.add(preceding);
       continue;
     }
 
@@ -85,8 +94,13 @@ function preserveOverheatBoundaries(
   }
 
   return actions.map((action) => {
-    if (complete.has(action)) return { ...action, forceCompleteReplay: true };
-    if (preserve.has(action)) return { ...action, suppressFollowingWait: false };
+    if (complete.has(action) || preserve.has(action)) {
+      return {
+        ...action,
+        ...(complete.has(action) ? { forceCompleteReplay: true } : {}),
+        ...(preserve.has(action) ? { suppressFollowingWait: false } : {})
+      };
+    }
     return action;
   });
 }
@@ -111,7 +125,22 @@ function normalizeHolosmithTransitions(
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: EvtcRecordedRotationAction[] = [];
   let activeKit: string | null = null;
-  let forgeActive = false;
+  const firstInput = sorted.find((action) => action.rawName !== 'Swap Weapons');
+  // A clipped log can begin on a Forge weapon skill without retaining the entry swap; synthesize the required state input.
+  const startsInForge = firstInput != null && skillForAction(context, firstInput)?.forgeSkill === true;
+  let forgeActive = startsInForge;
+  if (firstInput && startsInForge) {
+    result.push({
+      ...canonicalAction(
+        firstInput.eventIndex - 0.5,
+        firstInput.start,
+        ENGAGE_FORGE,
+        ENGAGE_FORGE.skillId,
+        'initial-state'
+      ),
+      initialState: true
+    });
+  }
 
   for (let index = 0; index < sorted.length; index += 1) {
     const action = sorted[index];
@@ -202,7 +231,18 @@ function inferDirectInputs(context: EvtcProfessionReconstructionContext): EvtcRe
   });
 }
 
-function openingActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+function sameRecordedActivation(left: EvtcRecordedRotationAction, right: EvtcRecordedRotationAction): boolean {
+  return (
+    left.rawSkillId === right.rawSkillId &&
+    Math.abs(left.start - right.start) <= 1 &&
+    Math.abs(left.end - right.end) <= 1
+  );
+}
+
+function openingActions(
+  context: EvtcProfessionReconstructionContext,
+  existingActions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
   const opening = findOpeningPrecast(
     context,
     new Map<string, EngineerActionIdentity>([
@@ -211,7 +251,9 @@ function openingActions(context: EvtcProfessionReconstructionContext): EvtcRecor
     ])
   );
   if (!opening) return [];
-  if (opening.rawName === LASER_DISK.name) return [opening];
+  if (opening.rawName === LASER_DISK.name) {
+    return existingActions.some((action) => sameRecordedActivation(action, opening)) ? [] : [opening];
+  }
 
   const initialNames = openingDamageSkillNames(context, 3500);
   const bombs = selectedSkill(context, 'Bomb Kit')
@@ -244,7 +286,11 @@ function openingActions(context: EvtcProfessionReconstructionContext): EvtcRecor
     );
   }
 
-  scheduled.push(opening);
+  // Opening recovery can rediscover the same animation already emitted by the
+  // generic extractor; retain synthesized setup without replaying that cast twice.
+  if (!existingActions.some((action) => sameRecordedActivation(action, opening))) {
+    scheduled.push(opening);
+  }
   return scheduled;
 }
 
@@ -254,6 +300,11 @@ export function reconstructHolosmithActions(
   const actions = normalizeHolosmithTransitions(context, context.recordedActions);
   actions.push(...inferDirectInputs(context));
   actions.push(...inferDetonateActions(context));
-  actions.push(...openingActions(context));
-  return preserveOverheatBoundaries(context, actions);
+  actions.push(...openingActions(context, actions));
+  // Holosmith heat depends on the real intervals between Forge cycles. Retain
+  // observed recovery gaps so replay does not cross cooling-rate boundaries.
+  return preserveOverheatBoundaries(context, actions).map((action) => ({
+    ...action,
+    suppressFollowingWait: action.precast === true ? action.suppressFollowingWait : false
+  }));
 }

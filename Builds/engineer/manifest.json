@@ -28,7 +28,7 @@
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "Builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37545,
+        "benchmarkDps": 38028,
         "dpsReportUrl": "https://dps.report/h0tB-20260504-203415_golem",
         "upToDate": true
       },
@@ -55,7 +55,7 @@
         "label": "Condition (Pistol / Pistol - Tools TRV)",
         "build": "Builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
         "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
-        "benchmarkDps": 38929,
+        "benchmarkDps": 36279,
         "upToDate": true
       },
       {

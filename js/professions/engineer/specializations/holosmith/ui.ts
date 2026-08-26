@@ -17,7 +17,8 @@ import type {
   SchedulerRecord,
   SkillId
 } from '../../../../platform/engine/types.js';
-import type { EngineerResolverEvent, EngineerSkill, EngineerUiContext } from '../../types.js';
+import type { EngineerResolverEvent, EngineerUiContext } from '../../types.js';
+import type { HolosmithSkill } from './types.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
   'enter-forge',
@@ -37,8 +38,8 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 ]);
 
 // Populated by bindHolosmithUi at module init time; safe to read thereafter.
-let engineerSkills: readonly EngineerSkill[] = [];
-let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
+let engineerSkills: readonly HolosmithSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, HolosmithSkill> = new Map();
 
 function holosmithForgeSkillIds(context: EngineerUiContext): number[] {
   const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
@@ -59,7 +60,7 @@ function holosmithProfessionSkills(context: EngineerUiContext) {
   ];
 }
 
-function holosmithPaletteAvailability(context: EngineerUiContext, skill: EngineerSkill): PaletteSkillAvailability {
+function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
   const now = Number(context.time || 0);
   const kitLockoutUntil = Number(state.kitLockoutUntil || 0);
@@ -198,7 +199,7 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
 });
 
 export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): typeof holosmithUi {
-  engineerSkills = catalog.skills as readonly EngineerSkill[];
-  engineerSkillsById = catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  engineerSkills = catalog.skills;
+  engineerSkillsById = catalog.skillsById;
   return holosmithUi;
 }

@@ -120,6 +120,10 @@
     },
     "Corona Burst",
     "Photon Blitz",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
     "Grenade Barrage",
     "Glue Shot",
     {
@@ -232,6 +236,10 @@
     "Light Strike—Storm",
     "Bright Slash—Storm",
     "Grenade Barrage",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
     "Poison Dart Volley",
     {
       "name": "Fragmentation Shot",

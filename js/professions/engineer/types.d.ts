@@ -106,6 +106,7 @@ export interface HolosmithState {
   maximumHeat: number;
   heatUpdatedAt: number;
   overheatCheckAt: number | null;
+  passiveHeatAt: number | null;
   photonForgeActive: boolean;
   forgeExitedAt: number | null;
   overheated: boolean;
@@ -148,8 +149,6 @@ export interface EngineerRuntimeState {
 export interface EngineerSkill extends Skill {
   readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;
-  readonly forgeSkill?: boolean;
-  readonly heatGain?: number;
   readonly kit?: string | boolean;
   readonly kitName?: string;
   readonly mechanicSlot?: number;
@@ -189,14 +188,11 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
   readonly endsAt?: number;
-  readonly enhancedCapacityTier?: boolean;
   readonly engineerMech?: boolean;
   readonly expiresAt?: number;
-  readonly extraBlades?: number;
   readonly fieldType?: string;
   readonly mechBasicAttack?: boolean;
   readonly skillWeapon?: string;
-  readonly solarFocusingLens?: boolean;
   readonly staticDischarge?: boolean;
 };
 
@@ -215,10 +211,8 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly charges?: number;
   readonly damageKind?: string;
   readonly engineerMech?: boolean;
-  readonly enhancedCapacityTier?: boolean;
   readonly explosion?: boolean;
   readonly expiresAt?: number;
-  readonly extraBlades?: number;
   readonly fieldType?: string;
   readonly hitIndex?: number;
   readonly mechBasicAttack?: boolean;

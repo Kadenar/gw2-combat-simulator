@@ -5,7 +5,8 @@ import { hasEngineerTrait } from '../../core/state.js';
 import { expectedEngineerChainSkill } from '../../core/availability.js';
 import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '../../types.js';
+import type { EngineerPrecastContext } from '../../types.js';
+import type { HolosmithSkill } from './types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.RADIANT_ARC_ID_69565,
@@ -15,7 +16,7 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.REFRACTION_CUTTER_ID_71121
 ]);
 
-export function holosmithCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
+export function holosmithCastAvailability(context: EngineerPrecastContext, skill: HolosmithSkill): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
   if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {

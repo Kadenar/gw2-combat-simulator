@@ -846,7 +846,7 @@ function buildRotation(
   const rotation: EvtcReconstructedCommand[] = [];
   let activeCastEnd = origin;
   let previousCastStart: number | null = null;
-  let suppressGap = false;
+  let suppressGap: boolean | null = null;
   for (const entry of entries) {
     const at = entry.type === 'action' ? entry.action.start : entry.at;
     const overlapping = at < activeCastEnd - TIMING_TOLERANCE_MS;
@@ -894,7 +894,10 @@ function buildRotation(
       command.offset = quantizeEvtcTimingMs(at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
-      if (gap > MINIMUM_CONFIRMED_IDLE_GAP_MS && !suppressGap) {
+      // Profession evidence can explicitly preserve a short state-boundary gap;
+      // otherwise retain the conservative generic threshold for EVTC animation noise.
+      const confirmedGapThreshold = suppressGap === false ? TIMING_TOLERANCE_MS : MINIMUM_CONFIRMED_IDLE_GAP_MS;
+      if (gap > confirmedGapThreshold && suppressGap !== true) {
         rotation.push({ name: '__wait', waitMs: quantizeEvtcTimingMs(gap) });
       }
 
@@ -913,7 +916,7 @@ function buildRotation(
         activeCastEnd = Math.max(activeCastEnd, at);
       }
 
-      suppressGap = entry.action.suppressFollowingWait === true;
+      suppressGap = entry.action.suppressFollowingWait ?? null;
     }
   }
 

@@ -1,14 +1,19 @@
 export const HOLOSMITH_HEAT = Object.freeze({
-  // Heat gained per second while Photon Forge is active (passive tick).
+  // Heat capacity and tier boundaries are fixed profession mechanics; balance
+  // profiles tune only the effects activated at those tiers.
+  baseMaximum: 100,
+  enhancedCapacityMaximum: 150,
+  highThreshold: 50,
+  // Heat gained on each one-second resource tick while Photon Forge is active.
   basePassivePerSecond: 2,
-  // Additional heat/s from Light Density Amplifier trait.
+  // Additional heat per resource tick from Light Density Amplifier trait.
   lightDensityBonusPerSecond: 1,
   // Overheat is polled on the game's one-second resource tick instead of
   // firing immediately when a Forge skill fills the heat bar.
   overheatCheckInterval: 1,
   // How long Solar Focusing Lens charges remain active (seconds).
   solarFocusingLensDuration: 4,
-  // Heat at or above which Enhanced Capacity Storage Unit buffs activate (max heat = 150 with ECSU, threshold stays 100).
+  // Heat at or above which Enhanced Capacity Storage Unit buffs activate.
   enhancedCapacityThreshold: 100,
   // Observed delay between overheat and Photonic Blasting Module explosion, in seconds.
   photonicBlastDelay: 1.56

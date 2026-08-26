@@ -287,15 +287,15 @@ export function reconcileCastEffectPackets(
 ): EvtcRecordedRotationAction[] {
   const validatePackets = createStrikePacketMatcher(context);
   const skillNames = new Map(context.log.skills.map((skill) => [skill.id, normalized(skill.name)]));
-  const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   return actions.map((action) => {
     if (action.forceCompleteReplay) {
       return { ...action, status: 'completed' as const };
     }
 
-    if (action.status !== 'completed' && action.status !== 'interrupted') {
+    if (action.status !== 'completed' && action.status !== 'interrupted' && action.status !== 'reduced') {
       return action;
     }
+    const wasInterrupted = action.status === 'interrupted' || action.status === 'reduced';
 
     const packets = validatePackets(action);
     const actualDuration = Math.max(0, action.end - action.start);
@@ -335,7 +335,7 @@ export function reconcileCastEffectPackets(
     }
 
     if (!packets.anyObserved && !phantasmCommitted) return action;
-    if (action.status === 'interrupted' && phantasmCommitted && runtimeDuration > 0) {
+    if (wasInterrupted && phantasmCommitted && runtimeDuration > 0) {
       return {
         ...action,
         status: 'completed' as const,
@@ -346,26 +346,19 @@ export function reconcileCastEffectPackets(
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     const replayCastEnd = action.replayCastEnd;
     const suppressFollowingWait = action.suppressFollowingWait;
-    const lastCancelableEffectOffset = packets.lastObservedCancelableExpectedOffsetMs || 0;
-    if (packets.allObserved && lastCancelableEffectOffset > actualDuration) {
-      const nextSerialAction = sorted.find((candidate) => {
-        if (candidate.start <= action.start) return false;
-        const candidateSkill = skillForAction(context, candidate);
-        return candidateSkill?.independentCast !== true && candidateSkill?.canCastConcurrently !== true;
-      });
-      const nextSerialOffset =
-        nextSerialAction == null ? Number.POSITIVE_INFINITY : nextSerialAction.start - action.start;
+    if (packets.allObserved) {
       if (
         runtimeDuration > 0 &&
         packets.allObservedTimingExplicit &&
-        lastCancelableEffectOffset + 10 >= runtimeDuration &&
-        nextSerialOffset + 75 >= runtimeDuration
+        packets.lastObservedCancelableExpectedOffsetMs != null
       ) {
+        // Every cancelable timed packet proves a shortened EVTC animation omitted modeled aftercast.
+        // Persisting packets alone cannot prove completion because they may land after a real interruption.
         replayDuration = runtimeDuration;
       }
     }
 
-    if (action.status === 'interrupted') {
+    if (wasInterrupted) {
       if (packets.allObserved && runtimeDuration > 0 && replayDuration + 10 >= runtimeDuration) {
         return {
           ...action,
@@ -384,6 +377,13 @@ export function reconcileCastEffectPackets(
     }
 
     if (actualDuration === 0) return action;
+    if (replayDuration > actualDuration) {
+      return {
+        ...action,
+        status: 'completed' as const,
+        replayCastEnd: action.start + replayDuration
+      };
+    }
     if (
       action.expectedDuration != null &&
       action.expectedDuration > 0 &&
