@@ -98,6 +98,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
 
   if (
     skill.flipSkillId != null &&
+    skill.flipSkillId !== chain?.next &&
     skill.flipSkillId !== skill.nextChainId &&
     skill.handlerId !== 'necromancer.minion'
   ) {

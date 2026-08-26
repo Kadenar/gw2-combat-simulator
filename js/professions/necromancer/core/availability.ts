@@ -187,7 +187,13 @@ function baselineGate(
     );
   }
 
-  if (skill.flipParentId != null && !(Number(state.availableFlips[skill.id] || 0) > context.start)) {
+  // Cataloged autoattack links are armed by their chain position and retention window, not duplicate API flip state.
+  const isAutoattackChainSkill = context.catalog.autoattackChainPositions.has(Number(skill.id));
+  if (
+    skill.flipParentId != null &&
+    !isAutoattackChainSkill &&
+    !(Number(state.availableFlips[skill.id] || 0) > context.start)
+  ) {
     return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
   }
 

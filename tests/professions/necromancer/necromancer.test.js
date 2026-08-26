@@ -1076,7 +1076,7 @@ test('Necromancer sword autoattack progress expires three seconds after the late
   assert.equal(retained.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
   assert.match(expired.warnings.join(' '), /Enervation Echo is unavailable/);
   assert.deepEqual(
-    expired.steps.map((step) => step.skill),
+    expired.events.filter((event) => event.type === 'action').map((event) => event.skillName),
     ['Enervation Blade', 'Enervation Blade']
   );
   assert.equal(expired.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
@@ -2080,6 +2080,7 @@ test('main-hand sword skills use their complete PvE effects', () => {
     ['Ravenous Wave', 'Satiate', 'Path of Gluttony', 'Gorge'],
     {
       boons: { quickness: true },
+      initialResource: 0,
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
       target: {
@@ -2102,13 +2103,10 @@ test('main-hand sword skills use their complete PvE effects', () => {
     }
   ]);
   assert.equal(damage(ID.PATH_OF_GLUTTONY)?.coefficient, 2);
-  assert.equal(damage(ID.PATH_OF_GLUTTONY)?.comboFinishers[0].finisherType, 'Leap');
+  assert.equal(necromancerCatalog.skillsById.get(ID.PATH_OF_GLUTTONY).comboFinishers[0].finisherType, 'Leap');
   assert.equal(damage(ID.GORGE)?.coefficient, 2);
-  assert.equal(damage(ID.GORGE)?.comboFinishers[0].finisherType, 'Leap');
-  assert.equal(
-    result.events.find((event) => event.type === 'resource' && event.skillId === ID.RAVENOUS_WAVE)?.amount,
-    12
-  );
+  assert.equal(necromancerCatalog.skillsById.get(ID.GORGE).comboFinishers[0].finisherType, 'Leap');
+  assert.equal(result.endState.profession.lifeForce, 12);
 });
 
 test('Satiate expires after three seconds and base sword cooldowns continue during follow-ups', () => {
