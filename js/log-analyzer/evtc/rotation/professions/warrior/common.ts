@@ -24,6 +24,8 @@ const SWIFTNESS_BUFF = 719;
 const SIGNET_OF_MIGHT_ACTIVE_BUFF = 36781;
 const SIGNET_OF_FURY_ACTIVE_BUFF = 51664;
 const PEAK_PERFORMANCE_BUFF = 46853;
+const REND_ANIMATION_ID = 80247;
+const REND_FOLLOW_UP_ANIMATION_ID = 80224;
 
 // Initial snapshots contain resulting buffs, not the casts that produced
 // them. Some skills intentionally share a marker, so callers decide which
@@ -42,7 +44,7 @@ const CORE_PRECAST_BUFFS: Readonly<Record<WarriorCorePrecastId, number>> = {
 // only the preceding Rush or Rend input.
 const COMPOSITE_FOLLOW_UP_ANIMATION_IDS = new Set([
   14493, // Rush impact animation
-  80224 // Rend follow-up animation
+  REND_FOLLOW_UP_ANIMATION_ID
 ]);
 
 /** Reports whether the initial buff snapshot proves that the requested core precast occurred before logging began. */
@@ -113,9 +115,21 @@ export function normalizeWarriorCommonActions(
 
     if (previousIndex < 0) return;
     const previous = normalized[previousIndex];
+    const completesRend =
+      previous.rawSkillId === REND_ANIMATION_ID && action.rawSkillId === REND_FOLLOW_UP_ANIMATION_ID;
     normalized[previousIndex] = {
       ...previous,
-      end: Math.max(previous.end, action.end)
+      end: Math.max(previous.end, action.end),
+      // Rend's two animation rows end at its two hits, before the full cast
+      // lane releases. Replay one completed skill so the remaining tail is
+      // supplied by Rend's modeled duration instead of an explicit wait.
+      ...(completesRend
+        ? {
+            status: 'completed' as const,
+            replayInterruptMs: undefined,
+            forceCompleteReplay: true
+          }
+        : {})
     };
   };
 

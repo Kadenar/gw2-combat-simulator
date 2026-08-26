@@ -560,6 +560,49 @@ test('imports committed Fan of Fire EVTC durations on the nearest 40 ms action t
   );
 });
 
+test('replays Rend as one full cast without waiting after its second hit animation', () => {
+  const rend = skill(80_247, 'Rend', 'Weapon', 'Weapon_3', 960, {
+    interruptCommitMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'strike',
+        atMs: 880,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
+    ]
+  });
+  const gash = skill(14_365, 'Gash', 'Weapon', 'Weapon_1', 520);
+  const fixture = warriorLog(
+    18,
+    [
+      { id: 80_247, name: 'Rend' },
+      { id: 80_224, name: 'Rend' },
+      { id: 14_365, name: 'Gash' }
+    ],
+    [
+      event({ time: 1_000, stateChange: 1 }),
+      ...animation(80_247, 2_000, 2_440, { modern: true }),
+      ...animation(80_224, 2_440, 2_880, { modern: true }),
+      ...animation(14_365, 2_960, 3_480, { modern: true })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [rend, gash] }, { inferInstantCasts: false });
+  const rendIndex = result.rotation.findIndex((command) => command.name === 'Rend');
+
+  assert.deepEqual(result.rotation[rendIndex], { name: 'Rend', skillId: 80_247 });
+  assert.equal(result.rotation[rendIndex + 1]?.name, 'Gash');
+});
+
 test('preserves Warrior weapon stows and cancelled autoattack inputs', () => {
   const severArtery = skill(14_364, 'Sever Artery', 'Weapon', 'Weapon_1', 480, {
     effects: [{ type: 'strike', atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }]
