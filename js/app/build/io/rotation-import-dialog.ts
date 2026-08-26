@@ -7,6 +7,7 @@ import { errorMessage } from '../../../platform/ui/shared/dom.js';
 
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
+import type { RotationImportObservation } from './rotation-import-model.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 
@@ -15,6 +16,7 @@ export interface RotationImportPreview {
   readonly actionCount: number;
   readonly description: string;
   readonly warnings: readonly string[];
+  readonly observations: readonly RotationImportObservation[];
 }
 
 interface RotationImportDialogElements {
@@ -23,6 +25,7 @@ interface RotationImportDialogElements {
   readonly status: HTMLElement;
   readonly error: HTMLElement;
   readonly warnings: HTMLElement;
+  readonly observations: HTMLElement;
   readonly browseButton: HTMLButtonElement;
   readonly reportInput: HTMLInputElement;
   readonly reportButton: HTMLButtonElement;
@@ -41,7 +44,8 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
         rotation: normalizeRotation(rotation, app.activeCatalog, { strict: true }),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
-        warnings: []
+        warnings: [],
+        observations: []
       };
     }
 
@@ -51,7 +55,8 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
         rotation: report.rotation,
         actionCount: report.actionCount,
         description: `Reconstructed ${report.playerLabel} · ${report.phaseLabel}`,
-        warnings: report.warnings
+        warnings: report.warnings,
+        observations: []
       };
     }
 
@@ -63,7 +68,8 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     rotation: imported.rotation,
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel}`,
-    warnings: imported.warnings
+    warnings: imported.warnings,
+    observations: imported.observations
   };
 }
 
@@ -78,7 +84,8 @@ export async function previewDpsReportUrl(
     rotation: imported.rotation,
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel} · ${imported.phaseLabel}`,
-    warnings: imported.warnings
+    warnings: imported.warnings,
+    observations: []
   };
 }
 
@@ -120,6 +127,13 @@ function ensureStyles(document: Document): void {
     .rotation-import-warning-list li { padding:8px 10px; border:1px solid var(--border);
       border-left:3px solid #a67c22; border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
     .rotation-import-warning-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
+    .rotation-import-observations { margin:10px 0 0; font-size:11px; }
+    .rotation-import-observation-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+    .rotation-import-observation-list li { padding:9px 10px; border:1px solid var(--border);
+      border-left:3px solid var(--accent); border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }
+    .rotation-import-observation-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
+    .rotation-import-observation-summary { color:var(--text); }
+    .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }
     .rotation-import-actions { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; }
     .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
   `;
@@ -149,6 +163,7 @@ function createDialog(document: Document): RotationImportDialogElements {
     <p class="rotation-import-status" role="status" data-rotation-import-status>Select a file or enter a link to begin.</p>
     <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
     <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
+    <div class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></div>
     <div class="rotation-import-actions">
       <button type="button" class="btn" data-rotation-import-close>Cancel</button>
       <button type="button" class="btn btn-io" data-rotation-import-apply disabled>Apply rotation</button>
@@ -160,6 +175,7 @@ function createDialog(document: Document): RotationImportDialogElements {
   const status = dialog.querySelector<HTMLElement>('[data-rotation-import-status]');
   const error = dialog.querySelector<HTMLElement>('[data-rotation-import-error]');
   const warnings = dialog.querySelector<HTMLElement>('[data-rotation-import-warnings]');
+  const observations = dialog.querySelector<HTMLElement>('[data-rotation-import-observations]');
   const browseButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-browse]');
   const reportInput = dialog.querySelector<HTMLInputElement>('[data-rotation-import-report-input]');
   const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
@@ -170,6 +186,7 @@ function createDialog(document: Document): RotationImportDialogElements {
     !status ||
     !error ||
     !warnings ||
+    !observations ||
     !browseButton ||
     !reportInput ||
     !reportButton ||
@@ -185,6 +202,7 @@ function createDialog(document: Document): RotationImportDialogElements {
     status,
     error,
     warnings,
+    observations,
     browseButton,
     reportInput,
     reportButton,
@@ -215,6 +233,28 @@ function renderWarnings(element: HTMLElement, warnings: readonly string[]): void
   element.append(list);
 }
 
+/** Renders read-only combat-log evidence separately from reconstruction warnings. */
+function renderObservations(element: HTMLElement, observations: readonly RotationImportObservation[]): void {
+  element.replaceChildren();
+  const list = element.ownerDocument.createElement('ul');
+  list.className = 'rotation-import-observation-list';
+  for (const observation of observations) {
+    const item = element.ownerDocument.createElement('li');
+    const title = element.ownerDocument.createElement('strong');
+    const summary = element.ownerDocument.createElement('div');
+    const detail = element.ownerDocument.createElement('small');
+    title.textContent = observation.title;
+    summary.className = 'rotation-import-observation-summary';
+    summary.textContent = observation.summary;
+    detail.className = 'rotation-import-observation-detail';
+    detail.textContent = observation.detail;
+    item.append(title, summary, detail);
+    list.append(item);
+  }
+
+  element.append(list);
+}
+
 /** Connects the rotation load button to JSON, EVTC, and dps.report import flows. */
 export function bindRotationImportDialog(
   app: ProfessionAppState,
@@ -238,6 +278,8 @@ export function bindRotationImportDialog(
     elements.error.textContent = '';
     elements.warnings.hidden = true;
     elements.warnings.replaceChildren();
+    elements.observations.hidden = true;
+    elements.observations.replaceChildren();
   };
 
   const setImporting = (value: boolean): void => {
@@ -257,6 +299,7 @@ export function bindRotationImportDialog(
     elements.status.textContent = `Reading ${file.name}…`;
     elements.error.hidden = true;
     elements.warnings.hidden = true;
+    elements.observations.hidden = true;
     try {
       const imported = await previewRotationFile(file, app);
       activePreview = imported;
@@ -267,6 +310,11 @@ export function bindRotationImportDialog(
       }
 
       renderWarnings(elements.warnings, imported.warnings);
+      if (imported.observations.length) {
+        elements.observations.hidden = false;
+      }
+
+      renderObservations(elements.observations, imported.observations);
     } catch (error) {
       elements.status.textContent = `Could not import ${file.name}.`;
       elements.error.hidden = false;
@@ -287,6 +335,7 @@ export function bindRotationImportDialog(
     elements.status.textContent = 'Fetching dps.report…';
     elements.error.hidden = true;
     elements.warnings.hidden = true;
+    elements.observations.hidden = true;
     try {
       const imported = await previewDpsReportUrl(input, app);
       activePreview = imported;
@@ -297,6 +346,7 @@ export function bindRotationImportDialog(
       }
 
       renderWarnings(elements.warnings, imported.warnings);
+      renderObservations(elements.observations, imported.observations);
     } catch (error) {
       elements.status.textContent = 'Could not import the dps.report link.';
       elements.error.hidden = false;
