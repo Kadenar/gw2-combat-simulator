@@ -286,6 +286,8 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   clearDragonTriggerState(state);
 }
 
+// Consume Artillery Slash ammo, preserve its recharge lockout, and select the
+// strike profile from the number of rounds committed.
 export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSkill): void {
   const charges = Math.max(1, Number(context.ammo?.charges || 1));
   const state = bladeswornState.from(context);
@@ -324,6 +326,8 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   });
 }
 
+// Split a time range at every Flow modifier boundary so Dragon Trigger projection
+// can integrate the exact piecewise regeneration rate.
 function dragonFlowRateSegments(
   context: WarriorSchedulerContext,
   from: number,
@@ -404,6 +408,8 @@ function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
+// Detect Fury that predates the current activation so Flow Stabilizer cannot
+// satisfy its own bonus through same-cast events.
 function furyActiveBeforeCurrentCast(
   context: WarriorSchedulerContext,
   activationId: string,
@@ -437,6 +443,8 @@ function gainPassiveFlow(context: WarriorSchedulerContext, from: number, to: num
   state.flow = projectDragonFlow(state.flow, state.maximumFlow, from, to, dragonFlowRateSegments(context, from, to));
 }
 
+// Advance passive Flow or project Dragon Trigger charge ticks through the target,
+// emitting granted and stalled ticks before clearing an expired charge window.
 export function advanceBladesworn(context: WarriorSchedulerContext, target: number): void {
   const state = bladeswornState.from(context);
   if (target <= state.flowUpdatedAt) return;
@@ -623,6 +631,8 @@ function activeWeaponNames(context: WarriorCastContext): Set<string> {
   );
 }
 
+// Determine Lush Forest eligibility from the live Gunsaber mode, equipped weapon
+// set, and selected slot skills rather than catalog ownership alone.
 function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = bladeswornState.from(context);
   if (skill.gunsaberSkill) {
@@ -670,6 +680,8 @@ function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSki
   });
 }
 
+// Commit Flow gains and activation-scoped ammo traits, then clear bookkeeping and
+// reset Gunsaber chains that cannot continue through the completed skill.
 export function completeBladeswornSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = bladeswornState.from(context);
   const at = context.effectiveEnd;
@@ -783,6 +795,8 @@ function activeCartridgeWindow(state: ReturnType<typeof bladeswornState.from>, a
   return undefined;
 }
 
+// Decorate qualifying player explosions with Guns and Glory's extendable window
+// and the currently active cartridge window's Burning payload.
 export function observeBladeswornEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (
     event.type !== 'damage' ||

@@ -56,6 +56,8 @@ function initialize(context: ElementalistSchedulerContext): void {
   }
 }
 
+// Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
+// specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (skill.name === 'Unravel' && !hasTrait(context, 'Elements of Rage')) {
     return {
@@ -244,6 +246,8 @@ function modifyRechargeStart(context: ElementalistPrecastContext, rechargeStart:
   );
 }
 
+// Commit dual-attunement transitions and stance progress at effectiveEnd, then
+// mark the transition handled so Core does not apply a second attunement swap.
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = weaverState.from(context);
   const core = professionCoreState(context);
@@ -406,6 +410,8 @@ function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: 
   }
 }
 
+// Commit Weaver utility windows and schedule stance effects only after the
+// triggering cast reaches its required completion point.
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.name === 'Unravel') {
     const state = weaverState.from(context);
@@ -456,6 +462,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
+// Resolve one Primordial Stance pulse from the attunement snapshot carried by
+// the task, then emit the matching dual-element conditions.
 function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const core = professionCoreState(context);
   const state = weaverState.from(context);

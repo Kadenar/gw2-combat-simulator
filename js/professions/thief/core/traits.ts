@@ -40,6 +40,8 @@ function emitStealBoon(context: ThiefCastContext, at: number, boon: string, dura
   });
 }
 
+// Materialize all selected on-Steal conditions, strikes, boons, control, and
+// ICD-bound effects at the completed steal timestamp.
 export function emitStealTraitEffects(context: ThiefCastContext): void {
   const at = context.effectiveEnd;
   const state = professionCoreState(context);
@@ -196,6 +198,8 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
   }
 }
 
+// Convert initiative spending, movement, and dual-wield completion into their
+// persistent trait state and immediate resource or condition effects.
 export function updateThiefTraitCastState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -275,6 +279,8 @@ function thiefBoonDuration(
   return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }
 
+// Queue a trait boon with live duration scaling and explicit self or party
+// recipient semantics.
 function queueThiefBoon(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
@@ -418,6 +424,8 @@ export const thiefCoreCriticalReactions = Object.freeze({
   })
 });
 
+// Turn a self-affecting Fury application into Assassin's Fury Might while
+// enforcing its independent internal cooldown.
 export function reactToThiefCoreBuff(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     String(event.kind || '').toLowerCase() !== 'fury' ||
@@ -440,6 +448,8 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
   });
 }
 
+// Queue a non-critical life-siphon strike causally linked to the triggering
+// Thief event.
 function enqueueSiphon(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
@@ -471,6 +481,8 @@ function enqueueSiphon(
   });
 }
 
+// Spend one player-owned Spider Venom charge per qualifying strike, applying its
+// poison and optional Leeching Venoms siphon through resolver-safe paths.
 function applySpiderVenom(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
@@ -506,6 +518,8 @@ function applySpiderVenom(
   }
 }
 
+// Add the ICD-bound Shadow Siphoning life steal only to resolved stealth-attack
+// strikes, using catalog metadata rather than event naming alone.
 function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||
@@ -533,6 +547,8 @@ function targetConditionCount(context: ThiefResolverContext, at: number): number
     .length;
 }
 
+// Trigger Panic Strike only after the target meets its condition-count threshold,
+// reserving the ICD before applying the causally linked immobilize.
 function applyPanicStrike(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
@@ -578,6 +594,8 @@ export function reactToThiefCoreDamage(
   applyPanicStrike(context, event, details);
 }
 
+// Route resolved conditions into their follow-up siphons, Panic Strike poison,
+// and health-gated Unsuspecting Strike bonus without mutating the source packet.
 export function reactToThiefCoreCondition(context: ThiefResolverContext, application: ThiefResolverEvent): void {
   if (
     application.condition === 'Poisoned' &&

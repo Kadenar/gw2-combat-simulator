@@ -53,6 +53,8 @@ export function createExpectedProcTracker({
     return event.didCrit;
   };
 
+  // Turn sampled or accumulated expected criticals into one ICD-bound Master
+  // Fencer activation, then emit its distinct self and allied Fury applications.
   const materializeMasterFencer = (event: SimulationEvent, chance: number): void => {
     if (
       !traits.has(TRAIT.MASTER_FENCER) ||
@@ -107,6 +109,8 @@ export function createExpectedProcTracker({
     }
   };
 
+  // Feed one critical observation through Master Fencer and illusion-only
+  // Sharper Images while preserving fractional progress in deterministic mode.
   const materializeCriticalTraits = (event: SimulationEvent): void => {
     const chance = Number(criticalChance(event) || 0);
     materializeMasterFencer(event, chance);

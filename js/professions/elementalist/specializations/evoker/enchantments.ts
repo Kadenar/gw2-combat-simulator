@@ -6,6 +6,8 @@ import { ELECTRIC_ENCHANTMENT_ICON } from './constants.js';
 import { type EvokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Materialize Electric Enchantment's strike and control package for the invoking
+// skill while preserving shared event attribution.
 export function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const strike = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'strike');
   const burning = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'condition');

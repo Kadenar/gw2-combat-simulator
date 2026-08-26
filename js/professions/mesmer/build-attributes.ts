@@ -10,6 +10,8 @@ import type {
 } from '../../platform/gw2/builds/types.js';
 import type { MesmerBuild } from './types.js';
 
+// Fold Mesmer trait conversions, selected-signet bonuses, duration bonuses, and
+// assumption-dependent critical chance into the shared build attribute result.
 export function applyMesmerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext

@@ -9,6 +9,8 @@ import type { MesmerSchedulerContext } from './types.js';
 
 const applicationCatalog = assembleNativeApplicationCatalog(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);
 
+// Project clone, phantasm, and specialization state from scheduler events into a
+// stable simulation-end snapshot for subsequent consumers.
 function projectMesmerSimulationEndState({
   schedulerContext,
   schedulerState

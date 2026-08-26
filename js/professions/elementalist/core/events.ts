@@ -1,6 +1,8 @@
 import type { SchedulerRecord, SimulationEventInput } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
 
+// Preserve packets excluded by the configured hitbox as cancelled markers so
+// timing and diagnostics remain visible without contributing combat effects.
 export function prepareElementalistHitboxEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEventInput

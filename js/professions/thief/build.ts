@@ -32,6 +32,8 @@ const THIEF_BUILD_ASSUMPTION_CONTROLS = Object.freeze([
 const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
 
 export { createDefaultTargetConditions };
+// Seed a complete, schema-current Thief preset with resources, equipment,
+// assumptions, selected skills, and specialization state.
 export function createThiefBuildDefaults(): ThiefCanonicalBuild {
   return {
     schemaVersion: THIEF_BUILD_SCHEMA_VERSION,

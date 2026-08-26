@@ -123,6 +123,8 @@ function applyCascadingCorruption(
   );
 }
 
+// Materialize either the base or Blight-empowered elixir profile while retaining
+// Blight metadata and party-boon routing on every supported effect type.
 function emitElixirEffects(
   context: NecromancerCastContext,
   skill: NecromancerSkill,

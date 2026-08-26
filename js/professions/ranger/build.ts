@@ -31,6 +31,8 @@ function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][num
   return skill?.petAutonomousSkill !== true;
 }
 
+// Seed a complete, schema-current Ranger preset so migration and UI code can
+// safely assume pet, hammer-variant, and specialization resources exist.
 export function createRangerBuildDefaults(): RangerCanonicalBuild {
   return {
     schemaVersion: RANGER_BUILD_SCHEMA_VERSION,

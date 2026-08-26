@@ -151,6 +151,8 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
   }
 }
 
+// Decorate packets only after the base skill has materialized so combo chances
+// and one-shot spear empowerments modify the exact activation they belong to.
 export function elementalistAfterCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   extendPersistingFlamesPackets(context, skill);
@@ -210,6 +212,8 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
   delete state.spearFollowups[context.reservationId];
 }
 
+// Commit stateful flipovers and chain progress at cast completion, including
+// aura transmutation, pistol bullets, etchings, orbs, and conjured weapons.
 function applySpecialSkillProgression(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -423,6 +427,8 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   applyGenericPostCast(context, skill);
 }
 
+// Observe scheduled combat packets to update aura, attunement, and trait state
+// that depends on the canonical event timeline.
 export function observeElementalistEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   observeElementalistElementalEvent(context, event);
   extendPersistingFlamesField(context, event);
@@ -455,6 +461,8 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
   observeElementalistTraitEvent(context, event);
 }
 
+// Advance probabilistic trait progress and endurance, then expire transient
+// auras, orbs, chains, and conjures at the requested scheduler timestamp.
 export function advanceElementalistState(context: ElementalistSchedulerContext, at: number): void {
   const state = professionCoreState(context);
   processFreshAirCandidates(context, at);
@@ -495,6 +503,8 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   }
 }
 
+// Consume one-shot weapon recharge modifiers before applying persistent
+// attunement training and skill-specific recharge rules.
 export function modifyElementalistRechargeDuration(
   context: ElementalistSchedulerContext & { skill?: Skill },
   duration: number

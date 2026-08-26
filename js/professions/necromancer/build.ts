@@ -25,6 +25,8 @@ export const NECROMANCER_PROFESSION_ID = 'necromancer';
 
 export { createDefaultTargetConditions };
 
+// Seed a complete, schema-current Necromancer preset including shroud resources,
+// spear shards, assumptions, equipment, and selected skills.
 export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
   return {
     schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,

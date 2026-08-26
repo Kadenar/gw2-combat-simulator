@@ -22,6 +22,8 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
   healingPower: 'Healing Power'
 });
 
+// Assemble Revenant trait durations, legend-pair bonuses, flat attributes, and
+// ordered conversions into the shared build-time attribute result.
 export function applyRevenantBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext

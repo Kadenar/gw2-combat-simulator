@@ -63,6 +63,8 @@ const SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES: Readonly<
   Supportive: Object.freeze({ vitality: 100 })
 });
 
+// Resolve the merged pet archetype's live attribute contribution, including
+// trait adjustments, without mutating the shared base stats.
 function soulbeastArchetypeAttributes(
   context: Gw2ModifierContext,
   archetype: string

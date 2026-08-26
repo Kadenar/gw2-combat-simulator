@@ -4,6 +4,8 @@ import { mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import type { MesmerCastContext, MesmerShatterResolution } from '../../types.js';
 
+// Materialize one Chronomancer shatter boon with clone-scaled duration and
+// profile-owned recipient metadata.
 const triggerShatterBoon = (
   context: MesmerCastContext,
   resolution: MesmerShatterResolution,

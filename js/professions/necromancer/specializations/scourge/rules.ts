@@ -87,6 +87,8 @@ function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
   });
 }
 
+// Observe scheduled shade and barrier events to update Scourge trait state only
+// after their canonical timestamps and ownership are known.
 function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   const state = scourgeState.from(context);
   if (

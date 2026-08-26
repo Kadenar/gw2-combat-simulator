@@ -20,6 +20,8 @@ import {
 } from '../../core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Convert resolved aura applications into Catalyst aura-stack traits and their
+// profile-defined capped durations.
 export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Empowering Auras')) {
     const maximumStacks = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
@@ -52,6 +54,8 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   );
 }
 
+// Resolve combo traits only after field selection is known, enforcing the
+// per-attunement Epitome cooldown before granting aura and empowerment effects.
 export function applyCatalystComboTraits(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   const state = catalystState.from(context);
@@ -123,6 +127,8 @@ function queueCatalystBuff(
   queueElementalistBuff(context, event, kind, stacks, duration, 'Vicious Empowerment');
 }
 
+// Trigger Vicious Empowerment from qualifying control or immobilize events while
+// enforcing its shared internal cooldown.
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const immobilize = ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
   if (
@@ -185,6 +191,8 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   );
 }
 
+// Spend active Shattering Ice state on eligible resolved hits and queue its
+// derived strike without allowing the proc to trigger itself.
 export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const state = catalystState.from(context);
   if (

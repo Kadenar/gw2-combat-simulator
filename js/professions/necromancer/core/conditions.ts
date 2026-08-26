@@ -113,6 +113,8 @@ export function removeNecromancerSelfCondition(
   return selected.size;
 }
 
+// Record a self-condition with bounded timing and emit its canonical state event
+// so transfer and shroud traits see the same application.
 export function applyNecromancerSelfCondition(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -180,6 +182,8 @@ function emitTransferredApplication(
   });
 }
 
+// Move the oldest eligible active self-conditions to the target, removing each
+// source application only after its transferred packet is emitted.
 export function transferNecromancerSelfConditions(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,

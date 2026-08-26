@@ -18,6 +18,8 @@ import {
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Grant Cloudburst's profile-defined party boons from the qualifying reset skill
+// at cast completion.
 function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
   const hawkeye = skill.id === ID.HAWKEYE;
@@ -112,6 +114,8 @@ export const galeshotSchedulerHooks = Object.freeze({
   })
 });
 
+// Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
+// Perilous Skies replacement before the shared Ranger checks run.
 export function galeshotCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {

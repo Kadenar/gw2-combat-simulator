@@ -28,6 +28,8 @@ import type {
   WarriorSkill
 } from '../types.js';
 
+// Trigger Lesser Signet of Might on the first eligible post-half-health strike,
+// reserving its ICD before queuing the delayed boon package.
 export function reactToWarriorDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const targetHealth = Number(context.config.target?.health || 0);
   const damageDone = Number(context.totals.strike || 0) + Number(context.totals.condition || 0);
@@ -103,6 +105,8 @@ const MOVEMENT_SKILL_IDS = new Set<number>(BRAVE_STRIDE_MOVEMENT_SKILL_IDS);
 
 const BODY_BLOW_CONTROL_KINDS = new Set(['stun', 'daze', 'knockback', 'pull', 'push', 'launch']);
 
+// Snapshot Burst Precision's duration by activation from the adrenaline tier so
+// the first delayed hit can consume the correct value.
 export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSkill, spent: number): void {
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BURST_PRECISION)) {
     return;
@@ -113,6 +117,8 @@ export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSki
     spent >= 30 ? Number(profile?.maximumStacks || 4) : Number(profile?.minimumStacks || 2);
 }
 
+// Apply traits owned by the burst resource spend, including Burst Precision,
+// adrenaline refund, and the post-cast Swiftness packet.
 export function applyWarriorBurstSpendTraits(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -148,6 +154,8 @@ export function applyWarriorBurstSpendTraits(
   });
 }
 
+// Convert a qualifying burst's adrenaline spend into the visible Berserker's
+// Power stack tier.
 function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill, spent: number): number {
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BERSERKERS_POWER)) {
     return 0;
@@ -181,6 +189,7 @@ export function applyMartialCadenceWeaponSwap(context: WarriorCastContext, at: n
   }
 }
 
+// Materialize Reckless Dodge's strike and Might together at dodge completion.
 export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!hasTrait(context, TRAIT.RECKLESS_DODGE)) return;
   const profile = warriorBalanceProfile(context, PROFILE.recklessDodge);
@@ -243,6 +252,8 @@ export function grantBerserkersPower(
   });
 }
 
+// Restore ammo without erasing an active cast lockout or incorrectly exposing a
+// skill whose zero-charge cooldown was mirroring count recharge.
 function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
   const ammo = context.cooldownController.refreshAmmo(skill, at);
   if (!ammo) return 0;
@@ -275,6 +286,8 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
   return restored;
 }
 
+// Apply completion-owned Core traits: Signet Mastery state, shadowstep relic
+// activation, and Brave Stride's adrenaline plus Stability.
 export function completeWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   const at = context.effectiveEnd;
   if (skill.categories?.includes('Signet') && hasTrait(context, TRAIT.SIGNET_MASTERY)) {
@@ -361,6 +374,8 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
   }
 });
 
+// Capture cast-start Warrior state for dodge, burst, signet, ammo, and trait
+// mechanics before later effects can alter resources or cooldowns.
 export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.type === 'Heal' && hasTrait(context, TRAIT.THICK_SKIN)) {
     context.emit({
@@ -411,6 +426,8 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
   });
 }
 
+// Return sampled critical hits or convert deterministic critical probability into
+// an integer count while preserving fractional progress.
 function armsCriticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
   const hits = Math.max(1, Number(event.hits || 1));
   if (context.config.randomness?.mode === 'stochastic') {
@@ -437,6 +454,8 @@ function armsCriticalCount(context: WarriorSchedulerContext, event: WarriorSimul
   return count;
 }
 
+// Apply Bloodlust's per-critical proc chance in stochastic mode or accumulate its
+// expected value independently in deterministic mode.
 function bloodlustProcCount(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
@@ -470,6 +489,8 @@ function bloodlustProcCount(
   return count;
 }
 
+// Materialize sampled or expected critical outcomes into Keen Strike, Bloodlust,
+// Furious, and first-burst-hit Sundering Burst effects.
 function applyArmsCriticalTraits(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
@@ -604,6 +625,8 @@ function emitTraitBoon(
   });
 }
 
+// Route the canonical event stream through Core control, condition, boon, burst,
+// critical, and on-hit adrenaline reactions while suppressing duplicate burst hits.
 export function observeWarriorEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   const state = professionCoreState(context);
   if (event.type === 'combat_start') {
@@ -878,6 +901,8 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   });
 }
 
+// Catch periodic Signet of Rage adrenaline and Empower Allies pulses up to the
+// scheduler target, respecting the signet's active cooldown window.
 export function advanceWarriorTraits(context: WarriorSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const selectedSkills = context.config.selectedSkills || [];

@@ -154,6 +154,8 @@ export function createSkillDamageController({
     return emittedAt(timingAnchorAt, damageGroup);
   };
 
+  // Schedule hit-count reactions from actual player packet times so trait and
+  // flip progression follows interrupted or individually timed skills.
   const scheduleTrackedHits = (skill: MesmerSkill, playerHitTimes: readonly number[]): void => {
     if (!skill.trackedHitDamage) return;
     const tracking = skill.trackedHitDamage;
@@ -238,6 +240,8 @@ export function createSkillDamageController({
   ): MesmerSkillDamageResult => {
     const playerHitTimes: number[] = [];
     let firstFencerTriggerAt = Infinity;
+    // Add Fencer's Finesse stacks from the materialized hit cadence rather than
+    // the aggregate effect count, preserving per-hit expiry timing.
     const addFencerStacks = (hitTimes: readonly number[], hits: number | undefined): void => {
       if (!traits.has(TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
         return;

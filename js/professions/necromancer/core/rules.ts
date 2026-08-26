@@ -301,6 +301,8 @@ export function compileNecromancerModifierRules(rules: readonly Gw2ModifierRule[
   return createModifierHooks({ rules });
 }
 
+// Apply Necromancer skill-family recharge traits after shared Alacrity policy,
+// retaining explicit minion-death recharge exceptions.
 function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   let result = duration;
   const skill = context.skill;

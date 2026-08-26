@@ -10,6 +10,8 @@ export function hasRevenantTrait(config: RevenantConfig = {}, traitId: string | 
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
+// Initialize bounded energy and endurance plus complete legend, upkeep, flip,
+// weapon-chain, and trait bookkeeping.
 export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCoreState {
   const selectedLegendIds = normalizeRevenantLegendIds(config.selectedLegends, config.specialization);
   const configuredStartingLegend = config.startingLegend || '';

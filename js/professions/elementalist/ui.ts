@@ -69,6 +69,8 @@ function weaponSkillMatchesSet(
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
+// Apply family-level attunement and hammer-orb gates for non-Weavers; Weaver's
+// two-hand model is delegated to its specialization UI contract.
 function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
   if (specialization(context) === 'Weaver') return { available: true, message: '' };
   const primary = String(

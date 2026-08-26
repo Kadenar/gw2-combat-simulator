@@ -6,6 +6,8 @@ import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';
 
+// Merge direct hits and condition ticks by timestamp to find the first exact
+// scheduling boundary where cumulative damage moves the target below half health.
 function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): number | null {
   const damageByTime = new Map<number, number>();
   const addDamage = (at: number, damage: number): void => {

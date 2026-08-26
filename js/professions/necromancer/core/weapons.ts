@@ -94,6 +94,8 @@ function extirpate(context: NecromancerCastContext, skill: NecromancerSkill, eve
   addShards(context, skill, 2, 'extirpate', event.at);
 }
 
+// Scale a spear packet from the captured Soul Shard count while preserving the
+// base effect's timing and source metadata.
 function soulShardDamage(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -141,6 +143,8 @@ function preparePerforate(context: NecromancerCastContext): PerforateState {
   return { at, shardCount };
 }
 
+// Consume or grant Soul Shards only after the relevant Perforate packet commits,
+// keeping interrupted cast behavior aligned with actual hits.
 function afterPerforateEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,

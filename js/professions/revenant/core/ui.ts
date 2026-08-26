@@ -46,6 +46,8 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
   return skillsById instanceof Map ? String(skillsById.get(skillId)?.name || skillId) : String(skillId);
 }
 
+// Select the timeline icon from the currently active legend, falling back safely
+// when projected runtime state is incomplete.
 export function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill as RevenantSkill | undefined;
   if (skill?.name !== 'Swap Legends') return '';

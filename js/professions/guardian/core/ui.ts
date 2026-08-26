@@ -50,6 +50,8 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
     : [];
 }
 
+// Resolve named Guardian mechanic skills to their currently active flip faces for
+// stable skill-bar and palette projection.
 export function guardianUiSkillIdsByName(names: readonly string[], context: GuardianUiContext = {}): SkillId[] {
   const activeFlips =
     (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as Record<
@@ -73,6 +75,8 @@ export function guardianUiSkillsByMode(property: keyof GuardianSkill, value: unk
     .map((skill) => skill.id);
 }
 
+// Render Guardian-specific virtue and state events while delegating ordinary
+// combat events to the shared log formatter.
 export function guardianEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent

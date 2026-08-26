@@ -86,6 +86,8 @@ export function isElementalistAttunement(value: unknown): value is ElementalistA
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement);
 }
 
+// Build a fully populated core state so every weapon family and specialization
+// can mutate shared attunement resources without defensive shape checks.
 export function createElementalistCoreState(config: ElementalistConfig = {}): ElementalistCoreState {
   const primary = isElementalistAttunement(config.startAttunement) ? config.startAttunement : 'Fire';
   const configuredBullets =

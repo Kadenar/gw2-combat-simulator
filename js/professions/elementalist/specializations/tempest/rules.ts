@@ -48,6 +48,8 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
   );
 }
 
+// Snapshot overload entry state and consume its attunement availability at cast
+// start so interruptions cannot duplicate the mechanic.
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, 'Hardy Conduit')) {
@@ -95,6 +97,8 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
+// Gate overloads and Tempest replacements by attunement, singularity readiness,
+// and any currently active overload channel.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
@@ -124,6 +128,8 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
     : { ready: true };
 }
 
+// Derive Lucid Singularity boon pulses from the overload's actual emitted hits,
+// preserving interruption behavior and the distinct final-pulse duration.
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload || !hasTrait(context, 'Lucid Singularity')) return;
   const hits = context.events
@@ -280,6 +286,8 @@ function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationE
     : event;
 }
 
+// React to normalized attunement and aura events so Tempest traits share the
+// same timestamps as core state changes and resolver-generated auras.
 function onEventScheduled(context: ElementalistCastContext, event: SimulationEvent): void {
   if (event.type === 'elementalist.fresh-air') {
     context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);

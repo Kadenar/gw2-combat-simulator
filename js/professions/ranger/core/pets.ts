@@ -47,6 +47,8 @@ export const RANGER_PET_STRIKE_SCALING = Object.freeze({
   damagePerCoefficient: (2880 * 1524) / 2597
 });
 
+// Resolve the active pet's level-80 base attributes plus inherited Ranger traits
+// and passive Signet of the Wild state for independent summon scaling.
 function rangerPetAttributes(context?: RangerSchedulerContext) {
   const petName = context ? professionCoreState(context).activePet : 'Carrion Devourer';
   let power = 1524;
@@ -239,6 +241,8 @@ function startPetAuto(context: RangerSchedulerContext, at: number, reset = false
   schedulePetAuto(context, at + profile.openingDelay, reset);
 }
 
+// Choose the pet's opening, first ready special, or fallback basic attack while
+// preserving pet-specific activation ordering and Quickness exceptions.
 function autonomousSkill(
   context: RangerSchedulerContext,
   profile: PetAutoProfile,
@@ -267,6 +271,8 @@ function effectDuration(effect: SkillEffect): number | undefined {
   return effect.type === 'boon' || effect.type === 'buff' ? Math.max(0, Number(effect.duration || 0)) : undefined;
 }
 
+// Materialize an autonomous pet action and defer each effect under the current
+// pet generation so a later swap can invalidate stale packets.
 function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, at: number, recovery: number): void {
   const skill = context.catalog.skillsById.get(skillId) as RangerSkill | undefined;
   if (!skill) return;
@@ -333,6 +339,8 @@ export function handleRangerPetAutoEffectTask(
   if (task.payload?.event) context.emit(task.payload.event);
 }
 
+// Run one serialized pet activation, applying summon Quickness and Alacrity to
+// recovery and recharge before scheduling the next autonomous choice.
 export function handleRangerPetAutoTask(
   context: RangerSchedulerContext,
   task: ScheduledTask<PetAutoTaskPayload>
@@ -380,6 +388,8 @@ export function handleRangerPetAutoTask(
   );
 }
 
+// Shift command-owned packets to the pet's actual start, stamp summon metadata,
+// and start or reset autonomous scheduling at combat and swap boundaries.
 export function observeRangerPetEvent(context: RangerSchedulerContext, event: SimulationEvent): void {
   const state = professionCoreState(context);
   const commandDelay = Number(state.petCommandDelays[String(event.activationId || '')] || 0);
@@ -425,6 +435,8 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
   }
 }
 
+// Serialize a manual command behind pet activity, shifting its action timeline
+// and reserving recharge before a task commits the final pet start time.
 export function beginRangerPetCommand(context: RangerCastContext, skill: RangerSkill): void {
   if (!skill.petSkill || skill.petAutonomousSkill) return;
   const state = professionCoreState(context);
@@ -489,6 +501,8 @@ export function setRangerPetActive(context: RangerSchedulerContext, active: bool
   if (active) startPetAuto(context, at);
 }
 
+// Commit a delayed pet command's true cooldown and busy window, then restart the
+// autonomous loop after command recovery.
 export function handleRangerPetCommandStartTask(
   context: RangerSchedulerContext,
   task: ScheduledTask<PetCommandStartTaskPayload>

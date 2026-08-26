@@ -125,6 +125,8 @@ function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): Mini
   };
 }
 
+// Translate a summon balance profile into the runtime attack model, including
+// alternating packets and any condition carried by the alternate attack.
 function minionDefinitionForSkill(context: NecromancerCastContext, skillId: SkillId): MinionDefinition | undefined {
   const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
   const profile = necromancerBalanceProfile(context, profileId);
@@ -179,6 +181,8 @@ function summonWeaponStrength(context: NecromancerCastContext): number {
   return Number(necromancerBalanceProfile(context, PROFILE.summonAttributes)?.weaponStrength || 1048);
 }
 
+// Compile a command skill's declarative strikes, ticks, conditions, control, and
+// consumption fields into the shape used by minion command scheduling.
 function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefinition {
   const effects = skill.effects || [];
   const strike = effects.find((effect) => effect.type === 'strike' && !Array.isArray(effect.ticks));
@@ -237,6 +241,8 @@ function summonStrikeMetadata(
   };
 }
 
+// Start a summon's autonomous attack generation at its declared delay, cancelling
+// the prior generation before the replacement loop begins.
 function queueSummonAttacks(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -276,6 +282,8 @@ function queueSummonAttacks(
   });
 }
 
+// Emit one generation-gated attack cycle for every active copy of a minion, then
+// keep its cadence alive only while the observation window can include another cycle.
 function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask<MinionAttackTaskPayload>): void {
   const payload = task.payload;
   if (!payload) return;
@@ -356,6 +364,8 @@ function handleMinionAttackStop(
   if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
 }
 
+// Materialize explicitly timed command packets once per summoned minion while
+// binding them to the current summon and attack generations.
 function queueMinionCommandAttacks(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -428,6 +438,8 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   return true;
 }
 
+// Emit the immediate, non-ticked portion of a minion command through canonical
+// damage, condition, control, and blind event paths.
 function emitMinionCommandEffects(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -484,6 +496,8 @@ function emitMinionCommandEffects(
   }
 }
 
+// Pause a commanded minion's autonomous loop, preserve its cycle position, and
+// resume after recovery without allowing stale scheduled generations to fire.
 function restartMinionAttacks(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -514,6 +528,8 @@ function restartMinionAttacks(
   });
 }
 
+// Dispatch a command's timed or immediate effects, then reconcile minion counts,
+// flip availability, autonomous attacks, and death-triggered summon recharge.
 function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const definition = commandDefinitionFor(skill);
   if (!definition.minion) return false;
@@ -566,6 +582,8 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
   return true;
 }
 
+// Resolve a delayed command impact only if its owning minion is still active,
+// then award hit-confirmed life force.
 function handleMinionCommandImpact(
   context: NecromancerCastContext,
   task: ScheduledTask<{ readonly skillId: SkillId }>
@@ -579,6 +597,8 @@ function handleMinionCommandImpact(
   gainNecromancerLifeForce(context, Number(definition.lifeForceGain || 0), task.at, 'minion-command-hit');
 }
 
+// Stagger each temporary horror summon and give its attack and explosion unique
+// ownership so simultaneous creatures remain independently attributable.
 function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const start = context.effectiveEnd;
   const attack = skill.effects?.find((effect) => effect.type === 'strike' && effect.packetLabel === 'attack');

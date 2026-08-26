@@ -45,6 +45,8 @@ function activeDragonTriggerEntry(events: readonly SimulationEvent[], insertionI
   return released ? null : entry;
 }
 
+// Validate serialized Flow-rate segments from the Dragon Trigger entry event
+// before using them in release projection.
 function flowRateSegments(value: unknown): readonly DragonFlowRateSegment[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate) => {
@@ -59,6 +61,8 @@ function flowRateSegments(value: unknown): readonly DragonFlowRateSegment[] {
   });
 }
 
+// Reconstruct the active Dragon Trigger window at an insertion point and project
+// the earliest reachable Flow, charge, coefficient, and failure reason per tier.
 export function dragonChargeReleaseProjection(context: {
   readonly events?: readonly SimulationEvent[];
   readonly insertionIndex?: number;

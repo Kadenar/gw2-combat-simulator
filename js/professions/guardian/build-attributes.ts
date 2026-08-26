@@ -9,6 +9,8 @@ import type {
 } from '../../platform/gw2/builds/types.js';
 import type { GuardianBuild } from './types.js';
 
+// Apply Guardian trait, weapon, and selected-skill bonuses at build time while
+// retaining provenance needed to avoid reapplying panel-visible modifiers.
 export function applyGuardianBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], weaponSet = 1, disabledTrait = null }: Gw2BuildAttributeRuleContext

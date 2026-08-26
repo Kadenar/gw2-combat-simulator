@@ -42,6 +42,8 @@ export function gainThiefEndurance(context: ThiefSchedulerContext, amount: numbe
   emitThiefState(context, at, reason);
 }
 
+// Emit a canonically attributed Thief condition for cast- and trait-owned helpers
+// with optional timing and source overrides.
 export function emitThiefCondition(
   context: ThiefEmissionContext,
   {

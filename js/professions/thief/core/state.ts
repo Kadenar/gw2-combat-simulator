@@ -24,6 +24,8 @@ export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
   return THIEF_BASE_HEALTH + Math.max(0, vitality) * 10;
 }
 
+// Initialize bounded initiative and endurance plus complete stealth, venom,
+// weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
   const maximumInitiative = hasThiefTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;

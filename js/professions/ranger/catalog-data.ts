@@ -70,6 +70,8 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
+// Normalize generated Ranger skill metadata and handler defaults before the
+// catalog freezes specialization module data.
 function normalize(skill: RangerSkill): RangerSkill {
   const specialization = String(skill.specialization || '');
 

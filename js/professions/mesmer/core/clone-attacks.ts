@@ -55,6 +55,8 @@ export function createCloneAttackScheduler({
     return next;
   };
 
+  // Schedule one clone-owned attack cycle with identity and generation metadata
+  // so shatters or replacement clones can invalidate stale packets.
   const scheduleAttack = (clone: MesmerClone, at: number): void => {
     const attack = attackFor(clone);
     const step = sequenceStep(clone, attack);

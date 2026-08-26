@@ -301,6 +301,8 @@ export function mesmerBalanceProfileEffect(
   return profile?.effects?.filter((effect) => effect.type === type)[index];
 }
 
+// Overlay balance-profile values onto declarative shatter definitions while
+// retaining their mechanic-specific defaults and metadata.
 export function mesmerProfiledShatters(
   context: unknown,
   shatters: Readonly<Record<number, MesmerShatter>>,

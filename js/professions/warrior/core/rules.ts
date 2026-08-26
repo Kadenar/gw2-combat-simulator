@@ -107,6 +107,8 @@ function targetBoonCount(context: Gw2ModifierContext): number {
   return target?.boonless === false ? 1 : 0;
 }
 
+// Test the active weapon set at query time, accounting for both hands and
+// projected set swaps used by modifier evaluation.
 function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
   if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
@@ -429,6 +431,8 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
+// Apply the fixed weapon-swap recharge and multiplicative burst or weapon-trait
+// reductions after shared recharge policy has produced the base duration.
 function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: WarriorSkill }, duration: number): number {
   const skill = context.skill;
   if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? 5 : 0;

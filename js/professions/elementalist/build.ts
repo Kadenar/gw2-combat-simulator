@@ -23,6 +23,8 @@ const ATTUNEMENTS = new Set<string>(ATTUNEMENT_VALUES);
 
 export { createDefaultTargetConditions };
 
+// Initialize every persisted profession field so migrations can safely overlay
+// partial or legacy builds without leaving runtime state undefined.
 export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
   return {
     schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,

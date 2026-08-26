@@ -54,6 +54,8 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
+// Apply Elemental Polyphony's attribute bonuses from both current Weaver
+// attunements without double-counting a repeated element.
 function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   if (!hasTrait(context, 'Elemental Polyphony')) return attributes;
   const modified = { ...attributes };

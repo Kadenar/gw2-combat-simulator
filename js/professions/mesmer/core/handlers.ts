@@ -17,6 +17,8 @@ function effectWeaponStrength(effect: SkillEffect, skill: Skill): number | undef
   return MESMER_CORE_WEAPON_STRENGTH[normalized] ?? MESMER_CORE_WEAPON_STRENGTH[String(skill.weapon || '')];
 }
 
+// Replace generic declarative packets with canonical Mesmer ownership, weapon,
+// critical, and condition metadata expected by downstream combat rules.
 function observeDeclarativeEffect(
   context: MesmerHandlerContext,
   skill: Skill,

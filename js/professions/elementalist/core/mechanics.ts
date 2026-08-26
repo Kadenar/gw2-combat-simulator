@@ -171,6 +171,8 @@ export function emitProfiledCondition(
   );
 }
 
+// Emit a consistently attributed proc marker for skill- and trait-owned
+// Elementalist effects without duplicating packet construction at call sites.
 export function emitElementalistProc(
   context: ElementalistSchedulerContext,
   {
@@ -206,6 +208,8 @@ export function emitElementalistProc(
   });
 }
 
+// Register the adjusted aura window first, then emit its canonical event and
+// combat-only trait boons so every consumer observes one shared application.
 export function applyElementalistAura(
   context: ElementalistSchedulerContext,
   {

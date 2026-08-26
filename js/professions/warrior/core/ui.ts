@@ -51,6 +51,8 @@ export function formatSecondsRemaining(seconds: number): string {
   return `${Math.max(0, seconds).toFixed(1)}s`;
 }
 
+// Resolve a valid primary weapon for either UI set from build and projected
+// runtime state, falling back safely when a saved selection is empty.
 function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): string {
   if (context.build) {
     return String(weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '');

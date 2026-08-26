@@ -8,6 +8,8 @@ import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from './profiles.js';
 import type { MesmerApplyCondition, MesmerResolverContext, MesmerResolverEvent } from '../types.js';
 
+// Attach Ineptitude's Confusion to a qualifying blindness application through
+// the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(
   ctx: MesmerResolverContext,
   event: MesmerResolverEvent,

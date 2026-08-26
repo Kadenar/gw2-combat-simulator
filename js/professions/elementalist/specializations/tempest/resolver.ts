@@ -11,6 +11,8 @@ import {
 import { elementalistBalanceEffect, elementalistBalanceValue } from '../../core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Convert resolved auras into Tempest trait boons and effects after the aura has
+// been accepted by the core resolver.
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Tempestuous Aria')) {
     const extension = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'durationMultiplier', 5);

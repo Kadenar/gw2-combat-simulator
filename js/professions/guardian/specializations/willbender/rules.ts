@@ -67,6 +67,8 @@ export const willbenderAttributeRules = Object.freeze({
   modifierRules: willbenderModifierRules
 });
 
+// Open the chosen virtue window and grant its activation traits from one
+// timestamp; the returned duration lets the caller schedule matching expiry.
 export function applyWillbenderVirtueActivationTraits(
   context: GuardianCastContext,
   virtue: GuardianVirtue,
@@ -227,6 +229,8 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
   context.cooldownController.reduceSkillRecharge(skill, pending, context.effectiveEnd);
 }
 
+// Add or refresh Lethal Tempo at its cap and emit the matching visible buff from
+// a completed Willbender virtue trigger.
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
   const tyrantsMomentum = hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
@@ -338,6 +342,8 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
   const state = willbenderState.from(context);
   const sourceSkill = String(payload.sourceSkillName || '');
 
+  // Materialize one completed virtue hit cycle, resetting its counter before
+  // emitting Lethal Tempo, cooldown reductions, and virtue-specific boons.
   const triggerVirtue = (virtue: GuardianVirtue, burningDuration?: number, justiceActive?: boolean): void => {
     state.triggeredVirtueEffects += 1;
     emitLethalTempo(context, at, sourceSkill);

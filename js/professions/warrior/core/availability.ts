@@ -4,6 +4,8 @@ import { warriorEnduranceReadyAt } from './resources.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { WarriorCastContext, WarriorSkill } from '../types.js';
 
+// Gate Warrior casts by endurance, autoattack progression, and adrenaline while
+// projecting a retry time from Signet of Rage's available passive pulses.
 export function warriorCastAvailability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {

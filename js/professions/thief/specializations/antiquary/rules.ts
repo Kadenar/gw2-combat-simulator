@@ -31,6 +31,8 @@ const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
   ID.HOLO_DANCER_DECOY
 ]);
 
+// Return the Meticulous Custodian strike multiplier only for the artifact and
+// active identity window that owns the queried packet.
 function meticulousArtifactStrikeFactor(
   context: Gw2ModifierContext,
   _target: unknown,

@@ -86,6 +86,8 @@ function petEvent(context: Gw2ModifierContext): boolean {
   return context.event?.actorType === 'summon' && context.event?.source === 'ranger-pet';
 }
 
+// Count distinct configured or live target conditions at query time for traits
+// that scale from condition variety rather than stack count.
 function targetConditionCount(context: Gw2ModifierContext): number {
   const active = new Set(
     Object.entries(context.config?.target?.conditions || {})
@@ -129,6 +131,8 @@ const BOON_KINDS = Object.freeze([
   'vigor'
 ]);
 
+// Query boon state for the active companion, honoring summon-audience events
+// before falling back to configured assumptions.
 function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'summon')) {
     return true;
@@ -344,6 +348,8 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   return result;
 }
 
+// Apply skill-specific trap multipliers and positional projectile bonuses to the
+// base condition duration before general Expertise scaling.
 function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   let result = duration;
   const skill = eventSkill(context);

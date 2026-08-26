@@ -16,6 +16,8 @@ import { berserkerState } from './state.js';
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 
+// Emit a normalized Berserker trait boon with optional party recipients and the
+// originating skill's attribution.
 function emitBoon(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -52,6 +54,8 @@ export function berserkEntryDuration(context: WarriorCastContext): number {
   return Number(effect?.duration ?? 20);
 }
 
+// Emit Berserk's baseline Burst of Aggression boons and the optional Bloody Roar
+// Resistance from their selected balance profiles.
 export function applyBerserkEntryTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   const burstOfAggression = warriorBalanceProfile(context, PROFILE.burstOfAggression);
   for (const effect of burstOfAggression?.effects || []) {
@@ -108,6 +112,8 @@ function rageBerserkExtension(context: WarriorCastContext, skill: WarriorSkill):
   }
 }
 
+// Extend an active Berserk window only for completed primal bursts and Rage
+// skills, layering their skill-specific and trait-specific duration bonuses.
 function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = berserkerState.from(context);
   if (!state.berserkActive || !isComplete(context)) return;
@@ -129,6 +135,8 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
 }
 
+// Apply completed Rage-skill Burning and primal-burst party boons independently
+// from Berserk duration extension.
 function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!isComplete(context)) return;
   if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
@@ -189,6 +197,8 @@ function isBerserkerSkill(skill: WarriorSkill): boolean {
   return Boolean(skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker');
 }
 
+// Establish the active Fire Aura window and emit both its buff and visible proc
+// marker for trait- or combo-owned sources.
 function emitFireAura(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
@@ -245,6 +255,8 @@ function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulatio
   return count;
 }
 
+// Route canonical critical, fire-aura, and Burning events through Berserker trait
+// reactions after their outcomes and ownership are known.
 export function observeBerserkerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type === 'aura' && event.aura === 'Fire Aura') {
     berserkerState.from(context).fireAuraUntil = Math.max(
@@ -276,6 +288,8 @@ export function reactToBerserkerAura(context: WarriorResolverContext, event: War
   );
 }
 
+// Resolve the delayed King of Fires hit only for the still-current aura
+// generation, then schedule or emit its linked effects.
 export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as { readonly eventOrder?: number } | null;
   const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
@@ -307,6 +321,8 @@ export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task:
   }
 }
 
+// Detonate King of Fires from its captured task payload and clear only the aura
+// generation that produced the detonation.
 export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as {
     readonly activationId?: string;

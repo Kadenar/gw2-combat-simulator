@@ -543,6 +543,8 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
   }
 });
 
+// Route resolved conditions into Necromancer trait reactions after the source
+// condition has been accepted by the resolver.
 export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -576,6 +578,8 @@ export function reactToNecromancerCoreCondition(
   }
 }
 
+// Convert a qualifying Blind into ICD-bound Chilling Darkness through the
+// resolver's condition application hook.
 export function reactToNecromancerBlind(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -598,6 +602,8 @@ export function reactToNecromancerBlind(
   });
 }
 
+// Record target-control and Dread windows, then attach fear-specific Terror and
+// the generic Insidious Disruption condition to the originating control event.
 export function reactToNecromancerCoreControl(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,

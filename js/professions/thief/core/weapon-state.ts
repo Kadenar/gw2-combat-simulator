@@ -5,6 +5,8 @@ import { emitThiefState, gainThiefEndurance, gainThiefInitiative } from './share
 import { updateSpearChainState } from './conditions.js';
 import type { ThiefCastContext, ThiefSkill } from '../types.js';
 
+// Extend stealth up to its cap unless Revealed blocks entry, firing enter-stealth
+// traits only when transitioning from an unstealthed state.
 export function grantThiefStealth(
   context: ThiefCastContext,
   skill: ThiefSkill,

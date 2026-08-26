@@ -58,6 +58,8 @@ function kallasFervorProfile(context: RevenantSchedulerContext): BalanceProfile 
   );
 }
 
+// Materialize a selected Renegade profile with scheduler duration policy while
+// keeping the visible skill as event owner and annotating dynamic ally recipients.
 function emitProfileEffects(
   context: RevenantCastContext,
   eventSkill: RevenantSkill | BalanceProfile,
@@ -174,6 +176,8 @@ export function grantKallasFervor(
   return true;
 }
 
+// Prune and refresh every active Kalla's Fervor application, returning the
+// capped stack count used by Heroic Command.
 function refreshKallasFervor(context: RevenantSchedulerContext, at: number): number {
   const state = renegadeState.from(context);
   const profile = kallasFervorProfile(context);
@@ -249,6 +253,8 @@ export function observeBandTogetherEffect(
   }
 }
 
+// Seed the player's finite Razorclaw charge window and precompute each assumed
+// ally's ICD-limited bleed procs from the same buff profile.
 function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill, profile: RevenantSkill): void {
   const buff = profile.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'razorclaws-rage');
   const proc = skillById(context, RENEGADE_PROFILE_IDS.razorclawsRageProc);

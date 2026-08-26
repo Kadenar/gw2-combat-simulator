@@ -52,6 +52,8 @@ function setShroudRecharge(
   }
 }
 
+// Exit the current shroud atomically, clear its flip and drain state, then apply
+// exit traits and publish the weapon-set transition.
 export function leaveShroud(context: NecromancerSchedulerContext, at: number, reason = 'shroud-exit'): void {
   const state = professionCoreState(context);
   const shroud = state.activeShroud;
@@ -178,6 +180,8 @@ function emitAlliedTasteForBloodHits(context: NecromancerSchedulerContext, start
   state.traitProcReadyAt.tasteForBloodAlliedNextAt = nextAt;
 }
 
+// Advance all continuous Necromancer state to one timestamp: timed traits,
+// signet pulses, life-force sources and drain, and expiring transformations.
 export function advanceNecromancerState(context: NecromancerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const start = Number(state.lastResourceAt || 0);

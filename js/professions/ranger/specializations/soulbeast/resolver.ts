@@ -300,6 +300,8 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
   }
 }
 
+// Translate canonical control into Soulbeast trait reactions after the control
+// window has been accepted by the core resolver.
 export function reactToSoulbeastControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {

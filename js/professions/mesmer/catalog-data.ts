@@ -80,6 +80,8 @@ function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): R
   );
 }
 
+// Normalize generated and supplemental Mesmer mechanics for one module, moving
+// ammo ownership from flip parents to ammo-bearing child skills where required.
 export function createMesmerModuleData<TContext extends object>(
   id: string,
   {

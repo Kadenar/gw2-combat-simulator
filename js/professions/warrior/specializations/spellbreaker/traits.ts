@@ -68,6 +68,8 @@ function triggerMagebaneTether(
   return true;
 }
 
+// Translate scheduled boon removal, control, and burst damage into Attacker's
+// Insight, No Escape, and Magebane Tether state without cross-event duplication.
 export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.actorType !== 'player') return;
   if (event.type === 'warrior.boon-removal') {
@@ -134,6 +136,8 @@ export function reactToSpellbreakerControl(context: WarriorResolverContext, even
   }
 }
 
+// Trigger resolver-side Magebane Tether only from a qualifying player burst hit
+// and record the proc when its cooldown admits a new window.
 export function reactToSpellbreakerDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context, TRAIT.MAGEBANE_TETHER)) {
     return;

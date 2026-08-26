@@ -34,6 +34,8 @@ const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F63
 const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
 const EARTHEN_BLAST_ICON = 'https://render.guildwars2.com/file/2531DCAFAEAB452C90C4572E1ADCE8236DCF5636/1012304.png';
 
+// Materialize Sunspot's attunement-entry strike and Burning at the transition
+// timestamp using profile-owned values.
 export function triggerSunspot(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) {
     return;
@@ -74,6 +76,8 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
   });
 }
 
+// Snapshot capped might at Fire-attunement exit and scale both the strike and
+// burning duration from that same value for deterministic trait attribution.
 export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) {
     return;
@@ -145,6 +149,8 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
   });
 }
 
+// Emit Electric Discharge from an Air-attunement transition with stable trait
+// ownership and the triggering mechanic's skill ID.
 export function triggerElectricDischarge(
   context: ElementalistSchedulerContext,
   at: number,
@@ -280,6 +286,8 @@ export function triggerBountifulPower(
   }
 }
 
+// Materialize the dodge proc selected by the current attunement while tracking
+// a separate internal cooldown for each elemental version.
 export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skill: Skill): void {
   if (!hasTrait(context, 'Evasive Arcana')) return;
   const state = professionCoreState(context);
@@ -358,6 +366,8 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   });
 }
 
+// Centralize cast-completion traits that depend on skill family, attunement, or
+// shared ICD state so specialization hooks do not duplicate core ordering.
 export function applyGenericPostCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -500,6 +510,8 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
   }
 }
 
+// Extend a fire field by cloning its final authored packet and attached
+// conditions at the measured cadence instead of stretching earlier packets.
 export function extendPersistingFlamesPackets(context: ElementalistLifecycleContext, skill: Skill): void {
   if (!hasTrait(context, 'Persisting Flames') || !PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)) {
     return;
@@ -544,6 +556,8 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   }
 }
 
+// Extend only the active fire field selected for Persisting Flames and mirror the
+// new expiry on its scheduled field event.
 export function extendPersistingFlamesField(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (
     event.type !== 'action' ||
@@ -566,6 +580,8 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
   });
 }
 
+// Collect eligible critical packets for Fresh Air after critical outcomes are
+// known, deferring cooldown reset to ordered candidate processing.
 function observeFreshAir(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (
     event.type !== 'damage' ||
@@ -587,6 +603,8 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
   });
 }
 
+// Resolve queued Fresh Air candidates in event order and reset Air attunement on
+// the first successful sampled or expected critical proc.
 export function processFreshAirCandidates(context: ElementalistSchedulerContext, through: number): void {
   const state = professionCoreState(context);
   if (!state.freshAirCandidates.length) return;
@@ -635,6 +653,8 @@ function eventCriticalChance(context: ElementalistSchedulerContext): number {
   );
 }
 
+// Convert critical-hit probabilities into deterministic progress accumulators,
+// then spend whole procs subject to each trait's independent cooldown.
 function observeCriticalTraits(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (
     event.type !== 'damage' ||
@@ -767,6 +787,8 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
   }
 }
 
+// Route player control events through Lightning Rod and Stormsoul while keeping
+// their damage, conditions, buffs, and proc records tied to the triggering hit.
 function observeLightningRod(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player') return;
   const sourceId = event.skillId ?? event.sourceId;

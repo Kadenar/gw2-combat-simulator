@@ -30,6 +30,8 @@ function hasElementsOfRage(context: SchedulerRecord): boolean {
   return getActiveTraits(build?.specializations || []).some((trait) => trait.name === 'Elements of Rage');
 }
 
+// Mirror scheduler availability for dual-attuned hands and flipover skills so
+// the palette explains which half of the current attunement pair blocks a skill.
 function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   const state = uiState(context);
   const build = context.build as SchedulerRecord | undefined;
@@ -89,6 +91,8 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
   };
 }
 
+// Project Unravel and attunement casts into compact primary/secondary labels
+// without mutating the simulation state used by the timeline.
 function unravelTimelineWeaponLineTransition(context: SchedulerRecord): string | undefined {
   const skill = context.skill as Skill | undefined;
   const build = context.build as SchedulerRecord | undefined;
@@ -212,6 +216,8 @@ function attunementBadge(attunement: unknown): string {
     .join('/');
 }
 
+// Render one weapon cell with availability, equipped-state, and optional
+// attunement badge while delegating the actual skill tile to the shared renderer.
 function skillCellHtml(
   skill: Skill,
   isAvailable: (skill: Skill) => boolean,
@@ -263,6 +269,8 @@ function elementRowsHtml(
     .join('');
 }
 
+// Arrange Weaver weapon skills by primary hand, dual slot, and secondary hand;
+// the layout deliberately exposes variants that the normal flat palette hides.
 function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext): ProfessionWeaponPaletteView | null {
   if (String(context.specialization || '') !== 'Weaver') return null;
   const skills = context.skills;

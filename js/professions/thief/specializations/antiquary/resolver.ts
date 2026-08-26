@@ -5,6 +5,8 @@ import type { ThiefResolverContext, ThiefResolverEvent, ThiefResolverReactionDet
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
+// Spend one unexpired Mistburn charge on a qualifying player strike and attach
+// its Burning without allowing the mortar's granting strike to self-consume.
 function applyMistburnCharge(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
@@ -40,6 +42,8 @@ function applyMistburnCharge(
   });
 }
 
+// Add Meticulous Custodian's Burning only to the Sun Crystal strike packet,
+// excluding its declarative condition-only packets.
 function applyMeticulousSunCrystal(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,

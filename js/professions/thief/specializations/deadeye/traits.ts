@@ -57,6 +57,8 @@ export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): 
   );
 }
 
+// Apply Deadeye traits triggered by consuming a stolen skill at its committed
+// timestamp, including resource and boon effects.
 export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: number): void {
   if (!hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
   const profile = thiefBalanceProfile(context, PROFILE.fireForEffect);

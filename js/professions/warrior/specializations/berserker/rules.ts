@@ -70,6 +70,8 @@ function active(context: Gw2ModifierContext): boolean {
   return runtime?.specialization?.kind === 'Berserker' && Boolean(runtime.specialization.state?.berserkActive);
 }
 
+// Apply Berserker's live trait and Berserk-window attribute changes without
+// mutating the shared resolved-stat object.
 function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const conversionPower = Number(context.config?.stats?.power ?? attributes.power ?? 0);
   const conversionPrecision = Number(context.config?.stats?.precision ?? attributes.precision ?? 0);

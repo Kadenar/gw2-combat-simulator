@@ -90,6 +90,8 @@ export function rangerPetPaletteGroup(
   };
 }
 
+// Resolve a valid pet for either UI slot from current build state, falling back to
+// the profession defaults when a saved name is stale.
 export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
   const selected = String(
@@ -135,6 +137,8 @@ function hasHammerEquipped(context: RangerUiContext): boolean {
   ].includes('Hammer');
 }
 
+// Replace exactly one hammer variant pair in build state after validating the
+// selected skill belongs to that slot.
 function updateHammerSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
   if (selection.key !== 'selectedHammerSkillIds' || !context.build) {
     return false;
@@ -172,6 +176,8 @@ function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: S
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
+// Project runtime hammer, weapon-flip, and active-pet gates into palette state so
+// unavailable alternatives remain visible with an actionable explanation.
 function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
     return { available: false, message: 'Select this Hammer variant first' };

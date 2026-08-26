@@ -14,6 +14,8 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
+// Track equipped and ground-copy conjures as timed flip state so pickup and
+// expiry behavior share one source of truth.
 export function applyConjureState(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;

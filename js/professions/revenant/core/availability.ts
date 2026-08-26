@@ -7,6 +7,8 @@ import { denySkillCast as denyRevenantSkill } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '../types.js';
 
+// Centralize Revenant cast gates for legends, energy, endurance, upkeeps, timed
+// flips, specialization ownership, and autoattack progression.
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');

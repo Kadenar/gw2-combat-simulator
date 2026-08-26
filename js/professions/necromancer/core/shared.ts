@@ -72,6 +72,8 @@ export function emitState(context: NecromancerSchedulerContext, at: number, reas
   );
 }
 
+// Emit a normalized Necromancer strike with optional summon ownership, timing,
+// weapon, and metadata overrides.
 export function emitDamage(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,
@@ -221,6 +223,8 @@ export function necromancerActiveBoonCompanionIds(
   return Object.freeze([...necromancerActiveMinionCompanionIds(context), ...spiritIds]);
 }
 
+// Resolve boon duration from live stats, configured bonuses, and active sigils
+// within GW2's duration bounds.
 export function necromancerBoonDuration(
   context: NecromancerCastContext,
   boon: string,

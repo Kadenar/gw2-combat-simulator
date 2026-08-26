@@ -32,6 +32,8 @@ const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<Record<string, Readonly<Record<st
   })
 });
 
+// Combine weapon-sensitive Ranger traits with Soulbeast-only pet and archetype
+// bonuses before finalizing the selected weapon set's build attributes.
 export function applyRangerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], weaponSet = 1, disabledTrait = null }: Gw2BuildAttributeRuleContext

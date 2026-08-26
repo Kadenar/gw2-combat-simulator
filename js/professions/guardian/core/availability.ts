@@ -6,6 +6,8 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { GuardianAvailabilityContext, GuardianPrecastContext, GuardianSkill } from '../types.js';
 
+// Resolve the active Guardian specialization consistently from build, config,
+// and runtime contexts used by both UI and scheduler gates.
 export function selectedGuardianSpecialization(context: GuardianAvailabilityContext = {}): string {
   const config = context.config || context;
   if (typeof config.specialization === 'string') {

@@ -135,6 +135,8 @@ interface WarriorModuleDataOptions<TContext extends object> extends ProfessionMo
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
+// Normalize generated and supplemental Warrior mechanics into one module with
+// shared traits, profiles, handlers, and specialization ownership.
 export function createWarriorModuleData<TContext extends object>(
   id: string,
   {

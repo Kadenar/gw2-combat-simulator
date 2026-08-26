@@ -4,6 +4,8 @@ import { mesmerRuntimeFor } from './runtime.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime, MesmerSkill } from '../types.js';
 
+// Enforce terrestrial, specialization, and weaponmaster restrictions before a
+// skill enters either the build UI or runtime availability checks.
 export function isMesmerBuildSkillAvailable(
   skill: MesmerSkill,
   config: Pick<MesmerConfig, 'specialization' | 'weaponmasterTraining'>
@@ -24,6 +26,8 @@ export function isMesmerBuildSkillAvailable(
   return true;
 }
 
+// Gate casts by build eligibility, the current autoattack-chain step, and the
+// parent-controlled timing window for flip skills.
 export function mesmerAvailability(
   context: MesmerPrecastContext & {
     readonly mesmerRuntime?: MesmerRuntime;

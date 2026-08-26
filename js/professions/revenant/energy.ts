@@ -6,6 +6,8 @@ import { applyConduitEnergyCostRules } from './specializations/conduit/energy.js
 import { applyVindicatorEnergyCostRules } from './specializations/vindicator/energy.js';
 import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeState, RevenantSkill } from './types.js';
 
+// Resolve the active Revenant specialization consistently from runtime and
+// configuration shapes used by energy rules.
 function revenantEnergySpecialization(context: RevenantEnergyContext): string {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.state;

@@ -9,6 +9,8 @@ import type {
 } from '../../platform/gw2/builds/types.js';
 import type { ElementalistBuildSpecialization } from './types.js';
 
+// Fold build-time trait, weapon, and selected-skill bonuses into the common
+// attributes while preserving trait-duration and provenance metadata.
 export function applyElementalistBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext

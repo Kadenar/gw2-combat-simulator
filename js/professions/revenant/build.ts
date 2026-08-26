@@ -31,6 +31,8 @@ const REVENANT_DODGES = Object.freeze(['Death Drop', 'Saint of zu Heltzer', 'Imp
 
 export { createDefaultTargetConditions };
 
+// Seed a schema-current Revenant preset with a legal legend pair, complete
+// resources, assumptions, equipment, and rotation fields.
 export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
   return {
     schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,

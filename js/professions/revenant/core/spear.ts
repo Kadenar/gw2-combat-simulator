@@ -42,6 +42,8 @@ function sameWeaponSet(config: RevenantConfig, first: number, second: number): b
   return JSON.stringify(weaponSet(config, first)) === JSON.stringify(weaponSet(config, second));
 }
 
+// Replace Abyssal Raze's declarative profile with a stack-scaled strike and its
+// base plus Crushing Abyss Torment packets, preserving triggered-copy attribution.
 function emitAbyssalRazePackets(
   context: RevenantSchedulerContext,
   skill: RevenantSkill,

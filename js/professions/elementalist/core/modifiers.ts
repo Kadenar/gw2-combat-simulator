@@ -185,6 +185,8 @@ export function compileElementalistModifierRules(rules: readonly Gw2ModifierRule
   return createModifierHooks({ rules });
 }
 
+// Apply live attunement, timed-buff, conjure, and signet attribute changes at
+// event time; build-time bonuses are intentionally handled upstream.
 export function modifyElementalistAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord

@@ -41,6 +41,8 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
   return rate > 0 ? context.start + missing / rate : null;
 }
 
+// Advance initiative and endurance regeneration while pruning expired Lead
+// Attacks, venom, guild summon, and flip state at the same target timestamp.
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
@@ -83,6 +85,8 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   emitThiefState(context, target, 'resources');
 }
 
+// Spend initiative at cast start and apply Signets of Power's immediate refund
+// for qualifying signet activations.
 export function spendThiefCoreResources(context: ThiefPrecastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const cost = Number(skill.initiativeCost || 0);

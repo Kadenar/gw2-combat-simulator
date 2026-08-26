@@ -47,6 +47,8 @@ const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.
   [ID.SNIPERS_COVER]: 5
 });
 
+// Derive Scepter autoattack chain metadata from generated skill identity so the
+// catalog exposes the correct root, next step, and timing.
 function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
   const chain = new Map<
     SkillId,
@@ -288,6 +290,8 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh'
 });
 
+// Normalize generated and supplemental Thief mechanics into one specialization
+// module with shared traits, profiles, handlers, and ownership filters.
 export function createThiefModuleData<TContext extends object>(
   id: string,
   {

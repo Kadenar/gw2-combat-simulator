@@ -122,6 +122,8 @@ interface RevenantEnergyCostState {
   readonly activeUpkeeps?: RevenantCoreState['activeUpkeeps'];
 }
 
+// Flatten the core resource fields needed by specialization-aware energy-cost
+// rules without exposing mutable scheduler state.
 function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};

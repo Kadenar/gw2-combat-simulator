@@ -305,6 +305,8 @@ function resetRadiantWeaponCooldowns(context: GuardianSchedulerContext, virtue: 
   return ids.length > 0;
 }
 
+// Route a completed Luminary virtue through its shared activation traits and
+// virtue-specific illumination effects.
 function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: GuardianSkill): void {
   const virtue = virtueFor(skill);
   if (!virtue) return;

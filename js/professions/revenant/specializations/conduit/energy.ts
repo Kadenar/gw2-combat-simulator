@@ -1,5 +1,7 @@
 import type { ConduitState, RevenantEnergyContext, RevenantRuntimeState, RevenantSkill } from '../../types.js';
 
+// Extract Conduit specialization state only when that specialization is active,
+// preventing energy rules from reading another module's shape.
 function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitState> {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};

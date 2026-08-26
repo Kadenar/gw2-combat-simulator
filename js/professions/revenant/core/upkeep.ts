@@ -80,6 +80,8 @@ function pulseIntervalForUpkeep(skill: RevenantSkill | undefined): number {
   return Math.max(0, Number(skill?.pulseInterval ?? 1));
 }
 
+// Emit one Embrace the Darkness pulse with the current target-count and trait
+// profile while retaining upkeep ownership.
 function emitEmbraceTheDarknessPulse(
   context: RevenantSchedulerContext,
   skill: RevenantSkill,

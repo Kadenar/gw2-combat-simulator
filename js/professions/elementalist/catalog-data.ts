@@ -177,6 +177,8 @@ function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly Skil
   });
 }
 
+// Expand Wildfire's field lifetime from its packet timing while leaving every
+// other generated effect unchanged.
 function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
   return (skill.effects || []).map((effect) => {
     if (effect.type === 'strike') {
@@ -403,6 +405,8 @@ function finalizedSkillMechanics(
   );
 }
 
+// Discover only closed slot-one chains from API next-chain links; open chains
+// and non-autoattack sequences are registered through explicit declarations.
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
   const skillsById = new Map(generated.map((skill) => [Number(skill.id), skill]));
 

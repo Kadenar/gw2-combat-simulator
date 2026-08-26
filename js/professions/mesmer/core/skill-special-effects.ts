@@ -39,6 +39,8 @@ interface SkillSpecialEffectControllerOptions {
   readonly balanceProfile: MesmerRuntime['balanceProfile'];
 }
 
+// Own one-shot Mesmer skill state that does not fit declarative packets, including
+// Clarity consumption, clone follow-ups, signet resets, and heal-triggered traits.
 export function createSkillSpecialEffectController({
   state,
   traits,
@@ -61,6 +63,8 @@ export function createSkillSpecialEffectController({
     return consumed;
   };
 
+  // Resolve each supported skill's side effects at its effective timestamp while
+  // keeping reset, clone, and trait-proc mutations synchronized with emitted events.
   const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id === ID.AXES_OF_SYMMETRY) {
       const axeClones = professionCoreState(state).clones.filter(

@@ -34,6 +34,8 @@ function profileEffect(context: unknown, id: number | string, type: string, inde
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
 }
 
+// Apply the active weapon set's boon-duration stats and named bonus within GW2's
+// duration cap before a trait boon is emitted.
 function boonDuration(context: RangerCastContext, kind: string, baseDuration: number): number {
   const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
@@ -101,6 +103,8 @@ export function applyRangerDodgeTraits(context: RangerCastContext): void {
   });
 }
 
+// On an eligible heal, consume Child of Earth's ICD and emit the initial
+// immobilize followed by the profile-defined Muddy Terrain condition pulses.
 function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   const profile = rangerBalanceProfile(context, PROFILE.childOfEarth);
@@ -152,6 +156,8 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
   }
 }
 
+// Route completed casts through shared Ranger trait families while consuming
+// transient Quick Draw state only on the next qualifying weapon skill.
 export function completeRangerTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   if (skill.evades) applyRangerDodgeTraits(context);
@@ -260,6 +266,8 @@ export function applyRangerBeastSkillTraits(
   }
 }
 
+// Apply combat-only weapon-swap traits on independent ICDs and arm Quick Draw's
+// one-use window for the next qualifying weapon skill.
 export function applyRangerWeaponSwapTraits(
   context: RangerCastContext | RangerSchedulerContext,
   skill: RangerSkill,
@@ -323,6 +331,8 @@ export function applyRangerWeaponSwapTraits(
   }
 }
 
+// Materialize pet-swap party boons and Clarion Bond's lesser warhorn package,
+// including its condition and blast finisher, at the swap completion time.
 export function applyRangerPetSwapTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -404,6 +414,8 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }
 }
 
+// Snapshot the Ranger's configured and still-active boons at command completion,
+// then mirror their current duration and stacks to the active companion only.
 export function applyRangerCommandTraits(context: RangerCastContext, skill: RangerSkill): void {
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
@@ -473,6 +485,8 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
   }
 }
 
+// Spend the player or pet Opening Strike independently on its first qualifying
+// hit and attach Vulnerability plus Alpha Focus when selected.
 function consumeOpeningStrike(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OPENING_STRIKE)) return;
   const state = professionCoreState(context);
@@ -512,6 +526,8 @@ function consumeOpeningStrike(context: RangerResolverContext, event: RangerResol
   }
 }
 
+// Convert the target's current health tier into ICD-bound Might stacks on a
+// qualifying player strike, using the resolver's cumulative damage state.
 function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
   const state = professionCoreState(context);
@@ -656,6 +672,8 @@ function triggerArachnophobia(context: RangerResolverContext, event: RangerResol
   );
 }
 
+// Mirror the active Strength of the Pack proc between Ranger and companion hits
+// while enforcing its event and cooldown guards.
 function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event)) return;
   const active = (context.boons.get('strength-of-the-pack') || []).some(
@@ -683,6 +701,8 @@ function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerR
   });
 }
 
+// Trigger Go for the Throat from its qualifying Ranger or pet event and apply the
+// profile-owned companion strike with stable ownership.
 function triggerGoForTheThroat(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
@@ -846,6 +866,8 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   }
 }
 
+// Record the target-control window and dispatch Ranger traits that react to
+// canonical control events without replaying the source effect.
 export function reactToRangerCoreControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   if (

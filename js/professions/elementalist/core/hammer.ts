@@ -9,6 +9,8 @@ import { HAMMER_ORB_SKILLS } from './constants.js';
 import { activeBuffEvents, emitBuff, emitProfiledCondition, profiledEffect, skillWeapon } from './mechanics.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
+// Replace Grand Finale with one projectile per active orb, preserving each orb's
+// element and consuming the captured set atomically.
 export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext, skill: Skill): boolean {
   if (skill.name !== 'Grand Finale') return false;
   const state = professionCoreState(context);
@@ -68,6 +70,8 @@ export function hammerOrbMatchesAttunement(
   return element === state.primaryAttunement;
 }
 
+// Creating an orb refreshes all active orb windows; Grand Finale consumes the
+// stored orbs while leaving their visible buffs alive for the final packet.
 export function applyHammerState(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
   const state = professionCoreState(context);

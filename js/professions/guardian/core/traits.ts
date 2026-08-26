@@ -48,6 +48,8 @@ export function guardianTraitIcon(traitId: SkillId): string {
   return TRAIT_BY_ID.get(Number(traitId))?.icon || '';
 }
 
+// Emit a normalized Guardian proc marker with trait icon and triggering-skill
+// attribution shared by core and specialization rules.
 export function emitGuardianProc(
   context: GuardianSchedulerContext,
   {
@@ -391,6 +393,8 @@ export function handleSymbolOfIgnitionField(context: GuardianResolverContext, ev
   state.symbolIgnitionUntil = event.at + Number(event.duration || 4);
 }
 
+// While the symbol window is active, attach its burning to other player hits;
+// the symbol's own packets are excluded to prevent self-recursion.
 function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const profile = guardianBalanceProfile(context, PROFILE.symbolOfIgnition);
   const burning = guardianBalanceProfileEffect(profile, 'condition');
@@ -435,6 +439,8 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
   });
 }
 
+// Normalize Resolution duration before it enters the queue, then decorate
+// canonical symbol packets with scheduler-owned trait effects.
 export function observeGuardianScheduledEvent(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
   if (
     event.type === 'buff' &&
@@ -512,6 +518,8 @@ function recordTraitProc(
   context.recordProc('trait', name, at, sourceSkill, detail, guardianTraitIcon(traitId));
 }
 
+// Queue a resolver-owned buff with canonical trait attribution and explicit
+// recipient semantics.
 function queueResolverBuff(
   context: GuardianResolverContext,
   {
@@ -547,6 +555,8 @@ function queueResolverBuff(
   });
 }
 
+// Schedule Lesser Symbol of Resolution's pulse sequence as causally ordered
+// symbol packets and boons from one activation.
 function queueLesserSymbolOfResolution(
   context: GuardianResolverContext,
   at: number,
@@ -636,6 +646,8 @@ function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianRe
   }
 }
 
+// Trigger the lesser symbol only after cumulative damage crosses the configured
+// target-health threshold, with guards against recursion and repeated ICD hits.
 function reactToZealotsResolution(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = resolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
@@ -687,6 +699,8 @@ function queueRighteousMight(context: GuardianResolverContext, at: number, detai
   recordTraitProc(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, 'Righteous Instincts', at, 'Resolution', detail);
 }
 
+// React to self Resolution with Righteous Instincts state, scheduling future
+// Might ticks only for the newly established active window.
 export function reactToGuardianBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (
     String(event.kind || '').toLowerCase() !== 'resolution' ||
@@ -714,6 +728,8 @@ export function reactToGuardianBuffTraits(context: GuardianResolverContext, even
   }
 }
 
+// Emit a scheduled Righteous Instincts Might tick only while its originating
+// Resolution window remains current and active.
 export function handleRighteousInstinctsTick(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = resolverState(context);
   if (

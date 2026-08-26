@@ -28,6 +28,8 @@ import {
 import { runNecromancerShroudEnter } from './shroud-lifecycle.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 
+// Snapshot current life-force-related state, arm the matching exit skill, and
+// apply all entry traits before publishing the shroud weapon-set transition.
 function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = professionCoreState(context);
   const shroud = String(skill.shroudEntry || '');

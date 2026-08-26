@@ -40,6 +40,8 @@ export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCor
   return 'core' in state && state.core ? state.core : (state as Partial<ThiefCoreState>);
 }
 
+// Return specialization state only when its runtime kind matches, preventing
+// modifier rules from interpreting another Thief module's state shape.
 export function thiefRuntimeSpecializationState<TState extends object = SchedulerRecord>(
   context: Gw2ModifierContext,
   expectedKind: string
@@ -234,6 +236,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   }
 ]);
 
+// Reconcile build-time Thief stats with live signet, Revealed, and Fury state so
+// passive and temporary attribute bonuses are applied exactly once.
 function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const result = { ...attributes };
   const state = thiefRuntimeState(context);

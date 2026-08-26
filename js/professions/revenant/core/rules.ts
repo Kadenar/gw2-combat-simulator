@@ -218,6 +218,8 @@ function periodicAssassinsPresence(context: RevenantModifierContext): boolean {
 
 const DAMAGING_CONDITIONS = new Set(['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment']);
 
+// Count distinct self-affecting boons active at the query time for Revenant
+// modifiers that scale with boon variety.
 export function revenantActiveBoonCount(context: RevenantModifierContext): number {
   const allowed = new Set([
     'aegis',
@@ -349,6 +351,8 @@ function modifyCoreCriticalChance(context: RevenantModifierContext, chance: numb
     : chance;
 }
 
+// Apply Revenant's condition- and skill-specific base duration modifiers before
+// shared Expertise scaling.
 function modifyCoreConditionDuration(context: RevenantModifierContext, duration: number): number {
   let modified = duration;
   if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
@@ -366,6 +370,8 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
   return modified;
 }
 
+// Reconcile build-time Revenant attributes with live legend, upkeep, and trait
+// state without double-applying static bonuses.
 function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (hasTrait(context, TRAIT.NOTORIETY)) {

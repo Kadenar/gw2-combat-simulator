@@ -8,6 +8,8 @@ import { rangerEnduranceReadyAt } from './resources.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './weapon-state.js';
 
+// Enforce endurance, pet ownership, selected hammer variants, and timed weapon
+// flips before allowing a core Ranger cast.
 export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {

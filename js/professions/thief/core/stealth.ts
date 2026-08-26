@@ -9,6 +9,8 @@ import {
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from './profiles.js';
 
+// Consume either active stealth or a specialization-granted attack charge, then
+// apply leave-stealth traits and Revealed from one cast-start transition.
 export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;

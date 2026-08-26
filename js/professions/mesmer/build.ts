@@ -29,6 +29,8 @@ export const PROFESSION_ID = 'mesmer';
 
 export { createDefaultTargetConditions };
 
+// Seed a schema-current Mesmer preset with complete equipment, assumptions,
+// specialization, weapon, and rotation fields for migration and UI consumers.
 export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
   return {
     schemaVersion: BUILD_SCHEMA_VERSION,

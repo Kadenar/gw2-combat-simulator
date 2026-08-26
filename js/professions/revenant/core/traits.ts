@@ -134,6 +134,8 @@ function pruneBattleScars(state: RevenantCoreState, at: number): void {
   state.battleScars = (state.battleScars || []).filter((stack) => stack.expiresAt > at);
 }
 
+// Add expiring Battle Scars up to the shared cap and emit one causally attributed
+// buff application for the stacks actually granted.
 function grantBattleScars(
   context: RevenantSchedulerContext,
   { at, stacks, sourceId, sourceName, duration: durationOverride, cause = null }: BattleScarGrant
@@ -172,6 +174,8 @@ function grantBattleScars(
   else context.emit(event);
 }
 
+// Catch Thrill of Combat up to the current event time, retaining only grants that
+// can still be active and respecting the shared Battle Scars stack cap.
 function materializeThrillOfCombat(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   if (!hasRevenantTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
   const state = professionCoreState(context);

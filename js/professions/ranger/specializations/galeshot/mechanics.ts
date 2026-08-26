@@ -261,6 +261,8 @@ function isBeastSkill(skill: RangerSkill): boolean {
   );
 }
 
+// Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,
+// and completed-skill trait effects from one activation.
 export function completeGaleshotSkill(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
   if (

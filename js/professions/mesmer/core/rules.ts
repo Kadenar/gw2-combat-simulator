@@ -1163,6 +1163,8 @@ function thornsStacksAt(time: number): number {
   return Math.min(10, Math.floor((time - 3 + MODIFIER_EPSILON) / 5) + 1);
 }
 
+// Reconcile build-time Mesmer bonuses with live relic stacks, timed trait stacks,
+// and signet cooldowns so panel-visible attributes are neither lost nor doubled.
 export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const selectedSkills = Array.isArray(context.config?.selectedSkills) ? context.config.selectedSkills : [];
   const thorns = context.config?.relic === 'Thorns' ? thornsStacksAt(context.time) * 30 : 0;

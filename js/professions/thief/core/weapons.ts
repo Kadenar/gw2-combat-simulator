@@ -2,6 +2,8 @@ import { spearChainStageForSkill } from './conditions.js';
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '../types.js';
 
+// Match weapon skills against hand requirements while projecting live rifle
+// stance and spear-chain state outside the full weapon-bar preview.
 export function thiefWeaponSkillMatchesSet(
   skill: ThiefSkill,
   pair: readonly (string | undefined)[] = [],

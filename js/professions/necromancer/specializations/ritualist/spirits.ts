@@ -71,6 +71,8 @@ interface SpiritDefinition {
   readonly activeDuration: number;
 }
 
+// Apply Ritualist traits shared by spirit and minion summons from the actual
+// creature count and summon timestamp.
 function applyRitualistCreatureSummonTraits(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -103,6 +105,8 @@ function applyRitualistCreatureSummonTraits(
   });
 }
 
+// Initialize spirit generations, shared cadence, Soul Twisting, and Ritualist
+// resource state from the selected build.
 function initializeRitualistRuntime(context: NecromancerSchedulerContext): void {
   registerCreatureSummonReaction(context, 'ritualist.creature-summon-traits', applyRitualistCreatureSummonTraits);
   registerNecromancerCreatureStrikeMultiplier(context, 'ritualist.spirits-strength', (castContext) =>
@@ -165,6 +169,8 @@ export const ritualistSchedulerHooks = Object.freeze({
   })
 });
 
+// Decode each spirit's ordered balance-profile effects into its initial,
+// autonomous, lingering, and active attack timings.
 function spiritDefinition(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   skillId: SkillId
@@ -339,6 +345,8 @@ function handleSpiritAutoattackStop(
   if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
 }
 
+// Grant Empowering Spirits' shared Quickness and the summoned spirit's distinct
+// party boon from the same profile-driven application.
 function emitEmpoweringSpirits(context: NecromancerCastContext, skill: NecromancerSkill, key: string): void {
   if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
   const profile = necromancerBalanceProfile(context, PROFILE.empoweringSpirits);
@@ -428,6 +436,8 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
   });
 }
 
+// Materialize Anguish's initial conditions, Painful Bond, and individually timed
+// barrage hits with spirit ownership metadata.
 function emitAnguishInitial(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -618,6 +628,8 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
   return true;
 }
 
+// Resolve the selected spirit's unique Innervate payload, then apply the shared
+// life-force gain only after a recognized Innervate skill succeeds.
 function innervate(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
   if (skill.id === ID.INNERVATE_ANGUISH) {

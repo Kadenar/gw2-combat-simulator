@@ -1,5 +1,7 @@
 import type { GuardianCoreState, GuardianConfig } from '../types.js';
 
+// Create a complete Guardian core state with bounded resources and initialized
+// virtue, trait, symbol, and flip bookkeeping.
 export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
   return {
     endurance: Math.max(0, Math.min(100, Number(config.initialEndurance ?? 100))),

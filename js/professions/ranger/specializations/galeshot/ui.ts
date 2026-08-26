@@ -43,6 +43,8 @@ function visibleBowSkills(context: RangerUiContext) {
   return BOW_SKILLS.filter((skillId) => skillId !== (perilousSkies ? ID.QUARRYS_PERIL : ID.PELT));
 }
 
+// Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
+// in the palette without mutating scheduler state.
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {

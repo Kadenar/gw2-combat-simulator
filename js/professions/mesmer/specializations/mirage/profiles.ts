@@ -121,6 +121,8 @@ export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): Bal
   });
 }
 
+// Merge Mirage profile status effects into the base skill while preserving
+// explicit skill overrides and packet ordering.
 function profileStatuses(
   profile: BalanceProfile | undefined,
   type: 'condition' | 'boon',

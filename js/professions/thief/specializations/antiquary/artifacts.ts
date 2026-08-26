@@ -79,6 +79,8 @@ function reduceSkrittSwipeRecharge(context: ThiefSchedulerContext, at: number): 
   }
 }
 
+// Refresh Antiquary's single Scoundrel's Luck charge only when its pilfer ICD is
+// ready, preventing charges from being banked.
 function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
   const state = antiquaryState.from(context);
   if (
@@ -100,6 +102,8 @@ function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
   state.combatHighExpiresAt = at + Number(profile?.durationMultiplier || 20);
 }
 
+// On an eligible Swipe, shorten only selected utility cooldowns that are still
+// active, then reserve Improvisation's shared internal cooldown.
 function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): void {
   if (!hasThiefTrait(context.config, TRAIT.IMPROVISATION)) return;
   const state = antiquaryState.from(context);
@@ -208,6 +212,8 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
   }
 }
 
+// Spend the chosen artifact slot and use, apply artifact-family traits and its
+// identity window, then reconcile Skritt Swipe recharge and visible state.
 export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
@@ -302,6 +308,8 @@ export function completeForgedSurfer(context: ThiefCastContext, skill: ThiefSkil
   });
 }
 
+// Emit one generation-bound Forged Surfer bomb or terminal packet so a newer run
+// can invalidate stale scheduled effects.
 function emitForgedSurferPacket(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<ForgedSurferTaskPayload>,
@@ -399,6 +407,8 @@ function consumeDoubleEdgeOutcome(context: ThiefCastContext, skill: ThiefSkill):
   return peekRiskyOutcome(context);
 }
 
+// Materialize Canach's backfire damage and conditions against the player at the
+// resolved cannon outcome timestamp.
 function emitCannonBackfire(context: ThiefCastContext, at: number): void {
   const profile = thiefBalanceProfile(context, PROFILE.cannonBackfire);
   const strike = thiefBalanceProfileEffect(profile, 'strike');
@@ -431,6 +441,8 @@ function emitCannonBackfire(context: ThiefCastContext, at: number): void {
   });
 }
 
+// Materialize the successful Canach cannon shot and its target effects from one
+// outcome branch.
 function emitCannonSuccess(context: ThiefCastContext): void {
   const profile = thiefBalanceProfile(context, PROFILE.cannonSuccess);
   const strike = thiefBalanceProfileEffect(profile, 'strike');
@@ -471,6 +483,8 @@ function emitCannonSuccess(context: ThiefCastContext): void {
   }
 }
 
+// Emit the coin outcomes associated with Canach's success or backfire while
+// preserving their individual timing and ownership.
 function tossCanachCoins(context: ThiefCastContext, at: number, backfire: boolean): void {
   const state = antiquaryState.from(context);
   let initiative = 0;

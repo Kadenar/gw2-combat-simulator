@@ -75,6 +75,8 @@ interface CatalystStateLike {
   readonly elementalEmpowermentExpiries?: readonly number[];
 }
 
+// Apply live Elemental Empowerment stacks as an all-attribute multiplier without
+// mutating the shared resolved-stat object.
 function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   if (!hasTrait(context, 'Elemental Empowerment')) return attributes;
 
@@ -130,6 +132,8 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       };
 }
 
+// Spend sphere energy and schedule its attunement-specific field, pulses, and
+// boons from cast start so later attunement swaps cannot change the sphere.
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (skill.skillFamily !== 'Jade Sphere') return;
   const state = catalystState.from(context);
@@ -215,6 +219,8 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
+// Extend the just-created Jade Sphere field for Sphere Specialist after its base
+// cast has committed and the owned field can be identified safely.
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.skillFamily !== 'Jade Sphere' || !hasTrait(context, 'Sphere Specialist')) {
     return;
@@ -279,6 +285,8 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
   });
 }
 
+// Reset attunement-matching weapon cooldowns for Elemental Celerity while
+// preserving exclusions and active ammo-recharge contracts.
 function activateElementalCelerity(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
   const core = professionCoreState(context);
@@ -346,6 +354,8 @@ export const catalystSkillMechanicHandlers = Object.freeze({
   }): void => activateElementalCelerity(context, skill, at)
 });
 
+// Consume the canonical event stream to update Catalyst energy and trait state,
+// filtering packet ownership so multi-hit and generated effects do not double-proc.
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
   const core = professionCoreState(context);
@@ -558,6 +568,8 @@ function handleCatalystEmpowerment(context: ElementalistSchedulerContext, task: 
   );
 }
 
+// Apply a scheduled base Elemental Empowerment stack with its original
+// application timestamp and profile duration.
 function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
   const duration = elementalistBalanceValue(

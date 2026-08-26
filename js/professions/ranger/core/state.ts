@@ -10,6 +10,8 @@ export function rangerPetByName(name: string) {
   return RANGER_PETS.find((pet) => pet.name === name) || RANGER_PETS[0];
 }
 
+// Initialize complete Ranger resource, pet-generation, weapon-chain, flip, and
+// trait state from bounded build defaults.
 export function createRangerCoreState(config: RangerConfig = {}): RangerCoreState {
   const pet = selectedRangerPet(config);
   const pet2 = selectedRangerPet(config, 2);

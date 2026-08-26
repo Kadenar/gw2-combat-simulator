@@ -9,6 +9,8 @@ import type {
 } from '../../platform/gw2/builds/types.js';
 import type { WarriorSpecializationSelection } from './data/traits-data.js';
 
+// Apply selected signets, weapon-sensitive traits, duration bonuses, and ordered
+// Warrior conversions to the shared build-time attribute result.
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext

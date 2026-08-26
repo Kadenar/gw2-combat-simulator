@@ -47,6 +47,8 @@ export function createContinuumController({
   durationPerSource,
   scheduleExpiry = null
 }: ContinuumControllerOptions): ContinuumController {
+  // Restore the captured Continuum Split resources and cooldowns exactly once,
+  // then invalidate the active snapshot and emit its exit reason.
   const restoreContinuum = (at: number, reason: string) => {
     const chronomancer = chronomancerState.from(state);
     const continuum = chronomancer.continuum;

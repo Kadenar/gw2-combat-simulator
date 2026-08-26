@@ -26,6 +26,8 @@ function afterResourceSkill(
   return { spent, berserkersPowerGranted: false };
 }
 
+// Use the adrenaline snapshot captured before effects to grant first-hit traits
+// once and replace tiered burst packets with their correct profile values.
 function adjustResourceSkillEffect(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -67,6 +69,8 @@ function adjustResourceSkillEffect(
   });
 }
 
+// Spend burst resources, scale the fire field and pulse count by burst tier, and
+// grant first-hit Berserker's Power from the earliest persistent pulse.
 function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): void {
   const resource = afterResourceSkill(context, skill);
   const tier = burstTier(context, resource.spent);
@@ -161,6 +165,8 @@ function adjustFierceBlowDamage(
   });
 }
 
+// Consume Dragon's Roar's available ammo snapshot and scale its committed packet
+// count without disturbing count-recharge progress.
 function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
   const profile = warriorBalanceProfile(context, PROFILE.dragonsRoar);

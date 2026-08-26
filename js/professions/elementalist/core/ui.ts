@@ -162,6 +162,8 @@ function updatePaletteControl(context: SchedulerRecord, controlId: string): bool
   return true;
 }
 
+// Build the shared palette in mechanic order, including only stateful weapon
+// groups that are meaningful for the current build and attunement.
 function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteGroup[] {
   const state = uiState(context);
   const groups: ProfessionPaletteGroup[] = [
@@ -318,6 +320,8 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   return { available: true, message: '' };
 }
 
+// Convert Elementalist-specific state events into compact log rows while letting
+// shared events fall through to the default renderer.
 function eventLogRow(
   _context: SchedulerRecord,
   event: SimulationEvent

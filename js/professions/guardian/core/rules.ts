@@ -379,6 +379,8 @@ function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum
   return result;
 }
 
+// Apply Guardian's Burning-specific skill and trait multipliers before general
+// condition-duration scaling.
 function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   if (context.condition !== 'Burning') return duration;
   let result = duration;

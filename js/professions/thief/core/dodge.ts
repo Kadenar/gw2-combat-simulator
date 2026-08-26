@@ -9,6 +9,8 @@ import {
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from './profiles.js';
 
+// Spend endurance at dodge start and materialize Uncatchable's delayed Lesser
+// Caltrops pulses from the selected balance profile.
 export function performThiefDodge(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
@@ -41,6 +43,8 @@ export function performThiefDodge(context: ThiefCastContext): void {
   }
 }
 
+// Grant Upper Hand's initiative at dodge completion only when its independent
+// cooldown is ready.
 export function completeThiefDodge(context: ThiefCastContext): void {
   if (!hasThiefTrait(context.config, TRAIT.UPPER_HAND)) return;
   const state = professionCoreState(context);

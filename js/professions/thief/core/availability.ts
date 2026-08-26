@@ -18,6 +18,8 @@ function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): b
   return Number(value || 0) > at;
 }
 
+// Centralize Thief gates for initiative, endurance, stealth replacements, weapon
+// sequences, spear stages, rifle stance, preparations, and stored stolen skills.
 export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;

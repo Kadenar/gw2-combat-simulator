@@ -87,6 +87,8 @@ export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFireb
   mantraRechargeReadyAt: {}
 });
 
+// Derive page capacity, regeneration cadence, starting pages, and Ashes duration
+// from the selected traits while respecting explicit build overrides.
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
   const state = firebrandState.from(context);
   const selectedTraitIds = new Set((context.config.selectedTraitIds || []).map(Number));

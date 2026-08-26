@@ -67,6 +67,8 @@ function motivationLevel(context: WarriorSchedulerContext, motivation: number): 
   return motivation >= Number(profile?.threshold ?? 7) ? 3 : motivation >= Number(profile?.minimumStacks ?? 4) ? 2 : 1;
 }
 
+// Spend chant resources, replace the active refrain, grant its opening boons and
+// Motivation, then apply Feverish Pulse to the other chants and allies.
 export function activateChant(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
   const at = context.effectiveEnd;
@@ -130,6 +132,8 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
   emitParagonState(context, at + context.epsilon, 'chant');
 }
 
+// Materialize one delayed Paragon command echo using the original command's
+// skill-specific boons, resources, damage, or conditions.
 function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, at: number): void {
   const skill = context.catalog.skillsById.get(skillId);
   const skillName = skill?.name || 'Paragon Command';
@@ -217,6 +221,8 @@ export function activateCommand(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
+// Resolve one refrain pulse from the pre-spend Motivation tier, consume that
+// chant's tier-dependent cost, and stop or schedule the next pulse.
 function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   const state = paragonState.from(context);
   const motivation = state.motivation;

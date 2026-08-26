@@ -9,6 +9,8 @@ import type {
 } from '../../platform/gw2/builds/types.js';
 import type { NecromancerSpecializationSelection } from './data/traits-data.js';
 
+// Apply Necromancer flat bonuses and ordered attribute conversions at build time,
+// then add trait-specific duration and critical-chance contributions.
 export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext

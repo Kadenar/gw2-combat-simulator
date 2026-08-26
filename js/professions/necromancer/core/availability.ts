@@ -72,6 +72,8 @@ function devouringGate(
   return activeShroud ? deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`) : READY;
 }
 
+// Validate shroud ownership, current transform state, and minimum life force
+// before an entry skill can begin.
 function shroudEntryGate(
   _context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -150,6 +152,8 @@ function activeMinionGate(
     : null;
 }
 
+// Reject unselected heal, utility, and elite skills while allowing profession
+// mechanics and generated replacement skills through their own gates.
 function selectedSlotSkillGate(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityVerdict {
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type || '')) || skill.flipParentId != null) {
     return null;

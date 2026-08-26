@@ -38,6 +38,8 @@ const THOUSAND_NEEDLES_PULSES = 5;
 const CALTROPS_PULSES = 10;
 const CALTROPS_CRIPPLE_PULSES = 5;
 
+// Emit a normalized Thief condition packet with optional activation and ally
+// trigger attribution.
 function emitCondition(
   context: ThiefSchedulerContext,
   {
@@ -96,6 +98,8 @@ export function prepareSpearChainSkill(
   };
 }
 
+// Decorate spear packets with effects determined at cast preparation, avoiding
+// later chain-state changes from altering Falling Spider or Unsuspecting Strike.
 export function observeSpearChainEffect(
   context: ThiefCastContext,
   skill: ThiefSkill,
@@ -148,6 +152,8 @@ export function completeSpearStealthAttack(context: ThiefCastContext, skill: Thi
   completeBaseStealthAttack(context, skill);
 }
 
+// Advance or reset the three-stage spear chain, arming Distracting Throw's bonus
+// only when it follows a completed finisher.
 export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSkill, at: number): void {
   const state = professionCoreState(context);
   const requiredStage = spearChainStageForSkill(skill.id);
@@ -194,6 +200,8 @@ export function observeSpiderVenomEffect(
   });
 }
 
+// Seed the player's finite Spider Venom window and precompute each assumed ally's
+// limited poison proc timeline from the same profile.
 export function activateSpiderVenom(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -243,6 +251,8 @@ export function activateThousandNeedles(context: ThiefCastContext, _skill: Thief
   emitThiefState(context, context.start, 'thousand-needles');
 }
 
+// Emit one Thousand Needles strike and its condition package, adding the opening
+// immobilize once before scheduling the next pulse in the fixed sequence.
 export function handleThousandNeedlesPulse(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<{
@@ -319,6 +329,8 @@ export function activateCaltrops(context: ThiefCastContext, skill: ThiefSkill): 
   });
 }
 
+// Emit one Caltrops pulse and continue the fixed sequence while preserving its
+// activation identity and scheduled cadence.
 export function handleCaltropsPulse(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<{

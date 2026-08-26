@@ -76,6 +76,8 @@ function titleCase(value: string): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+// Apply boon-duration stats and named bonuses with GW2's lower and upper duration
+// bounds before a resolver-owned buff is queued.
 function buffDuration(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, kind: string, duration: number): number {
   const normalized = kind.toLowerCase();
   if (!BOON_KINDS.has(normalized)) return duration;
@@ -100,6 +102,8 @@ function buffDuration(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, kind
   return duration * Math.min(2, Math.max(1, 1 + bonus));
 }
 
+// Route a derived condition through the resolver hook when available, falling
+// back to ordered queue insertion with canonical attribution.
 function applyCondition(
   context: Gw2ResolverRuntime,
   details: ElementalistConditionReactionDetails | NativeResolvedDamageDetails,
@@ -215,6 +219,8 @@ export function queueElementalistAura(
   });
 }
 
+// Record an aura once, materialize its resolver-side trait boons, and dispatch
+// the normalized aura reaction without recursively processing generated events.
 export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (event.elementalistAuraReactionDispatched === true) return;
   const skillName = elementalistSourceSkill(event);
@@ -283,6 +289,8 @@ export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: 
   context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
 }
 
+// Convert sampled or expected criticals into ICD-bound Burning Precision
+// applications while retaining fractional deterministic progress.
 function applyBurningPrecision(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -341,6 +349,8 @@ export function applyElementalistResolvedDamage(
   }
 }
 
+// React to canonical conditions with trait follow-ups only after their source
+// application has entered resolver state.
 export function applyElementalistResolvedCondition(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,

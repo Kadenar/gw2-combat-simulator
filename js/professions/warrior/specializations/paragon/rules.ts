@@ -73,6 +73,8 @@ function motivation(context: Gw2ModifierContext): number {
   return Number(paragonRuntimeState(context).motivation || 0);
 }
 
+// Resolve Brisk Pacing's modifier amount from live Motivation and refrain state
+// at the queried event timestamp.
 function briskPacingAmount(
   context: Gw2ModifierContext,
   target: string,

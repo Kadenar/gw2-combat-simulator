@@ -31,6 +31,8 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
   state.sharpeningStoneExpiresAt = event.at + Number(event.duration || 0);
 }
 
+// Retire the outgoing companion's lingering conditions after the swap delay,
+// then advance pet identity and generation state for subsequent attacks.
 export function handleRangerPetSwapped(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);

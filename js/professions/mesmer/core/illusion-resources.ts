@@ -18,6 +18,8 @@ interface IllusionResourceControllerOptions {
   readonly phantasms: MesmerPhantasmEffectController;
 }
 
+// Coordinate direct resource grants with phantasm-driven conversions through a
+// single scheduler-facing controller.
 export function createIllusionResourceController({
   resourceDefinition,
   epsilon,
@@ -25,6 +27,8 @@ export function createIllusionResourceController({
   queueResources,
   phantasms
 }: IllusionResourceControllerOptions): MesmerIllusionResourceController {
+  // Anchor explicit fill/add effects to their declared cast timing; otherwise
+  // group simultaneous phantasms so their resource conversion stays atomic.
   const schedule = (
     skill: MesmerSkill,
     at: number,

@@ -15,6 +15,8 @@ export const WARRIOR_BUILD_SCHEMA_VERSION = 3;
 export const WARRIOR_PROFESSION_ID = 'warrior';
 export { createDefaultTargetConditions };
 
+// Seed a complete, schema-current Warrior preset with resources, equipment,
+// assumptions, selected skills, and specialization fields.
 export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
   return {
     schemaVersion: WARRIOR_BUILD_SCHEMA_VERSION,

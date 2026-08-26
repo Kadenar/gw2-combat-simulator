@@ -39,6 +39,8 @@ function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[
     .slice(-30);
 }
 
+// Merge a typed Necromancer state event into resolver state while preserving
+// independent resource, transform, minion, and specialization fields.
 export function handleNecromancerStateEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -99,6 +101,8 @@ export function handleNecromancerChillEvent(
   });
 }
 
+// Validate summon ownership and generation before converting a scheduled minion
+// or spirit packet into canonical resolver damage and follow-up effects.
 export function handleNecromancerSummonAttack(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent

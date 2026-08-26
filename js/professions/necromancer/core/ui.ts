@@ -36,6 +36,8 @@ export function necromancerUiSpecialization(context: NecromancerUiContext = {}):
   return context.specialization || context.config?.specialization || 'Core';
 }
 
+// Build a stable shroud bar from implemented skills, ordering slots before flip
+// children and optionally collapsing chains to their castable roots.
 function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
   return necromancerCatalog.skills
     .filter((skill) => {
@@ -58,6 +60,8 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
     .map((skill) => skill.id);
 }
 
+// Build the F-key and active shroud bars from one transform definition, omitting
+// flip children from the read-only skill-bar preview.
 export function necromancerTransformSkillBarGroups(
   context: NecromancerUiContext,
   {
@@ -160,6 +164,8 @@ export function necromancerTransformPaletteGroups(
   return groups;
 }
 
+// Mirror runtime transform restrictions in the palette, including trait
+// replacements, living-minion flips, shroud bars, and Lich-only skills.
 function necromancerCorePaletteAvailability(
   context: NecromancerUiContext = {},
   skill: NecromancerSkill
@@ -288,6 +294,8 @@ export function necromancerEventLogRow(
   };
 }
 
+// Expose only the health thresholds required by selected Necromancer traits so
+// the timeline can show meaningful scheduling boundaries.
 export function necromancerCoreTargetHealthThresholds(context: NecromancerUiContext = {}): number[] {
   const build = context.build || {};
   const traits = getActiveTraits(build.specializations || []);
@@ -297,6 +305,8 @@ export function necromancerCoreTargetHealthThresholds(context: NecromancerUiCont
   return hasHalfHealthTrait || hasThresholdWeapon ? [0.5] : [];
 }
 
+// Project Soul Shards as a bounded palette resource with current and maximum
+// values derived from flattened profession state.
 export function necromancerSoulShardResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
   const equippedWeapons = [

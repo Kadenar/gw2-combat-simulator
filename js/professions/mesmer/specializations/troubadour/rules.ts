@@ -34,6 +34,8 @@ function instrumentChecksEnabled(context: Gw2ModifierContext): boolean {
   return !specialization || specialization === 'Troubadour';
 }
 
+// Count distinct, unexpired instruments at the query time so repeated events for
+// one performance cannot inflate Fortissimo.
 function activeInstrumentCount(context: Gw2ModifierContext): number {
   if (!instrumentChecksEnabled(context)) return 0;
   const active = new Set<string>();
@@ -54,6 +56,8 @@ function hasLute(context: Gw2ModifierContext): boolean {
   );
 }
 
+// Scale every primary combat attribute once per active instrument when Fortissimo
+// is selected, leaving the original attribute object untouched when inactive.
 export function applyTroubadourAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO) ? activeInstrumentCount(context) : 0;
   const fortissimo = instrumentCount
