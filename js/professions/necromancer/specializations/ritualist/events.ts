@@ -18,12 +18,12 @@ export function handleNecromancerPainfulBond(
   const strike = balanceProfileEffect(definition, 'strike');
   const state = ritualistState.from(context);
   if (event.mode === 'apply') {
-    state.painfulBondUntil = Math.max(
-      Number(state.painfulBondUntil || 0),
-      event.at + Number(event.duration || buff?.duration || 10)
-    );
+    const duration = Number(event.duration || buff?.duration || 10);
+    // Painful Bond duration-stacks: overlapping applications add their full
+    // duration to the remaining effect instead of refreshing its expiry.
+    state.painfulBondUntil = Math.max(event.at, Number(state.painfulBondUntil || 0)) + duration;
     if (!Number.isFinite(state.painfulBondPulseAnchorAt)) {
-      // Only the first apply within a continuous uptime schedules the tick chain; refreshes do not restart it
+      // Only the first application schedules the tick chain; stacked applications preserve its one-second cadence.
       const firstPulseAt = event.at + Number(definition?.initialDelay || 0.004);
       state.painfulBondPulseAnchorAt = firstPulseAt;
       enqueueOrdered(context.queue, {
