@@ -1,5 +1,5 @@
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
-import { analyzeWarriorBloodlustObservation } from '../../../log-analyzer/evtc/rotation/professions/warrior/bloodlust-observation.js';
+import type { WarriorBloodlustObservation } from '../../../log-analyzer/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
 import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
@@ -18,9 +18,7 @@ function percent(value: number): string {
 }
 
 /** Presents inferred EVTC roll evidence without feeding it into reconstruction or simulation state. */
-function bloodlustImportObservation(
-  result: ReturnType<typeof analyzeWarriorBloodlustObservation>
-): RotationImportObservation[] {
+function bloodlustImportObservation(result: WarriorBloodlustObservation | null): RotationImportObservation[] {
   if (!result) return [];
   const durations = result.matchedDurationsMs.map((duration) => `${duration.toLocaleString()} ms`).join(' or ');
   return [
@@ -68,7 +66,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   });
   const bloodlust =
     selected.professionId === 'warrior'
-      ? analyzeWarriorBloodlustObservation(
+      ? rotationModule.analyzeWarriorBloodlustObservation(
           log,
           BigInt(selected.address),
           app.activeCatalog,
