@@ -188,6 +188,43 @@ test('collapses Rend animation rows into one Warrior cast', () => {
   assert.equal(result.rotation.filter((command) => command.name === 'Rend').length, 1);
 });
 
+test('uses rounded EI cast durations only when skill commit metadata makes them safe', () => {
+  const report = reportFixture(
+    'Berserker',
+    [
+      { id: 14_519, skills: [{ castTime: 0, duration: 318, timeGained: 212 }] },
+      { id: 14_365, skills: [{ castTime: 400, duration: 403, timeGained: 134 }] },
+      { id: 14_519, skills: [{ castTime: 900, duration: 199, timeGained: 321 }] },
+      { id: 14_519, skills: [{ castTime: 1_400, duration: 238, timeGained: 282 }] }
+    ],
+    {
+      s14519: { name: 'Fan of Fire' },
+      s14365: { name: 'Gash' }
+    },
+    2_000
+  );
+  const catalog = {
+    skills: [
+      skill(14_519, 'Fan of Fire', {
+        type: 'weapon',
+        quicknessCastTimeMs: 560,
+        interruptCommitMs: 240,
+        retainsCastLockoutAfterInterrupt: true
+      }),
+      skill(14_365, 'Gash', { type: 'weapon', quicknessCastTimeMs: 520 })
+    ]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+  const fanCommands = result.rotation.filter((command) => command.name === 'Fan of Fire');
+  const gash = result.rotation.find((command) => command.name === 'Gash');
+
+  assert.equal(fanCommands[0].interruptMs, 320);
+  assert.equal('interruptMs' in fanCommands[1], false);
+  assert.equal(fanCommands[2].interruptMs, 240);
+  assert.equal('interruptMs' in gash, false);
+});
+
 test('coalesces Willbender composite casts and recovers an opening Jurisdiction', () => {
   const report = reportFixture(
     'Willbender',

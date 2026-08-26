@@ -240,7 +240,7 @@ test('recovers the clipped power Tempest opener and legacy Flame Barrage command
   assert.equal(result.combatStartTimestampMs, 8_883);
 });
 
-test('infers partial Arc Lightning channels from EVTC packet boundaries', () => {
+test('uses default Quickness channels when Arc Lightning has no skill-level commit cutoff', () => {
   const arcStart = 2_000;
   const observedPacketOffsets = [440, 680, 960, 1_200, 1_440, 1_720, 1_960, 2_200];
   const events = [
@@ -361,13 +361,11 @@ test('infers partial Arc Lightning channels from EVTC packet boundaries', () => 
   assert.deepEqual(arcCommands, [
     {
       name: 'Arc Lightning',
-      skillId: ID.ARC_LIGHTNING,
-      interruptMs: 2_240
+      skillId: ID.ARC_LIGHTNING
     },
     {
       name: 'Arc Lightning',
-      skillId: ID.ARC_LIGHTNING,
-      interruptMs: 160
+      skillId: ID.ARC_LIGHTNING
     }
   ]);
 });

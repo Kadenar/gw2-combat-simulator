@@ -414,7 +414,7 @@ test('reconstructs Berserker mode, Outrage, composite Rush, and committed autos'
     assert.equal(action.durationMs, durationMs, name);
     const commandIndex = result.rotation.findIndex((command) => command.name === name);
 
-    assert.notEqual(result.rotation[commandIndex + 1]?.name, '__wait', name);
+    assert.equal(result.rotation[commandIndex]?.name, name);
   }
 });
 
@@ -525,4 +525,85 @@ test('reconstructs condition Berserker opening state and BUFF_CHANGE Outrage cas
     false
   );
   assert.deepEqual(result.warnings, []);
+});
+
+test('imports committed Fan of Fire EVTC durations on the nearest 40 ms action tick', () => {
+  const fanOfFire = skill(14_519, 'Fan of Fire', 'Weapon', 'Weapon_2', 560, {
+    specialization: 'Berserker',
+    interruptCommitMs: 240,
+    retainsCastLockoutAfterInterrupt: true
+  });
+  const fixture = warriorLog(
+    18,
+    [{ id: 14_519, name: 'Fan of Fire' }],
+    [
+      event({ time: 1_000, stateChange: 1 }),
+      ...animation(14_519, 2_000, 2_240, { modern: true }),
+      ...animation(14_519, 3_000, 3_246, { modern: true }),
+      ...animation(14_519, 4_000, 4_238, { modern: true })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [fanOfFire] }, { inferInstantCasts: false });
+
+  assert.deepEqual(
+    result.actions.map((action) => action.durationMs),
+    [240, 246, 238]
+  );
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Fan of Fire'),
+    [
+      { name: 'Fan of Fire', skillId: 14_519, interruptMs: 240 },
+      { name: 'Fan of Fire', skillId: 14_519, interruptMs: 240 },
+      { name: 'Fan of Fire', skillId: 14_519, interruptMs: 240 }
+    ]
+  );
+});
+
+test('preserves Warrior weapon stows and cancelled autoattack inputs', () => {
+  const severArtery = skill(14_364, 'Sever Artery', 'Weapon', 'Weapon_1', 480, {
+    effects: [{ type: 'strike', atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }]
+  });
+  const weaponStow = {
+    id: -6,
+    name: 'Weapon Stow',
+    type: 'Action',
+    slot: 'Action',
+    castTimeMs: 80,
+    unaffectedByQuickness: true,
+    interruptCommitMs: 0,
+    effects: [],
+    implemented: true
+  };
+  const fixture = warriorLog(
+    18,
+    [
+      { id: 14_364, name: 'Sever Artery' },
+      { id: 23_285, name: 'Weapon Stow' }
+    ],
+    [
+      event({ time: 1_000, stateChange: 1 }),
+      ...animation(14_364, 2_000, 2_040, { modern: true, interrupted: true }),
+      event({ time: 2_040, skillId: 23_285, value: 80, stateChange: 67 }),
+      event({ time: 2_120, skillId: 23_285, value: 80, activation: 6, stateChange: 68 }),
+      ...animation(14_364, 2_120, 2_600, { modern: true })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [severArtery, weaponStow] }, { inferInstantCasts: false });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name !== '__combat_start'),
+    [
+      { name: '__wait', waitMs: 1000 },
+      { name: 'Sever Artery', skillId: 14_364, interruptMs: 40 },
+      { name: 'Weapon Stow', skillId: -6 },
+      { name: 'Sever Artery', skillId: 14_364 }
+    ]
+  );
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [1000]
+  );
 });

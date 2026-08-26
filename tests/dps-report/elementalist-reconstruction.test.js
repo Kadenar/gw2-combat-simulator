@@ -138,7 +138,7 @@ test('reconstructs the Aerial Agility chain and resets it after another skill or
   );
 });
 
-test('marks short Flamestrike and Arc Lightning channels as interrupted', () => {
+test('uses default cast times for short report casts without skill commit metadata', () => {
   const report = reportFixture(
     'Elementalist',
     [
@@ -146,8 +146,8 @@ test('marks short Flamestrike and Arc Lightning channels as interrupted', () => 
       { id: ID.ARC_LIGHTNING, skills: [{ castTime: 500, duration: 2_000, timeGained: 0 }] }
     ],
     {
-      [`s${ID.FLAMESTRIKE}`]: { name: 'Flamestrike', autoAttack: true },
-      [`s${ID.ARC_LIGHTNING}`]: { name: 'Arc Lightning', autoAttack: true }
+      [`s${ID.FLAMESTRIKE}`]: { name: 'Flamestrike' },
+      [`s${ID.ARC_LIGHTNING}`]: { name: 'Arc Lightning' }
     }
   );
   const catalog = {
@@ -163,8 +163,8 @@ test('marks short Flamestrike and Arc Lightning channels as interrupted', () => 
     result.actions.map((action) => action.status),
     ['interrupted', 'interrupted']
   );
-  assert.equal(result.rotation.find((command) => command.name === 'Flamestrike').interruptMs, 300);
-  assert.equal(result.rotation.find((command) => command.name === 'Arc Lightning').interruptMs, 2_000);
+  assert.equal('interruptMs' in result.rotation.find((command) => command.name === 'Flamestrike'), false);
+  assert.equal('interruptMs' in result.rotation.find((command) => command.name === 'Arc Lightning'), false);
 });
 
 test('recovers an unexplained equipped aura skill from its buff activation', () => {

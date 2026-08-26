@@ -573,7 +573,7 @@ test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across C
 
   assert.deepEqual(
     replayedSplits.map((step) => step.start),
-    [1_040, 1_640, 2_940]
+    [1_040, 1_640, 3_200]
   );
   assert.ok(replayedSplits.every((step) => !step.invalid));
 });

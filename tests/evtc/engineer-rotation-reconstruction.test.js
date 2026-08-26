@@ -349,9 +349,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
   const rifleActions = result.actions.filter((action) => action.name === 'Rifle Burst');
   const rifleCommands = result.rotation.filter((command) => command.name === 'Rifle Burst');
 
-  assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Shrapnel Grenade cast; the simulator has an interrupt cutoff time of 360 ms, so reconstruction uses 360 ms instead of the EVTC timing.'
-  ]);
+  assert.deepEqual(result.warnings, []);
   assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'completed');
   assert.equal(result.actions.find((action) => action.name === 'Shrapnel Grenade')?.status, 'reduced');
   assert.deepEqual(
@@ -360,15 +358,15 @@ test('validates Engineer cast completion from observed strike packets', () => {
   );
   assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'completed');
   assert.deepEqual(rifleCommands, [
-    { name: 'Rifle Burst', skillId: 6003 },
-    { name: 'Rifle Burst', skillId: 6003 }
+    { name: 'Rifle Burst', skillId: 6003, interruptMs: 560 },
+    { name: 'Rifle Burst', skillId: 6003, interruptMs: 560 }
   ]);
   assert.deepEqual(
     result.rotation.find((command) => command.name === 'Shrapnel Grenade'),
     {
       name: 'Shrapnel Grenade',
       skillId: 5807,
-      interruptMs: 360
+      interruptMs: 440
     }
   );
 });
@@ -478,10 +476,10 @@ test('maps Holosmith Forge transitions and preserves automatic overheat boundari
     result.actions.some((action) => action.name === 'Overheat'),
     false
   );
-  // Overheat keeps the spanning casts complete, while their observed in-combat recovery is left to scheduler readiness.
+  // Overheat keeps the spanning casts complete, while observed periods with no action remain visible waits.
   assert.deepEqual(
-    result.rotation.filter((command) => command.name === '__wait'),
-    []
+    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [120, 40, 40, 40, 200, 40, 560, 1000]
   );
 });
 
@@ -539,7 +537,7 @@ test('recovers a clipped Holosmith opener that begins on a Photon Forge weapon s
   ]);
 });
 
-test('omits observed recovery gaps between Holosmith Forge cycles', () => {
+test('preserves observed recovery gaps between Holosmith Forge cycles', () => {
   const skills = [
     skill(42938, 'Engage Photon Forge', {
       type: 'Profession',
@@ -579,9 +577,10 @@ test('omits observed recovery gaps between Holosmith Forge cycles', () => {
     .map((command, index) => ({ command, index }))
     .filter(({ command }) => command.name === 'Engage Photon Forge');
 
-  // Forge re-entry follows the preceding command directly; the scheduler supplies only required availability delays.
+  // No recorded input fills the interval before Forge re-entry, so it remains an explicit wait.
   assert.equal(forgeEntries.length, 2);
-  assert.notEqual(result.rotation[forgeEntries[1].index - 1]?.name, '__wait');
+  assert.equal(result.rotation[forgeEntries[1].index - 1]?.name, '__wait');
+  assert.equal(result.rotation[forgeEntries[1].index - 1]?.waitMs, 4400);
 });
 
 test('does not duplicate a recorded Holosmith opening precast', () => {
@@ -722,18 +721,18 @@ test('preserves packet-level stops while replaying retained Engineer cast lockou
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  // Packet cutoffs preserve ordinary interruption timing, while Flame Blast's post-launch cancel retains its full serial lane.
+  // Effect-only cutoffs do not authorize shortened casts; both skills use their normal Quickness cast timing.
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.rotation.filter((command) => command.name === 'Fragmentation Shot' || command.name === 'Flame Blast'),
     [
-      { name: 'Fragmentation Shot', skillId: 5827, interruptMs: 400 },
+      { name: 'Fragmentation Shot', skillId: 5827 },
       { name: 'Flame Blast', skillId: 5931 }
     ]
   );
 });
 
-test('replays a committed grenade through its full retained cast lockout', () => {
+test('replays safe observed grenade timing while retaining its serial cast lockout', () => {
   const shrapnelGrenade = skill(5807, 'Shrapnel Grenade', {
     quicknessCastTimeMs: 680,
     interruptCommitMs: 360,
@@ -760,12 +759,12 @@ test('replays a committed grenade through its full retained cast lockout', () =>
   const result = reconstructEvtcRotation(fixture, { skills: [shrapnelGrenade] });
   const action = result.actions.find((candidate) => candidate.name === 'Shrapnel Grenade');
 
-  // EVTC can end the visible grenade animation at a kit swap, while the next serial cast remains locked to 680 ms.
-  assert.equal(action?.durationMs, 680);
-  assert.equal(action?.status, 'completed');
+  // The explicit interruption keeps the observed input timing; the engine separately retains the 680 ms serial lane.
+  assert.equal(action?.durationMs, 484);
+  assert.equal(action?.status, 'reduced');
   assert.deepEqual(
     result.rotation.filter((command) => command.name === 'Shrapnel Grenade'),
-    [{ name: 'Shrapnel Grenade', skillId: 5807 }]
+    [{ name: 'Shrapnel Grenade', skillId: 5807, interruptMs: 480 }]
   );
 });
 
@@ -1450,8 +1449,9 @@ test('recovers a Scrapper Reconstruction Field precast from matching initial buf
     ['Reconstruction Field', 'Lightning Rod', 'Conduit Surge']
   );
   assert.equal(result.actions[0].evidence, 'initial-state');
-  assert.deepEqual(result.rotation.slice(0, 2), [
+  assert.deepEqual(result.rotation.slice(0, 3), [
     { name: 'Reconstruction Field', skillId: 29505 },
+    { name: '__wait', waitMs: 40 },
     { name: 'Lightning Rod', skillId: 73002 }
   ]);
 });

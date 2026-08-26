@@ -352,6 +352,7 @@ test('reconstructs casts, inferred instants, swaps, dodges, and 40 ms replay tim
   assert.equal(result.actions[3].supportedByCatalog, false);
   assert.deepEqual(result.rotation, [
     { name: '__combat_start' },
+    { name: '__wait', waitMs: 200 },
     { name: 'Mind Stab', skillId: 1_000 },
     { name: 'Time Sink', skillId: 2_000, offset: 120 },
     { name: 'Swap Weapons', skillId: -3, offset: 120 },
@@ -361,7 +362,7 @@ test('reconstructs casts, inferred instants, swaps, dodges, and 40 ms replay tim
   assert.match(result.warnings[1], /not present/);
 });
 
-test('keeps overlapping autoattacks serial and does not replay animation tails as waits', () => {
+test('preserves cancelled autoattacks and their recorded timeline without artificial waits', () => {
   const autoattack = {
     id: 4_000,
     name: 'Fixture Autoattack',
@@ -395,14 +396,17 @@ test('keeps overlapping autoattacks serial and does not replay animation tails a
     autoattackCommands.every((command) => command.offset == null),
     true
   );
-  assert.equal(autoattackCommands[1].interruptMs, 160);
   assert.deepEqual(
-    result.rotation.filter((command) => command.name === '__wait'),
-    []
+    autoattackCommands.map(({ interruptMs }) => interruptMs),
+    [undefined, 160, undefined]
+  );
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [200, 80]
   );
 });
 
-test('omits observed idle gaps after combat start so skills replay when ready', () => {
+test('represents observed post-combat idle time with explicit waits', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 1 }),
@@ -418,8 +422,8 @@ test('omits observed idle gaps after combat start so skills replay when ready', 
   const result = reconstructEvtcRotation(fixture, catalog);
 
   assert.deepEqual(
-    result.rotation.filter((command) => command.name === '__wait'),
-    []
+    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    [200, 200, 600]
   );
 });
 
@@ -458,15 +462,12 @@ test('uses observed strike packets to reconcile interrupted casts generically', 
     inferInstantCasts: false
   });
 
-  assert.deepEqual(result.warnings, [
-    'EVTC observed 1 interrupted Mind Stab cast dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.'
-  ]);
-  assert.equal(result.actions[0].status, 'reduced');
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.actions[0].status, 'completed');
   assert.deepEqual(result.rotation, [
     {
       name: 'Mind Stab',
-      skillId: 1_000,
-      interruptMs: 0
+      skillId: 1_000
     }
   ]);
 });
@@ -508,10 +509,10 @@ test('does not infer cast commitment when no effect packet was observed', () => 
 
   assert.equal(result.actions[0].status, 'interrupted');
   assert.ok(result.warnings.some((warning) => warning.includes('interrupted')));
-  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 0 }]);
+  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000 }]);
 });
 
-test('uses the engine interrupt cutoff and warns instead of preserving EVTC timing', () => {
+test('uses rounded EVTC timing when it reaches the engine interrupt cutoff', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
@@ -526,11 +527,9 @@ test('uses the engine interrupt cutoff and warns instead of preserving EVTC timi
     { includeCombatStart: false, inferInstantCasts: false }
   );
 
-  assert.equal(result.actions[0].durationMs, 400);
-  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 400 }]);
-  assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Mind Stab cast; the simulator has an interrupt cutoff time of 400 ms, so reconstruction uses 400 ms instead of the EVTC timing.'
-  ]);
+  assert.equal(result.actions[0].durationMs, 437);
+  assert.deepEqual(result.rotation, [{ name: 'Mind Stab', skillId: 1_000, interruptMs: 440 }]);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('right-aligns damage-inferred ammo flips within an active cast', () => {
@@ -956,7 +955,7 @@ test('places Plague Signet after an overlapping Blood Is Power cast completes', 
   assert.deepEqual(result.warnings, []);
 });
 
-test('clamps reconstructed Devouring Cut cancels to their 400 ms commit', () => {
+test('uses the default Quickness cast when EVTC timing is below the commit cutoff', () => {
   const fixture = log({
     agents: [
       {
@@ -1010,14 +1009,12 @@ test('clamps reconstructed Devouring Cut cancels to their 400 ms commit', () => 
     }
   );
 
-  assert.equal(result.actions[0].durationMs, 400);
-  assert.deepEqual(result.rotation, [{ name: 'Devouring Cut', skillId: 62_672, interruptMs: 400 }]);
-  assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Devouring Cut cast; the simulator has an interrupt cutoff time of 400 ms, so reconstruction uses 400 ms instead of the EVTC timing.'
-  ]);
+  assert.equal(result.actions[0].durationMs, 360);
+  assert.deepEqual(result.rotation, [{ name: 'Devouring Cut', skillId: 62_672 }]);
+  assert.deepEqual(result.warnings, []);
 });
 
-test('clamps Dark Barrage and Enfeebling Blood EVTC cancels to their commit frames', () => {
+test('accepts EVTC timing at the commit frame and rejects timing below it', () => {
   const fixture = log({
     agents: [
       {
@@ -1086,13 +1083,10 @@ test('clamps Dark Barrage and Enfeebling Blood EVTC cancels to their commit fram
     result.rotation.filter((command) => command.name !== '__wait'),
     [
       { name: 'Dark Barrage', skillId: 62_621, interruptMs: 800 },
-      { name: 'Enfeebling Blood', skillId: 10_706, interruptMs: 638 }
+      { name: 'Enfeebling Blood', skillId: 10_706 }
     ]
   );
-  assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Dark Barrage cast; the simulator has an interrupt cutoff time of 800 ms, so reconstruction uses 800 ms instead of the EVTC timing.',
-    'EVTC recorded 1 interrupted Enfeebling Blood cast; the simulator has an interrupt cutoff time of 638 ms, so reconstruction uses 638 ms instead of the EVTC timing.'
-  ]);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('reconstructs Distress from its consumed availability buff', () => {
@@ -1868,8 +1862,7 @@ test('reconstructs Reaper shroud and truncated opening precasts', () => {
     result.rotation.find((action) => action.name === 'Grasping Darkness'),
     {
       name: 'Grasping Darkness',
-      skillId: 29_740,
-      interruptMs: 120
+      skillId: 29_740
     }
   );
   assert.equal(result.actions.filter((action) => action.name === "Reaper's Shroud").length, 2);
@@ -2580,9 +2573,7 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
 
   const result = reconstructEvtcRotation(fixture, rotationCatalog);
 
-  assert.deepEqual(result.warnings, [
-    'EVTC observed 1 interrupted Preparation Thrust cast dealing damage at or after the interrupt marker, but the simulator catalog has no interruptCommitMs cutoff; later packets will be omitted.'
-  ]);
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
     ['Swap Legends', 'Deathstrike', 'Preparation Thrust', 'Brutal Blade', "Razorclaw's Rage"]
@@ -3412,9 +3403,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     inferInstantCasts: false
   });
 
-  assert.deepEqual(result.warnings, [
-    'EVTC recorded 1 interrupted Dagger Strike cast; the simulator has an interrupt cutoff time of 0 ms, so reconstruction uses 0 ms instead of the EVTC timing.'
-  ]);
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
     ['Dodge', 'Steal', "Assassin's Signet", 'Death Blossom', 'Dagger Strike']
@@ -3440,7 +3429,7 @@ test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     {
       name: 'Dagger Strike',
       skillId: 13_004,
-      interruptMs: 0
+      interruptMs: 40
     }
   );
 });
@@ -3779,6 +3768,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
 
   assert.deepEqual(idleGapImport.rotation, [
     { type: 'cast', skillId: 1_000 },
+    { type: 'wait', durationMs: 1200 },
     { type: 'cast', skillId: 1_000 }
   ]);
 
@@ -3811,8 +3801,8 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     }
   );
 
-  assert.deepEqual(interruptedImport.rotation, [{ type: 'cast', skillId: 1_000, interruptAfterMs: 0 }]);
-  assert.match(interruptedImport.warnings.join('\n'), /simulator catalog has no interruptCommitMs cutoff/);
+  assert.deepEqual(interruptedImport.rotation, [{ type: 'cast', skillId: 1_000 }]);
+  assert.doesNotMatch(interruptedImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
 
   const perPacketImport = await readEvtcRotationFile(
     {

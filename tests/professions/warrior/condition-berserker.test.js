@@ -33,7 +33,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     [ID.HAMSTRING]: 400,
     [ID.BLOOD_RECKONING]: 280,
     [ID.SHATTERING_BLOW]: 520,
-    [ID.SUNDERING_LEAP]: 920,
+    [ID.SUNDERING_LEAP]: 960,
     [ID.HEAD_BUTT]: 800
   };
 

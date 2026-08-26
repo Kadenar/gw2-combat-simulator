@@ -94,12 +94,14 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(warriorCatalog.specializations.length, 9);
   assert.equal(warriorCatalog.traits.length, 108);
-  assert.equal(warriorCatalog.skills.length, 209);
+  assert.equal(warriorCatalog.skills.length, 210);
   assert.deepEqual(
     warriorCatalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name),
     ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
   );
   assert.equal(warriorCatalog.weaponHands.get('Torch'), 'oh');
+  assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
+  assert.match(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, /assets\/warrior\/weapon-stow\.png$/);
   assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).name, 'Eviscerate');
   assert.equal(
     warriorCatalog.skills.every((skill) => skill.implemented || skill.simulatorExcluded),
