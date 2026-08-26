@@ -40,7 +40,6 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
     heat: initialHeat,
     maximumHeat,
     heatUpdatedAt: 0,
-    overheatCheckAt: null,
     passiveHeatAt: null,
     photonForgeActive: false,
     // null = forge has never been exited (no cooling yet); 0 = treat as exited at t=0 so

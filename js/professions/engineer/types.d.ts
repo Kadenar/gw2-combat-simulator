@@ -105,7 +105,6 @@ export interface HolosmithState {
   heat: number;
   maximumHeat: number;
   heatUpdatedAt: number;
-  overheatCheckAt: number | null;
   passiveHeatAt: number | null;
   photonForgeActive: boolean;
   forgeExitedAt: number | null;

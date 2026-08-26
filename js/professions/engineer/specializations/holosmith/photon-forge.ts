@@ -43,8 +43,6 @@ interface PhotonForgeHeatPayload extends SchedulerRecord {
   readonly persistsOutsideForge: boolean;
 }
 
-interface PhotonForgeOverheatCheckPayload extends SchedulerRecord {}
-
 interface PhotonForgePassiveHeatPayload extends SchedulerRecord {}
 
 interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
@@ -53,7 +51,6 @@ interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
 
 const CORONA_QUICKNESS_PULSE_OFFSETS_MS = HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS;
 const PHOTON_BLITZ_PULSE_OFFSETS_MS = HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
-const PHOTON_FORGE_OVERHEAT_CHECK_TASK = 'engineer.photon-forge-overheat-check';
 const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
 const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
 
@@ -295,7 +292,6 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
   state.photonForgeActive = false;
-  state.overheatCheckAt = null;
   state.passiveHeatAt = null;
   state.forgeExitedAt = at;
   state.overheated = true;
@@ -347,52 +343,14 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   }
 }
 
-function scheduleOverheatCheck(context: EngineerSchedulerContext, at: number): void {
-  context.tasks.schedule({
-    type: PHOTON_FORGE_OVERHEAT_CHECK_TASK,
-    at,
-    // Heat pulses at the same timestamp must resolve before the cap is checked.
-    priority: 100,
-    payload: {}
-  });
-}
-
 function schedulePassiveHeat(context: EngineerSchedulerContext, at: number): void {
   context.tasks.schedule({
     type: PHOTON_FORGE_PASSIVE_HEAT_TASK,
     at,
+    // Skill heat at the same timestamp resolves before the resource tick checks the cap.
+    priority: 100,
     payload: {}
   });
-}
-
-function nextOverheatCheckAt(at: number): number {
-  const interval = HOLOSMITH_HEAT.overheatCheckInterval;
-  const elapsedIntervals = Math.floor(at / interval + 1e-9);
-
-  // Overheat follows the simulation-global resource clock. Forge exits stop
-  // active checks, but later entries resume at the next existing boundary.
-  return (elapsedIntervals + 1) * interval;
-}
-
-export function handlePhotonForgeOverheatCheck(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<PhotonForgeOverheatCheckPayload>
-): void {
-  const state = holosmithState.from(context);
-  if (
-    !state.photonForgeActive ||
-    state.overheatCheckAt == null ||
-    Math.abs(state.overheatCheckAt - task.at) > context.epsilon
-  )
-    return;
-
-  if (state.heat >= state.maximumHeat - context.epsilon) {
-    forceOverheat(context, task.at);
-    return;
-  }
-
-  state.overheatCheckAt = task.at + HOLOSMITH_HEAT.overheatCheckInterval;
-  scheduleOverheatCheck(context, state.overheatCheckAt);
 }
 
 export function handlePhotonForgePassiveHeat(
@@ -407,13 +365,18 @@ export function handlePhotonForgePassiveHeat(
   )
     return;
 
-  // Passive heat has its own one-second cadence beginning at Forge entry. It
-  // can fill the bar, but only the separate global check task can Overheat.
+  // The Forge-relative tick ejects only when heat was already capped at tick
+  // start, so passive heat that fills the bar gets one final one-second window.
+  if (state.heat >= state.maximumHeat - context.epsilon) {
+    forceOverheat(context, task.at);
+    return;
+  }
+
   const previousHeat = state.heat;
   state.heat = Math.min(state.maximumHeat, state.heat + passiveHeatPerTick(context));
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
   if (state.heat !== previousHeat) emitEngineerState(context, task.at, 'passive-heat');
-  state.passiveHeatAt = task.at + HOLOSMITH_HEAT.overheatCheckInterval;
+  state.passiveHeatAt = task.at + HOLOSMITH_HEAT.heatTickInterval;
   schedulePassiveHeat(context, state.passiveHeatAt);
 }
 
@@ -432,9 +395,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   coreState.activeKit = '';
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
-  state.overheatCheckAt = nextOverheatCheckAt(at);
-  state.passiveHeatAt = at + HOLOSMITH_HEAT.overheatCheckInterval;
-  scheduleOverheatCheck(context, state.overheatCheckAt);
+  state.passiveHeatAt = at + HOLOSMITH_HEAT.heatTickInterval;
   schedulePassiveHeat(context, state.passiveHeatAt);
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.
@@ -448,7 +409,6 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   const state = holosmithState.from(context);
   const at = context.effectiveEnd;
   state.photonForgeActive = false;
-  state.overheatCheckAt = null;
   state.passiveHeatAt = null;
   state.forgeExitedAt = at;
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
@@ -603,7 +563,6 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
   if (skill.handlerId !== 'engineer.kit-equip' || !holosmithState.from(context).photonForgeActive) return;
   const at = context.effectiveEnd;
   holosmithState.from(context).photonForgeActive = false;
-  holosmithState.from(context).overheatCheckAt = null;
   holosmithState.from(context).passiveHeatAt = null;
   holosmithState.from(context).forgeExitedAt = at;
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
