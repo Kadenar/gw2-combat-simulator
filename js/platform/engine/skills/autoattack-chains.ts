@@ -6,6 +6,16 @@
  */
 import type { AutoattackChainPosition, Skill, SkillId } from '../types.js';
 
+export interface AutoattackChainState {
+  readonly [root: number]: SkillId | undefined;
+}
+
+export interface ResolvedAutoattackChainStep {
+  readonly position: AutoattackChainPosition;
+  readonly expectedSkillId: number;
+  readonly matchesExpectedStep: boolean;
+}
+
 /**
  * Freezes a chain after normalizing all skill ids to numbers.
  *
@@ -78,4 +88,26 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
   }
 
   return positions;
+}
+
+/**
+ * Resolves the currently expected member of a cataloged autoattack chain so
+ * profession gates can share sequencing while retaining their own policy.
+ * Missing chain state starts the sequence at its root skill.
+ */
+export function resolveAutoattackChainStep(
+  positions: ReadonlyMap<number, AutoattackChainPosition>,
+  chainState: AutoattackChainState,
+  skillId: SkillId
+): ResolvedAutoattackChainStep | null {
+  const normalizedSkillId = Number(skillId);
+  const position = positions.get(normalizedSkillId);
+  if (!position) return null;
+
+  const expectedSkillId = Number(chainState[position.root]) || position.root;
+  return {
+    position,
+    expectedSkillId,
+    matchesExpectedStep: normalizedSkillId === expectedSkillId
+  };
 }

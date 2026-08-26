@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { CAST_READY } from '../../../platform/engine/skills/availability.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { denySkillCast } from '../../lib/availability.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
@@ -78,11 +79,10 @@ export function guardianCastAvailability(
       : denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.');
   }
 
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
   if (!chain) return CAST_READY;
-  const expected = state.autoattackChains[chain.root] || chain.root;
-  if (expected === skill.id) return CAST_READY;
-  const expectedSkill = context.catalog.skillsById.get(expected);
+  if (chain.matchesExpectedStep) return CAST_READY;
+  const expectedSkill = context.catalog.skillsById.get(chain.expectedSkillId);
   return denySkillCast(
     skill,
     'guardian.autoattack-chain',

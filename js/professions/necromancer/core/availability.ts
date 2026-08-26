@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from './state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -48,10 +49,9 @@ function chainVerdict(
   skill: NecromancerSkill,
   state: NecromancerCoreState
 ): Readonly<AvailabilityResult> {
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
   if (!chain) return READY;
-  const expected = state.autoattackChains[chain.root] || chain.root;
-  return expected === skill.id
+  return chain.matchesExpectedStep
     ? READY
     : deny(skill, 'necromancer.autoattack-chain', 'cast the earlier chain skill first.');
 }
@@ -220,9 +220,11 @@ export function necromancerBuildAvailability(
   if (!skill.implemented) {
     return deny(skill, 'necromancer.not-implemented', 'it is not implemented by the simulator.');
   }
+
   if (skill.simulatorExcluded) {
     return deny(skill, 'necromancer.simulator-excluded', 'it is excluded from simulation.');
   }
+
   if (skill.type !== 'Weapon' && skill.specialization && skill.specialization !== specialization(context)) {
     return deny(skill, 'necromancer.specialization', `requires the ${skill.specialization} specialization.`);
   }
@@ -234,6 +236,7 @@ export function necromancerBuildAvailability(
       'Devouring Darkness replaces it while Lingering Curse is selected.'
     );
   }
+
   return READY;
 }
 

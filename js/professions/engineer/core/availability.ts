@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import { engineerEnduranceReadyAt } from './resources.js';
@@ -18,9 +19,8 @@ export function expectedEngineerChainSkill(
   skill: EngineerSkill,
   state: EngineerCoreState
 ): boolean {
-  const chain = typeof skill.id === 'number' ? context.catalog.autoattackChainPositions.get(skill.id) : undefined;
-  if (!chain) return true;
-  return (state.autoattackChains[chain.root] || chain.root) === skill.id;
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
+  return chain?.matchesExpectedStep ?? true;
 }
 
 export function engineerCoreCastAvailability(

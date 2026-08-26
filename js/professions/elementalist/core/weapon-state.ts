@@ -1,4 +1,5 @@
 import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
@@ -78,11 +79,10 @@ export function autoattackChainAvailability(
   skill: Skill,
   state: ElementalistCoreState
 ): AvailabilityResult | null {
-  const position = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (!position) return null;
-  const expected = Number(state.autoattackChains[position.root]) || position.root;
-  if (expected !== Number(skill.id)) {
-    const expectedSkill = context.catalog.skillsById.get(expected);
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
+  if (!chain) return null;
+  if (!chain.matchesExpectedStep) {
+    const expectedSkill = context.catalog.skillsById.get(chain.expectedSkillId);
     return unavailable(
       skill,
       'elementalist.autoattack-chain',
@@ -91,7 +91,7 @@ export function autoattackChainAvailability(
   }
 
   const carryover = state.autoattackCarryover;
-  return carryover?.root === position.root && carryover.attunement === skill.attunement ? ready() : null;
+  return carryover?.root === chain.position.root && carryover.attunement === skill.attunement ? ready() : null;
 }
 
 export function progressedAutoattackCarryover(

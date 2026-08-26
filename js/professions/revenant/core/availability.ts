@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { revenantEnduranceReadyAt } from './energy.js';
@@ -111,8 +112,8 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     );
   }
 
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain && (state.autoattackChains[chain.root] || chain.root) !== skill.id) {
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
+  if (chain && !chain.matchesExpectedStep) {
     return denyRevenantSkill(skill, 'revenant.autoattack-chain', 'cast the earlier chain skill first.');
   }
 

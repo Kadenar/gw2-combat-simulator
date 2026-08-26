@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { EPSILON } from '../../../platform/engine/core/clock.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { mesmerRuntimeFor } from './runtime.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime, MesmerSkill } from '../types.js';
@@ -46,15 +47,18 @@ export function mesmerAvailability(
     };
   }
 
-  const position = context.catalog.autoattackChainPositions.get(skill.id);
-  if (position) {
-    const expected = professionCoreState(state).autoattackChains[position.root] || position.root;
-    if (skill.id !== expected) {
+  const chain = resolveAutoattackChainStep(
+    context.catalog.autoattackChainPositions,
+    professionCoreState(state).autoattackChains,
+    skill.id
+  );
+  if (chain) {
+    if (!chain.matchesExpectedStep) {
       return {
         ready: false,
         retryAt: null,
         code: 'mesmer.autoattack-chain',
-        reason: `Cannot cast ${skill.name}; cast ${runtime.skillsById.get(expected)?.name || expected} first.`
+        reason: `Cannot cast ${skill.name}; cast ${runtime.skillsById.get(chain.expectedSkillId)?.name || chain.expectedSkillId} first.`
       };
     }
   }

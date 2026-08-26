@@ -5,7 +5,11 @@ import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
-import { deriveAutoattackChains, indexAutoattackChains } from '../../js/platform/engine/skills/autoattack-chains.js';
+import {
+  deriveAutoattackChains,
+  indexAutoattackChains,
+  resolveAutoattackChainStep
+} from '../../js/platform/engine/skills/autoattack-chains.js';
 import {
   blind,
   boon,
@@ -294,6 +298,27 @@ test('shared autoattack helpers derive and index ID-based chains', () => {
     step: 2,
     next: 3
   });
+});
+
+test('shared autoattack helper resolves root and progressed chain expectations', () => {
+  const positions = indexAutoattackChains([[1, 2, 3]]);
+
+  assert.deepEqual(resolveAutoattackChainStep(positions, {}, 1), {
+    position: positions.get(1),
+    expectedSkillId: 1,
+    matchesExpectedStep: true
+  });
+  assert.deepEqual(resolveAutoattackChainStep(positions, { 1: 2 }, 1), {
+    position: positions.get(1),
+    expectedSkillId: 2,
+    matchesExpectedStep: false
+  });
+  assert.deepEqual(resolveAutoattackChainStep(positions, { 1: 2 }, 2), {
+    position: positions.get(2),
+    expectedSkillId: 2,
+    matchesExpectedStep: true
+  });
+  assert.equal(resolveAutoattackChainStep(positions, { 1: 2 }, 99), null);
 });
 
 test('canonical catalogs own derived and exceptional autoattack chains', () => {

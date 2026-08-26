@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
 import { warriorEnduranceReadyAt } from './resources.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
@@ -19,18 +20,15 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
         };
   }
 
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain) {
-    const expected = state.autoattackChains[chain.root] || chain.root;
-    if (expected !== skill.id) {
-      const expectedSkill = context.catalog.skillsById.get(expected);
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'warrior.autoattack-chain',
-        reason: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
-      };
-    }
+  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
+  if (chain && !chain.matchesExpectedStep) {
+    const expectedSkill = context.catalog.skillsById.get(chain.expectedSkillId);
+    return {
+      ready: false,
+      retryAt: null,
+      code: 'warrior.autoattack-chain',
+      reason: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
+    };
   }
 
   const cost = Number(skill.adrenalineCost || 0);
