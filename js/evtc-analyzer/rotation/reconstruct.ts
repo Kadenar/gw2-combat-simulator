@@ -33,8 +33,8 @@ import { reconstructProfessionActions, type EvtcRecordedRotationAction } from '.
 
 const TIMING_TOLERANCE_MS = 50;
 const EVTC_TIMING_QUANTUM_MS = 40;
-// Only a sustained gap after both EVTC and modeled cast completion is strong enough evidence for an explicit idle wait.
-const MINIMUM_CONFIRMED_IDLE_GAP_MS = 400;
+// Only a sustained precombat gap is strong enough evidence for an explicit opener wait.
+const MINIMUM_CONFIRMED_OPENER_GAP_MS = 400;
 const TRANSITION_WINDOW_MS = 150;
 const STANDARD_DODGE_ANIMATION_ID = 23275;
 const STANDARD_DODGE_STOP_ACTIVATION = 6;
@@ -894,10 +894,11 @@ function buildRotation(
       command.offset = quantizeEvtcTimingMs(at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
-      // Profession evidence can explicitly preserve a short state-boundary gap;
-      // otherwise retain the conservative generic threshold for EVTC animation noise.
-      const confirmedGapThreshold = suppressGap === false ? TIMING_TOLERANCE_MS : MINIMUM_CONFIRMED_IDLE_GAP_MS;
-      if (gap > confirmedGapThreshold && suppressGap !== true) {
+      // Preserve timing only while reconstructing precombat setup. Once combat begins, omit observed idle time so the
+      // simulator casts each subsequent skill as soon as its cooldown, resources, and other availability rules allow.
+      const precombat = combatStart != null && at < combatStart;
+      const confirmedGapThreshold = suppressGap === false ? TIMING_TOLERANCE_MS : MINIMUM_CONFIRMED_OPENER_GAP_MS;
+      if (precombat && gap > confirmedGapThreshold && suppressGap !== true) {
         rotation.push({ name: '__wait', waitMs: quantizeEvtcTimingMs(gap) });
       }
 

@@ -162,6 +162,32 @@ test('expands shortened Blood Is Power report casts through their uncancellable 
   assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
 });
 
+test('collapses Rend animation rows into one Warrior cast', () => {
+  const report = reportFixture(
+    'Berserker',
+    [
+      { id: 80_247, skills: [{ castTime: 100, duration: 480, timeGained: 80 }] },
+      { id: 80_224, skills: [{ castTime: 580, duration: 480, timeGained: 0 }] }
+    ],
+    {
+      s80247: { name: 'Rend' },
+      s80224: { name: 'Rend' }
+    },
+    2_000
+  );
+  const catalog = {
+    skills: [skill(80_247, 'Rend', { type: 'weapon', slot: 'weapon_3', quicknessCastTimeMs: 960 })]
+  };
+
+  const result = reconstructDpsReportRotation(report, catalog);
+
+  assert.deepEqual(
+    result.actions.map((action) => [action.rawSkillId, action.name, action.durationMs]),
+    [[80_247, 'Rend', 960]]
+  );
+  assert.equal(result.rotation.filter((command) => command.name === 'Rend').length, 1);
+});
+
 test('coalesces Willbender composite casts and recovers an opening Jurisdiction', () => {
   const report = reportFixture(
     'Willbender',

@@ -402,7 +402,7 @@ test('keeps overlapping autoattacks serial and does not replay animation tails a
   );
 });
 
-test('adds waits only for sustained observed idle gaps between completed casts', () => {
+test('omits observed idle gaps after combat start so skills replay when ready', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 1 }),
@@ -419,7 +419,7 @@ test('adds waits only for sustained observed idle gaps between completed casts',
 
   assert.deepEqual(
     result.rotation.filter((command) => command.name === '__wait'),
-    [{ name: '__wait', waitMs: 600 }]
+    []
   );
 });
 
@@ -3779,7 +3779,6 @@ test('the browser rotation importer previews compressed .zevtc files before appl
 
   assert.deepEqual(idleGapImport.rotation, [
     { type: 'cast', skillId: 1_000 },
-    { type: 'wait', durationMs: 1_200 },
     { type: 'cast', skillId: 1_000 }
   ]);
 

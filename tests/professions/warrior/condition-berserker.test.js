@@ -59,6 +59,8 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const fan = skill(ID.FAN_OF_FIRE);
 
   assert.equal(fan.cooldown, 5);
+  assert.equal(fan.interruptCommitMs, 240);
+  assert.equal(fan.retainsCastLockoutAfterInterrupt, true);
   assert.deepEqual(
     fan.effects.map(({ type, coefficient, hits, stacks, duration, atMs }) => ({
       type,
@@ -271,6 +273,43 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.deepEqual(
     flamingFlurry.effects[1].ticks.map(({ duration }) => duration),
     [3.5, 3.5, 3.5, 3.5, 3.5, 3.5]
+  );
+});
+
+test('Fan of Fire keeps only cast-time skills behind its retained aftercast', async () => {
+  const raw = JSON.parse(await readFile(buildUrl, 'utf8'));
+  const build = migrateWarriorBuild({
+    ...raw,
+    startingWeaponSet: 1,
+    rotation: [{ name: 'Fan of Fire', interruptMs: 240 }, 'Outrage', 'Swap Weapons', 'Flames of War']
+  });
+  const app = {
+    build,
+    skillByName: warriorCatalog.skillsByName,
+    attributeWeaponSet: 1
+  };
+
+  warriorAppAdapter.recalculate(app);
+  const result = warriorAppAdapter.runSimulation(app);
+  const action = (name) => result.events.find((event) => event.type === 'action' && event.skillName === name);
+  const fan = action('Fan of Fire');
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(fan.endsAt, 0.24);
+  assert.equal(fan.castLockoutEndsAt, 0.56);
+  assert.equal(action('Outrage').at, 0.24);
+  assert.equal(action('Swap Weapons').at, 0.24);
+  assert.equal(action('Flames of War').at, 0.56);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.activationId === fan.activationId && ['damage', 'condition'].includes(event.type))
+      .map((event) => [event.type, event.at]),
+    [
+      ['damage', 0.24],
+      ['damage', 0.24],
+      ['damage', 0.24],
+      ['condition', 0.24]
+    ]
   );
 });
 

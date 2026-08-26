@@ -57,7 +57,6 @@ function preserveOverheatBoundaries(
         event.buffRemove === 0
     )
     .map((event) => event.time);
-  const preserve = new Set<EvtcRecordedRotationAction>();
   const complete = new Set<EvtcRecordedRotationAction>();
   for (const time of overheatTimes) {
     const nextCast = actions
@@ -75,34 +74,12 @@ function preserveOverheatBoundaries(
       .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
     if (spanning) {
       complete.add(spanning);
-      // Preserve the observed recovery after the cast spanning Overheat. That
-      // short gap is what keeps the following normal-weapon input behind the exit.
-      preserve.add(spanning);
-      const preceding = actions
-        .filter((action) => action.end <= spanning.start)
-        .sort((left, right) => right.end - left.end || right.eventIndex - left.eventIndex)[0];
-      // A tiny autoattack artifact spanning Overheat may be removed later. Keep
-      // the preceding stable cast as a second timing anchor so its gap survives.
-      if (preceding) preserve.add(preceding);
       continue;
     }
-
-    const preceding = actions
-      .filter((action) => action.end <= time)
-      .sort((left, right) => right.end - left.end || right.eventIndex - left.eventIndex)[0];
-    if (preceding) preserve.add(preceding);
   }
 
-  return actions.map((action) => {
-    if (complete.has(action) || preserve.has(action)) {
-      return {
-        ...action,
-        ...(complete.has(action) ? { forceCompleteReplay: true } : {}),
-        ...(preserve.has(action) ? { suppressFollowingWait: false } : {})
-      };
-    }
-    return action;
-  });
+  // Overheat can hide a cast boundary in EVTC, so retain cast completion without replaying the observed idle recovery.
+  return actions.map((action) => (complete.has(action) ? { ...action, forceCompleteReplay: true } : action));
 }
 
 function nextKitAfter(
@@ -291,6 +268,7 @@ function openingActions(
   if (!existingActions.some((action) => sameRecordedActivation(action, opening))) {
     scheduled.push(opening);
   }
+
   return scheduled;
 }
 
@@ -301,10 +279,5 @@ export function reconstructHolosmithActions(
   actions.push(...inferDirectInputs(context));
   actions.push(...inferDetonateActions(context));
   actions.push(...openingActions(context, actions));
-  // Holosmith heat depends on the real intervals between Forge cycles. Retain
-  // observed recovery gaps so replay does not cross cooling-rate boundaries.
-  return preserveOverheatBoundaries(context, actions).map((action) => ({
-    ...action,
-    suppressFollowingWait: action.precast === true ? action.suppressFollowingWait : false
-  }));
+  return preserveOverheatBoundaries(context, actions);
 }

@@ -7,6 +7,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     cooldown: 8,
     castTimeMs: 0,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'boon',
@@ -20,25 +24,23 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Eviscerate — Level 1 Damage'
       }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.THROW_BOLAS]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 0.25,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SIGNET_OF_RAGE]: {
     implemented: true,
+    quicknessCastTimeMs: 167,
+    dualWieldCastTimeMs: 160,
     effects: [
       {
         type: 'boon',
@@ -58,12 +60,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 25,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 167,
-    dualWieldCastTimeMs: 160
+    ]
   },
   [ID.GREATSWORD_SWING]: {
     implemented: true,
+    quicknessCastTimeMs: 400,
     effects: [
       {
         type: 'strike',
@@ -76,11 +77,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 8
       }
-    ],
-    quicknessCastTimeMs: 400
+    ]
   },
   [ID.HAMMER_SWING]: {
     implemented: true,
+    quicknessCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -90,12 +91,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 480
+    ]
   },
   [ID.STAGGERING_BLOW]: {
     implemented: true,
     cooldown: 18,
+    quicknessCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -122,11 +123,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'knockback'
         }
       }
-    ],
-    quicknessCastTimeMs: 480
+    ]
   },
   [ID.RIFLE_BUTT]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -139,11 +140,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'knockback'
         }
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SHIELD_BASH]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -157,17 +158,18 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 2
         }
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.SHIELD_STANCE]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 2000
+    quicknessCastTimeMs: 2000,
+    effects: []
   },
   [ID.HAMSTRING]: {
     interruptCommitMs: 0,
     implemented: true,
+    quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 320,
     effects: [
       {
         type: 'strike',
@@ -198,12 +200,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'cast',
         persistsAfterInterrupt: true
       }
-    ],
-    quicknessCastTimeMs: 400,
-    dualWieldCastTimeMs: 320
+    ]
   },
   [ID.SEVER_ARTERY]: {
     implemented: true,
+    quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 280,
     effects: [
       {
         type: 'strike',
@@ -222,12 +224,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 360,
-    dualWieldCastTimeMs: 280
+    ]
   },
   [ID.GASH]: {
     implemented: true,
+    quicknessCastTimeMs: 520,
+    dualWieldCastTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -246,9 +248,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 520,
-    dualWieldCastTimeMs: 360
+    ]
   },
   [ID.SAVAGE_LEAP]: {
     implemented: true,
@@ -259,6 +259,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -286,11 +287,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 1000
+    ]
   },
   [ID.FRENZY]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -304,22 +305,22 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 6,
         stacks: 10
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.CHOP]: {
     implemented: true,
+    quicknessCastTimeMs: 167,
     effects: [
       {
         type: 'strike',
         coefficient: 0.7,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 167
+    ]
   },
   [ID.DOUBLE_CHOP]: {
     implemented: true,
+    quicknessCastTimeMs: 167,
     effects: [
       {
         type: 'strike',
@@ -333,11 +334,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Double Chop — Second Chop Damage'
       }
-    ],
-    quicknessCastTimeMs: 167
+    ]
   },
   [ID.TRIPLE_CHOP]: {
     implemented: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -350,16 +351,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Triple Chop — Final chop damage.'
       }
-    ],
-    quicknessCastTimeMs: 1000
+    ]
   },
   [ID.SHAKE_IT_OFF]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 333,
+    effects: []
   },
   [ID.GREATSWORD_SLICE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -372,22 +373,26 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 8
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.BRUTAL_STRIKE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.ARCING_SLICE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -407,37 +412,33 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 8,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.MACE_SMASH]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.MACE_BASH]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.PULVERIZE]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -450,8 +451,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 5
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.ARCING_ARROW]: {
     implemented: true,
@@ -462,6 +462,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    quicknessCastTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -480,11 +481,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 560
+    ]
   },
   [ID.HAMMER_BASH]: {
     implemented: true,
+    quicknessCastTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -494,12 +495,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 640
+    ]
   },
   [ID.HAMMER_SMASH]: {
     implemented: true,
     interruptCommitMs: 320,
+    quicknessCastTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -509,13 +510,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 440
+    ]
   },
   [ID.FIERCE_BLOW]: {
     implemented: true,
     interruptCommitMs: 600,
     cooldown: 6,
+    quicknessCastTimeMs: 880,
+    handlerId: 'warrior.fierce-blow',
     effects: [
       {
         type: 'strike',
@@ -534,14 +536,17 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 880,
-    handlerId: 'warrior.fierce-blow'
+    ]
   },
   [ID.EARTHSHAKER]: {
     implemented: true,
     skillWeapon: 'Hammer',
     cooldown: 8,
+    quicknessCastTimeMs: 1000,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -569,15 +574,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 1
         }
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.STOMP]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -596,11 +597,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'launch'
         }
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.HEALING_SIGNET]: {
     implemented: true,
+    quicknessCastTimeMs: 833,
     effects: [
       {
         type: 'boon',
@@ -608,16 +609,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 6,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 833
+    ]
   },
   [ID.ENDURE_PAIN]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 333,
+    effects: []
   },
   [ID.CHARGE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -631,11 +632,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 2,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.CALL_OF_VALOR]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -643,11 +644,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 10,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.KILL_SHOT]: {
     implemented: true,
+    quicknessCastTimeMs: 833,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -655,12 +660,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Kill Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 833,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.THROW_AXE]: {
     implemented: true,
@@ -668,6 +668,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammoRecharge: 10,
     cooldown: 10,
     ammoCastLockout: 1,
+    quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 240,
     effects: [
       {
         type: 'strike',
@@ -680,14 +682,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 4
       }
-    ],
-    quicknessCastTimeMs: 360,
-    dualWieldCastTimeMs: 240
+    ]
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
     interruptMode: 'per-packet',
     cooldown: 15,
+    quicknessCastTimeMs: 2500,
+    dualWieldCastTimeMs: 2040,
     effects: [
       {
         type: 'strike',
@@ -706,26 +708,23 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ],
         metadata: {}
       }
-    ],
-    quicknessCastTimeMs: 2500,
-    dualWieldCastTimeMs: 2040
+    ]
   },
   [ID.RIPOSTE]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 1500
+    quicknessCastTimeMs: 1500,
+    effects: []
   },
   [ID.MENDING]: {
     implemented: true,
     cooldown: 12,
-    effects: [],
     quicknessCastTimeMs: 920,
-    categories: ['Physical']
+    categories: ['Physical'],
+    effects: []
   },
   [ID.TO_THE_LIMIT]: {
     implemented: true,
     cooldown: 24,
-    effects: [],
     quicknessCastTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
     mechanicTriggers: [
@@ -736,10 +735,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     adrenalineGain: 30,
-    handlerId: 'warrior.resource'
+    handlerId: 'warrior.resource',
+    effects: []
   },
   [ID.FOR_GREAT_JUSTICE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -753,12 +754,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 25,
         stacks: 6
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SIGNET_OF_MIGHT]: {
     implemented: true,
     cooldown: 20,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -766,11 +767,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 6,
         stacks: 10
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.BANNER_OF_STRENGTH]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'boon',
@@ -790,11 +791,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 2
         }
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.BERSERKER_STANCE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineGain: 7,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'boon',
@@ -802,13 +805,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 1,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineGain: 7,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.BANNER_OF_DISCIPLINE]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'boon',
@@ -833,11 +834,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 10
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.BANNER_OF_TACTICS]: {
     implemented: true,
+    quicknessCastTimeMs: 167,
     effects: [
       {
         type: 'boon',
@@ -851,11 +852,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 2,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 167
+    ]
   },
   [ID.FEAR_ME]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'condition',
@@ -863,12 +864,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 6
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SIGNET_OF_FURY]: {
     implemented: true,
     cooldown: 16,
+    quicknessCastTimeMs: 350,
+    dualWieldCastTimeMs: 280,
+    adrenalineGain: 30,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'buff',
@@ -879,14 +883,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'fixed',
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 350,
-    dualWieldCastTimeMs: 280,
-    adrenalineGain: 30,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.BALANCED_STANCE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -900,11 +901,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 3,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.DOLYAK_SIGNET]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -912,23 +913,22 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 8,
         stacks: 10
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SKULL_CRACK]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.TREMOR]: {
     implemented: true,
@@ -939,6 +939,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castEnd'
       }
     ],
+    quicknessCastTimeMs: 560,
+    dualWieldCastTimeMs: 400,
     effects: [
       {
         type: 'strike',
@@ -959,25 +961,25 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 3
         }
       }
-    ],
-    quicknessCastTimeMs: 560,
-    dualWieldCastTimeMs: 400
+    ]
   },
   [ID.VOLLEY]: {
     implemented: true,
+    quicknessCastTimeMs: 1667,
     effects: [
       {
         type: 'strike',
         coefficient: 4,
         hits: 5
       }
-    ],
-    quicknessCastTimeMs: 1667
+    ]
   },
   [ID.DUAL_STRIKE]: {
     implemented: true,
     cooldown: 12,
     castTimeMs: 500,
+    dualWieldCastTimeMs: 400,
+    unaffectedByQuickness: true,
     effects: [
       {
         type: 'strike',
@@ -997,12 +999,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    dualWieldCastTimeMs: 400,
-    unaffectedByQuickness: true
+    ]
   },
   [ID.BATTLE_STANDARD]: {
     implemented: true,
+    quicknessCastTimeMs: 1333,
     effects: [
       {
         type: 'strike',
@@ -1027,12 +1028,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 12,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 1333
+    ]
   },
   [ID.CYCLONE_AXE]: {
     implemented: true,
     cooldown: 6,
+    quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 280,
     effects: [
       {
         type: 'strike',
@@ -1059,14 +1061,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 3,
         duration: 8
       }
-    ],
-    quicknessCastTimeMs: 400,
-    dualWieldCastTimeMs: 280
+    ]
   },
   [ID.EVISCERATE_ID_14422]: {
     implemented: true,
     cooldown: 8,
     castTimeMs: 0,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -1080,25 +1084,21 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5,
         stacks: 5
       }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.SKULL_CRACK_ID_14425]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.DUAL_SHOT]: {
     implemented: true,
@@ -1110,6 +1110,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    quicknessCastTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -1120,11 +1121,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 840
+    ]
   },
   [ID.FIERCE_SHOT]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -1137,48 +1138,51 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.WHIRLING_STRIKE]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
         coefficient: 2,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 500,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.RUSH]: {
     implemented: true,
+    quicknessCastTimeMs: 1000,
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 1000
+    ]
   },
   [ID.WHIRLWIND_ATTACK]: {
     implemented: true,
+    quicknessCastTimeMs: 200,
     effects: [
       {
         type: 'strike',
         coefficient: 0.665,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 200
+    ]
   },
   [ID.FORCEFUL_SHOT]: {
     implemented: true,
+    quicknessCastTimeMs: 1167,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1186,14 +1190,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Forceful Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 1167,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.EXPLOSIVE_SHELL]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -1212,11 +1213,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 10,
         duration: 10
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.KILL_SHOT_ID_14473]: {
     implemented: true,
+    quicknessCastTimeMs: 833,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1224,14 +1228,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Kill Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 833,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.KILL_SHOT_ID_14474]: {
     implemented: true,
+    quicknessCastTimeMs: 833,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1239,14 +1243,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Kill Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 833,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.KILL_SHOT_ID_14475]: {
     implemented: true,
+    quicknessCastTimeMs: 833,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1254,20 +1258,17 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Kill Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 833,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.SIGNET_OF_STAMINA]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 333
+    quicknessCastTimeMs: 333,
+    effects: []
   },
   [ID.HAMMER_SHOCK]: {
     implemented: true,
     cooldown: 8,
+    quicknessCastTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -1286,11 +1287,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 600
+    ]
   },
   [ID.RAMPAGE]: {
     implemented: true,
+    quicknessCastTimeMs: 667,
     effects: [
       {
         type: 'boon',
@@ -1304,11 +1305,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 3,
         stacks: 2
       }
-    ],
-    quicknessCastTimeMs: 667
+    ]
   },
   [ID.IMPALE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -1331,11 +1332,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.RIP]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -1348,11 +1349,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5,
         stacks: 10
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.KICK]: {
     implemented: true,
+    quicknessCastTimeMs: 842,
     effects: [
       {
         type: 'strike',
@@ -1371,11 +1372,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'knockback'
         }
       }
-    ],
-    quicknessCastTimeMs: 842
+    ]
   },
   [ID.POMMEL_BASH]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -1389,8 +1390,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 1
         }
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.PIN_DOWN]: {
     implemented: true,
@@ -1401,6 +1401,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    quicknessCastTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -1428,8 +1429,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 680
+    ]
   },
   [ID.SMOLDERING_ARROW]: {
     implemented: true,
@@ -1443,6 +1443,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    quicknessCastTimeMs: 160,
     effects: [
       {
         type: 'strike',
@@ -1462,8 +1463,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 1
         }
       }
-    ],
-    quicknessCastTimeMs: 160
+    ]
   },
   [ID.COMBUSTIVE_SHOT]: {
     interruptCommitMs: 0,
@@ -1477,15 +1477,18 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     burstFieldDurations: [3, 6, 9],
-    effects: [],
     quicknessCastTimeMs: 520,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: 'warrior.combustive-shot'
+    handlerId: 'warrior.combustive-shot',
+    effects: []
   },
   [ID.COUNTERBLOW]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineGain: 5,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -1498,13 +1501,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 10,
         duration: 8
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineGain: 5,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.BLADETRAIL]: {
     implemented: true,
+    quicknessCastTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -1515,8 +1516,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 560
+    ]
   },
   [ID.BACKBREAKER]: {
     implemented: true,
@@ -1528,6 +1528,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castEnd'
       }
     ],
+    quicknessCastTimeMs: 880,
     effects: [
       {
         type: 'strike',
@@ -1547,13 +1548,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 3
         }
       }
-    ],
-    quicknessCastTimeMs: 880
+    ]
   },
   [ID.EARTHSHAKER_ID_14512]: {
     implemented: true,
     skillWeapon: 'Hammer',
     cooldown: 8,
+    quicknessCastTimeMs: 1000,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1581,14 +1585,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 1
         }
       }
-    ],
-    quicknessCastTimeMs: 1000,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.BULLS_CHARGE]: {
     implemented: true,
+    // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
+    // exclusion set below, by Dual Wielding.
+    castTimeMs: 640,
+    unaffectedByQuickness: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -1609,14 +1613,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 3
         }
       }
-    ],
-    // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
-    // exclusion set below, by Dual Wielding.
-    castTimeMs: 640,
-    unaffectedByQuickness: true
+    ]
   },
   [ID.CRUSHING_BLOW]: {
     implemented: true,
+    quicknessCastTimeMs: 560,
+    dualWieldCastTimeMs: 400,
     interruptCommitMs: 440,
     effects: [
       {
@@ -1645,11 +1647,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 560,
-    dualWieldCastTimeMs: 400
+    ]
   },
   [ID.FAN_OF_FIRE]: {
+    quicknessCastTimeMs: 560,
+    // The arrows commit at 240 ms, but canceling after release retains the
+    // remaining animation as aftercast for ordinary cast-time skills.
+    interruptCommitMs: 240,
+    retainsCastLockoutAfterInterrupt: true,
     implemented: true,
     effects: [
       {
@@ -1669,8 +1674,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 560
+    ]
   },
   [ID.COMBUSTIVE_SHOT_ID_14520]: {
     interruptCommitMs: 0,
@@ -1683,6 +1687,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         startAnchor: 'castEnd'
       }
     ],
+    quicknessCastTimeMs: 520,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1714,14 +1722,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       }
-    ],
-    quicknessCastTimeMs: 520,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.BANNER_OF_DEFENSE]: {
     implemented: true,
+    quicknessCastTimeMs: 167,
     effects: [
       {
         type: 'boon',
@@ -1735,11 +1740,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 4,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 167
+    ]
   },
   [ID.FORCEFUL_SHOT_ID_14544]: {
     implemented: true,
+    quicknessCastTimeMs: 1167,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -1747,15 +1756,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         name: 'Forceful Shot — Level 1 Damage'
       }
-    ],
-    quicknessCastTimeMs: 1167,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.ARCING_SLICE_ID_14545]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -1775,14 +1783,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 8,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.TACTICAL_BLOW]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineGain: 5,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -1795,28 +1802,26 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 5,
         duration: 8
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineGain: 5,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.WHIRLING_STRIKE_ID_14549]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
         coefficient: 2,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 500,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.HUNDRED_BLADES]: {
     implemented: true,
     interruptMode: 'per-packet',
+    quicknessCastTimeMs: 2440,
     effects: [
       {
         type: 'strike',
@@ -1838,24 +1843,24 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 2440
+    ]
   },
   [ID.ADRENALINE_RUSH]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineGain: 3,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineGain: 3,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.ON_MY_MARK]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'condition',
@@ -1863,13 +1868,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 15,
         duration: 6
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.DEFIANT_STANCE]: {
     implemented: true,
-    effects: [],
-    quicknessCastTimeMs: 500
+    quicknessCastTimeMs: 500,
+    effects: []
   },
   [ID.BLAZE_BREAKER]: {
     implemented: true,
@@ -1884,6 +1888,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     waves: 5,
     totalCoefficient: 2,
     maximumHitsPerTarget: 1,
+    quicknessCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -1911,8 +1916,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 480
+    ]
   },
   [ID.FLAMES_OF_WAR]: {
     interruptCommitMs: 0,
@@ -1926,6 +1930,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         startAnchor: 'castEnd'
       }
     ],
+    quicknessCastTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -1980,11 +1985,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       }
-    ],
-    quicknessCastTimeMs: 520
+    ]
   },
   [ID.BRUTAL_SHOT]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -1997,12 +2002,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 8,
         duration: 12
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.KEEN_STRIKE]: {
     implemented: true,
     interruptCommitMs: 280,
+    quicknessCastTimeMs: 440,
+    dualWieldCastTimeMs: 320,
     effects: [
       {
         type: 'strike',
@@ -2021,12 +2027,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 440,
-    dualWieldCastTimeMs: 320
+    ]
   },
   [ID.FOCUSED_SLASH]: {
     implemented: true,
+    quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 240,
     effects: [
       {
         type: 'strike',
@@ -2036,12 +2042,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 360,
-    dualWieldCastTimeMs: 240
+    ]
   },
   [ID.PRECISE_CUT]: {
     implemented: true,
+    quicknessCastTimeMs: 320,
+    dualWieldCastTimeMs: 240,
     effects: [
       {
         type: 'strike',
@@ -2051,25 +2057,25 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 320,
-    dualWieldCastTimeMs: 240
+    ]
   },
   [ID.WASTRELS_RUIN]: {
     implemented: true,
     cooldown: 12,
+    quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 320,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 400,
-    dualWieldCastTimeMs: 320
+    ]
   },
   [ID.DISRUPTING_STAB]: {
     implemented: true,
+    quicknessCastTimeMs: 440,
+    dualWieldCastTimeMs: 320,
     effects: [
       {
         type: 'strike',
@@ -2088,9 +2094,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'daze'
         }
       }
-    ],
-    quicknessCastTimeMs: 440,
-    dualWieldCastTimeMs: 320
+    ]
   },
   [ID.HUSHBLADE]: {
     implemented: true,
@@ -2098,6 +2102,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammoRecharge: 12,
     cooldown: 12,
     ammoCastLockout: 1,
+    quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
     effects: [
       {
         type: 'strike',
@@ -2110,9 +2116,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'daze'
         }
       }
-    ],
-    quicknessCastTimeMs: 500,
-    dualWieldCastTimeMs: 400
+    ]
   },
   [ID.BREACHING_STRIKE]: {
     implemented: true,
@@ -2127,6 +2131,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     cooldown: 8,
     castTimeMs: 842,
+    unaffectedByQuickness: true,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -2146,16 +2155,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           attemptedBoonRemovals: 2
         }
       }
-    ],
-    unaffectedByQuickness: true,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.AURA_SLICER]: {
     implemented: true,
     castTimeMs: 750,
+    unaffectedByQuickness: true,
     effects: [
       {
         type: 'strike',
@@ -2168,8 +2173,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 1.5
       }
-    ],
-    unaffectedByQuickness: true
+    ]
   },
   [ID.GUNSTINGER]: {
     implemented: true,
@@ -2184,6 +2188,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         count: 3
       }
     ],
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -2202,8 +2207,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 3,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.DRAGONS_ROAR]: {
     implemented: true,
@@ -2211,9 +2215,9 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammoRecharge: 5,
     cooldown: 5,
     ammoCastLockout: 1,
-    effects: [],
     quicknessCastTimeMs: 560,
-    handlerId: 'warrior.dragons-roar'
+    handlerId: 'warrior.dragons-roar',
+    effects: []
   },
   [ID.BREACHING_STRIKE_ID_69433]: {
     implemented: true,
@@ -2228,6 +2232,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     cooldown: 8,
     castTimeMs: 842,
+    unaffectedByQuickness: true,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -2247,14 +2255,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           attemptedBoonRemovals: 2
         }
       }
-    ],
-    unaffectedByQuickness: true,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.LINE_BREAKER]: {
     implemented: true,
+    quicknessCastTimeMs: 1167,
     effects: [
       {
         type: 'boon',
@@ -2274,11 +2279,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 5
       }
-    ],
-    quicknessCastTimeMs: 1167
+    ]
   },
   [ID.DEFIANT_ROAR]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineGain: 10,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'boon',
@@ -2286,54 +2293,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 6,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineGain: 10,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.PATH_TO_VICTORY]: {
     implemented: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 5,
-        stacks: 1
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
-  },
-  [ID.PATH_TO_VICTORY_ID_71932]: {
-    implemented: true,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 5,
-        stacks: 1
-      }
-    ],
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: 'warrior.resource'
-  },
-  [ID.PATH_TO_VICTORY_ID_71950]: {
-    implemented: true,
     effects: [
       {
         type: 'strike',
@@ -2346,25 +2313,65 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5,
         stacks: 1
       }
-    ],
+    ]
+  },
+  [ID.PATH_TO_VICTORY_ID_71932]: {
+    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true
+    burst: true,
+    handlerId: 'warrior.resource',
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1
+      }
+    ]
+  },
+  [ID.PATH_TO_VICTORY_ID_71950]: {
+    implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1
+      }
+    ]
   },
   [ID.REVERSE_STRIKE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.VALIANT_LEAP]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
+    adrenalineGain: 5,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -2383,24 +2390,22 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 4,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 500,
-    adrenalineGain: 5,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.BALANCED_STRIKE]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
     effects: [
       {
         type: 'strike',
         coefficient: 0.7,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333
+    ]
   },
   [ID.SNAP_PULL]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -2419,11 +2424,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           controlKind: 'pull'
         }
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.PATH_TO_VICTORY_ID_72029]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -2436,25 +2444,22 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5,
         stacks: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.INSPIRING_WHIRL]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.MAIMING_SPEAR]: {
     implemented: true,
+    quicknessCastTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -2493,11 +2498,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1,
         duration: 3
       }
-    ],
-    quicknessCastTimeMs: 480
+    ]
   },
   [ID.HARRIERS_TOSS]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'condition',
@@ -2510,15 +2518,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 2.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.MIGHTY_THROW]: {
     implemented: true,
     handlerId: 'warrior.mighty-throw',
+    quicknessCastTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -2538,11 +2543,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 640
+    ]
   },
   [ID.DISRUPTING_THROW]: {
     implemented: true,
+    quicknessCastTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -2565,11 +2570,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           duration: 3
         }
       }
-    ],
-    quicknessCastTimeMs: 520
+    ]
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
     implemented: true,
+    quicknessCastTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -2585,11 +2590,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    quicknessCastTimeMs: 520
+    ]
   },
   [ID.HARRIERS_TOSS_ID_73006]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'condition',
@@ -2602,14 +2610,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 3.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.SPEAR_SWIPE]: {
     implemented: true,
+    quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'control',
@@ -2622,11 +2627,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 1.5,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 500
+    ]
   },
   [ID.HARRIERS_TOSS_ID_73024]: {
     implemented: true,
+    quicknessCastTimeMs: 333,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -2639,15 +2648,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 5,
         duration: 6
       }
-    ],
+    ]
+  },
+  [ID.HARRIERS_TOSS_ID_73042]: {
+    implemented: true,
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: 'warrior.resource'
-  },
-  [ID.HARRIERS_TOSS_ID_73042]: {
-    implemented: true,
     effects: [
       {
         type: 'condition',
@@ -2660,15 +2668,17 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         coefficient: 3,
         hits: 1
       }
-    ],
-    quicknessCastTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   },
   [ID.BLOODTHIRSTER]: {
     implemented: true,
     skillWeapon: 'Sword',
+    quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -2687,17 +2697,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 500,
-    dualWieldCastTimeMs: 400,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    handlerId: 'warrior.resource'
+    ]
   },
   [ID.REND]: {
     interruptCommitMs: 0,
     implemented: true,
+    quicknessCastTimeMs: 960,
+    dualWieldCastTimeMs: 720,
     effects: [
       {
         type: 'strike',
@@ -2738,13 +2744,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingScale: 'cast',
         persistsAfterInterrupt: true
       }
-    ],
-    quicknessCastTimeMs: 960,
-    dualWieldCastTimeMs: 720
+    ]
   },
   [ID.BLOODTHIRSTER_ID_80263]: {
     implemented: true,
     skillWeapon: 'Sword',
+    quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
+    adrenalineCost: 10,
+    burstTier: 1,
+    burst: true,
     effects: [
       {
         type: 'strike',
@@ -2763,11 +2772,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    quicknessCastTimeMs: 500,
-    dualWieldCastTimeMs: 400,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true
+    ]
   }
 });

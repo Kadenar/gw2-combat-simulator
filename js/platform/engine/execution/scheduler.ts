@@ -339,9 +339,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   let activationOrder = 0;
   let previousCastStart = state.time;
   // serialReadyAt and latestBlockingEnd control the player's cast lane.
-  // Independent skills use their own serial lane while latestReservedEnd keeps
-  // waits and the final simulation horizon behind every outstanding cast.
+  // latestInstantReadyAt stops instant skills at the actual interruption point
+  // without making them wait through aftercast retained only for cast-time
+  // skills. Independent skills use their own serial lane while latestReservedEnd
+  // keeps waits and the final simulation horizon behind every outstanding cast.
   let serialReadyAt = state.time;
+  let latestInstantReadyAt = state.time;
   let independentReadyAt = state.time;
   let latestBlockingEnd = state.time;
   let latestReservedEnd = state.time;
@@ -917,10 +920,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     const independent = skill.independentCast === true;
     const overlappingIndependent = independent && skill.independentCastCanOverlap === true;
     const stunbreak = skill.stunbreak === true;
+    const instant = Number(skill.castTimeMs) === 0;
     // Instant-cast skills (Berserk, signets, most profession keys) are not held
     // by a self-stun; only skills that occupy the cast bar are. A stunbreak also
     // bypasses (and clears) the stun. Everything else waits it out.
-    const bypassesSelfStun = stunbreak || Number(skill.castTimeMs) === 0;
+    const bypassesSelfStun = stunbreak || instant;
     // Concurrent offsets are relative to the previous cast's start, not the
     // current clock. This models instant/concurrent actions embedded in a cast.
     let start = concurrent
@@ -929,9 +933,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         ? overlappingIndependent
           ? state.time
           : Math.max(state.time, independentReadyAt)
-        : bypassesSelfStun
-          ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
-          : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
+        : instant
+          ? Math.max(state.time, latestInstantReadyAt)
+          : bypassesSelfStun
+            ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
+            : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;
@@ -1154,6 +1160,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     } else {
       previousCastStart = start;
       hasPreviousCast = true;
+      latestInstantReadyAt = Math.max(latestInstantReadyAt, effectiveEnd);
       latestBlockingEnd = Math.max(latestBlockingEnd, castLockoutEnd);
       if (!concurrent) serialReadyAt = castLockoutEnd;
       // A stunbreak clears any pending self-stun; a self-stunning skill sets a

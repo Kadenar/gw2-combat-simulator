@@ -410,7 +410,7 @@ test('skill mechanic triggers execute through the scheduler at their resolved ti
   assert.equal(invocation.activationId, action.activationId);
 });
 
-test('interrupted casts can retain their original cast-lane lockout', () => {
+test('interrupted casts retain their original lane lockout only for cast-time skills', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -423,8 +423,21 @@ test('interrupted casts can retain their original cast-lane lockout', () => {
       },
       {
         id: 980011,
-        name: 'Following Cast',
+        name: 'Swap Weapons',
+        type: 'Action',
         castTimeMs: 0,
+        effects: []
+      },
+      {
+        id: 980012,
+        name: 'Instant Cast',
+        castTimeMs: 0,
+        effects: []
+      },
+      {
+        id: 980013,
+        name: 'Following Cast',
+        castTimeMs: 200,
         effects: []
       }
     ]
@@ -436,6 +449,8 @@ test('interrupted casts can retain their original cast-lane lockout', () => {
   });
   const scheduled = createScheduler({ profession }).run([
     { name: 'Retained Aftercast', interruptMs: 400 },
+    'Swap Weapons',
+    'Instant Cast',
     'Following Cast'
   ]);
   const uninterrupted = createScheduler({ profession }).run(['Retained Aftercast']);
@@ -445,6 +460,8 @@ test('interrupted casts can retain their original cast-lane lockout', () => {
   const followingAction = scheduled.events.find(
     (event) => event.type === 'action' && event.skillName === 'Following Cast'
   );
+  const swapAction = scheduled.events.find((event) => event.type === 'action' && event.skillName === 'Swap Weapons');
+  const instantAction = scheduled.events.find((event) => event.type === 'action' && event.skillName === 'Instant Cast');
   const uninterruptedAction = uninterrupted.events.find(
     (event) => event.type === 'action' && event.skillName === 'Retained Aftercast'
   );
@@ -455,8 +472,12 @@ test('interrupted casts can retain their original cast-lane lockout', () => {
   assert.equal(scheduled.state.cooldowns.get(980010), 10.4);
   assert.equal(scheduled.steps[0].end, 400);
   assert.equal(scheduled.steps[0].castLockoutEnd, 1000);
+  assert.equal(swapAction.at, 0.4);
+  assert.equal(instantAction.at, 0.4);
   assert.equal(followingAction.at, 1);
-  assert.equal(scheduled.steps[1].start, 1000);
+  assert.equal(scheduled.steps[1].start, 400);
+  assert.equal(scheduled.steps[2].start, 400);
+  assert.equal(scheduled.steps[3].start, 1000);
   assert.equal(uninterruptedAction.endsAt, 1);
   assert.equal(uninterruptedAction.rechargeReadyAt, 11);
 });

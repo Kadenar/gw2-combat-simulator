@@ -478,8 +478,11 @@ test('maps Holosmith Forge transitions and preserves automatic overheat boundari
     result.actions.some((action) => action.name === 'Overheat'),
     false
   );
-  // The observed recovery after the cast spanning Overheat remains replayable instead of being dropped as EVTC noise.
-  assert.ok(result.rotation.some((command) => command.name === '__wait' && command.waitMs === 200));
+  // Overheat keeps the spanning casts complete, while their observed in-combat recovery is left to scheduler readiness.
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === '__wait'),
+    []
+  );
 });
 
 test('recovers a clipped Holosmith opener that begins on a Photon Forge weapon skill', () => {
@@ -536,7 +539,7 @@ test('recovers a clipped Holosmith opener that begins on a Photon Forge weapon s
   ]);
 });
 
-test('preserves observed recovery gaps between Holosmith Forge cycles', () => {
+test('omits observed recovery gaps between Holosmith Forge cycles', () => {
   const skills = [
     skill(42938, 'Engage Photon Forge', {
       type: 'Profession',
@@ -576,9 +579,9 @@ test('preserves observed recovery gaps between Holosmith Forge cycles', () => {
     .map((command, index) => ({ command, index }))
     .filter(({ command }) => command.name === 'Engage Photon Forge');
 
-  // The second Forge entry stays 4.4 seconds after the preceding weapon cast instead of collapsing the cooling gap.
+  // Forge re-entry follows the preceding command directly; the scheduler supplies only required availability delays.
   assert.equal(forgeEntries.length, 2);
-  assert.deepEqual(result.rotation[forgeEntries[1].index - 1], { name: '__wait', waitMs: 4_400 });
+  assert.notEqual(result.rotation[forgeEntries[1].index - 1]?.name, '__wait');
 });
 
 test('does not duplicate a recorded Holosmith opening precast', () => {

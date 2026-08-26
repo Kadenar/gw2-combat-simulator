@@ -4,6 +4,7 @@ import { reconstructGuardianDpsReportActions } from './guardian.js';
 import { reconstructMesmerDpsReportActions } from './mesmer.js';
 import { reconstructNecromancerDpsReportActions } from './necromancer.js';
 import { reconstructRevenantDpsReportActions } from './revenant.js';
+import { reconstructWarriorDpsReportActions } from './warrior.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
@@ -16,7 +17,8 @@ const reconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor
   ['guardian', reconstructGuardianDpsReportActions],
   ['mesmer', reconstructMesmerDpsReportActions],
   ['necromancer', reconstructNecromancerDpsReportActions],
-  ['revenant', reconstructRevenantDpsReportActions]
+  ['revenant', reconstructRevenantDpsReportActions],
+  ['warrior', reconstructWarriorDpsReportActions]
 ]);
 
 /** Dispatches report-only corrections without coupling the generic timeline to one profession. */
