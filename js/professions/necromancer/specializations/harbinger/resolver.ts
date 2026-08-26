@@ -1,19 +1,11 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyTraitCondition, applyTraitVulnerability } from '../../core/traits.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerResolverReactionDetails
-} from '../../types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-function reactToDamage(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
-): void {
+function reactToDamage(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Trait procs must not trigger from synthetic "effect" damage (e.g. Cascading Corruption Meltdown hits).
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
@@ -32,7 +24,7 @@ function reactToDamage(
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
     const condition = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.septicCorruption), 'condition');
-    applyTraitCondition(details, context, event, {
+    applyTraitCondition(context, event, {
       name: 'Septic Corruption',
       traitId: TRAIT.SEPTIC_CORRUPTION,
       condition: String(condition?.condition || 'Poisoned'),

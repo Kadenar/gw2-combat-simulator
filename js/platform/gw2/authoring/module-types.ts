@@ -10,7 +10,6 @@ import type {
   SkillHandlerStrategy,
   SkillId
 } from '../../engine/types.js';
-import type { Gw2EventDraft } from '../equipment/relics/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
@@ -67,7 +66,6 @@ export interface NativeStateDefinition<
 export interface NativeResolvedDamageDetails {
   readonly hitContext?: Gw2HitResolutionContext;
   readonly criticalChance?: number;
-  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export interface NativeResolvedReaction<

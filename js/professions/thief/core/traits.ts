@@ -483,17 +483,13 @@ function enqueueSiphon(
 
 // Spend one player-owned Spider Venom charge per qualifying strike, applying its
 // poison and optional Leeching Venoms siphon through resolver-safe paths.
-function applySpiderVenom(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
+function applySpiderVenom(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
   const state = professionCoreState(context);
   if (Number(state.spiderVenomCharges || 0) <= 0 || Number(state.spiderVenomExpiresAt || 0) <= event.at) return;
   state.spiderVenomCharges -= 1;
   const poison = traitEffect(context, PROFILE.spiderVenomProc, 'condition');
-  details.applyCondition?.(context, {
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'thief',
@@ -549,11 +545,7 @@ function targetConditionCount(context: ThiefResolverContext, at: number): number
 
 // Trigger Panic Strike only after the target meets its condition-count threshold,
 // reserving the ICD before applying the causally linked immobilize.
-function applyPanicStrike(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
+function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
@@ -567,7 +559,7 @@ function applyPanicStrike(
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
   if (event.at + 1e-9 < readyAt) return;
   state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown || 20);
-  details.applyCondition?.(context, {
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'Trait',
@@ -584,14 +576,12 @@ function applyPanicStrike(
   });
 }
 
-export function reactToThiefCoreDamage(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
-  applySpiderVenom(context, event, details);
+export function reactToThiefCoreDamage(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+  // Derived strike conditions resolve immediately so their condition hooks run
+  // before later same-timestamp damage reactions.
+  applySpiderVenom(context, event);
   applyShadowSiphoning(context, event);
-  applyPanicStrike(context, event, details);
+  applyPanicStrike(context, event);
 }
 
 // Route resolved conditions into their follow-up siphons, Panic Strike poison,

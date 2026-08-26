@@ -13,7 +13,6 @@ import type {
 } from '../../platform/engine/types.js';
 import type { Gw2Build, Gw2CanonicalBuild, Gw2NumericAttributes } from '../../platform/gw2/builds/types.js';
 import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
-import type { Gw2EventDraft } from '../../platform/gw2/equipment/relics/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
@@ -228,7 +227,6 @@ export type EngineerResolverContext = Gw2ResolverRuntime & {
 export interface EngineerResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
   readonly criticalChance?: number;
-  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export interface EngineerUiContext extends SchedulerRecord {

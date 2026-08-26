@@ -215,6 +215,7 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
   dispatchReaction(stage: Gw2ResolverStage, event: Gw2ResolverEvent, details?: SchedulerRecord): SchedulerRecord | void;
+  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   recordProc(
     type: string,
     name: string,
@@ -370,7 +371,7 @@ export interface ResolveGw2TimelineOptions {
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly createRuntimeState: (
-    options: Omit<CreateGw2ResolverRuntimeStateOptions, 'createEquipmentState'>
+    options: Omit<CreateGw2ResolverRuntimeStateOptions, 'applyCondition' | 'createEquipmentState'>
   ) => Gw2ResolverRuntime;
   readonly commonHandlers: Gw2ResolverEventHandlers;
   readonly reactions?: Gw2ResolverReactionRegistry;
@@ -391,6 +392,7 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly eventFilterState?: object;
+  readonly applyCondition: Gw2ConditionResolution['applyCondition'];
   readonly createEquipmentState: Gw2ResolverExtensions['createEquipmentState'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

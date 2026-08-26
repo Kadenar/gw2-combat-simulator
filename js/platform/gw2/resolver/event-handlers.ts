@@ -23,7 +23,6 @@ interface CreateGw2ResolverEventHandlersOptions {
   };
   readonly conditions: {
     readonly activeStackCount: Gw2ConditionResolution['activeConditionStackCount'];
-    readonly apply: Gw2ConditionResolution['applyCondition'];
     readonly tick: Gw2ConditionResolution['handleConditionTick'];
   };
   readonly reactions: Gw2ResolverReactionRegistry;
@@ -89,7 +88,7 @@ export function createGw2ResolverEventHandlers({
   reactions
 }: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
   const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } = hitResolution;
-  const { activeStackCount: activeConditionStackCount, apply: applyCondition, tick: handleConditionTick } = conditions;
+  const { activeStackCount: activeConditionStackCount, tick: handleConditionTick } = conditions;
   const handlers: Gw2ResolverEventHandlers = {
     ...createGw2ComboResolution({ reactions }),
     // These event types are canonical timeline/reporting records with no shared
@@ -112,16 +111,13 @@ export function createGw2ResolverEventHandlers({
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.
       applyResolvedHit(ctx, event, hitContext);
-      reactions.dispatch('damage.resolved', ctx, event, {
-        hitContext,
-        applyCondition
-      });
+      reactions.dispatch('damage.resolved', ctx, event, { hitContext });
     },
 
     condition(ctx, event) {
       // applyCondition schedules future tick events; it does not charge the
       // condition's full damage at application time.
-      applyCondition(ctx, event);
+      ctx.applyCondition(event);
     },
 
     condition_tick(ctx, event) {
@@ -131,19 +127,17 @@ export function createGw2ResolverEventHandlers({
 
     control(ctx, event) {
       reactions.dispatch('control.resolved', ctx, event, {
-        activeConditionStackCount,
-        applyCondition
+        activeConditionStackCount
       });
     },
 
     blind(ctx, event) {
-      reactions.dispatch('blind.resolved', ctx, event, { applyCondition });
+      reactions.dispatch('blind.resolved', ctx, event);
     },
 
     peitha(ctx, event) {
       reactions.dispatch('peitha.resolved', ctx, event, {
-        activeConditionStackCount,
-        applyCondition
+        activeConditionStackCount
       });
     },
 
@@ -151,7 +145,7 @@ export function createGw2ResolverEventHandlers({
       // Invalid/missing values normalize to set one so later sigil and weapon
       // queries always have a valid one-based set number.
       ctx.activeWeaponSet = Number(event.weaponSet) === 2 ? 2 : 1;
-      reactions.dispatch('weapon-set.changed', ctx, event, { applyCondition });
+      reactions.dispatch('weapon-set.changed', ctx, event);
     },
 
     sigil_swap: noop

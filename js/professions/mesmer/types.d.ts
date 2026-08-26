@@ -22,11 +22,7 @@ import type {
 } from '../../platform/engine/types.js';
 import type { Gw2Build, Gw2BuildAttributeRuleContext, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
 import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
-import type {
-  Gw2ConditionResolution,
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime
-} from '../../platform/gw2/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../platform/gw2/resolver/types.js';
 import type { Gw2CriticalResult } from '../../platform/gw2/combat/query/types.js';
 import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
 
@@ -215,8 +211,6 @@ export type MesmerResolverContext = Gw2ResolverRuntime & {
   config: MesmerConfig;
   profession: MesmerResolverState;
 };
-
-export type MesmerApplyCondition = Gw2ConditionResolution['applyCondition'];
 
 export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly count?: number;

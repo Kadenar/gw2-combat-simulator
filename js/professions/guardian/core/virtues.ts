@@ -10,7 +10,6 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import { emitGuardianEvent } from './events.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from './profiles.js';
 import type { SkillId } from '../../../platform/engine/types.js';
-import type { Gw2ConditionResolution } from '../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
@@ -21,7 +20,6 @@ import type {
 
 interface JusticeHitDependencies {
   readonly hitContext?: object;
-  readonly applyCondition?: Gw2ConditionResolution['applyCondition'];
 }
 
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
@@ -116,15 +114,12 @@ export function handleVirtueRefresh(context: GuardianResolverContext, event: Gua
  *
  * @param {GuardianResolverContext} context Resolver reaction context.
  * @param {GuardianResolverEvent} event Damage event that triggered Justice.
- * @param {Gw2ConditionResolution["applyCondition"]} applyCondition Condition
- * application helper.
  * @param {{ readonly active: boolean }} options Justice trigger options.
  * @returns {void}
  */
 function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  applyCondition: Gw2ConditionResolution['applyCondition'],
   {
     active,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,
@@ -140,7 +135,9 @@ function applyJusticeBurn(
     (effect) => effect.type === 'condition' && effect.packetLabel === (active ? 'active' : 'passive')
   );
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
-  applyCondition(context, {
+  // Justice burns resolve immediately so passive/active counters and chained
+  // condition reactions remain synchronized at the triggering hit timestamp.
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'guardian',
@@ -163,7 +160,7 @@ function applyJusticeBurn(
 export function reactToJusticeHitWithOptions(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  { hitContext, applyCondition }: JusticeHitDependencies = {},
+  { hitContext }: JusticeHitDependencies = {},
   {
     retainsPassive = false,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,
@@ -174,19 +171,13 @@ export function reactToJusticeHitWithOptions(
     readonly skillName?: string;
   } = {}
 ): void {
-  if (
-    !hitContext ||
-    typeof applyCondition !== 'function' ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient) > 0)
-  )
-    return;
+  if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = professionCoreState(context);
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
     state.justiceArmed = false;
-    applyJusticeBurn(context, event, applyCondition, {
+    applyJusticeBurn(context, event, {
       active: true,
       skillId,
       skillName
@@ -204,7 +195,7 @@ export function reactToJusticeHitWithOptions(
   );
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;
-  applyJusticeBurn(context, event, applyCondition, {
+  applyJusticeBurn(context, event, {
     active: false,
     skillId,
     skillName

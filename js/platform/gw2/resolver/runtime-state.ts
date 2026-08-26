@@ -25,6 +25,7 @@ export function createGw2ResolverRuntimeState({
   professionState = {},
   warnings = [],
   eventFilterState = {},
+  applyCondition,
   createEquipmentState,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
@@ -65,6 +66,12 @@ export function createGw2ResolverRuntimeState({
 
     dispatchReaction(stage, event, details) {
       return reactions?.dispatch(stage, this, event, details);
+    },
+
+    // Derived resolver conditions must enter condition state immediately so
+    // same-timestamp profession and equipment reactions observe canonical state.
+    applyCondition(event) {
+      return applyCondition(this, event);
     },
 
     recordProc(

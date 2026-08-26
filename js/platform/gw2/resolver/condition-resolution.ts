@@ -171,8 +171,7 @@ export function createGw2ConditionResolution({
 
     reactions.dispatch('condition.applied', ctx, application, {
       application,
-      activeConditionStackCount,
-      applyCondition
+      activeConditionStackCount
     });
     return application;
   }

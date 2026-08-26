@@ -19,7 +19,6 @@ import { hasGuardianTrait } from '../../core/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { CAST_READY, denyCast, retryCast } from '../../../../platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,
@@ -31,7 +30,6 @@ import type {
 
 interface AshesHitDependencies {
   readonly hitContext?: object;
-  readonly applyCondition?: Gw2ConditionResolution['applyCondition'];
 }
 
 /**
@@ -73,6 +71,7 @@ export function tomeStateAvailability(context: GuardianPrecastContext, skill: Gu
       ? CAST_READY
       : denyCast('guardian.tome-inactive', `${skill.name} is unavailable — requires an active tome.`);
   }
+
   return CAST_READY;
 }
 
@@ -443,17 +442,11 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
 export function reactToAshesHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  { hitContext, applyCondition }: AshesHitDependencies = {}
+  { hitContext }: AshesHitDependencies = {}
 ): void {
   const ashes = guardianBalanceProfile(context, PROFILE.ashes);
   const burn = guardianBalanceProfileEffect(ashes, 'condition');
-  if (
-    !hitContext ||
-    typeof applyCondition !== 'function' ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient) > 0)
-  )
-    return;
+  if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);
   if (
@@ -463,7 +456,9 @@ export function reactToAshesHit(
   )
     return;
 
-  applyCondition(context, {
+  // Ashes burns resolve at charge consumption so same-timestamp condition
+  // reactions cannot be reordered behind later damage packets.
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'guardian',

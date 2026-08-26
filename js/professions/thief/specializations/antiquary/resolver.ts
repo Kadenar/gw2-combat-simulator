@@ -1,17 +1,13 @@
 import { antiquaryState } from './state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
-import type { ThiefResolverContext, ThiefResolverEvent, ThiefResolverReactionDetails } from '../../types.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '../../types.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 // Spend one unexpired Mistburn charge on a qualifying player strike and attach
 // its Burning without allowing the mortar's granting strike to self-consume.
-function applyMistburnCharge(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
+function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||
     event.coefficient == null ||
@@ -26,7 +22,7 @@ function applyMistburnCharge(
     return;
   state.mistburnCharges -= 1;
   const burning = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.mistburnProc), 'condition');
-  details.applyCondition?.(context, {
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'thief',
@@ -44,11 +40,7 @@ function applyMistburnCharge(
 
 // Add Meticulous Custodian's Burning only to the Sun Crystal strike packet,
 // excluding its declarative condition-only packets.
-function applyMeticulousSunCrystal(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
+function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||
     event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
@@ -57,7 +49,7 @@ function applyMeticulousSunCrystal(
   )
     return;
   const burning = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunCrystalMeticulous), 'condition');
-  details.applyCondition?.(context, {
+  context.applyCondition({
     type: 'condition',
     at: event.at,
     source: 'thief',
@@ -72,13 +64,11 @@ function applyMeticulousSunCrystal(
   });
 }
 
-function applyAntiquaryDamageReactions(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  details: ThiefResolverReactionDetails = {}
-): void {
-  applyMeticulousSunCrystal(context, event, details);
-  applyMistburnCharge(context, event, details);
+function applyAntiquaryDamageReactions(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+  // Both Antiquary strike follow-ups use immediate resolver application so
+  // charge consumption and condition reactions share one causal timestamp.
+  applyMeticulousSunCrystal(context, event);
+  applyMistburnCharge(context, event);
 }
 
 export const antiquaryResolverEventReactions = Object.freeze({

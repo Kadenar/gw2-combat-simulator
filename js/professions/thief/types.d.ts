@@ -12,7 +12,6 @@ import type {
 } from '../../platform/engine/types.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
 import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
-import type { Gw2EventDraft } from '../../platform/gw2/equipment/relics/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
@@ -313,7 +312,6 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
 
 export interface ThiefResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
-  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export type ThiefQueryRuntime = Gw2QueryRuntime & {

@@ -4,7 +4,7 @@ import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
-import type { Gw2ApplyCondition, Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
+import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/gw2/resolver/types.js';
 import type { ElementalistResolverContext, ElementalistResolverEvent } from '../types.js';
 import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
@@ -38,10 +38,6 @@ const BOON_KINDS = new Set([
   'swiftness',
   'vigor'
 ]);
-
-interface ElementalistConditionReactionDetails extends SchedulerRecord {
-  readonly applyCondition?: Gw2ApplyCondition;
-}
 
 function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
   const profession = context.profession as {
@@ -102,11 +98,10 @@ function buffDuration(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, kind
   return duration * Math.min(2, Math.max(1, 1 + bonus));
 }
 
-// Route a derived condition through the resolver hook when available, falling
-// back to ordered queue insertion with canonical attribution.
-function applyCondition(
+// Build Elementalist attribution around a derived condition and apply it
+// immediately so same-timestamp condition reactions see canonical state.
+function applyElementalistDerivedCondition(
   context: Gw2ResolverRuntime,
-  details: ElementalistConditionReactionDetails | NativeResolvedDamageDetails,
   event: Gw2ResolverEvent,
   {
     source,
@@ -135,11 +130,7 @@ function applyCondition(
     duration,
     triggeredBy: elementalistSourceSkill(event)
   };
-  if (details.applyCondition) {
-    details.applyCondition(context, application);
-  } else {
-    enqueueOrdered(context.queue, application as Gw2ResolverEvent);
-  }
+  context.applyCondition(application);
 }
 
 export function queueElementalistBuff(
@@ -316,7 +307,7 @@ function applyBurningPrecision(
   state.procReadyAt.burningPrecision =
     event.at + elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5);
   const burning = elementalistBalanceEffect(context, PROFILE.burningPrecision, 'condition', 'Burning Precision');
-  applyCondition(context, details, event, {
+  applyElementalistDerivedCondition(context, event, {
     source: 'Burning Precision',
     sourceId: 'Burning Precision',
     condition: String(burning?.condition || 'Burning'),
@@ -351,11 +342,7 @@ export function applyElementalistResolvedDamage(
 
 // React to canonical conditions with trait follow-ups only after their source
 // application has entered resolver state.
-export function applyElementalistResolvedCondition(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details: ElementalistConditionReactionDetails = {}
-): void {
+export function applyElementalistResolvedCondition(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (
     ['Immobilize', 'Immobilized'].includes(String(event.condition)) &&
     hasTrait(context, 'Strength of Stone') &&
@@ -366,7 +353,7 @@ export function applyElementalistResolvedCondition(
       state.procReadyAt.strengthOfStone =
         event.at + elementalistBalanceValue(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
       const bleeding = elementalistBalanceEffect(context, PROFILE.strengthOfStone, 'condition', 'Strength of Stone');
-      applyCondition(context, details, event, {
+      applyElementalistDerivedCondition(context, event, {
         source: 'Strength of Stone',
         sourceId: 'Strength of Stone',
         condition: String(bleeding?.condition || 'Bleeding'),

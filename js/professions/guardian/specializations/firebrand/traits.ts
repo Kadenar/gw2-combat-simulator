@@ -9,7 +9,6 @@ import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
@@ -258,7 +257,6 @@ export function reactToFirebrandJusticeHit(
   event: GuardianResolverEvent,
   dependencies: {
     readonly hitContext?: object;
-    readonly applyCondition?: Gw2ConditionResolution['applyCondition'];
   } = {}
 ): void {
   reactToJusticeHitWithOptions(context, event, dependencies, {

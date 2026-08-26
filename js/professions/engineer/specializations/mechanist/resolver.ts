@@ -1,6 +1,6 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { applyCondition, procState, queueBuff, recordTrait, resolverSkill } from '../../core/shared.js';
+import { applyEngineerDerivedCondition, procState, queueBuff, recordTrait, resolverSkill } from '../../core/shared.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   engineerBalanceEffectValue,
@@ -42,7 +42,7 @@ function reactToMechanistDamage(
     if (triggered) {
       if (!stochastic) state[progressKey] = Number(state[progressKey]) - 1;
       state[readyKey] = event.at + engineerBalanceValue(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10);
-      applyCondition(details, context, event, {
+      applyEngineerDerivedCondition(context, event, {
         name: 'Incendiary Powder',
         condition: 'Burning',
         stacks: engineerBalanceEffectValue(context, CORE_PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
@@ -59,7 +59,7 @@ function reactToMechanistDamage(
     // 1-second ICD: store next-eligible timestamp so rapid mech hits don't
     // trigger the trait on every packet.
     state.singleEdgeCutters = event.at + 1;
-    applyCondition(details, context, event, {
+    applyEngineerDerivedCondition(context, event, {
       name: 'Mech Arms: Single-Edge Cutters',
       condition: 'Bleeding',
       stacks: 1,
@@ -86,7 +86,7 @@ function reactToMechanistDamage(
   }
 
   if (event.mechBasicAttack === true && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)) {
-    applyCondition(details, context, event, {
+    applyEngineerDerivedCondition(context, event, {
       name: 'Mech Arms: Jade Cannons',
       condition: 'Vulnerability',
       stacks: 1,

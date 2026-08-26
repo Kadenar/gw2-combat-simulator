@@ -84,16 +84,31 @@ test('GW2 resolver declarations reject unknown stages and duplicate hook ids', (
   );
 });
 
-test('condition stage runs once after state and ticks, including relic recursion', () => {
+test('condition stage runs once after state and ticks, including profession and relic recursion', () => {
   const trace = [];
   const professionReactions = defineGw2ResolverReactions({
     'condition.applied': (context, application, details) => {
+      assert.equal(details.applyCondition, undefined);
       trace.push({
         condition: application.condition,
         applications: context.conditionApplications.length,
         queued: context.queue.length,
         active: details.activeConditionStackCount(context, application.condition, application.at)
       });
+
+      // Profession reactions use the runtime capability directly; no resolver
+      // callback needs to be threaded through reaction details.
+      if (application.sourceId === 'fixture.bleed') {
+        context.applyCondition({
+          type: 'condition',
+          at: application.at,
+          source: 'Fixture reaction',
+          sourceId: 'fixture.reaction-weakness',
+          condition: 'Weakness',
+          duration: 1,
+          stacks: 1
+        });
+      }
     }
   });
   const extensions = createGw2ResolverExtensions({
@@ -128,11 +143,13 @@ test('condition stage runs once after state and ticks, including relic recursion
     },
     helpers: { conditionName: (value) => String(value) },
     queue,
+    applyCondition: conditions.applyCondition,
     createEquipmentState: extensions.createEquipmentState
   });
 
+  assert.equal(typeof context.applyCondition, 'function');
   assert.equal(
-    conditions.applyCondition(context, {
+    context.applyCondition({
       type: 'condition',
       at: 0,
       source: 'Fixture',
@@ -144,7 +161,7 @@ test('condition stage runs once after state and ticks, including relic recursion
   );
   assert.deepEqual(trace, []);
 
-  const application = conditions.applyCondition(context, {
+  const application = context.applyCondition({
     type: 'condition',
     at: 0,
     source: 'Fixture',
@@ -158,14 +175,14 @@ test('condition stage runs once after state and ticks, including relic recursion
   assert.equal(application.condition, 'Bleeding');
   assert.deepEqual(
     trace.map((entry) => entry.condition),
-    ['Bleeding']
+    ['Bleeding', 'Weakness']
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),
-    [6]
+    [6, 1]
   );
 
-  conditions.applyCondition(context, {
+  context.applyCondition({
     type: 'condition',
     at: 0.1,
     source: 'Fixture',
@@ -178,15 +195,15 @@ test('condition stage runs once after state and ticks, including relic recursion
 
   assert.deepEqual(
     trace.map((entry) => entry.condition),
-    ['Bleeding', 'Bleeding', 'Burning', 'Torment']
+    ['Bleeding', 'Weakness', 'Bleeding', 'Burning', 'Torment']
   );
   assert.deepEqual(
     trace.map((entry) => entry.applications),
-    [1, 2, 3, 4]
+    [1, 2, 3, 4, 5]
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),
-    [6, 7, 2, 3]
+    [6, 1, 7, 2, 3]
   );
   assert.ok(trace.every((entry) => entry.queued > 0));
 });

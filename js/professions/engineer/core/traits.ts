@@ -8,7 +8,14 @@ import {
   engineerBalanceEffectValue,
   engineerBalanceValue
 } from './profiles.js';
-import { applyCondition, procState, queueBuff, queueDamage, recordTrait, resolverSkill } from './shared.js';
+import {
+  applyEngineerDerivedCondition,
+  procState,
+  queueBuff,
+  queueDamage,
+  recordTrait,
+  resolverSkill
+} from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type {
   EngineerCastContext,
@@ -286,7 +293,7 @@ export function reactToEngineerDamage(
 
   const explosion = isExplosion(context, event);
   if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
-    applyCondition(details, context, event, {
+    applyEngineerDerivedCondition(context, event, {
       name: 'Steel-Packed Powder',
       condition: 'Vulnerability',
       stacks: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'stacks', 1),
@@ -360,7 +367,7 @@ export function reactToEngineerDamage(
         state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
       }
 
-      applyCondition(details, context, event, {
+      applyEngineerDerivedCondition(context, event, {
         name: 'Shrapnel',
         condition: 'Bleeding',
         stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1),
@@ -402,7 +409,7 @@ export function reactToEngineerDamage(
         state.serratedSteelProgress = Number(state.serratedSteelProgress || 0) - 1;
       }
 
-      applyCondition(details, context, event, {
+      applyEngineerDerivedCondition(context, event, {
         name: 'Serrated Steel',
         condition: 'Bleeding',
         stacks: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1),
@@ -465,7 +472,7 @@ export function reactToEngineerDamage(
       }
 
       state[readyKey] = event.at + engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10);
-      applyCondition(details, context, event, {
+      applyEngineerDerivedCondition(context, event, {
         name: 'Incendiary Powder',
         condition: 'Burning',
         stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),

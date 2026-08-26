@@ -2,8 +2,14 @@ import { amalgamState } from './state.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { applyCondition, procState, queueDamage, recordTrait, resolverSkill } from '../../core/shared.js';
-import type { EngineerResolverContext, EngineerResolverEvent, EngineerResolverReactionDetails } from '../../types.js';
+import {
+  applyEngineerDerivedCondition,
+  procState,
+  queueDamage,
+  recordTrait,
+  resolverSkill
+} from '../../core/shared.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '../../types.js';
 
 function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.actorType === 'summon') return false;
@@ -21,15 +27,11 @@ function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerReso
   );
 }
 
-function reactToAmalgamDamage(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  details: EngineerResolverReactionDetails = {}
-): void {
+function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   if (hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) && isAmalgamSkillHit(context, event)) {
-    applyCondition(details, context, event, {
+    applyEngineerDerivedCondition(context, event, {
       name: 'Carbolic Composition',
       condition: 'Poisoned',
       stacks: 1,

@@ -82,7 +82,6 @@ function queueTraitDamage(
 }
 
 export function applyTraitCondition(
-  details: NecromancerResolverReactionDetails,
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   { name, traitId, condition, stacks = 1, duration }: TraitConditionDefinition
@@ -100,11 +99,9 @@ export function applyTraitCondition(
     actorType: 'effect',
     triggeredBy: event.skillName
   };
-  if (details.applyCondition) {
-    details.applyCondition(context, application);
-  } else {
-    enqueueOrdered(context.queue, application);
-  }
+  // Resolver-derived trait conditions enter canonical state immediately so
+  // chained condition reactions preserve their causal timestamp ordering.
+  context.applyCondition(application);
 
   context.recordProc?.('trait', name, event.at, event.skillName);
 }
@@ -471,7 +468,7 @@ export function reactToNecromancerCoreDamage(
         professionCoreState(context).traitProcReadyAt.dhuumfire = event.at + interval;
       }
 
-      applyTraitCondition(details, context, event, {
+      applyTraitCondition(context, event, {
         name: 'Dhuumfire',
         traitId: TRAIT.DHUUMFIRE,
         condition: String(effect?.condition || 'Burning'),
@@ -533,7 +530,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
   attribution: { kind: 'trait', id: TRAIT.BARBED_PRECISION },
   handler: (context, event, details) => {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.barbedPrecision), 'condition');
-    applyTraitCondition(details, context, event, {
+    applyTraitCondition(context, event, {
       name: 'Barbed Precision',
       traitId: TRAIT.BARBED_PRECISION,
       condition: String(effect?.condition || 'Bleeding'),
@@ -547,8 +544,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
 // condition has been accepted by the resolver.
 export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
+  event: NecromancerResolverEvent
 ): void {
   if (event.condition === 'Chilled') {
     professionCoreState(context).targetChilledUntil = Math.max(
@@ -580,11 +576,7 @@ export function reactToNecromancerCoreCondition(
 
 // Convert a qualifying Blind into ICD-bound Chilling Darkness through the
 // resolver's condition application hook.
-export function reactToNecromancerBlind(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
-): void {
+export function reactToNecromancerBlind(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (
     !hasTrait(context, TRAIT.CHILLING_DARKNESS) ||
     !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.chillingDarkness || 0))
@@ -593,7 +585,7 @@ export function reactToNecromancerBlind(
   const profile = necromancerBalanceProfile(context, PROFILE.chillingDarkness);
   const effect = balanceProfileEffect(profile, 'condition');
   professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + Number(profile?.cooldown || 3);
-  applyTraitCondition(details, context, event, {
+  applyTraitCondition(context, event, {
     name: 'Chilling Darkness',
     traitId: TRAIT.CHILLING_DARKNESS,
     condition: String(effect?.condition || 'Chilled'),
@@ -606,8 +598,7 @@ export function reactToNecromancerBlind(
 // the generic Insidious Disruption condition to the originating control event.
 export function reactToNecromancerCoreControl(
   context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
+  event: NecromancerResolverEvent
 ): void {
   professionCoreState(context).targetControlledUntil = Math.max(
     Number(professionCoreState(context).targetControlledUntil || 0),
@@ -619,7 +610,7 @@ export function reactToNecromancerCoreControl(
       event.at + 3
     );
     if (hasTrait(context, TRAIT.TERROR)) {
-      applyTraitCondition(details, context, event, {
+      applyTraitCondition(context, event, {
         name: 'Terror',
         traitId: TRAIT.TERROR,
         condition: 'Fear',
@@ -630,7 +621,7 @@ export function reactToNecromancerCoreControl(
 
   if (hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.insidiousDisruption), 'condition');
-    applyTraitCondition(details, context, event, {
+    applyTraitCondition(context, event, {
       name: 'Insidious Disruption',
       traitId: TRAIT.INSIDIOUS_DISRUPTION,
       condition: String(effect?.condition || 'Torment'),

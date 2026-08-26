@@ -25,7 +25,7 @@ import {
 import { skillForEvent } from './event-skill.js';
 
 import type { NativeResolvedDamageDetails } from '../authoring/module-types.js';
-import type { Gw2ApplyCondition } from '../equipment/relics/types.js';
+import type { Gw2ConditionHelpers } from '../equipment/relics/types.js';
 import type {
   Gw2ConditionResolution,
   Gw2ResolverEvent,
@@ -64,16 +64,14 @@ interface CriticalFoodProc {
   readonly nightEffect?: CriticalFoodEffect;
 }
 
-function conditionHelpers(details: SchedulerRecord): {
-  activeConditionStackCount: Gw2ConditionResolution['activeConditionStackCount'];
-  applyCondition: Gw2ApplyCondition;
-} {
+function conditionHelpers(context: Gw2ResolverRuntime, details: SchedulerRecord): Gw2ConditionHelpers {
   const activeConditionStackCount =
     details.activeConditionStackCount as Gw2ConditionResolution['activeConditionStackCount'];
-  const applyCondition = details.applyCondition as Gw2ConditionResolution['applyCondition'];
   return {
-    activeConditionStackCount,
-    applyCondition: (context, event) => applyCondition(context as Gw2ResolverRuntime, event)
+    activeConditionStackCount: (_relicContext, condition, at) => activeConditionStackCount(context, condition, at),
+    // Relic rules keep their narrow context-first contract while condition
+    // resolution is owned by the full runtime that dispatched the reaction.
+    applyCondition: (_relicContext, event) => context.applyCondition(event)
   };
 }
 
@@ -293,7 +291,7 @@ export function createGw2EquipmentReactionContributions({
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details = {}) {
-          handleConditionRelics(ctx, application, conditionHelpers(details));
+          handleConditionRelics(ctx, application, conditionHelpers(ctx, details));
         }
       }
     ],
@@ -302,7 +300,7 @@ export function createGw2EquipmentReactionContributions({
         id: 'relic.control',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
-          handleControlRelics(ctx, event, conditionHelpers(details));
+          handleControlRelics(ctx, event, conditionHelpers(ctx, details));
         }
       }
     ],
@@ -311,7 +309,7 @@ export function createGw2EquipmentReactionContributions({
         id: 'relic.peitha',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
-          handlePeithaRelic(ctx, event, conditionHelpers(details).applyCondition);
+          handlePeithaRelic(ctx, event, conditionHelpers(ctx, details).applyCondition);
         }
       }
     ],

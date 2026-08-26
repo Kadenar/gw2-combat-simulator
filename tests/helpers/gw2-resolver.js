@@ -27,7 +27,6 @@ export function resolveTestGw2Stream({ stream, config, traits, query, helpers })
     },
     conditions: {
       activeStackCount: conditions.activeConditionStackCount,
-      apply: conditions.applyCondition,
       tick: conditions.handleConditionTick
     },
     reactions: extensions.reactions
@@ -42,6 +41,7 @@ export function resolveTestGw2Stream({ stream, config, traits, query, helpers })
     createRuntimeState: (options) =>
       createGw2ResolverRuntimeState({
         ...options,
+        applyCondition: conditions.applyCondition,
         createEquipmentState: extensions.createEquipmentState
       }),
     commonHandlers,

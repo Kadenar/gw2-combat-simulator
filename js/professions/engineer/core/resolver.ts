@@ -4,7 +4,7 @@ import { handleEngineerDodge, reactToEngineerCondition, reactToEngineerDamage } 
 
 export {
   activeBoonStacks,
-  applyCondition,
+  applyEngineerDerivedCondition,
   procState,
   queueBuff,
   queueDamage,

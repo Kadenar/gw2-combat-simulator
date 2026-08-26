@@ -7,12 +7,7 @@ import {
 } from '../../../platform/gw2/resolver/combo-resolution.js';
 import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
-import type {
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerResolverReactionDetails,
-  EngineerSkill
-} from '../types.js';
+import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '../types.js';
 
 interface QueueDamageOptions {
   readonly name: string;
@@ -140,8 +135,7 @@ export function queueBuff(
   });
 }
 
-export function applyCondition(
-  details: EngineerResolverReactionDetails,
+export function applyEngineerDerivedCondition(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
   {
@@ -168,12 +162,9 @@ export function applyCondition(
     triggeredBy: event.skillName,
     ...metadata
   };
-  // details.applyCondition lets the reaction context intercept and modify the condition before enqueueing
-  if (details.applyCondition) {
-    details.applyCondition(context, application);
-  } else {
-    enqueueOrdered(context.queue, application);
-  }
+  // Apply resolver-derived conditions immediately so downstream reactions at
+  // this timestamp observe the newly inserted condition state.
+  context.applyCondition(application);
 }
 
 // lazy-initializes traitProcReadyAt — the field starts undefined and is created on first access

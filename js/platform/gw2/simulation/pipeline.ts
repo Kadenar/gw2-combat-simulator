@@ -151,7 +151,6 @@ function simulateDeclarativeGw2Pass({
     },
     conditions: {
       activeStackCount: conditionResolution.activeConditionStackCount,
-      apply: conditionResolution.applyCondition,
       tick: conditionResolution.handleConditionTick
     },
     reactions: extensions.reactions
@@ -174,6 +173,7 @@ function simulateDeclarativeGw2Pass({
     createRuntimeState(options) {
       return createGw2ResolverRuntimeState({
         ...options,
+        applyCondition: conditionResolution.applyCondition,
         createEquipmentState: extensions.createEquipmentState
       });
     },

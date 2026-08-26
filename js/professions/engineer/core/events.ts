@@ -1,6 +1,6 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { applyCondition, queueDamage } from './shared.js';
+import { applyEngineerDerivedCondition, queueDamage } from './shared.js';
 import { snapshotEngineerState } from '../state.js';
 import type {
   EngineerResolverContext,
@@ -49,7 +49,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
   });
   // Immobilize only on the second hit (hitIndex 1, 0-based) — not every pulse
   if (event.hitIndex === 1) {
-    applyCondition({}, context, event, {
+    applyEngineerDerivedCondition(context, event, {
       name: 'Lightning Rod',
       condition: 'Immobilized',
       stacks: 1,

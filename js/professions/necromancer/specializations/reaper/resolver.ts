@@ -68,14 +68,10 @@ function reactToDamage(
   chillingNovaCriticalHit.handler(context, event, details);
 }
 
-function reactToCondition(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
-): void {
+function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition === 'Chilled' && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.deathlyChill), 'condition');
-    applyTraitCondition(details, context, event, {
+    applyTraitCondition(context, event, {
       name: 'Deathly Chill',
       traitId: TRAIT.DEATHLY_CHILL,
       condition: String(effect?.condition || 'Bleeding'),

@@ -4,15 +4,10 @@ import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/eve
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
-import type { Gw2ConditionResolution } from '../../../../platform/gw2/resolver/types.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '../../types.js';
 import { dragonhunterState } from './state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-
-interface ConditionDependencies {
-  readonly applyCondition?: Gw2ConditionResolution['applyCondition'];
-}
 
 function handleTetherApplied(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   // Falls back to event.at (no tether window) when tetherUntil was not emitted,
@@ -55,7 +50,7 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
 export function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  dependencies: ConditionDependencies & { readonly hitContext?: object } = {}
+  dependencies: { readonly hitContext?: object } = {}
 ): void {
   const core = professionCoreState(context);
   const passiveBefore = Number(core.justicePassiveBurns || 0);
@@ -67,9 +62,9 @@ export function reactToDragonhunterJusticeHit(
 
   // Passive Crippled only fires when the passive burn counter actually incremented,
   // i.e. a new passive Justice proc occurred on this hit (not an active proc).
-  if (Number(core.justicePassiveBurns || 0) > passiveBefore && typeof dependencies.applyCondition === 'function') {
+  if (Number(core.justicePassiveBurns || 0) > passiveBefore) {
     const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.tether), 'condition', 1);
-    dependencies.applyCondition(context, {
+    context.applyCondition({
       type: 'condition',
       at: event.at,
       source: 'guardian',
@@ -115,15 +110,13 @@ export function reactToDragonhunterJusticeHit(
   });
 }
 
-export function reactToDragonhunterControl(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  { applyCondition }: ConditionDependencies = {}
-): void {
+export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = dragonhunterState.from(context);
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES) && typeof applyCondition === 'function') {
+  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.dulledSenses), 'condition');
-    applyCondition(context, {
+    // Control-triggered conditions resolve immediately so their reactions
+    // share the originating control timestamp.
+    context.applyCondition({
       type: 'condition',
       at: event.at,
       source: 'guardian',
