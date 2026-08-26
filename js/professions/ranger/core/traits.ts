@@ -3,6 +3,8 @@ import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
+import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
+import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { rangerPetCompanionId } from './pets.js';
 import {
@@ -32,6 +34,12 @@ import {
 function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
 }
+
+type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
+  RangerResolverContext,
+  RangerResolverEvent,
+  NativeResolvedDamageDetails
+>;
 
 function emitPartyBoon(
   context: RangerCastContext,
@@ -742,6 +750,7 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: RangerReso
 export const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   order: 20,
+  materialization: 'threshold',
   chanceOnCriticalHit: 0.33,
   actorTypes: ['player', 'summon'] as const,
   when(context: RangerResolverContext, event: RangerResolverEvent): boolean {
@@ -759,24 +768,27 @@ export const rangerCoreCriticalReactions = Object.freeze({
     kind: 'trait' as const,
     id: TRAIT.SHARPENED_EDGES
   },
-  handler(context: RangerResolverContext, event: RangerResolverEvent): void {
-    const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
-    queueBleeding(
-      context,
-      event,
-      Number(bleeding?.duration ?? 3),
-      TRAIT.SHARPENED_EDGES,
-      'Sharpened Edges',
-      Number(bleeding?.stacks ?? 1)
-    );
+  handler(context, event, _details, application): void {
+    // Sharpened Edges emits one bleeding application per threshold proc.
+    for (let proc = 0; proc < application.quantity; proc += 1) {
+      const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
+      queueBleeding(
+        context,
+        event,
+        Number(bleeding?.duration ?? 3),
+        TRAIT.SHARPENED_EDGES,
+        'Sharpened Edges',
+        Number(bleeding?.stacks ?? 1)
+      );
+    }
   }
-});
+} satisfies RangerCriticalHitDefinition);
 
 export const rangerCoreProfiledCriticalReaction = Object.freeze({
   ...rangerCoreCriticalReactions,
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     rangerBalanceValue(context, PROFILE.sharpenedEdges, 'criticalChance', 0.33)
-});
+} satisfies RangerCriticalHitDefinition);
 
 export function reactToRangerCoreDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;

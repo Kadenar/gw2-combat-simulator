@@ -291,33 +291,6 @@ export function onResolvedCriticalHit<
   return Object.freeze({ ...reaction, attribution: options.attribution, requiresCriticalFacts: true as const });
 }
 
-/** @deprecated Use `onResolvedCriticalHit`; retained while profession declarations migrate. */
-export function onResolvedPlayerCriticalHit<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends NativeResolvedDamageDetails
->(
-  options: Omit<ResolvedCriticalHitOptions<TContext, TEvent, TDetails>, 'handler' | 'materialization'> & {
-    readonly handler: (context: TContext, event: TEvent, details: TDetails) => object | void;
-  }
-): NativeResolvedReaction<TContext, TEvent, TDetails> & {
-  readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
-  readonly requiresCriticalFacts: true;
-} {
-  return onResolvedCriticalHit({
-    ...options,
-    materialization: 'threshold',
-    handler(context, event, details, application) {
-      let result: object | void = undefined;
-      for (let proc = 0; proc < application.quantity; proc += 1) {
-        result = options.handler(context, event, details);
-      }
-
-      return result;
-    }
-  });
-}
-
 function schedulerMechanic(
   hook: NativeSchedulerMechanic['hook'],
   declaration: OrderedEscapeHandler

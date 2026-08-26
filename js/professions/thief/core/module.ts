@@ -2,8 +2,8 @@ import { defineNativeModule } from '../../../platform/gw2/authoring/profession.j
 import {
   onBuffApplied,
   onConditionApplied,
-  onResolvedDamage,
-  onResolvedPlayerCriticalHit
+  onResolvedCriticalHit,
+  onResolvedDamage
 } from '../../../platform/gw2/authoring/mechanics.js';
 import { createThiefModuleData } from '../catalog-data.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from './resolver.js';
@@ -33,7 +33,7 @@ export const thiefCoreModule = defineNativeModule({
     castRules: thiefCoreCastRules,
     schedulerHooks: thiefCoreSchedulerHooks,
     reactions: [
-      ...thiefCoreEventReactions.critical.map(onResolvedPlayerCriticalHit),
+      ...thiefCoreEventReactions.critical.map(onResolvedCriticalHit),
       ...thiefCoreEventReactions.damage.map(onResolvedDamage),
       ...thiefCoreEventReactions.condition.map(onConditionApplied),
       ...thiefCoreEventReactions.buff.map(onBuffApplied)

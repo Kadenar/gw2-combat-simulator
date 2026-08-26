@@ -1,6 +1,6 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
-import { onResolvedPlayerCriticalHit } from '../../../../platform/gw2/authoring/mechanics.js';
+import { onResolvedCriticalHit } from '../../../../platform/gw2/authoring/mechanics.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { resolveSummonOwnedComboFinisher } from './combos.js';
 import { applyTraitCondition, queueTraitCoefficientDamage, targetIsChilled } from '../../core/traits.js';
@@ -14,12 +14,13 @@ import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { reaperState } from './state.js';
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
-const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
+const chillingNovaCriticalHit = onResolvedCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails
 >({
   id: 'necromancer.chilling-nova',
+  materialization: 'threshold',
   chanceOnCriticalHit: (context) =>
     Number(necromancerBalanceProfile(context, PROFILE.chillingNova)?.criticalChance || 1),
   when: (context, event) =>
@@ -38,24 +39,27 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
     }
   },
   attribution: { kind: 'trait', id: TRAIT.CHILLING_NOVA },
-  handler: (context, event) => {
-    const profile = necromancerBalanceProfile(context, PROFILE.chillingNova);
-    const strike = balanceProfileEffect(profile, 'strike');
-    const chill = balanceProfileEffect(profile, 'condition');
-    queueTraitCoefficientDamage(context, event, {
-      name: 'Chilling Nova',
-      traitId: TRAIT.CHILLING_NOVA,
-      coefficient: Number(strike?.coefficient || 1.125)
-    });
-    enqueueOrdered(context.queue, {
-      type: 'necromancer.chill',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.CHILLING_NOVA,
-      actorType: 'effect',
-      skillName: 'Chilling Nova',
-      duration: Number(chill?.duration || 2)
-    });
+  handler: (context, event, _details, application) => {
+    // Chilling Nova is a discrete strike-and-chill package for each materialized proc.
+    for (let proc = 0; proc < application.quantity; proc += 1) {
+      const profile = necromancerBalanceProfile(context, PROFILE.chillingNova);
+      const strike = balanceProfileEffect(profile, 'strike');
+      const chill = balanceProfileEffect(profile, 'condition');
+      queueTraitCoefficientDamage(context, event, {
+        name: 'Chilling Nova',
+        traitId: TRAIT.CHILLING_NOVA,
+        coefficient: Number(strike?.coefficient || 1.125)
+      });
+      enqueueOrdered(context.queue, {
+        type: 'necromancer.chill',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.CHILLING_NOVA,
+        actorType: 'effect',
+        skillName: 'Chilling Nova',
+        duration: Number(chill?.duration || 2)
+      });
+    }
   }
 });
 

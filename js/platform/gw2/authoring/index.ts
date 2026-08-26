@@ -14,8 +14,7 @@ export {
   onResolvedBlind,
   onResolvedControl,
   onResolvedCriticalHit,
-  onResolvedDamage,
-  onResolvedPlayerCriticalHit
+  onResolvedDamage
 } from './mechanics.js';
 export type { ResolvedCriticalHitOptions } from './mechanics.js';
 export type {

@@ -4,7 +4,7 @@ import type { SchedulerRecord } from '../../engine/types.js';
 import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '../equipment/consumables/food.js';
 import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
-import { onResolvedPlayerCriticalHit } from '../authoring/mechanics.js';
+import { onResolvedCriticalHit } from '../authoring/mechanics.js';
 import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
 import { gw2SigilSet } from '../combat/query/runtime-rules.js';
 import {
@@ -199,33 +199,37 @@ export function createGw2EquipmentReactionContributions({
 }: {
   readonly dispatch: Dispatch;
 }): Gw2ResolverReactionContributions {
-  const criticalFoodReaction = onResolvedPlayerCriticalHit<
-    Gw2ResolverRuntime,
-    Gw2ResolverEvent,
-    NativeResolvedDamageDetails
-  >({
-    id: 'food.critical-strike',
-    chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
-    actorTypes: ['player'],
-    when: (ctx, event) =>
-      isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
-    expectedProgress: {
-      get: (ctx) => ctx.food.criticalProgress,
-      set: (ctx, value) => {
-        ctx.food.criticalProgress = value;
+  const criticalFoodReaction = onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>(
+    {
+      id: 'food.critical-strike',
+      materialization: 'threshold',
+      chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
+      actorTypes: ['player'],
+      when: (ctx, event) =>
+        isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
+      expectedProgress: {
+        get: (ctx) => ctx.food.criticalProgress,
+        set: (ctx, value) => {
+          ctx.food.criticalProgress = value;
+        }
+      },
+      internalCooldown: {
+        duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+        readyAt: (ctx) => ctx.food.readyAt,
+        setReadyAt: (ctx, readyAt) => {
+          ctx.food.readyAt = readyAt;
+        }
+      },
+      randomStream: 'food.critical-strike',
+      attribution: { kind: 'effect', id: 'food.critical-strike' },
+      handler: (ctx, event, _details, application) => {
+        // Food procs are discrete events, so materialize every threshold application independently.
+        for (let proc = 0; proc < application.quantity; proc += 1) {
+          createCriticalFoodEffect(dispatch, ctx, event);
+        }
       }
-    },
-    internalCooldown: {
-      duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
-      readyAt: (ctx) => ctx.food.readyAt,
-      setReadyAt: (ctx, readyAt) => {
-        ctx.food.readyAt = readyAt;
-      }
-    },
-    randomStream: 'food.critical-strike',
-    attribution: { kind: 'effect', id: 'food.critical-strike' },
-    handler: (ctx, event) => createCriticalFoodEffect(dispatch, ctx, event)
-  });
+    }
+  );
 
   return Object.freeze({
     'combo.resolved': [

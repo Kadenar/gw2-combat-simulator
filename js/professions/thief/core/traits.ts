@@ -8,6 +8,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js'
 import { hasThiefTrait } from './state.js';
 import { emitThiefCondition, emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
+import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
@@ -24,6 +25,12 @@ import {
 function traitEffect(context: unknown, profileId: SkillId, type: string, index = 0) {
   return thiefBalanceProfileEffect(thiefBalanceProfile(context, profileId), type, index);
 }
+
+type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
+  ThiefResolverContext,
+  ThiefResolverEvent,
+  ThiefResolverReactionDetails
+>;
 
 function emitStealBoon(context: ThiefCastContext, at: number, boon: string, duration: number, stacks = 1): void {
   context.emit({
@@ -345,6 +352,7 @@ export const thiefCoreCriticalReactions = Object.freeze({
   unrelentingStrikes: Object.freeze({
     id: 'thief.unrelenting-strikes',
     order: 10,
+    materialization: 'threshold',
     actorTypes: ['player'] as const,
     when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
       Boolean(details.hitContext?.critEligible) &&
@@ -368,21 +376,25 @@ export const thiefCoreCriticalReactions = Object.freeze({
       kind: 'trait' as const,
       id: TRAIT.UNRELENTING_STRIKES
     },
-    handler: (context: ThiefResolverContext, event: ThiefResolverEvent) => {
-      const fury = traitEffect(context, PROFILE.unrelentingStrikes, 'boon');
-      queueThiefBoon(context, event, {
-        traitId: TRAIT.UNRELENTING_STRIKES,
-        traitName: 'Unrelenting Strikes',
-        boon: String(fury?.boon || 'Fury'),
-        duration: Number(fury?.duration || 4),
-        stacks: Number(fury?.stacks || 1),
-        recipients: 'party'
-      });
+    handler: (context, event, _details, application) => {
+      // Unrelenting Strikes emits its discrete boon package for every threshold proc.
+      for (let proc = 0; proc < application.quantity; proc += 1) {
+        const fury = traitEffect(context, PROFILE.unrelentingStrikes, 'boon');
+        queueThiefBoon(context, event, {
+          traitId: TRAIT.UNRELENTING_STRIKES,
+          traitName: 'Unrelenting Strikes',
+          boon: String(fury?.boon || 'Fury'),
+          duration: Number(fury?.duration || 4),
+          stacks: Number(fury?.stacks || 1),
+          recipients: 'party'
+        });
+      }
     }
-  }),
+  } satisfies ThiefCriticalHitDefinition),
   noQuarter: Object.freeze({
     id: 'thief.no-quarter',
     order: 20,
+    materialization: 'threshold',
     actorTypes: ['player'] as const,
     when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
       Boolean(details.hitContext?.critEligible) &&
@@ -403,9 +415,13 @@ export const thiefCoreCriticalReactions = Object.freeze({
       }
     },
     attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
-    handler: (context: ThiefResolverContext, event: ThiefResolverEvent) =>
-      extendActiveFury(context, event, Number(traitEffect(context, PROFILE.noQuarter, 'boon')?.duration || 2))
-  })
+    handler: (context, event, _details, application) => {
+      // No Quarter extends Fury once for each discrete threshold proc.
+      for (let proc = 0; proc < application.quantity; proc += 1) {
+        extendActiveFury(context, event, Number(traitEffect(context, PROFILE.noQuarter, 'boon')?.duration || 2));
+      }
+    }
+  } satisfies ThiefCriticalHitDefinition)
 });
 
 // Turn a self-affecting Fury application into Assassin's Fury Might while

@@ -7,7 +7,7 @@ import { addCarapace, necromancerActiveMinionCompanionIds } from './shared.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2AlliedEffectRecipients } from '../../../platform/gw2/combat/state/allied-players.js';
-import { onResolvedPlayerCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
+import { onResolvedCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
@@ -516,13 +516,14 @@ export function reactToNecromancerCoreDamage(
   }
 }
 
-export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
+export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails
 >({
   id: 'necromancer.barbed-precision',
   order: 0,
+  materialization: 'threshold',
   actorTypes: ['player', 'summon', 'unknown'],
   chanceOnCriticalHit: (context) =>
     Number(necromancerBalanceProfile(context, PROFILE.barbedPrecision)?.criticalChance || 0.33),
@@ -535,15 +536,18 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
     }
   },
   attribution: { kind: 'trait', id: TRAIT.BARBED_PRECISION },
-  handler: (context, event, details) => {
-    const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.barbedPrecision), 'condition');
-    applyTraitCondition(context, event, {
-      name: 'Barbed Precision',
-      traitId: TRAIT.BARBED_PRECISION,
-      condition: String(effect?.condition || 'Bleeding'),
-      stacks: Number(effect?.stacks || 1),
-      duration: Number(effect?.duration || 3)
-    });
+  handler: (context, event, _details, application) => {
+    // Barbed Precision emits one condition application per threshold proc.
+    for (let proc = 0; proc < application.quantity; proc += 1) {
+      const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.barbedPrecision), 'condition');
+      applyTraitCondition(context, event, {
+        name: 'Barbed Precision',
+        traitId: TRAIT.BARBED_PRECISION,
+        condition: String(effect?.condition || 'Bleeding'),
+        stacks: Number(effect?.stacks || 1),
+        duration: Number(effect?.duration || 3)
+      });
+    }
   }
 });
 

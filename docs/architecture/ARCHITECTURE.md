@@ -259,8 +259,9 @@ rules/hooks or resolver reactions; they do not merge the scheduling and resoluti
 `advanceCriticalProc()` is the phase-neutral critical-proc kernel. Resolver declarations use it through
 `onResolvedCriticalHit()`, while scheduler-owned mechanics use `advanceScheduledCriticalProc()`. Both paths consume the
 same canonical sampled hit in stochastic mode and share deterministic threshold progress, weighted applications,
-secondary proc rolls, floating-point tolerance, and internal-cooldown behavior. The deprecated
-`onResolvedPlayerCriticalHit()` remains a compatibility adapter while older declarations migrate.
+secondary proc rolls, floating-point tolerance, and internal-cooldown behavior. Discrete resolver declarations use
+threshold materialization and apply every returned proc quantity; weighted declarations apply fractional quantities
+directly.
 
 The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw `mechanics.castRules`,
 `mechanics.schedulerHooks`, and `mechanics.resolverHooks` remain escape hatches for typed tasks, custom event types,

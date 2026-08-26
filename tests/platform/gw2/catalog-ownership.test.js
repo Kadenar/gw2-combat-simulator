@@ -5,11 +5,7 @@ import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner
 } from '../../../js/platform/gw2/authoring/catalog.js';
-import {
-  onResolvedCriticalHit,
-  onResolvedDamage,
-  onResolvedPlayerCriticalHit
-} from '../../../js/platform/gw2/authoring/mechanics.js';
+import { onResolvedCriticalHit, onResolvedDamage } from '../../../js/platform/gw2/authoring/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/authoring/profession.js';
 
 const replaceHandler = Object.freeze({
@@ -168,7 +164,7 @@ test('phase-explicit reactions retain stable order', () => {
   assert.deepEqual(calls, ['first', 'middle', 'later']);
 });
 
-test('critical-hit helper preserves deterministic and stochastic semantics', () => {
+test('resolved critical-hit helper preserves threshold and stochastic semantics', () => {
   const state = { progress: 0, readyAt: 0, procs: 0, rolls: 0 };
   const context = {
     random: {
@@ -182,8 +178,9 @@ test('critical-hit helper preserves deterministic and stochastic semantics', () 
       }
     }
   };
-  const reaction = onResolvedPlayerCriticalHit({
+  const reaction = onResolvedCriticalHit({
     id: 'fixture.critical',
+    materialization: 'threshold',
     chanceOnCriticalHit: 0.5,
     sourceIds: [7],
     expectedProgress: {
@@ -200,8 +197,9 @@ test('critical-hit helper preserves deterministic and stochastic semantics', () 
       }
     },
     attribution: { kind: 'trait', id: 99 },
-    handler: () => {
-      state.procs += 1;
+    handler: (_context, _event, _details, application) => {
+      // Discrete consumers apply every proc quantity returned by the shared kernel.
+      state.procs += application.quantity;
     }
   });
   const event = { type: 'damage', at: 0, actorType: 'player', sourceId: 7 };

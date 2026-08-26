@@ -2,8 +2,8 @@ import { defineNativeModule } from '../../../platform/gw2/authoring/profession.j
 import {
   onBuffApplied,
   onResolvedControl,
-  onResolvedDamage,
-  onResolvedPlayerCriticalHit
+  onResolvedCriticalHit,
+  onResolvedDamage
 } from '../../../platform/gw2/authoring/mechanics.js';
 import { createRangerModuleData } from '../catalog-data.js';
 import { rangerCoreSkillHandlers } from './handlers.js';
@@ -40,7 +40,7 @@ export const rangerCoreModule = defineNativeModule({
     schedulerHooks: rangerCoreSchedulerHooks,
     resolverHooks: { eventHandlers: rangerCoreEventHandlers },
     reactions: [
-      ...rangerCoreEventReactions.critical.map(onResolvedPlayerCriticalHit),
+      ...rangerCoreEventReactions.critical.map(onResolvedCriticalHit),
       ...rangerCoreEventReactions.damage.map(onResolvedDamage),
       ...rangerCoreEventReactions.control.map(onResolvedControl),
       ...rangerCoreEventReactions.buff.map(onBuffApplied)
