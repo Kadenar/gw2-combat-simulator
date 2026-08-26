@@ -9,6 +9,8 @@ import { amalgamState } from './state.js';
 import { AMALGAM_BALANCE_PROFILES } from './profiles.js';
 import { bindAmalgamUi } from './ui.js';
 
+// Compose cast-time protocol state with resolver-side reactions: handlers establish
+// strains and Evolve state, while resolved hits drive Rapacious and Carbolic procs.
 export const amalgamModule = defineNativeModule({
   id: 'Amalgam',
   data: createEngineerModuleData('Amalgam', {

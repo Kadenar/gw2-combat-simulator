@@ -1,6 +1,8 @@
 import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
 import { activateOverclockSignet, engineerMechSkillHandlers } from './mech.js';
 
+// Run lifecycle changes after authored skill effects: summon/recall toggle the
+// autonomous mech loop, while Overclock schedules its separate cannon sequence.
 export const mechanistSkillHandlers = Object.freeze({
   'engineer.mech-summon': augmentSkill({
     afterEffects: engineerMechSkillHandlers['engineer.mech-summon']

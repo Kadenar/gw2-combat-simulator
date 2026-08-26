@@ -1,6 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
+// These IDs are the shared lookup contract between heat-state code, delayed
+// packet resolvers, modifier rules, and balance overrides.
 export const HOLOSMITH_BALANCE_PROFILE_IDS = Object.freeze({
   heat: 'engineer.holosmith.heat',
   overheat: 'engineer.holosmith.overheat',
@@ -19,6 +21,8 @@ export const HOLOSMITH_BALANCE_PROFILE_IDS = Object.freeze({
   photonicBlastingModule: TRAIT.PHOTONIC_BLASTING_MODULE
 });
 
+// Profile builders attach the catalog metadata common to each profile kind so
+// individual entries can focus on their patchable mechanic values.
 const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
   id,
   name,
@@ -38,6 +42,8 @@ const skillVariant = (id: string, name: string, fields: Readonly<Record<string, 
   ...fields
 });
 
+// Heat-tier profiles are applied after activation heat is snapshotted, keeping
+// delayed packets on their cast-time tier even if heat changes before impact.
 export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: HOLOSMITH_BALANCE_PROFILE_IDS.heat,

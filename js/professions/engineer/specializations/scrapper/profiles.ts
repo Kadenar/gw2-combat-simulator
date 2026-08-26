@@ -1,6 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
+// Trait IDs double as balance-profile IDs so scheduler and resolver hooks read
+// the same patchable durations, thresholds, and internal cooldowns.
 export const SCRAPPER_BALANCE_PROFILE_IDS = Object.freeze({
   kineticAccelerators: TRAIT.KINETIC_ACCELERATORS,
   massMomentum: TRAIT.MASS_MOMENTUM,
@@ -10,6 +12,8 @@ export const SCRAPPER_BALANCE_PROFILE_IDS = Object.freeze({
   appliedForce: TRAIT.APPLIED_FORCE
 });
 
+// Normalize trait catalog metadata while leaving each profile responsible only
+// for the values and effects its behavior consumes.
 const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
   id,
   name,
@@ -20,6 +24,8 @@ const trait = (id: number, name: string, fields: Readonly<Record<string, unknown
   ...fields
 });
 
+// Centralizing these values keeps combo prediction, resolved proc attribution,
+// and cast-time trait effects aligned under balance overrides.
 export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   trait(SCRAPPER_BALANCE_PROFILE_IDS.kineticAccelerators, 'Kinetic Accelerators', {
     internalCooldown: 3,

@@ -1,5 +1,7 @@
 import { ENGINEER_INTERNAL_IDS as INTERNAL, ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 
+// The autonomous basic attack has no player-facing slot, so consumers identify
+// its packet through an internal mechanic ID instead of a selectable skill ID.
 export const ENGINEER_TRIGGERED_MECHANICS = Object.freeze({
   [INTERNAL.MECH_BASIC_ATTACK]: Object.freeze({
     coefficient: 0.84,
@@ -16,6 +18,8 @@ export const MECHANIST_COMMAND_DURATIONS: Readonly<Record<number, number>> = Obj
   [ID.JADE_MORTAR]: 1.08
 });
 
+// These gaps control the mech's independent attack lane; command cast durations
+// above reserve that lane separately before commandRecovery resumes the chain.
 export const MECHANIST_ATTACK_TIMING = Object.freeze({
   jadeCannonArmGap: 0.5,
   jadeCannonCycleGap: 1.075,

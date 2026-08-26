@@ -14,6 +14,8 @@ import { mechanistState } from './state.js';
 import { MECHANIST_BALANCE_PROFILES } from './profiles.js';
 import { mechanistUi } from './ui.js';
 
+// Compose the mech's independent scheduler lane with resolver reactions for
+// hit-triggered traits; the engineer's own cast lane remains owned by Core.
 export const mechanistModule = defineNativeModule({
   id: 'Mechanist',
   data: createEngineerModuleData('Mechanist', {
@@ -25,6 +27,8 @@ export const mechanistModule = defineNativeModule({
   mechanics: {
     modifiers: mechanistAttributeRules,
     castRules: mechanistCastRules,
+    // Trait and recovery handling waits until effectiveEnd, after authored
+    // packets, so extending the mech lane cannot reorder the player's effects.
     castLifecycle: [afterSkillEffects(mechanistAfterCast)],
     schedulerHooks: mechanistAdvancedSchedulerHooks,
     reactions: [

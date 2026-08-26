@@ -1,6 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
+// Stable IDs connect mech inheritance, attack sequencing, signet rules, and
+// trait handlers to values that balance overrides can replace independently.
 export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.mechanist.mech',
   attackTiming: 'engineer.mechanist.attack-timing',
@@ -12,6 +14,8 @@ export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
   overclock: ID.OVERCLOCK_SIGNET
 });
 
+// Supply standard trait metadata once; callers add only the values and effects
+// read by the Mechanist runtime.
 const trait = (id: number | string, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
   id,
   name,
@@ -22,6 +26,8 @@ const trait = (id: number | string, name: string, fields: Readonly<Record<string
   ...fields
 });
 
+// Keep native mech scaling and cadence beside trait tuning so both autonomous
+// attacks and commanded attacks use the same balance-profile lookup path.
 export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: MECHANIST_BALANCE_PROFILE_IDS.resources,

@@ -1,6 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
+// Stable profile IDs let runtime mechanics request patchable values without
+// duplicating balance constants in the cast, resolver, and modifier layers.
 export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
   morphs: 'engineer.amalgam.morphs',
   strains: 'engineer.amalgam.strains',
@@ -12,6 +14,8 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
   plasmaticState: 'engineer.amalgam.plasmatic-state'
 });
 
+// Supply the catalog metadata shared by every trait profile; each entry below
+// only needs to declare the values and effects its mechanic consumes.
 const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
   id,
   name,
@@ -22,6 +26,8 @@ const trait = (id: number, name: string, fields: Readonly<Record<string, unknown
   ...fields
 });
 
+// Mechanic profiles collect protocol durations, strain scaling, and Evolve
+// tuning that would otherwise be spread across scheduler and modifier code.
 export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.morphs,

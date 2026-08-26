@@ -10,6 +10,8 @@ import type {
 } from '../../../../platform/engine/types.js';
 import type { EngineerResolverEvent, EngineerUiContext } from '../../types.js';
 
+// Prefer the editable build's traits, but fall back to simulation state when a
+// historical result is inspected without a complete build projection.
 function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
   const activeTraits = getActiveTraits(context.build?.specializations || []);
   return activeTraits.length
@@ -23,6 +25,8 @@ function mechanistProfessionSkills(context: EngineerUiContext) {
   return [...commands, namedSkillId(mechActive ? 'Recall Mech' : 'Crash Down')];
 }
 
+// Only the live side of the summon/recall toggle is actionable; both remain in
+// the palette so the shared projector can swap tiles without rebuilding groups.
 function mechanistPaletteAvailability(
   context: EngineerUiContext,
   skill: { readonly id: SkillId }
