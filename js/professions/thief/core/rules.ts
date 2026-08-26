@@ -203,9 +203,13 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   {
     id: 'thief.potent-poison-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: 'multiply',
-    factor: 1.33,
-    when: (context) => context.event?.condition === 'Poisoned' && hasTrait(context, TRAIT.POTENT_POISON)
+    operation: 'add',
+    amount: 0.33,
+    // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
+    when: (context) =>
+      context.event?.condition === 'Poisoned' &&
+      hasTrait(context, TRAIT.POTENT_POISON) &&
+      !professionStaticRulesApplied(context.config)
   },
   {
     id: 'thief.keen-observer',
