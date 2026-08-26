@@ -17,9 +17,9 @@ import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';
 import { loadProfession } from '../../dist/js/app/profession/registry.js';
-import { decompressEvtcInput } from '../../dist/js/evtc-analyzer/decompression.js';
-import { parseEvtc } from '../../dist/js/evtc-analyzer/parser.js';
-import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '../../dist/js/evtc-analyzer/rotation/index.js';
+import { decompressEvtcInput } from '../../dist/js/log-analyzer/evtc/decompression.js';
+import { parseEvtc } from '../../dist/js/log-analyzer/evtc/parser.js';
+import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '../../dist/js/log-analyzer/evtc/rotation/index.js';
 
 const input = process.argv[2];
 

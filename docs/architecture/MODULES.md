@@ -9,21 +9,22 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 
 ## Repository map
 
-| Path                      | Purpose                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------- |
-| `js/app/`                 | Profession-neutral browser application and UI orchestration                                     |
-| `js/platform/engine/`     | Generic scheduler, event queue, state, and simulation primitives                                |
-| `js/platform/gw2/`        | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and profession infrastructure |
-| `js/platform/ui/`         | Shared UI/view-model primitives                                                                 |
-| `js/professions/`         | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI            |
-| `js/evtc-analyzer/`       | ArcDPS EVTC parsing, analysis, and rotation reconstruction                                      |
-| `js/dps-report-analyzer/` | Elite Insights / dps.report analysis and rotation reconstruction                                |
-| `js/app/patch-preview/`   | Local patch-preview authoring UI                                                                |
-| `js/patches/`             | Active balance-preview manifest                                                                 |
-| `Builds/`                 | Saved simulator build presets                                                                   |
-| `Rotations/`              | Saved simulator rotation presets                                                                |
-| `tests/`                  | Unit, integration, architecture, browser, and regression tests                                  |
-| `scripts/`                | Build, data generation, analysis, audit, and authoring tools                                    |
+| Path                          | Purpose                                                                                         |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `js/app/`                     | Profession-neutral browser application and UI orchestration                                     |
+| `js/platform/engine/`         | Generic scheduler, event queue, state, and simulation primitives                                |
+| `js/platform/gw2/`            | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and profession infrastructure |
+| `js/platform/ui/`             | Shared UI/view-model primitives                                                                 |
+| `js/professions/`             | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI            |
+| `js/log-analyzer/lib/`        | Source-neutral log reconstruction contracts, scheduling, profiles, and reusable rules           |
+| `js/log-analyzer/evtc/`       | ArcDPS EVTC parsing, analysis, and source-specific reconstruction                               |
+| `js/log-analyzer/dps-report/` | Elite Insights / dps.report validation and source-specific reconstruction                       |
+| `js/app/patch-preview/`       | Local patch-preview authoring UI                                                                |
+| `js/patches/`                 | Active balance-preview manifest                                                                 |
+| `Builds/`                     | Saved simulator build presets                                                                   |
+| `Rotations/`                  | Saved simulator rotation presets                                                                |
+| `tests/`                      | Unit, integration, architecture, browser, and regression tests                                  |
+| `scripts/`                    | Build, data generation, analysis, audit, and authoring tools                                    |
 
 At a high level:
 
@@ -70,8 +71,9 @@ Use this table as the first place to look.
 | Generic scheduling primitive unrelated to GW2                         | `js/platform/engine/`                                 |
 | Browser-only behavior                                                 | `js/app/`                                             |
 | Shared presentation/view-model behavior                               | `js/platform/ui/`                                     |
-| EVTC parsing or reconstruction                                        | `js/evtc-analyzer/`                                   |
-| dps.report / Elite Insights reconstruction                            | `js/dps-report-analyzer/`                             |
+| Source-neutral log reconstruction                                     | `js/log-analyzer/lib/`                                |
+| EVTC parsing or evidence inference                                    | `js/log-analyzer/evtc/`                               |
+| dps.report / Elite Insights parsing or inference                      | `js/log-analyzer/dps-report/`                         |
 | Upcoming balance changes                                              | Patch-preview system                                  |
 | Build migration/default/validation                                    | Profession `build.ts`                                 |
 | New profession page/registry entry                                    | `js/app/profession/registry.ts`                       |
@@ -1020,13 +1022,19 @@ Do not duplicate common gear/sigil/relic/weapon normalization inside individual 
 
 ---
 
-# EVTC analyzer
+# Log analyzers
 
 ```text
-js/evtc-analyzer/
+js/log-analyzer/
+├── lib/
+├── evtc/
+└── dps-report/
 ```
 
-Owns raw ArcDPS EVTC behavior.
+The shared library owns normalized action/result contracts, catalog and profile lookup, player selection, replay
+scheduling, and reusable rules. Neither adapter may import implementation code from the other.
+
+The EVTC adapter owns raw ArcDPS behavior:
 
 This includes:
 
@@ -1045,10 +1053,10 @@ See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md).
 
 ---
 
-# dps.report analyzer
+# dps.report adapter
 
 ```text
-js/dps-report-analyzer/
+js/log-analyzer/dps-report/
 ```
 
 Owns behavior related to Elite Insights / dps.report data.

@@ -1,9 +1,10 @@
-import { isDpsReportData, parseDpsReport } from '../../../dps-report-analyzer/parser.js';
-import { fetchDpsReport } from '../../../dps-report-analyzer/url.js';
+import { isDpsReportData, parseDpsReport } from '../../../log-analyzer/dps-report/parser.js';
+import { fetchDpsReport } from '../../../log-analyzer/dps-report/url.js';
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
-import type { ParsedDpsReport } from '../../../dps-report-analyzer/types.js';
+import type { ParsedDpsReport } from '../../../log-analyzer/dps-report/types.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
 
 export interface ImportedDpsReportRotation {
   readonly rotation: readonly RotationCommand[];
@@ -11,18 +12,6 @@ export interface ImportedDpsReportRotation {
   readonly warnings: readonly string[];
   readonly playerLabel: string;
   readonly phaseLabel: string;
-}
-
-function reconstructionOptions(app: ProfessionAppState): {
-  readonly selectedSkillNames: readonly string[];
-  readonly selectedSkillIds: readonly number[];
-  readonly professionConfig: Readonly<Record<string, unknown>>;
-} {
-  return {
-    selectedSkillNames: Object.values(app.build.selectedSkills || {}),
-    selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
-    professionConfig: app.adapter.simulationConfig?.(app) || {}
-  };
 }
 
 /** Reconstructs the active build's rotation from validated Elite Insights report data. */
@@ -35,30 +24,12 @@ export async function readDpsReportRotationData(
   }
 
   const report = parseDpsReport(input);
-  const rotationModule = await import('../../../dps-report-analyzer/rotation/index.js');
-  const activeSpecialization = app.adapter.eliteSpecialization(app.build).trim().toLowerCase();
+  const rotationModule = await import('../../../log-analyzer/dps-report/rotation/index.js');
   const players = rotationModule.detectDpsReportRotationPlayers(report);
-  const matchingPlayers = players.filter(
-    (player) => player.professionId === app.profession.id && player.specializationId === activeSpecialization
-  );
-  if (!matchingPlayers.length) {
-    const recorded = players
-      .map((player) => `${player.character} (${player.professionName} ${player.specializationName})`)
-      .join(', ');
-    throw new Error(
-      `This report has no ${app.profession.name} ${app.adapter.eliteSpecialization(app.build)} player.` +
-        (recorded ? ` Recorded players: ${recorded}.` : '')
-    );
-  }
-
-  if (matchingPlayers.length > 1 && matchingPlayers[0].recordedActionCount === matchingPlayers[1].recordedActionCount) {
-    throw new Error('Multiple matching players have the same recorded action count. Select a single-player report.');
-  }
-
-  const selected = matchingPlayers[0];
+  const selected = selectActiveBuildLogPlayer(players, app, 'report', 'Select a single-player report.');
   const result = rotationModule.reconstructDpsReportRotation(report, app.activeCatalog, {
     playerIndex: selected.index,
-    ...reconstructionOptions(app)
+    ...appLogReconstructionOptions(app)
   });
   return {
     // Reconstruction still emits the interchange shape; normalize before it reaches application state.

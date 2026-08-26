@@ -5,15 +5,15 @@ import { deflateRawSync } from 'node:zlib';
 
 import { isJsonRotationFile, readEvtcRotationFile } from '../../js/app/build/io/evtc-rotation-import.js';
 import { applyRotationImportPreview, previewRotationFile } from '../../js/app/build/io/rotation-import-dialog.js';
-import { EvtcError } from '../../js/evtc-analyzer/errors.js';
-import { parseEvtc } from '../../js/evtc-analyzer/parser.js';
-import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../../js/evtc-analyzer/profession-metadata.js';
+import { EvtcError } from '../../js/log-analyzer/evtc/errors.js';
+import { parseEvtc } from '../../js/log-analyzer/evtc/parser.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../../js/log-analyzer/evtc/profession-metadata.js';
 import {
   detectEvtcRotationPlayers,
   EVTC_PROFESSION_ROTATION_PARSERS,
   getEvtcProfessionRotationParser,
   reconstructEvtcRotation
-} from '../../js/evtc-analyzer/rotation/index.js';
+} from '../../js/log-analyzer/evtc/rotation/index.js';
 
 const PLAYER = 0x1000n;
 

@@ -19,11 +19,11 @@ import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';
 import { loadProfession } from '../../dist/js/app/profession/registry.js';
-import { fetchDpsReport } from '../../dist/js/dps-report-analyzer/url.js';
+import { fetchDpsReport } from '../../dist/js/log-analyzer/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,
   reconstructDpsReportRotation
-} from '../../dist/js/dps-report-analyzer/rotation/index.js';
+} from '../../dist/js/log-analyzer/dps-report/rotation/index.js';
 
 const input = process.argv[2];
 

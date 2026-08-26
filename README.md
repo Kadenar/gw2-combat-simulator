@@ -2,7 +2,8 @@
 
 A browser-based PvE build and rotation simulator for **Guild Wars 2**.
 
-Configure a build, create a rotation, and simulate combat to understand where your damage comes from, how profession mechanics interact, and how RNG can affect the final result.
+Configure a build, create a rotation, and simulate combat to understand where your damage comes from, how profession
+mechanics interact, and how RNG can affect the final result.
 
 **[Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/)**
 
@@ -12,17 +13,19 @@ Configure a build, create a rotation, and simulate combat to understand where yo
 
 GW2 Combat Simulator is a client-side combat modeling tool designed for controlled build and rotation analysis.
 
-Instead of relying on a recorded benchmark attempt, the simulator executes a rotation against a modeled target and produces an event-by-event result using Guild Wars 2 combat formulas, profession mechanics, traits, boons, conditions, cooldowns, resources, and modifiers.
+Instead of relying on a recorded benchmark attempt, the simulator executes a rotation against a modeled target and
+produces an event-by-event result using Guild Wars 2 combat formulas, profession mechanics, traits, boons, conditions,
+cooldowns, resources, and modifiers.
 
 It is useful for:
 
-* Comparing builds under identical conditions
-* Testing rotation changes without repeatedly benchmarking in game
-* Understanding where damage is gained or lost
-* Inspecting strike and condition damage contributions
-* Evaluating traits, modifiers, weapons, and profession mechanics
-* Measuring the effect of weapon and proc RNG
-* Reconstructing rotations from supported EVTC combat logs
+- Comparing builds under identical conditions
+- Testing rotation changes without repeatedly benchmarking in game
+- Understanding where damage is gained or lost
+- Inspecting strike and condition damage contributions
+- Evaluating traits, modifiers, weapons, and profession mechanics
+- Measuring the effect of weapon and proc RNG
+- Reconstructing rotations from supported EVTC combat logs
 
 The simulator is intended as an **analysis tool**, not a replacement for in-game testing or benchmark logs.
 
@@ -34,13 +37,13 @@ The simulator is intended as an **analysis tool**, not a replacement for in-game
 
 Configure the major pieces of a PvE build directly in the browser:
 
-* Equipment and attributes
-* Weapons
-* Runes, sigils, relics, and consumables
-* Traits and specializations
-* Heal, utility, and elite skills
-* Profession-specific mechanics
-* Boons, conditions, and target assumptions
+- Equipment and attributes
+- Weapons
+- Runes, sigils, relics, and consumables
+- Traits and specializations
+- Heal, utility, and elite skills
+- Profession-specific mechanics
+- Boons, conditions, and target assumptions
 
 Builds are stored locally in your browser and can also be imported or exported as JSON.
 
@@ -50,15 +53,15 @@ Build rotations interactively using the skills available to the selected build.
 
 The simulator models execution state including:
 
-* Cast times and aftercasts
-* Cooldowns
-* Ammo and charges
-* Weapon swaps
-* Profession resources
-* Boons and conditions
-* Skill chains
-* Profession mechanics
-* Deferred and triggered effects
+- Cast times and aftercasts
+- Cooldowns
+- Ammo and charges
+- Weapon swaps
+- Profession resources
+- Boons and conditions
+- Skill chains
+- Profession mechanics
+- Deferred and triggered effects
 
 Keyboard hotkeys can also be used to add weapon, utility, and profession skills while constructing a rotation.
 
@@ -68,14 +71,14 @@ The default simulation mode produces a reproducible expected result for the same
 
 Use it to inspect:
 
-* Total DPS
-* Skill damage
-* Condition damage
-* Damage modifiers
-* Cast and damage events
-* Buff and condition state
-* Resource usage
-* Execution timelines
+- Total DPS
+- Skill damage
+- Condition damage
+- Damage modifiers
+- Cast and damage events
+- Buff and condition state
+- Resource usage
+- Execution timelines
 
 This makes it useful for controlled A/B comparisons when testing changes.
 
@@ -85,11 +88,11 @@ Some GW2 damage comes from effects that cannot be represented perfectly by a sin
 
 RNG simulation runs reproducibly seeded trials to estimate the distribution of possible outcomes, including:
 
-* Mean DPS
-* Median DPS
-* Likely DPS range
-* Unlucky outcomes
-* Lucky outcomes
+- Mean DPS
+- Median DPS
+- Likely DPS range
+- Unlucky outcomes
+- Lucky outcomes
 
 Supported RNG sources include weapon-strength rolls and modeled random/on-critical effects.
 
@@ -97,9 +100,11 @@ Supported RNG sources include weapon-strength rolls and modeled random/on-critic
 
 Supported `.evtc` / compressed combat logs can be used to reconstruct a recorded player's rotation.
 
-The importer matches the active profession and specialization, extracts supported combat actions, and converts them into simulator rotation entries.
+The importer matches the active profession and specialization, extracts supported combat actions, and converts them into
+simulator rotation entries.
 
-This makes it possible to take a rotation performed in game and analyze it using the simulator's deterministic combat model.
+This makes it possible to take a rotation performed in game and analyze it using the simulator's deterministic combat
+model.
 
 See [EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for implementation details and limitations.
 
@@ -119,7 +124,8 @@ See [EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for imp
 | **Thief**        | Core, Daredevil, Deadeye, Specter, Antiquary        |
 | **Warrior**      | Core, Berserker, Spellbreaker, Bladesworn, Paragon  |
 
-Profession implementations share the same simulation engine while retaining profession-specific skills, mechanics, resources, traits, and rules.
+Profession implementations share the same simulation engine while retaining profession-specific skills, mechanics,
+resources, traits, and rules.
 
 ---
 
@@ -133,14 +139,14 @@ The scheduler processes the requested rotation and determines when actions can o
 
 It tracks things such as:
 
-* Skill availability
-* Cast duration
-* Cooldowns
-* Ammo
-* Weapon swaps
-* Profession actions
-* Resource changes
-* Triggered effects
+- Skill availability
+- Cast duration
+- Cooldowns
+- Ammo
+- Weapon swaps
+- Profession actions
+- Resource changes
+- Triggered effects
 
 The result is a millisecond-level combat timeline.
 
@@ -150,17 +156,18 @@ The resolver processes the scheduled events in order and applies the relevant co
 
 This includes:
 
-* Strike damage
-* Condition damage
-* Critical hits
-* Damage modifiers
-* Boons
-* Target state
-* Sigils and relics
-* Profession mechanics
-* Resource interactions
+- Strike damage
+- Condition damage
+- Critical hits
+- Damage modifiers
+- Boons
+- Target state
+- Sigils and relics
+- Profession mechanics
+- Resource interactions
 
-Keeping scheduling and combat resolution separate allows the same rotation to be analyzed consistently across builds and simulation modes.
+Keeping scheduling and combat resolution separate allows the same rotation to be analyzed consistently across builds and
+simulation modes.
 
 ---
 
@@ -168,8 +175,8 @@ Keeping scheduling and combat resolution separate allows the same rotation to be
 
 ### Requirements
 
-* Node.js **20.19+**
-* npm
+- Node.js **20.19+**
+- npm
 
 Clone the repository and install dependencies:
 
@@ -243,7 +250,8 @@ Then open:
 http://127.0.0.1:4174
 ```
 
-The authoring interface can modify existing effects, remove effects, add new effects, and generate a preview of the resulting skill and modifier changes.
+The authoring interface can modify existing effects, remove effects, add new effects, and generate a preview of the
+resulting skill and modifier changes.
 
 The authoring API binds only to loopback and is not exposed by the normal simulator server.
 
@@ -275,7 +283,7 @@ gw2-combat-simulator/
 │   ├── platform/          Shared simulation engine and GW2 rules
 │   ├── professions/       Profession-specific implementations
 │   ├── app/               Browser application and shared UI
-│   └── evtc-analyzer/     EVTC parsing and rotation reconstruction
+│   └── log-analyzer/      Shared EVTC and dps.report rotation reconstruction
 │
 ├── Builds/                Canonical build presets
 ├── Rotations/             Rotation presets
@@ -295,11 +303,11 @@ Additional technical documentation is available under [`docs/`](docs/).
 
 Useful starting points:
 
-* [Architecture](docs/architecture/ARCHITECTURE.md)
-* [Module responsibilities](docs/architecture/MODULES.md)
-* [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
-* [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
-* [Community build submissions](docs/BUILD-SUBMISSIONS.md)
+- [Architecture](docs/architecture/ARCHITECTURE.md)
+- [Module responsibilities](docs/architecture/MODULES.md)
+- [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
+- [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
+- [Community build submissions](docs/BUILD-SUBMISSIONS.md)
 
 Profession-specific implementation notes are available under [`docs/professions/`](docs/professions/).
 
@@ -311,12 +319,12 @@ Community build and rotation presets can be submitted through the repository's G
 
 A submission should include:
 
-* Exported `build.json`
-* Matching `rotation.json`
-* Profession and specialization
-* Expected simulator DPS
-* Optional benchmark source
-* Any relevant reviewer notes
+- Exported `build.json`
+- Matching `rotation.json`
+- Profession and specialization
+- Expected simulator DPS
+- Optional benchmark source
+- Any relevant reviewer notes
 
 Submissions are reviewed before being added to the repository.
 
@@ -328,9 +336,11 @@ See [Community Build Submissions](docs/BUILD-SUBMISSIONS.md) for the full proces
 
 GW2 Combat Simulator is a combat model.
 
-Results are intended to provide controlled, reproducible estimates for comparing builds and rotations. They should not be interpreted as guaranteed in-game DPS.
+Results are intended to provide controlled, reproducible estimates for comparing builds and rotations. They should not
+be interpreted as guaranteed in-game DPS.
 
-Real gameplay may differ because of factors such as encounter mechanics, movement, latency, player execution, undocumented behavior, incomplete modeling, or game updates.
+Real gameplay may differ because of factors such as encounter mechanics, movement, latency, player execution,
+undocumented behavior, incomplete modeling, or game updates.
 
 Where possible, simulator behavior should be validated against in-game testing and combat logs.
 
@@ -340,7 +350,7 @@ Where possible, simulator behavior should be validated against in-game testing a
 
 This is an unofficial Guild Wars 2 fan project and is not affiliated with or endorsed by ArenaNet or NCSOFT.
 
-Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild Wars, Guild Wars 2, GW2,
-Heart of Thorns, Path of Fire, End of Dragons, Secrets of the Obscure, Janthir Wilds, Visions of Eternity,
-and all associated logos, designs, and composite marks are trademarks or registered trademarks of NCSOFT
-Corporation. All other trademarks are the property of their respective owners.
+Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild Wars, Guild Wars 2, GW2, Heart of Thorns,
+Path of Fire, End of Dragons, Secrets of the Obscure, Janthir Wilds, Visions of Eternity, and all associated logos,
+designs, and composite marks are trademarks or registered trademarks of NCSOFT Corporation. All other trademarks are the
+property of their respective owners.

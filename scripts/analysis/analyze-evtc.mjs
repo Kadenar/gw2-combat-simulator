@@ -6,7 +6,7 @@
  * `--summary` is given — every agent and skill. Optional `--debug-*` filters pull
  * matching combat events into a `debugEvents` array for troubleshooting.
  *
- * Requires a prior `npm run build` so the compiled `dist/js/evtc-analyzer` exists.
+ * Requires a prior `npm run build` so the compiled `dist/js/log-analyzer/evtc` exists.
  *
  * Usage: node scripts/analysis/analyze-evtc.mjs <fight.evtc|.evtc.zip|.zevtc>
  *   [--summary]                Emit only header + players.
@@ -16,8 +16,8 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import { decompressEvtcInput } from '../../dist/js/evtc-analyzer/decompression.js';
-import { parseEvtc } from '../../dist/js/evtc-analyzer/parser.js';
+import { decompressEvtcInput } from '../../dist/js/log-analyzer/evtc/decompression.js';
+import { parseEvtc } from '../../dist/js/log-analyzer/evtc/parser.js';
 
 const input = process.argv[2];
 

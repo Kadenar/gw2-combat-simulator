@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
-import { reconstructDpsReportRotation } from '../../js/dps-report-analyzer/rotation/index.js';
+import { parseDpsReport } from '../../js/log-analyzer/dps-report/parser.js';
+import { reconstructDpsReportRotation } from '../../js/log-analyzer/dps-report/rotation/index.js';
 import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
@@ -121,8 +121,11 @@ test('recovers an opening Harbinger Shroud and removes canceled autoattacks', ()
       'Harbinger Shroud',
       'Voracious Arc',
       '__combat_start',
+      '__wait',
       'Exit Harbinger Shroud',
+      '__wait',
       'Weeping Shots',
+      '__wait',
       'Harbinger Shroud'
     ]
   );
@@ -252,7 +255,15 @@ test('coalesces Willbender composite casts and recovers an opening Jurisdiction'
 
   assert.deepEqual(
     result.rotation.map((command) => command.name),
-    ['Jurisdiction', '__combat_start', 'Rushing Justice', 'Symbol of Punishment', 'Jurisdiction', 'Through the Heart']
+    [
+      'Jurisdiction',
+      '__combat_start',
+      'Rushing Justice',
+      'Symbol of Punishment',
+      'Jurisdiction',
+      '__wait',
+      'Through the Heart'
+    ]
   );
   assert.deepEqual(result.rotation[1], { name: '__combat_start', offset: 640 });
   assert.equal(result.actions.filter((action) => action.name === 'Rushing Justice').length, 1);
@@ -480,6 +491,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       ['Embrace the Darkness', 28287],
       ['Abyssal Blitz', 72938],
       ["Darkrazor's Daring", 41220],
+      ['__wait', undefined],
       ['Swap Legends', -4]
     ]
   );
@@ -902,7 +914,16 @@ test('recovers Conduit opening state from dependencies without assuming one benc
 
   assert.deepEqual(
     result.rotation.map((command) => command.name),
-    ['__combat_start', 'Swap Legends', 'Impossible Odds', '__cooldown_reset', 'Preparation Thrust', 'Swap Legends']
+    [
+      '__combat_start',
+      '__wait',
+      'Swap Legends',
+      'Impossible Odds',
+      '__cooldown_reset',
+      'Preparation Thrust',
+      '__wait',
+      'Swap Legends'
+    ]
   );
   assert.equal(
     result.rotation.some((command) => ["Eternity's Requiem", 'Cosmic Wisdom', 'Swap Weapons'].includes(command.name)),
@@ -918,7 +939,7 @@ test('recovers Conduit opening state from dependencies without assuming one benc
 
   assert.deepEqual(
     assassinStart.rotation.map((command) => command.name),
-    ['__combat_start', 'Impossible Odds', 'Preparation Thrust', 'Swap Legends']
+    ['__combat_start', '__wait', 'Impossible Odds', 'Preparation Thrust', '__wait', 'Swap Legends']
   );
 });
 

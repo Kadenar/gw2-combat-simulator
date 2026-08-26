@@ -3,15 +3,15 @@ import test from 'node:test';
 
 import { readDpsReportRotationData } from '../../js/app/build/io/dps-report-rotation-import.js';
 import { applyRotationImportPreview, previewDpsReportUrl } from '../../js/app/build/io/rotation-import-dialog.js';
-import { DpsReportError } from '../../js/dps-report-analyzer/errors.js';
-import { isDpsReportData, parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
+import { DpsReportError } from '../../js/log-analyzer/dps-report/errors.js';
+import { isDpsReportData, parseDpsReport } from '../../js/log-analyzer/dps-report/parser.js';
 import {
   DPS_REPORT_PROFESSION_ROTATION_PARSERS,
   detectDpsReportRotationPlayers,
   getDpsReportProfessionRotationParser,
   reconstructDpsReportRotation
-} from '../../js/dps-report-analyzer/rotation/index.js';
-import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '../../js/dps-report-analyzer/url.js';
+} from '../../js/log-analyzer/dps-report/rotation/index.js';
+import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '../../js/log-analyzer/dps-report/url.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
 

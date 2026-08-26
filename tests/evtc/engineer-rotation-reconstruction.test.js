@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
+import { reconstructEvtcRotation } from '../../js/log-analyzer/evtc/rotation/index.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/log-analyzer/evtc/types.js';
 import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
 
 const PLAYER = 0x1000n;

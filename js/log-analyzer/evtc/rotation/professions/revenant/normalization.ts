@@ -1,0 +1,117 @@
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
+import { committedActionsFromStrikePackets, firstStrikePacketOffsetMs } from '../../effect-packets.js';
+import { findRotationSkill } from '../../catalog.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
+import { mergedActionStatus, mergeCompositeActions } from '../../../../lib/rotation/rules/composites.js';
+
+const REDUCED_CAST_TOLERANCE_MS = 50;
+
+const SPLIT_ANIMATION_PAIRS = [
+  { startId: 27074, finishId: 28625, maximumGapMs: SIGNAL_DEDUPLICATION_WINDOW_MS },
+  { startId: 28029, finishId: 26923, maximumGapMs: SIGNAL_DEDUPLICATION_WINDOW_MS },
+  { startId: 62895, finishId: 62713, maximumGapMs: SIGNAL_DEDUPLICATION_WINDOW_MS }
+] as const;
+
+function mergeSplitAnimations(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
+  return mergeCompositeActions(actions, SPLIT_ANIMATION_PAIRS, (action, second) => ({
+    ...action,
+    end: Math.max(action.end, second.end),
+    status: mergedActionStatus(action.status, second.status)
+  }));
+}
+
+function cancelFireAtActionEnd(
+  context: EvtcProfessionReconstructionContext,
+  action: EvtcRecordedRotationAction
+): boolean {
+  return context.log.events.some(
+    (event) =>
+      event.source === context.playerAddress &&
+      event.skillId === action.rawSkillId &&
+      (event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP) &&
+      event.activation === EVTC_ACTIVATION.CANCEL_FIRE &&
+      Math.abs(event.time - action.end) <= SIGNAL_DEDUPLICATION_WINDOW_MS
+  );
+}
+
+export function normalizeRevenantCastPackets(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const normalized: EvtcRecordedRotationAction[] = [];
+  const autoattacks = actions.filter((action) => {
+    const skill = findRotationSkill(
+      action.canonicalSkillId ?? action.rawSkillId,
+      action.canonicalName ?? action.rawName,
+      context.catalog,
+      context.profile
+    );
+    return String(skill?.slot || '').toLowerCase() === 'weapon_1';
+  });
+  const committed = committedActionsFromStrikePackets(context, autoattacks, {
+    maxFallbackImpactMs: 2_000
+  });
+  const absorbCanceledAnimation = (action: EvtcRecordedRotationAction): void => {
+    let previousIndex = normalized.length - 1;
+    while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
+      previousIndex -= 1;
+    }
+
+    if (previousIndex < 0) return;
+    const previous = normalized[previousIndex];
+    normalized[previousIndex] = {
+      ...previous,
+      end: Math.max(previous.end, action.end)
+    };
+  };
+
+  for (const action of mergeSplitAnimations(actions)) {
+    const skill = findRotationSkill(
+      action.canonicalSkillId ?? action.rawSkillId,
+      action.canonicalName ?? action.rawName,
+      context.catalog,
+      context.profile
+    );
+    if (
+      action.status === 'interrupted' &&
+      String(skill?.slot || '').toLowerCase() === 'weapon_1' &&
+      !committed.has(action)
+    ) {
+      absorbCanceledAnimation(action);
+      continue;
+    }
+
+    const duration = Math.max(0, action.end - action.start);
+    const expected = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
+    const autoattack = String(skill?.slot || '').toLowerCase() === 'weapon_1';
+    const strikeCommit = firstStrikePacketOffsetMs(skill, undefined, {
+      explicitOnly: true
+    });
+    if (
+      autoattack &&
+      !committed.has(action) &&
+      strikeCommit != null &&
+      duration < strikeCommit &&
+      cancelFireAtActionEnd(context, action)
+    ) {
+      absorbCanceledAnimation(action);
+      continue;
+    }
+
+    if (
+      action.status === 'completed' &&
+      duration > 0 &&
+      expected > 0 &&
+      duration + REDUCED_CAST_TOLERANCE_MS < expected &&
+      cancelFireAtActionEnd(context, action)
+    ) {
+      normalized.push({ ...action, status: 'reduced' as const });
+      continue;
+    }
+
+    normalized.push(action);
+  }
+
+  return normalized;
+}

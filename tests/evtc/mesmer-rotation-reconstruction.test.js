@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
+import { reconstructEvtcRotation } from '../../js/log-analyzer/evtc/rotation/index.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/log-analyzer/evtc/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../js/professions/mesmer/data/ids.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 

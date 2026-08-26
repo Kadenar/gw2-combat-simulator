@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseDpsReport } from '../../js/dps-report-analyzer/parser.js';
-import { reconstructDpsReportRotation } from '../../js/dps-report-analyzer/rotation/index.js';
+import { parseDpsReport } from '../../js/log-analyzer/dps-report/parser.js';
+import { reconstructDpsReportRotation } from '../../js/log-analyzer/dps-report/rotation/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../js/professions/elementalist/data/ids.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extras });
