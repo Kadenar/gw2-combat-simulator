@@ -9,6 +9,7 @@ import {
   handleHolosmithKitEquip,
   handlePhotonForgeHeat,
   handlePhotonForgeOverheatCheck,
+  handlePhotonForgeOverheatPenalty,
   handlePhotonForgePassiveHeat,
   observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
@@ -43,6 +44,7 @@ export const holosmithSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     'engineer.photon-forge-heat': handlePhotonForgeHeat,
     'engineer.photon-forge-overheat-check': handlePhotonForgeOverheatCheck,
+    'engineer.photon-forge-overheat-penalty': handlePhotonForgeOverheatPenalty,
     'engineer.photon-forge-passive-heat': handlePhotonForgePassiveHeat
   })
 });

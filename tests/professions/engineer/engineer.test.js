@@ -1363,8 +1363,20 @@ test('Overheat injects an automatic Photon Forge timeline exit and closes its la
   assert.deepEqual(automaticPhotonForgeExitTimelineMarkers(manual, 2), []);
 });
 
-test('Overheat puts tool-belt skills on a minimum cooldown without extending longer cooldowns', () => {
-  // Overheat starts five seconds after entering Forge from 90 heat in these minimal rotations.
+test('Overheat delays its tool-belt minimum cooldown until the damage effect', () => {
+  // Overheat starts at 5.00s and its measured damage effect applies the penalty at 6.56s.
+  const timing = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6600 }], {
+    initialHeat: 90,
+    selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+  });
+  const overheat = timing.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const damageEffect = timing.events.find(
+    (event) => event.type === 'damage' && event.name === 'Photonic Blasting Module'
+  );
+
+  assert.equal(overheat.at, 5);
+  assert.equal(Math.round(damageEffect.at * 1000), 6560);
+
   const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {
     const result = simulate('Holosmith', rotation, {
       initialHeat: 90,
@@ -1376,15 +1388,19 @@ test('Overheat puts tool-belt skills on a minimum cooldown without extending lon
   };
 
   assert.deepEqual(
-    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Grenade Barrage']),
-    [20000]
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6550 }, 'Grenade Barrage']),
+    [6550]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6560 }, 'Grenade Barrage']),
+    [21560]
   );
   assert.deepEqual(
     grenadeBarrageStarts(
-      ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Grenade Barrage'],
+      ['Engage Photon Forge', { type: 'wait', durationMs: 6560 }, 'Grenade Barrage'],
       [TRAIT.PHOTONIC_BLASTING_MODULE]
     ),
-    [10000]
+    [11560]
   );
   assert.deepEqual(
     grenadeBarrageStarts([
@@ -1633,8 +1649,8 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(blast.explosion, true);
   assert.equal(blast.comboFinishers[0].finisherType, 'Blast');
   assert.equal(
-    blasting.events.find((event) => event.type === 'proc' && event.name === 'Overheat').initialBaseHealthDamage,
-    0
+    blasting.events.some((event) => event.type === 'proc' && event.name === 'Overheat'),
+    false
   );
 
   const heatLocked = simulate(

@@ -15,8 +15,9 @@ export const HOLOSMITH_HEAT = Object.freeze({
   solarFocusingLensDuration: 4,
   // Heat at or above which Enhanced Capacity Storage Unit buffs activate.
   enhancedCapacityThreshold: 100,
-  // Observed delay between overheat and Photonic Blasting Module explosion, in seconds.
-  photonicBlastDelay: 1.56
+  // Observed delay from forge ejection to Overheat damage, the PBM blast, and
+  // the tool-belt recharge penalty that the delayed effect applies.
+  overheatEffectDelay: 1.56
 });
 
 // Times (ms from cast start) at which Corona Burst deals damage and pulses heat.

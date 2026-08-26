@@ -47,10 +47,15 @@ interface PhotonForgeOverheatCheckPayload extends SchedulerRecord {}
 
 interface PhotonForgePassiveHeatPayload extends SchedulerRecord {}
 
+interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
+  readonly seconds: number;
+}
+
 const CORONA_QUICKNESS_PULSE_OFFSETS_MS = HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS;
 const PHOTON_BLITZ_PULSE_OFFSETS_MS = HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
 const PHOTON_FORGE_OVERHEAT_CHECK_TASK = 'engineer.photon-forge-overheat-check';
 const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
+const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
 
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   return (
@@ -234,27 +239,20 @@ function applyToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: num
   }
 }
 
-function emitOverheatEffects(context: EngineerSchedulerContext, at: number, photonicBlastingModule: boolean): void {
-  context.emit({
-    type: 'proc',
+// Schedules the tool-belt penalty with Overheat's delayed damage so skills stay
+// usable during the measured 1.56-second window after automatic forge ejection.
+function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: number, seconds: number): void {
+  context.tasks.schedule({
+    type: PHOTON_FORGE_OVERHEAT_PENALTY_TASK,
     at,
-    source: 'engineer',
-    sourceId: ID.HOLOFORGE_OVERHEATED,
-    actorType: 'player',
-    name: 'Overheat',
-    procType: 'self-damage',
-    initialBaseHealthDamage: photonicBlastingModule ? 0 : 3981,
-    baseHealthDamageOverTime: 796,
-    damageOverTimeDuration: 2.5,
-    damageOverTimeInterval: 0.5
+    payload: { seconds }
   });
-  if (!photonicBlastingModule) return;
-  const blastAt =
-    at +
-    engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'initialDelay', HOLOSMITH_HEAT.photonicBlastDelay);
+}
+
+function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, effectAt: number): void {
   context.emit({
     type: 'damage',
-    at: blastAt,
+    at: effectAt,
     source: 'Trait',
     sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
     actorType: 'player',
@@ -276,7 +274,7 @@ function emitOverheatEffects(context: EngineerSchedulerContext, at: number, phot
   });
   context.emit({
     type: 'condition',
-    at: blastAt,
+    at: effectAt,
     source: 'Trait',
     sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
     actorType: 'player',
@@ -291,6 +289,10 @@ function emitOverheatEffects(context: EngineerSchedulerContext, at: number, phot
 function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
+  const effectDelay = photonicBlastingModule
+    ? engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'initialDelay', HOLOSMITH_HEAT.overheatEffectDelay)
+    : HOLOSMITH_HEAT.overheatEffectDelay;
+  const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
   state.photonForgeActive = false;
   state.overheatCheckAt = null;
@@ -298,9 +300,9 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   state.forgeExitedAt = at;
   state.overheated = true;
   professionCoreState(context).activeKit = '';
-  applyToolbeltOverheatPenalty(
+  scheduleToolbeltOverheatPenalty(
     context,
-    at,
+    effectAt,
     photonicBlastingModule
       ? engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'cooldown', 5)
       : engineerBalanceValue(context, PROFILE.overheat, 'maximumStacks', 15)
@@ -311,18 +313,10 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   emitEngineerState(context, at, 'overheat');
   grantSolarFocusingLens(
     context,
-    photonicBlastingModule
-      ? at +
-          engineerBalanceValue(
-            context,
-            PROFILE.photonicBlastingModule,
-            'initialDelay',
-            HOLOSMITH_HEAT.photonicBlastDelay
-          )
-      : at,
+    photonicBlastingModule ? effectAt : at,
     engineerBalanceValue(context, PROFILE.solarFocusingLens, 'maximumStacks', 6)
   );
-  emitOverheatEffects(context, at, photonicBlastingModule);
+  if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
 
 export function advancePhotonForgeState(context: EngineerSchedulerContext, target: number): void {
@@ -421,6 +415,13 @@ export function handlePhotonForgePassiveHeat(
   if (state.heat !== previousHeat) emitEngineerState(context, task.at, 'passive-heat');
   state.passiveHeatAt = task.at + HOLOSMITH_HEAT.overheatCheckInterval;
   schedulePassiveHeat(context, state.passiveHeatAt);
+}
+
+export function handlePhotonForgeOverheatPenalty(
+  context: EngineerSchedulerContext,
+  task: EngineerScheduledTask<PhotonForgeOverheatPenaltyPayload>
+): void {
+  applyToolbeltOverheatPenalty(context, task.at, Math.max(0, Number(task.payload?.seconds || 0)));
 }
 
 function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
