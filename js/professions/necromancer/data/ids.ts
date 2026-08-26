@@ -92,6 +92,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   DEVOURING_DARKNESS: 51647,
   ENERVATION_BLADE: 71986,
   ENERVATION_ECHO: 71850,
+  DEATHLY_ENERVATION: 72051,
 
   // Generated coverage for every skill in the API metadata snapshot.
   WELL_OF_BLOOD: 10527, // Well of Blood

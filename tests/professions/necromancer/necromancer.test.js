@@ -222,6 +222,13 @@ test('measured Quickness cast times remain exact', () => {
     [ID.DARK_SLASH, 600],
     [ID.ISOLATE, 480],
     [ID.PERFORATE, 840],
+    [ID.ENERVATION_BLADE, 360],
+    [ID.ENERVATION_ECHO, 520],
+    [ID.DEATHLY_ENERVATION, 600],
+    [ID.RAVENOUS_WAVE, 400],
+    [ID.SATIATE, 440],
+    [ID.PATH_OF_GLUTTONY, 760],
+    [ID.GORGE, 760],
     [ID.HUNGERING_MAELSTROM, 640],
     [ID.GORMANDIZE, 440],
     [ID.DEVOURING_VISAGE, 680],
@@ -991,6 +998,88 @@ test('non-chain skills reset greatsword and spear autoattacks', () => {
     spear.steps.map((step) => step.skill),
     ['Dark Slash', 'Well of Suffering', 'Dark Slash']
   );
+});
+
+test('sword autoattack advances through Deathly Enervation before returning to Enervation Blade', () => {
+  const config = {
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword',
+    target: { conditions: {} }
+  };
+  const afterBlade = simulate('Core', ['Enervation Blade'], config);
+  const afterEcho = simulate('Core', ['Enervation Blade', 'Enervation Echo'], config);
+  const completed = simulate(
+    'Core',
+    ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation', 'Enervation Blade'],
+    config
+  );
+  const deathlyDamage = completed.events.find(
+    (event) => event.type === 'damage' && event.skillId === ID.DEATHLY_ENERVATION
+  );
+  const deathlyChill = completed.events.find(
+    (event) => event.type === 'necromancer.chill' && event.skillId === ID.DEATHLY_ENERVATION
+  );
+
+  assert.deepEqual(
+    necromancerCatalog.autoattackChains
+      .find((chain) => chain[0] === ID.ENERVATION_BLADE)
+      .map((skillId) => necromancerCatalog.skillsById.get(skillId).name),
+    ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation']
+  );
+  assert.equal(afterBlade.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(afterEcho.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.deepEqual(completed.warnings, []);
+  assert.deepEqual(
+    completed.steps.map((step) => step.skill),
+    ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation', 'Enervation Blade']
+  );
+  assert.equal(completed.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(deathlyDamage?.coefficient, 1.4);
+  assert.equal(deathlyChill?.duration, 2);
+});
+
+test('other weapon skills preserve the exceptional Necromancer sword autoattack chain within three seconds', () => {
+  const result = simulate('Core', ['Enervation Blade', 'Ravenous Wave', 'Enervation Echo'], {
+    boons: { quickness: true },
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword',
+    target: { conditions: {} }
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.skill),
+    ['Enervation Blade', 'Ravenous Wave', 'Enervation Echo']
+  );
+  assert.equal(result.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+});
+
+test('Necromancer sword autoattack progress expires three seconds after the latest chain step', () => {
+  const config = {
+    boons: { quickness: true },
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword',
+    target: { conditions: {} }
+  };
+  const retained = simulate(
+    'Core',
+    ['Enervation Blade', { type: 'wait', durationMs: 2900 }, 'Enervation Echo'],
+    config
+  );
+  const expired = simulate(
+    'Core',
+    ['Enervation Blade', { type: 'wait', durationMs: 3100 }, 'Enervation Echo', 'Enervation Blade'],
+    config
+  );
+
+  assert.deepEqual(retained.warnings, []);
+  assert.equal(retained.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.match(expired.warnings.join(' '), /Enervation Echo is unavailable/);
+  assert.deepEqual(
+    expired.steps.map((step) => step.skill),
+    ['Enervation Blade', 'Enervation Blade']
+  );
+  assert.equal(expired.endState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
 });
 
 test('Gravedigger fully recharges when it hits below 50% target health', () => {
@@ -1983,6 +2072,72 @@ test('off-hand sword follow-ups use their complete PvE effects', () => {
     ),
     true
   );
+});
+
+test('main-hand sword skills use their complete PvE effects', () => {
+  const result = simulate(
+    'Core',
+    ['Ravenous Wave', 'Satiate', 'Path of Gluttony', 'Gorge'],
+    {
+      boons: { quickness: true },
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Sword',
+      target: {
+        ...baseConfig.target,
+        health: 1_000_000_000
+      }
+    },
+    observationTail(1000)
+  );
+  const damage = (skillId) => result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(damage(ID.RAVENOUS_WAVE)?.coefficient, 2);
+  assert.equal(damage(ID.SATIATE)?.coefficient, 2);
+  assert.deepEqual(damage(ID.SATIATE)?.coefficientModifiers, [
+    {
+      kind: 'target-health-below',
+      threshold: 0.5,
+      multiplier: 1.5
+    }
+  ]);
+  assert.equal(damage(ID.PATH_OF_GLUTTONY)?.coefficient, 2);
+  assert.equal(damage(ID.PATH_OF_GLUTTONY)?.comboFinishers[0].finisherType, 'Leap');
+  assert.equal(damage(ID.GORGE)?.coefficient, 2);
+  assert.equal(damage(ID.GORGE)?.comboFinishers[0].finisherType, 'Leap');
+  assert.equal(
+    result.events.find((event) => event.type === 'resource' && event.skillId === ID.RAVENOUS_WAVE)?.amount,
+    12
+  );
+});
+
+test('Satiate expires after three seconds and base sword cooldowns continue during follow-ups', () => {
+  const config = {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword'
+  };
+  const withinWindow = simulate('Core', ['Ravenous Wave', { type: 'wait', durationMs: 2900 }, 'Satiate'], config);
+  const expired = simulate('Core', ['Ravenous Wave', { type: 'wait', durationMs: 3100 }, 'Satiate'], config);
+  const immediatePairs = [
+    ['Ravenous Wave', 'Satiate', 6],
+    ['Path of Gluttony', 'Gorge', 10],
+    ['Hungering Maelstrom', 'Gormandize', 16],
+    ['Devouring Visage', 'Consume', 20]
+  ];
+
+  assert.deepEqual(withinWindow.warnings, []);
+  assert.match(expired.warnings.join(' '), /Satiate is unavailable/);
+  for (const [parent, followUp, cooldown] of immediatePairs) {
+    const result = simulate('Core', [parent, followUp], config);
+    const parentAction = result.events.find((event) => event.type === 'action' && event.skillName === parent);
+    const followUpAction = result.events.find((event) => event.type === 'action' && event.skillName === followUp);
+
+    assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
+    assert.equal(parentAction.rechargeReadyAt - parentAction.endsAt, cooldown, parent);
+    assert.ok(parentAction.rechargeReadyAt > followUpAction.at, parent);
+  }
 });
 
 test('off-hand sword follow-ups expire after three seconds and rearm after their parent is recast', () => {

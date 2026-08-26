@@ -178,6 +178,23 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     nextChainId: null,
     flipSkillId: null
   },
+  // The profession API omits this final sword-auto step, so retain its canonical skill metadata locally.
+  {
+    id: 72051,
+    name: 'Deathly Enervation',
+    description: 'Chain. Fire an even wider piercing projectile that inflicts chill.',
+    icon: 'https://render.guildwars2.com/file/BFA0E4195377F050BF47FB490F5F920B4FA85DF5/3256367.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: [],
+    recharge: 0,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null
+  },
   {
     id: 77003,
     name: 'Innervate Anguish',

@@ -31,7 +31,8 @@ export const necromancerCoreModule = defineNativeModule({
     balanceProfiles: NECROMANCER_CORE_BALANCE_PROFILES,
     handlers: necromancerCoreSkillHandlers,
     autoattackChains: {
-      additional: [[ID.ENERVATION_BLADE, ID.ENERVATION_ECHO]]
+      // The API does not link Echo to the omitted final step, so declare the complete in-game sequence explicitly.
+      additional: [[ID.ENERVATION_BLADE, ID.ENERVATION_ECHO, ID.DEATHLY_ENERVATION]]
     }
   }),
   state: {

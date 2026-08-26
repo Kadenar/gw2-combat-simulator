@@ -9,7 +9,7 @@ import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
 import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-// Off-hand sword reactivations replace their parent skill for only the game's three-second follow-up window.
+// Sword timings use stable Quickness EVTC clusters, while temporary reactivations retain their measured game windows.
 const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;
 
 export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -2165,7 +2165,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.PATH_OF_GLUTTONY]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 760,
+    comboFinishers: [
+      {
+        ownerId: 'necromancer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -2203,7 +2210,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENERVATION_ECHO]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -2212,9 +2219,34 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   },
+  [ID.DEATHLY_ENERVATION]: {
+    implemented: true,
+    quicknessCastTimeMs: 600,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1
+      },
+      {
+        type: 'custom',
+        eventType: 'necromancer.chill',
+        event: {
+          duration: 2
+        }
+      }
+    ]
+  },
   [ID.GORGE]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 760,
+    comboFinishers: [
+      {
+        ownerId: 'necromancer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -2225,7 +2257,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.RAVENOUS_WAVE]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 400,
+    flipDuration: 3,
     effects: [
       {
         type: 'strike',
@@ -2237,12 +2270,19 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SATIATE]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 440,
     effects: [
       {
         type: 'strike',
         coefficient: 2,
-        hits: 1
+        hits: 1,
+        coefficientModifiers: [
+          {
+            kind: 'target-health-below',
+            threshold: 0.5,
+            multiplier: 1.5
+          }
+        ]
       }
     ]
   },
@@ -2286,7 +2326,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENERVATION_BLADE]: {
     implemented: true,
-    castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     effects: [
       {
         type: 'strike',
