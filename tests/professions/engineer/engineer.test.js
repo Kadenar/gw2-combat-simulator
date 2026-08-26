@@ -1111,6 +1111,13 @@ test('tool-belt skills derive from selected slot skills', () => {
 });
 
 test('Photon Forge heat generation and cooling use current piecewise rates', () => {
+  const beforeFirstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 99 }]);
+  const firstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }]);
+
+  // Forge heat is discrete: no passive gain occurs before 100 ms, then the base rate contributes 0.2%.
+  assert.equal(beforeFirstTick.endState.profession.heat, 0);
+  assert.equal(firstTick.endState.profession.heat, 0.2);
+
   const preheatedGrace = simulate('Holosmith', [{ type: 'wait', durationMs: 3000 }], {
     initialHeat: 100,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
@@ -1144,11 +1151,11 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
 
   assert.equal(cooled.endState.profession.heat, 0);
 
-  const amplified = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 1000 }], {
+  const amplified = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }], {
     selectedTraitIds: [TRAIT.LIGHT_DENSITY_AMPLIFIER]
   });
 
-  assert.equal(amplified.endState.profession.heat, 3);
+  assert.equal(amplified.endState.profession.heat, 0.3);
 });
 
 test('Corona Burst heat persists outside Forge without causing Overheat', () => {
@@ -1187,12 +1194,13 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
 test('Photon Blitz gains two heat for each completed projectile', () => {
   const partial = simulate('Holosmith', ['Engage Photon Forge', { name: 'Photon Blitz', interruptMs: 600 }]);
 
-  assert.equal(partial.endState.profession.heat, 6);
+  // Three projectile pulses add 6 heat while six passive ticks add another 1.2.
+  assert.equal(partial.endState.profession.heat, 7.2);
 
   const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
 
-  // Three projectiles commit before 600 ms; the full cast also crosses one passive-heat tick.
-  assert.equal(full.endState.profession.heat, 18);
+  // The full cast adds 16 projectile heat and 3.8 passive heat over its 1.98-second duration.
+  assert.equal(full.endState.profession.heat, 19.8);
 });
 
 test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
@@ -1248,7 +1256,7 @@ test('Photon Forge waits for its resource tick before ejecting at maximum heat',
     'Holosmith',
     ['Engage Photon Forge', 'Holographic Shockwave', 'Grenade Barrage', { type: 'wait', durationMs: 1000 }],
     {
-      initialHeat: 99,
+      initialHeat: 88.6,
       selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
     }
   );
@@ -1257,13 +1265,13 @@ test('Photon Forge waits for its resource tick before ejecting at maximum heat',
 
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 750);
-  assert.equal(overheat.at, 1);
+  assert.equal(overheat.at, 0.8);
   assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
 test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
   // The second entry reaches maximum heat at 2.20s and ejects on that entry's
-  // first resource tick at 2.45s instead of a simulation-global boundary.
+  // next 100 ms resource tick at 2.25s instead of a simulation-global boundary.
   const result = simulate(
     'Holosmith',
     [
@@ -1285,21 +1293,23 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 2200);
-  assert.equal(overheat.at, 2.45);
+  assert.equal(overheat.at, 2.25);
   assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
 test('Photon Forge waits one more resource tick when passive heat fills the bar', () => {
-  // The first tick raises heat from 98 to 100; the following tick observes the cap and ejects.
+  // Ten ticks raise heat from 98 to 100; the following 100 ms tick observes the cap and ejects.
   const result = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 2000 }], {
     initialHeat: 98
   });
-  const passiveHeat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'passive-heat');
+  const passiveHeat = result.events.find(
+    (event) => event.type === 'engineer.state' && event.reason === 'passive-heat' && event.state.heat === 100
+  );
   const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
 
   assert.equal(passiveHeat.at, 1);
   assert.equal(passiveHeat.state.heat, 100);
-  assert.equal(overheat.at, 2);
+  assert.equal(overheat.at, 1.1);
   assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
@@ -1307,18 +1317,18 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
   const result = simulate('Holosmith', [
     { type: 'wait', durationMs: 250 },
     'Engage Photon Forge',
-    { type: 'wait', durationMs: 1250 },
+    { type: 'wait', durationMs: 150 },
     'Deactivate Photon Forge',
     { type: 'wait', durationMs: 250 },
     'Engage Photon Forge',
-    { type: 'wait', durationMs: 1000 }
+    { type: 'wait', durationMs: 100 }
   ]);
   const passiveHeatTimes = result.events
     .filter((event) => event.type === 'engineer.state' && event.reason === 'passive-heat')
     .map((event) => event.at);
 
-  // Each Forge entry owns a fresh one-second passive timer; manual exit invalidates the old timer.
-  assert.deepEqual(passiveHeatTimes, [1.25, 2.75]);
+  // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
+  assert.deepEqual(passiveHeatTimes, [0.35, 1.35]);
 });
 
 test('Overheat exits Forge before weapon actions at the same resource boundary', () => {
@@ -1326,15 +1336,15 @@ test('Overheat exits Forge before weapon actions at the same resource boundary',
   // weapon cast at the Overheat boundary sees the normal weapon bar again.
   const result = simulate(
     'Holosmith',
-    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 250 }, 'Glue Shot'],
+    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 50 }, 'Glue Shot'],
     { initialHeat: 90 }
   );
   const glueShot = result.steps.find((step) => step.skill === 'Glue Shot');
   const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(overheat.at, 1);
-  assert.equal(glueShot.start, 1000);
+  assert.equal(overheat.at, 0.8);
+  assert.equal(glueShot.start, 800);
   assert.equal(glueShot.invalid, undefined);
 });
 
@@ -1362,7 +1372,7 @@ test('Overheat injects an automatic Photon Forge timeline exit and closes its la
     {
       insertionIndex: 2,
       skill: 'Overheat',
-      start: 6000,
+      start: 5100,
       detail: 'automatic forge exit'
     }
   ]);
@@ -1378,8 +1388,8 @@ test('Overheat injects an automatic Photon Forge timeline exit and closes its la
 });
 
 test('Overheat delays its tool-belt minimum cooldown until the damage effect', () => {
-  // Passive heat fills the bar at 5.00s, Overheat starts at 6.00s, and its measured effect applies at 7.56s.
-  const timing = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 7600 }], {
+  // Passive heat fills the bar at 5.00s, Overheat starts at 5.10s, and its measured effect applies at 6.66s.
+  const timing = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6700 }], {
     initialHeat: 90,
     selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
   });
@@ -1388,8 +1398,8 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
     (event) => event.type === 'damage' && event.name === 'Photonic Blasting Module'
   );
 
-  assert.equal(overheat.at, 6);
-  assert.equal(Math.round(damageEffect.at * 1000), 7560);
+  assert.equal(overheat.at, 5.1);
+  assert.equal(Math.round(damageEffect.at * 1000), 6660);
 
   const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {
     const result = simulate('Holosmith', rotation, {
@@ -1402,19 +1412,19 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
   };
 
   assert.deepEqual(
-    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 7550 }, 'Grenade Barrage']),
-    [7550]
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6650 }, 'Grenade Barrage']),
+    [6650]
   );
   assert.deepEqual(
-    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 7560 }, 'Grenade Barrage']),
-    [22560]
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage']),
+    [21660]
   );
   assert.deepEqual(
     grenadeBarrageStarts(
-      ['Engage Photon Forge', { type: 'wait', durationMs: 7560 }, 'Grenade Barrage'],
+      ['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage'],
       [TRAIT.PHOTONIC_BLASTING_MODULE]
     ),
-    [12560]
+    [11660]
   );
   assert.deepEqual(
     grenadeBarrageStarts([
@@ -1438,14 +1448,16 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
     selectedTraitIds: [TRAIT.LASERS_EDGE]
   });
 
-  assert.ok(Math.abs(laser.strikeDamage / laserBase.strikeDamage - 1.075) < 1e-12);
+  // The 200 ms hit sees the completed 100 ms tick but resolves before the same-time second tick.
+  const laserEdgeFactor = 1 + 50.2 * 0.0015;
+  assert.ok(Math.abs(laser.strikeDamage / laserBase.strikeDamage - laserEdgeFactor) < 1e-12);
   const glassLaser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
     initialHeat: 50,
     stats: { precision: 1000, ferocity: 0 },
     selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.LASERS_EDGE]
   });
 
-  assert.ok(Math.abs(glassLaser.strikeDamage / laserBase.strikeDamage - 1.07 * 1.075) < 1e-12);
+  assert.ok(Math.abs(glassLaser.strikeDamage / laserBase.strikeDamage - 1.07 * laserEdgeFactor) < 1e-12);
 
   const solar = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike', 'Bright Slash'], {
     stats: { precision: 1000, ferocity: 0 },
@@ -1501,7 +1513,17 @@ test('Holosmith benchmark attacks retain packets only after their observed commi
     committedLightStrike.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike').length,
     1
   );
-  assert.equal(committedLightStrike.endState.profession.heat - beforeLightStrike.endState.profession.heat, 2);
+  const committedHeat = committedLightStrike.events.find(
+    (event) => event.type === 'engineer.state' && event.reason === 'heat'
+  );
+
+  // The skill heat commits at 200 ms independently of the passive tick at that boundary.
+  assert.equal(
+    beforeLightStrike.events.some((event) => event.type === 'engineer.state' && event.reason === 'heat'),
+    false
+  );
+  assert.equal(committedHeat.at, 0.2);
+  assert.equal(committedHeat.state.heat, 2.2);
 
   const brightSlash = engineerCatalog.skillsById.get(ID.BRIGHT_SLASH_STORM);
 

@@ -56,12 +56,19 @@ const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
 const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
 
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
-  return (
+  const heatPerSecond =
     engineerBalanceValue(context, PROFILE.heat, 'energyRegenerationPerSecond', HOLOSMITH_HEAT.basePassivePerSecond) +
     (hasEngineerTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
       ? engineerBalanceValue(context, PROFILE.heat, 'resourceGain', HOLOSMITH_HEAT.lightDensityBonusPerSecond)
-      : 0)
-  );
+      : 0);
+
+  // Scale profile rates to the resource cadence so 2%/s becomes 0.2% per 100 ms.
+  return heatPerSecond * HOLOSMITH_HEAT.heatTickInterval;
+}
+
+function nextPassiveHeatTick(at: number): number {
+  // Keep repeated 100 ms additions on stable decimal boundaries for event ordering.
+  return Math.round((at + HOLOSMITH_HEAT.heatTickInterval) * 1e9) / 1e9;
 }
 
 // Records one linear heat segment and advances state.heat.
@@ -335,7 +342,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   const segments: HeatSegment[] = [];
 
   if (state.photonForgeActive) {
-    // Passive heat is applied by the one-second resource task. Keep a flat
+    // Passive heat is applied by the 100 ms resource task. Keep a flat
     // segment here so heat-tier pulses still advance between scheduler events.
     appendHeatSegment(segments, state, from, target, 0);
   } else {
@@ -376,17 +383,17 @@ export function handlePhotonForgePassiveHeat(
     return;
 
   // The Forge-relative tick ejects only when heat was already capped at tick
-  // start, so passive heat that fills the bar gets one final one-second window.
+  // start, so passive heat that fills the bar gets one final 100 ms window.
   if (state.heat >= state.maximumHeat - context.epsilon) {
     forceOverheat(context, task.at);
     return;
   }
 
   const previousHeat = state.heat;
-  state.heat = Math.min(state.maximumHeat, state.heat + passiveHeatPerTick(context));
+  state.heat = Math.min(state.maximumHeat, Math.round((state.heat + passiveHeatPerTick(context)) * 1e9) / 1e9);
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
   if (state.heat !== previousHeat) emitEngineerState(context, task.at, 'passive-heat');
-  state.passiveHeatAt = task.at + HOLOSMITH_HEAT.heatTickInterval;
+  state.passiveHeatAt = nextPassiveHeatTick(task.at);
   schedulePassiveHeat(context, state.passiveHeatAt);
 }
 
@@ -405,7 +412,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   coreState.activeKit = '';
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
-  state.passiveHeatAt = at + HOLOSMITH_HEAT.heatTickInterval;
+  state.passiveHeatAt = nextPassiveHeatTick(at);
   schedulePassiveHeat(context, state.passiveHeatAt);
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.

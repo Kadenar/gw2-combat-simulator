@@ -4,12 +4,12 @@ export const HOLOSMITH_HEAT = Object.freeze({
   baseMaximum: 100,
   enhancedCapacityMaximum: 150,
   highThreshold: 50,
-  // Heat gained on each one-second resource tick while Photon Forge is active.
+  // Passive heat rates are stored per second and apportioned across resource ticks.
   basePassivePerSecond: 2,
-  // Additional heat per resource tick from Light Density Amplifier trait.
+  // Additional passive heat per second from Light Density Amplifier.
   lightDensityBonusPerSecond: 1,
-  // Passive heat and Overheat both advance on the Forge-relative resource tick.
-  heatTickInterval: 1,
+  // Passive heat and Overheat both advance every 100 ms from Forge entry.
+  heatTickInterval: 0.1,
   // How long Solar Focusing Lens charges remain active (seconds).
   solarFocusingLensDuration: 4,
   // Heat at or above which Enhanced Capacity Storage Unit buffs activate.
