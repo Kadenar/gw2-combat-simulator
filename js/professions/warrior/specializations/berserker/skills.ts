@@ -49,7 +49,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 920,
+    quicknessCastTimeMs: 960,
     adrenalineGain: 10,
     handlerId: 'warrior.resource'
   },

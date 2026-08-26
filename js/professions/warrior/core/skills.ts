@@ -470,7 +470,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1,
         atMs: 600,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
+        metadata: {
+          damageKind: 'explosion'
+        }
       },
       {
         type: 'condition',
@@ -1448,7 +1452,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         coefficient: 0.2,
-        hits: 1
+        hits: 1,
+        // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
+        metadata: {
+          damageKind: 'explosion'
+        }
       },
       {
         type: 'blind',
