@@ -7,6 +7,7 @@ import {
   engineerBalanceValue
 } from '../../core/profiles.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerResolverReactionDetails } from '../../types.js';
+import type { ResolvedCriticalHitOptions } from '../../../../platform/gw2/authoring/mechanics.js';
 
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.engineerMech === true || event.application?.engineerMech === true) return true;
@@ -16,32 +17,32 @@ function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerRe
   return slot >= 1 && slot <= 3;
 }
 
-function reactToMechanistDamage(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  details: EngineerResolverReactionDetails = {}
-): void {
-  if (!(Number(event.coefficient) > 0)) return;
-  const state = procState(context);
-  if (!isEngineerMechEvent(context, event)) return;
-
-  const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
-  if (hasTrait(context, TRAIT.INCENDIARY_POWDER) && criticalChance > 0) {
-    // The Core proc-state container is snapshot-safe; Mechanist owns how the mech advances these keys.
-    const readyKey = 'incendiaryPowder.mech';
-    const progressKey = 'incendiaryProgress.mech';
-    const stochastic = context.random?.stochastic === true;
-    let triggered = false;
-    if (stochastic) {
-      triggered = details.hitContext?.critical?.didCrit === true && Number(state[readyKey] || 0) <= event.at;
-    } else {
-      state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
-      triggered = Number(state[progressKey]) >= 1 && Number(state[readyKey] || 0) <= event.at;
-    }
-
-    if (triggered) {
-      if (!stochastic) state[progressKey] = Number(state[progressKey]) - 1;
-      state[readyKey] = event.at + engineerBalanceValue(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10);
+// The mech owns an independent Incendiary Powder tracker so its critical hits
+// cannot consume the player's progress or internal cooldown.
+export const mechanistCriticalHitDefinitions = Object.freeze([
+  {
+    id: 'engineer.mechanist.incendiary-powder-mech',
+    actorTypes: ['summon'],
+    when: (context, event) =>
+      Number(event.coefficient) > 0 &&
+      isEngineerMechEvent(context, event) &&
+      hasTrait(context, TRAIT.INCENDIARY_POWDER),
+    expectedProgress: {
+      get: (context) => Number(procState(context)['incendiaryProgress.mech'] || 0),
+      set: (context, progress) => {
+        procState(context)['incendiaryProgress.mech'] = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => engineerBalanceValue(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10),
+      readyAt: (context) => Number(procState(context)['incendiaryPowder.mech'] || 0),
+      setReadyAt: (context, readyAt) => {
+        procState(context)['incendiaryPowder.mech'] = readyAt;
+      }
+    },
+    progressDuringCooldown: 'accumulate',
+    attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
+    handler(context, event) {
       applyEngineerDerivedCondition(context, event, {
         name: 'Incendiary Powder',
         condition: 'Burning',
@@ -54,6 +55,20 @@ function reactToMechanistDamage(
       recordTrait(context, 'Incendiary Powder', event);
     }
   }
+] satisfies readonly ResolvedCriticalHitOptions<
+  EngineerResolverContext,
+  EngineerResolverEvent,
+  EngineerResolverReactionDetails
+>[]);
+
+function reactToMechanistDamage(
+  context: EngineerResolverContext,
+  event: EngineerResolverEvent,
+  _details: EngineerResolverReactionDetails = {}
+): void {
+  if (!(Number(event.coefficient) > 0)) return;
+  const state = procState(context);
+  if (!isEngineerMechEvent(context, event)) return;
 
   if (hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) && Number(state.singleEdgeCutters || 0) <= event.at) {
     // 1-second ICD: store next-eligible timestamp so rapid mech hits don't

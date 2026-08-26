@@ -17,7 +17,8 @@ import {
   applyElementalistResolverAura,
   applyElementalistResolverSignetFire,
   applyElementalistResolvedCondition,
-  applyElementalistResolvedDamage
+  applyElementalistResolvedDamage,
+  elementalistCoreCriticalReactions
 } from './resolver.js';
 
 export const elementalistCoreModule = defineNativeModule({
@@ -38,6 +39,7 @@ export const elementalistCoreModule = defineNativeModule({
     skillMechanicHandlers: elementalistCoreSkillMechanicHandlers,
     schedulerHooks: elementalistCoreSchedulerHooks,
     reactions: [
+      ...elementalistCoreCriticalReactions,
       onResolvedDamage({
         id: 'elementalist.core.damage',
         handler: applyElementalistResolvedDamage

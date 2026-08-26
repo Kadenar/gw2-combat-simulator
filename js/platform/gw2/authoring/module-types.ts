@@ -77,6 +77,7 @@ export interface NativeResolvedReaction<
   readonly stage: Gw2ResolverStage;
   readonly id: string;
   readonly order: number;
+  readonly requiresCriticalFacts?: boolean;
   readonly handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
 }
 

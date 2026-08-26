@@ -17,6 +17,7 @@ import {
   resolverSkill
 } from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
+import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,
@@ -261,23 +262,118 @@ function usesRandomTraitProcs(context: EngineerResolverContext): boolean {
   return context.random?.stochastic === true;
 }
 
-function rolledCritical(details: EngineerResolverReactionDetails): boolean {
-  return details.hitContext?.critical?.didCrit === true;
-}
-
 // resets explosiveEntranceFired so the trait can fire on the first hit of the next attack sequence
 export function handleEngineerDodge(context: EngineerResolverContext): void {
   procState(context).explosiveEntranceFired = false;
 }
 
+type EngineerCriticalHitDefinition = ResolvedCriticalHitOptions<
+  EngineerResolverContext,
+  EngineerResolverEvent,
+  EngineerResolverReactionDetails
+>;
+
+// Critical-hit declarations keep Engineer eligibility, state keys, and effects
+// local while delegating shared crit sampling, progress, and ICD behavior.
+export const engineerCoreCriticalHitDefinitions = Object.freeze([
+  {
+    id: 'engineer.core.serrated-steel',
+    actorTypes: ['player', 'effect', 'unknown'],
+    when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
+    chanceOnCriticalHit: (context) => engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33),
+    expectedProgress: {
+      get: (context) => Number(procState(context).serratedSteelProgress || 0),
+      set: (context, progress) => {
+        procState(context).serratedSteelProgress = progress;
+      }
+    },
+    randomStream: 'engineer.serrated-steel',
+    attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
+    handler(context, event, _details, application) {
+      applyEngineerDerivedCondition(context, event, {
+        name: 'Serrated Steel',
+        condition: 'Bleeding',
+        stacks:
+          engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1) * application.quantity,
+        duration: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'duration', 3),
+        sourceId: TRAIT.SERRATED_STEEL,
+        actorType: 'effect'
+      });
+      recordTrait(context, 'Serrated Steel', event);
+    }
+  },
+  {
+    id: 'engineer.core.no-scope',
+    actorTypes: ['player'],
+    when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.NO_SCOPE),
+    expectedProgress: {
+      get: (context) => Number(procState(context).noScopeProgress || 0),
+      set: (context, progress) => {
+        procState(context).noScopeProgress = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => engineerBalanceValue(context, PROFILE.noScope, 'internalCooldown', 8),
+      readyAt: (context) => Number(procState(context).noScope || 0),
+      setReadyAt: (context, readyAt) => {
+        procState(context).noScope = readyAt;
+      }
+    },
+    attribution: { kind: 'trait', id: TRAIT.NO_SCOPE },
+    handler(context, event) {
+      queueBuff(context, event, {
+        name: 'No Scope',
+        kind: 'fury',
+        stacks: 1,
+        duration: engineerBalanceEffectValue(context, PROFILE.noScope, 'boon', 'duration', 4),
+        sourceId: TRAIT.NO_SCOPE,
+        actorType: 'effect'
+      });
+      recordTrait(context, 'No Scope', event);
+    }
+  },
+  {
+    id: 'engineer.core.incendiary-powder-player',
+    actorTypes: ['player'],
+    when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.INCENDIARY_POWDER),
+    expectedProgress: {
+      get: (context) => Number(procState(context)['incendiaryProgress.player'] || 0),
+      set: (context, progress) => {
+        procState(context)['incendiaryProgress.player'] = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10),
+      readyAt: (context) => Number(procState(context)['incendiaryPowder.player'] || 0),
+      setReadyAt: (context, readyAt) => {
+        procState(context)['incendiaryPowder.player'] = readyAt;
+      }
+    },
+    // Preserve the existing deterministic behavior, which banks expected crits
+    // during Incendiary Powder's cooldown for the next eligible hit.
+    progressDuringCooldown: 'accumulate',
+    attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
+    handler(context, event) {
+      applyEngineerDerivedCondition(context, event, {
+        name: 'Incendiary Powder',
+        condition: 'Burning',
+        stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
+        duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
+        sourceId: TRAIT.INCENDIARY_POWDER,
+        actorType: 'effect'
+      });
+      recordTrait(context, 'Incendiary Powder', event);
+    }
+  }
+] satisfies readonly EngineerCriticalHitDefinition[]);
+
 export function reactToEngineerDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
-  details: EngineerResolverReactionDetails = {}
+  _details: EngineerResolverReactionDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
-  const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
   if (event.actorType === 'player' && hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) && !state.explosiveEntranceFired) {
     // fires once per attack sequence; dodge resets the flag for the next sequence
     state.explosiveEntranceFired = true;
@@ -384,103 +480,6 @@ export function reactToEngineerDamage(
         actorType: 'effect'
       });
       recordTrait(context, 'Shrapnel', event);
-    }
-  }
-
-  if (event.actorType !== 'summon' && hasTrait(context, TRAIT.SERRATED_STEEL) && criticalChance > 0) {
-    let triggered = false;
-    if (usesRandomTraitProcs(context)) {
-      triggered =
-        rolledCritical(details) &&
-        context.random.roll(
-          engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33),
-          'engineer.serrated-steel'
-        );
-    } else {
-      // deterministic: accumulate critChance * 0.33 (combines expected crit rate with proc chance)
-      state.serratedSteelProgress =
-        Number(state.serratedSteelProgress || 0) +
-        criticalChance * engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33);
-      triggered = state.serratedSteelProgress >= 1;
-    }
-
-    if (triggered) {
-      if (!usesRandomTraitProcs(context)) {
-        state.serratedSteelProgress = Number(state.serratedSteelProgress || 0) - 1;
-      }
-
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Serrated Steel',
-        condition: 'Bleeding',
-        stacks: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1),
-        duration: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'duration', 3),
-        sourceId: TRAIT.SERRATED_STEEL,
-        actorType: 'effect'
-      });
-      recordTrait(context, 'Serrated Steel', event);
-    }
-  }
-
-  if (
-    event.actorType === 'player' &&
-    hasTrait(context, TRAIT.NO_SCOPE) &&
-    criticalChance > 0 &&
-    // 8s cooldown between fury procs
-    Number(state.noScope || 0) <= event.at
-  ) {
-    let triggered = false;
-    if (usesRandomTraitProcs(context)) {
-      triggered = rolledCritical(details);
-    } else {
-      state.noScopeProgress = Number(state.noScopeProgress || 0) + criticalChance;
-      triggered = state.noScopeProgress >= 1;
-    }
-
-    if (triggered) {
-      if (!usesRandomTraitProcs(context)) {
-        state.noScopeProgress = Number(state.noScopeProgress || 0) - 1;
-      }
-
-      state.noScope = event.at + engineerBalanceValue(context, PROFILE.noScope, 'internalCooldown', 8);
-      queueBuff(context, event, {
-        name: 'No Scope',
-        kind: 'fury',
-        stacks: 1,
-        duration: engineerBalanceEffectValue(context, PROFILE.noScope, 'boon', 'duration', 4),
-        sourceId: TRAIT.NO_SCOPE,
-        actorType: 'effect'
-      });
-      recordTrait(context, 'No Scope', event);
-    }
-  }
-
-  if (event.actorType === 'player' && hasTrait(context, TRAIT.INCENDIARY_POWDER) && criticalChance > 0) {
-    // Core owns the player's proc window; Mechanist separately owns the mech's window.
-    const readyKey = 'incendiaryPowder.player';
-    const progressKey = 'incendiaryProgress.player';
-    let triggered = false;
-    if (usesRandomTraitProcs(context)) {
-      triggered = rolledCritical(details) && Number(state[readyKey] || 0) <= event.at;
-    } else {
-      state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
-      triggered = state[progressKey] >= 1 && Number(state[readyKey] || 0) <= event.at;
-    }
-
-    if (triggered) {
-      if (!usesRandomTraitProcs(context)) {
-        state[progressKey] = Number(state[progressKey] || 0) - 1;
-      }
-
-      state[readyKey] = event.at + engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10);
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Incendiary Powder',
-        condition: 'Burning',
-        stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
-        duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
-        sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: 'effect'
-      });
-      recordTrait(context, 'Incendiary Powder', event);
     }
   }
 

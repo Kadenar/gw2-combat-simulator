@@ -13,9 +13,11 @@ export {
   onFoodProcCreated,
   onResolvedBlind,
   onResolvedControl,
+  onResolvedCriticalHit,
   onResolvedDamage,
   onResolvedPlayerCriticalHit
 } from './mechanics.js';
+export type { ResolvedCriticalHitOptions } from './mechanics.js';
 export type {
   AnyNativeModule,
   NativeAutoattackChains,

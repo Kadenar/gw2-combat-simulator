@@ -1,9 +1,47 @@
 import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
+import {
+  advanceCriticalProc,
+  criticalOpportunity,
+  type CriticalProcApplication,
+  type CriticalProcRequest,
+  type CriticalProcState
+} from '../combat/critical-procs.js';
 import { FOOD_DATA } from '../equipment/consumables/food.js';
 import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
 import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
 import type { Gw2Config } from '../simulation/config.js';
 import type { MaterializerState } from './materializer-state.js';
+import type { Gw2SchedulerPolicy } from './types.js';
+
+export type ScheduledCriticalProcRequest = Omit<CriticalProcRequest, 'at' | 'stochastic' | 'roll'>;
+
+/**
+ * Adapts a canonical scheduler damage event to the phase-neutral critical-proc
+ * kernel, including the shared sampled fact and the scheduler's RNG stream.
+ */
+export function advanceScheduledCriticalProc<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  event: SimulationEvent,
+  request: ScheduledCriticalProcRequest,
+  state?: CriticalProcState,
+  opportunities = 1
+): CriticalProcApplication | null {
+  const policy = context.schedulerPolicy as unknown as Gw2SchedulerPolicy;
+  const chance = Number(policy.critical(context as SchedulerContext, event)?.chance || 0);
+  const stochastic =
+    (context.config as { readonly randomness?: { readonly mode?: string } }).randomness?.mode === 'stochastic';
+
+  return advanceCriticalProc(
+    criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined, opportunities),
+    {
+      ...request,
+      at: event.at,
+      stochastic,
+      roll: (rollChance, stream) => policy.rollRandom(rollChance, stream)
+    },
+    state
+  );
+}
 
 export function hasStochasticCriticalFood(config: Gw2Config): boolean {
   return config.randomness?.mode === 'stochastic' && FOOD_DATA[String(config.food || '')]?.proc?.type === 'critStrike';

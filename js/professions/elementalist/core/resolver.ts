@@ -1,11 +1,13 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { EPSILON } from '../../../platform/engine/core/clock.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
+import { onResolvedCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
 import { gw2StatsForWeaponSet } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import type { Gw2EventDraft } from '../../../platform/gw2/equipment/relics/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/gw2/resolver/types.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { ElementalistResolverContext, ElementalistResolverEvent } from '../types.js';
 import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
 import {
@@ -38,7 +40,6 @@ const BOON_KINDS = new Set([
   'swiftness',
   'vigor'
 ]);
-
 function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
   const profession = context.profession as {
     core?: ElementalistCoreState;
@@ -142,7 +143,7 @@ export function queueElementalistBuff(
   source: string
 ): void {
   const adjustedDuration = buffDuration(context, event, kind, duration);
-  enqueueOrdered(context.queue, {
+  const application: Gw2ResolverEvent = {
     type: 'buff',
     at: event.at,
     source,
@@ -155,7 +156,11 @@ export function queueElementalistBuff(
     duration: adjustedDuration,
     triggeredBy: elementalistSourceSkill(event),
     ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
-  });
+  };
+  // Resolver-created buffs are not recorded by the generic buff handler, so
+  // retain this derived application for event inspection before queueing it.
+  context.resolved.push(application);
+  enqueueOrdered(context.queue, application);
 }
 
 export function activeElementalistBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
@@ -280,42 +285,155 @@ export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: 
   context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
 }
 
-// Convert sampled or expected criticals into ICD-bound Burning Precision
-// applications while retaining fractional deterministic progress.
-function applyBurningPrecision(
+function criticalTraitEligible(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails
-): void {
-  if (
-    !hasTrait(context, 'Burning Precision') ||
-    event.actorType !== 'player' ||
-    details.hitContext?.critEligible !== true
-  ) {
-    return;
-  }
-
-  const state = coreState(context);
-  const chance = Number(details.hitContext.critical.chance || 0);
-  state.burningPrecisionProgress +=
-    chance * elementalistBalanceValue(context, PROFILE.burningPrecision, 'procChance', 0.33);
-  if (state.burningPrecisionProgress < 1 || Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON) {
-    return;
-  }
-
-  state.burningPrecisionProgress -= 1;
-  state.procReadyAt.burningPrecision =
-    event.at + elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5);
-  const burning = elementalistBalanceEffect(context, PROFILE.burningPrecision, 'condition', 'Burning Precision');
-  applyElementalistDerivedCondition(context, event, {
-    source: 'Burning Precision',
-    sourceId: 'Burning Precision',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 3)
-  });
-  recordElementalistTraitProc(context, event, 'Burning Precision');
+  details: NativeResolvedDamageDetails,
+  trait: string
+): boolean {
+  return (
+    hasTrait(context, trait) &&
+    event.actorType === 'player' &&
+    Number(event.coefficient) > 0 &&
+    details.hitContext?.critEligible === true
+  );
 }
+
+// Declare output-only critical traits as resolver reactions so they share the
+// canonical hit fact and the platform's expected-progress/RNG contract.
+export const elementalistCoreCriticalReactions = Object.freeze([
+  onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+    id: 'elementalist.raging-storm',
+    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Raging Storm'),
+    expectedProgress: {
+      get: (context) => Number(coreState(context).criticalProcProgress.ragingStorm || 0),
+      set: (context, progress) => {
+        coreState(context).criticalProcProgress.ragingStorm = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => elementalistBalanceValue(context, PROFILE.ragingStorm, 'internalCooldown', 8),
+      readyAt: (context) => Number(coreState(context).procReadyAt.ragingStorm || 0),
+      setReadyAt: (context, readyAt) => {
+        coreState(context).procReadyAt.ragingStorm = readyAt;
+      }
+    },
+    progressDuringCooldown: 'accumulate',
+    attribution: { kind: 'trait', id: TRAIT.RAGING_STORM },
+    handler: (context, event) => {
+      const fury = elementalistBalanceEffect(context, PROFILE.ragingStorm, 'boon', 'Fury');
+      queueElementalistBuff(
+        context,
+        event,
+        String(fury?.boon || 'Fury'),
+        Number(fury?.stacks ?? 1),
+        Number(fury?.duration ?? 4),
+        'Raging Storm'
+      );
+    }
+  }),
+  onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+    id: 'elementalist.arcane-precision',
+    chanceOnCriticalHit: (context) => elementalistBalanceValue(context, PROFILE.arcanePrecision, 'procChance', 0.33),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
+    expectedProgress: {
+      get: (context) => Number(coreState(context).criticalProcProgress.arcanePrecision || 0),
+      set: (context, progress) => {
+        coreState(context).criticalProcProgress.arcanePrecision = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => elementalistBalanceValue(context, PROFILE.arcanePrecision, 'internalCooldown', 3),
+      readyAt: (context) => Number(coreState(context).procReadyAt.arcanePrecision || 0),
+      setReadyAt: (context, readyAt) => {
+        coreState(context).procReadyAt.arcanePrecision = readyAt;
+      }
+    },
+    progressDuringCooldown: 'accumulate',
+    randomStream: 'elementalist.arcane-precision',
+    attribution: { kind: 'trait', id: TRAIT.ARCANE_PRECISION },
+    handler: (context, event) => {
+      const attunement = coreState(context).primaryAttunement;
+      const condition = elementalistBalanceEffect(context, PROFILE.arcanePrecision, 'condition', attunement);
+      const fallback = {
+        Fire: { condition: 'Burning', duration: 1.5 },
+        Water: { condition: 'Vulnerability', duration: 10 },
+        Air: { condition: 'Weakness', duration: 3 },
+        Earth: { condition: 'Bleeding', duration: 5 }
+      }[attunement];
+      applyElementalistDerivedCondition(context, event, {
+        source: 'Arcane Precision',
+        sourceId: TRAIT.ARCANE_PRECISION,
+        condition: String(condition?.condition || fallback.condition),
+        stacks: Number(condition?.stacks ?? 1),
+        duration: Number(condition?.duration ?? fallback.duration)
+      });
+      recordElementalistTraitProc(context, event, 'Arcane Precision');
+    }
+  }),
+  onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+    id: 'elementalist.renewing-stamina',
+    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Renewing Stamina'),
+    expectedProgress: {
+      get: (context) => Number(coreState(context).criticalProcProgress.renewingStamina || 0),
+      set: (context, progress) => {
+        coreState(context).criticalProcProgress.renewingStamina = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => elementalistBalanceValue(context, PROFILE.renewingStamina, 'internalCooldown', 10),
+      readyAt: (context) => Number(coreState(context).procReadyAt.renewingStamina || 0),
+      setReadyAt: (context, readyAt) => {
+        coreState(context).procReadyAt.renewingStamina = readyAt;
+      }
+    },
+    progressDuringCooldown: 'accumulate',
+    attribution: { kind: 'trait', id: TRAIT.RENEWING_STAMINA },
+    handler: (context, event) => {
+      const vigor = elementalistBalanceEffect(context, PROFILE.renewingStamina, 'boon', 'Vigor');
+      queueElementalistBuff(
+        context,
+        event,
+        String(vigor?.boon || 'Vigor'),
+        Number(vigor?.stacks ?? 1),
+        Number(vigor?.duration ?? 5),
+        'Renewing Stamina'
+      );
+    }
+  }),
+  onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+    id: 'elementalist.burning-precision',
+    chanceOnCriticalHit: (context) => elementalistBalanceValue(context, PROFILE.burningPrecision, 'procChance', 0.33),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
+    expectedProgress: {
+      get: (context) => coreState(context).burningPrecisionProgress,
+      set: (context, progress) => {
+        coreState(context).burningPrecisionProgress = progress;
+      }
+    },
+    internalCooldown: {
+      duration: (context) => elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5),
+      readyAt: (context) => Number(coreState(context).procReadyAt.burningPrecision || 0),
+      setReadyAt: (context, readyAt) => {
+        coreState(context).procReadyAt.burningPrecision = readyAt;
+      }
+    },
+    progressDuringCooldown: 'accumulate',
+    randomStream: 'elementalist.burning-precision',
+    attribution: { kind: 'trait', id: TRAIT.BURNING_PRECISION },
+    handler: (context, event) => {
+      const burning = elementalistBalanceEffect(context, PROFILE.burningPrecision, 'condition', 'Burning Precision');
+      applyElementalistDerivedCondition(context, event, {
+        source: 'Burning Precision',
+        sourceId: TRAIT.BURNING_PRECISION,
+        condition: String(burning?.condition || 'Burning'),
+        stacks: Number(burning?.stacks ?? 1),
+        duration: Number(burning?.duration ?? 3)
+      });
+      recordElementalistTraitProc(context, event, 'Burning Precision');
+    }
+  })
+]);
 
 function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Persisting Flames')) return;
@@ -332,9 +450,8 @@ function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEv
 export function applyElementalistResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails = {}
+  _details: NativeResolvedDamageDetails = {}
 ): void {
-  applyBurningPrecision(context, event, details);
   if (event.damageKind === 'field-tick' && PERSISTING_FLAMES_FIELD_SKILLS.has(elementalistSourceSkill(event))) {
     grantPersistingFlames(context, event);
   }

@@ -1,8 +1,8 @@
-import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
+import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
@@ -595,9 +595,18 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
   }
 
   const state = professionCoreState(context);
+  const criticalPolicy = context.schedulerPolicy as unknown as {
+    critical?: (
+      schedulerContext: ElementalistSchedulerContext,
+      simulationEvent: SimulationEvent
+    ) => { chance?: number };
+  };
   state.freshAirCandidates.push({
     at: event.at,
-    criticalChance: eventCriticalChance(context),
+    // Lookahead needs the expected chance before the candidate is processed;
+    // actual proc materialization still uses the canonical event and adapter.
+    criticalChance: Number(criticalPolicy.critical?.(context, event)?.chance || 0),
+    eventOrder: Number(event.__order),
     sourceId: event.skillId ?? event.sourceId,
     sourceSkill: String(event.skillName || event.source || '')
   });
@@ -617,9 +626,14 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     }
 
     if (state.primaryAttunement === 'Air') continue;
-    state.freshAirProgress += candidate.criticalChance;
-    if (state.freshAirProgress + context.epsilon < 1) continue;
-    state.freshAirProgress -= 1;
+    const event = context.eventByOrder(candidate.eventOrder);
+    if (!event) {
+      throw new Error(`Missing Fresh Air critical event ${String(candidate.eventOrder)}.`);
+    }
+    const tracker = { progress: state.freshAirProgress, readyAt: 0 };
+    const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
+    state.freshAirProgress = tracker.progress;
+    if (!application) continue;
     if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
@@ -638,153 +652,6 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
   }
 
   state.freshAirCandidates = pending;
-}
-
-function eventCriticalChance(context: ElementalistSchedulerContext): number {
-  const stats = (context.config.stats || {}) as SchedulerRecord;
-  return Math.min(
-    1,
-    criticalChance(Number(stats.precision || 0)) +
-      (context.config.boons?.fury ? 0.25 : 0) +
-      Number(stats.criticalChanceBonus || 0) / 100 +
-      (hasTrait(context, "Zephyr's Speed")
-        ? elementalistBalanceValue(context, PROFILE.zephyrsSpeed, 'criticalChance', 0.05)
-        : 0)
-  );
-}
-
-// Convert critical-hit probabilities into deterministic progress accumulators,
-// then spend whole procs subject to each trait's independent cooldown.
-function observeCriticalTraits(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  if (
-    event.type !== 'damage' ||
-    event.actorType !== 'player' ||
-    event.canCrit === false ||
-    event.noCrit ||
-    !(Number(event.coefficient) > 0)
-  ) {
-    return;
-  }
-
-  const state = professionCoreState(context);
-  const chance = eventCriticalChance(context);
-  if (hasTrait(context, 'Raging Storm')) {
-    state.criticalProcProgress.ragingStorm = Number(state.criticalProcProgress.ragingStorm || 0) + chance;
-    if (
-      state.criticalProcProgress.ragingStorm + context.epsilon >= 1 &&
-      Number(state.procReadyAt.ragingStorm || 0) <= event.at + context.epsilon
-    ) {
-      state.criticalProcProgress.ragingStorm -= 1;
-      state.procReadyAt.ragingStorm =
-        event.at + elementalistBalanceValue(context, PROFILE.ragingStorm, 'internalCooldown', 8);
-      emitProfiledBuff(
-        context,
-        event.at,
-        PROFILE.ragingStorm,
-        'Fury',
-        'Fury',
-        1,
-        4,
-        'Raging Storm',
-        event.skillId ?? event.sourceId
-      );
-    }
-  }
-
-  if (hasTrait(context, 'Arcane Precision')) {
-    state.criticalProcProgress.arcanePrecision =
-      Number(state.criticalProcProgress.arcanePrecision || 0) +
-      chance * elementalistBalanceValue(context, PROFILE.arcanePrecision, 'procChance', 0.33);
-    if (
-      state.criticalProcProgress.arcanePrecision + context.epsilon >= 1 &&
-      Number(state.procReadyAt.arcanePrecision || 0) <= event.at + context.epsilon
-    ) {
-      state.criticalProcProgress.arcanePrecision -= 1;
-      state.procReadyAt.arcanePrecision =
-        event.at + elementalistBalanceValue(context, PROFILE.arcanePrecision, 'internalCooldown', 3);
-      const attunement = state.primaryAttunement;
-      if (attunement === 'Fire') {
-        emitProfiledCondition(
-          context,
-          event.at,
-          PROFILE.arcanePrecision,
-          'Fire',
-          'Burning',
-          1,
-          1.5,
-          'Arcane Precision',
-          event.skillId ?? event.sourceId
-        );
-      } else if (attunement === 'Water') {
-        emitProfiledCondition(
-          context,
-          event.at,
-          PROFILE.arcanePrecision,
-          'Water',
-          'Vulnerability',
-          1,
-          10,
-          'Arcane Precision',
-          event.skillId ?? event.sourceId
-        );
-      } else if (attunement === 'Air') {
-        emitProfiledCondition(
-          context,
-          event.at,
-          PROFILE.arcanePrecision,
-          'Air',
-          'Weakness',
-          1,
-          3,
-          'Arcane Precision',
-          event.skillId ?? event.sourceId
-        );
-      } else {
-        emitProfiledCondition(
-          context,
-          event.at,
-          PROFILE.arcanePrecision,
-          'Earth',
-          'Bleeding',
-          1,
-          5,
-          'Arcane Precision',
-          event.skillId ?? event.sourceId
-        );
-      }
-
-      emitElementalistProc(context, {
-        at: event.at,
-        name: 'Arcane Precision',
-        procType: 'trait',
-        sourceId: event.skillId ?? event.sourceId,
-        sourceSkill: String(event.skillName || event.source || '')
-      });
-    }
-  }
-
-  if (hasTrait(context, 'Renewing Stamina')) {
-    state.criticalProcProgress.renewingStamina = Number(state.criticalProcProgress.renewingStamina || 0) + chance;
-    if (
-      state.criticalProcProgress.renewingStamina + context.epsilon >= 1 &&
-      Number(state.procReadyAt.renewingStamina || 0) <= event.at + context.epsilon
-    ) {
-      state.criticalProcProgress.renewingStamina -= 1;
-      state.procReadyAt.renewingStamina =
-        event.at + elementalistBalanceValue(context, PROFILE.renewingStamina, 'internalCooldown', 10);
-      emitProfiledBuff(
-        context,
-        event.at,
-        PROFILE.renewingStamina,
-        'Vigor',
-        'Vigor',
-        1,
-        5,
-        'Renewing Stamina',
-        event.skillId ?? event.sourceId
-      );
-    }
-  }
 }
 
 // Route player control events through Lightning Rod and Stormsoul while keeping
@@ -856,6 +723,5 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
 
 export function observeElementalistTraitEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   observeFreshAir(context, event);
-  observeCriticalTraits(context, event);
   observeLightningRod(context, event);
 }

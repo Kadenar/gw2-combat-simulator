@@ -1,4 +1,5 @@
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
+import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -62,17 +63,13 @@ export function handleVirtuosoExpectedProcTask(
   const payloadEvent = task.payload.event;
   const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
-  const stochastic = context.config.randomness?.mode === 'stochastic';
-  if (stochastic && typeof event.didCrit !== 'boolean') {
-    throw new Error(`Missing sampled critical outcome for Virtuoso event ${String(event.skillName || event.name)}.`);
-  }
-
-  const criticalStacks = stochastic
-    ? event.didCrit
-      ? 1
-      : 0
-    : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
-  if (!(criticalStacks > 0)) return;
+  // Jagged Mind applies fractional expected stacks directly in deterministic
+  // mode, while stochastic mode consumes the canonical sampled critical fact.
+  const application = advanceScheduledCriticalProc(context, event, {
+    id: 'mesmer.virtuoso.jagged-mind',
+    materialization: 'weighted'
+  });
+  if (!application) return;
   const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.JAGGED_MIND), 'condition');
   context.emitDerived(event, {
     type: 'condition',
@@ -82,7 +79,7 @@ export function handleVirtuosoExpectedProcTask(
     parentSkillName: event.parentSkillName,
     condition: 'Bleeding',
     duration: Number(effect?.duration || 4),
-    stacks: criticalStacks * Number(effect?.stacks || 1),
+    stacks: application.quantity * Number(effect?.stacks || 1),
     source: event.source,
     sourceId: TRAIT.JAGGED_MIND,
     actorType: event.actorType

@@ -1,8 +1,12 @@
-import { afterSkillEffects, onResolvedDamage } from '../../../../platform/gw2/authoring/mechanics.js';
+import {
+  afterSkillEffects,
+  onResolvedCriticalHit,
+  onResolvedDamage
+} from '../../../../platform/gw2/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createEngineerModuleData } from '../../catalog-data.js';
 import { mechanistSkillHandlers } from './handlers.js';
-import { mechanistResolverEventReactions } from './resolver.js';
+import { mechanistCriticalHitDefinitions, mechanistResolverEventReactions } from './resolver.js';
 import {
   mechanistAdvancedSchedulerHooks,
   mechanistAfterCast,
@@ -32,6 +36,7 @@ export const mechanistModule = defineNativeModule({
     castLifecycle: [afterSkillEffects(mechanistAfterCast)],
     schedulerHooks: mechanistAdvancedSchedulerHooks,
     reactions: [
+      ...mechanistCriticalHitDefinitions.map(onResolvedCriticalHit),
       onResolvedDamage({
         id: 'engineer.mechanist.damage',
         handler: mechanistResolverEventReactions.damage

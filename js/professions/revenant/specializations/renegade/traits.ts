@@ -3,6 +3,7 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../dat
 import { hasRevenantTrait } from '../../core/state.js';
 import { activeKallasFervorStacks, grantKallasFervor, isBandTogetherReady } from './renegade.js';
 import { RENEGADE_PROFILE_IDS } from './skills.js';
+import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
@@ -27,27 +28,16 @@ function scaledBoonDuration(context: RevenantSchedulerContext, boon: string, dur
 }
 
 function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulationEvent): number {
-  if (context.config.randomness?.mode === 'stochastic') {
-    // In stochastic mode the crit outcome was sampled earlier and stored on the event; requireCriticalFacts() guarantees didCrit is present for every tracked hit
-    if (typeof event.didCrit !== 'boolean') {
-      throw new Error(
-        `Missing sampled critical outcome for Renegade event ${String(
-          event.skillName || event.name || event.sourceId
-        )}.`
-      );
-    }
-
-    return event.didCrit ? 1 : 0;
-  }
-
-  // Deterministic mode: accumulate fractional crit probability across events so that the expected number of procs over the full simulation equals (sum of crit chances)
   const state = renegadeState.from(context);
-  const chance = Number(context.schedulerPolicy.critical?.(context, event)?.chance || 0);
-  state.renegadeCriticalProgress = Number(state.renegadeCriticalProgress || 0) + chance;
-  // 1e-9 tolerance prevents floating-point drift from suppressing procs at exactly 1.0
-  const count = Math.floor(state.renegadeCriticalProgress + 1e-9);
-  if (count > 0) state.renegadeCriticalProgress -= count;
-  return count;
+  const tracker = { progress: Number(state.renegadeCriticalProgress || 0), readyAt: 0 };
+  const application = advanceScheduledCriticalProc(
+    context,
+    event,
+    { id: 'revenant.renegade.critical-traits' },
+    tracker
+  );
+  state.renegadeCriticalProgress = tracker.progress;
+  return application?.quantity || 0;
 }
 
 function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {

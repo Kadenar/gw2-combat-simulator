@@ -340,7 +340,7 @@ function compileNativeModule(
   const castRules = {
     ...((mechanics.castRules || {}) as SchedulerRecord)
   };
-  const schedulerHooks = {
+  const schedulerHooks: SchedulerRecord = {
     ...((mechanics.schedulerHooks || {}) as SchedulerRecord),
     ...(mechanics.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: mechanics.skillMechanicHandlers })
   };
@@ -363,11 +363,13 @@ function compileNativeModule(
   const reactions = {
     ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
   };
+  let requiresCriticalFacts = false;
   for (const declaration of (mechanics.reactions || []) as NativeResolvedReaction<
     Gw2ResolverRuntime,
     Gw2ResolverEvent,
     object
   >[]) {
+    requiresCriticalFacts ||= declaration.requiresCriticalFacts === true;
     const existing = reactions[declaration.stage];
     reactions[declaration.stage] = [
       ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
@@ -375,6 +377,24 @@ function compileNativeModule(
         id: declaration.id,
         order: declaration.order,
         handler: declaration.handler
+      }
+    ];
+  }
+
+  // Resolved critical declarations consume the scheduler's canonical didCrit
+  // fact, so enable sampling automatically instead of relying on each
+  // profession initializer to request it independently.
+  if (requiresCriticalFacts) {
+    const initialize = schedulerHooks.initialize;
+    schedulerHooks.initialize = [
+      ...(initialize == null ? [] : Array.isArray(initialize) ? initialize : [initialize]),
+      {
+        id: `${module.id}.resolved-critical-facts`,
+        order: -1000,
+        handler(context: SchedulerRecord) {
+          const policy = context.schedulerPolicy as { requireCriticalFacts?: () => void } | undefined;
+          policy?.requireCriticalFacts?.();
+        }
       }
     ];
   }

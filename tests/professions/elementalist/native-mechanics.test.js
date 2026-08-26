@@ -2510,7 +2510,7 @@ test('core critical-hit and control traits enforce their proc rules', () => {
   });
 
   assert.equal(
-    stamina.events.some((event) => event.type === 'buff' && event.source === 'Renewing Stamina'),
+    resolvedAndScheduledEvents(stamina).some((event) => event.type === 'buff' && event.source === 'Renewing Stamina'),
     true
   );
 });

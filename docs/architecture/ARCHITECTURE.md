@@ -248,13 +248,19 @@ Native helpers name the execution phase in which behavior runs:
 
 - scheduler: `skillAvailability()` and `afterSkillEffects()`;
 - resolver: `onResolvedDamage()`, `onResolvedControl()`, and `onResolvedBlind()`;
-- resolved critical procs: `onResolvedPlayerCriticalHit()` consumes the canonical hit result in stochastic mode and
-  accumulates expected probability in deterministic mode; and
+- resolved critical procs: `onResolvedCriticalHit()` declares eligibility, state access, materialization, ICD policy,
+  attribution, and the profession-owned effect; and
 - skill handlers: `augmentSkill()` observes or decorates declarative effects, while `replaceSkill()` owns a skill whose
   declarative effects are empty.
 
 All ordered helpers require stable IDs and accept explicit order values. They compile into existing scheduler cast
 rules/hooks or resolver reactions; they do not merge the scheduling and resolution phases.
+
+`advanceCriticalProc()` is the phase-neutral critical-proc kernel. Resolver declarations use it through
+`onResolvedCriticalHit()`, while scheduler-owned mechanics use `advanceScheduledCriticalProc()`. Both paths consume the
+same canonical sampled hit in stochastic mode and share deterministic threshold progress, weighted applications,
+secondary proc rolls, floating-point tolerance, and internal-cooldown behavior. The deprecated
+`onResolvedPlayerCriticalHit()` remains a compatibility adapter while older declarations migrate.
 
 The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw `mechanics.castRules`,
 `mechanics.schedulerHooks`, and `mechanics.resolverHooks` remain escape hatches for typed tasks, custom event types,

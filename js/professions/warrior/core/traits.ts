@@ -11,6 +11,7 @@ import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timi
  */
 import type { ScheduledTask } from '../../../platform/engine/types.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { gainWarriorEndurance } from './resources.js';
 import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '../resources.js';
@@ -430,63 +431,33 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
 // an integer count while preserving fractional progress.
 function armsCriticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
   const hits = Math.max(1, Number(event.hits || 1));
-  if (context.config.randomness?.mode === 'stochastic') {
-    if (typeof event.didCrit !== 'boolean') {
-      throw new Error(
-        `Missing sampled critical outcome for Warrior event ${String(event.skillName || event.name || event.sourceId)}.`
-      );
-    }
-
-    return event.didCrit ? hits : 0;
-  }
-
   const state = professionCoreState(context);
-  const criticalPolicy = context.schedulerPolicy as unknown as {
-    critical?: (
-      schedulerContext: WarriorSchedulerContext,
-      simulationEvent: WarriorSimulationEvent
-    ) => { chance?: number };
-  };
-  const chance = Number(criticalPolicy.critical?.(context, event)?.chance || 0);
-  state.armsCriticalProgress += chance * hits;
-  const count = Math.floor(state.armsCriticalProgress + 1e-9);
-  state.armsCriticalProgress -= count;
-  return count;
+  const tracker = { progress: state.armsCriticalProgress, readyAt: 0 };
+  const application = advanceScheduledCriticalProc(context, event, { id: 'warrior.core.arms-critical' }, tracker, hits);
+  state.armsCriticalProgress = tracker.progress;
+  return application?.quantity || 0;
 }
 
 // Apply Bloodlust's per-critical proc chance in stochastic mode or accumulate its
 // expected value independently in deterministic mode.
-function bloodlustProcCount(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-  criticals: number
-): number {
+function bloodlustProcCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
   const procChance = Number(warriorBalanceProfile(context, PROFILE.bloodlust)?.procChance || 0.33);
-  if (context.config.randomness?.mode === 'stochastic') {
-    const policy = context.schedulerPolicy as unknown as {
-      rollRandom(probability: number, stream?: string): boolean;
-    };
-    let count = 0;
-    for (let critical = 0; critical < criticals; critical += 1) {
-      if (policy.rollRandom(procChance, 'warrior.bloodlust')) count += 1;
-    }
-
-    return count;
-  }
-
   const state = professionCoreState(context);
-  const policy = context.schedulerPolicy as unknown as {
-    critical?: (
-      schedulerContext: WarriorSchedulerContext,
-      simulationEvent: WarriorSimulationEvent
-    ) => { chance?: number };
-  };
   const hits = Math.max(1, Number(event.hits || 1));
-  const criticalChance = Number(policy.critical?.(context, event)?.chance || 0);
-  state.bloodlustProgress += criticalChance * hits * procChance;
-  const count = Math.floor(state.bloodlustProgress + 1e-9);
-  state.bloodlustProgress -= count;
-  return count;
+  const tracker = { progress: state.bloodlustProgress, readyAt: 0 };
+  const application = advanceScheduledCriticalProc(
+    context,
+    event,
+    {
+      id: 'warrior.core.bloodlust',
+      chanceOnCriticalHit: procChance,
+      randomStream: 'warrior.bloodlust'
+    },
+    tracker,
+    hits
+  );
+  state.bloodlustProgress = tracker.progress;
+  return application?.quantity || 0;
 }
 
 // Materialize sampled or expected critical outcomes into Keen Strike, Bloodlust,
@@ -503,7 +474,7 @@ function applyArmsCriticalTraits(
 
   const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.BLOODLUST)) {
-    const bleeding = bloodlustProcCount(context, event, criticals);
+    const bleeding = bloodlustProcCount(context, event);
     if (bleeding > 0) {
       const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.bloodlust), 'condition');
       context.emitDerived(event, {

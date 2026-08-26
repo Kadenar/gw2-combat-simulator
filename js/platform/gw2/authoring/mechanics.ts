@@ -1,7 +1,12 @@
-import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../engine/skills/handlers.js';
 import type { AvailabilityResult, SkillHandlerStrategy, SkillId } from '../../engine/types.js';
 import type { NativeResolvedDamageDetails, NativeResolvedReaction, NativeSchedulerMechanic } from './module-types.js';
+import {
+  advanceCriticalProc,
+  criticalOpportunity,
+  type CriticalProcApplication,
+  type CriticalProcMaterialization
+} from '../combat/critical-procs.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime, Gw2ResolverStage } from '../resolver/types.js';
 
 type OrderedEscapeHandler = Readonly<{
@@ -172,7 +177,8 @@ export interface ResolvedCriticalHitOptions<
   readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'unknown')[];
   readonly sourceIds?: readonly SkillId[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
-  readonly expectedProgress: {
+  readonly materialization?: CriticalProcMaterialization;
+  readonly expectedProgress?: {
     readonly get: (context: TContext) => number;
     readonly set: (context: TContext, value: number) => void;
   };
@@ -181,20 +187,27 @@ export interface ResolvedCriticalHitOptions<
     readonly readyAt: (context: TContext) => number;
     readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
+  readonly progressDuringCooldown?: 'ignore' | 'accumulate';
   readonly randomStream?: string;
   readonly attribution: {
     readonly kind: 'trait' | 'skill' | 'effect';
     readonly id: SkillId;
   };
-  readonly handler: (context: TContext, event: TEvent, details: TDetails) => object | void;
+  readonly handler: (
+    context: TContext,
+    event: TEvent,
+    details: TDetails,
+    application: CriticalProcApplication
+  ) => object | void;
 }
 
 /**
  * Runs a resolved critical-hit reaction without rerolling the canonical hit.
- * Deterministic mode accumulates expected critical probability; stochastic
- * mode consumes `didCrit` and a stable secondary random stream.
+ * The phase-neutral critical-proc kernel owns expected progress, stochastic
+ * secondary rolls, and ICD behavior; the declaration owns eligibility and the
+ * profession-specific effect.
  */
-export function onResolvedPlayerCriticalHit<
+export function onResolvedCriticalHit<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
@@ -202,35 +215,28 @@ export function onResolvedPlayerCriticalHit<
   options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>
 ): NativeResolvedReaction<TContext, TEvent, TDetails> & {
   readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
+  readonly requiresCriticalFacts: true;
 } {
   const actorTypes = new Set(options.actorTypes || ['player']);
   const sourceIds = options.sourceIds == null ? null : new Set(options.sourceIds.map(String));
-  const chanceFor = (context: TContext, event: TEvent): number => {
-    const raw =
-      typeof options.chanceOnCriticalHit === 'function'
-        ? options.chanceOnCriticalHit(context, event)
-        : (options.chanceOnCriticalHit ?? 1);
-    const chance = Number(raw);
-    if (!Number.isFinite(chance) || chance < 0 || chance > 1) {
-      throw new TypeError(`${options.id} critical proc chance must be 0..1.`);
-    }
-
-    return chance;
-  };
 
   const reaction = onResolvedDamage<TContext, TEvent, TDetails>({
     id: options.id,
     order: options.order,
     handler(context, event, details = {} as TDetails) {
+      // Reject ineligible actors, sources, and profession predicates before
+      // reading progress or consuming a secondary random stream.
       if (!actorTypes.has(event.actorType || 'unknown')) return;
       if (sourceIds && !sourceIds.has(String(event.sourceId ?? ''))) return;
       if (options.when?.(context, event, details) === false) return;
-      const chanceOnCritical = chanceFor(context, event);
-      if (!(chanceOnCritical > 0)) return;
-      const readyAt = options.internalCooldown?.readyAt(context) ?? -Infinity;
-      // Hits while an effect is on ICD are ineligible. They must not roll in
-      // stochastic mode or bank expected proc progress in deterministic mode.
-      if (!isInternalCooldownReady(event.at, readyAt)) return;
+
+      // Resolve patched proc and ICD values at the hit timestamp so balance
+      // profiles and runtime predicates remain profession-owned.
+      const chanceOnCriticalHit = Number(
+        typeof options.chanceOnCriticalHit === 'function'
+          ? options.chanceOnCriticalHit(context, event)
+          : (options.chanceOnCriticalHit ?? 1)
+      );
       const internalCooldownDuration = options.internalCooldown
         ? Number(
             typeof options.internalCooldown.duration === 'function'
@@ -238,37 +244,78 @@ export function onResolvedPlayerCriticalHit<
               : options.internalCooldown.duration
           )
         : 0;
-      if (context.random.stochastic) {
-        // Use the already-resolved didCrit flag instead of re-rolling the crit.
-        if (details.hitContext?.critical?.didCrit !== true) return;
-        if (chanceOnCritical < 1 && !context.random.roll(chanceOnCritical, options.randomStream || options.id)) return;
-        options.handler(context, event, details);
-        if (options.internalCooldown) {
-          options.internalCooldown.setReadyAt(context, event.at + internalCooldownDuration);
-        }
-
-        return;
-      }
-
-      // Deterministic mode: accumulate critChance × procChance per hit.
-      // The while loop fires multiple times if progress is very high (e.g. 2.5 → 2 procs),
-      // but the break after setting the ICD caps it at one proc per event — the ICD
-      // then blocks further accumulation until it expires.
       const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
-      let progress = options.expectedProgress.get(context) + criticalChance * chanceOnCritical;
-      options.expectedProgress.set(context, progress);
-      while (progress >= 1 && isInternalCooldownReady(event.at, readyAt)) {
-        progress -= 1;
-        options.expectedProgress.set(context, progress);
-        options.handler(context, event, details);
-        if (options.internalCooldown) {
-          options.internalCooldown.setReadyAt(context, event.at + internalCooldownDuration);
-          break;
-        }
+
+      // Adapt existing profession-owned scalar fields to the kernel's neutral
+      // tracker shape; weighted reactions intentionally need no progress state.
+      const state =
+        options.expectedProgress || options.internalCooldown
+          ? {
+              progress: options.expectedProgress?.get(context) ?? 0,
+              readyAt: options.internalCooldown?.readyAt(context) ?? 0
+            }
+          : undefined;
+
+      // Stochastic mode consumes the canonical didCrit fact instead of
+      // rerolling the hit. Deterministic mode advances critChance × procChance
+      // according to the declaration's threshold or weighted policy.
+      const application = advanceCriticalProc(
+        criticalOpportunity(criticalChance, details.hitContext?.critical?.didCrit ?? undefined),
+        {
+          id: options.id,
+          at: event.at,
+          stochastic: context.random.stochastic,
+          chanceOnCriticalHit,
+          materialization: options.materialization,
+          ...(options.internalCooldown ? { internalCooldown: internalCooldownDuration } : {}),
+          progressDuringCooldown: options.progressDuringCooldown,
+          randomStream: options.randomStream,
+          roll: (chance, stream) => context.random.roll(chance, stream)
+        },
+        state
+      );
+
+      // Write progress and ICD changes back even when no proc fired: an
+      // eligible deterministic hit may have advanced fractional progress, and
+      // explicit legacy declarations may accumulate it while cooling down.
+      if (state) {
+        options.expectedProgress?.set(context, state.progress);
+        options.internalCooldown?.setReadyAt(context, state.readyAt);
       }
+
+      // The shared layer decides only whether and how much the proc applied;
+      // the declaration remains responsible for the actual trait effect.
+      if (application) options.handler(context, event, details, application);
     }
   });
-  return Object.freeze({ ...reaction, attribution: options.attribution });
+  return Object.freeze({ ...reaction, attribution: options.attribution, requiresCriticalFacts: true as const });
+}
+
+/** @deprecated Use `onResolvedCriticalHit`; retained while profession declarations migrate. */
+export function onResolvedPlayerCriticalHit<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends NativeResolvedDamageDetails
+>(
+  options: Omit<ResolvedCriticalHitOptions<TContext, TEvent, TDetails>, 'handler' | 'materialization'> & {
+    readonly handler: (context: TContext, event: TEvent, details: TDetails) => object | void;
+  }
+): NativeResolvedReaction<TContext, TEvent, TDetails> & {
+  readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
+  readonly requiresCriticalFacts: true;
+} {
+  return onResolvedCriticalHit({
+    ...options,
+    materialization: 'threshold',
+    handler(context, event, details, application) {
+      let result: object | void = undefined;
+      for (let proc = 0; proc < application.quantity; proc += 1) {
+        result = options.handler(context, event, details);
+      }
+
+      return result;
+    }
+  });
 }
 
 function schedulerMechanic(

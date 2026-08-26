@@ -60,6 +60,14 @@ function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maxim
     : maximum;
 }
 
+function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
+  registerNecromancerBoonConcentrationModifier(context, 'scourge.sand-sage', (runtime, concentration, at) => {
+    const activeShade = scourgeState.from(runtime).shades.some((expiresAt: number) => expiresAt > at);
+    if (!activeShade || !hasNecromancerTrait(runtime, TRAIT.SAND_SAGE)) return concentration;
+    return concentration + Number(necromancerBalanceProfile(runtime, PROFILE.sandSage)?.attributeBonus || 225);
+  });
+}
+
 /** Selects the one Scourge F5 variant enabled by Herald of Sorrow for this command attempt. */
 function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityResult {
   // Herald of Sorrow owns the mutually exclusive F5 replacement at the Scourge boundary.
@@ -77,14 +85,6 @@ function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: Nec
       : CAST_READY;
   }
   return CAST_READY;
-}
-
-function initializeScourgeRuntime(context: NecromancerSchedulerContext): void {
-  registerNecromancerBoonConcentrationModifier(context, 'scourge.sand-sage', (runtime, concentration, at) => {
-    const activeShade = scourgeState.from(runtime).shades.some((expiresAt: number) => expiresAt > at);
-    if (!activeShade || !hasNecromancerTrait(runtime, TRAIT.SAND_SAGE)) return concentration;
-    return concentration + Number(necromancerBalanceProfile(runtime, PROFILE.sandSage)?.attributeBonus || 225);
-  });
 }
 
 // Observe scheduled shade and barrier events to update Scourge trait state only

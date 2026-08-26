@@ -1,4 +1,5 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import type { ScheduledTask } from '../../../../platform/engine/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
@@ -236,23 +237,11 @@ function emitFireAura(
 }
 
 function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
-  if (context.config.randomness?.mode === 'stochastic') {
-    return event.didCrit === true ? 1 : 0;
-  }
-
-  const criticalPolicy = context.schedulerPolicy as unknown as {
-    critical?: (
-      schedulerContext: WarriorSchedulerContext,
-      simulationEvent: WarriorSimulationEvent
-    ) => { chance?: number };
-  };
   const state = berserkerState.from(context);
-  // Accumulate fractional crit probability so expected crits fire at the
-  // statistically correct rate in deterministic mode.
-  state.kingOfFiresCriticalProgress += Number(criticalPolicy.critical?.(context, event)?.chance || 0);
-  const count = Math.floor(state.kingOfFiresCriticalProgress + 1e-9);
-  state.kingOfFiresCriticalProgress -= count;
-  return count;
+  const tracker = { progress: state.kingOfFiresCriticalProgress, readyAt: 0 };
+  const application = advanceScheduledCriticalProc(context, event, { id: 'warrior.berserker.king-of-fires' }, tracker);
+  state.kingOfFiresCriticalProgress = tracker.progress;
+  return application?.quantity || 0;
 }
 
 // Route canonical critical, fire-aura, and Burning events through Berserker trait

@@ -1,5 +1,9 @@
 import { defineNativeModule } from '../../../platform/gw2/authoring/profession.js';
-import { onConditionApplied, onResolvedDamage } from '../../../platform/gw2/authoring/mechanics.js';
+import {
+  onConditionApplied,
+  onResolvedCriticalHit,
+  onResolvedDamage
+} from '../../../platform/gw2/authoring/mechanics.js';
 import { createEngineerModuleData } from '../catalog-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { engineerCoreSkillHandlers } from './handlers.js';
@@ -42,7 +46,8 @@ export const engineerCoreModule = defineNativeModule({
       snapshot: (context: EngineerSchedulerContext) => snapshotEngineerState(context.state.profession)
     },
     reactions: [
-      // onResolvedDamage / onConditionApplied adapt the handler signatures to platform reaction hooks
+      // Authoring helpers adapt profession declarations to platform reaction hooks.
+      ...engineerCoreResolverEventReactions.critical.map(onResolvedCriticalHit),
       ...engineerCoreResolverEventReactions.damage.map(onResolvedDamage),
       ...engineerCoreResolverEventReactions.condition.map(onConditionApplied)
     ],

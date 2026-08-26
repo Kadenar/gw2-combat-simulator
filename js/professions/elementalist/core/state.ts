@@ -48,6 +48,7 @@ export interface ElementalistCoreState {
   freshAirCandidates: Array<{
     at: number;
     criticalChance: number;
+    eventOrder: number;
     sourceId: string | number;
     sourceSkill: string;
   }>;

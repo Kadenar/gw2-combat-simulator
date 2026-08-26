@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
+import { advanceCriticalProc, criticalOpportunity } from '../../../platform/gw2/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerState, SimulationEvent } from '../../../platform/engine/types.js';
@@ -12,8 +13,6 @@ import type {
   MesmerRuntime,
   MesmerRuntimeState
 } from '../types.js';
-
-const PROC_PROGRESS_TOLERANCE = 1e-9;
 
 interface ExpectedProcTrackerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -43,15 +42,6 @@ export function createExpectedProcTracker({
   const profileEffect = (id: number, type: string, index = 0) =>
     balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[index];
   const stochastic = config.randomness?.mode === 'stochastic';
-  const sampledCritical = (event: SimulationEvent): boolean => {
-    if (typeof event.didCrit !== 'boolean') {
-      throw new Error(
-        `Missing sampled critical outcome for Mesmer event ${String(event.skillName || event.name || event.sourceId)}.`
-      );
-    }
-
-    return event.didCrit;
-  };
 
   // Turn sampled or accumulated expected criticals into one ICD-bound Master
   // Fencer activation, then emit its distinct self and allied Fury applications.
@@ -67,15 +57,22 @@ export function createExpectedProcTracker({
     }
 
     const core = professionCoreState(state);
-    const criticals = stochastic
-      ? sampledCritical(event)
-        ? 1
-        : 0
-      : Math.floor((core.masterFencerProgress += chance) + PROC_PROGRESS_TOLERANCE);
-    if (!stochastic && criticals > 0) core.masterFencerProgress -= criticals;
+    const tracker = { progress: core.masterFencerProgress, readyAt: 0 };
+    const application = advanceCriticalProc(
+      criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
+      {
+        id: 'mesmer.core.master-fencer',
+        at: event.at,
+        stochastic
+      },
+      tracker
+    );
+    core.masterFencerProgress = tracker.progress;
 
     const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
-    if (criticals <= 0 || !isInternalCooldownReady(event.at, readyAt)) return;
+    // Master Fencer historically consumes expected threshold crossings during
+    // its ICD, so cooldown gating remains after the shared progress advance.
+    if (!application || !isInternalCooldownReady(event.at, readyAt)) return;
 
     const profile = balanceProfile(TRAIT.MASTER_FENCER);
     core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown || 8);
@@ -116,16 +113,20 @@ export function createExpectedProcTracker({
     materializeMasterFencer(event, chance);
     if (!traits.has(TRAIT.SHARPER_IMAGES) || (event.source !== 'Clone' && event.source !== 'Phantasm')) return;
 
-    let procCount = 0;
-    if (stochastic) {
-      procCount = sampledCritical(event) ? 1 : 0;
-    } else {
-      professionCoreState(state).sharperImagesProgress += chance;
-      procCount = Math.floor(professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE);
-    }
-
-    if (procCount <= 0) return;
-    if (!stochastic) professionCoreState(state).sharperImagesProgress -= procCount;
+    const core = professionCoreState(state);
+    const tracker = { progress: core.sharperImagesProgress, readyAt: 0 };
+    const application = advanceCriticalProc(
+      criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
+      {
+        id: 'mesmer.core.sharper-images',
+        at: event.at,
+        stochastic
+      },
+      tracker
+    );
+    core.sharperImagesProgress = tracker.progress;
+    if (!application) return;
+    const procCount = application.quantity;
 
     emitEvent(event, {
       type: 'condition',

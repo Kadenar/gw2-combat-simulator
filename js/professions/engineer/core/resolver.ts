@@ -1,6 +1,11 @@
 import { handleConduitSurge, handleElectricArtillery, handleLightningRodPulse } from './events.js';
 import { handleEngineerState } from '../state.js';
-import { handleEngineerDodge, reactToEngineerCondition, reactToEngineerDamage } from './traits.js';
+import {
+  engineerCoreCriticalHitDefinitions,
+  handleEngineerDodge,
+  reactToEngineerCondition,
+  reactToEngineerDamage
+} from './traits.js';
 
 export {
   activeBoonStacks,
@@ -23,6 +28,7 @@ export const engineerCoreResolverEventHandlers = Object.freeze({
 
 // reactions fire after every resolved damage or applied condition, regardless of event type
 export const engineerCoreResolverEventReactions = Object.freeze({
+  critical: engineerCoreCriticalHitDefinitions,
   damage: Object.freeze([
     {
       id: 'engineer.core.damage',

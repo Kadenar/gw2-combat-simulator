@@ -1,5 +1,5 @@
-import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
+import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from '../../core/profiles.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -54,13 +54,13 @@ export function handleDeadlyBladesCriticalTask(
   const canonicalEvent = context.eventByOrder(Number(payloadEvent.__order));
   const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
   const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'condition');
-  const vulnerabilityStacks =
-    context.config.randomness?.mode === 'stochastic'
-      ? event.didCrit
-        ? 1
-        : 0
-      : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
-  if (vulnerabilityStacks <= EPSILON) return;
+  // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
+  // Mind, but remains a separate trait-owned condition application.
+  const application = advanceScheduledCriticalProc(context, event, {
+    id: 'mesmer.virtuoso.deadly-blades',
+    materialization: 'weighted'
+  });
+  if (!application) return;
 
   context.emitDerived(event, {
     type: 'condition',
@@ -68,7 +68,7 @@ export function handleDeadlyBladesCriticalTask(
     name: 'Deadly Blades — Vulnerability',
     skillName: event.skillName,
     condition: 'Vulnerability',
-    stacks: vulnerabilityStacks * Number(deadlyBlades?.stacks || 1),
+    stacks: application.quantity * Number(deadlyBlades?.stacks || 1),
     duration: Number(deadlyBlades?.duration || 5),
     source: 'Trait',
     sourceId: TRAIT.DEADLY_BLADES,

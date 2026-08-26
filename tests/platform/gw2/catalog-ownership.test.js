@@ -5,7 +5,11 @@ import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner
 } from '../../../js/platform/gw2/authoring/catalog.js';
-import { onResolvedDamage, onResolvedPlayerCriticalHit } from '../../../js/platform/gw2/authoring/mechanics.js';
+import {
+  onResolvedCriticalHit,
+  onResolvedDamage,
+  onResolvedPlayerCriticalHit
+} from '../../../js/platform/gw2/authoring/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/authoring/profession.js';
 
 const replaceHandler = Object.freeze({
@@ -245,4 +249,39 @@ test('critical-hit helper preserves deterministic and stochastic semantics', () 
     }
   );
   assert.equal(state.procs, 2);
+  assert.equal(reaction.requiresCriticalFacts, true);
+});
+
+test('critical-hit declarations automatically request canonical scheduler facts', () => {
+  const core = defineNativeModule({
+    id: 'Core',
+    data: {},
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      reactions: [
+        onResolvedCriticalHit({
+          id: 'fixture.critical-facts',
+          expectedProgress: { get: () => 0, set: () => undefined },
+          attribution: { kind: 'trait', id: 99 },
+          handler: () => undefined
+        })
+      ]
+    }
+  });
+  const runtime = defineNativeProfession({
+    id: 'critical-facts',
+    name: 'Critical Facts',
+    modules: [core]
+  }).resolveRuntime({ specialization: 'Core' });
+  let requests = 0;
+
+  runtime.initialize({
+    schedulerPolicy: {
+      requireCriticalFacts: () => {
+        requests += 1;
+      }
+    }
+  });
+
+  assert.equal(requests, 1);
 });

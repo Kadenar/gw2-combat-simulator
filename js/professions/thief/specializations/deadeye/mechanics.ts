@@ -13,7 +13,7 @@ import type {
 import { deadeyeState } from './state.js';
 import { applyMaleficentSeven } from './traits.js';
 import type { Gw2SchedulerPolicy } from '../../../../platform/gw2/scheduler/types.js';
-import type { SchedulerContext } from '../../../../platform/engine/types.js';
+import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
@@ -89,19 +89,10 @@ export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, eve
 function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
-  let criticalMalice = 0;
-  if (context.config.randomness?.mode === 'stochastic') {
-    criticalMalice = Number(event.didCrit === true);
-  } else {
-    const critical = (context.schedulerPolicy as Gw2SchedulerPolicy).critical(
-      context as unknown as SchedulerContext,
-      event
-    );
-    // Accumulate fractional crit chance and floor to whole malice stacks; epsilon prevents floating-point drift from blocking a threshold crossing
-    state.maliceCriticalProgress += Math.max(0, Math.min(1, Number(critical.chance || 0)));
-    criticalMalice = Math.floor(state.maliceCriticalProgress + context.epsilon);
-    state.maliceCriticalProgress -= criticalMalice;
-  }
+  const tracker = { progress: state.maliceCriticalProgress, readyAt: 0 };
+  const criticalApplication = advanceScheduledCriticalProc(context, event, { id: 'thief.deadeye.malice' }, tracker);
+  state.maliceCriticalProgress = tracker.progress;
+  const criticalMalice = criticalApplication?.quantity || 0;
 
   state.malice = Math.min(
     state.maximumMalice,
