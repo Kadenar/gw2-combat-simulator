@@ -1,5 +1,6 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { targetConditionCount } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { CAST_READY } from '../../../../platform/engine/skills/availability.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -7,7 +8,6 @@ import {
   cloneNecromancerAttributes,
   necromancerEventSkill,
   necromancerRuntimeSpecializationState,
-  necromancerTargetConditionCount,
   necromancerTargetControlled
 } from '../../core/rules.js';
 import type { AvailabilityResult, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
@@ -67,7 +67,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     amount: 0.05,
     when: (context) =>
       hasTrait(context, TRAIT.LINGERING_SPIRITS) &&
-      Boolean(necromancerRuntimeSpecializationState(context).activeSpirits?.anguish)
+      Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
   },
   {
     id: 'necromancer.anguish-conditional-damage',
@@ -79,7 +79,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       controlledBonus: 0.2
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      necromancerTargetConditionCount(context) * parameters.damagePerCondition +
+      targetConditionCount(context) * parameters.damagePerCondition +
       (necromancerTargetControlled(context) ? parameters.controlledBonus : 0),
     // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
     when: (context) => Boolean(context.event?.anguishConditionalDamage)

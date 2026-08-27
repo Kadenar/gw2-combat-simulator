@@ -1,4 +1,4 @@
-import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
@@ -18,14 +18,7 @@ import {
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from './profiles.js';
 import type { SkillId } from '../../../platform/engine/types.js';
-import type {
-  ThiefCastContext,
-  ThiefPrecastContext,
-  ThiefScheduledTask,
-  ThiefSchedulerContext,
-  ThiefSimulationEvent,
-  ThiefSkill
-} from '../types.js';
+import type { ThiefCastContext, ThiefPrecastContext, ThiefSimulationEvent, ThiefSkill } from '../types.js';
 
 const SPEAR_LEAD_SKILLS = new Set<number>([ID.MANTIS_STING, ID.UNSUSPECTING_STRIKE]);
 const SPEAR_FOLLOW_UP_SKILLS = new Set<number>([ID.ENTANGLING_ASP, ID.VAMPIRIC_SLASH]);
@@ -36,10 +29,6 @@ const SPEAR_CHAIN_STAGE_BY_SKILL = new Map<number, number>([
   ...[...SPEAR_FOLLOW_UP_SKILLS].map((skillId) => [skillId, 1] as const),
   ...[...SPEAR_FINISHER_SKILLS].map((skillId) => [skillId, 2] as const)
 ]);
-
-const THOUSAND_NEEDLES_PULSES = 5;
-const CALTROPS_PULSES = 10;
-const CALTROPS_CRIPPLE_PULSES = 5;
 
 export function spearChainStageForSkill(skillId: SkillId): number | null {
   return SPEAR_CHAIN_STAGE_BY_SKILL.get(Number(skillId)) ?? null;
@@ -207,143 +196,9 @@ export function prepareThousandNeedles(context: ThiefCastContext, skill: ThiefSk
 }
 
 export function activateThousandNeedles(context: ThiefCastContext, _skill: ThiefSkill): void {
+  // Complete the prepared-skill transition; skills.ts owns the declarative pulse timeline.
   const state = professionCoreState(context);
   state.thousandNeedlesPrepared = false;
   state.thousandNeedlesArmedAt = 0;
-  state.thousandNeedlesGeneration += 1;
   emitStateSnapshot(context, 'thief', context.start, 'thousand-needles', snapshotThiefState(context.state.profession));
-}
-
-// Emit one Thousand Needles strike and its condition package, adding the opening
-// immobilize once before scheduling the next pulse in the fixed sequence.
-export function handleThousandNeedlesPulse(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<{
-    readonly pulse: number;
-    readonly skillId: SkillId;
-    readonly generation: number;
-    readonly activationId?: string;
-  }>
-): void {
-  const pulse = Number(task.payload.pulse || 0);
-  const activationId = task.payload.activationId;
-  emitSkillDamage(context, {
-    at: task.at,
-    source: 'thief',
-    sourceId: ID.THOUSAND_NEEDLES,
-    actorType: 'player',
-    skillId: ID.THOUSAND_NEEDLES,
-    skillName: 'Thousand Needles',
-    name: pulse === 0 ? 'Thousand Needles — Initial Strike' : 'Thousand Needles — Pulse',
-    coefficient: pulse === 0 ? 0.5 : 0.2,
-    hits: 1,
-    ...(activationId ? { activationId } : {})
-  });
-  if (pulse === 0) {
-    emitSkillCondition(context, {
-      at: task.at,
-      source: 'thief',
-      sourceId: ID.THOUSAND_NEEDLES,
-      actorType: 'player',
-      skillId: ID.THOUSAND_NEEDLES,
-      skillName: 'Thousand Needles',
-      condition: 'Immobilized',
-      stacks: 1,
-      duration: 3,
-      activationId
-    });
-  }
-
-  for (const [condition, stacks, duration] of [
-    ['Poisoned', 1, 8],
-    ['Bleeding', 2, 5],
-    ['Crippled', 1, 2]
-  ] as const) {
-    emitSkillCondition(context, {
-      at: task.at,
-      source: 'thief',
-      sourceId: ID.THOUSAND_NEEDLES,
-      actorType: 'player',
-      skillId: ID.THOUSAND_NEEDLES,
-      skillName: 'Thousand Needles',
-      condition,
-      stacks,
-      duration,
-      activationId
-    });
-  }
-
-  if (pulse + 1 < THOUSAND_NEEDLES_PULSES) {
-    context.tasks.schedule({
-      ...task,
-      at: task.at + 1,
-      payload: {
-        ...task.payload,
-        pulse: pulse + 1
-      }
-    });
-  }
-}
-
-export function activateCaltrops(context: ThiefCastContext, skill: ThiefSkill): void {
-  context.tasks.schedule({
-    type: 'thief.caltrops-pulse',
-    at: context.effectiveEnd,
-    ownerId: `thief.caltrops:${context.reservationId}`,
-    payload: {
-      pulse: 0,
-      skillId: skill.id
-    }
-  });
-}
-
-// Emit one Caltrops pulse and continue the fixed sequence while preserving its
-// activation identity and scheduled cadence.
-export function handleCaltropsPulse(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<{
-    readonly pulse: number;
-    readonly skillId: SkillId;
-    readonly activationId?: string;
-  }>
-): void {
-  const pulse = Number(task.payload.pulse || 0);
-  const activationId = task.payload.activationId;
-  emitSkillCondition(context, {
-    at: task.at,
-    source: 'thief',
-    sourceId: ID.CALTROPS,
-    actorType: 'player',
-    skillId: ID.CALTROPS,
-    skillName: 'Caltrops',
-    condition: 'Bleeding',
-    stacks: 1,
-    duration: 10,
-    activationId
-  });
-  if (pulse < CALTROPS_CRIPPLE_PULSES) {
-    emitSkillCondition(context, {
-      at: task.at,
-      source: 'thief',
-      sourceId: ID.CALTROPS,
-      actorType: 'player',
-      skillId: ID.CALTROPS,
-      skillName: 'Caltrops',
-      condition: 'Crippled',
-      stacks: 1,
-      duration: 2,
-      activationId
-    });
-  }
-
-  if (pulse + 1 < CALTROPS_PULSES) {
-    context.tasks.schedule({
-      ...task,
-      at: task.at + 1,
-      payload: {
-        ...task.payload,
-        pulse: pulse + 1
-      }
-    });
-  }
 }

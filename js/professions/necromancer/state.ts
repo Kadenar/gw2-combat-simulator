@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import { syncNecromancerResources } from './core/state.js';
 import { syncHarbingerState } from './specializations/harbinger/state.js';
 import type { NecromancerEndStateProjectionOptions, NecromancerState } from './types.js';
@@ -53,11 +53,10 @@ export function projectNecromancerEndState({
   resolverState
 }: NecromancerEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotNecromancerState(schedulerState.profession);
-  const projected = Object.fromEntries(
-    NECROMANCER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
+  const projected = projectPublicProfessionState(
+    state,
+    NECROMANCER_PUBLIC_END_STATE_KEYS,
+    NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS
   ) as Record<string, unknown> & {
     lifeForce: number;
     maximumLifeForce: number;

@@ -1,4 +1,8 @@
-import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession/state.js';
+import {
+  flattenProfessionState,
+  professionCoreState,
+  projectPublicProfessionState
+} from '../../platform/engine/profession/state.js';
 import { REVENANT_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {
   CONDUIT_PUBLIC_END_STATE_KEYS,
@@ -49,12 +53,7 @@ export function projectRevenantEndState({
   schedulerState: SchedulerState<RevenantRuntimeState>;
 }): Partial<RevenantState> {
   const state = snapshotRevenantState(schedulerState.profession);
-  return Object.fromEntries(
-    REVENANT_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(Object.hasOwn(state, key) ? state[key] : REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
+  return projectPublicProfessionState(state, REVENANT_PUBLIC_END_STATE_KEYS, REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }
 
 /** Routes flat state snapshots back to their owning runtime slice without overwriting resolver-only proc clocks. */

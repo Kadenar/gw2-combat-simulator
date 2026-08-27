@@ -1,4 +1,8 @@
-import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession/state.js';
+import {
+  flattenProfessionState,
+  professionCoreState,
+  projectPublicProfessionState
+} from '../../platform/engine/profession/state.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {
@@ -42,12 +46,7 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> 
 /** Projects the family aggregate while preserving the existing public shape. */
 export function projectEngineerEndState({ schedulerState }: EngineerEndStateProjectionOptions): SchedulerRecord {
   const state = snapshotEngineerState(schedulerState.profession);
-  return Object.fromEntries(
-    ENGINEER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
+  return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }
 
 /** Routes a scheduler snapshot back to the Core and active-specialization owners. */

@@ -1,5 +1,8 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import {
+  professionCoreState,
+  readProfessionSpecializationState
+} from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
@@ -28,36 +31,20 @@ export const spellbreakerSchedulerHooks = Object.freeze({
 // Cast through an anonymous type rather than importing SpellbreakerState
 // directly to avoid a circular dependency between rules and state modules.
 function insightStacks(context: Gw2ModifierContext): number {
-  const profession = (
-    context.runtime as
-      | {
-          profession?: {
-            specialization?: {
-              kind?: string;
-              state?: { attackerInsightExpiries?: number[] };
-            };
-          };
-        }
-      | undefined
-  )?.profession;
-  if (profession?.specialization?.kind !== 'Spellbreaker') return 0;
-  return (profession.specialization.state?.attackerInsightExpiries || []).filter(
-    (expiresAt) => expiresAt > context.time
-  ).length;
+  const state = readProfessionSpecializationState<{ attackerInsightExpiries?: number[] }>(
+    context.runtime?.profession,
+    'Spellbreaker'
+  );
+  return (state?.attackerInsightExpiries || []).filter((expiresAt) => expiresAt > context.time).length;
 }
 
 function spellbreakerStateAt(context: Gw2ModifierContext): {
   magebaneTetherUntil?: number;
 } {
-  const profession = context.runtime?.profession as
-    | {
-        specialization?: {
-          kind?: string;
-          state?: { magebaneTetherUntil?: number };
-        };
-      }
-    | undefined;
-  return profession?.specialization?.kind === 'Spellbreaker' ? profession.specialization.state || {} : {};
+  return (
+    readProfessionSpecializationState<{ magebaneTetherUntil?: number }>(context.runtime?.profession, 'Spellbreaker') ||
+    {}
+  );
 }
 
 function activePrimaryWeapon(context: Gw2ModifierContext): string {

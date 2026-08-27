@@ -1,7 +1,7 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
-import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { professionCoreState, readProfessionCoreState } from '../../../platform/engine/profession/state.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import {
@@ -167,26 +167,17 @@ function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names
 const eventSkill = (context: Gw2ModifierContext): RangerSkill | undefined => gw2EventSkill<RangerSkill>(context);
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
-  const core = (
-    context.runtime as
-      | {
-          profession?: {
-            core?: {
-              playerOpeningStrikeReady?: boolean;
-              petOpeningStrikeReady?: boolean;
-            };
-          };
-        }
-      | undefined
-  )?.profession?.core;
+  const core = readProfessionCoreState<{
+    playerOpeningStrikeReady?: boolean;
+    petOpeningStrikeReady?: boolean;
+  }>(context.runtime?.profession);
   return petEvent(context)
     ? core?.petOpeningStrikeReady === true
     : isGw2PlayerModifierEligibleEvent(context.event) && core?.playerOpeningStrikeReady === true;
 }
 
 function activePetFamily(context: Gw2ModifierContext): string {
-  const activePet = (context.runtime as { profession?: { core?: { activePet?: string } } } | undefined)?.profession
-    ?.core?.activePet;
+  const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
   return rangerPetByName(String(activePet || context.config?.selectedPet || 'Pig')).family;
 }
 

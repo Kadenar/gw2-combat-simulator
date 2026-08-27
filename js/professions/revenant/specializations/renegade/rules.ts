@@ -34,7 +34,7 @@ import type {
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   // Count only applications that have started (at ≤ time) and not yet expired (expiresAt > time)
-  const state = revenantRuntimeSpecializationState(context);
+  const state = revenantRuntimeSpecializationState(context, 'Renegade');
   return Math.min(
     Math.max(1, Number(state.kallasFervorMaximumStacks)),
     (state.kallasFervor || []).filter(

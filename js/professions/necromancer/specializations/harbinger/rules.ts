@@ -181,7 +181,10 @@ function activeBlight(context: Gw2ModifierContext): number {
   const event = context.event as NecromancerSimulationEvent | undefined;
   // Prefer the snapshotted blight from the event so that modifier rules see the value at the moment of impact,
   // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
-  return Math.max(0, Number(event?.necromancerBlight ?? necromancerRuntimeSpecializationState(context).blight ?? 0));
+  return Math.max(
+    0,
+    Number(event?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0)
+  );
 }
 
 function wickedCorruptionCriticalFactor(
@@ -245,7 +248,7 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     // 10% bonus applies only during the 10 s Meltdown window; meltdownUntil is set/cleared in applyCascadingCorruption.
     when: (context) =>
       hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
-      Number(necromancerRuntimeSpecializationState(context).meltdownUntil || 0) > context.time
+      Number(necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
   }
 ]);
 

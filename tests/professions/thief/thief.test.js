@@ -2066,6 +2066,26 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
   assert.deepEqual(packetOffsets(shroud, 'Grasping Shadows'), [1.24]);
   assert.deepEqual(packetOffsets(shroud, 'Eternal Night'), [0.36, 0.68]);
   assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.567]);
+});
+
+test('Thief utility skills materialize their declarative pulse timelines', () => {
+  const pulseOffsets = (result, skillName, type, condition, anchor) => {
+    const step = result.steps.find((entry) => entry.skill === skillName);
+
+    return result.events
+      .filter(
+        (event) =>
+          event.type === type && event.skillName === skillName && (condition == null || event.condition === condition)
+      )
+      .map((event) => Number((event.at - step[anchor] / 1000).toFixed(3)));
+  };
+
+  const caltrops = simulate('Core', ['Caltrops', { name: '__wait', waitMs: 9000 }], {
+    selectedSkills: ['Caltrops']
+  });
+
+  assert.deepEqual(pulseOffsets(caltrops, 'Caltrops', 'condition', 'Bleeding', 'end'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(pulseOffsets(caltrops, 'Caltrops', 'condition', 'Crippled', 'end'), [0, 1, 2, 3, 4]);
 
   const needles = simulate(
     'Specter',
@@ -2081,7 +2101,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
     }
   );
 
-  assert.deepEqual(packetOffsets(needles, 'Thousand Needles'), [0, 1, 2, 3, 4]);
+  assert.deepEqual(pulseOffsets(needles, 'Thousand Needles', 'damage', null, 'start'), [0, 1, 2, 3, 4]);
 });
 
 test('Specter wells preserve one-second pulse intervals and ordered effects', () => {

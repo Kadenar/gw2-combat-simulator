@@ -1,4 +1,8 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
@@ -165,15 +169,10 @@ export function galeshotCastAvailability(context: RangerPrecastContext, skill: R
 }
 
 function galeshotRuntimeState(context: Gw2ModifierContext) {
-  const profession = context.runtime?.profession as
-    | {
-        specialization?: {
-          kind?: string;
-          state?: { windForce?: number; galeForceUntil?: number };
-        };
-      }
-    | undefined;
-  return profession?.specialization?.kind === 'Galeshot' ? profession.specialization.state : undefined;
+  return readProfessionSpecializationState<{ windForce?: number; galeForceUntil?: number }>(
+    context.runtime?.profession,
+    'Galeshot'
+  );
 }
 
 function windForce(context: Gw2ModifierContext): number {
@@ -189,8 +188,11 @@ function galeForceAmount(context: Gw2ModifierContext, parameters: Readonly<Recor
 }
 
 function activePetIsFeathered(context: Gw2ModifierContext): boolean {
-  const runtime = context.runtime as { profession?: { core?: { activePet?: string } } } | undefined;
-  const name = String(runtime?.profession?.core?.activePet || context.config?.selectedPet || '');
+  const name = String(
+    readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
+      context.config?.selectedPet ||
+      ''
+  );
   return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(rangerPetByName(name).family);
 }
 

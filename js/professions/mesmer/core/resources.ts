@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { mesmerNumericResourceState } from '../resource-state.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
   MesmerActivePrimaryWeapon,
@@ -48,14 +49,7 @@ export function createResourceController({
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
   const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
-  const numericResourceState = () => {
-    const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
-    if (typeof active.numericResource !== 'number') {
-      throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
-    }
-
-    return active as { numericResource: number };
-  };
+  const numericResourceState = () => mesmerNumericResourceState(state);
 
   const markCompounding = (at: number, count: number): void => {
     const duration = Number(balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8);

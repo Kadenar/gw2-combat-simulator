@@ -728,7 +728,7 @@ test('Necromancer modules contain complete vertical slices', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of slices) {
-    for (const filename of ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'mechanics.ts', 'rules.ts', 'ui.ts']) {
+    for (const filename of ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']) {
       const url = new URL(`../../js/professions/necromancer/${directory}/${filename}`, import.meta.url);
 
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -1535,7 +1535,11 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
   const modifierRuleOwners = new Map();
 
   for (const [directory, module] of engineerSlices) {
-    const filenames = ['module.ts', 'state.ts', 'skills.ts', 'mechanics.ts', 'rules.ts', 'ui.ts'];
+    const filenames = ['module.ts', 'state.ts', 'skills.ts', 'rules.ts', 'ui.ts'];
+
+    if (['specializations/holosmith', 'specializations/mechanist', 'specializations/amalgam'].includes(directory)) {
+      filenames.push('mechanics.ts');
+    }
 
     if (module.data?.handlers) filenames.push('handlers.ts');
     for (const filename of filenames) {
@@ -1581,7 +1585,7 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
   assert.equal(modifierRuleOwners.get('engineer.force-signet'), 'Mechanist');
   assert.equal(modifierRuleOwners.get('engineer.willing-host'), 'Amalgam');
 
-  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'mechanics.ts', 'rules.ts', 'ui.ts']
+  const coreSources = ['module.ts', 'state.ts', 'skills.ts', 'handlers.ts', 'rules.ts', 'ui.ts']
     .map((filename) => readFileSync(new URL(`../../js/professions/engineer/core/${filename}`, import.meta.url), 'utf8'))
     .join('\n');
 

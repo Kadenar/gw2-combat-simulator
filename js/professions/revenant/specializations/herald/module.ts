@@ -1,7 +1,6 @@
 import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createRevenantModuleData } from '../../catalog-data.js';
 import { heraldSkillHandlers } from './handlers.js';
-import { heraldEventHandlers } from './resolver.js';
 import { heraldAttributeRules, heraldCastRules, heraldSchedulerHooks } from './rules.js';
 import { heraldState } from './state.js';
 import { heraldUi } from './ui.js';
@@ -20,10 +19,7 @@ export const heraldModule = defineNativeModule({
     modifiers: heraldAttributeRules,
     // Herald owns facet activation/consume availability while Core supplies only the shared upkeep resource gate.
     castRules: heraldCastRules,
-    schedulerHooks: heraldSchedulerHooks,
-    resolverHooks: {
-      eventHandlers: heraldEventHandlers
-    }
+    schedulerHooks: heraldSchedulerHooks
   },
   presentation: heraldUi
 });

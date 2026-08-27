@@ -94,7 +94,6 @@ export interface ThiefCoreState {
   spiderVenomGeneration: number;
   thousandNeedlesPrepared: boolean;
   thousandNeedlesArmedAt: number;
-  thousandNeedlesGeneration: number;
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;

@@ -150,9 +150,13 @@ import {
   vulnerabilityStacks
 } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { Gw2Stats } from '../../../platform/gw2/equipment/types.js';
-import type { RevenantConfig, RevenantCoreState, RevenantRuntimeState, RevenantState } from '../types.js';
+import type { RevenantConfig, RevenantCoreState, RevenantState } from '../types.js';
 
 export { snapshotRevenantState } from '../state.js';
 
@@ -163,21 +167,19 @@ export interface RevenantModifierContext extends Gw2ModifierContext {
   };
 }
 
-function revenantRuntimeState(context: RevenantModifierContext): Partial<RevenantState> | RevenantRuntimeState {
-  return (context.runtime?.profession ?? context.state?.profession ?? {}) as
-    Partial<RevenantState> | RevenantRuntimeState;
+function revenantRuntimeState(context: RevenantModifierContext): object | undefined {
+  return context.runtime?.profession ?? context.state?.profession;
 }
 
 export function revenantRuntimeCoreState(context: RevenantModifierContext): Partial<RevenantCoreState> {
-  const state = revenantRuntimeState(context);
-  return 'core' in state && state.core ? state.core : (state as Partial<RevenantCoreState>);
+  return readProfessionCoreState<RevenantCoreState>(revenantRuntimeState(context));
 }
 
-export function revenantRuntimeSpecializationState(context: RevenantModifierContext): Partial<RevenantState> {
-  const state = revenantRuntimeState(context);
-  return 'specialization' in state && state.specialization?.state
-    ? (state.specialization.state as Partial<RevenantState>)
-    : (state as Partial<RevenantState>);
+export function revenantRuntimeSpecializationState(
+  context: RevenantModifierContext,
+  expectedKind: string
+): Partial<RevenantState> {
+  return readProfessionSpecializationState<RevenantState>(revenantRuntimeState(context), expectedKind) || {};
 }
 
 export function revenantTimedBuff(context: RevenantModifierContext, kind: string): boolean {

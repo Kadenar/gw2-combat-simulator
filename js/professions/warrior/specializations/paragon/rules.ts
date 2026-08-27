@@ -1,4 +1,5 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { readProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -54,19 +55,12 @@ function paragonRuntimeState(context: Gw2ModifierContext): {
   motivation?: number;
   activeRefrain?: string;
 } {
-  const specialization = (
-    context.runtime as
-      | {
-          profession?: {
-            specialization?: {
-              kind?: string;
-              state?: { motivation?: number; activeRefrain?: string };
-            };
-          };
-        }
-      | undefined
-  )?.profession?.specialization;
-  return specialization?.kind === 'Paragon' ? specialization.state || {} : {};
+  return (
+    readProfessionSpecializationState<{ motivation?: number; activeRefrain?: string }>(
+      context.runtime?.profession,
+      'Paragon'
+    ) || {}
+  );
 }
 
 function motivation(context: Gw2ModifierContext): number {

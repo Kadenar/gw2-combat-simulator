@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import { replaceBuild } from '../../js/app/build/state/persistence.js';
 import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
-import { custom, strikeTimeline } from '../../js/platform/engine/effects/factories.js';
+import { strikeTimeline } from '../../js/platform/engine/effects/factories.js';
 import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
 import { defineProfession } from '../../js/platform/engine/profession/contract.js';
 import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skills/handlers.js';
@@ -820,15 +820,14 @@ test('resolver profession state changes are chronological and preserve counters'
               timingScale: 'fixed'
             }
           ),
-          custom(
-            'chronology-fixture.state',
-            5000,
-            { active: true, priority: -10 },
-            {
-              timingAnchor: 'castStart',
-              timingScale: 'fixed'
-            }
-          )
+          {
+            type: 'custom',
+            eventType: 'chronology-fixture.state',
+            atMs: 5000,
+            event: { active: true, priority: -10 },
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
         ]
       }
     ]

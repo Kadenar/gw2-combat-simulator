@@ -1,5 +1,6 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
+import { readProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -41,17 +42,20 @@ export function untamedCastAvailability(context: RangerPrecastContext, skill: Ra
   return { ready: true };
 }
 
-// Modifier context does not carry typed profession state, so we navigate the runtime via cast.
+interface UntamedModifierState {
+  readonly rangerUnleashed?: boolean;
+  readonly ferociousSymbiosisPlayerStacks?: number;
+  readonly ferociousSymbiosisPlayerUntil?: number;
+  readonly ferociousSymbiosisPetStacks?: number;
+  readonly ferociousSymbiosisPetUntil?: number;
+}
+
+function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
+  return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};
+}
+
 function rangerUnleashed(context: Gw2ModifierContext): boolean {
-  const profession = context.runtime?.profession as
-    | {
-        specialization?: {
-          kind?: string;
-          state?: { rangerUnleashed?: boolean };
-        };
-      }
-    | undefined;
-  return profession?.specialization?.kind === 'Untamed' && profession.specialization.state?.rangerUnleashed === true;
+  return untamedModifierState(context).rangerUnleashed === true;
 }
 
 export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -86,32 +90,15 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       damagePerStack: 0.05
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => {
-      const state = (
-        context.runtime as
-          | {
-              profession?: {
-                specialization?: {
-                  kind?: string;
-                  state?: {
-                    ferociousSymbiosisPlayerStacks?: number;
-                    ferociousSymbiosisPlayerUntil?: number;
-                    ferociousSymbiosisPetStacks?: number;
-                    ferociousSymbiosisPetUntil?: number;
-                  };
-                };
-              };
-            }
-          | undefined
-      )?.profession?.specialization;
-      if (state?.kind !== 'Untamed') return 1;
+      const state = untamedModifierState(context);
       const pet = context.event?.source === 'ranger-pet';
       // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
       const stacks = pet
-        ? context.time < Number(state.state?.ferociousSymbiosisPetUntil || 0)
-          ? Number(state.state?.ferociousSymbiosisPetStacks || 0)
+        ? context.time < Number(state.ferociousSymbiosisPetUntil || 0)
+          ? Number(state.ferociousSymbiosisPetStacks || 0)
           : 0
-        : context.time < Number(state.state?.ferociousSymbiosisPlayerUntil || 0)
-          ? Number(state.state?.ferociousSymbiosisPlayerStacks || 0)
+        : context.time < Number(state.ferociousSymbiosisPlayerUntil || 0)
+          ? Number(state.ferociousSymbiosisPlayerStacks || 0)
           : 0;
       return parameters.baseFactor + Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack;
     },

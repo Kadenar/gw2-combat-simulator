@@ -10,47 +10,34 @@ import {
   targetHealthFraction
 } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../platform/engine/profession/state.js';
 import { necromancerCastRules, necromancerCoreSkillMechanicHandlers, necromancerSchedulerHooks } from './contract.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE, necromancerBalanceProfile } from './profiles.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type {
   NecromancerCoreState,
-  NecromancerQueryRuntime,
   NecromancerRechargeModifierContext,
-  NecromancerRuntimeState,
   NecromancerSkill,
   NecromancerState
 } from '../types.js';
 
-function queryProfessionState(context: Gw2ModifierContext): Partial<NecromancerState> | NecromancerRuntimeState {
-  return (context.runtime as NecromancerQueryRuntime | null | undefined)?.profession || {};
-}
-
 export function necromancerRuntimeCoreState(context: Gw2ModifierContext): Partial<NecromancerCoreState> {
-  const state = queryProfessionState(context);
-  const runtime = state as Partial<NecromancerRuntimeState>;
-  return runtime.core && typeof runtime.core === 'object' ? runtime.core : (state as Partial<NecromancerCoreState>);
+  return readProfessionCoreState<NecromancerCoreState>(context.runtime?.profession);
 }
 
-export function necromancerRuntimeSpecializationState(context: Gw2ModifierContext): Partial<NecromancerState> {
-  const state = queryProfessionState(context);
-  const runtime = state as Partial<NecromancerRuntimeState>;
-  return runtime.specialization && typeof runtime.specialization === 'object' && runtime.specialization.state
-    ? runtime.specialization.state
-    : (state as Partial<NecromancerState>);
+export function necromancerRuntimeSpecializationState(
+  context: Gw2ModifierContext,
+  expectedKind: string
+): Partial<NecromancerState> {
+  return readProfessionSpecializationState<NecromancerState>(context.runtime?.profession, expectedKind) || {};
 }
 
 export function necromancerEventSkill(context: Gw2ModifierContext): NecromancerSkill | undefined {
   return eventSkill<NecromancerSkill>(context);
-}
-
-export function necromancerTargetConditionCount(context: Gw2ModifierContext): number {
-  return targetConditionCount(context);
-}
-
-export function necromancerTargetHealthFraction(context: Gw2ModifierContext): number {
-  return targetHealthFraction(context);
 }
 
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
@@ -209,8 +196,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     parameters: { criticalChancePerCondition: 0.02 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      necromancerTargetConditionCount(context) * parameters.criticalChancePerCondition,
+    amount: (context, _target, parameters) => targetConditionCount(context) * parameters.criticalChancePerCondition,
     when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK)
   },
   {
@@ -264,7 +250,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     operation: 'multiply',
     factor: 1.2,
     order: 100,
-    when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && necromancerTargetHealthFraction(context) < 0.5
+    when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthFraction(context) < 0.5
   },
   {
     id: 'necromancer.necromantic-corruption',

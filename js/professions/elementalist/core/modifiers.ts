@@ -2,19 +2,14 @@ import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/comb
 import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { targetConditionActive, targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
+import { readProfessionCoreState } from '../../../platform/engine/profession/state.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> {
-  const profession = context.runtime?.profession as
-    | { core?: Partial<ElementalistCoreState> }
-    | Partial<ElementalistCoreState>
-    | undefined;
-  if (!profession) return {};
-  if ('core' in profession) return profession.core || {};
-  return profession as Partial<ElementalistCoreState>;
+  return readProfessionCoreState<ElementalistCoreState>(context.runtime?.profession);
 }
 
 export function elementalistAttunements(context: Gw2ModifierContext): Set<string> {

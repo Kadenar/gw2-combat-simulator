@@ -7,7 +7,10 @@ import type {
   SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import {
+  professionCoreState,
+  readProfessionSpecializationState
+} from '../../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
@@ -61,15 +64,7 @@ function initialize(context: ElementalistSchedulerContext): void {
 }
 
 function catalystModifierState(context: Gw2ModifierContext): CatalystStateLike {
-  const profession = context.runtime?.profession as
-    | {
-        specialization?: {
-          kind?: string;
-          state?: CatalystStateLike;
-        };
-      }
-    | undefined;
-  return profession?.specialization?.kind === 'Catalyst' ? profession.specialization.state || {} : {};
+  return readProfessionSpecializationState<CatalystStateLike>(context.runtime?.profession, 'Catalyst') || {};
 }
 
 interface CatalystStateLike {

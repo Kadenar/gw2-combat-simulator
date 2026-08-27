@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import { ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import {
@@ -33,11 +33,10 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Elementalist
 export function projectElementalistEndState({
   schedulerState
 }: ElementalistEndStateProjectionOptions): SchedulerRecord {
-  const state = flattenProfessionState(schedulerState.profession) as unknown as ElementalistState & SchedulerRecord;
-  return Object.fromEntries(
-    ELEMENTALIST_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(Object.hasOwn(state, key) ? state[key] : ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
+  const state = flattenProfessionState(schedulerState.profession) as unknown as ElementalistState;
+  return projectPublicProfessionState(
+    state,
+    ELEMENTALIST_PUBLIC_END_STATE_KEYS,
+    ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS
   );
 }

@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { readProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { berserkerState } from './state.js';
@@ -55,19 +56,10 @@ function active(context: Gw2ModifierContext): boolean {
     return true;
   }
 
-  const runtime = (
-    context.runtime as
-      | {
-          profession?: {
-            specialization?: {
-              kind?: string;
-              state?: { berserkActive?: boolean };
-            };
-          };
-        }
-      | undefined
-  )?.profession;
-  return runtime?.specialization?.kind === 'Berserker' && Boolean(runtime.specialization.state?.berserkActive);
+  return Boolean(
+    readProfessionSpecializationState<{ berserkActive?: boolean }>(context.runtime?.profession, 'Berserker')
+      ?.berserkActive
+  );
 }
 
 // Apply Berserker's live trait and Berserk-window attribute changes without

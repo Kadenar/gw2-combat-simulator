@@ -1,5 +1,5 @@
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { professionCoreState, readProfessionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from '../state.js';
 import { advanceEndurance, enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 /**
@@ -15,8 +15,7 @@ import type {
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
-  RevenantSkill,
-  RevenantRuntimeState
+  RevenantSkill
 } from '../types.js';
 
 function resourceProfile(context: RevenantEnergyContext) {
@@ -131,11 +130,7 @@ interface RevenantEnergyCostState {
 function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
-  if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
-    return (candidate as RevenantRuntimeState).core;
-  }
-
-  return candidate as RevenantEnergyCostState;
+  return readProfessionCoreState<RevenantEnergyCostState>(candidate);
 }
 
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */

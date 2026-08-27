@@ -7,6 +7,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * @returns {Object} Profession action controller
  */
 import { MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { mesmerNumericResourceState } from '../resource-state.js';
 import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
   MesmerAddCondition,
@@ -70,15 +71,7 @@ export function createProfessionActionController({
     };
   };
 
-  // Typed accessors — throw if the active specialization doesn't own this state shape.
-  const numericResourceState = () => {
-    const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
-    if (typeof active.numericResource !== 'number') {
-      throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
-    }
-
-    return active as { numericResource: number };
-  };
+  const numericResourceState = () => mesmerNumericResourceState(state);
 
   // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
   const currentResource = () =>

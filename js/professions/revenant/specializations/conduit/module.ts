@@ -1,7 +1,6 @@
 import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
 import { createRevenantModuleData } from '../../catalog-data.js';
 import { conduitSkillHandlers } from './handlers.js';
-import { conduitEventHandlers } from './resolver.js';
 import { conduitAttributeRules, conduitCastRules, conduitSchedulerHooks } from './rules.js';
 import { conduitState } from './state.js';
 import { conduitUi } from './ui.js';
@@ -19,10 +18,7 @@ export const conduitModule = defineNativeModule({
   mechanics: {
     modifiers: conduitAttributeRules,
     castRules: conduitCastRules,
-    schedulerHooks: conduitSchedulerHooks,
-    resolverHooks: {
-      eventHandlers: conduitEventHandlers
-    }
+    schedulerHooks: conduitSchedulerHooks
   },
   presentation: conduitUi
 });

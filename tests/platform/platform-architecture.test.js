@@ -10,19 +10,7 @@ import {
   indexAutoattackChains,
   resolveAutoattackChainStep
 } from '../../js/platform/engine/skills/autoattack-chains.js';
-import {
-  blind,
-  boon,
-  buff,
-  condition,
-  conditionTimeline,
-  control,
-  custom,
-  repeatedCondition,
-  strike,
-  strikePackets,
-  strikeTimeline
-} from '../../js/platform/engine/effects/factories.js';
+import { conditionTimeline, strikeTimeline } from '../../js/platform/engine/effects/factories.js';
 import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
 import { HandlerRegistry } from '../../js/platform/engine/resolution/handler-registry.js';
 import { defineProfession } from '../../js/platform/engine/profession/contract.js';
@@ -362,95 +350,6 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
   assert.equal(catalog.skillsById.get(7).chainRoot, 6);
 });
 
-test('shared declarative factories preserve generic effect options', () => {
-  assert.deepEqual(
-    strike(2, {
-      hits: 2,
-      atMs: 100,
-      source: 'Effect',
-      metadata: { damageKind: 'fixture' }
-    }),
-    {
-      type: 'strike',
-      coefficient: 2,
-      hits: 2,
-      atMs: 100,
-      source: 'Effect',
-      metadata: { damageKind: 'fixture' }
-    }
-  );
-  assert.deepEqual(
-    condition('Burning', 2, 3, {
-      atMs: 200,
-      source: 'Effect',
-      metadata: { fixture: true }
-    }),
-    {
-      type: 'condition',
-      condition: 'Burning',
-      stacks: 2,
-      duration: 3,
-      source: 'Effect',
-      atMs: 200,
-      metadata: { fixture: true }
-    }
-  );
-  assert.deepEqual(
-    repeatedCondition('Bleeding', {
-      count: 2,
-      duration: 4,
-      firstAtMs: 100,
-      intervalMs: 200,
-      source: 'Effect'
-    }).map((effect) => [effect.atMs, effect.source]),
-    [
-      [100, 'Effect'],
-      [300, 'Effect']
-    ]
-  );
-  assert.deepEqual(
-    control('fear', 300, {
-      source: 'Effect',
-      metadata: { breakbar: 100 }
-    }),
-    {
-      type: 'control',
-      atMs: 300,
-      source: 'Effect',
-      metadata: { controlKind: 'fear', breakbar: 100 }
-    }
-  );
-  assert.deepEqual(blind(350, { source: 'Effect' }), {
-    type: 'blind',
-    atMs: 350,
-    source: 'Effect'
-  });
-  assert.deepEqual(boon('fury', 2, { stacks: 2 }), {
-    type: 'boon',
-    boon: 'fury',
-    duration: 2,
-    stacks: 2
-  });
-  assert.deepEqual(buff('trait-charge', 10, { stacks: 3 }), {
-    type: 'buff',
-    kind: 'trait-charge',
-    duration: 10,
-    stacks: 3
-  });
-  assert.deepEqual(condition('Vulnerability', 5, 3), {
-    type: 'condition',
-    condition: 'Vulnerability',
-    duration: 3,
-    stacks: 5
-  });
-  assert.deepEqual(custom('fixture.event', 400, { value: 1 }), {
-    type: 'custom',
-    eventType: 'fixture.event',
-    atMs: 400,
-    event: { value: 1 }
-  });
-});
-
 test('declarative boons can gate dynamic skill availability', () => {
   const catalog = createCanonicalCatalog({
     generated: [
@@ -532,7 +431,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
         id: 920011,
         name: 'Grant Trait Buff',
         castTimeMs: 0,
-        effects: [buff('trait-charge', 10, { stacks: 3 })]
+        effects: [{ type: 'buff', kind: 'trait-charge', duration: 10, stacks: 3 }]
       },
       {
         id: 920012,
@@ -1325,10 +1224,17 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
         name: 'Fixture Timeline',
         castTimeMs: 2200,
         effects: [
-          strikePackets(4, [370, 740, 1110, 1480], {
+          {
+            type: 'strike',
+            ticks: [
+              { atMs: 370, coefficient: 1 },
+              { atMs: 740, coefficient: 1 },
+              { atMs: 1110, coefficient: 1 },
+              { atMs: 1480, coefficient: 1 }
+            ],
             timingAnchor: 'castStart',
             timingScale: 'cast'
-          })
+          }
         ]
       },
       {
@@ -1443,13 +1349,13 @@ test('GW2 duration-stacks Quickness and Alacrity from repeated grants', () => {
         id: 930024,
         name: 'Grant Quickness',
         castTimeMs: 0,
-        effects: [boon('Quickness', 2)]
+        effects: [{ type: 'boon', boon: 'Quickness', duration: 2, stacks: 1 }]
       },
       {
         id: 930025,
         name: 'Grant Alacrity',
         castTimeMs: 0,
-        effects: [boon('Alacrity', 2)]
+        effects: [{ type: 'boon', boon: 'Alacrity', duration: 2, stacks: 1 }]
       },
       {
         id: 930026,
@@ -2215,21 +2121,21 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
         name: 'Grant Protection',
         type: 'Utility',
         castTimeMs: 0,
-        effects: [boon('Protection', 2)]
+        effects: [{ type: 'boon', boon: 'Protection', duration: 2, stacks: 1 }]
       },
       {
         id: 930007,
         name: 'Grant Resolution',
         type: 'Utility',
         castTimeMs: 0,
-        effects: [boon('Resolution', 2)]
+        effects: [{ type: 'boon', boon: 'Resolution', duration: 2, stacks: 1 }]
       },
       {
         id: 930008,
         name: 'Brawler Fixture Strike',
         type: 'Weapon',
         castTimeMs: 0,
-        effects: [strike(1)]
+        effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       }
     ]
   });
@@ -2285,14 +2191,14 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
         name: 'Grant Might',
         type: 'Utility',
         castTimeMs: 0,
-        effects: [boon('Might', 20)]
+        effects: [{ type: 'boon', boon: 'Might', duration: 20, stacks: 1 }]
       },
       {
         id: 930010,
         name: 'Mistburn Fixture Strike',
         type: 'Weapon',
         castTimeMs: 0,
-        effects: [strike(1)]
+        effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       }
     ]
   });
@@ -2377,7 +2283,7 @@ test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => 
         name: 'Bloodstone Fixture Strike',
         type: 'Weapon',
         castTimeMs: 0,
-        effects: [strike(1)]
+        effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
       },
       {
         id: 930101,
@@ -2515,7 +2421,7 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
         name: 'Fixture Immobilize',
         type: 'Utility',
         castTimeMs: 0,
-        effects: [condition('Immobilized', 1, 1)]
+        effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
       }
     ]
   });
@@ -2916,15 +2822,6 @@ test('declarative professions keep skill ownership in runtime modules', async ()
     );
 
     if (profession === 'necromancer') {
-      const localMechanics = await Promise.all(
-        [
-          path.join(root, profession, 'core', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'reaper', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'scourge', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'harbinger', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'ritualist', 'mechanics.js')
-        ].map(readSourceModule)
-      );
       const handlers = (
         await Promise.all(
           [
@@ -2937,20 +2834,9 @@ test('declarative professions keep skill ownership in runtime modules', async ()
         )
       ).join('\n');
 
-      for (const source of localMechanics) {
-        assert.match(source, /export const \w+_MECHANICS\b/);
-        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
-      }
-
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === 'guardian') {
-      const localMechanics = await Promise.all(
-        [
-          path.join(root, profession, 'core', 'mechanics.js'),
-          path.join(root, profession, 'specializations', 'firebrand', 'mechanics.js')
-        ].map(readSourceModule)
-      );
       const handlers = (
         await Promise.all(
           [
@@ -2960,11 +2846,6 @@ test('declarative professions keep skill ownership in runtime modules', async ()
           ].map(readSourceModule)
         )
       ).join('\n');
-
-      for (const source of localMechanics) {
-        assert.match(source, /export const \w+_MECHANICS\b/);
-        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
-      }
 
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);

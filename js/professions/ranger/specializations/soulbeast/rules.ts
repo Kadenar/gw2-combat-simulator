@@ -1,5 +1,9 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import {
+  professionCoreState,
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
@@ -38,12 +42,9 @@ function oppressiveSuperiorityActive(context: Gw2ModifierContext): boolean {
 }
 
 function beastmodeActive(context: Gw2ModifierContext): boolean {
-  const profession = (
-    context.runtime as { profession?: { specialization?: { kind?: string; state?: unknown } } } | undefined
-  )?.profession;
   return Boolean(
-    profession?.specialization?.kind === 'Soulbeast' &&
-    (profession.specialization.state as { beastmodeActive?: boolean })?.beastmodeActive
+    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
+      ?.beastmodeActive
   );
 }
 
@@ -101,8 +102,8 @@ function soulbeastArchetypeAttributes(
 
 function petArchetype(context: Gw2ModifierContext, active: boolean): string {
   const configured = active
-    ? (context.runtime as { profession?: { core?: { activePet?: string } } } | undefined)?.profession?.core
-        ?.activePet || context.config?.selectedPet
+    ? readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
+      context.config?.selectedPet
     : context.config?.selectedPet;
   return rangerPetByName(String(configured || 'Pig')).archetype;
 }

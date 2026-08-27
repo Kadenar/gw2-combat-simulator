@@ -6,7 +6,10 @@ export {
   cloneProfessionState,
   defineProfessionSpecializationState,
   flattenProfessionState,
-  professionCoreState
+  professionCoreState,
+  projectPublicProfessionState,
+  readProfessionCoreState,
+  readProfessionSpecializationState
 } from './state.js';
 export type { ProfessionSpecializationStateDefinition } from './state.js';
 export { createProfessionFamilyUi } from './ui.js';

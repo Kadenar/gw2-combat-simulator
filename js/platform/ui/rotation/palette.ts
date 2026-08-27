@@ -1,4 +1,5 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, SkillId } from '../../engine/types.js';
+import { GW2_ICON_PLACEHOLDER } from '../shared/gw2-icon-fallback.js';
 import { escapeHtml } from '../shared/html.js';
 
 export interface AmmoView {
@@ -90,11 +91,6 @@ export interface PaletteInteractionHandlers {
   readonly onDragEnd?: (name: string, event: PaletteDragEvent) => unknown;
 }
 
-const PALETTE_PLACEHOLDER_ICON =
-  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" ' +
-  'height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E' +
-  '%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
-
 function ammoView(ammo: AmmoView | null | undefined): {
   readonly current: number;
   readonly maximum: number;
@@ -159,8 +155,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     title="${escapeHtml(view.title || view.name)}" draggable="${draggable ? 'true' : 'false'}"
     ${ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : ''}
     style="--att-border:${escapeHtml(view.color || '#a88be8')}">
-    <img src="${escapeHtml(view.icon || PALETTE_PLACEHOLDER_ICON)}" alt=""
-      data-fallback-icon="${escapeHtml(PALETTE_PLACEHOLDER_ICON)}" />
+    <img src="${escapeHtml(view.icon || GW2_ICON_PLACEHOLDER)}" alt="" />
     ${view.variantBadge ? `<span class="skill-variant-badge pal-variant-badge">${escapeHtml(view.variantBadge)}</span>` : ''}
     ${view.cooldownLabel ? `<span class="pal-cd">${escapeHtml(view.cooldownLabel)}</span>` : ''}
     ${ammoIndicator}
@@ -193,7 +188,7 @@ export function paletteControlHtml(view: PaletteControlView): string {
       aria-pressed="${view.pressed ? 'true' : 'false'}"
       aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"
       style="--att-border:${escapeHtml(view.color || '#a88be8')}">
-      <img src="${escapeHtml(view.icon || PALETTE_PLACEHOLDER_ICON)}" alt="" />
+      <img src="${escapeHtml(view.icon || GW2_ICON_PLACEHOLDER)}" alt="" />
       ${view.badge ? `<span class="pal-control-badge" aria-hidden="true">${escapeHtml(view.badge)}</span>` : ''}
     </button>`;
 }
@@ -207,7 +202,7 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   const statusIconHtml = statusIcon
     ? `<div class="pal-status-icon" title="${escapeHtml(statusIcon.title || statusIcon.label)}"
         aria-label="${escapeHtml(statusIcon.label)}">
-        <img src="${escapeHtml(statusIcon.icon || PALETTE_PLACEHOLDER_ICON)}"
+        <img src="${escapeHtml(statusIcon.icon || GW2_ICON_PLACEHOLDER)}"
           alt="${escapeHtml(statusIcon.label)}" />
       </div>`
     : '';
@@ -236,17 +231,6 @@ export function bindPaletteInteractions(
   for (const icon of root.querySelectorAll<HTMLElement>('.pal-skill[data-skill]')) {
     const name = icon.dataset.skill || '';
     const draggable = icon.getAttribute('draggable') === 'true';
-    const image = icon.querySelector<HTMLImageElement>('img[data-fallback-icon]');
-    if (image) {
-      const useFallback = (): void => {
-        image.onerror = null;
-        image.src = image.dataset.fallbackIcon || '';
-      };
-
-      image.onerror = useFallback;
-      if (image.complete && image.naturalWidth === 0) useFallback();
-    }
-
     icon.onclick = (event) => {
       if (icon.classList.contains('pal-context-disabled')) return;
       handlers.onActivate?.(name, event as unknown as PaletteMouseEvent);

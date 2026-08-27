@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../platform/engine/profession/state.js';
+import { professionCoreState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 export { snapshotThiefState } from './core/state.js';
 import {
@@ -31,12 +31,7 @@ const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
 
 export function projectThiefEndState({ schedulerState }: ThiefEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotThiefState(schedulerState.profession) as unknown as ThiefState;
-  return Object.fromEntries(
-    THIEF_PUBLIC_END_STATE_KEYS.map((key) => {
-      const value = Object.hasOwn(state, key) ? state[key] : INACTIVE_STATE_DEFAULTS[key];
-      return [key, structuredClone(value)];
-    })
-  );
+  return projectPublicProfessionState(state, THIEF_PUBLIC_END_STATE_KEYS, INACTIVE_STATE_DEFAULTS);
 }
 
 // Resolver snapshots are routed back to whichever runtime slice declares each field, preserving scheduler ownership.

@@ -1,4 +1,7 @@
-import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../platform/engine/profession/state.js';
 import {
   activeBoonStacks,
   eventSkill as gw2EventSkill,
@@ -8,32 +11,27 @@ import {
 } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext } from '../../../platform/gw2/combat/modifiers/types.js';
-import type {
-  EngineerMechAttributes,
-  EngineerRuntimeState,
-  EngineerSimulationEvent,
-  EngineerSkill,
-  EngineerState
-} from '../types.js';
+import type { EngineerMechAttributes, EngineerSimulationEvent, EngineerSkill, EngineerState } from '../types.js';
 
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
   return (context.event || undefined) as EngineerSimulationEvent | undefined;
 }
 
 export function engineerRuntimeState(context: Gw2ModifierContext): Partial<EngineerState> {
-  return professionCoreState(context) as Partial<EngineerState>;
+  return readProfessionCoreState<EngineerState>(context.runtime?.profession);
 }
 
 export function engineerSchedulerState(context: Gw2ModifierContext): Partial<EngineerState> {
-  return professionCoreState(context) as Partial<EngineerState>;
+  return readProfessionCoreState<EngineerState>(
+    (context.state as { readonly profession?: unknown } | undefined)?.profession
+  );
 }
 
 // called from both scheduler (state path) and resolver (runtime path) contexts — checks both paths
 export function engineerSpecializationState(context: Gw2ModifierContext, expectedKind: string): Partial<EngineerState> {
-  const state = (context.runtime?.profession ??
-    (context.state as { readonly profession?: unknown } | undefined)?.profession) as EngineerRuntimeState | undefined;
-  if (state?.specialization.kind !== expectedKind) return {};
-  return state.specialization.state as Partial<EngineerState>;
+  const state =
+    context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession;
+  return readProfessionSpecializationState<EngineerState>(state, expectedKind) || {};
 }
 
 // Preserve the profession helper surface while delegating GW2-wide queries to the shared runtime layer.

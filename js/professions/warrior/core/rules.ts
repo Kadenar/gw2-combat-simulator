@@ -1,4 +1,5 @@
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { readProfessionCoreState } from '../../../platform/engine/profession/state.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -24,19 +25,14 @@ import { advanceWarriorResources } from './resources.js';
 import { handleWarriorAdrenalineTask } from '../resources.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
-import type { WarriorCastContext, WarriorRuntimeState, WarriorSchedulerContext, WarriorSkill } from '../types.js';
+import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import type { WarriorCoreState } from '../types.js';
 import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 export { snapshotWarriorState } from '../state.js';
 
-function runtimeState(context: Gw2ModifierContext): Partial<WarriorRuntimeState> {
-  return ((context.runtime as { profession?: WarriorRuntimeState } | undefined)?.profession ||
-    {}) as Partial<WarriorRuntimeState>;
-}
-
 function coreState(context: Gw2ModifierContext): Partial<WarriorCoreState> {
-  return runtimeState(context).core || {};
+  return readProfessionCoreState<WarriorCoreState>(context.runtime?.profession);
 }
 
 // Keeps Warrior skill typing local while sharing the GW2-wide skill-id fallback policy.

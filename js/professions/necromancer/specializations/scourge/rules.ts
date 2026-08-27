@@ -33,7 +33,9 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
     // Bonus only applies when at least one shade is alive — check expiry timestamps against current sim time
-    (necromancerRuntimeSpecializationState(context).shades || []).some((expiresAt: number) => expiresAt > context.time)
+    (necromancerRuntimeSpecializationState(context, 'Scourge').shades || []).some(
+      (expiresAt: number) => expiresAt > context.time
+    )
   ) {
     const bonus = Number(necromancerBalanceProfile(context, PROFILE.sandSage)?.attributeBonus || 225);
     // Dynamic attribute queries may begin from sparse scheduler stats, so normalize

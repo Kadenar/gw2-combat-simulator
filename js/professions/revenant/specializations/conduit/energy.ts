@@ -1,15 +1,12 @@
-import type { ConduitState, RevenantEnergyContext, RevenantRuntimeState, RevenantSkill } from '../../types.js';
+import { readProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
+import type { ConduitState, RevenantEnergyContext, RevenantSkill } from '../../types.js';
 
 // Extract Conduit specialization state only when that specialization is active,
 // preventing energy rules from reading another module's shape.
 function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitState> {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
-  if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
-    return (candidate as RevenantRuntimeState).specialization.state as Partial<ConduitState>;
-  }
-
-  return candidate as Partial<ConduitState>;
+  return readProfessionSpecializationState<ConduitState>(candidate, 'Conduit') || {};
 }
 
 /** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */

@@ -1,4 +1,8 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '../../../platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -24,7 +28,7 @@ import type {
   Gw2ModifierRule
 } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.js';
-import type { ThiefCoreState, ThiefPrecastContext, ThiefQueryRuntime, ThiefSchedulerContext } from '../types.js';
+import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '../types.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
@@ -32,9 +36,7 @@ export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined 
 }
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
-  const state = (context.runtime as ThiefQueryRuntime | undefined)?.profession;
-  if (!state) return {};
-  return 'core' in state && state.core ? state.core : (state as Partial<ThiefCoreState>);
+  return readProfessionCoreState<ThiefCoreState>(context.runtime?.profession);
 }
 
 // Return specialization state only when its runtime kind matches, preventing
@@ -43,21 +45,7 @@ export function thiefRuntimeSpecializationState<TState extends object = Schedule
   context: Gw2ModifierContext,
   expectedKind: string
 ): Partial<TState> {
-  const state = (context.runtime as ThiefQueryRuntime | undefined)?.profession || {};
-  if (
-    'specialization' in state &&
-    state.specialization &&
-    typeof state.specialization === 'object' &&
-    state.specialization.state
-  ) {
-    if (state.specialization.kind !== expectedKind) {
-      throw new TypeError(`Expected active specialization ${expectedKind}, received ${state.specialization.kind}.`);
-    }
-
-    return state.specialization.state as unknown as Partial<TState>;
-  }
-
-  return state as Partial<TState>;
+  return readProfessionSpecializationState<TState>(context.runtime?.profession, expectedKind) || {};
 }
 
 function targetBoonless(context: Gw2ModifierContext): boolean {

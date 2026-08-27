@@ -27,6 +27,53 @@ export function flattenProfessionState(professionState: unknown): SchedulerRecor
   return { ...runtime };
 }
 
+/** Reads Core state from either the nested family runtime or its legacy flat compatibility shape. */
+export function readProfessionCoreState<TCoreState extends object = SchedulerRecord>(
+  professionState: unknown
+): Partial<TCoreState> {
+  if (!professionState || typeof professionState !== 'object') return {};
+  const state = professionState as SchedulerRecord;
+  if (!Object.hasOwn(state, 'core')) return state as Partial<TCoreState>;
+  return state.core && typeof state.core === 'object' ? (state.core as Partial<TCoreState>) : {};
+}
+
+/** Reads one active specialization without exposing another specialization's state shape. */
+export function readProfessionSpecializationState<TState extends object = SchedulerRecord>(
+  professionState: unknown,
+  expectedKind: string
+): Partial<TState> | undefined {
+  if (!professionState || typeof professionState !== 'object') return undefined;
+  const state = professionState as SchedulerRecord;
+  if (!Object.hasOwn(state, 'specialization')) return state as Partial<TState>;
+  const specialization = state.specialization as SchedulerRecord | undefined;
+  if (
+    !specialization ||
+    specialization.kind !== expectedKind ||
+    !specialization.state ||
+    typeof specialization.state !== 'object'
+  ) {
+    return undefined;
+  }
+
+  return specialization.state as Partial<TState>;
+}
+
+/** Selects and clones the declared public fields while supplying defaults only for missing state. */
+export function projectPublicProfessionState<TState extends object, TKey extends keyof TState>(
+  flatState: TState,
+  keys: readonly TKey[],
+  defaults?: Readonly<Partial<TState>>
+): SchedulerRecord & Pick<TState, TKey> {
+  const state = flatState as SchedulerRecord;
+  const fallback = (defaults || {}) as SchedulerRecord;
+  return Object.fromEntries(
+    keys.map((key) => {
+      const name = String(key);
+      return [name, structuredClone(Object.hasOwn(state, name) ? state[name] : fallback[name])];
+    })
+  ) as SchedulerRecord & Pick<TState, TKey>;
+}
+
 type ProfessionStateContext<TRuntimeState> = {
   readonly state: {
     readonly profession: TRuntimeState;

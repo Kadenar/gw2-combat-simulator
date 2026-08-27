@@ -1,11 +1,11 @@
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
+import { readProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { elementalistAttunements, elementalistTimedBuffStacks } from '../../core/modifiers.js';
-import type { ElementalistRuntimeState } from '../../types.js';
 import { elementalistBalanceValue } from '../../core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
@@ -58,11 +58,9 @@ function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: Schedul
   if (!hasTrait(context, 'Elemental Polyphony')) return attributes;
   const modified = { ...attributes };
   const active = elementalistAttunements(context);
-  const runtime = context.runtime?.profession as ElementalistRuntimeState | undefined;
   const secondary =
-    runtime?.specialization.kind === 'Weaver'
-      ? runtime.specialization.state.secondaryAttunement
-      : context.config?.secondaryAttunement;
+    readProfessionSpecializationState<{ secondaryAttunement?: string }>(context.runtime?.profession, 'Weaver')
+      ?.secondaryAttunement ?? context.config?.secondaryAttunement;
   if (typeof secondary === 'string') active.add(secondary);
 
   const attributeBonus = elementalistBalanceValue(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);

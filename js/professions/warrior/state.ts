@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import type { WarriorEndStateProjectionOptions, WarriorState } from './types.js';
 
 /** Aggregates Core and active-specialization state at the Warrior family boundary. */
@@ -60,7 +60,5 @@ const INACTIVE_DEFAULTS: Readonly<Partial<WarriorState>> = Object.freeze({
 /** Projects the stable public end state after the active slice has been flattened. */
 export function projectWarriorEndState({ schedulerState }: WarriorEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotWarriorState(schedulerState.profession);
-  return Object.fromEntries(
-    WARRIOR_PUBLIC_END_STATE_KEYS.map((key) => [key, structuredClone(state[key] ?? INACTIVE_DEFAULTS[key])])
-  );
+  return projectPublicProfessionState(state, WARRIOR_PUBLIC_END_STATE_KEYS, INACTIVE_DEFAULTS);
 }

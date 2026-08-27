@@ -1,5 +1,5 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
-import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { professionCoreState, readProfessionCoreState } from '../../../platform/engine/profession/state.js';
 import { attributeProvenance } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -27,9 +27,7 @@ type GuardianAmmoModifierContext = GuardianSchedulerContext &
 
 /** @param {Gw2ModifierContext} context */
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
-  const state = context.runtime?.profession as
-    { readonly core?: Partial<GuardianState> } | Partial<GuardianState> | undefined;
-  return state && 'core' in state && state.core ? state.core : (state as Partial<GuardianState>) || {};
+  return readProfessionCoreState<GuardianState>(context.runtime?.profession);
 }
 
 /** @param {Gw2ModifierContext} context */

@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import { GUARDIAN_CORE_PUBLIC_END_STATE_KEYS, GUARDIAN_CORE_RESOLVER_END_STATE_KEYS } from './core/state.js';
 import {
@@ -68,13 +68,10 @@ export function projectGuardianEndState({
   const state = snapshotGuardianState(schedulerState.profession);
   const resolver = flattenProfessionState(resolverState || {});
   const mutableState = state as unknown as SchedulerRecord;
-  const inactiveDefaults = GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS as unknown as SchedulerRecord;
 
   for (const key of GUARDIAN_RESOLVER_END_STATE_KEYS) {
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
 
-  return Object.fromEntries(
-    GUARDIAN_PUBLIC_END_STATE_KEYS.map((key) => [key, structuredClone(mutableState[key] ?? inactiveDefaults[key])])
-  );
+  return projectPublicProfessionState(state, GUARDIAN_PUBLIC_END_STATE_KEYS, GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }

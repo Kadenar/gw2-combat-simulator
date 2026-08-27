@@ -1079,7 +1079,7 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(html, /1\/2/);
   assert.equal((html.match(/pal-ammo-pip filled/g) || []).length, 1);
   assert.match(html, /&lt;5s/);
-  assert.match(html, /data-fallback-icon="data:image\/svg\+xml/);
+  assert.match(paletteSkillHtml({ name: 'Missing icon' }), /src="data:image\/svg\+xml/);
   assert.match(html, /data-skill-id="12345"/);
   assert.match(html, /skill-variant-badge pal-variant-badge/);
   assert.match(html, /pal-has-resource/);

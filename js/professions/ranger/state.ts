@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '../../platform/engine/profession/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '../../platform/engine/profession/state.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
 import { DRUID_PUBLIC_END_STATE_KEYS, DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS } from './specializations/druid/state.js';
 import {
@@ -50,10 +50,5 @@ export function projectRangerEndState({
     if (Object.hasOwn(resolver, key)) state[key] = resolver[key] as never;
   }
 
-  return Object.fromEntries(
-    RANGER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
+  return projectPublicProfessionState(state, RANGER_PUBLIC_END_STATE_KEYS, RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }

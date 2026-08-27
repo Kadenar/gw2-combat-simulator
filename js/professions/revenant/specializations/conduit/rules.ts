@@ -49,8 +49,8 @@ function affinity(context: Gw2ModifierContext): number {
   // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
-    Math.max(1, Number(revenantRuntimeSpecializationState(context).affinityMaximum || 5)),
-    Number(revenantRuntimeSpecializationState(context).affinity || 0) + bonus
+    Math.max(1, Number(revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5)),
+    Number(revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
   );
 }
 
@@ -126,7 +126,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (context.config?.specialization !== 'Conduit') return modified;
-  const state = revenantRuntimeSpecializationState(context);
+  const state = revenantRuntimeSpecializationState(context, 'Conduit');
   const coreState = revenantRuntimeCoreState(context);
   // Cosmic Wisdom doubles the Bolstered Bonds bonus; the build-time static pass already applied one copy,
   // so at runtime we add only the extra copies: 2 (active) - 1 (already in build stats) = 1 extra during form,

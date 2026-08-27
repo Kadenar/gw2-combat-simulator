@@ -59,7 +59,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
       (context.event?.forerunnerOfDeathActive != null
         ? Boolean(context.event.forerunnerOfDeathActive)
-        : Number(revenantRuntimeSpecializationState(context).forerunnerOfDeathUntil || 0) > context.time)
+        : Number(revenantRuntimeSpecializationState(context, 'Vindicator').forerunnerOfDeathUntil || 0) > context.time)
   }
 ]);
 
