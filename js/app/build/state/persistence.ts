@@ -13,7 +13,6 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
   }
 
   const candidate = adapter as Partial<Gw2AppAdapter>;
-
   if (!candidate.profession || !candidate.storageKey || typeof candidate.toApplicationBuild !== 'function') {
     throw new TypeError('Application state requires a profession app adapter.');
   }

@@ -117,7 +117,6 @@ export function emitDervishFormAttack(
   { elite = false }: { readonly elite?: boolean } = {}
 ): void {
   const state = conduitState.from(context);
-
   // Guard against non-Conduit builds calling this helper; specialization check is cheaper than checking the form alone.
   if (
     context.config.specialization !== 'Conduit' ||
@@ -151,7 +150,6 @@ export function emitLesserEnchantedDaggers(
 ): void {
   if (!revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) return;
   const skill = context.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
-
   if (!skill) return;
   emitSkillDamage(context, skill, {
     at,
@@ -168,7 +166,6 @@ export function emitLesserEnchantedDaggers(
 /** Applies the active Assassin or Dervish form after a legend skill cast. */
 export function applyCosmicWisdomAfterCast(context: RevenantCastContext, skill: RevenantSkill): void {
   const at = context.effectiveEnd;
-
   // Assassin form procs on any Assassin legend skill; Dervish form procs only on Entity legend skills.
   if (skill.legendId === LEGEND.ASSASSIN && revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) {
     emitLesserEnchantedDaggers(context, skill, at);
@@ -177,7 +174,6 @@ export function applyCosmicWisdomAfterCast(context: RevenantCastContext, skill: 
   if (skill.legendId !== LEGEND.ENTITY || !revenantConduitFormIsActive(conduitState.from(context), 'Dervish', at))
     return;
   emitDervishFormAttack(context, skill);
-
   // Twin Moon Sweep is the only Entity skill that also triggers the elite Dervish attack.
   if (([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[]).includes(Number(skill.id))) {
     emitDervishFormAttack(context, skill, { elite: true });
@@ -194,7 +190,6 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   state.affinityMaximum = maximum;
   const previous = Number(state.affinity || 0);
   state.affinity = Math.min(maximum, previous + Math.max(0, Number(amount || 0)));
-
   if (
     // Only fire the Expanded Consciousness pulse on the transition to maximum, not on every gain while already at max.
     previous < maximum &&
@@ -225,7 +220,6 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
 /** Refreshes Conduit-owned Energy overrides from patchable Mesmer profiles. */
 export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext): void {
   const state = conduitState.from(context);
-
   if (state.conduitForm !== 'Mesmer') {
     state.energyCostOverrides = {};
     return;
@@ -272,7 +266,6 @@ export function emitNuminousGift(
   for (const effect of profile?.effects || []) {
     if (effect.type !== 'boon' || !effect.boon) continue;
     const legendId = String(effect.metadata?.legendId || '');
-
     if (legendId && !selectedLegends.includes(legendId)) continue;
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd ?? context.state.time,
@@ -294,7 +287,6 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
   const strike = effectByType(profile, 'strike');
   const tick = (strike as { readonly ticks?: readonly Record<string, unknown>[] } | undefined)?.ticks?.[0];
   const at = context.start + Math.max(0, Number(tick?.atMs || 0)) / 1000;
-
   if (followUp) {
     state.beguilingHazeCharges -= 1;
     emitSkillDamage(context, skill, {
@@ -318,7 +310,6 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
 
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'beguiling-haze');
-
     if (shared?.type === 'boon' && shared.boon) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -346,7 +337,6 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
   // Only the cast whose reservationId was registered in castBeguilingHaze qualifies as the main cast.
   const index = state.beguilingHazeMainReservations.indexOf(context.reservationId);
   const mainCast = index >= 0;
-
   if (mainCast) {
     state.beguilingHazeMainReservations.splice(index, 1);
     const followUpProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
@@ -359,7 +349,6 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
 
   // Mirror ConduitState into the platform ammo/cooldown system so the UI and scheduler agree.
   const ammo = context.state.ammo.get(skill.id);
-
   if (ammo) {
     if (state.beguilingHazeCharges > 0) {
       // While follow-up charges are available, present them as an ammo-style skill with no cooldown timer.
@@ -411,7 +400,6 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
     : Math.min(maximumProjectiles, activeSelfConditions(context, at));
   // Conditions removed is capped at the actual active count even when Demon fires the full projectile salvo.
   const conditionsRemoved = Math.min(maximumProjectiles, activeSelfConditions(context, at));
-
   if (conditionsRemoved > 0) {
     // Deplete static (configured) conditions first, then peel dynamic (runtime) ones oldest-first.
     const configuredRemoved = Math.min(conditionsRemoved, Number(state.selfConditionCount || 0));
@@ -443,7 +431,6 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
 
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'hex-eater-vortex');
-
     if (shared?.type === 'boon' && shared.boon) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -461,7 +448,6 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
 /** Resolves Gladiator's Defense and its legend/trait-dependent boons. */
 export function castGladiatorsDefense(context: RevenantCastContext, skill: RevenantSkill): void {
   const strike = (skill.effects || []).find((effect) => effect.type === 'strike');
-
   if (strike?.type === 'strike') {
     emitSkillDamage(context, skill, {
       at: context.effectiveEnd,
@@ -492,7 +478,6 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
 
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'gladiators-defense');
-
     if (shared?.type === 'boon' && shared.boon) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -555,7 +540,6 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   const immobilized = (skill.effects || []).find(
     (effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.ASSASSIN
   );
-
   if (hasLegend(context, LEGEND.ASSASSIN)) {
     emitSkillCondition(context, skill, {
       at,
@@ -645,7 +629,6 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         canCrit: null
       });
       const bleeding = conditions.find((effect) => effect.metadata?.legendId === LEGEND.DEMON);
-
       if (hasLegend(context, LEGEND.DEMON) || allLegendEffects) {
         emitSkillCondition(context, skill, {
           at: impactAt,
@@ -757,7 +740,6 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
 export function activateCosmicWisdom(context: RevenantCastContext): void {
   const state = conduitState.from(context);
   const at = context.effectiveEnd;
-
   // Mistfire resolves as part of the activation, before Cosmic Wisdom's
   // doubled Bolstered Bonds attributes become active.
   // It is emitted directly here rather than via observeConduitTraits because Cosmic Wisdom has no control event.

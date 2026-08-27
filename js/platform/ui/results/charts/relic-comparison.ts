@@ -99,7 +99,6 @@ function valueAt(
   for (let index = 1; index < points.length; index += 1) {
     const previous = points[index - 1];
     const current = points[index];
-
     if (tMs <= current.tMs) {
       const span = current.tMs - previous.tMs;
       const fraction = span > 0 ? (tMs - previous.tMs) / span : 0;

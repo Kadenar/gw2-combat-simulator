@@ -33,7 +33,6 @@ function stateOption(value: 'Pet' | 'Ranger', skillId: SkillId) {
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
   const rangerUnleashed = Boolean(state.rangerUnleashed);
-
   if (skill.id === ID.UNLEASH_RANGER && rangerUnleashed) {
     return { available: false, message: 'Ranger is already unleashed' };
   }
@@ -69,7 +68,6 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
   const ambushRemaining = Number(state.ambushReadyUntil || 0) - at;
-
   if (ambushRemaining > 0) {
     items.push({
       id: 'untamed-ambush-window',
@@ -90,7 +88,6 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
   ] as const) {
     const remaining = Number(expiresAt || 0) - at;
     const stacks = Math.max(0, Math.min(5, Math.trunc(Number(stacksValue || 0))));
-
     if (remaining <= 0 || stacks <= 0) continue;
     items.push({
       id,

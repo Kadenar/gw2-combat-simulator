@@ -48,7 +48,6 @@ function devouringGate(
   { activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   if (skill.id !== ID.DEVOURING_DARKNESS) return null;
-
   if (!hasTrait(context, TRAIT.LINGERING_CURSE)) {
     return deny(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
   }
@@ -64,20 +63,17 @@ function shroudEntryGate(
   { state, activeShroud, spec }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   if (!skill.shroudEntry) return null;
-
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `already in ${activeShroud} shroud.`);
   }
 
   const expectedSpecialization = skill.specialization || 'Core';
-
   if (expectedSpecialization !== spec) {
     return deny(skill, 'necromancer.wrong-specialization', `not available for the ${spec} specialization.`);
   }
 
   const minimumPercent = Number(skill.minimumShroudLifeForcePercent ?? 10);
   const minimumLifeForce = Number(state.maximumLifeForce || 100) * (minimumPercent / 100);
-
   if (Number(state.lifeForce || 0) < minimumLifeForce) {
     return deny(skill, 'necromancer.insufficient-life-force', `requires ${minimumPercent} life force.`);
   }
@@ -119,9 +115,7 @@ function inShroudGate(
   { state, activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   const shroud = requiredShroud(skill);
-
   if (!shroud) return null;
-
   if (activeShroud !== shroud) {
     return deny(skill, 'necromancer.wrong-shroud', `requires ${shroud} shroud.`);
   }
@@ -150,7 +144,6 @@ function selectedSlotSkillGate(context: NecromancerPrecastContext, skill: Necrom
 
   const source = context.config?.selectedSkills || [];
   const selected = Array.isArray(source) ? source : Object.values(source);
-
   if (!selected.length || selected.includes(skill.name)) return null;
   return deny(skill, 'necromancer.slot-skill', 'the skill is not equipped.');
 }
@@ -162,7 +155,6 @@ function baselineGate(
   { state, activeShroud }: AvailabilityEnvironment
 ): Readonly<AvailabilityResult> {
   if (skill.usableInShroud) return READY;
-
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
@@ -180,7 +172,6 @@ function baselineGate(
 
   // Cataloged autoattack links are armed by their chain position and retention window, not duplicate API flip state.
   const isAutoattackChainSkill = context.catalog.autoattackChainPositions.has(Number(skill.id));
-
   if (
     skill.flipParentId != null &&
     !isAutoattackChainSkill &&
@@ -254,7 +245,6 @@ export function necromancerCastAvailability(
   };
   for (const gate of CAST_STATE_GATES) {
     const verdict = gate(context, skill, env);
-
     if (verdict != null) return verdict;
   }
 

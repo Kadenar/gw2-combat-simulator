@@ -95,11 +95,8 @@ function isResolvedCriticalSigilCause(
   }
 
   const critical = details.hitContext?.critical;
-
   if (!critical) return false;
-
   if (ctx.random.stochastic) return critical.didCrit === true;
-
   if (!(critical.chance > 0)) return false;
   return consumeExpectedCriticalProgress(ctx.sigil, critical.chance);
 }
@@ -110,7 +107,6 @@ function createResolvedCriticalSigilEffects(
   details: NativeResolvedDamageDetails
 ): void {
   const names = (gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || []).filter(isResolverCriticalSigil);
-
   if (!names.length || !isResolvedCriticalSigilCause(ctx, event, details)) {
     return;
   }
@@ -119,7 +115,6 @@ function createResolvedCriticalSigilEffects(
   for (const name of names) {
     const proc = SIGIL_PROC_LOOKUP[name];
     const readyAt = ctx.sigil.readyAt.get(name) || 0;
-
     if (proc?.trigger !== 'crit' || !isInternalCooldownReady(event.at, readyAt)) {
       continue;
     }
@@ -136,7 +131,6 @@ function createResolvedCriticalSigilEffects(
 
 function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const proc = criticalFoodProc(ctx);
-
   if (!proc) return;
   const conditionalEffect = ctx.config.timeOfDay === 'night' ? proc.nightEffect : proc.dayEffect;
   const commonEvent = {
@@ -148,7 +142,6 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
     triggeredBy: event.skillName
   } as const;
   let foodEvent: Gw2ResolverEvent;
-
   if (conditionalEffect?.type === 'boon') {
     const name = conditionalEffect.name;
     foodEvent = {

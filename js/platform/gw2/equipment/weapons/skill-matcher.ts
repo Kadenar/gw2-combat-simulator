@@ -17,7 +17,6 @@ export function defaultWeaponSkillMatchesSet(
   if (!skill) return true;
   const requiredMain = skill.requiredMainHand ?? skill.weaponSet?.mainHand;
   const requiredOff = skill.requiredOffHand ?? skill.weaponSet?.offHand;
-
   if (requiredMain != null || requiredOff != null) {
     return (
       (requiredMain == null || String(requiredMain) === String(mainHand)) &&
@@ -26,10 +25,8 @@ export function defaultWeaponSkillMatchesSet(
   }
 
   if (skill.type !== 'Weapon' || !skill.weapon) return true;
-
   if (skill.requiresEmptyOffhand && offHand) return false;
   const wielding = context.weaponData?.[mainHand]?.wielding || context.catalog?.weaponHands?.get?.(mainHand);
-
   if (wielding === '2h') return skill.weapon === mainHand;
   const slot = slotNumber(skill);
   return slot <= 3 ? skill.weapon === mainHand : skill.weapon === offHand;

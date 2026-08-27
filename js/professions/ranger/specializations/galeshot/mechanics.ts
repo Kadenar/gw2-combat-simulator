@@ -36,7 +36,6 @@ const MISSILE_SKILL_IDS = new Set<number>([
 
 export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
   const state = galeshotState.from(context);
-
   if (target <= state.arrowsUpdatedAt) return;
   state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows);
@@ -46,7 +45,6 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
   const interval =
     rangerBalanceValue(context, PROFILE.resources, 'pulseInterval', 5) / Math.max(Number.EPSILON, rechargeRate);
   const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
-
   if (generated <= 0) return;
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
   // Advance by whole intervals only so the fractional remainder carries forward
@@ -117,7 +115,6 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     readonly skillName?: string;
     readonly activationId?: string;
   } | null;
-
   if (task.at <= state.mistralUntil + context.epsilon) {
     const profile = rangerBalanceProfile(context, PROFILE.mistral);
     const strike = rangerBalanceProfileEffect(profile, 'strike');
@@ -161,7 +158,6 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
   const threshold = Number(profile?.threshold ?? 12);
   const strike = rangerBalanceProfileEffect(profile, 'strike');
   state.missileHits += 1;
-
   if (state.missileHits < threshold) return;
   // Subtract rather than reset so any overshoot from burst windows is preserved.
   state.missileHits -= threshold;
@@ -194,7 +190,6 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
     readonly activationId?: string;
   } | null;
   const activationId = String(payload?.activationId || '');
-
   if (
     !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
@@ -205,7 +200,6 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
   }
 
   state.wutheringWindReady = false;
-
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
   const strike = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.wutheringWind), 'strike');
   context.emit({
@@ -246,7 +240,6 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
 
 export function handleGaleshotDisableTask(context: RangerSchedulerContext, _task: ScheduledTask): void {
   const state = galeshotState.from(context);
-
   if (
     !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
     !isInternalCooldownReady(context.state.time, state.thrillOfTheCatchReadyAt)
@@ -274,7 +267,6 @@ function isBeastSkill(skill: RangerSkill): boolean {
 // and completed-skill trait effects from one activation.
 export function completeGaleshotSkill(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
-
   if (
     !hasTrait(context, TRAIT.FLOCK_TOGETHER) ||
     !isBeastSkill(skill) ||

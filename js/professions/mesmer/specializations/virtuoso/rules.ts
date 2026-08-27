@@ -45,7 +45,6 @@ function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
     ? mesmerBalanceValue(context, PROFILE.sharpeningSorrow, 'expertiseBonus', 150) - 150
     : 0;
-
   if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
   return {
     ...attributes,
@@ -113,7 +112,6 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 export function handleBladeSpendTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'bladeSpend'>): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(task.payload.reservationId);
-
   if (!details || details.shatterSpendCommitted) return;
   details.shatterSpent = runtime.actions.commitReservedResources(task.at, Number(details.shatterSpent || 0), {
     sourceSkill: task.payload.sourceSkill,

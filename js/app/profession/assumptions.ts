@@ -42,7 +42,6 @@ function normalizedSpecializations(value: unknown): readonly string[] | undefine
 function normalizedControl(control: ProfessionAssumptionControlInput): ProfessionAssumptionControl {
   const type = control?.type === 'select' ? 'select' : control?.type === 'number' ? 'number' : 'boolean';
   const key = String(control?.key || '').trim();
-
   if (!/^[a-z][a-zA-Z0-9]*$/.test(key)) {
     throw new TypeError('Assumption controls require stable camelCase keys.');
   }
@@ -84,7 +83,6 @@ function normalizedControl(control: ProfessionAssumptionControlInput): Professio
         ...(source.icon ? { icon: String(source.icon) } : {})
       };
     });
-
     if (!options.length) {
       throw new TypeError(`Assumption control ${key} needs select options.`);
     }
@@ -109,7 +107,6 @@ export function createProfessionAssumptionControls(
   controls: ReadonlyArray<ProfessionAssumptionControlInput> = []
 ): ReadonlyArray<ProfessionAssumptionControl> {
   const normalized = controls.map(normalizedControl);
-
   if (new Set(normalized.map((control) => control.key)).size !== normalized.length) {
     throw new TypeError('Assumption control keys must be unique.');
   }
@@ -133,7 +130,6 @@ export function normalizeProfessionAssumptions(
   const result = { ...assumptions };
   for (const control of controls) {
     const value = assumptions[control.key] ?? control.defaultValue;
-
     if (control.type === 'boolean') {
       result[control.key] = Boolean(value);
     } else if (control.type === 'number') {
@@ -158,7 +154,6 @@ export function validateProfessionAssumptions(
   const errors: string[] = [];
   for (const control of controls) {
     const value = assumptions?.[control.key];
-
     if (control.type === 'boolean' && typeof value !== 'boolean') {
       errors.push(`assumptions.${control.key} must be boolean.`);
     } else if (

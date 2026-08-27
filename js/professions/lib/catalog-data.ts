@@ -88,7 +88,6 @@ export function createFlipParentMap<TSkill extends FlipSkillLike>(
     const childId = parent.flipSkillId;
 
     if (childId == null) continue;
-
     if (childId === parent.nextChainId) continue;
 
     const child = byId.get(childId);

@@ -106,7 +106,6 @@ export const strikePackets = (
   options: Readonly<SchedulerRecord> = {}
 ): StrikeEffect => {
   const count = Array.isArray(offsetsMs) ? offsetsMs.length : 0;
-
   if (count === 0) {
     throw new TypeError('Strike packet timelines require at least one offset.');
   }
@@ -136,7 +135,6 @@ export const condition = (
   metadata?: Readonly<SchedulerRecord>
 ): ConditionEffect => {
   let options: ConditionOptions;
-
   if (atMsOrOptions && typeof atMsOrOptions === 'object' && !Array.isArray(atMsOrOptions)) {
     options = atMsOrOptions as ConditionOptions;
   } else {

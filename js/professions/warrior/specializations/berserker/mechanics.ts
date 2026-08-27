@@ -7,7 +7,6 @@ import { berserkerState } from './state.js';
 
 export function advanceBerserker(context: WarriorSchedulerContext, target: number): void {
   const state = berserkerState.from(context);
-
   if (state.berserkActive && state.berserkUntil <= target) {
     state.berserkActive = false;
     state.berserkUntil = 0;

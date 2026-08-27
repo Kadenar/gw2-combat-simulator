@@ -70,7 +70,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
   const message = editor.querySelector<HTMLElement>('.charge-release-editor-message');
   const cancel = editor.querySelector<HTMLButtonElement>('.charge-release-editor-cancel');
   const apply = editor.querySelector<HTMLButtonElement>('.charge-release-editor-apply');
-
   if (!icon || !name || !choices || !message || !cancel || !apply) {
     throw new TypeError('Charge release editor markup is incomplete.');
   }
@@ -97,7 +96,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
     text.className = 'charge-release-editor-choice-text';
     text.textContent = labelText;
     label.append(radio, text);
-
     if (reason) {
       const detail = document.createElement('span');
       detail.className = 'charge-release-editor-reason';
@@ -132,7 +130,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
     const viewportPadding = 8;
     let opensLeft = false;
     let left = anchorRect.right + gap;
-
     if (left + editorRect.width > window.innerWidth - viewportPadding) {
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
@@ -155,7 +152,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
 
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
-
     if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
@@ -179,7 +175,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
       document.removeEventListener('scroll', onViewportChange, true);
       window.removeEventListener('resize', onViewportChange);
       editor.remove();
-
       if (activeEditor === handle) activeEditor = null;
     }
   };
@@ -189,7 +184,6 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Ch
     const selected = editor.querySelector<HTMLInputElement>(
       'input[name="charge-release-editor-value"]:checked:not(:disabled)'
     );
-
     if (!selected) return;
     handle.close();
     options.onApply(selected.value === 'maximum' ? undefined : Number(selected.value));

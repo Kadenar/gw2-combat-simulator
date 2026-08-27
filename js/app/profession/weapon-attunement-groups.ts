@@ -41,7 +41,6 @@ export function groupWeaponSkillsByAttunement(
   }
 
   const elementalAttunementCount = [...byAttunement.keys()].filter((attunement) => attunement !== 'Special').length;
-
   if (elementalAttunementCount < 2) {
     return [{ attunement: null, skills: [...skills] }];
   }

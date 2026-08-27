@@ -13,9 +13,7 @@ export function normalizedName(value: unknown): string {
 
 function activeSpecializationScore(skill: Skill, profile: RotationProfessionProfile): number {
   const specialization = normalizedName(skill.specialization);
-
   if (!specialization) return 1;
-
   if (specialization === normalizedName(profile.specializationName)) return 2;
   // Weaponmaster Training exposes elite-specialization weapons profession-wide.
   return normalizedName(skill.type) === 'weapon' ? 1 : 0;
@@ -57,7 +55,6 @@ export function findRotationSkill(
     catalog.skills.filter((skill) => typeof skill.id === 'number' && Number(skill.id) === aliasedSkillId),
     profile
   );
-
   if (byId) return parentSkill(byId, catalog, profile);
   const byName = bestCandidate(
     catalog.skills.filter((skill) => normalizedName(skill.name) === normalizedName(aliasedName)),
@@ -86,23 +83,15 @@ export function isDirectPlayerSkill(skill: Skill): boolean {
 
 export function actionKind(skill: Skill | null, name: string): RotationActionKind {
   const normalizedActionName = normalizedName(name);
-
   if (normalizedActionName === 'swap weapons') return 'weapon-swap';
-
   if (normalizedActionName.includes('dodge') || normalizedActionName === 'mirage cloak') return 'dodge';
 
   const type = normalizedName(skill?.type);
-
   if (type === 'weapon') return 'weapon-skill';
-
   if (type === 'profession') return 'profession-skill';
-
   if (type === 'utility') return 'utility';
-
   if (type === 'heal') return 'heal';
-
   if (type === 'elite') return 'elite';
-
   if (type === 'action') return 'action';
   return 'unknown';
 }

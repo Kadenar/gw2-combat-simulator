@@ -33,7 +33,6 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
     }
 
     const displayName = String(skill.displayName || skill.name);
-
     if (!byDisplayName.has(displayName)) byDisplayName.set(displayName, skill);
   }
 
@@ -48,7 +47,6 @@ export function skillBarDisplaySkill(
   if (!selected) return selected;
   const professionState = app.results?.endState?.profession as SchedulerRecord | undefined;
   const availableFlips = professionState?.availableFlips;
-
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
   const flips = availableFlips as Record<string, unknown>;
   const visited = new Set<number>();
@@ -57,9 +55,7 @@ export function skillBarDisplaySkill(
   while (current.flipSkillId != null && !visited.has(Number(current.id))) {
     visited.add(Number(current.id));
     const flip = app.skillById.get(Number(current.flipSkillId));
-
     if (!flip || flip.flipParentId !== current.id) break;
-
     if (flips[flip.id] ?? flips[flip.name]) display = flip;
     current = flip;
   }
@@ -83,7 +79,6 @@ export function skillBarInspectionStacks(
 
   for (const skill of skills) {
     const rootId = Number(inspectionChainRoots[String(skill.id)] ?? skill.chainRoot);
-
     if (!Number.isFinite(rootId) || rootId === Number(skill.id) || !visibleSkillIds.has(rootId)) {
       continue;
     }
@@ -170,7 +165,6 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
             description: selectedEntry.description
           }
         : selectedSkill;
-
       if (!display || !options.length) return '';
       const labeled = Boolean(selection.keyLabel || selection.typeLabel);
       const selectionSlot = `<div class="skill-bar-inspection-slot selectable${labeled ? ' labeled-skill-bar-slot' : ''}"
@@ -302,7 +296,6 @@ export function renderSkills(app: ProfessionAppState): void {
         app.skills
           .filter((skill) => {
             if (skill.type !== 'Weapon' || !skill.weapon) return false;
-
             if (
               !app.adapter.isSkillAvailable(skill, {
                 build: app.build,
@@ -323,7 +316,6 @@ export function renderSkills(app: ProfessionAppState): void {
       ).values()
     ].sort((a, b) => {
       const slotOrder = String(a.slot).localeCompare(String(b.slot));
-
       if (slotOrder) return slotOrder;
       const sequenceOrder =
         Number(a.weaponBarChainStep ?? a.chainStep ?? Number.MAX_SAFE_INTEGER) -
@@ -418,7 +410,6 @@ export function renderSkills(app: ProfessionAppState): void {
     const weaponNames = weapons.filter(Boolean).join(' / ');
     const setLabel = `<span class="weapon-set-number">Set ${setNumber}</span><span class="weapon-set-name">${esc(weaponNames)}</span>`;
     const showSetLabel = weaponSetLabelVisible(app.profession.id, hasSecondWeaponSet);
-
     if (groups.length === 1 && groups[0].attunement == null) {
       const label = showSetLabel ? `<span class="weapon-set-preview-label">${setLabel}</span>` : '';
       return `<div class="weapon-set-preview" data-weapon-set-preview="${setNumber}">${label}${weaponSlots(skills, false, separateWeaponChains)}</div>`;
@@ -444,7 +435,6 @@ export function renderSkills(app: ProfessionAppState): void {
     const skills = group.skillIds
       .map((id) => app.skillById.get(Number(id)))
       .filter((skill): skill is Skill => skill != null);
-
     if (!skills.length) return '';
     const stacks = skillBarInspectionStacks(skills, group.inspectionChainRoots).map(({ root, children }) => [
       root,
@@ -473,7 +463,6 @@ export function renderSkills(app: ProfessionAppState): void {
     ? rememberedAttunement
     : String(attunementNames[0] || '');
   weaponBar.dataset.visibleWeaponSet = String(visibleWeaponSet);
-
   if (visibleAttunement) {
     weaponBar.dataset.visibleAttunement = visibleAttunement;
   }
@@ -624,7 +613,6 @@ export function renderSkills(app: ProfessionAppState): void {
     if (!(slot instanceof HTMLElement)) return;
     const icon = slot.querySelector('.sbar-icon');
     const dropdown = slot.querySelector('.sbar-dropdown');
-
     if (!icon || !dropdown) return;
     const toggleDropdown = (event: Event) => {
       event.stopPropagation();
@@ -640,7 +628,6 @@ export function renderSkills(app: ProfessionAppState): void {
       item.addEventListener('click', () => {
         const key = slot.dataset.key;
         const name = item.dataset.name;
-
         if (!key || !name) return;
         app.build.selectedSkills[key] = name;
         app.changed();
@@ -653,7 +640,6 @@ export function renderSkills(app: ProfessionAppState): void {
     if (!(slot instanceof HTMLElement)) return;
     const icon = slot.querySelector('.sbar-icon');
     const dropdown = slot.querySelector('.sbar-dropdown');
-
     if (!icon || !dropdown) return;
     const filterInput = dropdown.querySelector('.sbar-dropdown-filter');
     const filterEmpty = dropdown.querySelector('.sbar-dropdown-filter-empty');
@@ -665,10 +651,8 @@ export function renderSkills(app: ProfessionAppState): void {
         const label = item.querySelector('span')?.textContent || '';
         const visible = label.toLocaleLowerCase().includes(query);
         item.hidden = !visible;
-
         if (visible) visibleOptions += 1;
       });
-
       if (filterEmpty instanceof HTMLElement) {
         filterEmpty.hidden = visibleOptions > 0;
       }
@@ -693,7 +677,6 @@ export function renderSkills(app: ProfessionAppState): void {
       });
       const opening = !dropdown.classList.contains('open');
       dropdown.classList.toggle('open', opening);
-
       if (opening && filterInput instanceof HTMLInputElement) {
         filterInput.value = '';
         filterOptions();
@@ -709,7 +692,6 @@ export function renderSkills(app: ProfessionAppState): void {
         const rawSkillId = item.dataset.skillId;
         const skillId = Number(rawSkillId);
         const value = item.dataset.selectionValue;
-
         if (
           !key ||
           !Number.isInteger(index) ||
@@ -749,7 +731,6 @@ export function renderSkills(app: ProfessionAppState): void {
 /** Renders profession-defined fixed slot bars and their loadout selectors. */
 function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
-
   if (!loadout) return;
   const context = {
     build: app.build,
@@ -882,7 +863,6 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   skillBar.querySelectorAll('button[data-loadout-toggle]').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
     const dropdown = button.parentElement?.querySelector('.fixed-loadout-dropdown');
-
     if (!(dropdown instanceof HTMLElement)) return;
     button.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -907,7 +887,6 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
       const key = select.dataset.loadoutKey;
-
       if (!key) return;
       loadout.updateBuild(app.build, key, select.value, context);
       app.changed();
@@ -921,7 +900,6 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       event.stopPropagation();
       const key = button.dataset.loadoutKey;
       const value = button.dataset.loadoutValue;
-
       if (!key || value === undefined) return;
       loadout.updateBuild(app.build, key, value, context);
       app.changed();

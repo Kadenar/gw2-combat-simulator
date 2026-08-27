@@ -35,7 +35,6 @@ export function createGw2ConditionResolution({
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
   function activeStacks(ctx: Gw2ResolverRuntime, name: string, at: number): Gw2ResolverConditionStack[] {
     const state = ctx.conditionState.get(name);
-
     if (!state) return [];
     // Expiry is half-open: a stack is active before expiresAt, not at it.
     return state.stacks.filter(
@@ -60,7 +59,6 @@ export function createGw2ConditionResolution({
     }
 
     let rate = conditionTickDamage(name, conditionDamage);
-
     if (name === 'Confusion') {
       rate +=
         Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
@@ -86,7 +84,6 @@ export function createGw2ConditionResolution({
     const startsAt = Number(ctx.combatStartTime ?? 0);
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
-
       if (!(stacks > 0)) continue;
 
       ctx.environmentConditions.set(condition, {
@@ -141,7 +138,6 @@ export function createGw2ConditionResolution({
     }
 
     const remainder = Math.max(0, naturalDuration - naturalFullTicks);
-
     // A fractional packet is real only when the condition naturally expires
     // within the observation window.
     if (remainder > EPSILON && application.naturalExpiresAt <= ctx.horizon + EPSILON) {
@@ -174,7 +170,6 @@ export function createGw2ConditionResolution({
     const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
     const expiresAt = event.at + duration;
     const stacks = Math.max(0, Number(event.stacks || 0));
-
     if (!stacks || !duration) return null;
 
     const application = {
@@ -217,9 +212,7 @@ export function createGw2ConditionResolution({
   function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null {
     const application = event.application;
     const fraction = clamp(Number(event.fraction || 0), 0, 1);
-
     if (!application || !fraction) return null;
-
     if (Number.isFinite(Number(application.removedAt)) && event.at >= Number(application.removedAt) - EPSILON) {
       return null;
     }
@@ -254,7 +247,6 @@ export function createGw2ConditionResolution({
     conditionEntry.damage += damage;
     conditionEntry.stackSeconds += stackSeconds;
     ctx.conditions.set(condition, conditionEntry);
-
     if (damage > 0) ctx.markDamageTime(event.at);
     return { application, damage, fraction, perStack, stackSeconds };
   }
@@ -264,14 +256,12 @@ export function createGw2ConditionResolution({
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, Number(event.stacks || 0));
     const entry = ctx.environmentConditions.get(condition);
-
     if (!entry || !(stacks > 0)) return;
 
     // Permanent training conditions have zero Condition Damage. Confusion is
     // passive-only, while conditionTickDamage keeps Torment stationary here.
     const vulnerabilityMultiplier = 1 + Number(ctx.query.vulnerabilityStacksAt(event.at, ctx) || 0) / 100;
     const damage = conditionTickDamage(condition, 0) * stacks * vulnerabilityMultiplier;
-
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;

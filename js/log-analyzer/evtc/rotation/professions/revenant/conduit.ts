@@ -30,7 +30,6 @@ function primaryTargetObservationEnd(context: EvtcProfessionReconstructionContex
   }
 
   const primaryTarget = [...damagePacketsByTarget].sort((left, right) => right[1] - left[1])[0]?.[0];
-
   if (primaryTarget == null) return null;
 
   // Arc keeps recording player animations briefly after a golem dies. Bound the import to the primary damage
@@ -50,7 +49,6 @@ function truncatedHexEaterVortexActions(context: EvtcProfessionReconstructionCon
   const combatStart = context.log.events.find(
     (event) => event.target === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
   )?.time;
-
   if (combatStart == null) return [];
   const stop = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -64,7 +62,6 @@ function truncatedHexEaterVortexActions(context: EvtcProfessionReconstructionCon
         event.time - event.value < combatStart &&
         event.time >= combatStart
     );
-
   if (
     !stop ||
     hasRecordedAction(

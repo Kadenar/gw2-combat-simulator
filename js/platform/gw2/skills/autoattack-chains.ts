@@ -75,7 +75,6 @@ function chainState(context: object): Record<string, SkillId> | null {
 /** Clears all pending roots, or only the supplied roots, without replacing the shared state object. */
 export function resetAutoattackChains(context: object, chainRootIds?: readonly SkillId[]): readonly SkillId[] {
   const chains = chainState(context);
-
   if (!chains) return Object.freeze([]);
   const roots = chainRootIds == null ? Object.keys(chains).map(Number) : [...new Set(chainRootIds.map(Number))];
   const reset: SkillId[] = [];
@@ -91,13 +90,11 @@ export function resetAutoattackChains(context: object, chainRootIds?: readonly S
 /** Restores a captured chain snapshot through the same mutation boundary used by live transitions. */
 export function replaceAutoattackChains(context: object, replacement: Readonly<Record<string, SkillId>>): void {
   const chains = chainState(context);
-
   if (!chains) return;
   resetAutoattackChains(context);
   for (const [root, expected] of Object.entries(replacement)) {
     const rootId = Number(root);
     const expectedSkillId = Number(expected);
-
     if (Number.isFinite(rootId) && Number.isFinite(expectedSkillId)) {
       chains[rootId] = expectedSkillId;
     }
@@ -110,13 +107,11 @@ function matchingOverride(
 ): AutoattackChainOverride | null {
   for (const override of overrides) {
     if (override.chainRootIds && !override.chainRootIds.map(Number).includes(Number(context.chainRootId))) continue;
-
     if (
       override.interruptingSkillIds &&
       !override.interruptingSkillIds.map(Number).includes(Number(context.interruptingSkill.id))
     )
       continue;
-
     if (override.when && !override.when(context)) continue;
     return override;
   }
@@ -128,11 +123,8 @@ function validateOptions(options: Gw2AutoattackChainOptions): void {
   const ids = new Set<string>();
   for (const override of options.overrides || []) {
     const id = String(override.id || '').trim();
-
     if (!id) throw new TypeError('Autoattack-chain override id is required.');
-
     if (ids.has(id)) throw new TypeError(`Duplicate autoattack-chain override id: ${id}.`);
-
     if (override.decision !== 'preserve' && override.decision !== 'reset') {
       throw new TypeError(`${id} must decide "preserve" or "reset".`);
     }
@@ -147,10 +139,8 @@ function validateOptions(options: Gw2AutoattackChainOptions): void {
 
 function availability(context: CastContext, skill: Skill): AvailabilityResult {
   const chains = chainState(context);
-
   if (!chains) return CAST_READY;
   const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, chains, skill.id);
-
   if (!chain || chain.matchesExpectedStep) return CAST_READY;
   const expected = context.catalog.skillsById.get(chain.expectedSkillId);
   return denyCast(
@@ -168,7 +158,6 @@ function transition(
   const committed = context.action?.cancelled !== true;
   const position = context.catalog.autoattackChainPositions.get(Number(skill.id));
   const castChainRootId = position?.root ?? null;
-
   if (!chains) {
     return Object.freeze({ committed, castChainRootId, transitions: Object.freeze([]) });
   }
@@ -193,7 +182,6 @@ function transition(
     // A cancelled cast never gets the universal weapon reset, but an explicit
     // per-root rule may still treat the attempted skill as an interruption.
     const decision = override?.decision || (committed && skill.type === 'Weapon' ? 'reset' : 'preserve');
-
     if (decision === 'reset') delete chains[root];
     changes.push(
       Object.freeze({
@@ -208,7 +196,6 @@ function transition(
 
   if (position && committed) {
     const previousSkillId = Number(chains[position.root]) || position.root;
-
     if (position.next == null) delete chains[position.root];
     else chains[position.root] = position.next;
     changes.push(

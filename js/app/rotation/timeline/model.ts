@@ -130,7 +130,6 @@ export function relicProcExpirationTimelineMarkers(
     const key = procFilterKey(proc);
     const expiresAt = Number(proc.expiresAt);
     const window = windows.get(key);
-
     if (window && proc.start <= window.expiresAt) {
       window.proc = proc;
       window.expiresAt = Math.max(window.expiresAt, expiresAt);
@@ -158,7 +157,6 @@ export function procStackLabel(proc: Gw2ProcStep): string {
 
 export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {
   const reductions = procSteps.map((proc) => Number(proc.cooldownReduction));
-
   if (reductions.length && reductions.every((reduction) => Number.isFinite(reduction) && reduction > 0)) {
     const total = reductions.reduce((sum, reduction) => sum + reduction, 0);
     const rounded = Math.round((total + Number.EPSILON) * 1000) / 1000;
@@ -178,7 +176,6 @@ export function groupConsecutiveProcSteps(procSteps: readonly Gw2ProcStep[] = []
   for (const proc of procSteps) {
     const key = procFilterKey(proc);
     const previous = groups.at(-1);
-
     if (previous?.key === key) {
       previous.steps.push(proc);
     } else {
@@ -296,7 +293,6 @@ export function targetHealthTimelineMarkers(
   const percents = [...new Set(thresholds)]
     .map((threshold) => Number(threshold) * 100)
     .filter((percent) => percent > 0 && percent < 100);
-
   if (!percents.length) return [];
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
@@ -330,7 +326,6 @@ export function shatterResourceSpends(
   const spends = new Map<number, ShatterResourceSpend>();
   for (const event of result?.events || []) {
     const rotationIndex = Number(event.rotationIndex);
-
     if (event.type !== 'resource' || event.reason !== 'profession mechanic' || !Number.isInteger(rotationIndex)) {
       continue;
     }
@@ -369,7 +364,6 @@ export function timelineStepsWithChargeFills(
 ): TimelineChargeFillStep[] {
   return steps.map((step) => {
     const chargingMs = Math.round(Number(resourceSpends.get(step.ri)?.chargingSeconds || 0) * 1000);
-
     if (chargingMs <= 0) return step;
     return {
       ...step,

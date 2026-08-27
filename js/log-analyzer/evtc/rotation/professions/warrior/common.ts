@@ -150,7 +150,6 @@ export function normalizeWarriorCommonActions(
     const commitMs = skill ? firstStrikePacketOffsetMs(skill, runtimeCastDurationMs(skill)) : null;
     const duration = Math.max(0, action.end - action.start);
     const committedStrike = skill != null && commitMs != null && validatePackets(action).anyObserved;
-
     // Keep genuine cancelled autoattack inputs so replay spends their observed
     // cast time without advancing the chain; only non-interrupted packet artifacts are folded away.
     if (autoattack && action.status !== 'interrupted' && !committedStrike && commitMs != null && duration < commitMs) {

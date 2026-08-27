@@ -7,7 +7,6 @@ export function prepareRevenantHitboxEvent(
   event: SimulationEventInput
 ): SimulationEventInput {
   const assumptions = (context.config.professionAssumptions || {}) as SchedulerRecord;
-
   if (String(assumptions.hitboxSize || 'small') === 'large' || event.largeHitboxOnly !== true) {
     return event;
   }

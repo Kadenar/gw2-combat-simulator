@@ -37,7 +37,6 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   const state = harbingerState.from(context);
   const coreState = professionCoreState(context);
   purgeHarbingerTimedState(state, target);
-
   // Blight only accrues while inside Harbinger Shroud; reset the cursor after every exit path.
   if (coreState.activeShroud !== 'harbinger') {
     state.nextBlightAt = Number.POSITIVE_INFINITY;
@@ -83,7 +82,6 @@ function applyCascadingCorruption(
   const profile = necromancerBalanceProfile(context, PROFILE.cascadingCorruption);
   const threshold = Number(profile?.minimumStacks || 20);
   state.cascadingCorruptionStacks += consumed;
-
   // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
   if (state.cascadingCorruptionStacks < threshold) return;
   state.cascadingCorruptionStacks -= threshold;
@@ -190,7 +188,6 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     )[skill.id] ?? 1;
   const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
   const commitAt = skill.interruptCommitMs == null ? impactAt : context.start + Number(skill.interruptCommitMs) / 1000;
-
   // A canceled throw must reach its launch/impact commit before it can consume Blight or apply any effects.
   if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
   const state = harbingerState.from(context);
@@ -209,7 +206,6 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
     ? { metadata: { recipients: 'party', maximumRecipients: 5 } }
     : undefined;
-
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
     const protection = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.bolsteringBrew), 'boon');
     emitSkillBuff(context, skill, {
@@ -239,7 +235,6 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
 
 function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
-
   // Devouring Cut must reach its declared commit frame before spending Blight or landing its packet.
   if (skill.id === ID.DEVOURING_CUT && Math.round((at - context.start) * 1000) < Number(skill.interruptCommitMs || 0)) {
     return true;
@@ -265,7 +260,6 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   });
   const source = empowered && empoweredProfile ? empoweredProfile : skill;
   const strike = balanceProfileEffect(source, 'strike');
-
   if (!strike) return false;
   emitSkillDamage(context, skill, {
     at: impactAt,
@@ -275,10 +269,8 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
       necromancerBlight: damageBlight
     }
   });
-
   if (empowered) {
     const condition = balanceProfileEffect(source, 'condition');
-
     if (condition) {
       emitSkillCondition(context, skill, {
         at: impactAt,

@@ -125,11 +125,9 @@ export function modifyNecromancerCoreAttributes(
   // (accrued on `result`).
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-
   if (hasSelectedSkill(context, 'Signet of Spite')) {
     const signetPower = Number(necromancerBalanceProfile(context, PROFILE.signetOfSpite)?.attributeBonus || 180);
     const passiveActive = context.actorType !== 'summon' && signetOfSpitePassiveActive(context);
-
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= signetPower;
     } else if (passiveActive) {
@@ -152,7 +150,6 @@ export function modifyNecromancerCoreAttributes(
     Number(necromancerBalanceProfile(context, PROFILE.fleshOfTheMaster)?.maximumStacks || 30),
     timedCarapace + minionCarapace
   );
-
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
     const perStack = Number(necromancerBalanceProfile(context, PROFILE.deadlyStrength)?.attributePerStack || 10);
     result.power += carapace * perStack;
@@ -309,9 +306,7 @@ export function compileNecromancerModifierRules(rules: readonly Gw2ModifierRule[
 function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   let result = duration;
   const skill = context.skill;
-
   if (skill?.rechargeOnMinionDeath && !context.minionDeathRecharge) return 0;
-
   if (skill?.categories?.includes('Corruption') && hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
     result *= 0.67;
   }

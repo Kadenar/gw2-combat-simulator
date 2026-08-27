@@ -41,9 +41,7 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
     resolverHandoff = {},
     source = 'platform.engine.scheduler'
   } = options;
-
   if (!Array.isArray(events)) throw new TypeError('Scheduled stream requires events.');
-
   if (!Number.isFinite(rotationEndTime)) {
     throw new TypeError('Scheduled stream requires a finite rotation end.');
   }
@@ -73,7 +71,6 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
  */
 export function assertScheduledEventStream(stream: unknown): ScheduledEventStream {
   const candidate = stream as Partial<ScheduledEventStream> | null | undefined;
-
   if (
     !candidate ||
     candidate.kind !== SCHEDULED_EVENT_STREAM_KIND ||

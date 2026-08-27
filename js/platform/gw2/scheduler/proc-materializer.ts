@@ -92,13 +92,11 @@ export function createGw2TriggerMaterializer(
         }
 
         const criticalCause = resolveCriticalTrigger(context, event, state);
-
         if (criticalCause) {
           sigils.materialize('crit', context, event, criticalCause);
         }
 
         sigils.consumeDoom(context, event);
-
         if (sigilSupport.strike && isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0) {
           sigils.materialize('strike', context, event);
         }
@@ -153,7 +151,6 @@ export function createGw2TriggerMaterializer(
     },
     onEventScheduled(context, event) {
       const required = EVENT_REQUIRED_CAPABILITY[event.type];
-
       if (!required || !capabilityEnabled[required]()) return;
       // Deferring avoids recursive mutation inside the scheduler's observation
       // callback and preserves chronology.

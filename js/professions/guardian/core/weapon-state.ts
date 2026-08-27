@@ -22,10 +22,8 @@ import type { GuardianCastContext, GuardianSkill } from '../types.js';
  */
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-
   if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
-
     if (flip?.flipParentId === skill.id) {
       const duration =
         skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME

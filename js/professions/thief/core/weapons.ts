@@ -12,7 +12,6 @@ export function thiefWeaponSkillMatchesSet(
   const professionState = flattenProfessionState(
     context.professionState || context.state?.profession || {}
   ) as unknown as Partial<ThiefState>;
-
   if (
     skill.weapon === 'Rifle' &&
     !skill.stealthAttack &&
@@ -20,14 +19,12 @@ export function thiefWeaponSkillMatchesSet(
   )
     return false;
   const spearChainStage = spearChainStageForSkill(skill.id);
-
   if (
     spearChainStage != null &&
     !context.weaponBarPreview &&
     Number(professionState.spearChainStage || 0) !== spearChainStage
   )
     return false;
-
   if (skill.requiredMainHand != null || skill.requiredOffHand != null || skill.requiresEmptyOffhand) {
     const [mainHand = '', offHand = ''] = pair;
     return (
@@ -39,7 +36,6 @@ export function thiefWeaponSkillMatchesSet(
 
   const primary = pair[0] || '';
   const wielding = context.weaponData?.[primary]?.wielding || context.catalog?.weaponHands?.get(primary);
-
   if (wielding === '2h') return skill.weapon === pair[0];
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
   return slot <= 3 ? skill.weapon === pair[0] : skill.weapon === pair[1];

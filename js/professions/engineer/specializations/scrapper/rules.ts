@@ -24,7 +24,6 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
 
   if (event.finisherType !== 'Whirl') return true;
   const state = scrapperState.from(context);
-
   if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) {
     return false;
   }

@@ -23,7 +23,6 @@ export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
     const insight = (state.attackerInsightExpiries || []).filter((expiry) => Number(expiry) > at).length;
-
     if (insight > 0) {
       items.push({
         id: 'attackers-insight',
@@ -34,7 +33,6 @@ export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
     }
 
     const tether = Number(state.magebaneTetherUntil || 0) - at;
-
     if (tether > 0) {
       items.push({
         id: 'magebane-tether',

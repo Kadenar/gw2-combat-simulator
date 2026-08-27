@@ -72,7 +72,6 @@ export function createGw2TimelineIndex({
   const indexBuff = (event: SimulationEvent): void => {
     const kind = String(event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
-
     if (!bucket) {
       bucket = { all: [], summon: [], summonTrait: [] };
       indexedBuffs.set(kind, bucket);
@@ -95,11 +94,9 @@ export function createGw2TimelineIndex({
     // The source array is append-oriented. Shrinking it signals replacement and
     // rebuilds the index; same-length in-place mutation is outside the contract.
     if (events.length < indexedLength) resetIndex();
-
     if (events.length === indexedLength) return;
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
-
       if (event.type === 'buff') {
         indexBuff(event);
       }
@@ -134,7 +131,6 @@ export function createGw2TimelineIndex({
     const bucket = indexedBuffs.get(String(kind || '').toLowerCase());
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
-
     if (isDurationStackingBoon(kind)) {
       const remaining = remainingDurationStackSeconds(applications || [], time + EPSILON, {
         includes: (event) => buffMatchesAudience(event, audience, companionId),
@@ -194,7 +190,6 @@ export function createGw2TimelineIndex({
     let readyAt = 0;
     for (const event of indexed.cooldown) {
       if (event.at > time + EPSILON) break;
-
       if (event.type === 'action' && event.skillId === skillId) {
         // Query the state before an action at this exact timestamp; otherwise
         // the action would see the cooldown it is about to create.

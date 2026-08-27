@@ -16,7 +16,6 @@ export function materializeBoonRelics(
 ): void {
   if (!isStandardBoon(event.kind || event.boon)) return;
   const handler = relic.rules.materializeBoon;
-
   if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
 }
@@ -28,7 +27,6 @@ export function materializeConditionRelics(
   event: SimulationEvent
 ): void {
   const handler = relic.rules.materializeCondition;
-
   if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
 }

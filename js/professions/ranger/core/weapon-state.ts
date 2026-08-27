@@ -20,7 +20,6 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
 
   const state = professionCoreState(context);
-
   // Panther's Prowl grants one three-second spear stealth attack choice; all
   // four affected slots flip together and the chosen attack consumes the set.
   if (skill.id === ID.PANTHERS_PROWL) {
@@ -42,7 +41,6 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
     skill.flipSkillId !== skill.nextChainId
   ) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
-
     if (flip?.flipParentId === skill.id) {
       const duration =
         WEAPON_FLIP_DURATION_BY_PARENT[skill.id as keyof typeof WEAPON_FLIP_DURATION_BY_PARENT] ||

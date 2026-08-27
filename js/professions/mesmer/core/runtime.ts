@@ -34,7 +34,6 @@ export function mesmerRuntimeFor(
   context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined
 ): MesmerRuntime {
   const runtime = context?.mesmerRuntime;
-
   if (!runtime) {
     throw new Error('Mesmer scheduler runtime is not initialized.');
   }
@@ -70,9 +69,7 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
   }
 
   if (manifest.shatters) Object.assign(runtime.shatters, manifest.shatters);
-
   if (manifest.shatterResolvers) Object.assign(runtime.shatterResolvers, manifest.shatterResolvers);
-
   if (manifest.shatterResolvedHandlers) {
     runtime.shatterResolvedHandlers.push(...manifest.shatterResolvedHandlers);
   }
@@ -112,7 +109,6 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
   }
 
   for (const id of manifest.peithaSkills || []) runtime.peithaSkills.add(id);
-
   if (manifest.peithaProjectileDelays) {
     Object.assign(runtime.peithaProjectileDelays, manifest.peithaProjectileDelays);
   }

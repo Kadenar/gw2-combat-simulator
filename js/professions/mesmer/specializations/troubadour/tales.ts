@@ -30,10 +30,8 @@ function restoreHonorableRogueEndurance(context: MesmerSchedulerContext, at: num
   const runtime = mesmerRuntimeFor(context);
   const dodge = runtime.skillsById.get(ID.DODGE_TROUBADOUR);
   const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, at) : null;
-
   if (!dodge || !ammo || ammo.charges >= ammo.maximum) return;
   ammo.charges += 1;
-
   if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
   context.state.cooldowns.delete(dodge.id);
 }
@@ -59,7 +57,6 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
   }
 
   const requiredInstrument = TALE_INSTRUMENTS[skill.id];
-
   if (requiredInstrument && Number(troubadourState.from(context).instruments[requiredInstrument] || 0) > castStart) {
     runtime.resources.queueResources(
       at + context.epsilon,

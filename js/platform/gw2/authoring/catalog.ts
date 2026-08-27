@@ -73,9 +73,7 @@ export function createNativeModuleData<TContext extends object>({
     // specializationOnlySkillOwners can pin specific skill IDs to a module,
     // overriding the automatic elite-spec-name-based ownership resolution.
     const forcedOwner = specializationOnlySkillOwners[String(skill.id)];
-
     if (forcedOwner) return forcedOwner === id;
-
     if (forced.has(String(skill.id))) return true;
     return canonicalModuleName(skill, specializations) === id;
   };
@@ -137,7 +135,6 @@ function mergeEntityArrays<T extends CatalogEntity>(
   for (const module of modules) {
     for (const entity of select(module)) {
       const prior = owners.get(entity.id);
-
       if (prior) {
         throw new TypeError(`Duplicate ${label} ${String(entity.id)} in ${prior} and ${module.id}.`);
       }
@@ -161,7 +158,6 @@ function applySkillNameOverrides(
 ): void {
   for (const [name, skillId] of Object.entries(overrides || {})) {
     const skill = catalog.skillsById.get(skillId);
-
     if (!skill) {
       throw new TypeError(`Unknown skill-name override ${name}: ${String(skillId)}.`);
     }
@@ -201,7 +197,6 @@ function composeNativeCatalog(
   options: NativeCatalogOptions | undefined
 ): AssembledNativeCatalog {
   const moduleIds = new Set(modules.map((module) => module.id));
-
   if (modules[0]?.id !== 'Core') {
     throw new TypeError('Native profession modules must begin with "Core".');
   }
@@ -241,7 +236,6 @@ function composeNativeCatalog(
   for (const module of modules) {
     for (const [skillId, mechanic] of Object.entries(module.data.skillMechanics || {})) {
       const prior = mechanicsOwners.get(skillId);
-
       if (prior) {
         throw new TypeError(`Duplicate skill mechanics ${skillId} in ${prior} and ${module.id}.`);
       }
@@ -252,7 +246,6 @@ function composeNativeCatalog(
 
     for (const [skillId, override] of Object.entries(module.data.skillOverrides || {})) {
       const prior = overrideOwners.get(skillId);
-
       if (prior) {
         throw new TypeError(`Duplicate skill override ${skillId} in ${prior} and ${module.id}.`);
       }
@@ -265,7 +258,6 @@ function composeNativeCatalog(
       module.data.handlers as NativeSkillHandlerRegistry<object> | undefined
     )) {
       const prior = handlerOwners.get(handlerId);
-
       if (prior) {
         throw new TypeError(`Duplicate skill handler ${handlerId} in ${prior} and ${module.id}.`);
       }
@@ -277,7 +269,6 @@ function composeNativeCatalog(
     for (const skillId of module.data.specializationOnlySkillIds || []) {
       const key = String(skillId);
       const prior = exclusiveOwners.get(key);
-
       if (prior) {
         throw new TypeError(`Duplicate specialization-only skill ${key} in ${prior} and ${module.id}.`);
       }
@@ -288,7 +279,6 @@ function composeNativeCatalog(
     for (const weapon of module.data.weapons || []) weapons.add(weapon);
     for (const [weapon, hand] of toEntries(module.data.weaponHands)) {
       const prior = weaponHandOwners.get(weapon);
-
       if (prior) {
         throw new TypeError(`Duplicate weapon-hand entry ${weapon} in ${prior} and ${module.id}.`);
       }
@@ -351,7 +341,6 @@ function composeNativeCatalog(
       declaredOwners.get(skill.id) ||
       mechanicOwner ||
       'Core';
-
     if (!moduleIds.has(owner)) {
       throw new TypeError(`Skill ${String(skill.id)} resolves to unknown runtime module ${owner}.`);
     }
@@ -372,7 +361,6 @@ function composeNativeCatalog(
     const referencedOwners = new Set(
       catalog.skills.filter((skill) => skill.handlerId === handlerId).map((skill) => skillOwners.get(skill.id))
     );
-
     if (!referencedOwners.size) {
       throw new TypeError(`Skill handler ${handlerId} is unused.`);
     }
@@ -397,7 +385,6 @@ function composeNativeCatalog(
   // that spans Core and a spec module would be impossible to schedule correctly.
   for (const { owner: declarationOwner, chain } of additionalChains) {
     const owners = new Set(chain.map((skillId) => skillOwners.get(skillId)));
-
     if (owners.size !== 1 || owners.has(undefined)) {
       throw new TypeError(`${declarationOwner} autoattack chain crosses runtime module ownership.`);
     }
@@ -412,7 +399,6 @@ function composeNativeCatalog(
 
   for (const { skillId } of excludedChains) {
     const owner = skillOwners.get(skillId);
-
     if (!owner) throw new TypeError(`Unknown excluded autoattack skill ${String(skillId)}.`);
     const current = chainContributions.get(owner)!;
     chainContributions.set(owner, {
@@ -471,7 +457,6 @@ export function getNativeCatalogAssembly(
   options: NativeCatalogOptions | undefined
 ): AssembledNativeCatalog {
   const first = modules[0];
-
   if (!first) throw new TypeError('A native profession requires modules.');
   const cached = assemblyCache.get(first) || [];
   const match = cached.find(
@@ -480,7 +465,6 @@ export function getNativeCatalogAssembly(
       entry.modules.length === modules.length &&
       entry.modules.every((module, index) => module === modules[index])
   );
-
   if (match) return match.assembly;
   const assembly = composeNativeCatalog(modules, options);
   cached.push({ modules: [...modules], options, assembly });

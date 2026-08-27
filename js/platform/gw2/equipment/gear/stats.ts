@@ -641,7 +641,6 @@ export function getActiveGearSlots(
 ): string[] {
   const mh = weapons?.[0] || '';
   const is2H = weaponData?.[mh]?.wielding === '2h';
-
   if (is2H) {
     return GEAR_SLOTS.filter((s) => s !== 'Weapon2').map((s) => (s === 'Weapon1' ? 'Weapon2H' : s));
   }

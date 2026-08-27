@@ -10,18 +10,15 @@ import type { ProfessionAppState } from '../../profession/types.js';
 
 export function renderAttributes(app: ProfessionAppState): void {
   const weaponSet = document.getElementById('attribute-weapon-set');
-
   if (!(weaponSet instanceof HTMLInputElement) && !(weaponSet instanceof HTMLSelectElement)) {
     throw new Error('Required attribute weapon-set control is missing.');
   }
 
   const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
-
   if (!hasSecondWeaponSet) app.attributeWeaponSet = 1;
   weaponSet.disabled = !hasSecondWeaponSet;
   weaponSet.closest('label')?.toggleAttribute('hidden', !hasSecondWeaponSet);
   weaponSet.value = String(app.attributeWeaponSet);
-
   if (!app.attributeData) {
     throw new Error('Profession attributes must exist before rendering.');
   }
@@ -31,7 +28,6 @@ export function renderAttributes(app: ProfessionAppState): void {
     `<div class="attr-section"><h4>${title}</h4>${names
       .map((name) => {
         let value = attributes[name]?.final || 0;
-
         if (SPECIFIC_CONDITION_DURATION_ATTRIBUTES.has(name)) {
           value += attributes['Condition Duration']?.final || 0;
         }
@@ -47,7 +43,6 @@ export function renderAttributes(app: ProfessionAppState): void {
       })
       .join('')}</div>`;
   const list = document.getElementById('attributes-list');
-
   if (!list) throw new Error('Required attributes list is missing.');
   list.innerHTML = section('Primary', PRIMARY_ATTRIBUTES) + section('Derived', DERIVED_ATTRIBUTES);
 }

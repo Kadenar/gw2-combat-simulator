@@ -86,7 +86,6 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEd
   const apply = editor.querySelector<HTMLButtonElement>('.activation-editor-apply');
   const success = editor.querySelector<HTMLInputElement>('input[value="success"]');
   const backfire = editor.querySelector<HTMLInputElement>('input[value="backfire"]');
-
   if (!icon || !name || !cancel || !apply || !success || !backfire) {
     throw new TypeError('Double Edge editor markup is incomplete.');
   }
@@ -112,7 +111,6 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEd
     const viewportPadding = 8;
     let opensLeft = false;
     let left = anchorRect.right + gap;
-
     if (left + editorRect.width > window.innerWidth - viewportPadding) {
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
@@ -135,7 +133,6 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEd
 
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
-
     if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
@@ -159,7 +156,6 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEd
       document.removeEventListener('scroll', onViewportChange, true);
       window.removeEventListener('resize', onViewportChange);
       editor.remove();
-
       if (activeEditor === handle) activeEditor = null;
     }
   };

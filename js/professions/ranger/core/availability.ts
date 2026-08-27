@@ -12,7 +12,6 @@ import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './weapon-state.js';
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
 export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = professionCoreState(context);
-
   if (skill.id === ID.DODGE) {
     const cost = rangerBalanceValue(context, PROFILE.resources, 'resourceCost', 50);
     return state.endurance + context.epsilon >= cost
@@ -39,7 +38,6 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
   const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
-
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
@@ -61,7 +59,6 @@ export function rangerCoreCastAvailability(context: RangerPrecastContext, skill:
   }
 
   if (!skill.petSkill) return { ready: true };
-
   if (skill.petAutonomousSkill) {
     return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }

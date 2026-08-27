@@ -38,7 +38,6 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
   if (isJsonRotationFile(file)) {
     const imported = await readJsonFile(file);
     const rotation = getRotationItems(imported);
-
     if (rotation) {
       // JSON rotations may use any historical interchange shape; app state stays canonical.
       return {
@@ -182,7 +181,6 @@ function createDialog(document: Document): RotationImportDialogElements {
   const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
   const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
   const closeButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-close]');
-
   if (
     !dropZone ||
     !status ||
@@ -221,7 +219,6 @@ function renderWarnings(element: HTMLElement, warnings: readonly string[]): void
   for (const warning of warnings) {
     const item = element.ownerDocument.createElement('li');
     const separator = warning.indexOf(':');
-
     if (separator > 0 && separator < 40) {
       const label = element.ownerDocument.createElement('strong');
       label.textContent = warning.slice(0, separator);
@@ -308,13 +305,11 @@ export function bindRotationImportDialog(
       activePreview = imported;
       elements.status.classList.add('is-success');
       elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
-
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
 
       renderWarnings(elements.warnings, imported.warnings);
-
       if (imported.observations.length) {
         elements.observations.hidden = false;
       }
@@ -333,7 +328,6 @@ export function bindRotationImportDialog(
   const selectReport = async (): Promise<void> => {
     if (importing) return;
     const input = elements.reportInput.value.trim();
-
     if (!input) return;
     activePreview = null;
     setImporting(true);
@@ -347,7 +341,6 @@ export function bindRotationImportDialog(
       activePreview = imported;
       elements.status.classList.add('is-success');
       elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
-
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
@@ -383,7 +376,6 @@ export function bindRotationImportDialog(
   elements.closeButton.addEventListener('click', () => elements.dialog.close());
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
-
     if (file) void selectFile(file);
   });
   for (const eventName of ['dragenter', 'dragover']) {
@@ -401,7 +393,6 @@ export function bindRotationImportDialog(
     event.preventDefault();
     elements.dropZone.classList.remove('is-dragging');
     const file = event.dataTransfer?.files[0];
-
     if (file) void selectFile(file);
   });
 }

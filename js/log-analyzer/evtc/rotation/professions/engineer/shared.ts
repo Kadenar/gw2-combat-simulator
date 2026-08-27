@@ -22,7 +22,6 @@ export function selectedIdentity(
     (skill) =>
       typeof skill.id === 'number' && selectedIds.has(Number(skill.id)) && normalized(skill.name) === normalized(name)
   );
-
   if (selected && typeof selected.id === 'number') {
     return { name: selected.name, skillId: Number(selected.id) };
   }
@@ -64,7 +63,6 @@ export function combatStartTime(context: EvtcProfessionReconstructionContext): n
   const explicit = context.log.events.find(
     (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   )?.time;
-
   if (explicit != null) return explicit;
   const initial = context.log.events
     .filter((event) => event.target === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL)
@@ -77,7 +75,6 @@ export function findOpeningPrecast(
   identities: ReadonlyMap<string, EngineerActionIdentity>
 ): EvtcRecordedRotationAction | null {
   const combatStart = combatStartTime(context);
-
   if (combatStart == null) return null;
   const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
   const candidate = context.log.events
@@ -95,7 +92,6 @@ export function findOpeningPrecast(
       );
     })
     .sort((left, right) => left.event.time - right.event.time)[0];
-
   if (!candidate) return null;
   const name = names.get(candidate.event.skillId)!;
   const fallback = identities.get(name)!;

@@ -1882,7 +1882,6 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
       (event) => event.type === 'damage' && event.skillName === skillName && event.name === packetName
     );
   };
-
   const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
   const singularitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Hard Light Arena', 'Prime Light Beam'];
   const ratio = (variant, base) => variant.damage / base.damage;

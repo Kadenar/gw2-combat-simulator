@@ -34,7 +34,6 @@ function truncatedBarrageActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
-
   if (firstEventTime == null) return [];
 
   return context.log.events.flatMap((event, eventIndex) => {
@@ -52,7 +51,6 @@ function truncatedBarrageActions(
     const alreadyRecorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRUNCATED_CAST_WINDOW_MS
     );
-
     if (alreadyRecorded || start >= firstEventTime) return [];
     return [
       {
@@ -81,7 +79,6 @@ function normalizeFalseInterruptions(
 
     const skill = rangerSkill(context, action.rawSkillId, action.rawName);
     const duration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-
     if (duration <= 0) return action;
     return {
       ...action,
@@ -105,7 +102,6 @@ function cycloneBowActions(
         : Number(rawEvent?.value) === CYCLONE_BOW_WEAPON_SET
           ? DISMISS_CYCLONE_BOW
           : null;
-
     if (!identity) return action;
     return {
       ...action,
@@ -123,13 +119,11 @@ function cycloneBowActions(
     firstSwap != null &&
     (Number(context.log.events[firstSwap.eventIndex]?.value) === CYCLONE_BOW_WEAPON_SET ||
       actions.some((action) => CYCLONE_BOW_SKILL_IDS.has(action.rawSkillId) && action.start < firstSwap.start));
-
   if (!startsInCycloneBow) return mapped;
 
   const firstAction = [...mapped].sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   )[0];
-
   if (!firstAction) return mapped;
   return [
     ...mapped,

@@ -19,10 +19,8 @@ const instrumentEventIndex = new WeakMap<readonly SimulationEvent[], readonly Si
 
 function instrumentEvents(context: Gw2ModifierContext): readonly SimulationEvent[] {
   const events = context.events;
-
   if (!Array.isArray(events)) return EMPTY_EVENTS;
   let indexed = instrumentEventIndex.get(events);
-
   if (!indexed) {
     indexed = events.filter((event) => event.type === 'mesmer.instrument');
     instrumentEventIndex.set(events, indexed);
@@ -65,7 +63,6 @@ export function applyTroubadourAttributes(context: Gw2ModifierContext, attribute
   const fortissimo = instrumentCount
     ? 1 + instrumentCount * mesmerBalanceValue(context, TRAIT.FORTISSIMO, 'attributeConversion', 0.04)
     : 1;
-
   if (fortissimo === 1) return attributes;
   return {
     ...attributes,
@@ -119,7 +116,6 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
   const summonAt = context.start + (context.fullEnd - context.start) * summonProgress;
   const completedInterruptedPhantasm =
     interrupted && Number.isFinite(summonProgress) && context.effectiveEnd >= summonAt - context.epsilon;
-
   if (interrupted && !completedInterruptedPhantasm) return;
 
   const runtime = mesmerRuntimeFor(context);
@@ -151,10 +147,8 @@ function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration
 /** Resolves Syncopate from Troubadour control and Method of Madness proc events. */
 function observeTroubadourEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = mesmerRuntimeFor(context);
-
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
   const damage = runtime.traitDamage.Syncopate;
-
   if (!damage) return;
 
   if (event.type === 'control') {
@@ -230,11 +224,9 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const runtime = mesmerRuntimeFor(context);
-
     if (!runtime.traits.has(TRAIT.MAYHEM)) return;
     const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
     const readyAt = flute ? context.state.cooldowns.get(flute.id) : null;
-
     if (!flute || readyAt == null) return;
     context.state.cooldowns.set(
       flute.id,

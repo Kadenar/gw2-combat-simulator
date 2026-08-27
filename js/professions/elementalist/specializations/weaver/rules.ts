@@ -45,7 +45,6 @@ function initialize(context: ElementalistSchedulerContext): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-
   if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context, 'Elements of Rage')) {
     emitSkillBuff(context, elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'), {
       at: context.state.time,
@@ -73,11 +72,9 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   }
 
   const hammerAvailability = weaverHammerAvailability(context, skill);
-
   if (hammerAvailability) return hammerAvailability as AvailabilityResult;
 
   const chainPosition = context.catalog.autoattackChainPositions.get(Number(skill.id));
-
   if (skill.type === 'Weapon' && skill.attunement && !chainPosition) {
     const core = professionCoreState(context);
     const state = weaverState.from(context);
@@ -97,7 +94,6 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
           : slot >= 4
             ? required[0] === secondary
             : core.primaryAttunement === secondary && required[0] === core.primaryAttunement;
-
     if (!available) {
       return {
         ready: false,
@@ -190,7 +186,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     visited.add(target);
     state.weaveSelfVisited = [...visited];
     const remaining = Math.max(0, state.weaveSelfUntil - at);
-
     if (target === 'Fire' || target === 'Air') {
       emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
         at,
@@ -225,7 +220,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   }
 
   if (at < Number(context.combatStartTime || 0) - context.epsilon) return;
-
   if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
     const resistance = elementalistBalanceEffect(context, PROFILE.weaversProwess, 'boon', 'Resistance');
     emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {
@@ -248,7 +242,6 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   const at =
     context.start +
     (context.fullEnd - context.start) * elementalistBalanceValue(context, PROFILE.resources, 'firstPacketRatio', 0.65);
-
   if (at > context.effectiveEnd + context.epsilon) return;
   context.tasks.schedule({
     type: WEAVE_SELF_ACTIVATION_TASK,
@@ -274,7 +267,6 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const at = context.effectiveEnd;
   const dualAttunements = weaverDualAttunements(skill);
   const target = targetAttunement(skill);
-
   if (target) {
     const previous = core.primaryAttunement;
     state.secondaryAttunement = state.unravelUntil > at ? target : previous;
@@ -377,7 +369,6 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       duration: Number(profiledBoon?.duration ?? 5),
       stacks: Number(profiledBoon?.stacks ?? boon[2])
     });
-
     if (hasTrait(context, 'Elements of Rage') && previousPrimary !== previousSecondary) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -433,7 +424,6 @@ function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: 
   state.weaveSelfUntil = at + duration;
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
-
   if (core.primaryAttunement === 'Fire') {
     emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
       at,
@@ -482,7 +472,6 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   const tickTimes = new Set<number>();
   for (const event of context.events) {
     if (event.activationId !== context.reservationId) continue;
-
     if (event.type === 'condition') {
       if (event.at > context.effectiveEnd + context.epsilon) {
         tickTimes.add(event.at);
@@ -557,7 +546,6 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   const skill = context.skill;
   let adjusted = duration;
-
   if (skill.name === 'Purblinding Plasma' && professionCoreState(context).pistolBullets.Air) {
     adjusted *= elementalistBalanceValue(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
   }

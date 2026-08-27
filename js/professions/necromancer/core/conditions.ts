@@ -125,7 +125,6 @@ export function applyNecromancerSelfCondition(
 ): NecromancerSelfCondition | null {
   const effectiveDuration =
     Math.max(0, Number(duration || 0)) * conditionDurationMultiplier(context, skill, condition, at);
-
   if (!(effectiveDuration > 0) || !(Number(stacks) > 0)) return null;
   const application: NecromancerSelfCondition = {
     condition,
@@ -198,10 +197,8 @@ export function transferNecromancerSelfConditions(
 ): number {
   const state = professionCoreState(context);
   const active = purgeNecromancerSelfConditions(state, at);
-
   if (latestApplications) {
     const transferred = active.slice(-maximumConditionTypes);
-
     if (!transferred.length) return 0;
     const retained = new Set(transferred);
     state.selfConditions = active.filter((application) => !retained.has(application));
@@ -236,7 +233,6 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       strike?.timingScale === 'cast'
         ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(strike.atMs))
         : Number(strike?.atMs ?? runtimeCastMs);
-
     // Declarative packets are discarded after this handler runs, so suppress self-corruption when no strike committed.
     if (Math.round((context.effectiveEnd - context.start) * 1000) < Math.round(strikeAtMs)) return false;
   }
@@ -252,7 +248,6 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       >
     >
   )[skill.id];
-
   if (!mechanics) return false;
   for (const application of mechanics.base) {
     applyNecromancerSelfCondition(
@@ -280,7 +275,6 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
     const transferred = transferNecromancerSelfConditions(context, skill, 2, context.effectiveEnd, {
       latestApplications: true
     });
-
     if (transferred) {
       professionCoreState(context).plagueSendingArmed = false;
       professionCoreState(context).plagueSendingEntrySkillId = null;
@@ -309,7 +303,6 @@ function transfer(context: NecromancerCastContext, skill: NecromancerSkill): boo
       [ID.SUFFER]: 2
     } as Readonly<Record<string | number, number>>
   )[skill.id];
-
   if (!maximum) return false;
   transferNecromancerSelfConditions(context, skill, maximum);
   return false;
@@ -346,7 +339,6 @@ function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSk
     Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
   emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
-
   if (count > 0) {
     emitSkillCondition(context, skill, { at: impactAt, condition: 'Torment', stacks: count, duration: 4 });
   }

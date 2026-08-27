@@ -39,20 +39,16 @@ export function analyzeNecromancerBarbedPrecisionObservation(
 ): NecromancerBarbedPrecisionObservation | null {
   if (!hasSelectedTrait(config, TRAIT.BARBED_PRECISION)) return null;
   const profile = traitBalanceProfile(catalog, TRAIT.BARBED_PRECISION, 'Barbed Precision');
-
   if (!profile) return null;
   const expectedProcChance = expectedChance(profile);
-
   if (expectedProcChance == null) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
-
   if (targetAddress == null) return null;
   const criticalHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
   ).length;
-
   if (!criticalHits) return null;
 
   const matchedDurationsMs = expectedConditionDurationsMs(BARBED_PRECISION_BLEEDING_BASE_SECONDS, 'Bleeding', config);

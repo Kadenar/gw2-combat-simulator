@@ -68,12 +68,10 @@ function preserveOverheatBoundaries(
           normalized(skillForAction(context, action)?.slot) !== 'weapon_1'
       )
       .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0];
-
     if (nextCast) complete.add(nextCast);
     const spanning = actions
       .filter((action) => action.end > action.start && action.start <= time && action.end >= time)
       .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
-
     if (spanning) {
       complete.add(spanning);
       continue;
@@ -108,7 +106,6 @@ function normalizeHolosmithTransitions(
   // A clipped log can begin on a Forge weapon skill without retaining the entry swap; synthesize the required state input.
   const startsInForge = firstInput != null && skillForAction(context, firstInput)?.forgeSkill === true;
   let forgeActive = startsInForge;
-
   if (firstInput && startsInForge) {
     result.push({
       ...canonicalAction(
@@ -124,7 +121,6 @@ function normalizeHolosmithTransitions(
 
   for (let index = 0; index < sorted.length; index += 1) {
     const action = sorted[index];
-
     if (action.rawName !== 'Swap Weapons') {
       result.push(action);
       continue;
@@ -140,7 +136,6 @@ function normalizeHolosmithTransitions(
     }
 
     const forgeSwap = swaps.find((swap) => Number(swap.weaponSet) === FORGE_WEAPON_SET);
-
     if (forgeSwap) {
       result.push(canonicalAction(forgeSwap.eventIndex, forgeSwap.start, ENGAGE_FORGE, 0, 'state-change'));
       forgeActive = true;
@@ -149,7 +144,6 @@ function normalizeHolosmithTransitions(
     }
 
     const normalSwap = swaps.find((swap) => NORMAL_WEAPON_SETS.has(Number(swap.weaponSet)));
-
     if (forgeActive && normalSwap) {
       if (!isOverheatTransition(context, normalSwap.start)) {
         result.push(canonicalAction(normalSwap.eventIndex, normalSwap.start, DEACTIVATE_FORGE, 0, 'state-change'));
@@ -160,10 +154,8 @@ function normalizeHolosmithTransitions(
 
     const entersKit = swaps.some((swap) => Number(swap.weaponSet) === KIT_WEAPON_SET);
     const nextKit = entersKit ? nextKitAfter(context, sorted, index) : '';
-
     if (nextKit) {
       const identity = kitIdentity(context, nextKit, false);
-
       if (identity) {
         result.push(canonicalAction(swaps.at(-1)!.eventIndex, swaps.at(-1)!.start, identity, 0, 'state-change'));
         activeKit = nextKit;
@@ -174,7 +166,6 @@ function normalizeHolosmithTransitions(
 
     if (!forgeActive && activeKit && normalSwap) {
       const identity = kitIdentity(context, activeKit, true);
-
       if (identity) {
         result.push(canonicalAction(normalSwap.eventIndex, normalSwap.start, identity, 0, 'state-change'));
       }
@@ -206,10 +197,8 @@ function inferDirectInputs(context: EvtcProfessionReconstructionContext): EvtcRe
       context.catalog,
       context.profile
     );
-
     if (!skill || typeof skill.id !== 'number') return [];
     const previous = lastSignal.get(event.skillId);
-
     if (previous != null && event.time - previous < Math.max(1, effectWindowMs(skill))) {
       return [];
     }
@@ -238,9 +227,7 @@ function openingActions(
       [POISON_GRENADE.name, POISON_GRENADE]
     ])
   );
-
   if (!opening) return [];
-
   if (opening.rawName === LASER_DISK.name) {
     return existingActions.some((action) => sameRecordedActivation(action, opening)) ? [] : [opening];
   }
@@ -265,13 +252,11 @@ function openingActions(
   }
 
   const bombKit = kitIdentity(context, 'Bomb Kit', false);
-
   if (bombs.length && bombKit) {
     scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, bombKit, bombKit.skillId, 'initial-state'));
   }
 
   const grenadeKit = kitIdentity(context, 'Grenade Kit', false);
-
   if (grenadeKit) {
     scheduled.push(
       canonicalAction(opening.eventIndex - 1, opening.start, grenadeKit, grenadeKit.skillId, 'initial-state')

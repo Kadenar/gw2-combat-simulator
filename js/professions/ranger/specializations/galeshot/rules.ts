@@ -55,7 +55,6 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
 
 export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
-
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
       const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.galeForce), 'buff');
@@ -124,7 +123,6 @@ export const galeshotSchedulerHooks = Object.freeze({
 // Perilous Skies replacement before the shared Ranger checks run.
 export function galeshotCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);
-
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
   }
@@ -142,7 +140,6 @@ export function galeshotCastAvailability(context: RangerPrecastContext, skill: R
   }
 
   const maximumWindForce = rangerBalanceValue(context, PROFILE.resources, 'minimumStacks', 5);
-
   if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }

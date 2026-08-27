@@ -69,7 +69,6 @@ export function observeSpearChainEffect(
   const prepared = (handlerState || {}) as {
     readonly fallingSpiderEmpowered?: boolean;
   };
-
   if (prepared.fallingSpiderEmpowered && event.type === 'damage') {
     const profile = thiefBalanceProfile(context, PROFILE.fallingSpiderEmpowered);
     context.replaceEvent(event, {
@@ -118,7 +117,6 @@ export function completeSpearStealthAttack(context: ThiefCastContext, skill: Thi
 export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSkill, at: number): void {
   const state = professionCoreState(context);
   const requiredStage = spearChainStageForSkill(skill.id);
-
   if (requiredStage != null) {
     state.spearChainStage = (requiredStage + 1) % 3;
     state.spearLastWasFinisher = requiredStage === 2;
@@ -132,7 +130,6 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearChainStage = 1;
     state.spearLastWasFinisher = false;
     state.spearPreviousSkillId = skill.id;
-
     if (followsFinisher) {
       state.distractingThrowBuffUntil =
         at + Number(thiefBalanceProfile(context, PROFILE.distractingThrow)?.durationMultiplier || 10);
@@ -242,7 +239,6 @@ export function handleThousandNeedlesPulse(
     hits: 1,
     ...(activationId ? { activationId } : {})
   });
-
   if (pulse === 0) {
     emitSkillCondition(context, {
       at: task.at,
@@ -325,7 +321,6 @@ export function handleCaltropsPulse(
     duration: 10,
     activationId
   });
-
   if (pulse < CALTROPS_CRIPPLE_PULSES) {
     emitSkillCondition(context, {
       at: task.at,

@@ -88,7 +88,6 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
     controlKind: 'daze',
     duration: bonusEffects ? 1.5 : 0.25
   });
-
   if (soulShardsAtActivation >= 3) {
     emitSkillCondition(context, skill, {
       at: context.effectiveEnd,
@@ -150,7 +149,6 @@ function soulShardDamage(
 
 function preparePerforate(context: NecromancerCastContext): PerforateState {
   const at = context.effectiveEnd;
-
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     return { at, shardCount: 0, interrupted: true };
   }
@@ -168,7 +166,6 @@ function afterPerforateEffect(
   state: unknown
 ): void {
   const perforateState = state as Partial<PerforateState> | null;
-
   if (event?.type === 'damage' && Number(event.hitIndex || 1) <= Number(perforateState?.shardCount || 0)) {
     soulShardDamage(context, skill, event.at, Number(event.hitIndex || 1), Number(perforateState?.shardCount || 0));
   }
@@ -176,7 +173,6 @@ function afterPerforateEffect(
 
 function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
   const perforateState = state as Partial<PerforateState> | null;
-
   if (perforateState?.interrupted) return;
   emitStateSnapshot(
     context,
@@ -213,7 +209,6 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
     7,
     Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
-
   if (!conditionCount) return;
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,

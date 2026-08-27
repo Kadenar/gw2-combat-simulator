@@ -57,7 +57,6 @@ export const bladeswornSchedulerHooks = Object.freeze({
 
 function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = { ...attributes } as SchedulerRecord & { ferocity: number };
-
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
     result.ferocity += Number(warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
   }
@@ -87,7 +86,6 @@ function runtimeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: n
 
 function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   if (runtimeBuffActive(context, 'supercharged-cartridges')) return 0.2;
-
   if (runtimeBuffActive(context, 'overcharged-cartridges')) return 0.15;
   return 0;
 }
@@ -117,7 +115,6 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = bladeswornState.from(context);
-
   if (skill.burst && !skill.dragonSlash) {
     return {
       ready: false,
@@ -176,7 +173,6 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
     const maximumCharges = maximumDragonCharges(context);
     const releaseAtCharges = requestedDragonCharges(context, maximumCharges);
     const missingCharges = releaseAtCharges - state.dragonCharges;
-
     if (missingCharges > 0) {
       const nextChargeAt =
         state.nextDragonChargeAt > context.start + context.epsilon
@@ -185,7 +181,6 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
             Number(
               warriorBalanceProfile(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
             );
-
       // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
         return {

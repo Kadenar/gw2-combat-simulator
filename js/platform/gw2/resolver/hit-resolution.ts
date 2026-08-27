@@ -36,10 +36,8 @@ export function createGw2HitResolution({
 
   function coefficientMultiplier(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): number {
     const modifiers = Array.isArray(event.coefficientModifiers) ? event.coefficientModifiers : [];
-
     if (!modifiers.length) return 1;
     const healthFraction = currentHealthFraction(ctx);
-
     if (healthFraction == null) return 1;
     const selected = modifiers
       .filter((modifier) => modifier?.kind === 'target-health-below' && healthFraction < Number(modifier.threshold))
@@ -83,7 +81,6 @@ export function createGw2HitResolution({
     let outgoingMultiplier = Number(event.flatStrikeMultiplier ?? 1);
     const threshold = Number(event.flatStrikeHealthThreshold || 0);
     const healthFraction = currentHealthFraction(ctx);
-
     if (threshold > 0 && healthFraction != null && healthFraction < threshold) {
       outgoingMultiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
     }
@@ -183,7 +180,6 @@ export function createGw2HitResolution({
   ): Gw2ResolverEvent {
     const damage = hitContext.damage;
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
-
     if (damageType === 'conditionDamage') ctx.totals.condition += damage;
     else ctx.totals.strike += damage;
     ctx.addBreakdown(
@@ -194,7 +190,6 @@ export function createGw2HitResolution({
       event,
       damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical : null
     );
-
     if (damage > 0) ctx.markDamageTime(event.at);
 
     const resolved = {

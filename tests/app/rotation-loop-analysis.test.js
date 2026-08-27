@@ -89,7 +89,6 @@ function elementalistAlternatingLoopApp() {
     );
 
     if (cycle % 2 === 0) names.push('Frozen Fusillade');
-
     names.push(
       'Air Attunement',
       'Filler Shot',
@@ -101,7 +100,6 @@ function elementalistAlternatingLoopApp() {
     );
 
     if (cycle % 2 === 0) names.push('Dust Storm');
-
     names.push('Fire Attunement');
   }
 
@@ -162,7 +160,6 @@ function elementalistInconsistentLoopApp() {
   let visit = 0;
   for (const event of app.results.events) {
     if (event.skillName !== 'Searing Salvo') continue;
-
     event.skillId = variableSkills[visit].id;
     event.skillName = variableSkills[visit].name;
     visit += 1;
@@ -233,7 +230,6 @@ function elementalistStatefulOpenerApp() {
   const names = [];
   for (let cycle = 0; cycle < 5; cycle += 1) {
     if (cycle === 0) names.push('Opening Burst One', 'Opening Burst Two', 'Opening Burst Three');
-
     names.push(
       'Fire Core',
       'Etching: Volcano',

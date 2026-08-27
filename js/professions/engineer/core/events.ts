@@ -33,7 +33,6 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
     name: 'Lightning Rod',
     coefficient: isFocused ? 0.3 : 0.17
   });
-
   // Immobilize only on the second hit (hitIndex 1, 0-based) — not every pulse
   if (event.hitIndex === 1) {
     applyEngineerDerivedCondition(context, event, {

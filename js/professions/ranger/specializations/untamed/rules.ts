@@ -15,7 +15,6 @@ const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RE
 
 export function untamedCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = untamedState.from(context);
-
   if (skill.name === 'Unleash Ranger' && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
   }
@@ -104,7 +103,6 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
             }
           | undefined
       )?.profession?.specialization;
-
       if (state?.kind !== 'Untamed') return 1;
       const pet = context.event?.source === 'ranger-pet';
       // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
@@ -163,7 +161,6 @@ export const untamedSkillMechanicHandlers = Object.freeze({
     const action = context.events.find(
       (event) => event.type === 'action' && String(event.activationId || '') === activationId
     );
-
     if (action) context.replaceEvent(action, { rechargeReadyAt: readyAt });
   }
 });
@@ -181,13 +178,11 @@ export const untamedSchedulerHooks = Object.freeze({
     }
 
     const state = untamedState.from(context);
-
     if (!isInternalCooldownReady(context.start, state.letLooseReadyAt)) return;
     const profileId = PROFILE.letLoose;
     state.letLooseReadyAt = context.start + rangerBalanceValue(context, profileId, 'internalCooldown', 9);
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
-
     if (state.rangerUnleashed) {
       // Weapon-swap ambush window is counted from effectiveEnd (post-cast), not cast start.
       state.ambushReadyUntil =

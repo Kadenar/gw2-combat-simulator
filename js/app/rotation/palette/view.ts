@@ -116,9 +116,7 @@ export function resolvePaletteDropItem(
 ): RotationCommand | RotationCommand[] | null {
   if (!name) return null;
   const professionAction = resolveProfessionPaletteAction(app, name, skillId);
-
   if (professionAction !== undefined) return professionAction;
-
   if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start')) {
     return null;
   }
@@ -140,10 +138,8 @@ function currentAmmo(app: ProfessionAppState, skill: Skill): SchedulerRecord | n
   // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
   const rawAmmo =
     ammoBySkillId && typeof ammoBySkillId === 'object' ? ammoBySkillId[String(skill.id)] : endState?.ammo?.[skill.name];
-
   if (!rawAmmo || typeof rawAmmo !== 'object') return null;
   const ammo = rawAmmo as SchedulerRecord;
-
   if (ammo.remaining != null) return ammo;
   // Scheduler ammo uses `nextRechargeAt` in seconds, while UI projections may
   // already expose `nextChargeAt` in milliseconds. Normalize both to UI time.
@@ -275,7 +271,6 @@ export function paletteSkillView(
  */
 export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-palette');
-
   if (!element) return;
   const spec = activeSpecialization(app);
   const endState = paletteEndState(app);
@@ -391,11 +386,8 @@ export function renderPalette(app: ProfessionAppState): void {
 
   const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean => {
     if (weaponSet !== activeWeaponSet) return false;
-
     if (!professionAllowsPaletteSkill(skill)) return false;
-
     if (skill.ambush) return String(availableAmbush?.name || '') === skill.name;
-
     if (availableAmbush && skill.slot === 'Weapon_1') return false;
     return true;
   };
@@ -519,7 +511,6 @@ export function renderPalette(app: ProfessionAppState): void {
     const attachedResourcesHtml = group.resourceIds?.length
       ? activeResourceGroup(app, { includeIds: group.resourceIds })
       : '';
-
     if (!groupHtml || !attachedResourcesHtml) return groupHtml;
     const resourcesFirst = group.resourcePlacement === 'above';
     return `<div class="profession-palette-resource-group resource-${esc(group.resourcePlacement || 'below')}">
@@ -613,7 +604,6 @@ export function renderPalette(app: ProfessionAppState): void {
       .filter((row) => row.skills.length);
     return weaponRows.flatMap((row, index) => {
       const rowWeaponSwapActions = row.active && !weaponSwapEmbedded ? weaponSwapActions : [];
-
       if (rowWeaponSwapActions.length) weaponSwapEmbedded = true;
       const renderedRow = addGroup(
         app,
@@ -725,7 +715,6 @@ export function renderPalette(app: ProfessionAppState): void {
       const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
       const identity = skillId == null ? {} : { skillId };
       const professionAction = resolveProfessionPaletteAction(app, name, skillId);
-
       // `undefined` means the profession does not own the action. `null` means
       // it handled the activation intentionally without inserting an item.
       if (professionAction !== undefined) {
@@ -755,7 +744,6 @@ export function renderPalette(app: ProfessionAppState): void {
       }
 
       const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
-
       if (skill?.dragonSlash) {
         const insertionIndex =
           normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
@@ -794,7 +782,6 @@ export function renderPalette(app: ProfessionAppState): void {
       }
 
       const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
-
       if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
         app.addRotation(name, {
           ...identity,

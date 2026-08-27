@@ -51,7 +51,6 @@ function stepHtml(app: ProfessionAppState, step: RotationLoopStep, index: number
     skillId: step.primarySkillId
   });
   const observedIcons = [...new Set(step.iconVariants.filter(Boolean))];
-
   if (!observedIcons.length) observedIcons.push(fallbackIcon);
   const conditional = step.name === 'Swap Legends' && observedIcons.length > 1;
   const icons = conditional ? observedIcons : [observedIcons[0]];
@@ -206,7 +205,6 @@ function dialogContentHtml(app: ProfessionAppState, analysis: RotationLoopAnalys
 export function removeRotationLoopAnalysis(container: HTMLElement): void {
   container.querySelector('[data-role="rotation-loop-analysis"]')?.remove();
   const dialog = container.ownerDocument.getElementById(LOOP_DIALOG_ID) as HTMLDialogElement | null;
-
   if (dialog?.open && typeof dialog.close === 'function') dialog.close();
   dialog?.remove();
 }
@@ -218,7 +216,6 @@ export function renderRotationLoopAnalysis(
   analysis: RotationLoopAnalysis
 ): void {
   container.querySelector('[data-role="rotation-loop-analysis"]')?.remove();
-
   if (analysis.analyzedActionCount < 8) {
     removeRotationLoopAnalysis(container);
     return;
@@ -249,7 +246,6 @@ export function renderRotationLoopAnalysis(
 
   const ownerDocument = container.ownerDocument;
   let dialog = ownerDocument.getElementById(LOOP_DIALOG_ID) as HTMLDialogElement | null;
-
   if (dialog?.tagName !== 'DIALOG') {
     dialog?.remove();
     dialog = null;
@@ -271,7 +267,6 @@ export function renderRotationLoopAnalysis(
   const close = dialog.querySelector<HTMLButtonElement>('[data-role="rotation-loop-close"]');
   const closeDialog = (): void => {
     if (!dialog) return;
-
     if (typeof dialog.close === 'function') dialog.close();
     else dialog.removeAttribute('open');
   };
@@ -279,9 +274,7 @@ export function renderRotationLoopAnalysis(
   trigger?.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
-
     if (!dialog || dialog.open) return;
-
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');
   });

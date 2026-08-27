@@ -55,7 +55,6 @@ export function openingDamageSkillNames(
   const combatStart = context.log.events.find(
     (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   )?.time;
-
   if (combatStart == null) return new Set();
   const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
   return new Set(
@@ -79,7 +78,6 @@ function preserveCastsAcrossKitTransitions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const kitSwapTimes = actions.filter((action) => action.rawName === 'Swap Weapons').map((action) => action.start);
-
   if (!kitSwapTimes.length) return [...actions];
 
   return actions.map((action) => {
@@ -105,7 +103,6 @@ export function normalizeKitTransitions(
 
   for (let index = 0; index < sorted.length; index += 1) {
     const action = sorted[index];
-
     if (action.rawName !== 'Swap Weapons') {
       result.push(action);
       continue;
@@ -130,7 +127,6 @@ export function normalizeKitTransitions(
 
     if (entersKit && nextKit) {
       const identity = kitIdentity(context, nextKit, false);
-
       if (identity) {
         result.push(canonicalAction(swaps.at(-1)!.eventIndex, swaps.at(-1)!.start, identity, 0, 'state-change'));
         activeKit = nextKit;
@@ -141,7 +137,6 @@ export function normalizeKitTransitions(
 
     if (activeKit) {
       const identity = kitIdentity(context, activeKit, true);
-
       if (identity) {
         result.push(canonicalAction(swaps[0].eventIndex, swaps[0].start, identity, 0, 'state-change'));
       }

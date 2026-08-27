@@ -53,21 +53,17 @@ export function analyzeWarriorBloodlustObservation(
   if (!hasBloodlust(config)) return null;
 
   const profile = bloodlustProfile(catalog);
-
   if (!profile) return null;
 
   const matchedDurationsMs = expectedBloodlustDurations(profile, config);
-
   if (!matchedDurationsMs.length) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
-
   if (targetAddress == null) return null;
   const criticalHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
   ).length;
-
   if (!criticalHits) return null;
 
   const matchedApplications = matchingConditionApplications(
@@ -78,7 +74,6 @@ export function analyzeWarriorBloodlustObservation(
     matchedDurationsMs
   ).length;
   const expectedProcChance = Number(profile.procChance || 0);
-
   if (!(expectedProcChance > 0)) return null;
 
   return {

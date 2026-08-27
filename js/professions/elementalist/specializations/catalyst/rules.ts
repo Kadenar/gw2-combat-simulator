@@ -112,7 +112,6 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
   const state = catalystState.from(context);
   const core = professionCoreState(context);
-
   if (skill.attunement !== core.primaryAttunement) {
     return {
       ready: false,
@@ -158,7 +157,6 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
     maximum: maximumEnergy(context),
     change: -sphereCost
   });
-
   if (hasTrait(context, 'Spectacular Sphere')) {
     const durationMultiplier = hasTrait(context, 'Sphere Specialist')
       ? elementalistBalanceValue(
@@ -357,7 +355,6 @@ export const catalystSkillMechanicHandlers = Object.freeze({
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
   const core = professionCoreState(context);
-
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
     const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     const source = String(event.skillName || event.source || 'Aura');
@@ -379,7 +376,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     ['player', 'summon'].includes(String(event.actorType || '')) &&
     ['damage', 'condition', 'control', 'blind'].includes(event.type);
   const startsCombat = event.type === 'combat_start' || implicitCombatEvent;
-
   if (startsCombat && hasTrait(context, 'Elemental Empowerment') && !state.elementalEmpowermentRefreshStarted) {
     state.elementalEmpowermentRefreshStarted = true;
     context.tasks.schedule({
@@ -439,7 +435,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       duration: Number(fury?.duration ?? 2),
       skillName: 'Energized Elements'
     });
-
     if (state.energy !== before) {
       context.emitDerived(event, {
         type: 'resource',
@@ -460,7 +455,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
   if (event.type === 'combo') {
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
-
     if (
       hasTrait(context, 'Elemental Epitome') &&
       isInternalCooldownReady(event.at, Number(state.elementalEpitomeReadyAt[attunement] || 0))
@@ -491,7 +485,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     ) {
       state.elementalSynergyReadyAt[attunement] =
         event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
-
       if (attunement === 'Fire' || attunement === 'Earth') {
         const effect = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', attunement);
         emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {
@@ -517,7 +510,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
   const immobilize =
     event.type === 'condition' && ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
-
   if (
     hasTrait(context, 'Vicious Empowerment') &&
     event.actorType === 'player' &&
@@ -547,7 +539,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
 function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const state = catalystState.from(context);
-
   if (task.at < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
     return;
   }
@@ -555,7 +546,6 @@ function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: Sc
   const before = state.energy;
   const energyGain = elementalistBalanceValue(context, PROFILE.resources, 'resourceGain', 1);
   state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
-
   if (state.energy === before) return;
   context.emit({
     type: 'resource',
@@ -628,10 +618,8 @@ function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: Sche
 
 function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
-
   if (context.combatStartTime != null && at < context.combatStartTime) return;
   const state = catalystState.from(context);
-
   if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
     at + elementalistBalanceValue(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);

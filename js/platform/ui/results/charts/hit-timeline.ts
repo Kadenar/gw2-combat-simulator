@@ -70,7 +70,6 @@ export function drawHitTimeline(
   canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
-
   if (!context) return null;
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, cssWidth, height);
@@ -121,7 +120,6 @@ export function drawHitTimeline(
   context.lineWidth = 2;
   for (const hit of hits) {
     const value = Number(hit.v || 0);
-
     if (!(value > 0)) continue;
     const x = pad.left + (Number(hit.t || 0) / durationMs) * plotWidth;
     const markerHeight = minMarker + (plotHeight - minMarker) * (value / maxValue);
@@ -166,7 +164,6 @@ export function bindHitTimelineHover(
 
   canvas.onmousemove = (event) => {
     const layout = state.layout();
-
     if (!layout) return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = layout.cssWidth / Math.max(1, rect.width);
@@ -180,7 +177,6 @@ export function bindHitTimelineHover(
     let nearestDistance = Infinity;
     for (const hit of state.hits()) {
       const distance = Math.abs(Number(hit.t || 0) - time);
-
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = hit;
@@ -246,11 +242,9 @@ export function mountHitTimeline(
 
   const wrap = canvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;
-
   if (ResizeObserverConstructor && wrap) {
     activeMount.resizeObserver = new ResizeObserverConstructor(() => {
       const visibleWidth = Math.floor(wrap.clientWidth);
-
       if (visibleWidth > 0 && visibleWidth !== layout?.cssWidth) redraw();
     });
     activeMount.resizeObserver.observe(wrap);

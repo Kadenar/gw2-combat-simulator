@@ -71,7 +71,6 @@ function overviewRows(entries: readonly PatchOverviewEntry[]): string {
 export function mountPatchPreviewControls(app: ProfessionAppState): void {
   const preview = app.profession.preview;
   const header = document.querySelector('body[data-profession] #app > header');
-
   if (!preview || !header || header.querySelector('.patch-preview-picker')) {
     return;
   }
@@ -118,7 +117,6 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {
   const preview = app.profession.preview;
   const comparison = app.patchComparison;
-
   if (!preview || !comparison) return;
   const currentDps = Number(comparison.current.dps || 0);
   const previewDps = Number(comparison.preview.dps || 0);

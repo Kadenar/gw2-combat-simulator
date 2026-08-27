@@ -28,7 +28,6 @@ function normalizeStoneSummitCannon(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const cannons = actions.filter((action) => action.rawSkillId === STONE_SUMMIT_CANNON.skillId);
-
   if (!cannons.length) return [...actions];
   const first = cannons[0];
   const directHitsBeforeNextCast = context.log.events
@@ -55,7 +54,6 @@ function normalizeStoneSummitCannon(
         ? { ...action, doubleEdgeOutcome: 'backfire' as const }
         : action
   );
-
   if (!hasSuccessPackets || !unanimatedBackfire) return normalized;
   normalized.push({
     ...canonicalAction(unanimatedBackfire.eventIndex, first.end, STONE_SUMMIT_CANNON, unanimatedBackfire.event.skillId),
@@ -103,7 +101,6 @@ function canachCoinTossActions(
         action.canonicalName === FLAWLESS_EXECUTION.name
     )
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
-
   if (flawless.length < CANACH_FLAWLESS_THRESHOLD) return [];
 
   const inferred: EvtcRecordedRotationAction[] = [];
@@ -123,7 +120,6 @@ function canachCoinTossActions(
   add(openingTime, opening.eventIndex + 0.1, 'success');
 
   const followUp = flawless.find((action) => action.start >= openingTime + CANACH_FOLLOW_UP_DELAY_MS);
-
   if (followUp) {
     add(followUp.start - CANACH_FOLLOW_UP_LEAD_MS, followUp.eventIndex - 0.1, 'backfire');
   }
@@ -132,7 +128,6 @@ function canachCoinTossActions(
   let chain: EvtcRecordedRotationAction[] = [];
   for (const action of flawless) {
     const previous = chain.at(-1);
-
     if (previous && action.start - previous.end > FLAWLESS_CHAIN_WINDOW_MS) {
       chains.push(chain);
       chain = [];
@@ -163,7 +158,6 @@ function canachCoinTossActions(
           Math.abs(candidate.end - action.start) <= FLAWLESS_CHAIN_WINDOW_MS
       )
   );
-
   if (lateFlawless) {
     add(lateFlawless.start, lateFlawless.eventIndex - 0.1, 'backfire');
   }

@@ -15,7 +15,6 @@ const SKIPPED_DIRECTORIES = new Set([
 function javascriptFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (SKIPPED_DIRECTORIES.has(entry.name)) return [];
-
     const target = path.join(directory, entry.name);
 
     if (entry.isDirectory()) return javascriptFiles(target);

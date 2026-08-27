@@ -80,9 +80,7 @@ function activeBoonCount(context: Gw2ModifierContext): number {
 
 function targetBoonCount(context: Gw2ModifierContext): number {
   const target = context.config?.target;
-
   if (target?.boonless === true) return 0;
-
   if (Array.isArray(target?.boons)) {
     return new Set(target.boons.map(String)).size;
   }
@@ -135,7 +133,6 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   // holds pre-boon gear attributes (might is baked into the seed's power, and
   // live trait bonuses accrue on `result`), so this converts gear power only.
   const gearPower = Number(context.config?.stats?.power || 0);
-
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
     const profile = warriorBalanceProfile(context, PROFILE.pinnacleOfStrength);
     result.power +=
@@ -156,7 +153,6 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
 
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
     result.ferocity += signetStacks * Number(signetMastery?.attributeBonus ?? 100);
-
   if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
     // Static path bakes this from conversionPool in build-attributes; add no
     // dynamic delta so might/signets never leak into the conversion.
@@ -185,7 +181,6 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   result.conditionDamage +=
     activeBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
     Number(furious?.attributeBonus ?? 15);
-
   if (hasTrait(context, TRAIT.BURST_PRECISION) && activeBuffStacks(context, 'burst-precision', 1) > 0) {
     result.ferocity += Number(warriorBalanceProfile(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
   }
@@ -202,7 +197,6 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   ] as const) {
     if (!hasSelectedSkill(context, name)) continue;
     const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
-
     if (staticRulesApplied ? onCooldown : !onCooldown) {
       const passiveBonus = Number(warriorBalanceProfile(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
       const delta = staticRulesApplied ? -passiveBonus : passiveBonus;
@@ -426,16 +420,11 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // reductions after shared recharge policy has produced the base duration.
 function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: WarriorSkill }, duration: number): number {
   const skill = context.skill;
-
   if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? 5 : 0;
   let result = duration;
-
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER)) result *= 0.85;
-
   if (skill?.weapon === 'Greatsword' && hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) result *= 0.8;
-
   if (skill?.weapon === 'Sword' && hasTrait(context, TRAIT.BLADEMASTER)) result *= 0.8;
-
   if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.AXE_MASTERY)) result *= 0.8;
   return result;
 }
@@ -476,9 +465,7 @@ function modifyCastDuration(context: WarriorCastContext, duration: number): numb
       Boolean(skill.weapon) ||
       Boolean(skill.burst) ||
       measured > 0);
-
   if (!dualWielding) return duration;
-
   // A measured Dual Wielding cast (captured under Quickness) is used verbatim;
   // the 1.25 divide is only a fallback for skills without a measured value.
   if (measured > 0 && context.hasBuff('quickness', context.start)) {

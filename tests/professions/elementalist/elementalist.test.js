@@ -60,7 +60,6 @@ async function accessSourceModule(target) {
     await access(target);
   } catch (error) {
     if (!target.pathname.endsWith('.js')) throw error;
-
     const typeScript = new URL(target);
 
     typeScript.pathname = typeScript.pathname.replace(/\.js$/, '.ts');

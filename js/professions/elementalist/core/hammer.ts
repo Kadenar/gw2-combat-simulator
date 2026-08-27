@@ -77,7 +77,6 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
-
   if (single) {
     const orbDuration = elementalistBalanceValue(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -97,7 +96,6 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
       state.hammerOrbGrantedBy[element] = skill.name;
       state.hammerOrbActivationIds[element] = context.reservationId;
       state.hammerOrbBuffUntil[element] = at + orbDuration;
-
       if (!previouslyActive.has(element)) {
         emitSkillBuff(context, skill, {
           at,

@@ -64,7 +64,6 @@ function decorateStaticLinks(root: Document): void {
   const links = root.querySelectorAll<HTMLAnchorElement>('a[href$=".html"]');
   for (const link of links) {
     const href = link.getAttribute('href');
-
     // Skip absolute/protocol-relative URLs; only decorate in-app pages.
     if (!href || /^([a-z]+:)?\/\//i.test(href)) continue;
     link.setAttribute('href', embedRoute(href));
@@ -95,7 +94,6 @@ function setupResizeReporter(root: Document): void {
  */
 export function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
-
   if (!isEmbedded()) return;
   root.documentElement.classList.add('embed');
   decorateStaticLinks(root);

@@ -23,13 +23,11 @@ function beastmodeActive(context: RangerUiContext): boolean {
 
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const active = beastmodeActive(context);
-
   if (skill.petSkill && active) {
     return { available: false, message: 'Leave Beastmode first' };
   }
 
   const selectedSkillIds = selectedRangerUiPet(context)?.beastmodeSkillIds || [];
-
   // A beast skill exists in the catalog for every pet, but only the selected pet's
   // merged skills should be usable — block the rest before checking the mode flag.
   if (beastmodeSkillIds.has(skill.id) && !BEASTMODE_TOGGLE_IDS.has(skill.id) && !selectedSkillIds.includes(skill.id)) {
@@ -70,7 +68,6 @@ function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
       resourceAnchor: true
     }
   ];
-
   // Pet palette is only meaningful when unmerged — in Beastmode the pet's skills are subsumed into beast skills.
   if (!active) groups.push(rangerPetPaletteGroup(context));
   return groups;

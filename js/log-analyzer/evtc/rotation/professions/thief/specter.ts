@@ -33,7 +33,6 @@ function specterPrecastActions(
 ): EvtcRecordedRotationAction[] {
   if (!hasSelectedSkill(context, WELL_OF_SORROW)) return [];
   const atCombat = combatStart(context);
-
   if (atCombat == null) return [];
   const wellSignal = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -46,7 +45,6 @@ function specterPrecastActions(
         event.value > 0 &&
         Math.abs(event.time - atCombat) <= SIGNAL_WINDOW_MS
     );
-
   if (!wellSignal || hasRecordedAction(actions, WELL_OF_SORROW, atCombat, 1_000)) {
     return [];
   }
@@ -71,7 +69,6 @@ function specterPrecastActions(
         event.skillId === SPIDER_VENOM_BUFF &&
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
     );
-
   if (
     initialSpider &&
     hasSelectedSkill(context, SPIDER_VENOM) &&
@@ -113,7 +110,6 @@ function specterDelayedWeaponSwapActions(
     }
 
     const transitionDistance = Math.min(...transitions.map((transition) => Math.abs(transition.time - event.time)));
-
     if (transitionDistance <= 50 || transitionDistance > SIGNAL_WINDOW_MS) {
       return [];
     }

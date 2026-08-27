@@ -188,9 +188,7 @@ export function applyElementalistAura(
     duration: adjustedDuration,
     ...(priority ? { priority } : {})
   });
-
   if (!combatStarted(context, at)) return;
-
   if (hasTrait(context, "Zephyr's Boon")) {
     emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Fury', 'Fury', 1, 5, skillName, sourceId);
     emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Swiftness', 'Swiftness', 1, 5, skillName, sourceId);

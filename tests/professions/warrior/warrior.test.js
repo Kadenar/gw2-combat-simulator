@@ -1316,7 +1316,6 @@ test('Flaming Flurry commits at 1560ms and retains only completed packets when i
       .filter((event) => event.type === type && event.activationId === action.activationId)
       .map((event) => Math.round((event.at - action.at) * 1000));
   };
-
   const normalStep = normal.steps.find((step) => step.skill === 'Flaming Flurry');
   const completedStep = completed.steps.find((step) => step.skill === 'Flaming Flurry');
 

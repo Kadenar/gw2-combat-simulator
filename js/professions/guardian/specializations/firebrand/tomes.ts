@@ -46,7 +46,6 @@ interface AshesHitDependencies {
  */
 export function tomeStateAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const activeTome = firebrandState.from(context).activeTome;
-
   if (skill.type === 'Weapon' && activeTome) {
     return denyCast('guardian.tome-weapon-lockout', `${skill.name} is unavailable — stow the active tome first.`);
   }
@@ -91,11 +90,9 @@ export function tomeStateAvailability(context: GuardianPrecastContext, skill: Gu
  */
 export function tomePageAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const state = firebrandState.from(context);
-
   if (!skill.tome || selectedGuardianSpecialization(context) !== 'Firebrand' || state.activeTome !== skill.tome)
     return CAST_READY;
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
-
   if (state.tomePages >= pageCost) return CAST_READY;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
   // terminating condition. A non-finite next page (tome already at maximum)
@@ -145,7 +142,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
-
   // The regen timer only ticks while below maximum; spending a page from a full
   // pool restarts the interval from this cast rather than from last regen tick.
   if (state.tomePages >= state.maximumTomePages) {
@@ -153,7 +149,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   }
 
   state.tomePages = Math.max(0, state.tomePages - pageCost);
-
   if (state.swiftScholarTome !== skill.tome) {
     state.swiftScholarTome = String(skill.tome || '');
     state.swiftScholarCount = 0;
@@ -161,12 +156,10 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
 
   state.swiftScholarCount += 1;
   const swiftScholar = guardianBalanceProfile(context, PROFILE.swiftScholar);
-
   if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks || 3)) {
     state.swiftScholarCount = 0;
     const pageGain = Number(swiftScholar?.resourceGain || 1);
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
-
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
@@ -190,7 +183,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       'boon',
       skill.tome === 'justice' ? 0 : skill.tome === 'resolve' ? 1 : 2
     );
-
     if (boon) {
       emitSkillBuff(context, {
         at: context.effectiveEnd,
@@ -412,7 +404,6 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const aegis = guardianBalanceProfileEffect(passiveCourage, 'boon');
   while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
-
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
     // the tome was recently activated), unless Stoic Demeanor overrides that
     // suppression window.
@@ -454,11 +445,9 @@ export function reactToAshesHit(
 ): void {
   const ashes = guardianBalanceProfile(context, PROFILE.ashes);
   const burn = guardianBalanceProfileEffect(ashes, 'condition');
-
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);
-
   if (
     state.ashesCharges <= 0 ||
     event.at >= state.ashesExpiresAt - Number(context.epsilon || 0.0001) ||

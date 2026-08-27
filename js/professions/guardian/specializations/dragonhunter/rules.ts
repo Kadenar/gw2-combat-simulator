@@ -70,7 +70,6 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
   const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
   while (courage && state.nextShieldOfCourageAegisAt <= target + context.epsilon) {
     const at = state.nextShieldOfCourageAegisAt;
-
     // Passive Aegis is suppressed while the virtue's cooldown hasn't expired;
     // activating Shield of Courage resets virtueReadyAt.courage, so pulses during
     // the active period are silently skipped (counter still advances to stay in phase).

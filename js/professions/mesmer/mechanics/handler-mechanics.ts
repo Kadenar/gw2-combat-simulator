@@ -59,37 +59,25 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   const id = Number(skill.id);
   const resource =
     skill.resource && typeof skill.resource === 'object' ? (skill.resource as { readonly mode?: string }) : null;
-
   if (id === ID.SWAP_WEAPONS) return 'mesmer.weapon-swap';
-
   if (id === ID.DODGE_MIRAGE_CLOAK) return 'mesmer.mirage-dodge';
-
   if (id === ID.PICK_UP_MIRAGE_MIRROR) return 'mesmer.mirage-dodge';
-
   if (id === ID.CONTINUUM_SHIFT) return 'mesmer.continuum-shift';
-
   if (id === ID.CONTINUUM_SPLIT) return 'mesmer.continuum-split';
-
   if (SHATTER_SKILL_IDS.has(id)) {
     return id >= ID.BLADETURN_REQUIEM ? 'mesmer.bladesong' : 'mesmer.shatter';
   }
 
   if (INSTRUMENT_SKILL_IDS.has(id)) return 'mesmer.instrument';
-
   if (id === ID.CRESCENDO) return 'mesmer.crescendo';
-
   if (skill.ambush) return 'mesmer.ambush';
-
   if (skill.phantasm || resource?.mode === 'phantasm') {
     return 'mesmer.phantasm';
   }
 
   if (FLIP_SKILL_IDS.has(id)) return 'mesmer.flip';
-
   if (id === ID.FLYING_CUTTER) return 'mesmer.tracked-hits';
-
   if (skill.resource) return 'mesmer.resource-skill';
-
   if (
     SPECIAL_PROFILE_SKILL_IDS.has(id) ||
     skill.type === 'Heal' ||
@@ -122,9 +110,7 @@ export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFr
         }
       : skill.mesmerMechanic;
   const prepared: TSkill = mechanic ? { ...skill, mesmerMechanic: mechanic } : skill;
-
   if (!handlerId) return prepared;
-
   if (handlerId === 'mesmer.declarative') {
     return { ...prepared, handlerId };
   }

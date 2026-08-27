@@ -30,7 +30,6 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   )
     ? specializationState
     : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
-
   if (skill.id === ID.DODGE) {
     return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }
@@ -51,7 +50,6 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   }
 
   const spearStage = spearChainStageForSkill(skill.id);
-
   if (spearStage != null && Number(state.spearChainStage || 0) !== spearStage) {
     return deny(skill, 'thief.spear-chain', `requires spear chain stage ${spearStage + 1}.`);
   }
@@ -85,7 +83,6 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   const bonusStealthAttack =
     Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
     Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
-
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack) {
       return deny(skill, 'thief.not-stealthed', 'requires stealth.');

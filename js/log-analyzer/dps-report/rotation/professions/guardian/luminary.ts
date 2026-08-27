@@ -52,7 +52,6 @@ function inferredAction(
   eventOffset: number
 ): DpsReportRecordedAction | null {
   const skill = context.catalog?.skills.find((candidate) => normalized(candidate.name) === normalized(name));
-
   if (!skill || typeof skill.id !== 'number') return null;
   return {
     start: anchor.start,
@@ -80,7 +79,6 @@ export function reconstructLuminaryDpsReportActions(
   const actions = normalizeWeaponTransitions(context, withoutProc);
   const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const anchor = sorted[0];
-
   if (!anchor) return [];
 
   const firstForgeWeapon = sorted.find((action) => actionSkill(action, context)?.radiantForgeSkill === true);

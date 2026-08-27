@@ -35,7 +35,6 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce((total, count) => total + Number(count || 0) * 2, 0)
     : 0;
-
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
     gainNecromancerLifeForce(context, Math.min(30, timedCarapace + minionCarapace) * 0.5, at);
   }
@@ -48,7 +47,6 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     const activeCondition = (state.selfConditions || []).find(
       (application) => application.appliedAt <= at && application.expiresAt > at
     );
-
     if (activeCondition) {
       state.selfConditions = state.selfConditions.filter((application) => application !== activeCondition);
       addCarapace(state, 3, at);
@@ -62,7 +60,6 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   state.lastResourceAt = at;
   const exitSkill = [...context.catalog.skillsById.values()].find((candidate) => candidate.shroudExit === shroud);
   state.activeShroudExitId = exitSkill?.id ?? null;
-
   if (exitSkill) state.availableFlips[exitSkill.id] = Number.POSITIVE_INFINITY;
   state.pendingShroudEntryId = skill.id;
   state.plagueSendingArmed =
@@ -152,9 +149,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
 
 function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   advanceNecromancerState(context, context.start);
-
   if (skill.shroudEntry) return activateShroud(context, skill);
-
   if (skill.shroudExit) {
     leaveShroud(context, context.effectiveEnd);
     return true;
@@ -166,7 +161,6 @@ function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boole
 function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-
   if (skill.id === ID.LICH_FORM) {
     state.activeShroud = 'lich';
     state.lichEndsAt = at + 20;

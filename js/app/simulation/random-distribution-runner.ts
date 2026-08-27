@@ -40,7 +40,6 @@ export class RandomDistributionRunner {
   schedule(run = false): void {
     const app = this.app;
     const requestId = ++this.requestId;
-
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     const failDistribution = (error: unknown): void => {
@@ -55,7 +54,6 @@ export class RandomDistributionRunner {
     this.batch.begin(requestId, failDistribution);
 
     const results = app.results;
-
     if (!results || !app.build.rotation.length) {
       if (results) {
         results.randomDistributionRequested = false;
@@ -66,7 +64,6 @@ export class RandomDistributionRunner {
     }
 
     const request = app.adapter.randomDistributionRequest(app);
-
     if (!request) {
       results.randomDistributionRequested = false;
       results.randomDistributionStale = false;
@@ -82,7 +79,6 @@ export class RandomDistributionRunner {
       total: request.trials,
       percent: 0
     };
-
     if (!run) return;
 
     const applyProgress = (progress: RandomDistributionProgress): void => {
@@ -99,14 +95,11 @@ export class RandomDistributionRunner {
       // Progress updates only touch the indicator. Remounting the full
       // result view would repeatedly rebuild tables and charts.
       const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
-
       if (!indicator) return;
       indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
       const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
-
       if (bar) bar.style.width = `${percent}%`;
       const label = indicator.querySelector('[data-role="rng-progress-label"]');
-
       if (label) {
         label.textContent = `${Math.round(
           completed
@@ -129,7 +122,6 @@ export class RandomDistributionRunner {
 
     this.timer = setTimeout(() => {
       this.timer = null;
-
       if (requestId !== this.requestId) return;
 
       if (typeof Worker === 'function') {
@@ -144,7 +136,6 @@ export class RandomDistributionRunner {
           conditionTicks
         });
         const batches = partitionRandomDistributionTrials(request.trials, workerCount);
-
         if (!batches.length) {
           applyDistribution(summarizeRandomDistribution([]));
           return;
@@ -181,7 +172,6 @@ export class RandomDistributionRunner {
               completedSamples[batchIndex] = data.distribution?.samples || [];
               completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
               completedWorkers += 1;
-
               if (completedWorkers === batches.length) {
                 const outcomes = completedOutcomes.flatMap((batchOutcomes) => batchOutcomes || []);
                 applyDistribution(

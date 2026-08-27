@@ -81,7 +81,6 @@ function normalizeGeneratedRevenantActions(
         candidate.start >= action.start &&
         candidate.start - action.start <= 500
     );
-
     if (!imminentSwap) return true;
 
     // A release immediately before a legend change only mirrors the upkeep

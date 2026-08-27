@@ -40,9 +40,7 @@ export function selectActiveBuildLogPlayer<Player extends AppRotationPlayer>(
     (player) => player.professionId === app.profession.id && player.specializationId === specializationId
   );
   const selection = selectRotationPlayer(matchingPlayers);
-
   if (selection.status === 'selected') return selection.player;
-
   if (selection.status === 'selection-required') {
     throw new Error(`Multiple matching players have the same recorded action count. ${tieResolution}`);
   }

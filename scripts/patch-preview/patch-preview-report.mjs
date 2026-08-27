@@ -53,7 +53,6 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
       profession.catalog.skillsByName.get(key);
 
     if (!skill) throw new Error(`Unknown ${profession.name} skill ${key}.`);
-
     console.log(`  [ ] skill ${skill.name} (${String(skill.id)})`);
   }
 
@@ -68,7 +67,6 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
 
     for (const field of ['amount', 'factor']) {
       if (!Object.hasOwn(edit, field)) continue;
-
       console.log(`  [ ] modifier ${id} (${target.moduleId}) ${field}: ${describeNumericEdit(edit[field])}`);
     }
 

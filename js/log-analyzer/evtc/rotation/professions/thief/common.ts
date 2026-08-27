@@ -95,7 +95,6 @@ function initialPrepareThousandNeedlesAction(
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
     );
   const atCombat = combatStart(context);
-
   if (atCombat == null) return [];
   const skill = findRotationSkill(
     PREPARE_THOUSAND_NEEDLES.skillId,
@@ -108,7 +107,6 @@ function initialPrepareThousandNeedlesAction(
   let eventIndex = initial?.eventIndex;
   let rawSkillId = initial?.event.skillId;
   let anchor = atCombat;
-
   if (!initial) {
     const firstPrepare = actions
       .filter(
@@ -126,7 +124,6 @@ function initialPrepareThousandNeedlesAction(
         event.time - event.value < atCombat &&
         event.time >= atCombat
     );
-
     if (!firstPrepare || !truncatedCaltrops || firstPrepare.start > atCombat + 2_000) {
       return [];
     }
@@ -165,7 +162,6 @@ function unrecordedOpeningThousandNeedlesAction(
       event.skillId === PREPARED_THOUSAND_NEEDLES_BUFF &&
       event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
   );
-
   if (hasInitialPreparedState) return [];
   const atCombat = combatStart(context);
   const firstPrepare = actions
@@ -175,7 +171,6 @@ function unrecordedOpeningThousandNeedlesAction(
         action.canonicalSkillId === PREPARE_THOUSAND_NEEDLES.skillId
     )
     .sort((left, right) => left.start - right.start)[0];
-
   if (atCombat == null || !firstPrepare || firstPrepare.start > atCombat + 2_000) {
     return [];
   }
@@ -189,7 +184,6 @@ function unrecordedOpeningThousandNeedlesAction(
       event.time - event.value < atCombat &&
       event.time >= atCombat
   );
-
   if (!hasTruncatedCaltrops) return [];
   return [
     canonicalAction(
@@ -214,7 +208,6 @@ function initialSkrittSwipeAction(
         event.skillId === SKRITT_SWIPE.skillId &&
         event.stateChange === EFFECT_START_STATE_CHANGE
     );
-
   if (!signal || hasRecordedAction(actions, SKRITT_SWIPE, signal.event.time, 500)) {
     return [];
   }
@@ -240,7 +233,6 @@ function truncatedCaltropsAction(
   const firstPlayerEventTime = Math.min(
     ...context.log.events.filter((event) => event.time > 0 && playerEvent(context, event)).map((event) => event.time)
   );
-
   if (!Number.isFinite(firstPlayerEventTime)) return [];
   return context.log.events.flatMap((event, eventIndex) => {
     if (

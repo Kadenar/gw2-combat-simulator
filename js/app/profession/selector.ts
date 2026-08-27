@@ -33,7 +33,6 @@ const LEGAL_TEXT =
 function mountCommunityActions(root: Document): void {
   if (!root.body?.dataset.profession) return;
   const host = root.querySelector('header');
-
   if (!host || host.querySelector('.community-actions')) {
     return;
   }
@@ -63,7 +62,6 @@ function mountCommunityActions(root: Document): void {
 function mountLegalFooter(root: Document): void {
   if (root.querySelector('.landing-footer')) return;
   const app = root.getElementById('app');
-
   if (!app) return;
   const footer = root.createElement('footer');
   footer.className = 'landing-footer';
@@ -84,7 +82,6 @@ function mountStickyProfessionHeader(root: Document): void {
 
   const header = root.querySelector<HTMLElement>('#app > header');
   const appRoot = header?.parentElement;
-
   if (!header || !appRoot) return;
 
   const existingSnapshot = header.querySelector<HTMLElement>('.update-info');
@@ -94,7 +91,6 @@ function mountStickyProfessionHeader(root: Document): void {
     (adjacentSnapshot instanceof HTMLElement && adjacentSnapshot.classList.contains('update-info')
       ? adjacentSnapshot
       : null);
-
   // The snapshot may already live nested inside the header (e.g. in the
   // top-left brand block); only pull it in when it sits outside the header.
   if (snapshot && !header.contains(snapshot)) header.append(snapshot);
@@ -104,12 +100,10 @@ function mountStickyProfessionHeader(root: Document): void {
   };
 
   updateHeaderHeight();
-
   if (header.dataset.stickyHeaderMounted === 'true') return;
   header.dataset.stickyHeaderMounted = 'true';
 
   const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
-
   if (ResizeObserverConstructor) {
     new ResizeObserverConstructor(updateHeaderHeight).observe(header);
   } else {
@@ -119,7 +113,6 @@ function mountStickyProfessionHeader(root: Document): void {
 
 function renderProfessionCards(root: Document): void {
   const grid = root.querySelector('[data-profession-grid]');
-
   if (!grid) return;
   grid.replaceChildren();
   for (const group of professionGroups) {
@@ -146,7 +139,6 @@ function renderProfessionGroupCards(root: Document, grid: Element, entries: read
     fallback.className = 'profession-mark-fallback';
     fallback.textContent = entry.name.charAt(0);
     mark.append(fallback);
-
     if (entry.icon) {
       const icon = root.createElement('img');
       icon.className = 'profession-mark-icon';

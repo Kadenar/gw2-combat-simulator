@@ -11,9 +11,7 @@ import { rotationStateSnapshot } from './model.js';
 /** Fills `#rotation-active-buffs` with the current state snapshot when available. */
 export function renderRotationStateSnapshot(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-active-buffs');
-
   if (!element) return;
-
   if (!app.results || !app.build.rotation.length) {
     element.innerHTML = '';
     element.hidden = true;
@@ -22,7 +20,6 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
 
   const { items, atInsertion, timeMs } = rotationStateSnapshot(app);
   const visible = items.filter((item) => item.active !== false);
-
   if (!visible.length) {
     element.innerHTML = '';
     element.hidden = true;

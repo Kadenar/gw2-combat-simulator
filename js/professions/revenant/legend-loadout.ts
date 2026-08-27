@@ -182,7 +182,6 @@ export const revenantLegendLoadout = Object.freeze({
   skillChildren(_context: RevenantLegendLoadoutContext, skillId: SkillId): readonly SkillId[] {
     const facetConsumeBySkillId = HERALD_MECHANICS.facetConsumeBySkillId as Readonly<Record<number, number>>;
     const facetConsumeId = facetConsumeBySkillId[Number(skillId)];
-
     if (Number.isFinite(facetConsumeId)) return [facetConsumeId];
     return Number(skillId) === SKILL.CALL_TO_ANGUISH ? [SKILL.UNYIELDING_IMPACT] : [];
   },
@@ -196,7 +195,6 @@ export const revenantLegendLoadout = Object.freeze({
       skillIds: group.skillIds.flatMap((skillId) => {
         const facetConsumeBySkillId = HERALD_MECHANICS.facetConsumeBySkillId as Readonly<Record<number, number>>;
         const heraldFlipId = facetConsumeBySkillId[skillId];
-
         if (Number.isFinite(heraldFlipId) && availableFlips[heraldFlipId]) {
           return [heraldFlipId];
         }

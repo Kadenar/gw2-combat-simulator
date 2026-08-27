@@ -6,7 +6,6 @@ import type { MesmerHandlerContext } from '../types.js';
 
 function conditionName(value: unknown): string {
   const normalized = String(value || '').toLowerCase();
-
   if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
@@ -28,7 +27,6 @@ function observeDeclarativeEffect(
   { effect }: { readonly effect: SkillEffect }
 ): void {
   if (!event) return;
-
   if (event.type === 'damage') {
     const individuallyTimed =
       Array.isArray(effect.ticks) || Number(effect.intervalMs || 0) > 0 || Number(skill.pulseCount || 0) > 1;

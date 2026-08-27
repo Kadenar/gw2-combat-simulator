@@ -1192,7 +1192,6 @@ test('timeline binding inserts palette entries and drop positions use tile halve
   };
   const insertEntries = (entries, insertAt) => {
     if (!entries.length) return false;
-
     rotation.splice(insertAt, 0, ...entries);
     return true;
   };

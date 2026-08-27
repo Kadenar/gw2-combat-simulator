@@ -10,7 +10,6 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
   for (const definition of app.resourceDefinitions(specialization)) {
     const buildKey = definition.buildKey || 'initialResource';
     const value = Number(app.build[buildKey]);
-
     if (Number.isFinite(value)) {
       app.build[buildKey] = Math.min(value, definition.maximum);
     }
@@ -23,14 +22,12 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
  */
 export function renderTraits(app: ProfessionAppState): void {
   const container = document.getElementById('traits-panel');
-
   if (!container) throw new Error('Required traits panel is missing.');
   const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
   const selectedNames = app.build.specializations.map((spec) => spec.name);
   container.innerHTML = app.build.specializations
     .map((selection, lineIndex) => {
       const spec = specializations.find((candidate) => candidate.name === selection.name) || specializations[0];
-
       if (!spec) return '';
       const picks = selection.traits.split('-').map(Number);
       return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
@@ -71,19 +68,16 @@ export function renderTraits(app: ProfessionAppState): void {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
       const line = Number(select.dataset.line);
-
       if (!Number.isInteger(line) || !app.build.specializations[line]) return;
       app.build.specializations[line] = {
         name: select.value,
         traits: '1-1-1'
       };
       const newSpec = specializations.find((spec) => spec.name === select.value);
-
       if (newSpec?.elite) {
         app.build.specializations.forEach((other, index) => {
           if (index === line) return;
           const otherSpec = specializations.find((spec) => spec.name === other.name);
-
           if (otherSpec?.elite) {
             app.build.specializations[index] = {
               name: app.adapter.specializationFallback,
@@ -104,13 +98,11 @@ export function renderTraits(app: ProfessionAppState): void {
       const line = Number(trait.dataset.line);
       const tier = Number(trait.dataset.tier);
       const pick = trait.dataset.pick;
-
       if (!Number.isInteger(line) || !Number.isInteger(tier) || pick === undefined) {
         return;
       }
 
       const spec = app.build.specializations[line];
-
       if (!spec) return;
       const picks = spec.traits.split('-');
       picks[tier] = pick;

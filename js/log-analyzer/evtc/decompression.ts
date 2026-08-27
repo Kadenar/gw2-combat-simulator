@@ -62,10 +62,8 @@ async function inflateRaw(compressed: Uint8Array, maximumBytes: number): Promise
   let total = 0;
   while (true) {
     const { done, value } = await reader.read();
-
     if (done) break;
     total += value.byteLength;
-
     if (total > maximumBytes) {
       await reader.cancel();
       throw new EvtcError('EXPANDED_SIZE_EXCEEDED', 'The expanded EVTC file exceeds the 512 MiB safety limit.');
@@ -87,7 +85,6 @@ async function inflateRaw(compressed: Uint8Array, maximumBytes: number): Promise
 async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const end = findEndOfCentralDirectory(view);
-
   if (end < 0) {
     throw new EvtcError('INVALID_ZIP', 'The ZIP central directory is missing.');
   }
@@ -98,7 +95,6 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   const entryCount = view.getUint16(end + 10, true);
   const centralSize = view.getUint32(end + 12, true);
   const centralOffset = view.getUint32(end + 16, true);
-
   if (disk !== 0 || centralDisk !== 0 || entriesOnDisk !== entryCount) {
     throw new EvtcError('INVALID_ZIP', 'Multi-disk ZIP files are not supported.');
   }
@@ -117,7 +113,6 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   const compressedSize = view.getUint32(centralOffset + 20, true);
   const expandedSize = view.getUint32(centralOffset + 24, true);
   const localOffset = view.getUint32(centralOffset + 42, true);
-
   if ([compressedSize, expandedSize, localOffset].includes(0xffffffff)) {
     throw new EvtcError('INVALID_ZIP', 'ZIP64 EVTC archives are not supported.');
   }
@@ -145,14 +140,12 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   const nameLength = view.getUint16(localOffset + 26, true);
   const extraLength = view.getUint16(localOffset + 28, true);
   const payloadOffset = localOffset + 30 + nameLength + extraLength;
-
   if (localMethod !== compressionMethod || payloadOffset + compressedSize > bytes.byteLength) {
     throw new EvtcError('INVALID_ZIP', 'The ZIP entry metadata is inconsistent.');
   }
 
   const compressed = bytes.subarray(payloadOffset, payloadOffset + compressedSize);
   let expanded: Uint8Array;
-
   if (compressionMethod === 0) {
     expanded = compressed.slice();
   } else if (compressionMethod === 8) {
@@ -181,7 +174,6 @@ export async function decompressEvtcInput(input: ArrayBuffer | Uint8Array): Prom
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const isZip = signature(view, 0) === ZIP_LOCAL_HEADER;
-
   if (isZip && bytes.byteLength > EVTC_FILE_LIMITS.maximumCompressedBytes) {
     throw new EvtcError('FILE_TOO_LARGE', 'The selected file exceeds the 64 MiB compressed-file safety limit.');
   }

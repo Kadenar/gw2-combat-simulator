@@ -229,7 +229,6 @@ export function revenantActiveBoonCount(context: RevenantModifierContext): numbe
   );
   for (const [kind, applications] of context.runtime?.boons || []) {
     const normalized = String(kind).toLowerCase();
-
     if (
       isStandardBoon(normalized) &&
       applications.some((application) => application.at <= context.time && application.expiresAt > context.time)
@@ -342,7 +341,6 @@ function modifyCoreCriticalChance(context: RevenantModifierContext, chance: numb
 // shared Expertise scaling.
 function modifyCoreConditionDuration(context: RevenantModifierContext, duration: number): number {
   let modified = duration;
-
   if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
     modified += 0.15;
   }
@@ -362,7 +360,6 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
 // state without double-applying static bonuses.
 function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
-
   if (hasTrait(context, TRAIT.NOTORIETY)) {
     const baseMight = Math.max(0, Math.min(25, Number(context.config?.boons?.might || 0)));
     const dynamicMight = Math.min(

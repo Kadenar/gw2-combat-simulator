@@ -26,7 +26,6 @@ function handleTetherBroken(context: GuardianResolverContext, event: GuardianRes
 
 function handleJusticePulse(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.tether), 'condition');
-
   // Justice pulses are pre-emitted for the full tether window at cast time, so
   // each must be re-validated at resolve time in case Hunter's Verdict broke the
   // tether early. Epsilon tolerance avoids rejecting a pulse on the exact break timestamp.
@@ -116,7 +115,6 @@ export function reactToDragonhunterJusticeHit(
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = dragonhunterState.from(context);
-
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.dulledSenses), 'condition');
     // Control-triggered conditions resolve immediately so their reactions

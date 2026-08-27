@@ -20,17 +20,14 @@ import type {
 
 function resourceProfile(context: RevenantEnergyContext) {
   const profile = context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
-
   if (!profile) throw new Error('Missing Revenant resource balance profile.');
   return profile;
 }
 
 function syncRevenantCombatState(context: RevenantSchedulerContext, state: RevenantCoreState): void {
   const sharedAt = context.schedulerPolicy.combatBeganAt?.();
-
   if (sharedAt == null) return;
   const at = Number(sharedAt);
-
   if (Number.isFinite(at)) state.combatBeganAt = at;
 }
 
@@ -65,7 +62,6 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
   const current = Number(professionCoreState(context).endurance || 0);
   const required = Math.max(0, Number(cost || 0));
   const missing = required - current;
-
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = revenantEnduranceRegenerationRate(context, context.start);
   return rate > 0 ? context.start + missing / rate : null;
@@ -81,7 +77,6 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   syncRevenantCombatState(context, state);
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-
   if (target > enduranceFrom) {
     const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
     state.endurance = Math.min(state.maximumEndurance, state.endurance + (target - enduranceFrom) * enduranceRate);
@@ -92,14 +87,12 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const rate = regeneration - upkeep;
   const elapsed = target - from;
-
   if (rate < 0 && state.energy + rate * elapsed < 0) {
     const starvedAt = from + state.energy / -rate;
     state.energy = 0;
     for (const active of state.activeUpkeeps) {
       const skill = context.catalog.skillsById.get(active.skillId);
       const cooldown = Math.max(0, Number(skill?.starvationCooldown || 0));
-
       if (cooldown > 0) {
         context.state.cooldowns.set(active.skillId, starvedAt + cooldown);
       }
@@ -141,7 +134,6 @@ interface RevenantEnergyCostState {
 function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
-
   if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
     return (candidate as RevenantRuntimeState).core;
   }
@@ -153,7 +145,6 @@ function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCost
 export function baseRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
   const state = energyCostCoreState(context);
   const active = (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
-
   if (active) return 0;
   return Math.max(0, Number(skill.energyCost || 0));
 }

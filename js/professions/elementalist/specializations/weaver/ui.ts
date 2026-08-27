@@ -36,9 +36,7 @@ function isCarriedAutoattackSkill(context: SchedulerRecord, skill: Skill): boole
   const state = uiState(context);
   const carryover = state.autoattackCarryover as SchedulerRecord | undefined;
   const root = Number(carryover?.root);
-
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
-
   if (String(carryover?.attunement || '') !== String(skill.attunement || '')) return false;
   const chains = (state.autoattackChains || context.autoattackChains || {}) as SchedulerRecord;
   const expected = chains[String(root)] ?? root;
@@ -53,7 +51,6 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
   const now = Number(context.time || 0);
   const primary = String(state.primaryAttunement || build?.startAttunement || 'Fire');
   const secondary = String(state.secondaryAttunement || build?.secondaryAttunement || primary);
-
   if (skill.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
     const available = hasElementsOfRage(context);
     return { available, message: available ? '' : 'Requires Elements of Rage.' };
@@ -80,7 +77,6 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
 
   const hammerElements = skill.weapon === 'Hammer' ? weaverDualAttunements(skill) : null;
   const hammerOrbs = (state.hammerOrbs || {}) as SchedulerRecord;
-
   if (hammerElements?.some((element) => hammerOrbs[element] != null && Number(hammerOrbs[element]) >= now)) {
     return {
       available: false,
@@ -89,7 +85,6 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
   }
 
   if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
-
   if (isCarriedAutoattackSkill(context, skill)) return { available: true, message: '' };
   const dualAttunements = weaverDualAttunements(skill);
   const required = dualAttunements || [String(skill.attunement)];
@@ -115,7 +110,6 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
 function unravelTimelineWeaponLineTransition(context: SchedulerRecord): string | undefined {
   const skill = context.skill as Skill | undefined;
   const build = context.build as SchedulerRecord | undefined;
-
   if (context.initial === true) {
     const primary = String(build?.startAttunement || 'Fire');
     const secondary = String(build?.secondaryAttunement || primary);
@@ -126,7 +120,6 @@ function unravelTimelineWeaponLineTransition(context: SchedulerRecord): string |
   const primary =
     ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) ||
     String(build?.startAttunement || 'Fire');
-
   if (skill?.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return `${primary[0]}/${primary[0]}`;
   const target = skill?.name.replace(/ Attunement$/, '') || '';
   return skill?.skillFamily === 'Attunement' && ELEMENTALIST_ATTUNEMENTS.includes(target as never)
@@ -162,7 +155,6 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
     ['unravel', 'Unravel', Number(state.unravelUntil || 0)]
   ] as const) {
     const remaining = expiresAt - at;
-
     if (remaining <= 0) continue;
     items.push({
       id,
@@ -277,7 +269,6 @@ function elementRowsHtml(
   return rows
     .map((row) => {
       const visibleSkills = row.skills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
-
       if (!visibleSkills.length) return '';
       return `<div class="weaver-attunement-row${row.attunement === selectedAttunement ? ' is-selected' : ''}"
           data-attunement="${esc(row.attunement)}">
@@ -297,7 +288,6 @@ function elementRowsHtml(
 function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext): ProfessionWeaponPaletteView | null {
   if (String(context.specialization || '') !== 'Weaver') return null;
   const skills = context.skills;
-
   if (!skills.length) return null;
   const state = context.professionState as SchedulerRecord | undefined;
   const build = context.build as SchedulerRecord | undefined;
@@ -321,7 +311,6 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
     // current root beside it as an explicit way to cancel and restart the chain.
     return [carriedAutoattack, skill];
   });
-
   if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));

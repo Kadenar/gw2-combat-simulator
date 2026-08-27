@@ -12,7 +12,6 @@ export function flattenProfessionState(professionState: unknown): SchedulerRecor
   if (!professionState || typeof professionState !== 'object') return {};
   const runtime = professionState as SchedulerRecord;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
-
   if (
     runtime.core &&
     typeof runtime.core === 'object' &&
@@ -103,7 +102,6 @@ function specializationStateForKind<
     };
   };
   const active = runtime.specialization;
-
   if (active.kind !== expectedKind) {
     throw new TypeError(`Expected active specialization ${expectedKind}, received ${active.kind}.`);
   }

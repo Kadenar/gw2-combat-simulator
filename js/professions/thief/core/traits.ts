@@ -47,7 +47,6 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
   const at = context.effectiveEnd;
   const state = professionCoreState(context);
   const potentPoison = hasTrait(context.config, TRAIT.POTENT_POISON);
-
   if (hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
     const profile = thiefBalanceProfile(context, PROFILE.serpentsTouch);
     const poison = thiefBalanceProfileEffect(profile, 'condition');
@@ -151,7 +150,6 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       duration: gw2SchedulerBoonDuration(context, context.skill, vigorName, Number(vigor?.duration || 10)),
       stacks: Number(vigor?.stacks || 1)
     });
-
     if (context.config.target?.boonless !== false) {
       const mightName = String(might?.boon || 'Might');
       emitSkillBuff(context, {
@@ -190,7 +188,6 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     const blindness = thiefBalanceProfileEffect(profile, 'condition', 0);
     const weakness = thiefBalanceProfileEffect(profile, 'condition', 1);
     const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
-
     if (isInternalCooldownReady(at, readyAt)) {
       state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown || 2);
       emitSkillCondition(context, {
@@ -247,7 +244,6 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const initiativeCost = Math.max(0, Number(skill.initiativeCost || 0));
-
   if (initiativeCost > 0 && hasTrait(context.config, TRAIT.LEAD_ATTACKS)) {
     const profile = thiefBalanceProfile(context, PROFILE.leadAttacks);
     const expirations = state.leadAttackExpirations || [];
@@ -267,7 +263,6 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
 
   if (skill.movementSkill) {
     let movementStateChanged = false;
-
     if (hasTrait(context.config, TRAIT.FLUID_STRIKES)) {
       state.fluidStrikesUntil =
         at + Number(thiefBalanceProfile(context, PROFILE.fluidStrikes)?.durationMultiplier || 5);
@@ -289,7 +284,6 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-
   if (isDualWieldAttack && hasTrait(context.config, TRAIT.DEADLY_AMBITION)) {
     const potentPoison = hasTrait(context.config, TRAIT.POTENT_POISON);
     const profile = thiefBalanceProfile(context, PROFILE.deadlyAmbition);
@@ -360,7 +354,6 @@ function activeSelfFuryApplications(context: ThiefResolverContext, at: number) {
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   const applications = context.boons.get('fury') || [];
   const active = new Set(activeSelfFuryApplications(context, event.at));
-
   if (!active.size) return;
   context.boons.set(
     'fury',
@@ -479,7 +472,6 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
   const profile = thiefBalanceProfile(context, PROFILE.assassinsFury);
   const might = thiefBalanceProfileEffect(profile, 'boon');
   const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
-
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown || 2);
   queueThiefBoon(context, event, {
@@ -529,7 +521,6 @@ function enqueueSiphon(
 function applySpiderVenom(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
   const state = professionCoreState(context);
-
   if (Number(state.spiderVenomCharges || 0) <= 0 || Number(state.spiderVenomExpiresAt || 0) <= event.at) return;
   state.spiderVenomCharges -= 1;
   const poison = traitEffect(context, PROFILE.spiderVenomProc, 'condition');
@@ -548,7 +539,6 @@ function applySpiderVenom(context: ThiefResolverContext, event: ThiefResolverEve
     activationId: event.activationId || `${event.skillId}:${event.at}`,
     triggeredBy: event.skillName
   });
-
   if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const strike = traitEffect(context, PROFILE.leechingVenoms, 'strike');
     enqueueSiphon(context, event, {
@@ -570,12 +560,10 @@ function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolve
     return;
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const namedSkill = event.skillName == null ? undefined : context.helpers.skillsByName?.get(event.skillName);
-
   if (!(skill || namedSkill)?.stealthAttack) return;
   const state = professionCoreState(context);
   const profile = thiefBalanceProfile(context, PROFILE.shadowSiphoning);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
-
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown || 1);
   enqueueSiphon(context, event, {
@@ -604,7 +592,6 @@ function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEve
   const profile = thiefBalanceProfile(context, PROFILE.panicStrike);
   const immobilized = thiefBalanceProfileEffect(profile, 'condition', 0);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
-
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown || 20);
   context.applyCondition({
@@ -687,7 +674,6 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
   if (application.condition === 'Bleeding' && Number(application.bonusAboveNinetyStacks || 0) > 0) {
     const maximum = Number(context.config?.target?.health || 0);
     const damage = combinedTargetDamage(context);
-
     if (!(maximum > 0) || damage / maximum < 0.1) {
       enqueueOrdered(context.queue, {
         ...application,

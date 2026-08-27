@@ -58,7 +58,6 @@ export function normalizeNecromancerAutoattackChains(
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
     .flatMap((action) => {
       const position = positions.get(action.rawSkillId);
-
       if (
         action.status === 'interrupted' &&
         (position != null || isWeaponAutoattack(context, action)) &&
@@ -89,7 +88,6 @@ export function normalizeNecromancerAutoattackChains(
         canonicalSkillId: identity.skillId,
         canonicalName: identity.name
       };
-
       if (action.status === 'completed' && actionIndex < chain.length - 1) {
         activeChainIndex = position.chainIndex;
         expectedActionIndex = actionIndex + 1;

@@ -17,7 +17,6 @@ import type { HolosmithResolverEvent } from './heat-tiers.js';
 function handlePrimeLightBeamField(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
-
   if (tier === 'base') return;
   const enhancedCapacityTier = tier === 'enhanced';
   const packets = Math.max(

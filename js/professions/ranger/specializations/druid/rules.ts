@@ -26,7 +26,6 @@ function eclipseEffect(context: RangerCastContext, index: number) {
 export function applyCelestialAvatarTraits(context: RangerCastContext, skill: RangerSkill): void {
   // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
   const pulses = skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
-
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
     const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.graceOfTheLand), 'boon');
     const boon = String(effect?.boon || 'alacrity');
@@ -134,7 +133,6 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return false;
-
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   if (context.timeline?.timedActive('natural-balance', context.time)) return true;
   return (context.runtime?.boons?.get('natural-balance') || []).some(
@@ -164,7 +162,6 @@ export const druidModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyDruidAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   if (!hasTrait(context, TRAIT.NATURAL_FORTITUDE)) return attributes;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-
   if (staticRulesApplied && context.event?.actorType === 'summon') return attributes;
   const result = { ...attributes };
   const vitality = rangerBalanceValue(context, PROFILE.naturalFortitude, 'attributeBonus', 240);
@@ -197,7 +194,6 @@ export const druidSchedulerHooks = Object.freeze({
 
 export function druidCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = druidState.from(context);
-
   if (skill.celestialAvatarSkill && !state.celestialAvatarActive) {
     return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');
   }
@@ -209,7 +205,6 @@ export function druidCastAvailability(context: RangerPrecastContext, skill: Rang
 
     if (state.astralForce < state.maximumAstralForce) {
       const retryAt = astralForceReadyAt(context);
-
       // Provide a retryAt when Natural Mender can predict the ready time so the scheduler waits instead of skipping
       if (retryAt != null) {
         return {

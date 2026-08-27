@@ -50,7 +50,6 @@ const MANTRA_BY_FINAL_ID = new Map(MANTRAS.map((definition) => [definition.final
 
 function selectedMantras(context: GuardianSchedulerContext): readonly MantraDefinition[] {
   const configured = context.config.selectedSkills;
-
   // No configured list means "all mantras are equipped"; default to the full set.
   if (!Array.isArray(configured) || configured.length === 0) return MANTRAS;
   const names = new Set(
@@ -71,7 +70,6 @@ function mantraFlipActive(
 
 function armMantra(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const normal = context.catalog.skillsById.get(definition.normalId);
-
   if (!normal) return;
   const core = professionCoreState(context);
   // Always start fresh at the normal-charge flip, never at the final-charge
@@ -92,15 +90,12 @@ function armMantra(context: GuardianSchedulerContext, definition: MantraDefiniti
 
 function syncMantraFlip(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const normal = context.catalog.skillsById.get(definition.normalId);
-
   // Guard: if ammo was never set this mantra is in full-recharge mode;
   // skip so we don't accidentally surface the final-charge flip early.
   if (!normal || !context.state.ammo.has(normal.id)) return;
   const ammo = context.cooldownController.refreshAmmo(normal, at);
-
   if (!ammo) return;
   const flips = professionCoreState(context).availableFlips;
-
   // The final-charge variant is a separate skill ID; the flip registry drives
   // which button the player sees, so exactly one of the two must be set.
   if (ammo.charges > 1) {
@@ -115,7 +110,6 @@ function syncMantraFlip(context: GuardianSchedulerContext, definition: MantraDef
 function startFullRecharge(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const root = context.catalog.skillsById.get(definition.rootId);
   const normal = context.catalog.skillsById.get(definition.normalId);
-
   if (!root || !normal) return;
   const flips = professionCoreState(context).availableFlips;
   // Hide both charge variants until the root prepare skill finishes recharging.
@@ -140,7 +134,6 @@ export function initializeFirebrandMantras(context: GuardianSchedulerContext): v
 export function advanceFirebrandMantras(context: GuardianSchedulerContext, target: number): void {
   for (const definition of MANTRAS) {
     const readyAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
-
     // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
     // The cooldowns guard prevents double-arming if advance is called twice for
     // the same tick.
@@ -155,7 +148,6 @@ export function advanceFirebrandMantras(context: GuardianSchedulerContext, targe
 /** Gates preparation, normal charges, and the distinct final-charge flip. */
 export function firebrandMantraAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
-
   if (root) {
     return mantraFlipActive(context, root)
       ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
@@ -165,11 +157,9 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
   const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
   const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
   const definition = normal || final;
-
   if (!definition) return CAST_READY;
   const expectedId = normal ? definition.normalId : definition.finalId;
   const preparedAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
-
   // preparedAt > start means the mantra is currently in full-recharge (not yet
   // armed), so give the scheduler a concrete retry time rather than blocking
   // forever with retryAt: null.
@@ -194,20 +184,17 @@ export function completeFirebrandMantra(context: GuardianCastContext, skill: Gua
   // when the cast was cut short before its natural end.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
-
   if (root) {
     armMantra(context, root, context.effectiveEnd);
     return;
   }
 
   const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
-
   if (normal) {
     syncMantraFlip(context, normal, context.effectiveEnd);
     return;
   }
 
   const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
-
   if (final) startFullRecharge(context, final, context.effectiveEnd);
 }

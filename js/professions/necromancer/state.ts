@@ -7,7 +7,6 @@ import type { NecromancerEndStateProjectionOptions, NecromancerState } from './t
 export function snapshotNecromancerState(state: unknown): NecromancerState {
   const flattened = flattenProfessionState(state) as unknown as NecromancerState;
   syncNecromancerResources(flattened);
-
   if (Object.hasOwn(flattened, 'blightExpiries')) syncHarbingerState(flattened);
   return structuredClone(flattened) as NecromancerState;
 }

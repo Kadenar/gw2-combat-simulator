@@ -98,10 +98,8 @@ function rageBerserkExtension(context: WarriorCastContext, skill: WarriorSkill):
 // skills, layering their skill-specific and trait-specific duration bonuses.
 function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = berserkerState.from(context);
-
   if (!state.berserkActive || !isComplete(context)) return;
   const previousUntil = state.berserkUntil;
-
   if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER)) {
     const profile = warriorBalanceProfile(context, PROFILE.smashBrawler);
     state.berserkUntil +=
@@ -137,7 +135,6 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
 // from Berserk duration extension.
 function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!isComplete(context)) return;
-
   if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
     const burning = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.lastBlaze), 'condition');
     emitSkillCondition(context, {
@@ -290,11 +287,9 @@ export function reactToBerserkerAura(context: WarriorResolverContext, event: War
 export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as { readonly eventOrder?: number } | null;
   const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
-
   if (!event) return;
 
   const state = berserkerState.from(context);
-
   if (!isInternalCooldownReady(event.at, state.kingOfFiresReadyAt) || criticalCount(context, event) === 0) {
     return;
   }
@@ -306,7 +301,6 @@ export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task:
   const action = context.events.find(
     (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
   );
-
   if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - context.epsilon) {
     context.tasks.schedule({
       type: 'warrior.king-of-fires-detonation',
@@ -329,10 +323,8 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
     readonly skillId?: number;
   } | null;
   const skill = context.catalog.skillsById.get(Number(payload?.skillId));
-
   if (!skill) return;
   const state = berserkerState.from(context);
-
   if (state.fireAuraUntil <= task.at + context.epsilon) return;
   const profile = warriorBalanceProfile(context, PROFILE.kingOfFires);
   const strike = warriorBalanceProfileEffect(profile, 'strike');
@@ -376,7 +368,6 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
 export function finishBerserkerCast(context: WarriorCastContext, skill: WarriorSkill): void {
   extendBerserk(context, skill);
   applyBerserkerTraits(context, skill);
-
   if (isComplete(context) && isBerserkerSkill(skill) && hasTrait(context, TRAIT.KING_OF_FIRES)) {
     context.tasks.schedule({
       type: 'warrior.king-of-fires-detonation',

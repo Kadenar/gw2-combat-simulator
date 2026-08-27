@@ -94,7 +94,6 @@ export function createSkillDamageController({
     const interval = Number(damageGroup.intervalMs || 0);
     const emittedAt = (origin: number, effect: MesmerDamageGroup): readonly number[] =>
       addDamage(skill, origin, effect).map((event) => event.at);
-
     if (fixedTicks?.length) {
       const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || fixedTicks.length || 1)));
       const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
@@ -209,7 +208,6 @@ export function createSkillDamageController({
   ): void => {
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
-
       if (pulseTimes.length > 0 && Number(condition.stacks || 1) === pulseTimes.length) {
         const origin = Math.min(...pulseTimes);
         addCondition(skill.name, origin, {
@@ -250,7 +248,6 @@ export function createSkillDamageController({
       }
 
       const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
-
       if (hitTimes.length === hitCount) {
         for (const hitAt of hitTimes) {
           addEvent({
@@ -285,7 +282,6 @@ export function createSkillDamageController({
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
           : group;
-
       if (group.summonKind === 'phantasm') {
         if (phantasmExecutions.length === 0) {
           throw new TypeError(`Phantasm strike ${skill.id} requires phantasm resource metadata.`);
@@ -308,10 +304,8 @@ export function createSkillDamageController({
         group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
-
       if (hitAt > playerEffectEnd + epsilon) continue;
       const hitTimes = schedulePlayerStrike(skill, group, selectedGroup, at, castStart, pulseTimes);
-
       if (group.actorType === 'player') {
         playerHitTimes.push(...hitTimes);
         addFencerStacks(hitTimes, selectedGroup.hits);
@@ -319,7 +313,6 @@ export function createSkillDamageController({
     }
 
     scheduleTrackedHits(skill, playerHitTimes);
-
     if (phantasmExecutions.length > 0) {
       // Summon subtype, rather than actor ownership, keeps phantasm conditions out of the player path.
       const playerConditions = conditions.filter((effect) => effect.summonKind !== 'phantasm');

@@ -140,10 +140,8 @@ function explicitCombatStartTime(events: readonly SimulationEvent[]): number {
 
 function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState): number {
   const runtimeStart = Number(context.combatStartTime);
-
   if (Number.isFinite(runtimeStart)) return runtimeStart;
   const stateStart = Number(state.combatStartTime);
-
   if (Number.isFinite(stateStart)) return stateStart;
   const timelineStart = explicitCombatStartTime((state.timelineEvents as readonly SimulationEvent[] | undefined) || []);
   return Number.isFinite(timelineStart) ? timelineStart : 0;
@@ -151,7 +149,6 @@ function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState
 
 function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, at: number): boolean {
   const firstActivation = nourysCombatStart(context, state) + NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED;
-
   if (at < firstActivation - EPSILON) return false;
   const phase = (at - firstActivation) % NOURYS_CYCLE_DURATION;
   return phase >= -EPSILON && phase < NOURYS_BUFF_DURATION - EPSILON;
@@ -159,7 +156,6 @@ function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, a
 
 function syncAristocracyTimeline(state: AristocracyState): void {
   const events = state.timelineEvents;
-
   if (!events || state.timelineLength === events.length) return;
   const replay = replayAristocracyTimeline(events, explicitCombatStartTime(events));
   state.readyAt = replay.readyAt;
@@ -175,7 +171,6 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
   syncAristocracyTimeline(state);
   for (let index = state.activations.length - 1; index >= 0; index -= 1) {
     const activation = state.activations[index];
-
     // A triggering application cannot benefit from its own same-time stack.
     if (activation.at >= at - EPSILON) continue;
     return at < activation.expiresAt - EPSILON ? activation : null;
@@ -236,7 +231,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0 }),
     control(ctx, state, event, { activeConditionStackCount, applyCondition }) {
       if (!isInternalCooldownReady(event.at, state.readyAt)) return;
-
       if (
         activeConditionStackCount(ctx, 'Confusion', event.at) < 5 &&
         activeConditionStackCount(ctx, 'Torment', event.at) < 5
@@ -317,11 +311,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       const key = String(
         application.activationId || `${application.skillId || application.skillName}:${application.at}`
       );
-
       if (tracked?.has(key)) return;
       tracked?.add(key);
       state.count = Math.min(6, Number(state.count || 0) + 1);
-
       if (Number(state.count) < 6 || !isInternalCooldownReady(application.at, state.readyAt)) {
         return;
       }
@@ -359,14 +351,11 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     combo(ctx, state, event) {
       // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
       if (event.finisherType !== 'Blast') return;
-
       // Volatility cannot accumulate while Fervor is active.
       if (Number(state.buffUntil || 0) > event.at) return;
-
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
 
       const currentStacks = Number(state.stacks || 0);
-
       if (currentStacks < 2) {
         state.stacks = currentStacks + 1;
         state.expiresAt = event.at + 10;
@@ -427,7 +416,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0, buffUntil: 0 }),
     boon(ctx, state, event) {
       const kind = String(event?.kind || '').toLowerCase();
-
       if (
         (kind !== 'protection' && kind !== 'resolution') ||
         !isGw2PlayerActorEvent(event) ||
@@ -505,7 +493,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       const profileId = String(event.weaponStrengthProfileId || '');
       const strikesAtWeaponStrength = profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
       const isWeaponStrengthProfessionMechanic = event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
-
       if (
         !isGw2PlayerActorEvent(event) ||
         (!isWeaponSkill && !skill?.shroud && !isWeaponStrengthProfessionMechanic) ||
@@ -566,7 +553,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0 }),
     materializeBoon(ctx, state, event) {
       const kind = String(event.kind || '').toLowerCase();
-
       if (
         kind !== 'might' ||
         !isGw2PlayerActorEvent(event) ||
@@ -633,7 +619,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON;) {
         stacks += 1;
         ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
-
         if (stacks >= NOURYS_STACKS_NEEDED) {
           stacks = 0;
           ctx.recordProc('relic', 'Relic of Nourys', at, 'Nourys', 'activated', '', null, at + NOURYS_BUFF_DURATION);
@@ -654,7 +639,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
     peitha(ctx, state, event, applyCondition) {
       const triggerAt = event.at;
-
       if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
       state.readyAt = triggerAt + 4;
       const combatStart = Number(ctx.combatStartTime ?? -Infinity);
@@ -684,7 +668,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0 }),
     materializeCondition(ctx, state, application) {
       const actorType = gw2EventActorType(application);
-
       if (
         application?.condition !== 'Immobilized' ||
         (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
@@ -869,10 +852,8 @@ export function invokeRelicHook(
   ...args: unknown[]
 ): unknown {
   const relic = ctx?.relic;
-
   if (!ctx || !relic) return undefined;
   const handler = relic.rules[hook];
-
   if (typeof handler !== 'function') return undefined;
   const dynamicHandler = handler as unknown as (
     context: unknown,

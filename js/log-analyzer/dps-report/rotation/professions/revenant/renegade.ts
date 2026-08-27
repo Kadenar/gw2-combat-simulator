@@ -27,7 +27,6 @@ function isOtherLegend(action: DpsReportRecordedAction): boolean {
 
 function usesChargedMists(context: DpsReportProfessionReconstructionContext): boolean {
   const specializations = context.professionConfig?.specializations;
-
   if (!Array.isArray(specializations)) return false;
   const invocation = specializations.find((entry) => {
     if (entry == null || typeof entry !== 'object') return false;
@@ -67,7 +66,6 @@ function inferredWarbandAction(
   instant: boolean
 ): DpsReportRecordedAction | null {
   const skill = catalogSkill(context, identity.name);
-
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = instant ? 0 : Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   return {
@@ -91,7 +89,6 @@ function recurringOpeningWarband(actions: readonly DpsReportRecordedAction[]): R
     (action, index) => index > firstOtherLegend && normalized(action.rawName) === 'legendary renegade stance'
   );
   const followingOtherLegend = actions.findIndex((action, index) => index > nextRenegade && isOtherLegend(action));
-
   if (firstOtherLegend <= 0 || nextRenegade < 0 || followingOtherLegend < 0) return new Set();
   const openingNames = new Set(actions.slice(0, firstOtherLegend).map((action) => normalized(action.rawName)));
   const recurringNames = new Set(
@@ -131,7 +128,6 @@ export function reconstructRenegadeDpsReportActions(
       );
       return normalized(skill?.slot) === 'weapon_1';
     });
-
     if (!nextAutoattack) return action;
     const start = nextAutoattack.start + LEGEND_APPLICATION_DELAY_MS;
     return { ...action, start, end: start, eventIndex: nextAutoattack.eventIndex + 0.25 };
@@ -147,16 +143,13 @@ export function reconstructRenegadeDpsReportActions(
     return overlappingCast ? { ...action, start: overlappingCast.end, end: overlappingCast.end } : action;
   });
   const anchor = alignedWarband[0];
-
   if (!anchor) return [];
   const recurring = recurringOpeningWarband(alignedWarband);
   const inferred: DpsReportRecordedAction[] = [];
-
   if (recurring.has(normalized(ICERAZOR.name))) {
     const skill = catalogSkill(context, ICERAZOR.name);
     const duration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     const powerEnergyPrecast = needsPowerEnergyPrecast(context, alignedWarband, recurring);
-
     // A Charged Mists power opener uses an out-of-phase Darkrazor cast to drain
     // below the swap threshold. Build state and the repeated Icerazor cycle keep
     // that recovery specific to logs which prove this opener.
@@ -171,12 +164,10 @@ export function reconstructRenegadeDpsReportActions(
         -3,
         false
       );
-
       if (action) inferred.push(action);
     }
 
     const action = inferredWarbandAction(context, anchor, ICERAZOR, anchor.start - duration, -2, false);
-
     if (action) inferred.push(powerEnergyPrecast ? { ...action, followingWaitMs: duration } : action);
   }
 
@@ -191,7 +182,6 @@ export function reconstructRenegadeDpsReportActions(
       -1,
       true
     );
-
     if (action) inferred.push(action);
   }
 

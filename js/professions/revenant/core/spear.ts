@@ -57,7 +57,6 @@ function emitAbyssalRazePackets(
   const conditions = skill.effects?.filter((effect) => effect.type === 'condition');
   const baseTorment = conditions?.find((effect) => !effect.metadata?.trigger);
   const crushingTorment = conditions?.find((effect) => effect.metadata?.trigger === 'crushing-abyss');
-
   if (!strike || !baseTorment || !crushingTorment) {
     throw new Error('Abyssal Raze is missing its declarative effects.');
   }
@@ -93,7 +92,6 @@ function emitAbyssalRazePackets(
     stacks: Number(baseTorment.stacks || 0),
     duration: Number(baseTorment.duration || 0)
   });
-
   if (crushingAbyssStacks > 0) {
     emitSkillCondition(context, {
       ...common,
@@ -110,7 +108,6 @@ function emitAbyssalRazePackets(
 /** Replaces Abyssal Raze's packets with its current stack-scaled profile. */
 export function castAbyssalRaze(context: RevenantCastContext, skill: RevenantSkill): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
-
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
   const at = context.start + Number(strike.atMs || 0) / 1000;
   const stacks = crushingAbyssStacksAt(professionCoreState(context), at);
@@ -134,7 +131,6 @@ export function scheduleAbyssalRazeRechargeReduction(
   event: RevenantSimulationEvent
 ): void {
   const seconds = Number(skill.rechargeReduction || 0);
-
   if (!seconds || event.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
   context.tasks.schedule({
     id: `${RECHARGE_TASK}:${event.__order ?? event.at}`,
@@ -160,10 +156,8 @@ export function handleAbyssalRazeRechargeReduction(
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
   const sourceSkill = context.catalog.skillsById.get(task.payload.sourceSkillId);
-
   if (!skill) return;
   const { ammo, reducedBy } = context.cooldownController.reduceAmmoRecharge(skill, task.payload.seconds, task.at);
-
   if (!ammo || reducedBy <= 0) return;
   const cooldownReduction = Number(reducedBy.toFixed(3));
   context.emit({
@@ -187,15 +181,12 @@ export function handleAbyssalRazeRechargeReduction(
 export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
-
   if (!skill) return;
   const effect = skill.effects?.find((candidate) => candidate.type === 'buff' && candidate.kind === 'crushing-abyss');
-
   if (!effect) throw new Error('Abyssal Raze is missing Crushing Abyss.');
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
   const duration = Math.max(0, Number(effect.duration || 0));
   const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
-
   if (stacks.length >= maximum) return;
   stacks.push(task.at + duration);
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
@@ -254,15 +245,12 @@ export function handleCrushingAbyssWeaponSwap(
 ): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
-
   if (!skill) return;
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
   const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
-
   if (stacks.length < maximum) return;
   const destination = Number(task.payload.weaponSet) === 2 ? 2 : 1;
   const origin = destination === 2 ? 1 : 2;
-
   if (sameWeaponSet(context.config, origin, destination)) return;
   professionCoreState(context).crushingAbyss = [];
   emitAbyssalRazePackets(context, skill, task.at, maximum, 'Swap Weapons');

@@ -15,7 +15,6 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
   const landedHits = Array.from({ length: hits }, (_, index) => at + index * interval).filter(
     (hitAt) => hitAt <= context.effectiveEnd + context.epsilon
   ).length;
-
   if (landedHits > 0) {
     emitSkillDamage(context, skill, {
       at,

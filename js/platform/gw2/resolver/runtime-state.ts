@@ -88,7 +88,6 @@ export function createGw2ResolverRuntimeState({
     ): void {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
-
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
       const reducedBy = Number(cooldownReduction);
@@ -143,7 +142,6 @@ export function createGw2ResolverRuntimeState({
         critHits: 0,
         critEligibleHits: 0
       };
-
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
       }
@@ -167,7 +165,6 @@ export function createGw2ResolverRuntimeState({
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
-
       // Crit accounting only makes sense for strike hits. In stochastic runs
       // didCrit is a per-event boolean (all hits of the event share it); in
       // deterministic runs it is null, so expected crits = chance * hits.

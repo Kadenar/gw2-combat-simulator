@@ -45,7 +45,6 @@ async function resolveAuthoringFile(pathname) {
   const target = path.resolve(siteRoot, relative);
 
   if (!isWithin(siteRoot, target)) throw new Error('Forbidden');
-
   const metadata = await stat(target);
 
   if (!metadata.isFile()) throw new Error('Not found');

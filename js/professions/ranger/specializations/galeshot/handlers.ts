@@ -75,7 +75,6 @@ export const galeshotSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
       state.arrows = Math.max(0, state.arrows - Number(skill.arrowCost || 0));
-
       if (skill.id === ID.HAWKEYE) {
         // Hawkeye consumes all five stacks; windForce resets to 0 on cast.
         state.windForce = 0;

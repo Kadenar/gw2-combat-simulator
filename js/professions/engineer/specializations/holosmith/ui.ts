@@ -64,7 +64,6 @@ function holosmithPaletteAvailability(context: EngineerUiContext, skill: Holosmi
   const state = engineerUiState(context);
   const now = Number(context.time || 0);
   const kitLockoutUntil = Number(state.kitLockoutUntil || 0);
-
   // The shared tile projector selects the active Photon Forge transition while
   // this contract remains the sole source of its state availability.
   if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
@@ -109,13 +108,9 @@ function holosmithEventLogRow(
   const isHolosmith =
     engineerUiSpecialization(context) === 'Holosmith' ||
     buildSpecializations.some((specialization) => String(specialization?.name || specialization) === 'Holosmith');
-
   if (!isHolosmith) return undefined;
-
   if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
-
   if (event?.type !== 'engineer.state') return undefined;
-
   if (!HEAT_STATE_REASONS.has(String(event.reason || ''))) return null;
   return {
     type: event.type,
@@ -131,7 +126,6 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   // Photon Forge changes weapon presentation only while the Holosmith slice is active.
   timelineWeaponLineTransition: (context: EngineerUiContext) => {
     if (context.skill?.handlerId === 'engineer.photon-forge-enter') return 'Photon Forge';
-
     if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
     return undefined;
   },
@@ -169,7 +163,6 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
         skillIds: engineerSkills
           .filter((skill) => {
             if (!skill.forgeSkill) return false;
-
             if (skill.slot !== 'Weapon_1') return true;
             return skill.name.endsWith('—Storm') === storm;
           })

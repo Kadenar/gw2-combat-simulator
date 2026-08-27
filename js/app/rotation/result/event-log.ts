@@ -11,7 +11,6 @@ type OrderedEventLogRow = EventLogRow & { readonly order: number };
 /** Converts stable minion ownership ids into readable per-minion log labels. */
 function minionAttackerLabel(event: SimulationEvent): string {
   const match = /^minion:([^:]+):(\d+)$/.exec(String(event.summonOwner || ''));
-
   if (!match) return '';
   const name = match[1]
     .split('-')
@@ -70,9 +69,7 @@ export function simulationEventLogRows(
         event
       )
     );
-
     if (normalized === null) return;
-
     if (normalized) {
       const { flags, ...descriptor } = normalized;
       const displayAt = Number(event.at || 0) - displayReferenceSeconds;
@@ -114,7 +111,6 @@ export function simulationEventLogRows(
           })
           .join(', ');
         const isCloneResource = resource === 'clones';
-
         if (amount > 0) {
           push(
             event.at,
@@ -225,7 +221,6 @@ export function simulationEventLogRows(
 export function renderEventLog(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-event-log');
   const result = app.results;
-
   if (!element || !app.build.rotation.length || !result) {
     if (element) element.innerHTML = '';
     return;

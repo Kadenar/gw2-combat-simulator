@@ -38,7 +38,6 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
     Number(profile?.maximumTargets || 1),
     gw2AlliedPlayerAssumptions(context.config).count
   );
-
   if (alliedRecipients > 0) {
     emitSkillBuff(context, {
       at,
@@ -78,7 +77,6 @@ export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): 
 // The core thief handler still deducts initiative; this is a parallel gain on top of that.
 export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
-
   if (!(cost > 0)) return;
   const state = specterState.from(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
@@ -98,13 +96,11 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
     Number(professionCoreState(context).maximumHealth || 0) * Number(resources?.attributeConversion || 0.69);
   state.shadowForce = Math.min(state.maximumShadowForce, state.shadowForce);
   const shadowFrom = Number(state.shadowForceUpdatedAt || 0);
-
   if (target > shadowFrom && state.shadowShroudActive) {
     state.shadowForce = Math.max(
       0,
       state.shadowForce - (target - shadowFrom) * state.maximumShadowForce * Number(resources?.lifeForceDrain || 0.02)
     );
-
     // When force hits exactly 0, shroud collapses automatically without an explicit exit cast.
     if (state.shadowForce === 0) {
       state.shadowShroudActive = false;

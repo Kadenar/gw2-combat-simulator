@@ -69,7 +69,6 @@ function deadeyeMechanicActions(
         candidate.stateChange === EVTC_STATE_CHANGE.BUFF_REMOVE_SINGLE &&
         Math.max(candidate.value, candidate.buffDamage) >= MARK_REFRESH_MERCY_THRESHOLD_MS
     );
-
     if (!refresh) continue;
     const relic = context.log.events
       .map((candidate, candidateIndex) => ({
@@ -87,7 +86,6 @@ function deadeyeMechanicActions(
           event.time - candidate.time <= MERCY_SIGNAL_LOOKBACK_MS
       )
       .at(-1);
-
     if (relic) consumedRelicEventIndexes.add(relic.eventIndex);
     let mercyTime = relic?.event.time ?? event.time - 1;
     const nearbySignet = actions.find(
@@ -96,7 +94,6 @@ function deadeyeMechanicActions(
         action.start <= mercyTime &&
         mercyTime - action.start <= SIGNAL_WINDOW_MS
     );
-
     if (nearbySignet) {
       mercyTime = nearbySignet.start - 1;
     } else if (event.time - mercyTime <= SIGNAL_WINDOW_MS) {
@@ -110,7 +107,6 @@ function deadeyeMechanicActions(
             mercyTime - action.start <= 700
         )
         .at(-1);
-
       if (precedingSteal) mercyTime = precedingSteal.start - 1;
     }
 
@@ -143,7 +139,6 @@ function deadeyeMechanicActions(
               Math.abs(action.end - event.time) <= SIGNAL_WINDOW_MS)
         )
       );
-
       if (!knownCantrip) {
         inferred.push(canonicalAction(eventIndex, event.time, MERCY, event.skillId));
       }
@@ -160,7 +155,6 @@ function deadeyeMechanicActions(
         event.buffRemove === 0 &&
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
     );
-
   if (kneeling && !hasRecordedAction(actions, KNEEL, kneeling.event.time)) {
     const start = Math.min(kneeling.event.time, atCombat ?? kneeling.event.time);
     inferred.push({

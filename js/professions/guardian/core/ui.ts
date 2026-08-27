@@ -60,7 +60,6 @@ export function guardianUiSkillIdsByName(names: readonly string[], context: Guar
     >) || {};
   return names.flatMap((name) => {
     const id = guardianCatalog.skillsByName.get(name)?.id;
-
     if (id == null) return [];
     const skill = guardianCatalog.skillsById.get(id);
     const flipId = skill?.flipSkillId;
@@ -92,7 +91,6 @@ export function guardianEventLogRow(
     order: 30,
     flags: []
   };
-
   if (event.type === 'guardian.virtue-activated') {
     return {
       ...base,
@@ -113,7 +111,6 @@ function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonl
   // identity should reach the shared weapon palette.
   return skills.filter((skill) => {
     if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) return !glacialHeart;
-
     if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) return glacialHeart;
     return true;
   });

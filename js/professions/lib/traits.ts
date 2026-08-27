@@ -141,7 +141,6 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
         if (!(choice >= 1 && choice <= 3)) continue;
 
         const trait = specialization.majorTraits[tier]?.[choice - 1];
-
         if (trait) {
           active.push(trait);
         }

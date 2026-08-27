@@ -5,7 +5,6 @@ import type { ThiefPrecastContext, ThiefSkill } from '../../types.js';
 
 export function daredevilCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   if (skill.id !== ID.PALM_STRIKE) return { ready: true };
-
   // Palm Strike is only castable after Fist Flurry connects; palmStrikeUntil tracks the open window
   if (daredevilState.from(context).palmStrikeUntil > context.start) {
     return { ready: true };

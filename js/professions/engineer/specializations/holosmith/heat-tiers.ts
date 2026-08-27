@@ -82,7 +82,6 @@ export function holosmithProfileStrikeFactor(
   snapshot: HolosmithHeatSnapshot
 ): number {
   const tier = holosmithHeatTier(snapshot);
-
   if (tier === 'enhanced') {
     return engineerBalanceValue(context, profileId, 'enhancedStrikeFactor', 1);
   }
@@ -93,9 +92,7 @@ export function holosmithProfileStrikeFactor(
 export function holosmithEventStrikeFactor(context: unknown, event: unknown, fallback = 1): number {
   const metadata = holosmithEventMetadata(event);
   const capturedFactor = Number(metadata.holosmithStrikeFactor);
-
   if (Number.isFinite(capturedFactor)) return Math.max(0, capturedFactor);
-
   if (metadata.holosmithStrikeProfileId == null) return fallback;
 
   return holosmithProfileStrikeFactor(context, metadata.holosmithStrikeProfileId, snapshotHolosmithHeat(context));
@@ -103,7 +100,6 @@ export function holosmithEventStrikeFactor(context: unknown, event: unknown, fal
 
 function strikeProfileForEvent(event: EngineerSimulationEvent): SkillId | undefined {
   const skillId = event.skillId ?? event.sourceId;
-
   if (String(skillId) === String(ID.PRISMATIC_SINGULARITY)) {
     return event.damageKind === 'explosion' ? PRISMATIC_SINGULARITY_STRIKE_PROFILE : undefined;
   }
@@ -154,7 +150,6 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
 
   if (event.type !== 'damage' || event.actorType !== 'player') return;
   const profileId = strikeProfileForEvent(holosmithEvent);
-
   if (profileId == null) return;
   context.replaceEvent(holosmithEvent, {
     holosmithStrikeProfileId: profileId

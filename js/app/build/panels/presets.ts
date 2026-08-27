@@ -43,7 +43,6 @@ export function templateSpecializations(manifest: unknown): string[] {
 function templateSummary(preset: BuildTemplatePreset): string {
   const details = [preset.rotation ? 'Build + rotation' : 'Build only'];
   const benchmarkDps = Number(preset.benchmarkDps);
-
   if (Number.isFinite(benchmarkDps) && benchmarkDps > 0) {
     details.push(`${Math.round(benchmarkDps).toLocaleString('en-US')} DPS`);
   }
@@ -53,9 +52,7 @@ function templateSummary(preset: BuildTemplatePreset): string {
 
 export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateCategory {
   const description = `${preset.label} ${preset.build}`.toLowerCase();
-
   if (/\bpower\b|\/b-power-/.test(description)) return 'power';
-
   if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
     return 'condi';
   }
@@ -126,7 +123,6 @@ function applyTemplateFilter(
     const matchesSpecialization = specialization === null || preset.dataset.templateSpecialization === specialization;
     const visible = matchesDamageType && matchesSpecialization && (!boonOnly || preset.dataset.templateBoon === 'true');
     preset.hidden = !visible;
-
     if (visible) visibleTemplates += 1;
   });
 
@@ -135,7 +131,6 @@ function applyTemplateFilter(
   });
 
   const emptyMessage = container.querySelector<HTMLElement>('.template-filter-empty');
-
   if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
 
@@ -151,7 +146,6 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
       const templates = (section.presets || [])
         .map((preset) => templateButtonHtml(app, preset, section.section || null))
         .join('');
-
       if (!templates) return '';
       const label = section.section ? `<span class="presets-group-label">${esc(section.section)}</span>` : '';
       return `<div class="presets-group">${label}<div class="presets-group-btns template-preset-list">${templates}</div></div>`;
@@ -175,7 +169,6 @@ function buildSignature(build: ProfessionApplicationBuild): string {
 function validateBuildProfession(app: ProfessionAppState, buildData: unknown): void {
   if (!buildData || typeof buildData !== 'object') return;
   const profession = (buildData as { profession?: unknown }).profession;
-
   if (profession && profession !== app.adapter.id) {
     throw new Error(`This is a ${String(profession)} build.`);
   }
@@ -187,7 +180,6 @@ function validateBuildProfession(app: ProfessionAppState, buildData: unknown): v
  */
 function actionLabel(action: TemplateLoadAction): string {
   if (action === 'build') return 'build';
-
   if (action === 'rotation') return 'rotation';
   return 'template';
 }
@@ -199,9 +191,7 @@ function actionLabel(action: TemplateLoadAction): string {
  */
 function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction): string {
   const name = preset.section ? `${preset.section} ${preset.label}` : preset.label;
-
   if (action === 'build') return `Loaded the ${name} build only.`;
-
   if (action === 'rotation') return `Loaded the ${name} rotation only.`;
   return `Loaded the ${name} template.`;
 }
@@ -215,11 +205,9 @@ function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction):
 function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: ProfessionApplicationBuild): void {
   app.templateUndoBuild = previousBuild;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
-
   if (!toast) return;
   toast.hidden = false;
   const messageElement = toast.querySelector('.template-toast-message');
-
   if (messageElement) messageElement.textContent = message;
 }
 
@@ -237,15 +225,12 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
  */
 function mountBuildTemplateLayout(container: HTMLElement): void {
   const buildSection = document.querySelector<HTMLElement>('.build-section');
-
   if (!buildSection) return;
 
   const existingMain = buildSection.closest<HTMLElement>('.profession-main');
-
   if (existingMain?.parentElement) {
     const layout = existingMain.parentElement;
     let templateRegion = layout.querySelector<HTMLElement>(':scope > .build-templates-region');
-
     if (!templateRegion) {
       templateRegion = document.createElement('aside');
       templateRegion.className = 'build-templates-region';
@@ -257,7 +242,6 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   }
 
   const appRoot = buildSection.parentElement;
-
   if (!appRoot) return;
 
   const layout = document.createElement('div');
@@ -275,7 +259,6 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   }
 
   const simulationWorkspace = main.querySelector<HTMLElement>(':scope > .simulation-workspace');
-
   if (simulationWorkspace) layout.append(simulationWorkspace);
   appRoot.classList.add('has-template-sidebar');
 }
@@ -287,10 +270,8 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
   try {
     const manifest = await fetchJsonAsset(`Builds/${app.adapter.id}/manifest.json`, { optional: true });
-
     if (!Array.isArray(manifest) || manifest.length === 0) return;
     const groups = templateGroupsHtml(app, manifest);
-
     if (!groups) return;
     const specializations = templateSpecializations(manifest);
 
@@ -338,13 +319,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     let specializationFilter: string | null = null;
     container.addEventListener('click', (event) => {
       const target = event.target;
-
       if (!(target instanceof Element)) return;
       const filterButton = target.closest('[data-template-filter]');
-
       if (filterButton instanceof HTMLButtonElement) {
         const filter = filterButton.dataset.templateFilter;
-
         if (isTemplateFilter(filter)) {
           templateFilter = filter;
           applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
@@ -354,7 +332,6 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const boonFilterButton = target.closest('[data-template-boon-filter]');
-
       if (boonFilterButton instanceof HTMLButtonElement) {
         boonOnly = !boonOnly;
         applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
@@ -362,10 +339,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const specializationFilterButton = target.closest('[data-template-specialization-filter]');
-
       if (specializationFilterButton instanceof HTMLButtonElement) {
         const specialization = specializationFilterButton.dataset.templateSpecializationFilter || null;
-
         if (specialization === null || specializations.includes(specialization)) {
           specializationFilter = specialization;
           applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
@@ -375,10 +350,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const button = target.closest('[data-template-action]');
-
       if (!(button instanceof HTMLButtonElement)) return;
       const action = button.dataset.templateAction;
-
       if (action === 'undo') {
         undoTemplateLoad(app);
         return;
@@ -389,14 +362,12 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const preset = app.templatePresets[Number(button.dataset.templateIndex)];
-
       if (!preset) return;
       closeTemplateMenus(container);
       loadTemplateAction(app, preset, action, button);
     });
     document.addEventListener('click', (event) => {
       const target = event.target;
-
       if (target instanceof Element && !target.closest('.template-actions')) {
         closeTemplateMenus(container);
       }
@@ -432,7 +403,6 @@ export async function loadTemplateAction(
 
       const rotationData = await fetchJsonAsset(preset.rotation);
       const rotationItems = getRotationItems(rotationData);
-
       if (!Array.isArray(rotationItems)) {
         throw new Error('Rotation array missing.');
       }
@@ -449,7 +419,6 @@ export async function loadTemplateAction(
     } else {
       const { buildData, rotationItems } = await loadPresetBundle(preset);
       validateBuildProfession(app, buildData);
-
       if (preset.rotation && !Array.isArray(rotationItems)) {
         throw new Error('Rotation array missing.');
       }
@@ -480,7 +449,6 @@ export async function loadTemplateAction(
  */
 export function updateTemplateSelection(app: ProfessionAppState): void {
   const container = app.templateContainer;
-
   if (!container) return;
   const current = app.currentTemplate;
   const modified = Boolean(current && current.signature !== buildSignature(app.build));
@@ -505,6 +473,5 @@ export function undoTemplateLoad(app: ProfessionAppState): void {
   app.currentTemplate = null;
   app.changed(true, true, { deferRotationRender: true });
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
-
   if (toast) toast.hidden = true;
 }

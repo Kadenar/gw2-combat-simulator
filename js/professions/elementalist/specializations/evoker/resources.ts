@@ -19,7 +19,6 @@ export function initialize(context: ElementalistSchedulerContext): void {
     6
   );
   state.charges = Math.min(state.maximumCharges, state.charges);
-
   // locks the core attunement system to the fixed element so core trait procs key off the right element
   if (hasTrait(context, 'Specialized Elements')) {
     core.primaryAttunement = state.element;
@@ -43,7 +42,6 @@ export function emitResource(context: ElementalistCastContext, skill: Skill, sta
 
 export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pick<EvokerState, 'element'>): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ''));
-
   if (
     skill.type !== 'Weapon' ||
     !slot ||
@@ -74,7 +72,6 @@ function applyWeaponSkillChargeGain(
 ): void {
   const before = state.charges;
   state.charges = Math.min(state.maximumCharges, state.charges + chargeGain.gain);
-
   if (state.charges === before) return;
   context.emit({
     type: 'resource',
@@ -94,7 +91,6 @@ function applyWeaponSkillChargeGain(
 
 export function grantWeaponSkillCharges(context: ElementalistCastContext, skill: Skill, state: EvokerState): void {
   const gain = weaponSkillChargeGain(context, skill, state);
-
   if (gain <= 0) return;
   const chargeGain = {
     activationId: context.reservationId,
@@ -103,7 +99,6 @@ export function grantWeaponSkillCharges(context: ElementalistCastContext, skill:
     sourceId: skill.id,
     gain
   };
-
   // defer if a charge-resetting basic familiar is still casting — granting before the reset would lose the charges
   // reservationId check excludes the familiar itself from deferring its own grant
   if (

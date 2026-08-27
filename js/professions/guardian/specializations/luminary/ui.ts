@@ -23,7 +23,6 @@ function luminaryEventLogRow(
   // null = suppress this event from the log entirely (internal bookkeeping
   // events that have no meaningful display for the user).
   if (['guardian.effulgent-activated', 'guardian.effulgent-detonate'].includes(event.type)) return null;
-
   // undefined = not handled here; let the default renderer decide.
   if (event.type !== 'guardian.radiant-forge-entered' && event.type !== 'guardian.radiant-forge-exited')
     return undefined;
@@ -60,7 +59,6 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
   const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
-
   if (effulgentRemaining > 0) {
     const stacks = Math.max(0, Math.min(10, Math.trunc(Number(state.effulgentStacks || 0))));
     items.push({
@@ -75,7 +73,6 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   // (Dazzling Hammer) is the equipped armament; other radiant weapons still
   // emit the buff but strip the bonus, so mirror the modifier's hammer gate.
   const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
-
   if (radiant && radiant.event.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
@@ -86,7 +83,6 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   const piercing = timedBuffAt(result, 'guardian-piercing-stance', at);
-
   if (piercing) {
     items.push({
       id: 'luminary-piercing-stance',
@@ -97,7 +93,6 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   const daring = timedBuffAt(result, 'guardian-daring-advance', at);
-
   if (daring) {
     items.push({
       id: 'luminary-daring-advance',
@@ -149,7 +144,6 @@ export const luminaryUi = Object.freeze({
   ],
   paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
     const state = professionState(context);
-
     if (skill.type === 'Weapon' && state.radiantForge) {
       return {
         available: false,

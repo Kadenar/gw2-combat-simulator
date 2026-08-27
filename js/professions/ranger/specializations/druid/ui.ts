@@ -19,7 +19,6 @@ const AVATAR_SKILLS = Object.freeze([
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
   const active = Boolean(state.celestialAvatarActive);
-
   if (skill.id === ID.CELESTIAL_AVATAR) {
     if (active) {
       return {
@@ -81,7 +80,6 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.f
   ],
   timelineWeaponLineTransition: (context: RangerUiContext) => {
     const skill = context.skill as RangerSkill | undefined;
-
     if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
       return 'Celestial Avatar';
     }

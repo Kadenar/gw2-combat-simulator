@@ -53,7 +53,6 @@ export const { afterCast: mechanistAfterCast, ...mechanistAdvancedSchedulerHooks
 
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
   const event = engineerEvent(context);
-
   if (event?.engineerMech === true || event?.application?.engineerMech === true) {
     return true;
   }
@@ -123,7 +122,6 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
-
   if (!engineerMechEvent(context)) return modified;
   const mightStacks = activeBoonStacks(context, 'might');
   // The mech inherits base player stats, not boon-amplified ones. Strip might
@@ -147,7 +145,6 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Sche
     inheritedSource,
     engineerBalanceProfile(context, PROFILE.resources)
   );
-
   if (selectedSignet(context, 'Shift Signet')) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
     mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
@@ -158,7 +155,6 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Sche
 
 function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
-
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     return duration * engineerBalanceValue(context, PROFILE.jadeDynamo, 'rechargeMultiplier', 0.8);
   }
@@ -169,7 +165,6 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
   ) {
     const overclockReadyAt = Number(context.state?.cooldowns?.get(ID.OVERCLOCK_SIGNET) || 0);
     const jDrive = hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
-
     if (
       configuredSkillNames(context.config).has('Overclock Signet') &&
       (jDrive || overclockReadyAt <= Number(context.start || 0))

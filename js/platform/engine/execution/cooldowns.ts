@@ -41,7 +41,6 @@ export function createCooldownController<TProfessionState extends object>({
       activeLockout > at + epsilon ? activeLockout : 0,
       ammo.charges === 0 ? Number(ammo.nextRechargeAt || 0) : 0
     );
-
     if (readyAt > at + epsilon) {
       state.cooldowns.set(skill.id, readyAt);
     } else {
@@ -54,9 +53,7 @@ export function createCooldownController<TProfessionState extends object>({
    */
   const ensureAmmo = (skill: Skill, at = state.time): AmmoState | null => {
     const maximum = ammoMaximum(skill);
-
     if (!maximum) return null;
-
     if (!state.ammo.has(skill.id)) {
       state.ammo.set(skill.id, {
         charges: maximum,
@@ -75,7 +72,6 @@ export function createCooldownController<TProfessionState extends object>({
    */
   const refreshAmmo = (skill: Skill, at: number): AmmoState | null => {
     const ammo = ensureAmmo(skill, at);
-
     if (!ammo) return null;
     while (ammo.nextRechargeAt != null && ammo.nextRechargeAt <= at + epsilon) {
       ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
@@ -91,10 +87,8 @@ export function createCooldownController<TProfessionState extends object>({
    */
   const spendAmmo = (skill: Skill, at: number): AmmoState | false => {
     const ammo = refreshAmmo(skill, at);
-
     if (!ammo || ammo.charges <= 0) return false;
     ammo.charges -= 1;
-
     if (ammo.nextRechargeAt == null) {
       ammo.rechargeDuration = Math.max(0, Number(rechargeDuration(skill, at) || 0));
       ammo.nextRechargeAt = at + ammo.rechargeDuration;
@@ -115,7 +109,6 @@ export function createCooldownController<TProfessionState extends object>({
   ): { ammo: AmmoState | null; reducedBy: number } => {
     const ammo = refreshAmmo(skill, at);
     const requested = Math.max(0, Number(reduction) || 0);
-
     if (!ammo || ammo.nextRechargeAt == null || requested <= 0) {
       return { ammo, reducedBy: 0 };
     }
@@ -130,7 +123,6 @@ export function createCooldownController<TProfessionState extends object>({
     // mistaken for an independent between-cast lockout.
     if (ammo.charges === 0) {
       const readyAt = Number(state.cooldowns.get(skill.id) || 0);
-
       if (readyAt > previous + epsilon) {
         state.cooldowns.set(skill.id, readyAt);
       } else {
@@ -146,15 +138,12 @@ export function createCooldownController<TProfessionState extends object>({
   /** Reduces either an active ammo recharge or an ordinary skill cooldown without passing its ready time. */
   const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
     const requested = Math.max(0, Number(reduction) || 0);
-
     if (requested <= 0) return 0;
-
     if (state.ammo.has(skill.id)) {
       return reduceAmmoRecharge(skill, requested, at).reducedBy;
     }
 
     const readyAt = Number(state.cooldowns.get(skill.id) || 0);
-
     if (readyAt <= at + epsilon) return 0;
     const reducedBy = Math.min(requested, readyAt - at);
     state.cooldowns.set(skill.id, readyAt - reducedBy);
@@ -166,7 +155,6 @@ export function createCooldownController<TProfessionState extends object>({
    */
   const setAmmoLockout = (skill: Skill, readyAt: number, at = state.time): AmmoState | null => {
     const ammo = ensureAmmo(skill, at);
-
     if (!ammo) return null;
     state.cooldowns.set(skill.id, Math.max(Number(state.cooldowns.get(skill.id) || 0), Number(readyAt || 0)));
     syncAmmoCooldown(skill, ammo, at);

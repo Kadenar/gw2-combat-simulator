@@ -107,7 +107,6 @@ export function queueDamage(
     ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
     triggeredBy: event.skillName
   });
-
   if (comboFinisher) {
     enqueueGw2OwnedComboFinisher(context, damage, {
       ...comboFinisher,

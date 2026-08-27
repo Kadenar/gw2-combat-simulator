@@ -79,14 +79,12 @@ function explosionSkillIds(log: ParsedEvtc, catalog: Readonly<CanonicalCatalog>)
   for (const skill of catalog.skills) {
     if (!isExplosionSkill(skill)) continue;
     const skillId = Number(skill.id);
-
     if (Number.isFinite(skillId)) ids.add(skillId);
     names.add(normalized(skill.name));
   }
 
   for (const skill of log.skills) {
     const name = normalized(skill.name);
-
     if (name !== 'aim-assisted rocket' && (names.has(name) || EVENT_FLAGGED_EXPLOSION_NAMES.has(name))) {
       ids.add(skill.id);
     }
@@ -109,21 +107,17 @@ export function analyzeEngineerShrapnelObservation(
 ): EngineerShrapnelObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHRAPNEL)) return null;
   const profile = traitBalanceProfile(catalog, TRAIT.SHRAPNEL, 'Shrapnel');
-
   if (!profile) return null;
   const expectedProcChance = expectedChance(profile);
-
   if (expectedProcChance == null) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
-
   if (targetAddress == null) return null;
   const eligibleSkillIds = explosionSkillIds(log, catalog);
   const explosionHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && eligibleSkillIds.has(event.skillId)
   ).length;
-
   if (!explosionHits) return null;
 
   const matchedBleedingDurationsMs = expectedConditionDurationsMs(SHRAPNEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);
@@ -165,20 +159,16 @@ export function analyzeEngineerSerratedSteelObservation(
 ): EngineerSerratedSteelObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SERRATED_STEEL)) return null;
   const profile = traitBalanceProfile(catalog, TRAIT.SERRATED_STEEL, 'Serrated Steel');
-
   if (!profile) return null;
   const expectedProcChance = expectedChance(profile);
-
   if (expectedProcChance == null) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
-
   if (targetAddress == null) return null;
   const criticalHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
   ).length;
-
   if (!criticalHits) return null;
 
   const matchedDurationsMs = expectedConditionDurationsMs(SERRATED_STEEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);

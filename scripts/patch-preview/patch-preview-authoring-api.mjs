@@ -70,7 +70,6 @@ async function readJsonBody(request) {
   }
 
   if (!chunks.length) throw new TypeError('Patch preview request is empty.');
-
   try {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } catch {
@@ -149,7 +148,6 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
   // Handles a patch preview authoring request, returning true if handled, false otherwise.
   return async function handlePatchPreviewAuthoring(request, response, pathname) {
     if (pathname !== API_PATH) return false;
-
     try {
       const runtime = await loadRuntime();
 

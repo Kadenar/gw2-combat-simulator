@@ -25,7 +25,6 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     ? specializationState
     : (state as ThiefCoreState & Partial<ThiefStealthAttackChargeState>);
   const stealthed = state.stealthUntil > context.start && state.revealedUntil <= context.start;
-
   if (
     !stealthed &&
     Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
@@ -54,7 +53,6 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
   }
 
   state.stealthUntil = context.start;
-
   if (!skill?.preservesStealth) {
     state.revealedUntil = context.start + 3;
   }
@@ -64,7 +62,6 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
 
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {
   const at = context.effectiveEnd;
-
   if (hasTrait(context.config, TRAIT.SUNDERING_SHADE)) {
     const vulnerability = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunderingShade), 'condition');
     emitSkillCondition(context, {

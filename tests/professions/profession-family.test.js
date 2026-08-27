@@ -942,7 +942,6 @@ test('Guardian modules own disjoint vertical slices', () => {
     const filenames = ['module.ts', 'state.ts', 'skills.ts', 'ui.ts'];
 
     if (module.data?.handlers) filenames.push('handlers.ts');
-
     for (const filename of filenames) {
       const url = new URL(`../../js/professions/guardian/${directory}/${filename}`, import.meta.url);
 
@@ -1539,7 +1538,6 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
     const filenames = ['module.ts', 'state.ts', 'skills.ts', 'mechanics.ts', 'rules.ts', 'ui.ts'];
 
     if (module.data?.handlers) filenames.push('handlers.ts');
-
     for (const filename of filenames) {
       const url = new URL(`../../js/professions/engineer/${directory}/${filename}`, import.meta.url);
 

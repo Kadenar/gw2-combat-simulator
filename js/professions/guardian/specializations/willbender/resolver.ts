@@ -37,13 +37,10 @@ function recordLethalTempo(context: GuardianResolverContext, at: number, sourceS
 
 function handleWillbenderVirtueActivation(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const virtue = event.virtue;
-
   if (!virtue) return;
   const state = willbenderState.from(context);
-
   if (state.flameVirtue !== virtue) state.flameGeneration += 1; // different virtue = new flame run, so pulse tasks keyed on the old generation are ignored
   state.flameVirtue = virtue;
-
   // Resolver state is seeded from scratch, so hit counts from the scheduler phase
   // may be stale if the virtue window already lapsed by the time this event arrives.
   if (state[`${virtue}Until`] <= event.at + Number(context.epsilon ?? 1e-9)) {
@@ -51,28 +48,22 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   }
 
   const until = event.at + Number(event.duration || 0);
-
   if (virtue === 'justice') state.justiceUntil = until;
-
   if (virtue === 'resolve') state.resolveUntil = until;
-
   if (virtue === 'courage') state.courageUntil = until;
   recordLethalTempo(context, event.at, event.skillName);
 }
 
 function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const virtue = event.virtue;
-
   if (!virtue) return;
   const state = willbenderState.from(context);
   state.triggeredVirtueEffects += 1;
   recordLethalTempo(context, event.at, event.sourceSkill as string | undefined);
-
   if (virtue !== 'justice') return;
   const active = event.justiceActive !== false;
   const core = professionCoreState(context);
   core.justiceBurns += 1;
-
   if (active) core.justiceActiveBurns += 1;
   else core.justicePassiveBurns += 1;
   // Burning is enqueued into the resolver's condition queue rather than emitted

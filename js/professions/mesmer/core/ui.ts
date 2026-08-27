@@ -138,7 +138,6 @@ export function mesmerPaletteSkillAvailability(
   const mesmerSkill = skill as MesmerSkill;
   const specialization = mesmerUiSpecialization(context);
   const state = flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
-
   if (
     !isMesmerBuildSkillAvailable(mesmerSkill, {
       specialization,

@@ -30,18 +30,15 @@ export class RelicComparisonRunner {
   schedule(): void {
     const app = this.app;
     this.requestId += 1;
-
     if (this.timer !== null) {
       clearTimeout(this.timer);
       this.timer = null;
     }
 
     const results = app.results;
-
     if (!results) return;
 
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app) : null;
-
     if (!request) {
       results.relicComparisonAvailable = false;
       results.relicComparisonStale = false;
@@ -54,7 +51,6 @@ export class RelicComparisonRunner {
     results.relicComparisonAvailable = true;
     results.relicComparisonStale = false;
     results.relicComparisonError = '';
-
     // A cached model is only meaningful for the opponent it was computed against.
     if (results.relicComparison && results.relicComparisonOpponent !== request.opponentRelic) {
       results.relicComparison = undefined;
@@ -67,15 +63,12 @@ export class RelicComparisonRunner {
   run(): void {
     const app = this.app;
     const requestId = ++this.requestId;
-
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
 
     const results = app.results;
-
     if (!results) return;
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app) : null;
-
     if (!request) {
       this.schedule();
       app.adapter.renderResults(app);
@@ -93,7 +86,6 @@ export class RelicComparisonRunner {
 
     this.timer = setTimeout(() => {
       this.timer = null;
-
       if (requestId !== this.requestId || !app.results) return;
       try {
         const thornsResult = app.adapter.simulateBuild(request.rotation, {
@@ -108,7 +100,6 @@ export class RelicComparisonRunner {
           opponentDps: opponentSeries.dps,
           thornsDps: thornsSeries.dps
         });
-
         if (requestId !== this.requestId || !app.results) return;
         app.results.relicComparison = model;
         app.results.relicComparisonStale = false;

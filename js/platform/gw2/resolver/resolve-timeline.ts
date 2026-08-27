@@ -30,7 +30,6 @@ function addCastsToBreakdown(
     const name = event.name || event.skillName || String(event.sourceId);
     countsById.set(id, (countsById.get(id) || 0) + 1);
     const row = output.get(name);
-
     if (row) row.count += 1;
     else output.set(name, { name, count: 1 });
   }
@@ -165,7 +164,6 @@ export function resolveGw2Timeline({
     warnings: [...(handoff.warnings || [])],
     reactions
   });
-
   if (handoff.hasExplicitCombatStart) {
     ctx.combatStartTime = handoff.combatStartTime;
   }

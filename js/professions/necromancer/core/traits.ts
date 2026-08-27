@@ -139,7 +139,6 @@ export function queueTraitCoefficientDamage(
 
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   const maximum = Number(context.config.target?.health || 0);
-
   if (!(maximum > 0)) return false;
   return combinedTargetDamage(context) > maximum * 0.5;
 }
@@ -153,7 +152,6 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
   if (!hasTrait(context, TRAIT.VAMPIRIC)) return;
   const summonHit = event.actorType === 'summon';
   const minionHit = summonHit && event.summonKind !== 'spirit';
-
   if (event.actorType !== 'player' && !summonHit) return;
 
   const profile = necromancerBalanceProfile(context, PROFILE.vampiric);
@@ -174,16 +172,13 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
   // Spirit attacks are owner-attributed and share the player's proc interval;
   // ordinary minions remain independent capped allied recipients.
   if (event.actorType === 'player' || (event.actorType === 'summon' && event.summonKind === 'spirit')) return 'self';
-
   if (event.actorType !== 'summon') return null;
   const recipients = gw2AlliedEffectRecipients(context.config, {
     maximumRecipients: 5,
     companionIds: necromancerActiveMinionCompanionIds(context)
   });
   const owner = String(event.summonOwner || '');
-
   if (owner && recipients.companionIds.includes(owner)) return owner;
-
   if (!owner && recipients.companionIds.length > 0) {
     return `summon:${String(event.sourceId || event.skillId || event.skillName || 'unknown')}`;
   }
@@ -210,12 +205,10 @@ function queueVampiricPresence(
     actorKey === 'self'
       ? Number(state.vampiricPresenceReadyAt || 0)
       : Number(state.traitProcReadyAt[`vampiricPresence:${actorKey}`] || 0);
-
   if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
 
   if (!intervalAlreadyApplied) {
     const nextAt = event.at + Number(profile?.cooldown ?? 0.5);
-
     if (actorKey === 'self') state.vampiricPresenceReadyAt = nextAt;
     else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
   }
@@ -261,11 +254,9 @@ function consumeTasteForBloodBuff(context: NecromancerResolverContext, recipient
   const index = applications.findIndex(
     (application) => application.at <= at && application.expiresAt > at && application.stacks > 0
   );
-
   if (index < 0) return false;
 
   const application = applications[index];
-
   if (application.stacks === 1) {
     applications.splice(index, 1);
   } else {
@@ -323,7 +314,6 @@ function queueTasteForBlood(context: NecromancerResolverContext, event: Necroman
 /** Gives each selected player or minion its own expiring stack application. */
 export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
-
   if (event.affectsSelf !== false) addTasteForBloodApplication(context, event, 'self');
   for (let allyIndex = 1; allyIndex <= Number(event.alliedPlayerCount || 0); allyIndex += 1) {
     addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
@@ -341,7 +331,6 @@ export function reactToTasteForBloodAlliedHit(
 ): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   const allyIndex = Number(event.allyIndex || 0);
-
   if (!allyIndex || !consumeTasteForBloodBuff(context, alliedTasteForBloodRecipient(allyIndex), event.at)) return;
   queueTasteForBlood(context, event);
 }
@@ -380,7 +369,6 @@ export function reactToNecromancerCoreDamage(
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
   applyVampiric(context, event);
-
   if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.reapersMight), 'boon');
     enqueueOrdered(context.queue, {
@@ -477,7 +465,6 @@ export function reactToNecromancerCoreDamage(
   if (hasTrait(context, TRAIT.DHUUMFIRE) && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.dhuumfire), 'condition');
     const interval = Number(event.dhuumfireInterval || 0);
-
     if (
       interval > 0 &&
       !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt?.dhuumfire || 0))
@@ -509,10 +496,8 @@ export function reactToNecromancerCoreDamage(
   }
 
   necromancerBarbedPrecisionReaction.handler(context, event, details);
-
   if (hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) {
     const actorKey = vampiricPresenceActorKey(context, event);
-
     if (actorKey) queueVampiricPresence(context, event, actorKey);
   }
 
@@ -522,7 +507,6 @@ export function reactToNecromancerCoreDamage(
       : event.actorType === 'summon' && event.summonOwner
         ? companionTasteForBloodRecipient(String(event.summonOwner))
         : null;
-
   if (
     hasTrait(context, TRAIT.OVERFLOWING_THIRST) &&
     tasteForBloodRecipient &&
@@ -578,7 +562,6 @@ export function reactToNecromancerCoreCondition(
       Number(professionCoreState(context).targetChilledUntil || 0),
       event.at + Number(event.effectiveDuration ?? event.duration ?? 0)
     );
-
     if (hasTrait(context, TRAIT.BITTER_CHILL)) {
       enqueueOrdered(context.queue, {
         type: 'condition',
@@ -632,13 +615,11 @@ export function reactToNecromancerCoreControl(
     Number(professionCoreState(context).targetControlledUntil || 0),
     event.at + Math.max(0.001, Number(event.duration || 0))
   );
-
   if (event.controlKind === 'fear' || event.kind === 'fear') {
     professionCoreState(context).dreadUntil = Math.max(
       Number(professionCoreState(context).dreadUntil || 0),
       event.at + 3
     );
-
     if (hasTrait(context, TRAIT.TERROR)) {
       applyTraitCondition(context, event, {
         name: 'Terror',

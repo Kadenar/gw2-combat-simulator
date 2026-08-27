@@ -10,7 +10,6 @@ export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
 
 export function modifierContributionWorkerCount(comparisonCount: unknown, hardwareConcurrency = 0): number {
   const comparisons = Math.max(0, Math.trunc(Number(comparisonCount) || 0));
-
   if (!comparisons) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers = hardware > 0 ? Math.max(1, hardware - 1) : MAX_MODIFIER_CONTRIBUTION_WORKERS;
@@ -23,7 +22,6 @@ export function partitionModifierComparisons(
 ): ProfessionModifierComparison[][] {
   const values: readonly ProfessionModifierComparison[] = Array.isArray(comparisons) ? comparisons : [];
   const count = Math.min(values.length, Math.max(0, Math.trunc(Number(workerCount) || 0)));
-
   if (!count) return [];
   const batches: ProfessionModifierComparison[][] = Array.from({ length: count }, () => []);
   values.forEach((comparison, index) => {
@@ -58,7 +56,6 @@ export function calculateContributionComparisons(
   for (const { modifier, config } of comparisons) {
     const without = simulateBuild(rotation, config);
     const dpsIncrease = baseline.dps - without.dps;
-
     // Contributions are displayed as whole DPS. Do not retain numerical noise
     // that can only render as 0 or -0 in the report.
     if (Math.round(dpsIncrease) === 0) continue;

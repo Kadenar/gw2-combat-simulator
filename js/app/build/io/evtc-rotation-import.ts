@@ -137,7 +137,6 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   });
   const playerAddress = BigInt(selected.address);
   const observations: RotationImportObservation[] = [];
-
   if (selected.professionId === 'warrior') {
     observations.push(
       ...bloodlustImportObservation(

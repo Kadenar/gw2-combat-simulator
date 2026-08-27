@@ -48,7 +48,6 @@ export function createProfessionWorkerEndpoint<
 
     try {
       const adapter = await loadAdapter(data.request.professionId);
-
       if (!adapter) throw new Error(`No application adapter for ${data.request.professionId}.`);
       post(await calculate(adapter, data, post));
     } catch (error) {
@@ -103,7 +102,6 @@ export class ManagedWorkerBatch<TMessage extends ProfessionWorkerResponseEnvelop
     this.workers.add(worker);
     worker.addEventListener('message', (event: MessageEvent<TMessage>) => {
       if (!this.workers.has(worker) || !this.isActive(requestId) || event.data.requestId !== requestId) return;
-
       if (event.data.error !== undefined) {
         this.fail(requestId, event.data.error);
         return;

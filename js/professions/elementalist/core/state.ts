@@ -167,10 +167,8 @@ export function setElementalistAttunementReadyAt(
   state.attunementReadyAt[attunement] = readyAt;
   const schedulerState = context.state as { time?: number; cooldowns?: Map<number, number> } | undefined;
   const cooldowns = schedulerState?.cooldowns;
-
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
-
   if (readyAt > Number(schedulerState.time || 0)) {
     cooldowns.set(skillId, readyAt);
   } else {

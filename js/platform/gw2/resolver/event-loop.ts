@@ -65,7 +65,6 @@ function combatActivationKey(event: Gw2ResolverEvent): string | null {
 
   const hitIndex = Math.trunc(Number(event.hitIndex));
   const totalHits = Math.trunc(Number(event.totalHits));
-
   if (totalHits <= 1 || hitIndex < 1 || hitIndex > totalHits) return null;
   return [
     'multi-hit',
@@ -99,14 +98,10 @@ export function runGw2ResolverEventLoop(
 
   while (queue.length > 0) {
     const event = takeNextEvent(queue);
-
     if (!event) break;
-
     if (event.at > ctx.horizon + EPSILON) break;
-
     if (ctx.deathTime != null) {
       if (event.at > ctx.deathTime + EPSILON) break;
-
       // Finish the lethal activation and simultaneous condition-tick batch,
       // but reject a distinct attack ordered after the target already died.
       if (
@@ -118,7 +113,6 @@ export function runGw2ResolverEventLoop(
     }
 
     if (shouldSkipEvent(ctx, event)) continue;
-
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
 
     if (handlerRegistry.has(event.type)) {

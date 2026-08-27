@@ -14,7 +14,6 @@ import type {
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
   const runtime = mesmerRuntimeFor(context);
-
   if (!runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
   const at = resolution.at + context.epsilon;
@@ -31,13 +30,10 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
 /** Queues Virtuoso-owned critical resolution for blade strikes that can trigger Deadly Blades vulnerability. */
 export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = mesmerRuntimeFor(context);
-
   if (event.type !== 'damage' || !runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
   const skill = runtime.skillsById.get(Number(event.skillId));
-
   if (!event.blade && !skill?.blade) return;
-
   if (event.noCrit || event.canCrit === false) return;
 
   context.tasks.schedule({
@@ -65,7 +61,6 @@ export function handleDeadlyBladesCriticalTask(
     id: 'mesmer.virtuoso.deadly-blades',
     materialization: 'weighted'
   });
-
   if (!application) return;
 
   emitSkillCondition(context, {

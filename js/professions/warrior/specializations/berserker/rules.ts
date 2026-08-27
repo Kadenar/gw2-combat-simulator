@@ -81,13 +81,11 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
     ferocity: number;
     conditionDamage: number;
   };
-
   if (active(context)) {
     const resources = warriorBalanceProfile(context, PROFILE.resources);
     const powerBonus = Number(resources?.attributeBonus ?? 300);
     result.power += powerBonus;
     result.conditionDamage += Number(resources?.attributePerStack ?? 150);
-
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
       const conversion = Number(
         warriorBalanceProfile(context, CORE_PROFILE.greatFortitude)?.attributeConversion ?? 0.1
@@ -139,7 +137,6 @@ function modifyCastDuration(context: WarriorCastContext, duration: number): numb
 /** Enforces Berserker's primal-burst replacement and active-mode lifecycle. */
 function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = berserkerState.from(context);
-
   if (skill.primalBurst && !state.berserkActive) {
     return {
       ready: false,

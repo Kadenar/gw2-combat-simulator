@@ -49,7 +49,6 @@ function corePaletteSkillAvailability(
   const spearChainStage = spearChainStageForSkill(skill.id);
   const flipValue = state.availableFlips?.[String(skill.id)];
   const flipAvailable = flipValue === Number.POSITIVE_INFINITY || Number(flipValue || 0) > Number(context.time || 0);
-
   if (
     skill.slot === 'Profession_2' &&
     (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
@@ -123,7 +122,6 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const revealedRemaining = Number(state.revealedUntil || 0) - at;
-
   if (revealedRemaining > 0) {
     return [
       {

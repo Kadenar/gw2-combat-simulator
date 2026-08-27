@@ -61,10 +61,8 @@ export function resolveMesmerSkillIdFromDuplicateName(
   { specialization = '' }: { specialization?: string } = {}
 ): number | null | undefined {
   const family = DUPLICATE_SKILL_NAME_FAMILIES[String(name || '')];
-
   if (!family) return undefined;
   const specialized = family.bySpecialization[specialization];
-
   if (specialized != null) return specialized;
   return family.requiresSpecialization ? null : family.defaultId;
 }

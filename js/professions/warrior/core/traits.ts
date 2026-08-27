@@ -40,7 +40,6 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
   const targetHealth = Number(context.config.target?.health || 0);
   const damageDone = combinedTargetDamage(context);
   const state = professionCoreState(context);
-
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient || 0) > 0) ||
@@ -136,7 +135,6 @@ export function applyWarriorBurstSpendTraits(
   } = {}
 ): void {
   armBurstPrecision(context, skill, adrenalineSpent);
-
   if (!skill.burst || adrenalineSpent <= 0 || !hasTrait(context, TRAIT.BURST_MASTERY)) {
     return;
   }
@@ -185,7 +183,6 @@ export function grantBerserkersPowerOnFirstHit(
   }
 
   const stacks = berserkersPowerStacks(context, skill, spent);
-
   if (stacks <= 0) return false;
   grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
   return true;
@@ -237,7 +234,6 @@ export function grantBerserkersPower(
   if (!hasTrait(context, TRAIT.BERSERKERS_POWER)) return;
   const state = professionCoreState(context);
   const granted = Math.max(0, requestedStacks);
-
   if (!granted) return;
   const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.berserkersPower), 'buff');
   const duration = Number(effect?.duration || 15);
@@ -262,11 +258,9 @@ export function grantBerserkersPower(
 // skill whose zero-charge cooldown was mirroring count recharge.
 function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
   const ammo = context.cooldownController.refreshAmmo(skill, at);
-
   if (!ammo) return 0;
   const missing = Math.max(0, ammo.maximum - ammo.charges);
   const restored = Math.min(missing, Math.max(0, count));
-
   if (!restored) return 0;
 
   const mirroredRecharge = ammo.nextRechargeAt;
@@ -280,16 +274,13 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
     context.rechargeDurationFor(skill, lastActionEnd, {
       ammoCastLockout: true
     });
-
   if (ammo.charges === 0 && mirroredRecharge != null && readyAt <= mirroredRecharge + context.epsilon) {
     context.state.cooldowns.delete(skill.id);
   }
 
   ammo.charges += restored;
-
   if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
   context.cooldownController.refreshAmmo(skill, at);
-
   if (lockoutReadyAt > at + context.epsilon) {
     context.state.cooldowns.set(skill.id, lockoutReadyAt);
   }
@@ -301,7 +292,6 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
 // activation, and Brave Stride's adrenaline plus Stability.
 export function completeWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   const at = context.effectiveEnd;
-
   if (skill.categories?.includes('Signet') && hasTrait(context, TRAIT.SIGNET_MASTERY)) {
     const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.signetMastery), 'buff');
     emitSkillBuff(context, {
@@ -380,7 +370,6 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const skill = context.catalog.skillsById.get(ID.DRAGONS_ROAR) as WarriorSkill | undefined;
-
     if (skill) restoreAmmo(context, skill, trigger.count ?? 3, at);
   }
 });
@@ -410,7 +399,6 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
 
   const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.peakPerformance), 'buff');
   let at = context.effectiveEnd;
-
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const authoredOffsetMs = Number(strike?.ticks?.[0]?.atMs ?? strike?.atMs ?? skill.castTimeMs ?? 0);
@@ -477,7 +465,6 @@ function applyArmsCriticalTraits(
   firstBurstHit: boolean
 ): void {
   const criticals = armsCriticalCount(context, event);
-
   if (criticals > 0 && event.skillId === ID.KEEN_STRIKE) {
     emitSkillBuff(context, {
       skill:
@@ -500,10 +487,8 @@ function applyArmsCriticalTraits(
   }
 
   const state = professionCoreState(context);
-
   if (hasTrait(context, TRAIT.BLOODLUST)) {
     const bleeding = bloodlustProcCount(context, event);
-
     if (bleeding > 0) {
       const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.bloodlust), 'condition');
       emitSkillCondition(context, {
@@ -576,7 +561,6 @@ export function initializeWarriorTraits(context: WarriorSchedulerContext): void 
     context.config.weaponSet2Primary,
     context.config.weaponSet2Secondary
   ].map(String);
-
   if (
     weapons.includes('Dagger') ||
     hasTrait(context, TRAIT.BLOODLUST) ||
@@ -597,7 +581,6 @@ export function handleWarriorArmsCriticalTask(context: WarriorSchedulerContext, 
     readonly firstBurstHit?: boolean;
   } | null;
   const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
-
   if (!event) return;
   applyArmsCriticalTraits(context, event, Boolean(payload?.firstBurstHit));
 }
@@ -606,7 +589,6 @@ export function handleWarriorArmsCriticalTask(context: WarriorSchedulerContext, 
 // critical, and on-hit adrenaline reactions while suppressing duplicate burst hits.
 export function observeWarriorEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   const state = professionCoreState(context);
-
   if (event.type === 'combat_start') {
     state.signetOfRageNextAt = event.at + 3;
   }
@@ -614,7 +596,6 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   const opportunistTrigger =
     (event.type === 'control' && event.actorType === 'player') ||
     (event.type === 'condition' && event.actorType === 'player' && event.condition === 'Immobilized');
-
   if (
     opportunistTrigger &&
     hasTrait(context, TRAIT.OPPORTUNIST) &&
@@ -646,7 +627,6 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
 
   if (event.type === 'control' && event.actorType === 'player') {
     state.targetControlledUntil = Math.max(state.targetControlledUntil, event.at + Number(event.duration || 1));
-
     if (hasTrait(context, TRAIT.MERCILESS_HAMMER)) {
       gainWarriorAdrenaline(
         context,
@@ -711,7 +691,6 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
 
     if (hasTrait(context, TRAIT.AGGRESSIVE_ONSLAUGHT)) {
       const readyAt = Number(state.traitProcReadyAt.aggressiveOnslaught || 0);
-
       if (isInternalCooldownReady(event.at, readyAt)) {
         const profile = warriorBalanceProfile(context, PROFILE.aggressiveOnslaught);
         const quickness = warriorBalanceProfileEffect(profile, 'boon');
@@ -790,13 +769,10 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
     Number(event.coefficient) > 0
   ) {
     const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-
     if (skill?.burst) {
       const activationKey = String(event.activationId || `${event.skillId}:${event.at}`);
-
       if (!state.burstHitActivations[activationKey]) {
         state.burstHitActivations[activationKey] = true;
-
         if (
           hasTrait(context, TRAIT.CULL_THE_WEAK) &&
           isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.cullTheWeak || 0))
@@ -869,7 +845,6 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
             stacks: Number(might?.stacks || 3),
             recipients: 'party'
           });
-
           if (hasTrait(context, TRAIT.SOLDIERS_COMFORT)) {
             const protection = warriorBalanceProfileEffect(
               warriorBalanceProfile(context, PROFILE.soldiersComfort),
@@ -926,14 +901,12 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
     const armsActivationKey = String(event.activationId || `${event.skillId}:${event.at}`);
     const armsBurstKey = `arms:${armsActivationKey}`;
     const firstBurstHit = Boolean(skill?.burst) && !state.burstHitActivations[armsBurstKey];
-
     if (firstBurstHit) state.burstHitActivations[armsBurstKey] = true;
     const tracksArmsCritical =
       event.skillId === ID.KEEN_STRIKE ||
       hasTrait(context, TRAIT.BLOODLUST) ||
       hasTrait(context, TRAIT.FURIOUS) ||
       (firstBurstHit && hasTrait(context, TRAIT.SUNDERING_BURST));
-
     if (tracksArmsCritical) {
       context.tasks.schedule({
         type: 'warrior.arms-critical',
@@ -967,12 +940,10 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
   const state = professionCoreState(context);
   const selectedSkills = context.config.selectedSkills || [];
   const selected = Array.isArray(selectedSkills) ? selectedSkills : Object.values(selectedSkills);
-
   if (selected.map(String).includes('Signet of Rage')) {
     while (state.signetOfRageNextAt > 0 && state.signetOfRageNextAt <= target + context.epsilon) {
       const at = state.signetOfRageNextAt;
       const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);
-
       if (cooldownReadyAt <= at + context.epsilon) gainWarriorAdrenaline(context, 2);
       state.signetOfRageNextAt += 3;
     }
@@ -1005,7 +976,6 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
 export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = professionCoreState(context);
   applyMartialCadenceWeaponSwap(context, context.effectiveEnd);
-
   if (hasTrait(context, TRAIT.VERSATILE_RAGE)) {
     gainWarriorAdrenaline(context, 5);
   }

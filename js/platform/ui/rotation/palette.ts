@@ -202,7 +202,6 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   const skills = view.skills || [];
   const controls = view.controls || [];
   const statusIcon = view.statusIcon;
-
   // Empty groups occupy no layout space.
   if (!skills.length && !controls.length && !statusIcon) return '';
   const statusIconHtml = statusIcon
@@ -238,7 +237,6 @@ export function bindPaletteInteractions(
     const name = icon.dataset.skill || '';
     const draggable = icon.getAttribute('draggable') === 'true';
     const image = icon.querySelector<HTMLImageElement>('img[data-fallback-icon]');
-
     if (image) {
       const useFallback = (): void => {
         image.onerror = null;
@@ -246,7 +244,6 @@ export function bindPaletteInteractions(
       };
 
       image.onerror = useFallback;
-
       if (image.complete && image.naturalWidth === 0) useFallback();
     }
 
@@ -268,7 +265,6 @@ export function bindPaletteInteractions(
 
       icon.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', name);
-
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
     };
 

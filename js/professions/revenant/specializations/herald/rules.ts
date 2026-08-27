@@ -59,7 +59,6 @@ export const heraldAttributeRules = Object.freeze({
 
 function heraldCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
   const state = professionCoreState(context);
-
   if (skill.consume && !state.availableFlips[skill.id]) {
     return denyRevenantSkill(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
   }
@@ -84,7 +83,6 @@ const HERALD_SHARED_EMPOWERMENT_TASK = 'revenant.herald-shared-empowerment';
 function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const appliedToAlly =
     event.affectsSelf === true || Number(event.alliedPlayerCount || 0) > 0 || event.affectsSummons === true;
-
   if (
     event.type !== 'buff' ||
     event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
@@ -107,11 +105,9 @@ function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: Rev
 
 function handleSharedEmpowerment(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   const cause = context.eventByOrder(Number(task.payload?.eventOrder));
-
   if (!cause || !isInternalCooldownReady(task.at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
   const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
-
   if (!profile || !effect) throw new Error('Missing Shared Empowerment balance profile.');
 
   const skill = { id: TRAIT.SHARED_EMPOWERMENT, name: 'Shared Empowerment' } as RevenantSkill;
@@ -149,7 +145,6 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
       const active =
         boon.at <= event.at + context.epsilon &&
         boon.at + Math.max(0, Number(boon.duration || 0)) > event.at + context.epsilon;
-
       if (extension > 0 && hasRecipient && active && isStandardBoon(boon.kind)) {
         context.replaceEvent(boon, { duration: Number(boon.duration || 0) + extension });
       }

@@ -50,7 +50,6 @@ export function createResourceController({
   const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
   const numericResourceState = () => {
     const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
-
     if (typeof active.numericResource !== 'number') {
       throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
     }
@@ -79,7 +78,6 @@ export function createResourceController({
     cause: MesmerResourceCause = {}
   ): void => {
     const amount = Math.max(0, Number(count || 0));
-
     if (!amount) return;
     let gained = 0;
     const created: Array<{ id: number; weapon: string }> = [];
@@ -89,7 +87,6 @@ export function createResourceController({
       for (let index = 0; index < amount; index += 1) {
         if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
           const replaced = professionCoreState(state).clones.shift();
-
           if (replaced) destroyClone(replaced, at);
         }
 
@@ -124,14 +121,12 @@ export function createResourceController({
       reason,
       created
     });
-
     if (traits.has(TRAIT.COMPOUNDING_POWER) && cause.kind !== 'initial') {
       markCompounding(at, gained);
       addTraitProc('Compounding Power', at, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
 
     const resourceTraitId = Number(cause.traitId);
-
     if (Number.isFinite(resourceTraitId) && traits.has(resourceTraitId)) {
       addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }

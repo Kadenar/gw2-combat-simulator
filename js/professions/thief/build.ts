@@ -107,7 +107,6 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
     for (const pair of [build.weapons, build.alternateWeapons]) {
       if (!Array.isArray(pair)) continue;
       const [mainHand] = pair;
-
       if (thiefCatalog.weaponHands.get(mainHand) === '2h') continue;
       const hasThirdSkill = thiefCatalog.skills.some(
         (skill) =>
@@ -118,7 +117,6 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
             catalog: thiefCatalog
           })
       );
-
       if (!hasThirdSkill) {
         errors.push(`weapon set ${pair[0] || 'empty'}/${pair[1] || 'empty'} has no legal Thief slot-3 skill.`);
       }

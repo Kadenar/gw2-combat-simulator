@@ -91,7 +91,6 @@ function outOfModelReason(trait) {
   if (/heal|barrier|incoming|block|condition.*remove|damage.*reduced/.test(description)) return REASONS.defensive;
 
   if (/movement|dodge|endurance/.test(description)) return REASONS.movement;
-
   return REASONS.missing;
 }
 

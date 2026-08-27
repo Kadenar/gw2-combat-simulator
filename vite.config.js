@@ -54,12 +54,10 @@ function serveRuntimeData() {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         if (!request.url) return next();
-
         const { pathname } = new URL(request.url, 'http://local');
         const segment = pathname.split('/')[1];
 
         if (!runtimeDirectories.includes(segment)) return next();
-
         const target = path.resolve('.' + decodeURIComponent(pathname));
 
         if (!roots.some((root) => target === root || target.startsWith(`${root}${path.sep}`))) {
@@ -68,7 +66,6 @@ function serveRuntimeData() {
 
         try {
           if ((await stat(target)).isDirectory()) return next();
-
           response.setHeader('Content-Type', runtimeContentTypes[path.extname(target)] || 'application/octet-stream');
           response.setHeader('Cache-Control', 'no-cache');
           createReadStream(target).pipe(response);

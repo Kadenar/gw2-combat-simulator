@@ -28,12 +28,10 @@ export function normalizeRotationSelection(
   rotationLength: number
 ): RotationSelectionRange | null {
   const length = Math.max(0, Math.floor(Number(rotationLength) || 0));
-
   if (!selection || length === 0) return null;
   const anchorIndex = Number(selection.anchorIndex);
   const startIndex = Number(selection.startIndex);
   const endIndex = Number(selection.endIndex);
-
   if (
     !Number.isInteger(anchorIndex) ||
     !Number.isInteger(startIndex) ||
@@ -67,10 +65,8 @@ export function rotationSelectionForEntry(
   rotationLength: number
 ): RotationSelectionRange | null {
   const length = Math.max(0, Math.floor(Number(rotationLength) || 0));
-
   if (!Number.isInteger(index) || index < 0 || index >= length) return normalizeRotationSelection(selection, length);
   const current = normalizeRotationSelection(selection, length);
-
   if (!current || !current.awaitingEnd) {
     return {
       anchorIndex: index,
@@ -101,7 +97,6 @@ export function clearRotationSelection(app: ProfessionAppState): void {
  */
 export function copyRotationSelection(app: ProfessionAppState): boolean {
   const selection = normalizeRotationSelection(app.rotationSelection, app.build.rotation.length);
-
   if (!selection) return false;
   app.rotationSelection = { ...selection, awaitingEnd: false };
   app.rotationSelectionMode = false;
@@ -132,7 +127,6 @@ export function pasteRotationClipboard(app: ProfessionAppState): boolean {
     awaitingEnd: false
   };
   app.rotationSelectionMode = false;
-
   // Armed-cursor pastes use the same single-paint path as palette insertions so long timelines
   // do not briefly collapse their result-derived rows while the replacement simulation runs.
   if (activeInsertionIndex === null) app.changed(false);
@@ -156,7 +150,6 @@ export function selectRotationClipboardEntry(app: ProfessionAppState, index: num
 /** True when the keydown originates inside a form field or dialog, where Ctrl+C/V belong to that control. */
 function shouldIgnoreClipboardShortcut(event: KeyboardEvent): boolean {
   const target = event.target;
-
   if (!(target instanceof Element)) return false;
   return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
@@ -170,7 +163,6 @@ function refreshRotationClipboardView(app: ProfessionAppState, root: Document = 
   const timeline = root.getElementById('rotation-timeline');
   const selection = normalizeRotationSelection(app.rotationSelection, app.build.rotation.length);
   app.rotationSelection = selection;
-
   if (!app.build.rotation.length) app.rotationSelectionMode = false;
   timeline?.classList.toggle('rotation-range-selecting', app.rotationSelectionMode);
   timeline?.querySelectorAll<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)').forEach((entry) => {
@@ -194,7 +186,6 @@ export function handleRotationSelectionClick(
   root: Document = document
 ): RotationSelectionClickResult {
   const result = selectRotationClipboardEntry(app, index);
-
   if (result === 'ignored') return result;
   event.preventDefault();
   refreshRotationClipboardView(app, root);
@@ -250,7 +241,6 @@ export function syncRotationClipboardView(app: ProfessionAppState, root: Documen
  */
 export function mountRotationClipboard(app: ProfessionAppState, root: Document = document): void {
   const toolbar = root.querySelector<HTMLElement>('.rotation-btns');
-
   if (!toolbar || root.getElementById('rotation-copy-tools')) return;
 
   const group = root.createElement('span');
@@ -269,7 +259,6 @@ export function mountRotationClipboard(app: ProfessionAppState, root: Document =
 
   group.append(copyLoopButton, pasteButton);
   root.getElementById('btn-sim-redo')?.after(group);
-
   if (!group.isConnected) toolbar.prepend(group);
 
   copyLoopButton.addEventListener('click', () => {
@@ -288,9 +277,7 @@ export function mountRotationClipboard(app: ProfessionAppState, root: Document =
   root.addEventListener('keydown', (event) => {
     if (!(event.ctrlKey || event.metaKey) || event.altKey || shouldIgnoreClipboardShortcut(event)) return;
     const key = event.key.toLowerCase();
-
     if (key === 'c' && root.getSelection()?.toString()) return;
-
     if (key === 'c' && copyRotationSelection(app)) {
       event.preventDefault();
       app.adapter.renderRotationBuilder(app);

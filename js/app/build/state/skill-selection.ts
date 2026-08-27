@@ -24,7 +24,6 @@ export function isSlotSkillSelectable(
 
 export function normalizeSelectedSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
-
   if (app.adapter.slotLoadout) {
     Object.assign(
       app.build,
@@ -57,7 +56,6 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
         build: app.build,
         specialization: spec
       });
-
     if (!allowed) {
       app.build.selectedSkills[slot] =
         app.skills.find(

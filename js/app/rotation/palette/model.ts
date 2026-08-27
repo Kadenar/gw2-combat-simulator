@@ -22,7 +22,6 @@ const PALETTE_ACTION_ORDER = new Map<string, number>([
  */
 export function paletteView(profession: ProfessionAppContract, context: SchedulerRecord): NormalizedPaletteGroup[] {
   const groups = profession.ui.paletteGroups(context);
-
   if (!Array.isArray(groups)) {
     throw new TypeError('paletteGroups must return an array.');
   }
@@ -85,9 +84,7 @@ export function uniqueByName(skills: readonly Skill[]): Skill[] {
 // variant wins, then the unspecialized base, then any other elite variant.
 function weaponVariantRank(skill: Skill, specialization: string): number {
   const spec = String(skill.specialization || '');
-
   if (spec === specialization) return 0;
-
   if (spec === '') return 1;
   return 2;
 }
@@ -96,7 +93,6 @@ export function uniqueBySpecializedName(skills: readonly Skill[], specialization
   const byName = new Map<string, Skill>();
   for (const skill of skills) {
     const existing = byName.get(skill.name);
-
     if (!existing || weaponVariantRank(skill, specialization) < weaponVariantRank(existing, specialization)) {
       byName.set(skill.name, skill);
     }
@@ -112,7 +108,6 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
       if (skill.type !== 'Weapon' || !skill.weapon) return false;
-
       if (
         !app.adapter.isSkillAvailable(skill, {
           build: app.build,
@@ -135,11 +130,8 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
     activeSpecialization(app)
   ).sort((left, right) => {
     const slotOrder = String(left.slot).localeCompare(String(right.slot));
-
     if (slotOrder) return slotOrder;
-
     if (left.flipSkillId === right.id) return -1;
-
     if (right.flipSkillId === left.id) return 1;
     const chainOrder =
       Number(left.weaponBarChainStep ?? left.chainStep ?? Number.MAX_SAFE_INTEGER) -
@@ -214,7 +206,6 @@ function paletteFlipFamilies(
   for (const child of catalogSkills) {
     if (child.paletteFlip === false || child.flipParentId == null || isReplacementAttack(child)) continue;
     const parent = skillById.get(Number(child.flipParentId));
-
     if (parent) register(parent, child);
   }
 
@@ -222,7 +213,6 @@ function paletteFlipFamilies(
     if (parent.paletteFlip === false || parent.flipSkillId == null || parent.flipSkillId === parent.nextChainId)
       continue;
     const child = skillById.get(Number(parent.flipSkillId));
-
     if (child) register(parent, child);
   }
 
@@ -231,9 +221,7 @@ function paletteFlipFamilies(
   for (const skill of catalogSkills) {
     if (skill.nextChainId == null) continue;
     const linked = skillById.get(Number(skill.nextChainId));
-
     if (!linked || linked.nextChainId !== skill.id) continue;
-
     if ((catalogOrder.get(Number(skill.id)) || 0) > (catalogOrder.get(Number(linked.id)) || 0)) continue;
     register(skill, linked);
   }
@@ -245,13 +233,11 @@ function paletteFlipFamilies(
   const visited = new Set<number>();
   for (const skill of catalogSkills) {
     const startId = Number(skill.id);
-
     if (visited.has(startId) || !neighborsBySkillId.has(startId)) continue;
     const pending = [startId];
     const memberIds: number[] = [];
     while (pending.length) {
       const id = pending.pop() as number;
-
       if (visited.has(id)) continue;
       visited.add(id);
       memberIds.push(id);
@@ -296,19 +282,15 @@ function paletteCandidateAvailable(app: ProfessionAppState, context: SchedulerRe
 
 function paletteTileEntryKey(skill: Skill, flipFamilyIdBySkillId: ReadonlyMap<number, number>, index: number): string {
   if (skill.paletteTileId != null) return `declared:${String(skill.paletteTileId)}`;
-
   if (skill.chainRoot != null) return `autoattack:${String(skill.chainRoot)}`;
   const flipFamilyId = flipFamilyIdBySkillId.get(Number(skill.id));
-
   if (flipFamilyId != null) return `flip:${String(flipFamilyId)}`;
-
   if (skill.paletteLegendId != null) return `skill:${String(skill.id)}:legend:${String(skill.paletteLegendId)}`;
   return `skill:${String(skill.id)}:${index}`;
 }
 
 function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
   const declared = Number(skill.paletteTileOrder);
-
   if (Number.isFinite(declared)) return declared;
   const chainStep = Number(skill.chainStep);
   return Number.isFinite(chainStep) ? chainStep : fallback;
@@ -347,7 +329,6 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
   return [...grouped.values()].map((entries) => {
     const byId = new Map(entries.map((entry) => [Number(entry.skill.id), entry.skill]));
     const first = entries[0].skill;
-
     if (first.paletteTileId != null) {
       // UI-only declarations are catalog families too: a caller can contribute
       // one known side and still receive the live sibling through this hook.
@@ -364,7 +345,6 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
     }
 
     const firstFlipFamilyId = familyIdBySkillId.get(Number(first.id));
-
     if (firstFlipFamilyId != null) {
       // Root-only callers (notably selected utilities) inherit every connected
       // branch while keeping the root tile's keyboard binding.
@@ -384,18 +364,15 @@ export function displayedSkillTiles(app: ProfessionAppState, skills: readonly Sk
         paletteTileCandidateOrder(right, entries.find((entry) => entry.skill.id === right.id)?.index ?? skills.length)
     );
     const chainRoot = candidates.find((candidate) => candidate.chainRoot != null)?.chainRoot;
-
     if (chainRoot != null) {
       const expected = autoattackChains[String(chainRoot)] ?? chainRoot;
       const activeChainSkill = candidates.find(
         (candidate) => candidate.id === Number(expected) || candidate.name === expected
       );
-
       if (activeChainSkill) return activeChainSkill;
     }
 
     const activeFlips = candidates.filter((candidate) => paletteFlipAvailable(candidate, availableFlips, at));
-
     if (activeFlips.length) {
       const availableActiveFlips = activeFlips.filter(
         (candidate) => paletteCandidateAvailable(app, context, candidate) === true
@@ -459,7 +436,6 @@ export function displayedWeaponSkills(
     weaponSet === activeWeaponSet
       ? projected.find((skill) => {
           if (!isWeaponOneReplacement(skill)) return false;
-
           if (skill.ambush) return skill.name === availableAmbushName;
           return app.profession.ui?.paletteSkillAvailability?.(paletteContext, skill).available === true;
         })
@@ -476,9 +452,7 @@ export function displayedWeaponSkills(
       skill.slot === activeReplacement.slot &&
       skill.weapon === activeReplacement.weapon &&
       (!skill.attunement || !activeReplacement.attunement || skill.attunement === activeReplacement.attunement);
-
     if (!sharesTile) return [skill];
-
     if (insertedReplacement) return [];
     insertedReplacement = true;
     return [activeReplacement];
@@ -498,7 +472,6 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
     .filter((row) => row.skills.length);
   return rows.flatMap((row) => {
     const groups = groupWeaponSkillsByAttunement(row.skills, activeSpecialization(app));
-
     if (groups.length === 1 && groups[0].attunement == null) {
       return [row];
     }
@@ -516,7 +489,6 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
 
 export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
   const content = groups.filter(Boolean).join('');
-
   if (!content) return '';
   return (
     `<div class="weapon-palette-stack" data-role="weapon-set-stack" ` +
@@ -530,7 +502,6 @@ export function weaponPaletteSectionHtml(
   trailingGroup = ''
 ): string {
   const weapons = weaponPaletteStackHtml(weaponGroups);
-
   if (!weapons && !actionGroup && !trailingGroup) return '';
   return (
     `<div class="weapon-palette-section" data-role="weapon-palette-section" ` +
@@ -619,7 +590,6 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
   return Object.values(app.build.selectedSkills).flatMap((name) => {
     const skill = app.skillByName.get(name);
-
     if (!skill?.attunement) return skill ? [skill] : [];
     const variantSuffix = ` (${String(skill.attunement)})`;
     const baseName = skill.name.endsWith(variantSuffix) ? skill.name.slice(0, -variantSuffix.length) : skill.name;

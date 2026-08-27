@@ -75,7 +75,6 @@ export async function fetchJsonAsset(
   { optional = false }: FetchJsonAssetOptions = {}
 ): Promise<unknown | null> {
   const response = await fetch(`${path}?t=${Date.now()}`);
-
   if (!response.ok) {
     if (optional) return null;
     throw new Error(`Could not load ${path}`);
@@ -92,7 +91,6 @@ export async function fetchJsonAsset(
  */
 export function getRotationItems(payload: unknown): unknown[] | undefined {
   if (Array.isArray(payload)) return payload;
-
   if (!payload || typeof payload !== 'object') return undefined;
   const rotation = (payload as { rotation?: unknown }).rotation;
   return Array.isArray(rotation) ? rotation : undefined;
@@ -125,13 +123,11 @@ export function getBuildExportPayload(build: ProfessionApplicationBuild): Omit<P
 export async function loadPresetBundle(preset: BuildTemplatePreset): Promise<PresetBundle> {
   const buildData = await fetchJsonAsset(preset.build);
   let rotationItems: unknown[] | undefined;
-
   if (preset.rotation) {
     const rotationData = await fetchJsonAsset(preset.rotation, {
       optional: true
     });
     const items = getRotationItems(rotationData);
-
     if (Array.isArray(items)) {
       rotationItems = items;
     }

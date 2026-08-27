@@ -30,10 +30,8 @@ export function firstUiMatch(
 ): unknown {
   for (const slice of slices) {
     const callback = slice[name];
-
     if (typeof callback !== 'function') continue;
     const result = (callback as UiCallback)(...args);
-
     if (isMatch(result)) return result;
   }
 

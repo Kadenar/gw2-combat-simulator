@@ -51,7 +51,6 @@ function allArtifactChoices(): ThiefArtifactSlot[] {
 function reduceSkrittSwipeRecharge(context: ThiefSchedulerContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.REPEAT_RANSACKER)) return;
   const readyAt = Number(context.state.cooldowns.get(ID.SKRITT_SWIPE) || 0);
-
   if (readyAt > at) {
     // clamp to `at` so the cooldown never goes negative; happens when multiple artifacts are used close together
     context.state.cooldowns.set(
@@ -65,7 +64,6 @@ function reduceSkrittSwipeRecharge(context: ThiefSchedulerContext, at: number): 
 // ready, preventing charges from being banked.
 function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
   const state = antiquaryState.from(context);
-
   if (
     !hasTrait(context.config, TRAIT.SCOUNDRELS_LUCK) ||
     !isInternalCooldownReady(at, Number(state.scoundrelsLuckReadyAt || 0)) // ICD prevents banking more than one charge per 20s window
@@ -90,7 +88,6 @@ function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
 function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.IMPROVISATION)) return;
   const state = antiquaryState.from(context);
-
   if (!isInternalCooldownReady(at, Number(state.improvisationReadyAt || 0))) return;
   const selected = context.config.selectedSkills || [];
   const selectedNames = new Set(
@@ -100,10 +97,8 @@ function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): voi
   );
   for (const name of selectedNames) {
     const skill = context.catalog.skillsByName.get(name);
-
     if (skill?.type !== 'Utility') continue;
     const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-
     if (readyAt > at) {
       context.state.cooldowns.set(
         skill.id,
@@ -143,7 +138,6 @@ export function pilferArtifacts(
       ? Number(thiefBalanceProfile(context, CORE_PROFILE.improvisation)?.resourceGain || 1)
       : 0);
   state.initiativeSpentSincePilfer = 0;
-
   if (source === 'swipe') {
     grantScoundrelsLuck(context, at);
     grantCombatHigh(context, at);
@@ -173,7 +167,6 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
   const profile = thiefBalanceProfile(context, PROFILE.artifactWindows);
   const standardDuration = Number(profile?.durationMultiplier || 10);
   const enhancedDuration = Number(profile?.maximumStacks || 12);
-
   if (skill.id === ID.METAL_LEGION_GUITAR) {
     state.stealthAttackCharges = Number(profile?.resourceGain || 3);
     state.stealthAttackExpiresAt = at + (meticulous ? enhancedDuration : standardDuration);
@@ -208,7 +201,6 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
   const slot = state.artifactSlots.find((value) => value.skillId === skill.id);
   state.artifactUsesRemaining = Math.max(0, state.artifactUsesRemaining - 1);
   state.artifactSlots = state.artifactSlots.filter((value) => value.skillId !== skill.id);
-
   if (hasTrait(context.config, TRAIT.ENTERPRISING_ARISTOCRAT)) {
     gainThiefInitiative(
       context,
@@ -348,7 +340,6 @@ export function handleForgedSurfer(
     Number(burns[packetIndex]?.duration || (bomb === 0 ? 6 : 3.5)),
     Number(burns[packetIndex]?.stacks || 1)
   );
-
   // user-configurable assumption: allows simulating fewer bombs when the target dies before the full chain lands
   if (
     bomb >=
@@ -372,7 +363,6 @@ function riskyDoubleEdge(context: ThiefCastContext, skill: ThiefSkill): boolean 
 
 function peekRiskyOutcome(context: ThiefCastContext): ThiefDoubleEdgeOutcome {
   const state = antiquaryState.from(context);
-
   if (state.scoundrelsLuck > 0) return 'success';
   return context.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
 }
@@ -384,7 +374,6 @@ export function peekDoubleEdgeOutcome(context: ThiefCastContext, skill: ThiefSki
 function consumeDoubleEdgeOutcome(context: ThiefCastContext, skill: ThiefSkill): ThiefDoubleEdgeOutcome {
   if (!riskyDoubleEdge(context, skill)) return 'success';
   const state = antiquaryState.from(context);
-
   if (state.scoundrelsLuck > 0) {
     state.scoundrelsLuck -= 1;
     return 'success';
@@ -473,7 +462,6 @@ function tossCanachCoins(context: ThiefCastContext, at: number, backfire: boolea
   for (let coin = 0; coin < 3; coin += 1) {
     const heads = Number(state.canachCoinIndex || 0) % 2 === 0; // coins alternate H/T in a deterministic pattern (index 0, 2, 4 … = heads)
     state.canachCoinIndex = Number(state.canachCoinIndex || 0) + 1;
-
     if (backfire) {
       if (heads) initiative += 1;
     } else {
@@ -488,20 +476,17 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
   const outcome = consumeDoubleEdgeOutcome(context, skill);
-
   if (outcome === 'backfire') {
     // record backfire until the cooldown expires; the backfire variant skill blocks itself via availability.ts while this entry is present
     state.backfireState[skill.id] = {
       activeUntil: Number(context.state.cooldowns.get(skill.id) || at),
       skillName: skill.name
     };
-
     if (skill.id === ID.STONE_SUMMIT_CANNON) {
       emitCannonBackfire(context, at);
     }
   } else {
     delete state.backfireState[skill.id];
-
     if (skill.id === ID.STONE_SUMMIT_CANNON) {
       emitCannonSuccess(context);
     }
@@ -543,14 +528,12 @@ export function handleSkrittScuffle(
   task: ThiefScheduledTask<SkrittScuffleTaskPayload>
 ): void {
   const interval = Number(thiefBalanceProfile(context, PROFILE.scuffle)?.pulseInterval || 3);
-
   // epsilon tolerance: a task scheduled exactly at expiresAt is still valid; floating-point overshoot is not a missed tick
   if (task.at > Number(task.payload.expiresAt || 0) + Number(context.epsilon || 0.0001)) return;
   const nextPilferAt = task.at + interval;
   antiquaryState.from(context).nextSkrittScufflePilferAt =
     nextPilferAt <= Number(task.payload.expiresAt || 0) ? nextPilferAt : 0;
   pilferArtifacts(context, task.at, 'skritt-scuffle-artifact', 'scuffle');
-
   if (task.at + interval <= Number(task.payload.expiresAt || 0)) {
     context.tasks.schedule({
       ...task,

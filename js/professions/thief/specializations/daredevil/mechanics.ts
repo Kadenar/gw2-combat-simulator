@@ -8,7 +8,6 @@ import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = daredevilState.from(context);
-
   if (skill.id === ID.FIST_FLURRY) {
     // +5 s gives comfortable headroom past the 3 s in-game window to absorb cast-time variance
     state.palmStrikeUntil =

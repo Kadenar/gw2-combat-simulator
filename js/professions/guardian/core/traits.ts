@@ -122,7 +122,6 @@ function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: Guar
 
 export function updateGuardianTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   const at = context.effectiveEnd;
-
   if (
     skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE)
@@ -235,7 +234,6 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
   }
 
   const virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
-
   if (virtueSlot) {
     if (hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) {
       const inspired = guardianBalanceProfileEffect(
@@ -369,7 +367,6 @@ export function handleSymbolOfIgnitionField(context: GuardianResolverContext, ev
 function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const profile = guardianBalanceProfile(context, PROFILE.symbolOfIgnition);
   const burning = guardianBalanceProfileEffect(profile, 'condition');
-
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
@@ -380,7 +377,6 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
 
   const state = resolverState(context);
   const epsilon = resolverEpsilon(context);
-
   if (
     Number(state.symbolIgnitionUntil || 0) <= Number(state.symbolIgnitionStartsAt || 0) ||
     event.at < Number(state.symbolIgnitionStartsAt || 0) - epsilon ||
@@ -432,7 +428,6 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
   if (event.type !== 'damage') return;
   const skillId = event.skillId;
   const skill = skillId == null ? undefined : context.catalog.skillsById.get(skillId);
-
   if (!(event.isSymbol || isGuardianSymbolSkill(skill, event.skillName))) {
     return;
   }
@@ -589,16 +584,13 @@ function queueLesserSymbolOfResolution(
 
 function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
-
   if (!(event.isSymbol || isGuardianSymbolSkill(skill, event.skillName))) {
     return;
   }
 
   const state = resolverState(context);
-
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
     const profile = guardianBalanceProfile(context, PROFILE.symbolicAvenger);
-
     if (event.at >= state.symbolicAvengerUntil - resolverEpsilon(context)) {
       state.symbolicAvengerStacks = 0;
     }
@@ -645,7 +637,6 @@ function reactToZealotsResolution(context: GuardianResolverContext, event: Guard
   const state = resolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
   const damageDone = combinedTargetDamage(context);
-
   if (
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
@@ -707,7 +698,6 @@ export function reactToGuardianBuffTraits(context: GuardianResolverContext, even
   const duration = Math.max(0, Number(event.duration || 0));
   const wasActive = event.at < Number(state.resolutionUntil || 0) - resolverEpsilon(context);
   state.resolutionUntil = wasActive ? state.resolutionUntil + duration : event.at + duration;
-
   if (!wasActive) {
     queueRighteousMight(context, event.at, 'Resolution applied');
     state.righteousNextMightAt =
@@ -727,7 +717,6 @@ export function reactToGuardianBuffTraits(context: GuardianResolverContext, even
 // Resolution window remains current and active.
 export function handleRighteousInstinctsTick(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = resolverState(context);
-
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
     event.at > Number(state.resolutionUntil || 0) + resolverEpsilon(context) ||
@@ -739,7 +728,6 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   queueRighteousMight(context, event.at, 'Resolution interval');
   state.righteousNextMightAt =
     event.at + Number(guardianBalanceProfile(context, PROFILE.righteousInstincts)?.pulseInterval || 1);
-
   if (state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + resolverEpsilon(context)) {
     enqueueOrdered(context.queue, {
       ...event,

@@ -24,7 +24,6 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
   // willbender-specific overrides; order matters because core sets virtueReadyAt.
   guardianVirtueSkillHandlers['guardian.virtue'](context, skill);
   const virtue = virtueFor(skill);
-
   if (!virtue) return;
 
   // Justice impact fires 40 ms before cast end; Courage impact fires after the
@@ -40,7 +39,6 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
   // so the pulsing DoT doesn't begin until the physical lunge finishes.
   const flameAt = virtue === 'justice' ? Math.max(at, context.effectiveEnd - 0.04) : at;
   const state = willbenderState.from(context);
-
   // virtueUntil may still hold the previous window; reset hit counts only when that
   // window has actually expired so a rapid re-activation doesn't wipe an in-progress tally.
   if (state[`${virtue}Until`] <= at + context.epsilon) {

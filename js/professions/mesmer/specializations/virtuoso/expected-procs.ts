@@ -13,12 +13,10 @@ const PROC_PROGRESS_TOLERANCE = 1e-9;
 export function observeVirtuosoExpectedProcEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = mesmerRuntimeFor(context);
   let candidate: MesmerVirtuosoExpectedProcCandidate | null = null;
-
   if (event.type === 'condition' && event.condition === 'Bleeding' && runtime.traits.has(TRAIT.BLOODSONG)) {
     candidate = { type: 'bleeding', at: event.at, stacks: event.stacks };
   } else if (event.type === 'damage' && runtime.traits.has(TRAIT.JAGGED_MIND)) {
     const skill = runtime.skillsById.get(Number(event.skillId));
-
     if ((event.blade || skill?.blade) && event.noCrit !== true && event.canCrit !== false) {
       candidate = {
         type: 'blade',
@@ -44,7 +42,6 @@ export function handleVirtuosoExpectedProcTask(
   task: MesmerSchedulerTask<'virtuosoExpectedProc'>
 ): void {
   const runtime = mesmerRuntimeFor(context);
-
   if (task.payload.type === 'bleeding') {
     const state = virtuosoState.from(context);
     state.bloodsongProgress += Number(task.payload.stacks || 0);
@@ -73,7 +70,6 @@ export function handleVirtuosoExpectedProcTask(
     id: 'mesmer.virtuoso.jagged-mind',
     materialization: 'weighted'
   });
-
   if (!application) return;
   const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.JAGGED_MIND), 'condition');
   emitSkillCondition(context, {

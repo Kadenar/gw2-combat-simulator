@@ -36,9 +36,7 @@ function applyIneptitudeConfusion(ctx: MesmerResolverContext, event: MesmerResol
 export function triggerIneptitudeFromInterrupt(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
   const defiant = Boolean(ctx.config.target?.defiant);
-
   if (defiant && !isInternalCooldownReady(event.at, ctx.profession.ineptitudeReadyAt)) return;
-
   if (defiant) {
     ctx.profession.ineptitudeReadyAt = event.at + mesmerBalanceValue(ctx, TRAIT.INEPTITUDE, 'internalCooldown', 3);
   }

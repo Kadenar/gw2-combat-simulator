@@ -42,7 +42,6 @@ function truncatedNaturalConvergence(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
-
   if (firstEventTime == null) return [];
   return context.log.events.flatMap((event, eventIndex) => {
     if (
@@ -59,7 +58,6 @@ function truncatedNaturalConvergence(
     const recorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRANSITION_WINDOW_MS
     );
-
     if (recorded || start >= firstEventTime) return [];
     return [
       {
@@ -113,7 +111,6 @@ function alignInitialAvatar(actions: readonly EvtcRecordedRotationAction[]): Evt
   const firstNatural = actions
     .filter((action) => isAction(action, NATURAL_CONVERGENCE.skillId) && action.precast === true)
     .sort((left, right) => left.start - right.start)[0];
-
   if (!firstNatural) return [...actions];
   return actions.map((action) =>
     isAction(action, CELESTIAL_AVATAR.skillId) && action.initialState === true && action.start > firstNatural.start
@@ -138,7 +135,6 @@ function initialVipersNest(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
-
   if (
     firstEventTime == null ||
     actions.some((action) => isAction(action, VIPERS_NEST.skillId) && action.start <= firstEventTime)
@@ -159,7 +155,6 @@ function initialVipersNest(
         event.time >= firstEventTime &&
         event.time - firstEventTime <= 1000
     );
-
   if (!signal) return [];
   const anchor = actions.length ? Math.min(...actions.map((action) => action.start)) : firstEventTime;
   return [
@@ -179,7 +174,6 @@ function seedOfLifeActions(actions: readonly EvtcRecordedRotationAction[]): Evtc
   return entries.flatMap((entry, entryIndex) => {
     const nextEntry = entries[entryIndex + 1]?.start ?? Number.POSITIVE_INFINITY;
     const exit = exits.find((candidate) => candidate.start >= entry.start && candidate.start < nextEntry);
-
     if (!exit) return [];
     const natural = actions
       .filter(
@@ -187,7 +181,6 @@ function seedOfLifeActions(actions: readonly EvtcRecordedRotationAction[]): Evtc
           isAction(action, NATURAL_CONVERGENCE.skillId) && action.start >= entry.start && action.start < exit.start
       )
       .sort((left, right) => left.start - right.start)[0];
-
     if (!natural) return [];
     const channelOffset = Math.min(SEED_CHANNEL_OFFSET_MS, Math.max(0, natural.end - natural.start));
     return [
@@ -218,7 +211,6 @@ function removeAutonomousPetRecasts(
   return actions.filter((action) => {
     if (action.rawSkillId !== JACARANDAS_EMBRACE) return true;
     const source = context.log.events[Math.floor(action.eventIndex)]?.source;
-
     if (source == null) return true;
     return context.log.events.some(
       (event) =>

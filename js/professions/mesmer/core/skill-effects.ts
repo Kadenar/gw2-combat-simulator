@@ -149,7 +149,6 @@ export function createSkillEffectController({
       conditions,
       phantasmExecutions
     );
-
     // Cast-start packets are scheduled by the cast lifecycle and must not be emitted again on completion.
     if (!skipDirectResource) {
       illusionResources.schedule(skill, at, castStart, phantasmExecutions);

@@ -45,7 +45,6 @@ function truncatedOverbearingSmashActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
-
   if (firstEventTime == null) return [];
   return context.log.events.flatMap((event, eventIndex) => {
     if (
@@ -62,7 +61,6 @@ function truncatedOverbearingSmashActions(
     const alreadyRecorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRUNCATED_CAST_WINDOW_MS
     );
-
     if (alreadyRecorded || start >= firstEventTime) return [];
     return [
       {
@@ -88,7 +86,6 @@ function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]
   const absorbed = new Set<EvtcRecordedRotationAction>();
   return sorted.flatMap((action) => {
     if (absorbed.has(action)) return [];
-
     if (action.rawSkillId !== OVERBEARING_SMASH.skillId) return [action];
     const followUp = sorted.find(
       (candidate) =>
@@ -97,7 +94,6 @@ function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]
         candidate.start >= action.end - 50 &&
         candidate.start - action.end <= TRUNCATED_CAST_WINDOW_MS
     );
-
     if (!followUp) return [action];
     absorbed.add(followUp);
     return [
@@ -171,7 +167,6 @@ function sicEmActions(
       )
     ];
   });
-
   if (!initial) return inferred;
   const anchor = Math.min(initial.event.time, ...actions.map((action) => action.start));
   return [
@@ -214,7 +209,6 @@ function normalizePathOfScarsRange(
           event.time < nextStart
       )
       .sort((left, right) => left.time - right.time);
-
     if (hits.length < 2 || hits[1].time - hits[0].time <= PATH_RETURN_GAP_THRESHOLD_MS) {
       return action;
     }
@@ -259,7 +253,6 @@ function sharpeningStoneActions(
     previousApplication = event.time;
     return [directAction(eventIndex, event.time, event.skillId, SHARPENING_STONE.name, SHARPENING_STONE, 'effect')];
   });
-
   if (!initial) return applications;
   const anchor = Math.min(initial.event.time, ...actions.map((action) => action.start));
   return [

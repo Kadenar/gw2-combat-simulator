@@ -22,14 +22,6 @@ export default [
           blankLine: 'always',
           prev: 'block-like',
           next: '*'
-        },
-
-        // ALWAYS require a blank line before an if statement.
-        // Keep this last so broader rules don't override it.
-        {
-          blankLine: 'always',
-          prev: '*',
-          next: 'if'
         }
       ]
     }
@@ -55,14 +47,6 @@ export default [
           blankLine: 'always',
           prev: 'block-like',
           next: '*'
-        },
-
-        // ALWAYS require a blank line before an if statement.
-        // Keep this last so broader rules don't override it.
-        {
-          blankLine: 'always',
-          prev: '*',
-          next: 'if'
         }
       ]
     }

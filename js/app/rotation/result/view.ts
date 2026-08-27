@@ -46,10 +46,8 @@ const EMPTY_RESULT_METRICS = Object.freeze([
 // Before navigation mounts, the URL hash still identifies whether detailed Analysis is visible.
 function analysisViewIsActive(): boolean {
   const body = document.body;
-
   if (!body) return true;
   const mountedView = body.dataset.simulatorView;
-
   if (mountedView) return mountedView === 'analysis';
   return document.defaultView?.location.hash === '#analysis';
 }
@@ -70,7 +68,6 @@ function randomDistributionResultModel(result: ProfessionAppResult) {
 export function renderResultSummary(app: ProfessionAppState): void {
   const summaryStrip = document.getElementById('rotation-dps-summary');
   const stale = app.resultRevision !== app.buildRevision;
-
   if (summaryStrip?.dataset) {
     summaryStrip.dataset.buildRevision = String(app.buildRevision);
     summaryStrip.dataset.resultRevision = String(app.resultRevision);
@@ -78,7 +75,6 @@ export function renderResultSummary(app: ProfessionAppState): void {
   }
 
   const result = app.results;
-
   if (!app.build.rotation.length || !result) {
     updateFloatingDps(null);
     mountRotationResults(summaryStrip, {
@@ -100,12 +96,9 @@ export function renderResultSummary(app: ProfessionAppState): void {
 /** Keeps Workspace-only snapshots and RNG controls interactive while detailed Analysis remains lazy. */
 export function renderWorkspaceResults(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-results');
-
   if (!element) return;
-
   if (element.dataset) element.dataset.analysisStale = 'true';
   const result = app.results;
-
   if (!app.build.rotation.length || !result) {
     element.innerHTML = '';
     return;
@@ -130,10 +123,8 @@ export function renderWorkspaceResults(app: ProfessionAppState): void {
 export function renderDetailedResults(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-results');
   const summaryStrip = document.getElementById('rotation-dps-summary');
-
   if (!element) return;
   const result = app.results;
-
   if (!app.build.rotation.length || !result) {
     removeRotationLoopAnalysis(element);
     element.innerHTML = `<div class="analysis-empty-state">
@@ -141,7 +132,6 @@ export function renderDetailedResults(app: ProfessionAppState): void {
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
     </div>`;
     const mirror = document.getElementById('analysis-dps-summary');
-
     if (mirror) mirror.innerHTML = '';
     return;
   }
@@ -216,14 +206,11 @@ export function renderDetailedResults(app: ProfessionAppState): void {
   );
   renderRotationLoopAnalysis(element, app, analyzeRotationLoops(app));
   const mirror = document.getElementById('analysis-dps-summary');
-
   if (mirror) {
     mirror.innerHTML = '';
     const summary = summaryStrip?.querySelector('.res-summary');
     const bpDetails = element.querySelector('.res-breakpoints');
-
     if (summary) mirror.appendChild(summary.cloneNode(true));
-
     if (bpDetails) mirror.appendChild(bpDetails.cloneNode(true));
   }
 
@@ -235,9 +222,7 @@ export function renderDetailedResults(app: ProfessionAppState): void {
 export function renderResults(app: ProfessionAppState): void {
   renderResultSummary(app);
   const element = document.getElementById('rotation-results');
-
   if (!element) return;
-
   if (!analysisViewIsActive()) {
     renderWorkspaceResults(app);
     return;

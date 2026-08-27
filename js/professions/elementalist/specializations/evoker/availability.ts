@@ -17,7 +17,6 @@ function targetAttunement(skill: Skill): ElementalistAttunement | null {
 export function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
   const attunement = targetAttunement(skill);
-
   if (attunement) {
     if (hasTrait(context, 'Specialized Elements')) {
       return {
@@ -50,9 +49,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   }
 
   const element = FAMILIAR_ELEMENTS[skill.name];
-
   if (!element) return { ready: true };
-
   if (state.element !== element) {
     return {
       ready: false,

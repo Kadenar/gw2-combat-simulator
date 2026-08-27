@@ -53,7 +53,6 @@ export function createContinuumController({
   const restoreContinuum = (at: number, reason: string) => {
     const chronomancer = chronomancerState.from(state);
     const continuum = chronomancer.continuum;
-
     if (!continuum) return;
     const splitReady = continuum.splitReady;
     const openAt = continuum.openAt;
@@ -64,7 +63,6 @@ export function createContinuumController({
         .filter(([, remaining]) => remaining > epsilon)
         .map(([id, remaining]): [SkillId, number] => [id, at + remaining])
     ]);
-
     if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
     state.ammo = new Map(
       [...continuum.ammo].map(([id, ammo]) => [
@@ -78,7 +76,6 @@ export function createContinuumController({
     replaceAutoattackChains(state, continuum.autoattackChains || {});
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);
-
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
 

@@ -16,7 +16,6 @@ async function sourceFiles(root) {
       const target = path.join(root, entry.name);
 
       if (entry.isDirectory()) return sourceFiles(target);
-
       return /\.(?:[cm]?js|tsx?)$/.test(entry.name) ? [target] : [];
     })
   );
@@ -69,7 +68,6 @@ test('platform modules do not depend on app modules', async () => {
 
     for (const specifier of moduleSpecifiers(sourceFile)) {
       if (!specifier.startsWith('.')) continue;
-
       const resolved = path.resolve(path.dirname(file), specifier);
 
       if (isInside(APP_ROOT, resolved)) {

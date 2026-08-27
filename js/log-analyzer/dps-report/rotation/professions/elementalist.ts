@@ -132,10 +132,8 @@ function canonicalize(action: DpsReportRecordedAction, identity: ElementalistSki
 function swappedElement(action: DpsReportRecordedAction): Element | null {
   if (!action.isSwap) return null;
   const dual = action.rawName.match(/^Dual (Fire|Water|Air|Earth) Attunement$/i);
-
   if (dual) return elementName(dual[1]);
   const woven = action.rawName.match(/^(Fire|Water|Air|Earth) (?:Fire|Water|Air|Earth) Attunement$/i);
-
   if (woven) return elementName(woven[1]);
   const core = action.rawName.match(/^(Fire|Water|Air|Earth) Attunement$/i);
   return core ? elementName(core[1]) : null;
@@ -157,14 +155,11 @@ function inferStartingElement(
   for (const action of actions) {
     if (swappedElement(action)) break;
     const glyphElement = mappedGlyphElement(action.rawName);
-
     if (glyphElement) return glyphElement;
     const suffixElement = elementName(action.rawName.match(/\((Fire|Water|Air|Earth)\)$/)?.[1]);
-
     if (suffixElement) return suffixElement;
     const attunement = String(actionSkill(action, context)?.attunement || '');
     const skillElement = attunement.includes('+') ? null : elementName(attunement);
-
     if (skillElement) return skillElement;
   }
 
@@ -197,7 +192,6 @@ function normalizeRecordedActions(context: DpsReportProfessionReconstructionCont
     } else {
       const glyph = GLYPH_OF_STORMS.get(action.rawName);
       const element = swappedElement(action);
-
       if (glyph) {
         normalizedAction = canonicalize(normalizedAction, glyph);
       } else if (element) {
@@ -208,7 +202,6 @@ function normalizeRecordedActions(context: DpsReportProfessionReconstructionCont
         currentElement = element;
       } else if (ATTUNEMENT_SUFFIX_SKILLS.has(action.rawName)) {
         const skill = namedSkill(context, `${action.rawName} (${currentElement})`);
-
         if (skill) normalizedAction = canonicalize(normalizedAction, skill);
       }
     }
@@ -252,7 +245,6 @@ function activationTimes(states: readonly (readonly [number, number])[] | undefi
     if (!Array.isArray(state) || state.length < 2) continue;
     const [at, value] = state;
     const active = exactOne ? value === 1 : value >= 1;
-
     if (previous === 0 && active && Number.isFinite(at)) activations.push(at);
     previous = value;
   }
@@ -272,15 +264,12 @@ function recoverAuraActions(
 
   for (const config of AURA_RECOVERY) {
     const equippedWeapon = config.weaponSlot === 'main-hand' ? primaryWeapon : secondaryWeapon;
-
     if (equippedWeapon !== normalized(config.weapon)) continue;
     const skill = namedSkill(context, config.name);
-
     if (!skill) continue;
     const buffUptimes = Array.isArray(context.player.buffUptimes) ? context.player.buffUptimes : [];
     const states = buffUptimes.find((buff) => Number(buff.id) === config.buffId)?.states;
     const sources = new Set(config.baseSources);
-
     if (hasPistol) {
       for (const source of config.pistolSources || []) sources.add(source);
     }
@@ -289,11 +278,9 @@ function recoverAuraActions(
       if (!inSelectedPhase(context, at)) continue;
       const explained = actions.some((action) => {
         if (Math.abs(action.start - at) > AURA_WINDOW_MS) return false;
-
         if (config.swapElement && swappedElement(action) === config.swapElement) return true;
         return sources.has(actionName(action));
       });
-
       if (!explained) {
         recovered.push(inferredAction(skill, at, nextEventIndex(), 'elementalist-aura'));
       }
@@ -310,7 +297,6 @@ function recoverBlindingFlashActions(
 ): DpsReportRecordedAction[] {
   if (normalized(context.professionConfig?.primaryWeapon) !== 'scepter') return [];
   const skill = namedSkill(context, 'Blinding Flash');
-
   if (!skill) return [];
 
   const blindTimes = new Set<number>();
@@ -321,7 +307,6 @@ function recoverBlindingFlashActions(
     for (const buff of buffs) {
       const times =
         Number(buff.id) === BLIND_BUFF_ID ? blindTimes : Number(buff.id) === WEAKNESS_BUFF_ID ? weaknessTimes : null;
-
       if (!times) continue;
       for (const at of activationTimes(buff.states, false)) {
         if (inSelectedPhase(context, at)) times.add(at);
@@ -332,7 +317,6 @@ function recoverBlindingFlashActions(
   if (!blindTimes.size && !weaknessTimes.size) return [];
 
   const candidates = new Set<number>();
-
   if (blindTimes.size && weaknessTimes.size) {
     const sortedWeakness = [...weaknessTimes].sort((left, right) => left - right);
     let weaknessIndex = 0;
@@ -365,11 +349,8 @@ function recoverBlindingFlashActions(
       (action) =>
         WEAKNESS_SOURCES.has(actionName(action)) && Math.abs(action.start - at) <= BLINDING_FLASH_SOURCE_WINDOW_MS
     );
-
     if (blindTimes.size && weaknessTimes.size && hasBlindSource && hasWeaknessSource) continue;
-
     if (blindTimes.size && !weaknessTimes.size && hasBlindSource) continue;
-
     if (!blindTimes.size && weaknessTimes.size && hasWeaknessSource) continue;
     recovered.push(inferredAction(skill, at, nextEventIndex(), 'elementalist-blinding-flash'));
   }

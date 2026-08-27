@@ -21,7 +21,6 @@ function activateDragonhunterVirtue(context: GuardianCastContext, skill: Guardia
   // Delegates virtue state transitions to the shared core handler first,
   // then appends Dragonhunter-specific logic only for Wings of Resolve.
   guardianVirtueSkillHandlers['guardian.virtue'](context, skill);
-
   if (skill.id !== ID.WINGS_OF_RESOLVE) return false;
   applySoaringDevastation(context, skill, activePrimaryWeapon(context));
   return false;

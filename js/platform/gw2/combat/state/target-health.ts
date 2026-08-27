@@ -31,7 +31,6 @@ export function remainingTargetHealthFraction(
   state: Gw2TargetDamageState | null | undefined
 ): number | null {
   const maximum = Number(config?.target?.health || 0);
-
   if (!(maximum > 0)) return null;
   return clamp(1 - combinedTargetDamage(state) / maximum, 0, 1);
 }

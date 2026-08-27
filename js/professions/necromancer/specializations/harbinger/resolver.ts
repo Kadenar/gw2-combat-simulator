@@ -11,7 +11,6 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
   const firstHit = Number(event.hitIndex || 1) === 1;
-
   if (hasTrait(context, TRAIT.DOOM_APPROACHES) && firstHit && skill?.id === ID.TAINTED_BOLTS) {
     const vulnerability = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.doomApproaches), 'condition');
     applyTraitVulnerability(context, event, {

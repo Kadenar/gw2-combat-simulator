@@ -84,7 +84,6 @@ function asRecord(value: unknown): DraftRecord | null {
 
 function ensureRecord(parent: DraftRecord, key: string): DraftRecord {
   const existing = asRecord(parent[key]);
-
   if (existing) return existing;
   const created: DraftRecord = {};
   parent[key] = created;
@@ -98,52 +97,40 @@ function draftRecord(): DraftRecord {
 function professionPatch(professionId: string, create = false): DraftRecord | null {
   const root = draftRecord();
   const professions = create ? ensureRecord(root, 'professions') : asRecord(root.professions);
-
   if (!professions) return null;
-
   if (create) return ensureRecord(professions, professionId);
   return asRecord(professions[professionId]);
 }
 
 function skillEdit(skillId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
-
   if (!patch) return null;
   const skills = create ? ensureRecord(patch, 'skills') : asRecord(patch.skills);
-
   if (!skills) return null;
-
   if (create) return ensureRecord(skills, skillId);
   return asRecord(skills[skillId]);
 }
 
 function balanceProfileEdit(profileId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
-
   if (!patch) return null;
   const profiles = create ? ensureRecord(patch, 'balanceProfiles') : asRecord(patch.balanceProfiles);
-
   if (!profiles) return null;
-
   if (create) return ensureRecord(profiles, profileId);
   return asRecord(profiles[profileId]);
 }
 
 function modifierEdit(ruleId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
-
   if (!patch) return null;
   const rules = create ? ensureRecord(patch, 'modifierRules') : asRecord(patch.modifierRules);
-
   if (!rules) return null;
-
   if (create) return ensureRecord(rules, ruleId);
   return asRecord(rules[ruleId]);
 }
 
 function removeEmptyRecord(parent: DraftRecord | null, key: string): void {
   const record = parent && asRecord(parent[key]);
-
   if (record && !Object.keys(record).length) delete parent![key];
 }
 
@@ -151,14 +138,12 @@ function cleanupProfessionPatch(): void {
   const root = draftRecord();
   const professions = asRecord(root.professions);
   const patch = professions && asRecord(professions[selectedProfessionId]);
-
   if (!patch || !professions) return;
   for (const key of ['skills', 'balanceProfiles', 'modifierRules', 'constants']) {
     removeEmptyRecord(patch, key);
   }
 
   if (!Object.keys(patch).length) delete professions[selectedProfessionId];
-
   if (!Object.keys(professions).length) delete root.professions;
 }
 
@@ -178,7 +163,6 @@ function markDirty(message = 'Unsaved changes'): void {
 
 function editCount(professionId: string): number {
   const patch = professionPatch(professionId);
-
   if (!patch) return 0;
   return (
     Object.keys(asRecord(patch.skills) || {}).length +
@@ -234,7 +218,6 @@ function modifierValueRows(rule: NativePatchAuthoringModifierRule): string {
   const rows: string[] = [];
   for (const field of ['amount', 'factor'] as const) {
     const value = rule[field];
-
     if (value.kind === 'static' && value.value != null) {
       rows.push(
         numberInput({
@@ -534,7 +517,6 @@ function renderSelectedSkill(): void {
   }
 
   const editor = app.querySelector<HTMLElement>('.patch-skill-editor');
-
   if (editor) editor.innerHTML = skillDetail(selected);
 }
 
@@ -724,13 +706,11 @@ function render(): void {
 
   draft = generatePatchOverview(draft, payload.professions);
   const profession = selectedProfession() || payload.professions[0];
-
   if (profession && profession.professionId !== selectedProfessionId) {
     selectedProfessionId = profession.professionId;
   }
 
   const module = selectedModule() || profession?.modules[0] || null;
-
   if (module && module.id !== selectedModuleId) selectedModuleId = module.id;
   const changed = payload.professions.reduce((total, entry) => total + editCount(entry.professionId), 0);
   app.innerHTML = `<header class="patch-authoring-header">
@@ -799,7 +779,6 @@ function render(): void {
 function deleteModifierEdit(ruleId: string): void {
   const patch = professionPatch(selectedProfessionId);
   const rules = patch && asRecord(patch.modifierRules);
-
   if (rules) delete rules[ruleId];
   cleanupProfessionPatch();
 }
@@ -807,7 +786,6 @@ function deleteModifierEdit(ruleId: string): void {
 function deleteSkillEdit(skillId: string): void {
   const patch = professionPatch(selectedProfessionId);
   const skills = patch && asRecord(patch.skills);
-
   if (skills) delete skills[skillId];
   cleanupProfessionPatch();
 }
@@ -815,7 +793,6 @@ function deleteSkillEdit(skillId: string): void {
 function deleteBalanceProfileEdit(profileId: string): void {
   const patch = professionPatch(selectedProfessionId);
   const profiles = patch && asRecord(patch.balanceProfiles);
-
   if (profiles) delete profiles[profileId];
   cleanupProfessionPatch();
 }
@@ -823,7 +800,6 @@ function deleteBalanceProfileEdit(profileId: string): void {
 function setNumericEdit(input: HTMLInputElement): void {
   const current = Number(input.dataset.liveValue);
   const next = Number(input.value);
-
   if (!Number.isFinite(current) || !Number.isFinite(next)) {
     throw new TypeError('Preview values must be finite numbers.');
   }
@@ -832,45 +808,35 @@ function setNumericEdit(input: HTMLInputElement): void {
   const id = input.dataset.numericId || '';
   const field = input.dataset.numericField || '';
   const numericEdit = numericEditForValue(current, next);
-
   if (entity === 'modifier' || entity === 'modifier-parameter') {
     const edit = modifierEdit(id, Boolean(numericEdit));
-
     if (!edit) return;
     const target = entity === 'modifier-parameter' ? ensureRecord(edit, 'parameters') : edit;
-
     if (numericEdit) target[field] = numericEdit;
     else delete target[field];
     removeEmptyRecord(edit, 'parameters');
-
     if (!Object.keys(edit).length) deleteModifierEdit(id);
     return;
   }
 
   if (entity === 'skill') {
     const edit = skillEdit(id, Boolean(numericEdit));
-
     if (!edit) return;
     const fields = numericEdit ? ensureRecord(edit, 'fields') : asRecord(edit.fields);
-
     if (numericEdit) fields![field] = numericEdit;
     else if (fields) delete fields[field];
     removeEmptyRecord(edit, 'fields');
-
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
 
   if (entity === 'balance-profile') {
     const edit = balanceProfileEdit(id, Boolean(numericEdit));
-
     if (!edit) return;
     const fields = numericEdit ? ensureRecord(edit, 'fields') : asRecord(edit.fields);
-
     if (numericEdit) fields![field] = numericEdit;
     else if (fields) delete fields[field];
     removeEmptyRecord(edit, 'fields');
-
     if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
     return;
   }
@@ -882,14 +848,12 @@ function setNumericEdit(input: HTMLInputElement): void {
     );
     const tickIndex = input.dataset.tickIndex;
     const edit = skillEdit(id, Boolean(numericEdit));
-
     if (!edit || !Number.isInteger(effectIndex)) return;
     const effects = Array.isArray(edit.effects) ? (edit.effects as DraftRecord[]) : [];
     let effect = effects.find(
       (entry) =>
         entry.effectIndex === effectIndex && entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex))
     );
-
     if (!effect && numericEdit) {
       effect = {
         effectIndex,
@@ -903,10 +867,8 @@ function setNumericEdit(input: HTMLInputElement): void {
     const retained = effects.filter((entry) =>
       Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
     );
-
     if (retained.length) edit.effects = retained;
     else delete edit.effects;
-
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
@@ -915,14 +877,12 @@ function setNumericEdit(input: HTMLInputElement): void {
     const effectIndex = Number(input.dataset.effectIndex);
     const tickIndex = input.dataset.tickIndex;
     const edit = balanceProfileEdit(id, Boolean(numericEdit));
-
     if (!edit || !Number.isInteger(effectIndex)) return;
     const effects = Array.isArray(edit.effects) ? (edit.effects as DraftRecord[]) : [];
     let effect = effects.find(
       (entry) =>
         entry.effectIndex === effectIndex && entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex))
     );
-
     if (!effect && numericEdit) {
       effect = {
         effectIndex,
@@ -936,10 +896,8 @@ function setNumericEdit(input: HTMLInputElement): void {
     const retained = effects.filter((entry) =>
       Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
     );
-
     if (retained.length) edit.effects = retained;
     else delete edit.effects;
-
     if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
   }
 }
@@ -951,10 +909,8 @@ function toggleEffect(skillId: string, effectIndex: number): void {
   const next = removed
     ? removals.filter((selector) => selector.effectIndex !== effectIndex)
     : [...removals, { effectIndex }];
-
   if (next.length) edit.removeEffects = next;
   else delete edit.removeEffects;
-
   if (!Object.keys(edit).length) deleteSkillEdit(skillId);
 }
 
@@ -967,13 +923,10 @@ function addEffect(skillId: string): void {
 
 function removeAddedEffect(skillId: string, index: number): void {
   const edit = skillEdit(skillId);
-
   if (!edit || !Array.isArray(edit.addEffects)) return;
   const effects = (edit.addEffects as SkillEffect[]).filter((_, effectIndex) => effectIndex !== index);
-
   if (effects.length) edit.addEffects = effects;
   else delete edit.addEffects;
-
   if (!Object.keys(edit).length) deleteSkillEdit(skillId);
 }
 
@@ -988,7 +941,6 @@ async function loadAuthoring(): Promise<void> {
     const result = (await response.json()) as AuthoringPayload & {
       error?: string;
     };
-
     if (!response.ok) throw new Error(result.error || 'Authoring API failed.');
     payload = result;
     draft = structuredClone(result.preview || createPatchPreviewDraft());
@@ -1027,7 +979,6 @@ async function saveAuthoring(): Promise<void> {
       rebuildRequired?: boolean;
       error?: string;
     };
-
     if (!response.ok || !result.preview) {
       throw new Error(result.error || 'Patch preview save failed.');
     }
@@ -1046,9 +997,7 @@ async function saveAuthoring(): Promise<void> {
 
 app.addEventListener('click', (event) => {
   const button = (event.target as Element).closest<HTMLButtonElement>('button');
-
   if (!button) return;
-
   if (button.dataset.selectProfession) {
     selectedProfessionId = button.dataset.selectProfession;
     selectedModuleId = 'Core';
@@ -1097,7 +1046,6 @@ app.addEventListener('click', (event) => {
 
 app.addEventListener('change', (event) => {
   const target = event.target;
-
   if (target instanceof HTMLSelectElement && target.hasAttribute('data-new-effect-type')) {
     return;
   }
@@ -1106,7 +1054,6 @@ app.addEventListener('change', (event) => {
     if (target instanceof HTMLInputElement && target.dataset.previewField) {
       const field = target.dataset.previewField as keyof PatchPreview;
       const record = draftRecord();
-
       if (target.value) record[field] = target.value;
       else delete record[field];
       markDirty();
@@ -1119,7 +1066,6 @@ app.addEventListener('change', (event) => {
       search = target.value;
     } else if (target instanceof HTMLTextAreaElement && target.dataset.addedEffect != null) {
       const parsed = JSON.parse(target.value) as SkillEffect;
-
       if (!parsed || typeof parsed !== 'object' || !parsed.type) {
         throw new TypeError('An added effect must be a JSON object with a type.');
       }

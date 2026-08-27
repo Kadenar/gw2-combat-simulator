@@ -56,7 +56,6 @@ export function recordedDuration(
     .filter((action) => action.rawName.trim().toLowerCase() === normalizedName)
     .map((action) => action.end - action.start)
     .sort((left, right) => left - right);
-
   if (exactDurations.length) {
     return exactDurations[Math.floor(exactDurations.length / 2)];
   }

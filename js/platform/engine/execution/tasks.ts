@@ -50,15 +50,12 @@ export function createTaskQueue<TContext, TPayload>({
   const schedule = (input: ScheduledTaskInput<TPayload>): string => {
     const { id, type, at, priority = 0, ownerId = null, payload = null, required = true } = input;
     const normalizedAt = Number(at);
-
     if (!Number.isFinite(normalizedAt)) {
       throw new TypeError('Scheduled task timestamps must be finite.');
     }
 
     const normalizedType = String(type || '');
-
     if (!normalizedType) throw new TypeError('Scheduled tasks require a type.');
-
     if (required && !registered.has(normalizedType)) {
       throw new TypeError(`No scheduled task handler is registered for "${normalizedType}".`);
     }
@@ -97,14 +94,12 @@ export function createTaskQueue<TContext, TPayload>({
   // Availability rules can target one queued mechanic without being delayed by unrelated work.
   const nextAt = (type?: string): number => {
     discardCancelledHead();
-
     if (type == null) return queue[0]?.at ?? Infinity;
     return queue.find((task) => task.type === type && !isCancelled(task))?.at ?? Infinity;
   };
 
   const drainThrough = (target: number, context: TContext): void => {
     const normalizedTarget = Number(target);
-
     if (!Number.isFinite(normalizedTarget)) {
       throw new TypeError('Task drain target must be finite.');
     }
@@ -113,11 +108,8 @@ export function createTaskQueue<TContext, TPayload>({
     let sameTimeCount = 0;
     while (nextAt() <= normalizedTarget + epsilon) {
       const task = queue.shift();
-
       if (!task) continue;
-
       if (isCancelled(task)) continue;
-
       if (lastAt != null && Math.abs(task.at - lastAt) <= epsilon) {
         sameTimeCount += 1;
       } else {
@@ -134,7 +126,6 @@ export function createTaskQueue<TContext, TPayload>({
       }
 
       const handler = registered.get(task.type);
-
       if (typeof handler === 'function') handler(context, task);
     }
   };

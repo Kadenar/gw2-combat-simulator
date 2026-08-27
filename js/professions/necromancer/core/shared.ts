@@ -104,7 +104,6 @@ export function gainNecromancerLifeForce(
     state.lifeForce + ((Number(amount) * Number(state.maximumLifeForce || 100)) / 100) * multiplier
   );
   syncNecromancerResources(state);
-
   if (state.lifeForce !== before && reason) {
     emitStateSnapshot(context, 'necromancer', at, reason, snapshotNecromancerState(context.state.profession), {
       dedupeAcrossSourceIds: true
@@ -133,7 +132,6 @@ export function registerCreatureSummonReaction(
   reaction: CreatureSummonReaction
 ): void {
   let reactions = creatureSummonReactions.get(context.state);
-
   if (!reactions) {
     reactions = new Map();
     creatureSummonReactions.set(context.state, reactions);
@@ -164,7 +162,6 @@ export function registerNecromancerCreatureStrikeMultiplier(
   multiplier: CreatureStrikeMultiplier
 ): void {
   let multipliers = creatureStrikeMultipliers.get(context.state);
-
   if (!multipliers) {
     multipliers = new Map();
     creatureStrikeMultipliers.set(context.state, multipliers);

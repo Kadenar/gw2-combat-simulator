@@ -129,7 +129,6 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
   },
   validateExtra(build) {
     const errors: string[] = [];
-
     if (Array.isArray(build.alternateWeapons) && build.alternateWeapons.some(Boolean)) {
       errors.push('Elementalist cannot equip a second weapon set.');
     }

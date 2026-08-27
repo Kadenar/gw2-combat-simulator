@@ -20,7 +20,6 @@ function inferredAction(
   eventOffset: number
 ): DpsReportRecordedAction | null {
   const skill = namedSkill(context, name);
-
   if (!skill || typeof skill.id !== 'number') return null;
   return {
     start,
@@ -45,7 +44,6 @@ function hasOpeningDependency(
 ): boolean {
   const opening = firstDemonSwap ? actions.filter((action) => action.start < firstDemonSwap.start) : actions;
   const consume = opening.find((action) => normalized(action.rawName) === normalized(consumeName));
-
   if (!consume) return false;
   return !opening.some(
     (action) => normalized(action.rawName) === normalized(facetName) && action.start <= consume.start
@@ -66,7 +64,6 @@ function provesOpeningSpiritcrush(
         candidate.start - action.end <= 2_000 &&
         normalized(candidate.rawName) === 'sevenshot'
     );
-
     if (shotIndex < 0) return false;
     return !actions
       .slice(index + 1, shotIndex)
@@ -87,7 +84,6 @@ export function reconstructHeraldDpsReportActions(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
   const anchor = sorted[0];
-
   if (!anchor) return [];
 
   const firstDemonSwap = sorted.find((action) => normalized(action.rawName) === 'legendary demon stance');

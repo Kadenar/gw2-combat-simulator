@@ -38,7 +38,6 @@ export function activationDamageCommitMs(
   skill: Pick<Skill, 'effects' | 'interruptCommitMs' | 'interruptMode'> | null | undefined
 ): number | null {
   if (!skill) return null;
-
   // Per-packet channels do not require a commit cutoff; each landed packet is independently valid.
   if (skill.interruptMode === 'per-packet') return 0;
   const damageEffects = (skill.effects || []).filter(
@@ -48,7 +47,6 @@ export function activationDamageCommitMs(
     .map((effect) => effect.interruptCommitMs ?? skill.interruptCommitMs)
     .filter((cutoff): cutoff is number => Number.isFinite(Number(cutoff)) && Number(cutoff) >= 0)
     .map(Number);
-
   if (cutoffs.length) return Math.min(...cutoffs);
   const skillCutoff = Number(skill.interruptCommitMs);
   return skill.interruptCommitMs != null && Number.isFinite(skillCutoff) && skillCutoff >= 0 ? skillCutoff : null;
@@ -68,13 +66,11 @@ export function activationDamageCommitWarning(
   damageCommitMs: number | null | undefined
 ): string {
   const cutoff = Number(damageCommitMs);
-
   if (damageCommitMs == null || !Number.isFinite(cutoff) || cutoff < 0) {
     return 'No damage commit time is configured. This interrupted skill will contribute no damage; configure interruptCommitMs before using interruption.';
   }
 
   const interrupt = Number(interruptMs);
-
   if (Number.isFinite(interrupt) && interrupt < cutoff) {
     return `This skill will contribute no damage before its ${cutoff} ms damage commit time. Enter at least ${cutoff} ms to use interruption.`;
   }
@@ -87,7 +83,6 @@ export function validateActivationInterruptMs(
   fullCastMs: number | null | undefined = null
 ): ActivationInterruptValidation {
   const parsed = Number(rawValue);
-
   if (!Number.isFinite(parsed) || parsed < 1) {
     return {
       valid: false,
@@ -97,7 +92,6 @@ export function validateActivationInterruptMs(
 
   const value = Math.round(parsed);
   const fullDuration = Math.round(Number(fullCastMs) || 0);
-
   if (fullDuration > 0 && value >= fullDuration) {
     return {
       valid: false,
@@ -115,7 +109,6 @@ export function validateActivationConcurrentOffsetMs(
 ): ActivationInterruptValidation {
   const parsed = Number(rawValue);
   const normalizedMinimum = minimumMs == null ? null : Math.round(Number(minimumMs) || 0);
-
   if (
     (typeof rawValue === 'string' && rawValue.trim() === '') ||
     !Number.isFinite(parsed) ||
@@ -239,7 +232,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   normalRadio.checked = !hasConfiguredTiming;
   configuredRadio.checked = hasConfiguredTiming;
   input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
-
   if (!isConcurrentBehavior && fullCastMs > 1) input.max = String(fullCastMs - 1);
   fullCast.textContent = !isConcurrentBehavior && fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
@@ -266,7 +258,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   normalRadio.addEventListener('change', updateMode);
   configuredRadio.addEventListener('change', () => {
     updateMode();
-
     if (configuredRadio.checked) {
       input.focus();
       input.select();
@@ -291,7 +282,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     const viewportPadding = 8;
     let opensLeft = false;
     let left = anchorRect.right + gap;
-
     if (left + editorRect.width > window.innerWidth - viewportPadding) {
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
@@ -314,7 +304,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
 
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
-
     if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
@@ -338,7 +327,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       document.removeEventListener('scroll', onViewportChange, true);
       window.removeEventListener('resize', onViewportChange);
       editor.remove();
-
       if (activeEditor === handle) activeEditor = null;
     }
   };
@@ -353,7 +341,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     const validation = isConcurrentBehavior
       ? validateActivationConcurrentOffsetMs(input.value, minimumMs)
       : validateActivationInterruptMs(input.value, fullCastMs);
-
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();
@@ -387,7 +374,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   document.addEventListener('keydown', onKeyDown, true);
   document.addEventListener('scroll', onViewportChange, true);
   window.addEventListener('resize', onViewportChange);
-
   if (hasConfiguredTiming) {
     input.focus();
     input.select();

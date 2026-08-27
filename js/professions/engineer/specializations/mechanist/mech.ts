@@ -147,11 +147,9 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
     event.skillId === ID.JADE_BUSTER_CANNON ||
     (slot >= 1 && slot <= 3);
-
   if (!engineerMech) return;
 
   const updates = { engineerMech: true };
-
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
     const basicAttack =
       event.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
@@ -305,7 +303,6 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
 
 export function initializeEngineerMech(context: EngineerSchedulerContext): void {
   const state = mechanistState.from(context);
-
   if (!state.mech.enabled || !state.mech.active) return;
   scheduleMechAttack(context, engineerBalanceValue(context, PROFILE.attackTiming, 'initialDelay', 1), { phase: 0 });
 }
@@ -315,9 +312,7 @@ export function handleEngineerMechAttack(
   task: EngineerScheduledTask<MechAttackPayload>
 ): void {
   const state = mechanistState.from(context);
-
   if (!state.mech.enabled) return;
-
   if (!state.mech.active) {
     scheduleMechAttack(context, task.at + 1, { phase: 0 });
     return;
@@ -325,7 +320,6 @@ export function handleEngineerMechAttack(
 
   // Mech is mid-command; hold the attack chain until the command animation ends.
   const busyUntil = Number(state.mech.busyUntil || 0);
-
   if (task.at < busyUntil - context.epsilon) {
     scheduleMechAttack(context, busyUntil, task.payload || { phase: 0 });
     return;
@@ -333,7 +327,6 @@ export function handleEngineerMechAttack(
 
   const rate = mechAttackRate(context);
   const phase = Number(task.payload?.phase || 0);
-
   if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
     const firstArm = phase === 0;
     emitMechStrike(context, {
@@ -412,7 +405,6 @@ export function handleEngineerMechAttack(
 
 export function activateOverclockSignet(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = mechanistState.from(context);
-
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
   const interval = engineerBalanceValue(context, PROFILE.overclock, 'pulseInterval', 0.65);

@@ -148,7 +148,6 @@ export function createMirageActionController({
     for (const clone of clones) {
       const weapon = clone.weapon || activePrimaryWeapon();
       const ambush = ambushAttacks[weapon];
-
       if (!ambush) continue;
       const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
       const pseudo = {
@@ -206,7 +205,6 @@ export function createMirageActionController({
     for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
       const shatter = skillsById.get(id);
       const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
-
       if (shatter && readyAt != null) {
         state.cooldowns.set(
           shatter.id,
@@ -237,7 +235,6 @@ export function createMirageActionController({
       duration,
       sourceSkill: source
     });
-
     if (traits.has(TRAIT.RENEWING_OASIS)) {
       addBoon(
         at,
@@ -260,7 +257,6 @@ export function createMirageActionController({
     }
 
     reduceDuneCloakShatters(at, source);
-
     if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
       mirageState.from(state).cloneAmbushUntil = at + duration;
       executeCloneAmbushes(at, professionCoreState(state).clones);
@@ -273,7 +269,6 @@ export function createMirageActionController({
     // rotation swaps weapons before completion mechanics are dispatched.
     const weapon = skill.weapon || activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
-
     if (!ambush || skill.id !== ambush.id) return;
     const pseudo = {
       id: ambush.name,
@@ -286,7 +281,6 @@ export function createMirageActionController({
     const impactTimes = ambush.player.ticks?.length
       ? ambush.player.ticks.map((tick) => castStart + tick.atMs / 1000)
       : [impactAt];
-
     if (ambush.player.ticks?.length) {
       const coefficientPerHit = ambush.player.coefficient / Math.max(1, ambush.player.hits);
       for (const packetAt of impactTimes) {
@@ -361,7 +355,6 @@ export function createMirageActionController({
   // Handles Mirage-only shatter effects after Core resolves the shared shatter packet and resource spend.
   const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number) => {
     if (config.specialization !== 'Mirage') return;
-
     if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
       mirageState.from(state).riddleOfSandReady = true;
       addTraitProc('Riddle of Sand', at, skill.name, 'ambush primed');
@@ -407,7 +400,6 @@ export function createMirageActionController({
   const pickUpMirror = (at: number, source: string) => {
     const mirrors = mirageState.from(state).mirrors;
     const index = mirrors.findIndex((mirror) => mirror.availableAt <= at + epsilon && mirror.expiresAt > at + epsilon);
-
     if (index < 0) return false;
     mirrors.splice(index, 1);
     const pseudo = {

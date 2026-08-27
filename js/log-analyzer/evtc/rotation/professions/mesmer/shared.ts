@@ -249,7 +249,6 @@ export function selectedSkill(
   identity: MesmerActionIdentity
 ): boolean | null {
   const hasSelection = (context.selectedSkillIds?.length || 0) > 0 || (context.selectedSkillNames?.length || 0) > 0;
-
   if (!hasSelection) return null;
   return (
     context.selectedSkillIds?.includes(identity.skillId) === true ||
@@ -288,7 +287,6 @@ export function dedupeActions(
         (candidate.canonicalSkillId ?? candidate.rawSkillId) === identity &&
         Math.abs(candidate.start - action.start) <= windowMs
     );
-
     if (!duplicate) kept.push(action);
   }
 

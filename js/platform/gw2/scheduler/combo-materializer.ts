@@ -95,7 +95,6 @@ function hasEffectFinishers(effects: readonly SchedulerRecord[] | undefined): bo
 function finisherDescriptors(context: SchedulerContext, event: SimulationEvent): readonly OwnedFinisherDescriptor[] {
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
   let descriptors: readonly Readonly<SchedulerRecord>[] = [];
-
   if (Array.isArray(event.comboFinishers)) {
     descriptors = event.comboFinishers;
   } else if (
@@ -105,7 +104,6 @@ function finisherDescriptors(context: SchedulerContext, event: SimulationEvent):
     const sourceMatches = event.sourceId === skill.id;
     const actionWithoutStrikes = event.type === 'action' && !skill.effects?.some((effect) => effect.type === 'strike');
     const damagingPacket = event.type === 'damage' && Number(event.coefficient || 0) > 0;
-
     if (sourceMatches && (actionWithoutStrikes || damagingPacket)) {
       descriptors = skill.comboFinishers;
     }
@@ -153,7 +151,6 @@ function descriptorBinding(
   warnOnUnbound: boolean;
 } {
   const explicit = descriptor.fieldBinding as ComboFieldBinding | undefined;
-
   if (explicit) {
     const field =
       explicit.kind === 'field-id'
@@ -189,7 +186,6 @@ function taskPriority(event: SimulationEvent): number {
 
 function projectilePacketIdentity(event: SimulationEvent, parentEventOrder: number): string {
   if (event.hitIndex != null) return `hit:${String(event.hitIndex)}`;
-
   if (event.applicationIndex != null) {
     return `application:${String(event.applicationIndex)}`;
   }
@@ -232,7 +228,6 @@ function produceField(
   descriptorIndex: number
 ): void {
   const at = fieldAt(event, descriptor);
-
   if (!(descriptor.duration > 0) || !Number.isFinite(descriptor.duration)) {
     return;
   }
@@ -300,7 +295,6 @@ function produceFinisher(
 /** Produces semantic combo events from canonical descriptors on one event. */
 export function produceGw2OwnedComboEvents(context: SchedulerContext, event: SimulationEvent): void {
   if (event.cancelled === true) return;
-
   if (Array.isArray(event.comboFields) && Number(event.hitIndex ?? event.applicationIndex ?? 1) !== 1) {
     return;
   }
@@ -323,7 +317,6 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
 
     onEventScheduled(context: SchedulerContext, event: SimulationEvent): void {
       if (event.schedulerPrediction === 'combo-result') return;
-
       if (event.type === 'combo_field' || event.type === 'combo_finisher') {
         if (event.type === 'combo_field') {
           rebindPendingFinishers(context, String(event.ownerId));
@@ -344,7 +337,6 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
     handleTask(context: SchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
       const original = task.payload?.event as SimulationEvent;
       const event = currentEvent(context, original);
-
       if (event.type === 'combo_field') {
         registerComboField(state, event as ComboFieldEvent);
         return;

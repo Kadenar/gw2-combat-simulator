@@ -81,7 +81,6 @@ function briskPacingAmount(
   parameters: Readonly<Record<string, number>>
 ): number {
   const current = motivation(context);
-
   if (current <= 0) return 0;
   const strike =
     current >= parameters.highThreshold

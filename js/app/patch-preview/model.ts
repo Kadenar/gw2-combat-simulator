@@ -29,7 +29,6 @@ interface SkillGroupIdentity {
 
 function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentity {
   const type = String(entry.skill.type || 'Skill');
-
   if (type === 'Weapon') {
     const weapon = String(entry.skill.weapon || '').trim();
     return weapon
@@ -94,11 +93,8 @@ export function createPatchPreviewDraft(): PatchPreview {
 
 export function numericEditValue(liveValue: number, edit?: NumEdit): number {
   if (edit == null) return liveValue;
-
   if (typeof edit === 'number') return edit;
-
   if ('from' in edit) return edit.to;
-
   if ('multiply' in edit) return liveValue * edit.multiply;
   return liveValue + edit.add;
 }
@@ -160,9 +156,7 @@ function formatNumber(value: number): string {
 
 function describeNumEdit(field: string, edit: NumEdit): string {
   const label = fieldLabel(field);
-
   if (typeof edit === 'number') return `${label} set to ${formatNumber(edit)}`;
-
   if ('from' in edit) {
     return `${label} ${formatNumber(edit.from)} → ${formatNumber(edit.to)}`;
   }
@@ -221,7 +215,6 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   for (const effect of edit.effects || []) {
     for (const field of PATCHABLE_EFFECT_NUMERIC_FIELDS) {
       const numericEdit = effect[field];
-
       if (numericEdit != null) {
         changes.add(`${effectTarget(effect)} ${describeNumEdit(field, numericEdit)}`);
       }
@@ -282,7 +275,6 @@ function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   const changes: string[] = [];
   for (const field of ['amount', 'factor'] as const) {
     const numericEdit = edit[field];
-
     if (numericEdit != null) {
       changes.push(describeNumEdit(field, numericEdit));
     }
@@ -332,7 +324,6 @@ export function generatePatchOverview(
       ...generatedBalanceProfileOverview(balanceProfiles, professionMetadata),
       ...generatedModifierOverview(modifierRules, professionMetadata)
     ];
-
     if (overview.length) patch.overview = overview;
     else delete patch.overview;
   }
@@ -359,7 +350,6 @@ function compactValue(value: unknown): unknown {
 
 export function compactPatchPreview(preview: PatchPreview): PatchPreview {
   const compacted = compactValue(structuredClone(preview)) as MutableRecord | undefined;
-
   if (!compacted) return createPatchPreviewDraft();
   compacted.id = preview.id;
   compacted.label = preview.label;

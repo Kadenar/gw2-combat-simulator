@@ -60,7 +60,6 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // ferocity and conditionDamage added here rather than as modifier rules because they must feed into crit-damage and condition scaling before those are computed
 export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = { ...attributes };
-
   if (
     context.config?.evokerElement === 'Air' &&
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))

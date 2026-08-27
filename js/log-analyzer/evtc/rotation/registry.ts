@@ -54,7 +54,6 @@ export function reconstructEvtcRotation(
 ): EvtcRotationReconstruction {
   const players = detectEvtcRotationPlayers(log);
   let explicitMatch: ((candidate: (typeof players)[number]) => boolean) | undefined;
-
   if (options.playerAddress != null) {
     let address: bigint | null = null;
     try {
@@ -84,7 +83,6 @@ export function reconstructEvtcRotation(
   const player = selection.player;
 
   const parser = getEvtcProfessionRotationParser(player.professionId, player.specializationId);
-
   if (!parser) {
     throw new EvtcError(
       'UNSUPPORTED_PROFESSION',

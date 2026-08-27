@@ -99,7 +99,6 @@ function bladeswornPrecasts(
     playerInitialBuff(context, TACTICAL_RELOAD_BUFF) &&
     playerInitialBuff(context, SUPERCHARGED_CARTRIDGES_BUFF) &&
     detectedWarriorCorePrecast(context, 'mending');
-
   if (!firstTrigger || !hasInitialSequence) return [];
 
   const identities: readonly WarriorActionIdentity[] = [
@@ -162,7 +161,6 @@ function flowStabilizerActions(
   const groups: (typeof signals)[] = [];
   for (const signal of signals) {
     const current = groups.at(-1);
-
     if (!current || signal.event.time - current[0].event.time > SIGNAL_WINDOW_MS) {
       groups.push([signal]);
     } else {
@@ -172,7 +170,6 @@ function flowStabilizerActions(
 
   return groups.flatMap((group) => {
     const signal = group[0];
-
     if (group.length < 2 || hasActionNear(actions, FLOW_STABILIZER, signal.event.time)) {
       return [];
     }
@@ -233,11 +230,9 @@ function flickerStepActions(
     const trigger = [...triggers]
       .reverse()
       .find((candidate) => candidate.start <= event.time && event.time <= candidate.end + PEITHA_TRIGGER_GRACE_MS);
-
     if (!trigger || used.has(trigger)) return [];
     used.add(trigger);
     const time = Math.min(event.time, Math.max(trigger.start, trigger.end - 1));
-
     if (hasActionNear(actions, FLICKER_STEP, time)) return [];
     return [instantAction(eventIndex, time, event.skillId, 'Relic of Peitha', FLICKER_STEP)];
   });

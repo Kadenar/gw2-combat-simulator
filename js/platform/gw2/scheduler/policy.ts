@@ -84,7 +84,6 @@ function baseCastDurationMs(skill: Skill): number {
 function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, effect: SkillEffect): SkillEffect {
   if (effect.timingScale !== 'cast') return effect;
   const baseCastMs = baseCastDurationMs(skill);
-
   if (!(baseCastMs > 0) || skill.unaffectedByQuickness) return effect;
   const adjustedCastMs = Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   // Return a copy because skill metadata is shared by every simulation run.
@@ -115,7 +114,6 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
 ): boolean {
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
-
   if (isDurationStackingBoon(normalized)) {
     return (
       remainingDurationStackSeconds(context.events, at + context.epsilon, {
@@ -180,7 +178,6 @@ export function isGw2WeaponSkillEquipped(
     skill.requiredOffHand != null ||
     skill.weaponSet?.mainHand != null ||
     skill.weaponSet?.offHand != null;
-
   if (!hasExplicitRequirement && (skill.type !== 'Weapon' || !skill.weapon)) {
     return true;
   }
@@ -265,7 +262,6 @@ export function createGw2SchedulerPolicy(
 
     effectDuration(_context, _skill, effect, baseDuration) {
       const boon = effect.boon || effect.kind || effect.name;
-
       // Generic positive buffs have fixed durations. Concentration and boon-
       // duration bonuses apply only to authored standard-boon applications.
       if (effect.fixedDuration === true || effect.type !== 'boon' || !isStandardBoon(boon)) {
@@ -304,7 +300,6 @@ export function createGw2SchedulerPolicy(
 
     buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {
       if (!isDurationStackingBoon(kind)) return defaultStacks;
-
       if (configuredStacks > 0) return 1;
       return remainingDurationStackSeconds(applications, at + context.epsilon, {
         maximum: durationStackingBoonCapSeconds(kind)
@@ -315,7 +310,6 @@ export function createGw2SchedulerPolicy(
 
     castDuration(context, skill, baseDuration) {
       if (skill.unaffectedByQuickness) return baseDuration;
-
       // Quickness is snapshotted at cast start for both the action and any
       // cast-scaled effect offsets belonging to that action.
       if (!context.hasBuff('quickness', context.start)) return baseDuration;
@@ -332,7 +326,6 @@ export function createGw2SchedulerPolicy(
 
     rechargeDuration(context, skill, baseDuration) {
       const at = Number(context.at ?? context.effectiveEnd ?? context.start ?? 0);
-
       if (OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) && !materializer.isCombatActive()) {
         return 0;
       }

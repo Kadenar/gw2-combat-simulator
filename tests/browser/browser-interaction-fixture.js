@@ -12,7 +12,6 @@ const waitFor = async (predicate, timeoutMs = 3000) => {
 
   while (performance.now() < deadline) {
     if (predicate()) return;
-
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
 

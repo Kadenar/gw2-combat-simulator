@@ -10,7 +10,6 @@ export function modifyRechargeDuration(
   duration: number
 ): number {
   const skill = context.skill;
-
   // Weapon_1 excluded — auto-attacks don't benefit from Elemental Balance CDR
   if (
     !skill ||
@@ -22,7 +21,6 @@ export function modifyRechargeDuration(
   }
 
   const state = evokerState.from(context);
-
   if (state.elementalBalanceUntil <= context.state.time + context.epsilon) {
     return duration;
   }

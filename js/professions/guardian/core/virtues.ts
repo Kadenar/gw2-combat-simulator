@@ -36,7 +36,6 @@ const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null,
 function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boolean {
   const slot = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
   const virtue = VIRTUES_BY_SLOT[slot];
-
   if (!virtue) return false;
   const state = professionCoreState(context);
   state.lastVirtue = virtue;
@@ -87,10 +86,8 @@ export const guardianVirtueSkillHandlers = Object.freeze({
  */
 export function handleVirtueActivation(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const virtue = event.virtue;
-
   if (!virtue) return;
   professionCoreState(context).virtueReadyAt[virtue] = Number(event.passiveReadyAt || event.at);
-
   if (virtue === 'justice' && event.skillId === GUARDIAN_SKILL_IDS.JUSTICE) {
     professionCoreState(context).justiceActiveArmed = true;
     professionCoreState(context).justiceArmed = true;
@@ -154,7 +151,6 @@ function applyJusticeBurn(
     duration: Number(burn?.duration || (active ? 2 : 1.2))
   });
   professionCoreState(context).justiceBurns += 1;
-
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
   context.recordProc('profession', active ? 'Justice Active' : 'Justice Passive', event.at, event.skillName);
@@ -178,7 +174,6 @@ export function reactToJusticeHitWithOptions(
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = professionCoreState(context);
-
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
     state.justiceArmed = false;
@@ -198,7 +193,6 @@ export function reactToJusticeHitWithOptions(
       ? guardianBalanceProfile(context, PROFILE.permeatingWrath)?.threshold || 3
       : guardianBalanceProfile(context, PROFILE.justice)?.threshold || 5
   );
-
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;
   applyJusticeBurn(context, event, {

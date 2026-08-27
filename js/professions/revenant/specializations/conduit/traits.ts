@@ -31,7 +31,6 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
   const mainExtensionProfile = context.catalog.balanceProfilesById.get(
     CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
   );
-
   if (!followUpProfile || !mainExtensionProfile) {
     throw new Error('Missing Beguiling Haze cast-duration profiles.');
   }
@@ -49,10 +48,8 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
 
 export function modifyConduitRechargeDuration(context: RevenantRechargeContext, duration: number): number {
   const skill = context.skill;
-
   // Skip recharge modification for an already-zero cooldown to avoid turning a free swap into a 0 * 0.6 no-op.
   if (duration === 0 && skill?.id === ID.SWAP_LEGENDS) return 0;
-
   if (
     skill?.id === ID.SWAP_LEGENDS &&
     revenantCombatActive(context, context.at) &&
@@ -92,13 +89,11 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
 export function afterConduitTraitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   // Cosmic Wisdom form procs (Lesser Enchanted Daggers, Dervish Attack) fire after cast completes.
   applyCosmicWisdomAfterCast(context, skill);
-
   // Shared Wisdom swiftness is only granted for Entity legend skills, not for all Conduit skills.
   if (skill.legendId === LEGEND.ENTITY && hasTrait(context.config, TRAIT.SHARED_WISDOM)) {
     const shared = context.catalog.balanceProfilesById
       .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
       ?.effects?.find((effect) => effect.metadata?.trigger === 'entity-skill');
-
     if (shared?.type === 'boon' && shared.boon) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -152,7 +147,6 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
   const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
   const burning = profile?.effects?.find((effect) => effect.type === 'condition');
   const readyAt = Number(state.mistfireReadyAt || 0);
-
   // Mistfire follows the shared strict ICD boundary used by other event-driven procs.
   if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));

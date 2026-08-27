@@ -111,7 +111,6 @@ function targetConditionCount(context: Gw2ModifierContext): number {
 
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
-
   if (context.timeline?.timedActive(boon, context.time)) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) => application.at <= context.time && application.expiresAt > context.time
@@ -199,7 +198,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   if (petEvent(context) && hasTrait(context, TRAIT.FANG_AND_CLAW)) {
     const family = activePetFamily(context);
-
     if (['feline', 'avian', 'drake'].includes(family)) {
       adjust('precision', rangerBalanceValue(context, PROFILE.fangAndClaw, 'attributeBonus', 420));
       adjust('ferocity', rangerBalanceValue(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
@@ -208,7 +206,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
     const family = activePetFamily(context);
-
     if (['spider', 'devourer'].includes(family)) {
       adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
     }
@@ -314,7 +311,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   if (petEvent(context) && hasTrait(context, TRAIT.WELLSPRING)) {
     const conversion = rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07);
-
     if (staticRulesApplied) {
       adjust('healingPower', -Number(context.config?.stats?.power || 0) * 0.07);
     }
@@ -332,9 +328,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
     const bonus = rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
-
     if (staticRulesApplied) adjust('ferocity', active ? bonus - 180 : -180);
-
     if (!staticRulesApplied && active) adjust('ferocity', bonus);
   }
 
@@ -346,7 +340,6 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   let result = duration;
   const skill = eventSkill(context);
-
   if (skill?.categories?.includes('Trap') && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     return (
       duration *
@@ -579,7 +572,6 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => {
       const coefficient = Number(context.event?.coefficient || 0);
-
       if (!(coefficient > 0)) return 1;
       const conditions = Math.min(parameters.maximumConditions, targetConditionCount(context));
       return (coefficient + conditions * parameters.coefficientPerCondition) / coefficient;
@@ -609,7 +601,6 @@ export const rangerCoreCastRules = Object.freeze({
     const skill = context.skill;
     let result = duration;
     const state = professionCoreState(context);
-
     if (
       skill?.type === 'Weapon' &&
       skill.slot !== 'Weapon_1' &&

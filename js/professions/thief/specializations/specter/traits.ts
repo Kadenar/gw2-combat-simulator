@@ -34,7 +34,6 @@ interface DarkSentryTaskPayload extends Record<string, unknown> {
 export function completeShadowShroudSkill(context: ThiefCastContext, skill: ThiefSkill): void {
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-
   if (hasTrait(context.config, TRAIT.SHADESTEP)) {
     const profile = thiefBalanceProfile(context, PROFILE.shadeStep);
     const authoredBoon =
@@ -45,7 +44,6 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
           : skill.id === ID.MIND_SHOCK
             ? { index: 2, fallback: 'aegis', duration: 4 }
             : null;
-
     if (authoredBoon) {
       // Resolve the selected Shade Step packet once, then emit it through the canonical boon path.
       const effect = thiefBalanceProfileEffect(profile, 'boon', authoredBoon.index);
@@ -83,7 +81,6 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       Number(profile?.maximumTargets || 4),
       gw2AlliedPlayerAssumptions(context.config).count
     );
-
     if (!alliedRecipients) return;
     const allyIndices = Array.from({ length: alliedRecipients }, (_, index) => index + 1);
     emitSkillBuff(context, {
@@ -133,7 +130,6 @@ export function handleLarcenousTorment(
   task: ThiefScheduledTask<LarcenousTormentTaskPayload>
 ): void {
   const stacks = Math.max(0, Number(task.payload.stacks || 0));
-
   if (!(stacks > 0)) return;
   const state = specterState.from(context);
   const profile = thiefBalanceProfile(context, PROFILE.larcenousTorment);
@@ -167,7 +163,6 @@ export function handleDarkSentry(
     isInternalCooldownReady(task.at, Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0))
   );
   const recipientCount = eligibleAllies.length;
-
   if (!recipientCount) return;
   const profile = thiefBalanceProfile(context, PROFILE.darkSentry);
   const venom = thiefBalanceProfileEffect(profile, 'buff');
@@ -194,7 +189,6 @@ export function handleDarkSentry(
     recipientCount,
     maximumRecipients: recipientCount
   });
-
   // Rot Wallow Venom procs on the next allied strike, not immediately on application.
   if (party.strikesPerSecond > 0) {
     const procAt = task.at + 1 / party.strikesPerSecond;

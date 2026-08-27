@@ -33,7 +33,6 @@ async function resolveFile(relative) {
     const target = path.resolve(directory, relative);
 
     if (!isWithin(directory, target)) return null;
-
     try {
       const metadata = await stat(target);
 
@@ -67,7 +66,6 @@ function acceptedEncoding(header = '') {
 // Determines the appropriate Cache-Control header for a given file based on its extension and location within the site structure.
 function cacheControl(file, extension) {
   if (extension === '.html') return 'no-cache';
-
   const relative = path.relative(siteRoot, file);
 
   if (isWithin(siteRoot, file) && relative.split(path.sep)[0] === 'assets') {
@@ -80,12 +78,10 @@ function cacheControl(file, extension) {
 // Encodes the response body using the specified encoding (gzip or brotli) if applicable, caching the result for future requests.
 async function encodeBody(file, metadata, body, encoding) {
   if (!encoding || body.length < 1024) return body;
-
   const key = `${file}:${metadata.mtimeMs}:${encoding}`;
   const cached = compressedBodies.get(key);
 
   if (cached) return cached;
-
   const encoded =
     encoding === 'br'
       ? await brotli(body, {
@@ -96,7 +92,6 @@ async function encodeBody(file, metadata, body, encoding) {
       : await gzipBody(body);
 
   if (compressedBodies.size >= 64) compressedBodies.clear();
-
   compressedBodies.set(key, encoded);
 
   return encoded;
@@ -140,7 +135,6 @@ createServer(async (request, response) => {
     const encoded = await encodeBody(file, metadata, body, encoding);
 
     if (encoding && encoded !== body) headers['Content-Encoding'] = encoding;
-
     headers['Content-Length'] = String(encoded.length);
     response.writeHead(200, headers);
     response.end(request.method === 'HEAD' ? undefined : encoded);

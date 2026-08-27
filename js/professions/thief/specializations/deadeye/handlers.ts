@@ -39,7 +39,6 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   state.malice = remarkingTarget
     ? Math.min(state.maximumMalice, state.malice + initialDeadeyeMalice(context))
     : initialDeadeyeMalice(context);
-
   if (!remarkingTarget) state.maleficentSevenTriggered = false;
   applyMaleficentSeven(context, at);
   const grant = deadeyeStolenSkillGrant(context);
@@ -75,7 +74,6 @@ function observeDeadeyeStealthEffect(
   handlerState: unknown
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
-
   if (skill.malicious && event.type === 'damage') {
     context.replaceEvent(event, {
       deadeyeMaliceSnapshot: Number(prepared.malice || 0)
@@ -108,7 +106,6 @@ function observeDeadeyeStolenEffect(
   handlerState: unknown
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
-
   if (event.type === 'buff' && event.kind === 'stealth' && !prepared.grantsStealth) {
     // Suppress the skill's built-in stealth grant when malice < 3; zeroing duration/stacks is the standard nullification pattern
     context.replaceEvent(event, { duration: 0, stacks: 0 });
@@ -125,7 +122,6 @@ function observeDeadeyeStolenEffect(
 
 function completeDeadeyeStolenSkill(context: ThiefCastContext, skill: ThiefSkill, handlerState: unknown): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
-
   if (prepared.grantsStealth) {
     grantThiefStealth(context, skill, context.effectiveEnd, 3);
   }
@@ -199,7 +195,6 @@ function observeDeadeyeSpearStealthEffect(
   handlerState: unknown
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
-
   if (event.type === 'damage' && event.name === 'Malicious Ashen Assault — Final Strike') {
     // Final Strike damage scales with malice: coefficient × (1 + malice × 2%); only the final hit receives the multiplier
     context.replaceEvent(event, {

@@ -59,7 +59,6 @@ export function createCanonicalTargetConditionStateMap<T>(): Map<string, T> {
  */
 export function canonicalTargetConditionName(value: unknown): string {
   const text = String(value || '').trim();
-
   if (!text) return '';
   const normalized = text.toLowerCase();
   return (
@@ -79,7 +78,6 @@ function normalizeTargetConditions(
   const normalized = new Map<string, number | boolean>();
   for (const [condition, value] of Object.entries(conditions)) {
     const name = canonicalTargetConditionName(condition);
-
     if (!normalized.has(name)) normalized.set(name, value);
   }
 
@@ -100,7 +98,6 @@ function configuredConditionValue(
 ): number | boolean {
   const canonicalName = canonicalTargetConditionName(name);
   const conditions = config.target?.conditions || {};
-
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];
   }
@@ -112,7 +109,6 @@ function configuredConditionValue(
   const entry = Object.entries(conditions).find(
     ([condition]) => canonicalTargetConditionName(condition) === canonicalName
   );
-
   if (entry) return entry[1];
 
   return 0;
@@ -123,7 +119,6 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
   const normalizedConditions = normalizeTargetConditions(config.target?.conditions || {});
   return (name: string): number => {
     const value = configuredConditionValue(config, name, normalizedConditions);
-
     if (value === true) return 1;
     return Math.max(0, Number(value) || 0);
   };
@@ -140,7 +135,6 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
  */
 export function permanentTargetConditionStacks(config: Gw2Config, name: string): number {
   const value = configuredConditionValue(config, name);
-
   if (value === true) return 1;
   return Math.max(0, Number(value) || 0);
 }
@@ -183,7 +177,6 @@ export function runtimeTargetConditionStacks(
 ): number {
   if (!(runtime?.conditionState instanceof Map)) return 0;
   const canonicalName = canonicalTargetConditionName(name);
-
   if (CANONICAL_CONDITION_STATE_MAPS.has(runtime.conditionState)) {
     const entry = runtime.conditionState.get(canonicalName);
     return (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);

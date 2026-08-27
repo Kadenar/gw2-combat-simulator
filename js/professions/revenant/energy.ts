@@ -12,7 +12,6 @@ import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeStat
 function revenantEnergySpecialization(context: RevenantEnergyContext): string {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.state;
-
   if (candidate && typeof candidate === 'object' && 'specialization' in candidate) {
     return String((candidate as RevenantRuntimeState).specialization.kind);
   }
@@ -39,7 +38,6 @@ export function spendRevenantEnergy(context: RevenantPrecastContext, skill: Reve
   const state = professionCoreState(context);
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
-
   if (cost > 0) {
     emitStateSnapshot(
       context,

@@ -18,9 +18,7 @@ export function thiefWeaponSkillMatchesSet(
   context: ThiefWeaponMatcherContext = {}
 ): boolean {
   const specialization = context.specialization || context.config?.specialization || 'Core';
-
   if (specialization === 'Deadeye') return deadeyeWeaponSkillMatchesSet(skill, pair, context);
-
   // Family dispatch excludes Deadeye-owned malicious replacements from every other runtime.
   if (skill.stealthAttack && skill.malicious) return false;
   return thiefCoreWeaponSkillMatchesSet(skill, pair, context);

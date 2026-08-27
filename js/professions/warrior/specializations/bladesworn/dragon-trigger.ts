@@ -68,7 +68,6 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
   while (at <= input.deadline + PROJECTION_EPSILON && charges < input.maximumCharges) {
     flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
     const granted = flow + PROJECTION_EPSILON >= input.flowPerInterval;
-
     if (granted) {
       flow = Math.max(0, flow - input.flowPerInterval);
       charges = Math.min(input.maximumCharges, charges + input.chargesPerInterval);
@@ -97,7 +96,6 @@ export function dragonSlashCoefficient(
 // 5–9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
 export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
-
   if (charges >= 5) return 20;
   return charges > 0 ? 10 : 0;
 }
@@ -118,7 +116,6 @@ export function dragonFlowPerInterval(context: DragonTriggerContext): number {
 
 export function requestedDragonCharges(context: WarriorCastContext, maximumCharges: number): number {
   const configured = context.command.releaseAtCharges;
-
   if (configured == null) return maximumCharges;
   return Math.min(maximumCharges, Math.max(1, configured));
 }

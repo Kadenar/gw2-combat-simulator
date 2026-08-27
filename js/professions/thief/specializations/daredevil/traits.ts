@@ -121,7 +121,6 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
     skillName: dodgeSkillName,
     name: dodgeSkillName
   } as const;
-
   if (effect.type === 'strike') {
     const hits = Math.max(1, Number(authoredEffect?.hits || effect.hits || 1));
     const atMsList = effect.atMsList || [];
@@ -162,7 +161,6 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
 export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill): void {
   if (skill.id !== ID.DODGE) return;
   const state = daredevilState.from(context);
-
   if (state.selectedDodge === 'Bounding Dodger') {
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
     state.boundingDamageUntil =
@@ -194,7 +192,6 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
 
 function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
-
   if (cost > 0 && skill.weapon === 'Staff' && hasTrait(context.config, TRAIT.STAFF_MASTER)) {
     // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(
@@ -225,7 +222,6 @@ function skillAttacks(skill: ThiefSkill): boolean {
 
 function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = daredevilState.from(context);
-
   if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
   state.weakeningStrikeReady = false;
   const weakness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.weakeningStrikes), 'condition');

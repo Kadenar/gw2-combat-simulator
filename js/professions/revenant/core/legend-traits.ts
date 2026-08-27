@@ -24,7 +24,6 @@ export function emitLegendInvocationSkill(
   sourceId: SkillId
 ): void {
   const skill = context.catalog.skillsById.get(skillId);
-
   if (!skill) return;
   const activationId = context.createActivationId('legend-invocation');
   for (const effect of skill.effects || []) {
@@ -68,7 +67,6 @@ export function emitLegendInvocationProfile(
   effectPredicate: (effect: SkillEffect) => boolean = () => true
 ): void {
   const profile = context.catalog.balanceProfilesById.get(profileId);
-
   if (!profile) return;
   const activationId = context.createActivationId('legend-invocation');
   const materializerProfile = profile as BalanceProfile & Skill;
@@ -145,7 +143,6 @@ function emitInvokingTorment(context: RevenantCastContext, at: number): void {
 export function applyLegendInvocationTraits(context: RevenantCastContext, swapSkill: RevenantSkill): void {
   const at = context.effectiveEnd;
   const legendId = professionCoreState(context).activeLegendId;
-
   if (CORE_LEGENDS.has(legendId) && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitSpiritBoon(context, swapSkill, legendId, at);
   }

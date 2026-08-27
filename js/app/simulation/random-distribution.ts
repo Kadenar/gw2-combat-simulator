@@ -76,7 +76,6 @@ export function randomDistributionWorkerCount(
   workload: RandomDistributionWorkload = {}
 ): number {
   const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
-
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers = hardware > 0 ? Math.max(1, hardware - 1) : DEFAULT_RANDOM_DISTRIBUTION_WORKERS;
@@ -93,7 +92,6 @@ export function randomDistributionWorkerCount(
 
 export function partitionRandomDistributionTrials(trialCount: number, workerCount: number): RandomDistributionBatch[] {
   const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
-
   if (!trials) return [];
   const count = Math.min(trials, Math.max(1, Math.trunc(Number(workerCount) || 1)));
   const baseSize = Math.floor(trials / count);
@@ -129,7 +127,6 @@ export function summarizeRandomDistribution(values: unknown[] = []): RandomDistr
     .map(Number)
     .filter(Number.isFinite)
     .sort((left, right) => left - right);
-
   if (!sorted.length) {
     return {
       trials: 0,
@@ -224,7 +221,6 @@ function addMetric(
   value: number
 ): void {
   const numeric = Number(value);
-
   if (!Number.isFinite(numeric) || numeric === 0) return;
   const current = metrics.get(metric.id);
   metrics.set(metric.id, {
@@ -264,7 +260,6 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
         const profileId = String(event.weaponStrengthProfileId || 'weapon.unknown');
         const activationId = String(event.activationId || `event:${String(event.__order)}`);
         const activationKey = `${profileId}|${activationId}`;
-
         if (!seenWeaponActivations.has(activationKey)) {
           seenWeaponActivations.add(activationKey);
           const current = weaponSamples.get(profileId) || {
@@ -279,7 +274,6 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
 
       const triggeredEffect =
         event.actorType === 'effect' || ['Food', 'Relic', 'Sigil', 'Trait'].includes(String(event.source));
-
       if (triggeredEffect && hasStrikePayload(event)) {
         const name = effectName(event);
         const group = `effect:${metricSlug(name)}`;
@@ -357,11 +351,9 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
   const seenProcs = new Set<string>();
   const addProc = (rawName: unknown, atMilliseconds: number, rawSourceSkill: unknown): void => {
     const name = String(rawName || '').trim();
-
     if (!name) return;
     const sourceSkill = String(rawSourceSkill || '');
     const key = `${metricSlug(name)}|${Math.round(atMilliseconds)}|${sourceSkill}`;
-
     if (seenProcs.has(key)) return;
     seenProcs.add(key);
     const group = `effect:${metricSlug(name)}`;
@@ -439,7 +431,6 @@ export function summarizeRandomDistributionOutcomes(
 ): RandomDistributionSummary {
   const outcomes = rawOutcomes.filter((outcome) => Number.isFinite(Number(outcome?.dps)));
   const base = summarizeRandomDistribution(outcomes.map((outcome) => outcome.dps));
-
   if (outcomes.length < 2 || base.p01 === base.p99) return base;
 
   const ordered = [...outcomes].sort((left, right) => left.dps - right.dps);
@@ -467,15 +458,12 @@ export function summarizeRandomDistributionOutcomes(
     const values = outcomes.map((outcome) => Number(valueMaps.get(outcome)?.get(id) || 0));
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
-
     if (!(maximum - minimum > 1e-9)) continue;
     const lowAverage = average(valuesFor(low, id));
     const highAverage = average(valuesFor(high, id));
     const delta = highAverage - lowAverage;
-
     if (!(delta > 1e-9)) continue;
     const { correlation, slope } = linearRelationship(values, dpsValues);
-
     if (correlation < MIN_EXPLANATION_CORRELATION) continue;
     const valueMean = average(values);
     const deviation = Math.sqrt(average(values.map((value) => (value - valueMean) ** 2)));
@@ -511,7 +499,6 @@ export function summarizeRandomDistributionOutcomes(
     if (usedGroups.has(candidate.group)) continue;
     usedGroups.add(candidate.group);
     drivers.push(candidate.driver);
-
     if (drivers.length >= MAX_EXPLANATION_DRIVERS) break;
   }
 
@@ -570,7 +557,6 @@ export function calculateRandomDistribution(
       metrics: randomDistributionMetrics(result)
     });
     const completed = index + 1;
-
     if (completed === count || completed % progressInterval === 0) {
       reportProgress(completed);
     }

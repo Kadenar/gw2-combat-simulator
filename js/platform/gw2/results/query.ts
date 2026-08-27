@@ -17,17 +17,13 @@ export function criticalChanceEventAt(
   let beforeAt = -Infinity;
   for (const event of result?.resolvedEvents || []) {
     if (event.independentSummonStrike === true) continue;
-
     if (event.source === 'Clone' || event.source === 'Phantasm') continue;
-
     // Flat ticks and other non-critical packets report zero chance, which must
     // not replace the player strike being inspected.
     if (event.critEligible === false) continue;
     const chance = Number(event.criticalChance);
-
     if (!Number.isFinite(chance)) continue;
     const at = Number(event.at || 0);
-
     if (at >= seconds) {
       if (at < afterAt) {
         afterAt = at;
@@ -61,7 +57,6 @@ export function timedBuffAt(
   let latest: SimulationEvent | null = null;
   for (const event of result?.events || []) {
     if (Number(event.at || 0) > at) break;
-
     if (event.type === 'buff' && event.kind === kind) latest = event;
   }
 
@@ -80,10 +75,8 @@ export function timedBuffStacksAt(
   let stacks = 0;
   for (const event of result?.events || []) {
     if (Number(event.at || 0) > at) break;
-
     if (event.type !== 'buff' || event.kind !== kind) continue;
     const expiresAt = Number(event.at || 0) + Number(event.duration || 0);
-
     if (expiresAt > at) stacks += Math.max(1, Number(event.stacks || 1));
   }
 

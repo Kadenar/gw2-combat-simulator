@@ -140,7 +140,6 @@ export function evtcSpecializationMetadata(
 ): Omit<EvtcSpecializationMetadata, 'professionId'> | null {
   if (code === 0) return { code: 0, id: 'core', name: 'Core' };
   const specialization = specializationsByCode.get(code);
-
   if (!specialization || specialization.professionId !== professionId) {
     return null;
   }

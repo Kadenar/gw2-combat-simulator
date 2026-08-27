@@ -74,7 +74,6 @@ export class BuildTemplateProfessionMismatchError extends Error {
 
 function currentProfession(app: ProfessionAppState): BuildTemplateProfession {
   const profession = BUILD_TEMPLATE_PROFESSIONS[app.adapter.id];
-
   if (!profession) {
     throw new Error(`${app.adapter.id} does not support GW2 build templates.`);
   }
@@ -90,7 +89,6 @@ export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: stri
   const expectedProfession = currentProfession(app);
   const decoded = decodeGw2BuildTemplate(chatCode);
   const actualProfession = BUILD_TEMPLATE_PROFESSIONS_BY_CODE.get(decoded.professionCode);
-
   if (actualProfession && actualProfession.code !== expectedProfession.code) {
     throw new BuildTemplateProfessionMismatchError(actualProfession, expectedProfession);
   }

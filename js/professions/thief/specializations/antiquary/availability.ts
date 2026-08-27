@@ -6,7 +6,6 @@ import type { ThiefPrecastContext, ThiefSkill } from '../../types.js';
 
 export function antiquaryCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(context);
-
   if (skill.artifactKind) {
     if (state.artifactUsesRemaining <= 0 || !state.artifactSlots.some((slot) => slot.skillId === skill.id)) {
       // if a Skritt scuffle is in progress, hint the scheduler to retry after the next periodic pilfer rather than looping immediately

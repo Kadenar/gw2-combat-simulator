@@ -24,9 +24,7 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
-
   if (normalized === VIEW_HASHES.professions) return 'professions';
-
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
   return 'workspace';
 }
@@ -45,7 +43,6 @@ function createNavigationLink(root: Document, label: string, href: string, view?
   link.className = 'simulator-view-tab';
   link.href = href;
   link.textContent = label;
-
   if (view) link.dataset.simulatorView = view;
   return link;
 }
@@ -53,7 +50,6 @@ function createNavigationLink(root: Document, label: string, href: string, view?
 /** Inserts the analysis-view heading and DPS-summary mirror before the results block (idempotent). */
 function mountAnalysisHeading(root: Document): void {
   const results = root.getElementById('rotation-results');
-
   if (!results || root.getElementById('analysis-view-title')) return;
 
   const heading = root.createElement('div');
@@ -77,7 +73,6 @@ function mountAnalysisHeading(root: Document): void {
 function mountHeaderBrand(root: Document, header: HTMLElement): void {
   if (header.querySelector('.header-brand')) return;
   const title = header.querySelector('h1');
-
   if (!title) return;
   const brand = root.createElement('div');
   brand.className = 'header-brand';
@@ -86,7 +81,6 @@ function mountHeaderBrand(root: Document, header: HTMLElement): void {
   const snapshot = header.nextElementSibling?.classList.contains('update-info')
     ? header.nextElementSibling
     : header.querySelector(':scope > .update-info');
-
   if (snapshot) brand.append(snapshot);
 }
 
@@ -106,7 +100,6 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
   `;
 
   const snapshot = header.nextElementSibling;
-
   if (snapshot?.classList.contains('update-info')) snapshot.after(section);
   else header.after(section);
 }
@@ -118,20 +111,17 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
 function updateActiveView(root: Document, view: SimulatorView): void {
   if (!root.body) return;
   root.body.dataset.simulatorView = view;
-
   if (view !== 'workspace') resetRotationWorkspace(root);
 
   for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
     const active = link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
-
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
 
   // The app lazily materializes expensive Analysis content when this view becomes active.
   const CustomEventConstructor = root.defaultView?.CustomEvent;
-
   if (CustomEventConstructor) {
     root.dispatchEvent(new CustomEventConstructor(SIMULATOR_VIEW_CHANGE_EVENT, { detail: { view } }));
   }
@@ -157,11 +147,9 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 export function mountSimulatorNavigation(root: Document = document): void {
   const body = root.body;
   const header = root.querySelector<HTMLElement>('#app > header');
-
   if (!body || !header || header.querySelector('.simulator-view-tabs')) return;
 
   const professionId = body.dataset.profession;
-
   if (!professionId) return;
 
   const navigation = root.createElement('nav');
@@ -218,7 +206,6 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
       event.preventDefault();
       const window = root.defaultView;
-
       if (window?.location.hash !== VIEW_HASHES[view]) {
         window?.history.pushState(null, '', VIEW_HASHES[view]);
       }

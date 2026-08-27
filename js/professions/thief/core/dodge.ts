@@ -20,7 +20,6 @@ export function performThiefDodge(context: ThiefCastContext): void {
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.endurance = Math.max(0, state.endurance - Number(resources?.resourceCost || 50));
   emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
-
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = thiefBalanceProfile(context, PROFILE.uncatchable);
     const bleeding = thiefBalanceProfileEffect(profile, 'condition', 0);
@@ -64,7 +63,6 @@ export function completeThiefDodge(context: ThiefCastContext): void {
   const at = context.effectiveEnd;
   const profile = thiefBalanceProfile(context, PROFILE.upperHand);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.UPPER_HAND] || 0);
-
   if (!isInternalCooldownReady(at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.UPPER_HAND] = at + Number(profile?.internalCooldown || 2);
   gainThiefInitiative(context, Number(profile?.resourceGain || 1), at, 'upper-hand');

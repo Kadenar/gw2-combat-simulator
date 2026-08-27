@@ -87,7 +87,6 @@ function outOfModelReason(trait) {
   }
 
   if (/movement|dodge|downed/.test(description)) return REASONS.movement;
-
   return REASONS.missingMechanics;
 }
 

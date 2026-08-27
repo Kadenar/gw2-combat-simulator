@@ -64,7 +64,6 @@ function phantasmComboAura(actions: readonly EvtcRecordedRotationAction[], time:
         time - action.start <= durationMs
     )
   );
-
   if (!fieldActive) return false;
 
   return [PHANTASMAL_SWORDSMAN, PHANTASMAL_LANCER].some((identity) =>
@@ -78,7 +77,6 @@ function phantasmComboAura(actions: readonly EvtcRecordedRotationAction[], time:
  */
 function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, speciesId: number): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
-
   if (ownerInstance == null) return [];
   const speciesByAddress = new Map(context.log.agents.map((agent) => [agent.address, agent.profession]));
   const firstByAddress = new Map<bigint, MesmerSignal>();
@@ -92,7 +90,6 @@ function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, sp
     }
 
     const current = firstByAddress.get(event.source);
-
     if (!current || event.time < current.event.time) {
       firstByAddress.set(event.source, { event, eventIndex });
     }
@@ -176,7 +173,6 @@ function chaosArmorActions(
         context.profile
       )?.weapon === 'Staff'
   );
-
   if (!isMirage && !observedStaffAction) return [];
   const phaseTimes = phaseRetreatSignals(context).map((signal) => signal.event.time);
   const chaosStormTimes = effectSignals(context, MESMER_EFFECT_GUIDS.chaosStorm).map((signal) => signal.event.time);
@@ -300,7 +296,6 @@ function mirrorImagesActions(
     (signals) => signals.length >= 2 && !phaseRetreatTimes.some((time) => Math.abs(time - signals[0].event.time) <= 50)
   );
   const selected = selectedSkill(context, MIRROR_IMAGES);
-
   if (selected === false || (selected == null && pairs.length < 2)) return [];
   return pairs.flatMap((signals) => {
     const signal = signals[0];
@@ -341,7 +336,6 @@ function signetOfMidnightActions(
       const delay = signal.event.time - time;
       return delay > 0 && delay <= 2000;
     });
-
     if (restoredByContinuum || hasNearbyAction(actions, SIGNET_OF_MIDNIGHT, signal.event.time, 100)) {
       return [];
     }
@@ -359,7 +353,6 @@ function inferredOpeningMimic(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const selected = selectedSkill(context, MIMIC);
-
   if (selected === false) return [];
   const recorded = actions
     .filter(
@@ -370,7 +363,6 @@ function inferredOpeningMimic(
     )
     .sort((left, right) => left.start - right.start);
   const combatStart = combatStartTime(context);
-
   if (
     combatStart == null ||
     recorded.length < 2 ||

@@ -87,7 +87,6 @@ function selectedNames(context: EngineerUiContext = {}): Set<string> {
 export function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | undefined)[] {
   const source: readonly string[] | Readonly<Record<string, string>> =
     context.config?.selectedSkills || context.build?.selectedSkills || [];
-
   if (Array.isArray(source)) return [...source];
   const slots = source as Readonly<Record<string, string>>;
   return SKILL_SLOT_ORDER.map((slot) => slots[slot]);
@@ -161,7 +160,6 @@ export function professionSkillSlots(context: EngineerUiContext): (SkillId | nul
 // Shared Engineer bars contain only fixed F-skills; configurable protocols are Amalgam-owned.
 export function engineerFSkillBarGroups(skillIds: readonly (SkillId | null)[]): ProfessionSkillBarGroup[] {
   const populated = skillIds.filter((skillId): skillId is SkillId => skillId != null);
-
   if (!populated.length) return [];
   return [
     {
@@ -186,7 +184,6 @@ export function engineerCorePaletteSkillAvailability(
   skill: EngineerSkill
 ): PaletteSkillAvailability {
   const state = engineerUiState(context);
-
   if (skill.name === 'Electric Artillery') {
     return {
       available: Boolean(state.electricArtilleryAvailable),
@@ -297,7 +294,6 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
   },
   timelineWeaponLineTransition: (context: EngineerUiContext) => {
     const skill = context.skill;
-
     if (skill?.handlerId === 'engineer.kit-equip') {
       return skill.kitName || skill.name;
     }
@@ -327,7 +323,6 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       // spends it, matching the shared palette placement used by professions.
       paletteSkillId: ID.DODGE
     };
-
     // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
     if (usesToolsTraitline(context)) views.push(endurance);
     return views;

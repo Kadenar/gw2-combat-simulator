@@ -38,7 +38,6 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
   const current = Number(professionCoreState(context).endurance || 0);
   const required = Math.max(0, Number(cost || 0));
   const missing = required - current;
-
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = thiefEnduranceRegenerationRate(context, context.start);
   return rate > 0 ? context.start + missing / rate : null;
@@ -55,7 +54,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   state.leadAttacksUntil = state.leadAttackExpirations.length ? Math.max(...state.leadAttackExpirations) : 0;
-
   if (Number(state.spiderVenomExpiresAt || 0) <= target) {
     state.spiderVenomCharges = 0;
   }
@@ -69,7 +67,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   }
 
   const initiativeFrom = Number(state.initiativeUpdatedAt || 0);
-
   if (target > initiativeFrom) {
     state.initiative = Math.min(
       state.maximumInitiative,
@@ -79,7 +76,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   }
 
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-
   if (target > enduranceFrom) {
     state.endurance = Math.min(
       state.maximumEndurance,
@@ -96,7 +92,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
 export function spendThiefCoreResources(context: ThiefPrecastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const cost = Number(skill.initiativeCost || 0);
-
   if (cost > 0) {
     state.initiative = Math.max(0, state.initiative - cost);
     emitStateSnapshot(
@@ -123,18 +118,15 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
 
 export function completeThiefCoreResources(context: ThiefCastContext, skill: ThiefSkill): void {
   if (skill.id !== ID.UNLOAD) return;
-
   // A default commit-mode interruption cannot award Unload's on-completion refund when its damage was cancelled.
   if (context.action?.cancelled === true) return;
   const bullets = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
-
   if (!bullets || bullets.atMs == null) return;
   const finalBulletOffsetMs =
     Number(bullets.atMs) + (Math.max(1, Number(bullets.hits || 1)) - 1) * Number(bullets.intervalMs || 0);
   const timingScale =
     bullets.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000) : 1;
   const finalBulletAt = context.start + (finalBulletOffsetMs * timingScale) / 1000;
-
   if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
   gainThiefInitiative(
     context,

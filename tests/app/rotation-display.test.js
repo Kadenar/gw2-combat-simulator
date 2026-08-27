@@ -51,7 +51,6 @@ test('keyed timeline reconciliation retains unchanged rows and replaces changed 
       const existingIndex = this.children.indexOf(node);
 
       if (existingIndex >= 0) this.children.splice(existingIndex, 1);
-
       const index = before == null ? this.children.length : this.children.indexOf(before);
       this.children.splice(index, 0, node);
     },
@@ -110,7 +109,6 @@ test('timeline reconciliation preserves its scroll position while replacing rows
       const existingIndex = this.children.indexOf(node);
 
       if (existingIndex >= 0) this.children.splice(existingIndex, 1);
-
       const index = before == null ? this.children.length : this.children.indexOf(before);
       this.children.splice(index, 0, node);
       this.scrollTop = 999;

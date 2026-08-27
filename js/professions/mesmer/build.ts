@@ -93,7 +93,6 @@ const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
 
 function configuredSpecialization(candidate: unknown = {}): string {
   const saved = plainObject(candidate);
-
   if (saved.specialization) return String(saved.specialization);
   const eliteNames = new Set(
     mesmerCatalog.specializations
@@ -129,7 +128,6 @@ function disambiguateMesmerRotationSkillNames(candidate: unknown = {}): unknown[
     }
 
     const record = plainObject(entry);
-
     if (!entry || typeof entry !== 'object' || record.skillId != null || record.id != null) {
       return entry;
     }
@@ -137,7 +135,6 @@ function disambiguateMesmerRotationSkillNames(candidate: unknown = {}): unknown[
     const resolved = resolveMesmerSkillIdFromDuplicateName(String(record.name || ''), {
       specialization
     });
-
     if (resolved === undefined) return entry;
     return {
       ...record,

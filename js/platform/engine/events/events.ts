@@ -67,7 +67,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   }
 
   const event = candidate as Record<string, unknown>;
-
   if (typeof event.type !== 'string' || !event.type) {
     throw new Error('Event type is required.');
   }
@@ -127,7 +126,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     const hasDamageValue = [event.coefficient, event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(
       isFiniteNumber
     );
-
     if (!hasDamageValue) {
       throw new Error('Damage events require a finite coefficient or flat strike value.');
     }

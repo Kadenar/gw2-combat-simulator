@@ -16,18 +16,15 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
 
 export function holosmithCastAvailability(context: EngineerPrecastContext, skill: HolosmithSkill): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
-
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
   if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {
     return denyEngineerCast(skill, 'engineer.holosmith-sword-replaced', 'Holosmith replaces this sword skill.');
   }
 
   const state = holosmithState.from(context);
-
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
     const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
     const stormSkill = skill.name.endsWith('—Storm');
-
     if (stormSelected !== stormSkill) {
       return denyEngineerCast(
         skill,
@@ -45,7 +42,6 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
       skill.slot === 'Weapon_1' &&
       state.overheated &&
       Math.abs(context.start - Number(state.forgeExitedAt || 0)) <= Number(context.epsilon || 0.0001);
-
     if (!state.photonForgeActive && !queuedChainAfterOverheat) {
       return denyEngineerCast(skill, 'engineer.forge-inactive', 'enter Photon Forge first.');
     }

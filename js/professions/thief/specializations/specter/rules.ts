@@ -62,7 +62,6 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   // Using gear stats directly avoids double-counting the flat bonuses added below.
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
   const gearVitality = Number(context.config?.stats?.vitality || 0);
-
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
     const profile = thiefBalanceProfile(context, PROFILE.secondOpinion);
     result.healingPower =

@@ -77,7 +77,6 @@ function interpolateCrossing(previous: RelicComparisonPoint, current: RelicCompa
   const previousDelta = previous.thornsDps - previous.opponentDps;
   const currentDelta = current.thornsDps - current.opponentDps;
   const span = previousDelta - currentDelta;
-
   // Guard against a zero span (both samples equal) — fall back to the later time.
   if (!(Math.abs(span) > 0)) return current.tMs;
   const fraction = Math.max(0, Math.min(1, previousDelta / span));
@@ -101,7 +100,6 @@ export function buildRelicComparisonModel({
   for (let index = 0; index < length; index += 1) {
     const opponent = Number(opponentDps[index]?.v ?? 0);
     const thorns = Number(thornsDps[index]?.v ?? 0);
-
     // Skip leading samples before both relics have dealt damage. Their
     // cumulative average DPS is still 0, and 0 >= 0 would otherwise register a
     // spurious crossover at t=0.
@@ -129,7 +127,6 @@ export function buildRelicComparisonModel({
 
   let crossoverMs: number | null = null;
   let thornsAlwaysAhead = false;
-
   if (lastOpponentAheadIndex === -1) {
     // Thorns is never strictly behind across the evaluation window.
     thornsAlwaysAhead = points.length > evalStart;

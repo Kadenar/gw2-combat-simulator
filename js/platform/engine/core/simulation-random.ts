@@ -20,7 +20,6 @@ export const DEFAULT_SIMULATION_RANDOMNESS = Object.freeze({
 
 function normalizedSeed(value: unknown): number {
   const seed = Number(value);
-
   if (!Number.isFinite(seed)) return DEFAULT_SIMULATION_RANDOMNESS.seed;
   return Math.max(0, Math.min(MAX_SIMULATION_SEED, Math.trunc(seed)));
 }
@@ -83,9 +82,7 @@ export function createSimulationRandom(value: SimulationRandomnessConfig = {}): 
 
   function roll(probability: number, stream = 'default'): boolean {
     const chance = Math.max(0, Math.min(1, Number(probability) || 0));
-
     if (chance <= 0) return false;
-
     if (chance >= 1) return true;
     return next(stream) < chance;
   }

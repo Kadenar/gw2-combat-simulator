@@ -77,7 +77,6 @@ function traits(byte: number): string {
 /** Decodes the stable binary contract behind a GW2 `[&...=]` build chat link. */
 export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplate {
   const match = /^\[&([A-Za-z0-9+/]+={0,2})\]$/.exec(String(chatCode).trim());
-
   if (!match) {
     throw new Error('Build template must be a Guild Wars 2 [&...=] chat code.');
   }
@@ -111,12 +110,10 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
   let offset = FIXED_LENGTH;
   const weaponTypeIds: number[] = [];
   const skillOverrides: number[] = [];
-
   if (offset < bytes.length) {
     const weaponCount = bytes[offset];
     offset += 1;
     const weaponEnd = offset + weaponCount * 2;
-
     if (weaponEnd > bytes.length) {
       throw new Error('Build template has a truncated weapon array.');
     }
@@ -132,7 +129,6 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     const overrideCount = bytes[offset];
     offset += 1;
     const overrideEnd = offset + overrideCount * 4;
-
     if (overrideEnd !== bytes.length) {
       throw new Error('Build template has a malformed skill-override array.');
     }
@@ -179,7 +175,6 @@ function preferredCandidate(
     const rightAttunement = String(right.attunement || '');
     const leftPreferred = leftAttunement === preferredAttunement ? 1 : 0;
     const rightPreferred = rightAttunement === preferredAttunement ? 1 : 0;
-
     if (leftPreferred !== rightPreferred) return rightPreferred - leftPreferred;
     const leftExact = left.id === skillId ? 1 : 0;
     const rightExact = right.id === skillId ? 1 : 0;
@@ -195,7 +190,6 @@ function inferredWeaponOptions(
   const options: Gw2BuildTemplateWeaponSet[] = [];
   for (const [mainIndex, main] of candidates.entries()) {
     const wielding = catalog.weaponHands.get(main);
-
     if (wielding === '2h') {
       options.push(Object.freeze([main, '']));
       continue;
@@ -222,7 +216,6 @@ function inferredWeaponOptions(
     (option, index) =>
       options.findIndex((candidate) => candidate[0] === option[0] && candidate[1] === option[1]) === index
   );
-
   if (!unique.length && candidates.length) {
     warnings.push('No listed weapon can be equipped in the main hand.');
   } else if (unique.length > 1) {
@@ -251,7 +244,6 @@ export function resolveGw2BuildTemplate(
   }
 ): ResolvedGw2BuildTemplate {
   const professionData = GW2_BUILD_TEMPLATE_PROFESSIONS[decoded.professionCode];
-
   if (!professionData) {
     throw new Error(`Build template uses unknown profession code ${decoded.professionCode}.`);
   }
@@ -263,7 +255,6 @@ export function resolveGw2BuildTemplate(
   const warnings: string[] = [];
   const specializations = decoded.specializations.flatMap((selection) => {
     const specialization = catalog.specializations.find((candidate) => Number(candidate.id) === selection.id);
-
     if (!specialization) {
       warnings.push(`Unknown specialization ID ${selection.id}.`);
       return [];
@@ -280,10 +271,8 @@ export function resolveGw2BuildTemplate(
   const selectedSkills: Record<string, string> = {};
   for (const { slot, type, paletteIndex } of SLOT_LAYOUT) {
     const paletteId = decoded.skillPaletteIds[paletteIndex];
-
     if (!paletteId) continue;
     const skillId = paletteMap.get(paletteId);
-
     if (skillId == null) {
       warnings.push(`${slot} uses unknown palette ID ${paletteId}.`);
       continue;
@@ -294,7 +283,6 @@ export function resolveGw2BuildTemplate(
       preferredAttunement,
       skillId
     );
-
     if (!skill) {
       warnings.push(`${slot} skill ${skillId} is not implemented.`);
       continue;
@@ -305,14 +293,12 @@ export function resolveGw2BuildTemplate(
 
   const weaponCandidates = decoded.weaponTypeIds.flatMap((weaponId) => {
     const weapon = GW2_BUILD_TEMPLATE_WEAPON_NAMES[weaponId];
-
     if (weapon) return [weapon];
     warnings.push(`Unknown weapon type ID ${weaponId}.`);
     return [];
   });
   const weaponOptions = inferredWeaponOptions(catalog, weaponCandidates, warnings);
   const weapons = weaponOptions[0] ?? null;
-
   if (decoded.skillOverrides.length) {
     warnings.push(
       `${decoded.skillOverrides.length} weapon skill override(s) were decoded but are not applied to equipment.`

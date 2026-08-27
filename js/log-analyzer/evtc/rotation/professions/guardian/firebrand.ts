@@ -80,7 +80,6 @@ function tomeIdentityBetween(
   for (const action of actions) {
     if (action.start < start || action.start >= end) continue;
     const identity = FIREBRAND_TOME_CHAPTERS.get(action.rawSkillId);
-
     if (identity) return identity;
   }
 
@@ -105,13 +104,11 @@ function firebrandResourceEvents(
   return actions
     .flatMap((action): FirebrandTomeResourceEvent[] => {
       const skillId = actionSkillId(action);
-
       if (FIREBRAND_TOME_IDS.has(skillId)) {
         return [{ action, at: action.start, kind: 'open', tomeId: skillId }];
       }
 
       const chapterTome = FIREBRAND_TOME_CHAPTERS.get(skillId);
-
       if (chapterTome && action.status !== 'interrupted') {
         return [
           {
@@ -128,7 +125,6 @@ function firebrandResourceEvents(
       }
 
       const skill = context.catalog?.skills.find((candidate) => Number(candidate.id) === skillId);
-
       if (FINAL_MANTRA_CHARGE_IDS.has(skillId) || /^Final Charge\./.test(String(skill?.description || ''))) {
         return [{ action, at: action.end, kind: 'page-gain', tomeId: null }];
       }
@@ -175,11 +171,9 @@ function omitAutomaticTomeStows(
   // involuntary weapon-set exits become implicit; genuine stows remain actions.
   for (const event of firebrandResourceEvents(context, actions)) {
     regeneratePages(event.at);
-
     if (event.kind === 'open') {
       activeTomeId = event.tomeId;
       automaticStowPending = false;
-
       if (swiftScholarTomeId !== event.tomeId) {
         swiftScholarTomeId = event.tomeId;
         swiftScholarCount = 0;
@@ -191,18 +185,15 @@ function omitAutomaticTomeStows(
     if (event.kind === 'page') {
       if (pages >= maximumPages) nextPageAt = event.at + pageInterval;
       pages = Math.max(0, pages - tomePageCost(context, event.action));
-
       if (swiftScholarTomeId !== event.tomeId) {
         swiftScholarTomeId = event.tomeId;
         swiftScholarCount = 0;
       }
 
       swiftScholarCount += 1;
-
       if (swiftScholarCount >= 3) {
         swiftScholarCount = 0;
         pages = Math.min(maximumPages, pages + 1);
-
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }
 
@@ -217,7 +208,6 @@ function omitAutomaticTomeStows(
     if (event.kind === 'page-gain') {
       if (selectedTraitIds.has(WEIGHTY_TERMS)) {
         pages = Math.min(maximumPages, pages + 2);
-
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }
 
@@ -255,16 +245,13 @@ export function normalizeFirebrandWeaponTransitions(
   >();
   for (const entry of swaps) {
     const event = context.log.events[entry.eventIndex];
-
     if (Number(event?.target) !== FIREBRAND_TOME_SET) continue;
     const exit = swaps.find(
       (candidate) =>
         candidate.start >= entry.start && Number(context.log.events[candidate.eventIndex]?.value) === FIREBRAND_TOME_SET
     );
-
     if (!exit) continue;
     const identity = tomeIdentityBetween(actions, entry.start, exit.start);
-
     if (!identity) continue;
     tomes.set(entry.eventIndex, {
       identity,
@@ -277,12 +264,9 @@ export function normalizeFirebrandWeaponTransitions(
   const normalized = actions.flatMap((action) => {
     if (action.rawName !== SWAP_WEAPONS.name) return [action];
     const event = context.log.events[action.eventIndex];
-
     if (!event) return [];
-
     if (isPhysicalWeaponSwap(context, action)) return [action];
     const tome = tomes.get(action.eventIndex);
-
     if (tome) {
       return [
         {
@@ -310,7 +294,6 @@ function inferFirebrandDamageInstants(context: EvtcProfessionReconstructionConte
   return context.log.events.flatMap((event, eventIndex) => {
     const identity =
       event.skillId === FLAME_RUSH.skillId ? FLAME_RUSH : event.skillId === FLAME_SURGE.skillId ? FLAME_SURGE : null;
-
     if (
       !identity ||
       event.source !== context.playerAddress ||
@@ -354,10 +337,8 @@ function inferFirebrandHealMantras(context: EvtcProfessionReconstructionContext)
   const inferred: EvtcRecordedRotationAction[] = [];
   for (const [timestamp, signals] of byTimestamp) {
     const ids = new Set(signals.map(({ event }) => event.skillId));
-
     if (!ids.has(PROTECTION_BUFF) || !ids.has(RESOLUTION_BUFF)) continue;
     const recipients = new Set(signals.map(({ event }) => event.target));
-
     if (recipients.size < 2 && context.log.agents.length > 1) continue;
     const identity = ids.has(AEGIS_BUFF) ? REJUVENATING_RESPITE : RESTORING_REPRIEVE;
     inferred.push(canonicalAction(signals[0].eventIndex, timestamp, identity, signals[0].event.skillId));

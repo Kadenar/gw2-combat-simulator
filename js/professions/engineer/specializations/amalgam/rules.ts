@@ -88,7 +88,6 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
-
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
       ? engineerBalanceValue(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)

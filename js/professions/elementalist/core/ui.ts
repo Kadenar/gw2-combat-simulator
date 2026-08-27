@@ -117,19 +117,16 @@ function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[])
     const chain = ETCHING_CHAINS.find((candidate) =>
       [candidate.etching, candidate.lesser, candidate.full].some((name) => name === skill.name)
     );
-
     if (!chain) return true;
     const progress = state.etchings?.[chain.etching];
     const displayedName = !progress ? chain.etching : progress.stage === 'full' ? chain.full : chain.lesser;
     return skill.name === displayedName;
   });
-
   if (!elementalistPistolEquipped(context)) return projectedSkills;
   const explosion =
     projectedSkills.find((skill) => skill.name === 'Elemental Explosion') ||
     elementalistCatalog.skillsByName.get('Elemental Explosion');
   const ordinarySkills = projectedSkills.filter((skill) => skill.name !== 'Elemental Explosion');
-
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
@@ -144,7 +141,6 @@ function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[])
       skill.weapon === 'Pistol' &&
       skill.slot === 'Weapon_1' &&
       String(skill.attunement || '') === primaryAttunement;
-
     if (!replacesActiveAutoattack) return skill;
     replaced = true;
     return { ...explosion, attunement: skill.attunement };
@@ -154,13 +150,11 @@ function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[])
 function updatePaletteControl(context: SchedulerRecord, controlId: string): boolean {
   if (!controlId.startsWith(PISTOL_BULLET_CONTROL_PREFIX)) return false;
   const element = controlId.slice(PISTOL_BULLET_CONTROL_PREFIX.length);
-
   if (!ELEMENTALIST_ATTUNEMENTS.includes(element as ElementalistAttunement)) {
     return false;
   }
 
   const build = context.build as SchedulerRecord | undefined;
-
   if (!build) return false;
   const configured = configuredPistolBullets(context);
   build.pistolBullets = configured;
@@ -188,7 +182,6 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
     }
   ];
   const conjureEquipped = String(state.conjureEquipped || '');
-
   if (conjureEquipped) {
     groups.push({
       id: 'elementalist-conjure-weapon',
@@ -210,7 +203,6 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
     const skill = elementalistCatalog.skillsByName.get(name);
     return skill ? [skill.id] : [];
   });
-
   if (actionSkillIds.length) {
     groups.push({
       id: 'elementalist-conjure-actions',
@@ -222,7 +214,6 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
   }
 
   const pistolBullets = pistolBulletPaletteGroup(context);
-
   if (pistolBullets) groups.push(pistolBullets);
   return groups;
 }
@@ -240,14 +231,12 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   const now = Number(context.time || 0);
   const transmuteAura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
   const generatedAura = AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
-
   if (transmuteAura || generatedAura) {
     // Aura generators and transmutes are reciprocal catalog flips. This state
     // check lets the shared projector expose only the side usable right now.
     const aura = transmuteAura || generatedAura;
     const transmuteActive = Boolean(state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > now));
     const available = transmuteAura ? transmuteActive : !transmuteActive;
-
     if (!available) {
       return {
         available: false,
@@ -261,7 +250,6 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   if (skill.name === 'Rock Barrier' || skill.name === 'Hurl') {
     const hurlActive = Number(state.rockBarrierExpiresAt || 0) > now;
     const available = skill.name === (hurlActive ? 'Hurl' : 'Rock Barrier');
-
     if (!available) {
       return {
         available: false,
@@ -274,7 +262,6 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     (expiresAt) => expiresAt != null && Number(expiresAt) >= now
   );
   const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)] ? [HAMMER_ORB_SKILLS[Number(skill.id)]] : null;
-
   // Active orb elements share one refreshed 15-second lifetime, while element
   // membership determines which visible generator is locked during that window.
   if (
@@ -301,7 +288,6 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   if (skill.name === 'Elemental Explosion') {
     const bullets = displayedPistolBullets(context);
     const available = ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
-
     if (!available) {
       return {
         available: false,
@@ -313,10 +299,8 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   const position = (context.catalog as Readonly<CanonicalCatalog> | undefined)?.autoattackChainPositions.get(
     Number(skill.id)
   );
-
   if (position) {
     const expected = Number(state.autoattackChains?.[position.root]) || position.root;
-
     if (expected !== Number(skill.id)) {
       const expectedSkill = (context.catalog as Readonly<CanonicalCatalog>).skillsById.get(expected);
       return {
@@ -384,7 +368,6 @@ function timelineWeaponLineTransition(context: SchedulerRecord): string | undefi
 
   const skill = context.skill as Skill | undefined;
   const target = skill ? skill.name.replace(/ Attunement$/, '') : '';
-
   if (skill?.skillFamily !== 'Attunement' || !ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
     return undefined;
   }

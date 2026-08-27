@@ -6,7 +6,6 @@ import type { MesmerCastContext, MesmerShatterResolution } from '../../types.js'
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 export function resolveInfiniteForgeRefund(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
   const runtime = mesmerRuntimeFor(context);
-
   if (
     !runtime.traits.has(TRAIT.INFINITE_FORGE) ||
     resolution.spent < mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'threshold', 5)

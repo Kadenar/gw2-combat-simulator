@@ -24,7 +24,6 @@ function balanceProfileById(context: RevenantResolverContext, id: SkillId): Bala
 
 function kallasFervorLifeSiphonMultiplier(context: RevenantResolverContext, at: number): number {
   const stacks = activeKallasFervorStacks(renegadeState.from(context), at);
-
   if (!stacks) return 1;
   const profile = balanceProfileById(
     context,
@@ -42,7 +41,6 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
   const active = activeSkillIds(context);
   const soulcleave = skillById(context, ID.SOULCLEAVES_SUMMIT);
   const proc = skillById(context, RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
-
   if (
     soulcleave &&
     proc &&

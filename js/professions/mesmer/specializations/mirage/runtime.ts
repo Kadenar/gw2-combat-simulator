@@ -70,7 +70,6 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     const triggersCloneAmbush =
       traitId === TRAIT.DECEPTIVE_EVASION ||
       (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
-
     if (
       triggersCloneAmbush &&
       runtime.traits.has(TRAIT.INFINITE_HORIZON) &&

@@ -37,9 +37,7 @@ export function conditionTickDamage(
   options: { readonly stationary?: boolean } = {}
 ): number {
   const formula = CONDITION_FORMULA_LOOKUP[condition];
-
   if (!formula) return 0;
-
   if (condition === 'Torment' && options.stationary !== false) {
     return (
       Number(formula.stationaryBase || 0) +

@@ -34,7 +34,6 @@ export function engineerSchedulerState(context: Gw2ModifierContext): Partial<Eng
 export function engineerSpecializationState(context: Gw2ModifierContext, expectedKind: string): Partial<EngineerState> {
   const state = (context.runtime?.profession ??
     (context.state as { readonly profession?: unknown } | undefined)?.profession) as EngineerRuntimeState | undefined;
-
   if (state?.specialization.kind !== expectedKind) return {};
   return state.specialization.state as Partial<EngineerState>;
 }
@@ -62,11 +61,8 @@ export function selectedSkillNames(context: Gw2ModifierContext): Set<string> {
 // Heavy Metal bonus scales with target health — higher bonus at lower health thresholds
 export function heavyMetalBonus(context: Gw2ModifierContext, parameters: Readonly<Record<string, number>>): number {
   const fraction = targetHealthFraction(context);
-
   if (fraction < parameters.lowerThreshold) return parameters.lowerBonus;
-
   if (fraction < parameters.middleThreshold) return parameters.middleBonus;
-
   if (fraction < parameters.upperThreshold) return parameters.upperBonus;
   return 0;
 }

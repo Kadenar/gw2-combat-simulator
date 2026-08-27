@@ -76,7 +76,6 @@ export const specterUi = Object.freeze({
   },
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = stateFrom(context);
-
     if (skill.id === ID.ENTER_SHADOW_SHROUD) {
       const available = !state.shadowShroudActive && Number(state.shadowForce || 0) > 0;
       return {

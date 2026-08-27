@@ -34,7 +34,6 @@ function initialBuffEvidence(context: EvtcProfessionReconstructionContext, skill
 function inferOpeningReconstructionField(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (!selectedSkill(context, 'Medic Gyro')) return [];
   const combatStart = combatStartTime(context);
-
   if (combatStart == null) return [];
 
   // Reconstruction Field is absent when its cast finishes before EVTC starts, but its protection and
@@ -58,7 +57,6 @@ function inferOpeningReconstructionField(context: EvtcProfessionReconstructionCo
         combatStart - appliedAt <= PRECAST_WINDOW_MS
     )
     .sort((left, right) => left.difference - right.difference)[0];
-
   if (!pair) return [];
 
   const alreadyRecorded = context.recordedActions.some(
@@ -66,7 +64,6 @@ function inferOpeningReconstructionField(context: EvtcProfessionReconstructionCo
       action.rawSkillId === RECONSTRUCTION_FIELD.skillId &&
       Math.abs(action.end - pair.appliedAt) <= INITIAL_EFFECT_TOLERANCE_MS
   );
-
   if (alreadyRecorded) return [];
 
   const identity = selectedIdentity(context, RECONSTRUCTION_FIELD.name, RECONSTRUCTION_FIELD.skillId);

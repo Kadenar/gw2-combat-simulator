@@ -26,7 +26,6 @@ const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> = Object.free
 function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
   const definition = skill.effects?.find((effect) => effect.type === 'buff');
-
   if (!definition) return false;
   const playerStacks = Number(definition.stacks || 0);
   const defaultAllyStacks = Number(definition.allyStacks || 0);
@@ -59,7 +58,6 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
     recipientCount: party.recipientCount,
     alliesReceiveFullBenefit: fullAlliedBenefit
   });
-
   if (spell === 'nightmare' || spell === 'splinter') {
     const proc = necromancerBalanceProfile(
       context,

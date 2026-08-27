@@ -30,9 +30,7 @@ export const necromancerAppAdapter = defineProfessionApp({
     const lingeringCurse = getActiveTraits(context.build?.specializations || []).some(
       (trait) => trait.name === 'Lingering Curse'
     );
-
     if (skill.id === ID.FEAST_OF_CORRUPTION) return !lingeringCurse;
-
     if (skill.id === ID.DEVOURING_DARKNESS) return lingeringCurse;
     return defaultIsSkillAvailable(skill, context);
   },

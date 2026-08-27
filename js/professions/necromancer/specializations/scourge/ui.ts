@@ -37,7 +37,6 @@ function scourgeSkillBarIds(context: NecromancerUiContext): readonly (string | n
 
 function scourgePaletteAvailability(context: NecromancerUiContext, skill: NecromancerSkill): PaletteSkillAvailability {
   const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-
   if (skill.id === ID.SANDSTORM_SHROUD && !activeTraitNames.has('Herald of Sorrow')) {
     return { available: false, message: 'Requires Herald of Sorrow' };
   }

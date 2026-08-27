@@ -26,7 +26,6 @@ export function assertModuleDefinition(definition: unknown): void {
   }
 
   const candidate = definition as SchedulerRecord;
-
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Profession module id is required.');
   }
@@ -57,7 +56,6 @@ function mergeUniqueEntries<T>(
     for (const value of values(entry.module)) {
       const key = keyFor(value);
       const previous = owners.get(key);
-
       if (previous) {
         throw new TypeError(`Duplicate ${label} ${String(key)} in ${previous} and ${entry.name}.`);
       }
@@ -108,7 +106,6 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
     const fragment = entry.module.catalog || {};
     for (const [id, handler] of toEntries(fragment.skillHandlers)) {
       const previous = handlerOwners.get(id);
-
       if (previous) {
         throw new TypeError(`Duplicate skill handler ${id} in ${previous} and ${entry.name}.`);
       }
@@ -163,9 +160,7 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
   });
   for (const [name, skillId] of skillNameOverrides) {
     const skill = catalog.skillsById.get(skillId);
-
     if (!skill) continue;
-
     if (skill.name !== name) {
       throw new TypeError(`Skill-name override ${name} points to ${skill.name} (${String(skillId)}).`);
     }
@@ -213,7 +208,6 @@ export function mergeHandlerRegistries(
   for (const entry of modules) {
     for (const [id, handler] of Object.entries(select(entry.module) || {})) {
       const previous = owners.get(id);
-
       if (previous) {
         throw new TypeError(`Duplicate ${label} ${id} in ${previous} and ${entry.name}.`);
       }
@@ -257,7 +251,6 @@ function createStateFragment(
     ? resources?.createResolverState || resources?.createProfessionState
     : resources?.createProfessionState;
   const fragment = factory?.(config) || {};
-
   if (!fragment || typeof fragment !== 'object' || Array.isArray(fragment)) {
     throw new TypeError(`${entry.name} state factory must return an object.`);
   }
