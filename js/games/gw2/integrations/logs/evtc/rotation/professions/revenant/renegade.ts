@@ -7,13 +7,21 @@ import {
   legendSwapActions,
   recoverRevenantPrecastActions
 } from './common.js';
-import { directAction, playerInstance, rawSkillName, runtimeDuration, type RevenantActionIdentity } from './shared.js';
+import {
+  directAction,
+  playerInstance,
+  rawSkillName,
+  runtimeDuration,
+  skillFor,
+  type RevenantActionIdentity
+} from './shared.js';
 
 const ORDERS_FROM_ABOVE = Object.freeze({
   name: 'Orders from Above',
   skillId: 45537
 });
 const ALACRITY_BUFF = 30328;
+const TERMINAL_RAZORCLAW_INPUT_DELAY_MS = 100;
 
 const WARBAND_SPECIES_ACTIONS = new Map<number, RevenantActionIdentity>([
   [18524, { name: "Icerazor's Ire", skillId: 40485 }],
@@ -124,9 +132,36 @@ function warbandActorActions(
     const swapsImmediatelyAfter = legendSwaps.some(
       (swap) => swap.start >= event.time && swap.start - event.time <= 250
     );
-    const start = event.time - (swapsImmediatelyAfter ? 200 : 0);
+    const isTerminalRazorclaw = identity.skillId === 42949 && !legendSwaps.some((swap) => swap.start > event.time);
+    const nextAutoattack = isTerminalRazorclaw
+      ? actions.find(
+          (action) =>
+            action.start >= event.time &&
+            String(
+              skillFor(context, {
+                name: action.canonicalName || action.rawName,
+                skillId: action.canonicalSkillId ?? action.rawSkillId
+              })?.slot || ''
+            ).toLowerCase() === 'weapon_1'
+        )
+      : undefined;
+    // The terminal actor packet shares the next autoattack timestamp but follows its input boundary.
+    const start = nextAutoattack
+      ? nextAutoattack.start + TERMINAL_RAZORCLAW_INPUT_DELAY_MS
+      : event.time - (swapsImmediatelyAfter ? 200 : 0);
     return [
-      directAction(eventIndex, start, event.skillId, rawSkillName(context, event.skillId), identity, 'animation')
+      {
+        ...directAction(
+          nextAutoattack ? nextAutoattack.eventIndex + 0.25 : eventIndex,
+          start,
+          event.skillId,
+          rawSkillName(context, event.skillId),
+          identity,
+          'animation'
+        ),
+        // Actor-only evidence identifies Band Together's instant summon, which can overlap the active weapon cast.
+        independentTimeline: true
+      }
     ];
   });
 }

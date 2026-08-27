@@ -301,7 +301,7 @@ test('registers an individual parser for every current profession specialization
   }
 });
 
-test('reconstructs casts, inferred instants, swaps, dodges, and 40 ms replay timing', () => {
+test('reconstructs casts, inferred instants, serial weapon swaps, dodges, and 40 ms replay timing', () => {
   const fixture = log({
     events: [
       event({ time: 1_000, stateChange: 1 }),
@@ -362,7 +362,8 @@ test('reconstructs casts, inferred instants, swaps, dodges, and 40 ms replay tim
     { name: '__wait', waitMs: 200 },
     { name: 'Mind Stab', skillId: 1_000 },
     { name: 'Time Sink', skillId: 2_000, offset: 120 },
-    { name: 'Swap Weapons', skillId: -3, offset: 120 },
+    { name: 'Swap Weapons', skillId: -3 },
+    { name: '__wait', waitMs: 320 },
     { name: 'Dodge', skillId: -5 }
   ]);
   assert.match(result.warnings[0], /instant cast was inferred/);
@@ -2624,6 +2625,14 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
         sourceMasterInstance: 1,
         skillId: 72_370,
         stateChange: 67
+      }),
+      event({ time: 2_700, skillId: 29_057, value: 540, stateChange: 67 }),
+      event({
+        time: 3_060,
+        skillId: 29_057,
+        value: 360,
+        activation: 3,
+        stateChange: 68
       })
     ]
   });
@@ -2653,12 +2662,154 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    ['Swap Legends', 'Deathstrike', 'Preparation Thrust', 'Brutal Blade', "Razorclaw's Rage"]
+    ['Swap Legends', 'Deathstrike', 'Preparation Thrust', 'Brutal Blade', 'Preparation Thrust', "Razorclaw's Rage"]
   );
   assert.equal(result.actions.filter((action) => action.name === 'Deathstrike').length, 1);
   assert.equal(
     result.actions.some((action) => action.name === 'Call of the Renegade'),
     false
+  );
+  const finalAutoattack = result.actions.filter((action) => action.name === 'Preparation Thrust').at(-1);
+  const inferredRazorclaw = result.actions.find((action) => action.name === "Razorclaw's Rage");
+  assert.equal(inferredRazorclaw.timestampMs - finalAutoattack.timestampMs, 100);
+  assert.equal(result.rotation.find((action) => action.name === "Razorclaw's Rage")?.offset, 120);
+});
+
+test('does not duplicate a truncated Revenant weapon precast recovered by the generic parser', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 63,
+        character: 'Fixture Renegade'
+      }
+    ],
+    skills: [
+      { id: 28_357, name: 'Searing Fissure' },
+      { id: 28_409, name: 'Temporal Rift' },
+      { id: 44_272, name: 'Legendary Renegade Stance' }
+    ],
+    events: [
+      event({
+        time: 1_000,
+        target: PLAYER,
+        skillId: 44_272,
+        buff: 18,
+        stateChange: 18
+      }),
+      event({ time: 1_400, target: 0x2000n, skillId: 28_357, value: 100 }),
+      event({ time: 1_460, stateChange: 1 }),
+      event({
+        time: 1_600,
+        skillId: 28_357,
+        value: 600,
+        activation: 3,
+        stateChange: 68
+      }),
+      event({ time: 2_000, skillId: 28_409, value: 600, stateChange: 67 }),
+      event({
+        time: 2_600,
+        skillId: 28_409,
+        value: 600,
+        activation: 3,
+        stateChange: 68
+      })
+    ]
+  });
+  const rotationCatalog = {
+    skills: [
+      [28_357, 'Searing Fissure'],
+      [28_409, 'Temporal Rift']
+    ].map(([id, name]) => ({
+      id,
+      name,
+      type: 'Weapon',
+      slot: 'Weapon_2',
+      castTimeMs: 600,
+      quicknessCastTimeMs: 600,
+      effects: [],
+      implemented: true
+    }))
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog);
+
+  assert.equal(result.actions.filter((action) => action.name === 'Searing Fissure').length, 1);
+});
+
+test('preserves cancelled Revenant autoattacks and per-packet cast timing', () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 63,
+        character: 'Fixture Renegade'
+      }
+    ],
+    skills: [
+      { id: 40_497, name: 'Shattershot' },
+      { id: 40_175, name: 'Bloodbane Path' }
+    ],
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      event({ time: 1_100, skillId: 40_497, value: 488, stateChange: 67 }),
+      event({ time: 1_100, skillId: 40_497, activation: 4, stateChange: 68 }),
+      event({ time: 1_200, skillId: 40_497, value: 488, stateChange: 67 }),
+      event({ time: 1_597, skillId: 40_497, value: 397, activation: 4, stateChange: 68 }),
+      event({ time: 1_600, skillId: 40_497, value: 488, stateChange: 67 }),
+      event({ time: 2_080, skillId: 40_497, value: 480, activation: 3, stateChange: 68 }),
+      event({ time: 2_200, skillId: 40_175, value: 760, stateChange: 67 }),
+      event({ time: 2_519, skillId: 40_175, value: 319, activation: 3, stateChange: 68 })
+    ]
+  });
+  const rotationCatalog = {
+    skills: [
+      {
+        id: 40_497,
+        name: 'Shattershot',
+        type: 'Weapon',
+        slot: 'Weapon_1',
+        castTimeMs: 480,
+        quicknessCastTimeMs: 480,
+        interruptCommitMs: 400,
+        effects: [],
+        implemented: true
+      },
+      {
+        id: 40_175,
+        name: 'Bloodbane Path',
+        type: 'Weapon',
+        slot: 'Weapon_2',
+        castTimeMs: 760,
+        quicknessCastTimeMs: 760,
+        interruptMode: 'per-packet',
+        effects: [],
+        implemented: true
+      }
+    ]
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, { inferInstantCasts: false });
+
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.name === 'Shattershot' || action.name === 'Bloodbane Path')
+      .map(({ name, durationMs }) => [name, durationMs]),
+    [
+      ['Shattershot', 397],
+      ['Shattershot', 480],
+      ['Bloodbane Path', 319]
+    ]
+  );
+  assert.deepEqual(
+    result.rotation.filter((command) => command.name === 'Shattershot' || command.name === 'Bloodbane Path'),
+    [
+      { name: 'Shattershot', skillId: 40_497, interruptMs: 400 },
+      { name: 'Shattershot', skillId: 40_497 },
+      { name: 'Bloodbane Path', skillId: 40_175, interruptMs: 320 }
+    ]
   );
 });
 
@@ -2854,14 +3005,17 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
       'Cosmic Wisdom',
       'Swap Legends',
       'Embrace the Darkness',
-      'Frigid Blitz'
+      'Frigid Blitz',
+      'Misery Swipe'
     ]
   );
   assert.equal(result.actions.filter((action) => action.name === 'Frigid Blitz').length, 1);
   assert.equal(
-    result.actions.some((action) => action.name.startsWith('Form of the Dervish') || action.name === 'Misery Swipe'),
+    result.actions.some((action) => action.name.startsWith('Form of the Dervish')),
     false
   );
+  assert.equal(result.actions.find((action) => action.name === 'Misery Swipe')?.durationMs, 157);
+  assert.equal(result.rotation.find((command) => command.name === 'Misery Swipe')?.interruptMs, 160);
   assert.equal(
     result.actions.every((action) => action.supportedByCatalog),
     true

@@ -1920,7 +1920,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   }
 });
 
-test('energy regenerates continuously and every skill pays its explicit cost', () => {
+test('energy regenerates every 100 ms and every skill pays its explicit cost', () => {
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 
   // 50 - 30 + 2.5 during the half-second cast + 5 during the wait.
@@ -1941,6 +1941,27 @@ test('energy regenerates continuously and every skill pays its explicit cost', (
   });
 
   assert.match(weaponDenied.warnings[0], /requires 5 energy/);
+
+  const ticked = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 150 }], { initialEnergy: 0 });
+
+  assert.equal(ticked.endState.profession.energy, 0.5);
+  assert.deepEqual(
+    ticked.events
+      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy')
+      .map((event) => [event.at, event.state.energy]),
+    [[0.1, 0.5]]
+  );
+});
+
+test('an in-combat Revenant skill waits for the 100 ms Energy tick that makes it affordable', () => {
+  const result = simulate('Renegade', ['__combat_start', "Razorclaw's Rage"], {
+    initialEnergy: 24.5,
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE
+  });
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(result.steps.at(-1).start, 100);
 });
 
 test('a cooldown-queued Revenant skill recovers Energy before its next cast', () => {
@@ -2615,9 +2636,10 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
 
   assert.match(unavailable.warnings[0], /cast Call to Anguish first/);
 
-  const insufficient = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], { ...config, initialEnergy: 30 });
+  const queuedForEnergy = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], { ...config, initialEnergy: 30 });
 
-  assert.match(insufficient.warnings[0], /requires 5 energy/);
+  assert.equal(queuedForEnergy.warnings.length, 0);
+  assert.equal(queuedForEnergy.steps.at(-1).start, 1000);
 });
 
 test('Herald facets expose and consume their active flips', () => {
@@ -5124,7 +5146,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
   assert.equal(beguilingAmmo.nextRechargeAt, beguiling.endState.profession.beguilingHazeReadyAt);
-  assert.ok(Math.abs(beguiling.endState.profession.energy - 83.14) < 1e-9);
+  assert.equal(beguiling.endState.profession.energy, 83);
 
   const recharged = simulate(
     'Conduit',

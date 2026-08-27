@@ -97,7 +97,8 @@ function truncatedPrecastActions(context: EvtcProfessionReconstructionContext): 
     const start = event.time - event.value;
     if (
       start >= atCombat ||
-      hasRecordedAction(context.recordedActions, identity, event.time, SIGNAL_DEDUPLICATION_WINDOW_MS)
+      // Match the recovered cast start so a generic truncated animation is not inserted twice.
+      hasRecordedAction(context.recordedActions, identity, start, SIGNAL_DEDUPLICATION_WINDOW_MS)
     ) {
       return [];
     }

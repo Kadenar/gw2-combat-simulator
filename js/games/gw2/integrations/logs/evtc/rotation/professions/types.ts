@@ -21,6 +21,7 @@ export interface EvtcRecordedRotationAction {
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
   readonly forceCompleteReplay?: boolean;
+  readonly independentTimeline?: boolean;
   readonly suppressFollowingWait?: boolean;
   /** Earlier combat boundary inferred from profession-specific opening-hit evidence. */
   readonly combatStartOverride?: number;

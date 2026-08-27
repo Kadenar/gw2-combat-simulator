@@ -1,5 +1,4 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { committedActionsFromStrikePackets, firstStrikePacketOffsetMs } from '../../effect-packets.js';
 import { findRotationSkill } from '../../catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import { SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
@@ -40,31 +39,6 @@ export function normalizeRevenantCastPackets(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const normalized: EvtcRecordedRotationAction[] = [];
-  const autoattacks = actions.filter((action) => {
-    const skill = findRotationSkill(
-      action.canonicalSkillId ?? action.rawSkillId,
-      action.canonicalName ?? action.rawName,
-      context.catalog,
-      context.profile
-    );
-    return String(skill?.slot || '').toLowerCase() === 'weapon_1';
-  });
-  const committed = committedActionsFromStrikePackets(context, autoattacks, {
-    maxFallbackImpactMs: 2_000
-  });
-  const absorbCanceledAnimation = (action: EvtcRecordedRotationAction): void => {
-    let previousIndex = normalized.length - 1;
-    while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
-      previousIndex -= 1;
-    }
-
-    if (previousIndex < 0) return;
-    const previous = normalized[previousIndex];
-    normalized[previousIndex] = {
-      ...previous,
-      end: Math.max(previous.end, action.end)
-    };
-  };
 
   for (const action of mergeSplitAnimations(actions)) {
     const skill = findRotationSkill(
@@ -73,32 +47,11 @@ export function normalizeRevenantCastPackets(
       context.catalog,
       context.profile
     );
-    if (
-      action.status === 'interrupted' &&
-      String(skill?.slot || '').toLowerCase() === 'weapon_1' &&
-      !committed.has(action)
-    ) {
-      absorbCanceledAnimation(action);
-      continue;
-    }
-
     const duration = Math.max(0, action.end - action.start);
     const expected = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     const autoattack = String(skill?.slot || '').toLowerCase() === 'weapon_1';
-    const strikeCommit = firstStrikePacketOffsetMs(skill, undefined, {
-      explicitOnly: true
-    });
-    if (
-      autoattack &&
-      !committed.has(action) &&
-      strikeCommit != null &&
-      duration < strikeCommit &&
-      cancelFireAtActionEnd(context, action)
-    ) {
-      absorbCanceledAnimation(action);
-      continue;
-    }
-
+    // A same-frame cancelled autoattack never occupied the cast lane; omit the ArcDPS animation artifact.
+    if (autoattack && action.status === 'interrupted' && duration === 0) continue;
     if (
       action.status === 'completed' &&
       duration > 0 &&
@@ -106,7 +59,12 @@ export function normalizeRevenantCastPackets(
       duration + REDUCED_CAST_TOLERANCE_MS < expected &&
       cancelFireAtActionEnd(context, action)
     ) {
-      normalized.push({ ...action, status: 'reduced' as const });
+      // Preserve shortened player inputs and let shared replay timing round their observed duration.
+      normalized.push({
+        ...action,
+        status: autoattack ? ('interrupted' as const) : ('reduced' as const),
+        replayCastEnd: undefined
+      });
       continue;
     }
 

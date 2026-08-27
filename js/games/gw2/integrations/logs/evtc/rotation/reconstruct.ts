@@ -86,14 +86,16 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   }
 
   const observedMs = quantizeEvtcTimingMs(action.replayInterruptMs ?? action.end - action.start);
-  const autoattack =
+  const partialCast = action.status === 'interrupted' || action.status === 'reduced';
+  const interruptedAutoattack =
     action.status === 'interrupted' &&
     String(skill?.type || '').toLowerCase() === 'weapon' &&
     String(skill?.slot || '').toLowerCase() === 'weapon_1';
+  const perPacketPartialCast = partialCast && skill?.interruptMode === 'per-packet';
   const runtimeMs = quicknessRuntimeDurationMs(skill);
-  // Cancelled autoattacks are real player inputs even before damage commitment;
-  // replay their occupied time while the engine suppresses their packets and chain advancement.
-  if (autoattack && observedMs > 0 && observedMs < runtimeMs) return observedMs;
+  // Cancelled autoattacks and per-packet skills retain their observed lane time;
+  // the engine separately decides which packets committed before that boundary.
+  if ((interruptedAutoattack || perPacketPartialCast) && observedMs < runtimeMs) return observedMs;
 
   return observedCommittedInterruptMs(skill, action.replayInterruptMs ?? action.end - action.start);
 }

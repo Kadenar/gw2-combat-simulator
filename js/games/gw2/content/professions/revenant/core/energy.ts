@@ -18,6 +18,12 @@ import type {
   RevenantSkill
 } from '../types.js';
 
+const REVENANT_ENERGY_TICK_INTERVAL = 0.1;
+
+function roundedResourceValue(value: number): number {
+  return Math.round(value * 1e9) / 1e9;
+}
+
 function resourceProfile(context: RevenantEnergyContext) {
   const profile = context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
   if (!profile) throw new Error('Missing Revenant resource balance profile.');
@@ -42,7 +48,7 @@ function regenerateRevenantEnergy(
   const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
   // Out-of-combat regeneration stops at 50 without removing energy that was
   // already above 50.
-  return Math.min(maximum, state.energy + (target - from) * rate);
+  return roundedResourceValue(Math.min(maximum, state.energy + (target - from) * rate));
 }
 
 export function revenantEnduranceRegenerationRate(
@@ -64,25 +70,30 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
   return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
 }
 
-/**
- * Advances Energy, endurance, upkeep drain, and starvation.
- */
-export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
-  const resource = resourceProfile(context);
-  const regeneration = Number(resource.energyRegenerationPerSecond || 0);
+/** Returns the first 100 ms Energy tick that can make an in-combat cast affordable. */
+export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const state = professionCoreState(context);
-  syncRevenantCombatState(context, state);
-  const from = Number(state.energyUpdatedAt || 0);
-  const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-  if (target > enduranceFrom) {
-    const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
-    Object.assign(state, advanceEndurance(state, target, enduranceRate, state.maximumEndurance));
-  }
+  const regeneration = Number(resourceProfile(context).energyRegenerationPerSecond || 0);
+  const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
+  const gainPerTick = (regeneration - upkeep) * REVENANT_ENERGY_TICK_INTERVAL;
+  if (state.combatBeganAt == null || gainPerTick <= 0 || cost > state.maximumEnergy + context.epsilon) return null;
 
-  if (target <= from) return;
+  const missing = cost - state.energy;
+  const ticks = Math.max(1, Math.ceil((missing - context.epsilon) / gainPerTick));
+  return roundedResourceValue(state.energyUpdatedAt + ticks * REVENANT_ENERGY_TICK_INTERVAL);
+}
+
+function advanceRevenantEnergyTick(
+  context: RevenantSchedulerContext,
+  state: RevenantCoreState,
+  from: number,
+  target: number,
+  regeneration: number
+): void {
   const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const rate = regeneration - upkeep;
   const elapsed = target - from;
+  const previousEnergy = state.energy;
   if (rate < 0 && state.energy + rate * elapsed < 0) {
     const starvedAt = from + state.energy / -rate;
     state.energy = 0;
@@ -115,9 +126,37 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   state.energy =
     rate > 0
       ? regenerateRevenantEnergy(context, state, from, target, rate)
-      : Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate));
+      : roundedResourceValue(Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate)));
   state.energyUpdatedAt = target;
-  emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
+  if (state.energy !== previousEnergy) {
+    emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
+  }
+}
+
+/**
+ * Advances Energy, endurance, upkeep drain, and starvation.
+ */
+export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
+  const resource = resourceProfile(context);
+  const regeneration = Number(resource.energyRegenerationPerSecond || 0);
+  const state = professionCoreState(context);
+  syncRevenantCombatState(context, state);
+  const from = Number(state.energyUpdatedAt || 0);
+  const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
+  if (target > enduranceFrom) {
+    const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
+    Object.assign(state, advanceEndurance(state, target, enduranceRate, state.maximumEndurance));
+  }
+
+  // Apply completed 100 ms resource ticks while leaving Energy flat between
+  // them, matching the smoother cadence used by other discrete resources.
+  let tickFrom = from;
+  let tickAt = roundedResourceValue(tickFrom + REVENANT_ENERGY_TICK_INTERVAL);
+  while (tickAt <= target) {
+    advanceRevenantEnergyTick(context, state, tickFrom, tickAt, regeneration);
+    tickFrom = tickAt;
+    tickAt = roundedResourceValue(tickFrom + REVENANT_ENERGY_TICK_INTERVAL);
+  }
 }
 
 /** Minimal Core state used to make active upkeep toggles free. */

@@ -380,12 +380,12 @@ test('the scheduler predicts a delayed combo result for later facts', () => {
   assert.equal(scheduler.context.hasBuff('might', 2), true);
 });
 
-test('same-time fields register before finishers by default', () => {
+test('epsilon-equal fields register before finishers by default', () => {
   const profession = fixtureProfession((context) => {
     context.emit({
       type: 'combo_finisher',
-      at: 0,
-      effectAt: 0,
+      at: 0.3,
+      effectAt: 0.3,
       source: 'Leap',
       sourceId: 'leap.skill',
       actorType: 'player',
@@ -398,13 +398,13 @@ test('same-time fields register before finishers by default', () => {
     });
     context.emit({
       type: 'combo_field',
-      at: 0,
+      at: 0.1 + 0.2,
       source: 'Ice Field',
       sourceId: 'ice.field',
       actorType: 'effect',
       fieldId: 'field:same-time',
       fieldType: 'Ice',
-      expiresAt: 1,
+      expiresAt: 1.3,
       ownerId: 'combo-fixture',
       ownerActorType: 'player'
     });
@@ -412,7 +412,7 @@ test('same-time fields register before finishers by default', () => {
   const result = createScheduler({
     profession,
     schedulerPolicy: createGw2SchedulerPolicy()
-  }).run([{ type: 'wait', durationMs: 1 }]);
+  }).run([{ type: 'wait', durationMs: 400 }]);
 
   assert.equal(result.events.filter((event) => event.type === 'combo').length, 1);
   assert.equal(result.events.find((event) => event.type === 'aura')?.aura, 'Frost Aura');

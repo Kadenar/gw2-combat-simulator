@@ -1,7 +1,7 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import { revenantEnduranceReadyAt } from './energy.js';
+import { revenantEnduranceReadyAt, revenantEnergyReadyAt } from './energy.js';
 import { effectiveRevenantEnergyCost } from '../energy.js';
 import { denySkillCast as denyRevenantSkill } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
@@ -103,11 +103,12 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
   const cost = effectiveRevenantEnergyCost(context, skill);
   if (state.energy + context.epsilon < cost) {
     const cooldownReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+    const energyReadyAt = revenantEnergyReadyAt(context, cost);
     return denyRevenantSkill(
       skill,
       'revenant.insufficient-energy',
       `requires ${cost} energy.`,
-      cooldownReadyAt > context.start + context.epsilon ? cooldownReadyAt : null
+      cooldownReadyAt > context.start + context.epsilon ? cooldownReadyAt : energyReadyAt
     );
   }
 

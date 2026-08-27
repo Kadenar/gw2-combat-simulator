@@ -44,8 +44,16 @@ export function createTaskQueue<TContext, TPayload>({
   let sequence = 0;
   let processed = 0;
 
-  const compareTasks = (left: ScheduledTask<TPayload>, right: ScheduledTask<TPayload>): number =>
-    left.at - right.at || left.priority - right.priority || left.order - right.order;
+  // Timestamps inside the scheduler tolerance are simultaneous, so priority
+  // still controls causal ordering when floating-point arithmetic differs.
+  const compareTasks = (left: ScheduledTask<TPayload>, right: ScheduledTask<TPayload>): number => {
+    const timeDifference = left.at - right.at;
+    return (
+      (Math.abs(timeDifference) > epsilon ? timeDifference : 0) ||
+      left.priority - right.priority ||
+      left.order - right.order
+    );
+  };
 
   const schedule = (input: ScheduledTaskInput<TPayload>): string => {
     const { id, type, at, priority = 0, ownerId = null, payload = null, required = true } = input;

@@ -352,26 +352,26 @@ frame.addEventListener('load', async () => {
         shiftKey: true
       })
     );
-    assert(app.build.rotation[1].concurrentOffsetMs === 100, 'Shift+click did not create concurrent command');
-    assert(app.results.steps[1].start === 100, 'concurrent command did not start at 100ms');
+    assert(app.build.rotation[1].concurrentOffsetMs === 120, 'Shift+click did not create concurrent command');
+    assert(app.results.steps[1].start === 120, 'concurrent command did not start at 120ms');
     const concurrentBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-offset-badge');
 
     assert(
-      concurrentBadge?.textContent.includes('100ms') && /-?\d+\.\d+s/.test(concurrentBadge.textContent),
+      concurrentBadge?.textContent.includes('120ms') && /-?\d+\.\d+s/.test(concurrentBadge.textContent),
       'concurrent skill badge does not show both delay and cast timestamp'
     );
     concurrentBadge.click();
-    let durationEditor = document.querySelector('.rotation-duration-editor');
+    let activationEditor = document.querySelector('.rotation-activation-editor');
 
     assert(
-      durationEditor?.querySelector('.activation-editor-input')?.value === '100',
-      'offset duration editor did not open with the current value'
+      activationEditor?.querySelector('.activation-editor-input')?.value === '120',
+      'offset activation editor did not open with the current value'
     );
-    durationEditor.querySelector('.activation-editor-input').value = '250';
-    durationEditor.querySelector('.activation-editor-apply').click();
+    activationEditor.querySelector('.activation-editor-input').value = '240';
+    activationEditor.querySelector('.activation-editor-apply').click();
     assert(
-      app.build.rotation[1].concurrentOffsetMs === 250,
-      'offset duration editor did not update the concurrent command'
+      app.build.rotation[1].concurrentOffsetMs === 240,
+      'offset activation editor did not update the concurrent command'
     );
     const instantActivation = document.querySelector(
       '#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation'
@@ -379,7 +379,7 @@ frame.addEventListener('load', async () => {
 
     assert(instantActivation, 'instant cast does not expose the activation editor');
     instantActivation.click();
-    let activationEditor = document.querySelector('.rotation-activation-editor');
+    activationEditor = document.querySelector('.rotation-activation-editor');
     assert(
       activationEditor?.querySelector('input[value="concurrent"]')?.checked &&
         activationEditor.textContent.includes('During previous cast') &&
@@ -393,14 +393,14 @@ frame.addEventListener('load', async () => {
     document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation').click();
     activationEditor = document.querySelector('.rotation-activation-editor');
     activationEditor.querySelector('input[value="concurrent"]').click();
-    activationEditor.querySelector('.activation-editor-input').value = '125';
+    activationEditor.querySelector('.activation-editor-input').value = '120';
     activationEditor.querySelector('.activation-editor-apply').click();
-    assert(app.build.rotation[1].concurrentOffsetMs === 125, 'instant cast editor did not add a concurrent offset');
+    assert(app.build.rotation[1].concurrentOffsetMs === 120, 'instant cast editor did not add a concurrent offset');
 
     app.build.rotation = [];
     app.changed(false);
     icon(document, '__wait').click();
-    durationEditor = document.querySelector('.rotation-duration-editor');
+    let durationEditor = document.querySelector('.rotation-duration-editor');
     assert(
       durationEditor?.querySelector('.activation-editor-input')?.value === '1000',
       'wait duration editor did not open with the default value'
@@ -433,10 +433,10 @@ frame.addEventListener('load', async () => {
       'Combat Start editor did not open with normal and previous-cast behaviors'
     );
     activationEditor.querySelector('input[value="concurrent"]').click();
-    activationEditor.querySelector('.activation-editor-input').value = '225';
+    activationEditor.querySelector('.activation-editor-input').value = '240';
     activationEditor.querySelector('.activation-editor-apply').click();
     assert(
-      app.build.rotation[1].concurrentOffsetMs === 225,
+      app.build.rotation[1].concurrentOffsetMs === 240,
       'Combat Start editor did not move the marker into the previous cast'
     );
 

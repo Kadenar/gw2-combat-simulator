@@ -119,7 +119,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const command = { ...policy.commandFor(action) };
     const instant = actionReplayEnd <= at;
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
-    const concurrent = independent || (instant && action.skill?.canCastConcurrently !== false);
+    // Weapon swaps cancel an active cast in game, so log imports must always replay them serially.
+    const concurrent =
+      action.name !== 'Swap Weapons' && (independent || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, activeCastEnd, previousCastStart) === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = quantizeMs(at - previousCastStart);
