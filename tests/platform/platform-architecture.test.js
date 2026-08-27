@@ -2639,8 +2639,9 @@ async function sourceModulePath(file) {
 }
 
 test('native registry loaders do not pull another profession module graph', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/games/gw2/content');
 
+  // Trace each profession's runtime graph so lazy registry loading stays isolated to that profession.
   for (const entry of professionRegistry) {
     const graph = await relativeModuleGraph([
       path.join(root, 'professions', entry.id, 'definition.js'),

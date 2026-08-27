@@ -4,8 +4,8 @@ import path from 'node:path';
 import test from 'node:test';
 import ts from 'typescript';
 
-const PLATFORM_ROOT = path.resolve(import.meta.dirname, '../../js/platform');
-const APP_ROOT = path.resolve(import.meta.dirname, '../../js/app');
+const PLATFORM_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/platform');
+const APP_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/app');
 
 // Scan every platform source module so app-specific composition cannot leak
 // back into the reusable engine, GW2 data, persistence, or UI layers.

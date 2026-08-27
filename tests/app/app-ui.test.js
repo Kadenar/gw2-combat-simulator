@@ -51,7 +51,7 @@ import {
 } from '../../js/games/gw2/app/rotation/editing/actions.js';
 import { syncProcVisibility } from '../../js/games/gw2/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/games/gw2/app/rotation/shared/icons.js';
-import { renderResults } from '../../js/games/gw2/app/rotation/result/view.js';
+import { renderResults } from '../../js/games/gw2/app/presentation.js';
 import { PREFIXES, PREFIX_GROUPS } from '../../js/games/gw2/platform/equipment/gear/stats.js';
 import { SIGIL_GROUPS } from '../../js/games/gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '../../js/games/gw2/platform/equipment/sigils/data.js';
