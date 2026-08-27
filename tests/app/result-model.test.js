@@ -7,7 +7,7 @@ import {
   formatTimelineTime,
   resultCombatReferenceMs,
   resultSummaryMetrics
-} from '../../js/app/rotation/result/model.js';
+} from '../../js/games/gw2/app/rotation/result/model.js';
 
 test('timeline times can reuse a precomputed combat reference', () => {
   const result = {

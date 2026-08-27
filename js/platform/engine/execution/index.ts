@@ -1,7 +1,2 @@
-/** Public scheduling and rotation-execution entrypoint. */
-export * from './cooldowns.js';
-export * from './observation.js';
-export * from './rotation.js';
-export * from './scheduler.js';
-export * from './state.js';
-export * from './tasks.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/platform/engine/execution/index.js';

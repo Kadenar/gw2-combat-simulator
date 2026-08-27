@@ -1,0 +1,97 @@
+[
+  {
+    "section": "Willbender",
+    "presets": [
+      {
+        "label": "Power (Spear / Greatsword)",
+        "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
+        "benchmarkDps": 42816,
+        "sourceBenchmarkDps": 42702,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Pistol / Torch + Pistol / Pistol)",
+        "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
+        "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
+        "benchmarkDps": 41830,
+        "sourceBenchmarkDps": 41809,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Scepter / Pistol + Pistol / Torch)",
+        "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
+        "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
+        "benchmarkDps": 42381,
+        "sourceBenchmarkDps": 41433,
+        "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Firebrand",
+    "presets": [
+      {
+        "label": "Condition (Axe / Torch + Pistol / Pistol)",
+        "build": "data/gw2/builds/guardian/b-condition-firebrand.json",
+        "rotation": "data/gw2/rotations/guardian/r-condition-firebrand-bench.json",
+        "benchmarkDps": 41584,
+        "sourceBenchmarkDps": 40916,
+        "upToDate": true
+      },
+      {
+        "label": "Condition Quickness (Axe / Torch + Pistol / Pistol)",
+        "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
+        "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
+        "benchmarkDps": 33128,
+        "sourceBenchmarkDps": 33198,
+        "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Dragonhunter",
+    "presets": [
+      {
+        "label": "Power (Spear / Greatsword)",
+        "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
+        "benchmarkDps": 41809,
+        "sourceBenchmarkDps": 41853,
+        "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Luminary",
+    "presets": [
+      {
+        "label": "Power (Greatsword / Spear)",
+        "build": "data/gw2/builds/guardian/b-power-luminary.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
+        "benchmarkDps": 42043
+      },
+      {
+        "label": "Power (Greatsword / Longbow)",
+        "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
+        "benchmarkDps": 41419,
+        "sourceBenchmarkDps": 40768,
+        "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
+        "upToDate": true
+      },
+      {
+        "label": "Power Alacrity (Greatsword / Spear)",
+        "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
+        "benchmarkDps": 37872,
+        "sourceBenchmarkDps": 37129,
+        "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
+        "upToDate": true
+      }
+    ]
+  }
+]

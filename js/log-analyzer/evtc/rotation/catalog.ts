@@ -1,10 +1,2 @@
-export {
-  actionKind,
-  effectWindowMs,
-  findNamedRotationSkill,
-  findRotationSkill,
-  isDirectPlayerSkill,
-  normalizedName,
-  skillIdentity,
-  type RotationCatalog as EvtcRotationCatalog
-} from '../../lib/rotation/catalog.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/integrations/logs/evtc/rotation/catalog.js';

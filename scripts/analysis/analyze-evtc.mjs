@@ -6,7 +6,7 @@
  * `--summary` is given — every agent and skill. Optional `--debug-*` filters pull
  * matching combat events into a `debugEvents` array for troubleshooting.
  *
- * Requires a prior `npm run build` so the compiled `dist/js/log-analyzer/evtc` exists.
+ * Requires a prior `npm run build` so the selected game's compiled log integration exists.
  *
  * Usage: node scripts/analysis/analyze-evtc.mjs <fight.evtc|.evtc.zip|.zevtc>
  *   [--summary]                Emit only header + players.
@@ -16,10 +16,13 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import { decompressEvtcInput } from '../../dist/js/log-analyzer/evtc/decompression.js';
-import { parseEvtc } from '../../dist/js/log-analyzer/evtc/parser.js';
+import { decompressEvtcInput } from '../../dist/js/games/gw2/integrations/logs/evtc/decompression.js';
+import { parseEvtc } from '../../dist/js/games/gw2/integrations/logs/evtc/parser.js';
+import { parseGameOption } from '../lib/game-data.mjs';
 
-const input = process.argv[2];
+const { gameId, args } = parseGameOption(process.argv.slice(2));
+if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" does not support EVTC logs.`);
+const input = args[0];
 
 if (!input) {
   console.error(
@@ -30,10 +33,10 @@ if (!input) {
   process.exit(1);
 }
 
-const summaryOnly = process.argv.includes('--summary');
+const summaryOnly = args.includes('--summary');
 const numericOption = (prefix) =>
   new Set(
-    process.argv
+    args
       .filter((argument) => argument.startsWith(prefix))
       .flatMap((argument) => argument.slice(prefix.length).split(','))
       .map(Number)
@@ -41,7 +44,7 @@ const numericOption = (prefix) =>
   );
 const debugSkillIds = numericOption('--debug-skill=');
 const debugStateChanges = numericOption('--debug-state=');
-const debugNames = process.argv
+const debugNames = args
   .filter((argument) => argument.startsWith('--debug-name='))
   .map((argument) => argument.slice('--debug-name='.length).toLowerCase())
   .filter(Boolean);

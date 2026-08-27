@@ -1,3 +1,2 @@
-export const troubadourEventHandlers = Object.freeze({
-  'mesmer.instrument': (): void => {}
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/troubadour/resolver.js';

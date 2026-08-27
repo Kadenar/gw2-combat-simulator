@@ -1,23 +1,2 @@
-import { defineNativeModule } from '../../../../platform/gw2/authoring/profession.js';
-import { createThiefModuleData } from '../../catalog-data.js';
-import { daredevilAttributeRules, daredevilCastRules, daredevilSchedulerHooks } from './rules.js';
-import { daredevilState } from './state.js';
-import { DAREDEVIL_SKILL_MECHANICS } from './skills.js';
-import { DAREDEVIL_BALANCE_PROFILES } from './profiles.js';
-import { daredevilUi } from './ui.js';
-
-export const daredevilModule = defineNativeModule({
-  id: 'Daredevil',
-  data: createThiefModuleData('Daredevil', {
-    skillMechanics: DAREDEVIL_SKILL_MECHANICS,
-    balanceProfiles: DAREDEVIL_BALANCE_PROFILES
-  }),
-  // Scheduler and resolver each get their own independent DaredevilState instance
-  state: { scheduler: daredevilState.create, resolver: daredevilState.create },
-  mechanics: {
-    modifiers: daredevilAttributeRules,
-    castRules: daredevilCastRules,
-    schedulerHooks: daredevilSchedulerHooks
-  },
-  presentation: daredevilUi
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/thief/specializations/daredevil/module.js';

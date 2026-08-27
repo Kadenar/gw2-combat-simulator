@@ -343,7 +343,9 @@ ${petLines.join('\n')}
 ]);
 `;
 
-  const target = fileURLToPath(new URL('../../js/professions/ranger/data/ranger-pet-data.ts', import.meta.url));
+  const target = fileURLToPath(
+    new URL('../../js/games/gw2/content/professions/ranger/data/ranger-pet-data.ts', import.meta.url)
+  );
 
   await writeFile(target, source, 'utf8');
   console.log(`Wrote ${skills.length} Ranger pet skills and ${pets.length} pets.`);

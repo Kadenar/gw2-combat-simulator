@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfessionAppAdapter } from '../../js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '../../js/games/gw2/app/profession/registry.js';
 
 test('Condition Quickness Scrapper preset preserves the submitted spear build', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/engineer/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/engineer/manifest.json', import.meta.url), 'utf8')
+  );
   const scrapper = manifest.find((section) => section.section === 'Scrapper');
   const preset = scrapper.presets.find((candidate) => candidate.label === 'Condition Quickness (Spear)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));

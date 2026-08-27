@@ -48,8 +48,8 @@ All current native profession pages already include it.
 The snapshot model and renderer live in:
 
 ```text
-js/app/rotation/state-snapshot/model.ts
-js/app/rotation/state-snapshot/view.ts
+js/games/gw2/app/rotation/state-snapshot/model.ts
+js/games/gw2/app/rotation/state-snapshot/view.ts
 ```
 
 The model uses `paletteEndState(app)` to obtain the state associated with the current rotation position. The view only
@@ -241,7 +241,7 @@ A profession may intentionally expose only selected state fields.
 For example, Warrior projects a whitelist through:
 
 ```text
-js/professions/warrior/core/state.ts
+js/games/gw2/content/professions/warrior/core/state.ts
 ```
 
 using:
@@ -361,7 +361,7 @@ calculations use.
 Two shared helpers are available in:
 
 ```text
-js/app/rotation/state-snapshot/model.ts
+js/games/gw2/app/rotation/state-snapshot/model.ts
 ```
 
 ## Timed buff
@@ -503,7 +503,7 @@ The important rule is:
 Values that are not profession-specific belong in:
 
 ```text
-js/app/rotation/state-snapshot/model.ts
+js/games/gw2/app/rotation/state-snapshot/model.ts
 ```
 
 The shared `rotationStateSnapshot()` function already receives the insertion-aware generic end state:

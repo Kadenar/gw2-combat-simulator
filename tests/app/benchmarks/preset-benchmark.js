@@ -3,14 +3,14 @@
 // Each profession has its own `<profession>.test.js` file so a drift or crash
 // in one profession's presets never prevents another profession's regressions
 // from running. They all funnel through `assertManifestRegressions`, which walks
-// a profession's `Builds/<profession>/manifest.json`, loads every saved build
+// a profession's `data/gw2/builds/<profession>/manifest.json`, loads every saved build
 // and rotation through the shared app shell, and verifies a stable DPS result
 // without pinning rotation composition or EVTC details.
 
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from '../../../js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '../../../js/games/gw2/app/profession/registry.js';
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
@@ -19,7 +19,7 @@ export function relativeError(actual, expected) {
 }
 
 export async function assertManifestRegressions(professionId) {
-  const manifest = JSON.parse(await readFile(repoUrl(`Builds/${professionId}/manifest.json`), 'utf8'));
+  const manifest = JSON.parse(await readFile(repoUrl(`data/gw2/builds/${professionId}/manifest.json`), 'utf8'));
   const adapter = await loadProfessionAppAdapter(professionId);
 
   assert.ok(adapter, `${professionId} has no native app adapter`);

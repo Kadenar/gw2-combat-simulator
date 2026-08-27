@@ -1,3 +1,2 @@
-/** Defines numeric patch edits independently so simulation configuration does not depend on patch implementation. */
-export type NumEdit =
-  number | { readonly from: number; readonly to: number } | { readonly multiply: number } | { readonly add: number };
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/integrations/patches/authoring/patch-types.js';

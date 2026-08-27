@@ -1,0 +1,205 @@
+import type {
+  CanonicalCatalog,
+  CastLifecycleContext,
+  SchedulerContext,
+  SchedulerRecord,
+  SchedulerState,
+  SimulationEvent,
+  Skill,
+  SkillId
+} from '../../../platform/engine/types.js';
+import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '../../../platform/builds/types.js';
+import type { Gw2Config } from '../../../platform/simulation/config.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/resolver/types.js';
+
+export interface WarriorBuild extends Gw2Build {
+  specializations?: Gw2BuildSpecialization[];
+  assumptions?: SchedulerRecord;
+  initialResource?: number;
+  selectedSkills?: Record<string, string>;
+}
+
+export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
+  assumptions: SchedulerRecord;
+  initialResource: number;
+}
+
+export interface WarriorConfig extends Gw2Config {
+  readonly specialization?: string;
+  readonly initialResource?: number;
+}
+
+export interface WarriorCoreState {
+  adrenaline: number;
+  resource: number;
+  maximumAdrenaline: number;
+  lastResourceAt: number;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  autoattackChains: Record<string, SkillId>;
+  availableFlips: Record<string, number | boolean | SchedulerRecord>;
+  burstPowerExpiries: number[];
+  signetMasteryExpiries: number[];
+  signetOfRageNextAt: number;
+  targetControlledUntil: number;
+  soldierFocusReadyAt: number;
+  empowerAlliesNextAt: number;
+  burstHitActivations: Record<string, boolean>;
+  burstPrecisionDurations: Record<string, number>;
+  traitProcReadyAt: Record<string, number>;
+  armsCriticalProgress: number;
+  bloodlustProgress: number;
+  furiousSurgeExpiries: number[];
+}
+
+export interface BerserkerState {
+  berserkActive: boolean;
+  berserkUntil: number;
+  fireAuraUntil: number;
+  kingOfFiresReadyAt: number;
+  kingOfFiresCriticalProgress: number;
+}
+
+export interface SpellbreakerState {
+  attackerInsightExpiries: number[];
+  fullCounterActiveUntil: number;
+  magebaneTetherUntil: number;
+  magebaneTetherReadyAt: number;
+}
+
+export interface BladeswornState {
+  flow: number;
+  maximumFlow: number;
+  flowUpdatedAt: number;
+  flowStabilizerWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+  }>;
+  traitPositiveFlowStartedAt: number;
+  traitPositiveFlowUntil: number;
+  gunsaberSwapTraitReadyAt: number;
+  gunsaberActive: boolean;
+  dragonTriggerActive: boolean;
+  dragonTriggerStartedAt: number;
+  dragonTriggerChargeDeadline: number;
+  nextDragonChargeAt: number;
+  dragonCharges: number;
+  dragonChargesPerInterval: number;
+  dragonTriggerRotationIndex: number;
+  dragonTriggerFlowSpent: number;
+  dragonTriggerEventActivationId: string;
+  tacticalReloadUntil: number;
+  overchargedCartridgeWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+    damageBonus: number;
+    burningDuration: number;
+    supercharged: boolean;
+  }>;
+  fierceAsFireExpiries: number[];
+  gunsAndGloryUntil: number;
+  ammoRoundsSpentByActivation: Record<string, number>;
+  ammoStartedFullByActivation: Record<string, boolean>;
+  dragonAdrenalineSpentByActivation: Record<string, number>;
+}
+
+export interface ParagonState {
+  motivation: number;
+  maximumMotivation: number;
+  activeRefrain: string;
+  nextRefrainAt: number;
+  inspiringImplementsReadyAt: number;
+  callToActionActivated: boolean;
+  commandEchoSequence: number;
+  pendingCommandEchoes: Array<{
+    id: number;
+    skillId: SkillId;
+    dueAt: number;
+    repeats: number;
+  }>;
+}
+
+export interface WarriorState
+  extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {}
+
+export interface WarriorRuntimeState {
+  core: WarriorCoreState;
+  specialization:
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Berserker'; state: BerserkerState }
+    | { kind: 'Spellbreaker'; state: SpellbreakerState }
+    | { kind: 'Bladesworn'; state: BladeswornState }
+    | { kind: 'Paragon'; state: ParagonState };
+}
+
+export interface WarriorSkill extends Skill {
+  /**
+   * Measured cast duration (ms) while Dual Wielding, snapshotted under the
+   * benchmark's Quickness. Used verbatim by the cast-duration hook instead of
+   * scaling `quicknessCastTimeMs` by 1.25, because the game rounds each buff
+   * combination from the base independently and the rounded Quickness value
+   * cannot reproduce it.
+   */
+  readonly dualWieldCastTimeMs?: number;
+  readonly adrenalineCost?: number;
+  readonly adrenalineGain?: number;
+  readonly flowGain?: number;
+  readonly burst?: boolean;
+  readonly burstTier?: number;
+  readonly primalBurst?: boolean;
+  readonly gunsaberSkill?: boolean;
+  readonly dragonTriggerSkill?: boolean;
+  readonly shadowstepSkill?: boolean;
+  readonly movementSkill?: boolean;
+  readonly dragonSlash?: boolean;
+  readonly dragonSlashMinimumCoefficient?: number;
+  readonly dragonSlashMaximumCoefficient?: number;
+}
+
+export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> &
+  SchedulerRecord & {
+    readonly catalog: CanonicalCatalog<WarriorSkill>;
+    readonly config: WarriorConfig;
+  };
+
+export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
+  readonly catalog: CanonicalCatalog<WarriorSkill>;
+  readonly config: WarriorConfig;
+};
+
+export type WarriorSimulationEvent = SimulationEvent & {
+  readonly coefficient?: number;
+  readonly condition?: string;
+  readonly resourceAmount?: number;
+  readonly state?: Partial<WarriorState>;
+};
+
+export type WarriorResolverEvent = Gw2ResolverEvent & {
+  readonly resourceAmount?: number;
+  readonly state?: Partial<WarriorState>;
+};
+
+export type WarriorResolverContext = Gw2ResolverRuntime & {
+  config: WarriorConfig;
+  profession: WarriorRuntimeState;
+};
+
+export interface WarriorEndStateProjectionOptions {
+  readonly schedulerState: SchedulerState<WarriorRuntimeState>;
+  readonly resolverState?: Partial<WarriorState> | null;
+}
+
+export interface WarriorUiContext extends SchedulerRecord {
+  readonly specialization?: string;
+  readonly config?: WarriorConfig;
+  readonly build?: WarriorBuild;
+  readonly state?: {
+    readonly profession?: WarriorRuntimeState | Partial<WarriorState>;
+  };
+  readonly professionState?: WarriorRuntimeState | Partial<WarriorState>;
+  readonly initialResource?: number;
+  readonly activeWeaponSet?: number;
+  /** Simulation time (seconds) of the rotation point being inspected. */
+  readonly atSeconds?: number;
+}

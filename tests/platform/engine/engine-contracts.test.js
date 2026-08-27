@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { assertSimulationEvent, createEvent } from '../../../js/platform/engine/events/events.js';
+import { assertSimulationEvent, createEvent } from '../../../js/games/gw2/platform/engine/events/events.js';
 import {
   assertScheduledEventStream,
   buildScheduledEventStream
-} from '../../../js/platform/engine/events/scheduled-stream.js';
-import { emitStateSnapshot, sameSnapshotValue } from '../../../js/platform/engine/events/state-snapshots.js';
-import { skillDamageIdentityKey } from '../../../js/platform/ui/results/result-tables.js';
+} from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
+import { emitStateSnapshot, sameSnapshotValue } from '../../../js/games/gw2/platform/engine/events/state-snapshots.js';
+import { skillDamageIdentityKey } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
 
 test('typed event boundary rejects values outside the declared contract', () => {
   assert.equal(

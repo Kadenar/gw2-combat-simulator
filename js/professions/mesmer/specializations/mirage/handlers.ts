@@ -1,6 +1,2 @@
-import { mesmerReplaceProfile } from '../../core/handlers.js';
-
-export const mirageSkillHandlers = Object.freeze({
-  'mesmer.mirage-dodge': mesmerReplaceProfile,
-  'mesmer.ambush': mesmerReplaceProfile
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/mirage/handlers.js';

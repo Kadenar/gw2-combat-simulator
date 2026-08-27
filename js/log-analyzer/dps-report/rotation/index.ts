@@ -1,8 +1,2 @@
-export {
-  DPS_REPORT_PROFESSION_ROTATION_PARSERS,
-  getDpsReportProfessionRotationParser,
-  reconstructDpsReportRotation,
-  type DpsReportProfessionRotationParser
-} from './registry.js';
-export { detectDpsReportRotationPlayers, reconstructDpsReportWithProfile } from './reconstruct.js';
-export type { DpsReportRotationOptions } from './types.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/integrations/logs/dps-report/rotation/index.js';

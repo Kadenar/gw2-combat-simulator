@@ -4,16 +4,16 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/platform/engine/events/queue.js';
-import { buildScheduledEventStream } from '../../../js/platform/engine/events/scheduled-stream.js';
-import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
-import { createCloneAttackScheduler } from '../../../js/professions/mesmer/core/clone-attacks.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
-import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolver/event-handlers.js';
-import { createGw2ConditionResolution } from '../../../js/platform/gw2/resolver/condition-resolution.js';
+import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/kernel/events/queue.js';
+import { buildScheduledEventStream } from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
+import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
+import { createCloneAttackScheduler } from '../../../js/games/gw2/content/professions/mesmer/core/clone-attacks.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/games/gw2/content/professions/mesmer/data/ids.js';
+import { createGw2ResolverEventHandlers } from '../../../js/games/gw2/platform/resolver/event-handlers.js';
+import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/resolver/condition-resolution.js';
 
 test('Mesmer skill damage scheduling is split into focused modules', () => {
-  const core = new URL('../../../js/professions/mesmer/core/', import.meta.url);
+  const core = new URL('../../../js/games/gw2/content/professions/mesmer/core/', import.meta.url);
 
   for (const filename of [
     'clone-attacks.ts',

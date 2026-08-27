@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { boundedInteger, boundedNumber, enumValue } from '../../../js/platform/gw2/builds/normalization.js';
+import { boundedInteger, boundedNumber, enumValue } from '../../../js/games/gw2/platform/builds/normalization.js';
 
 test('boundedNumber coerces scalars, preserves zero, and clamps to inclusive bounds', () => {
   assert.equal(boundedNumber('4.5', 2, 0, 5), 4.5);

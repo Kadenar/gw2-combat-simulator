@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { createEventQueue } from '../../../js/platform/engine/events/queue.js';
-import { createGw2ConditionResolution } from '../../../js/platform/gw2/resolver/condition-resolution.js';
-import { createGw2ResolverExtensions } from '../../../js/platform/gw2/resolver/extensions.js';
+import { createEventQueue } from '../../../js/kernel/events/queue.js';
+import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverExtensions } from '../../../js/games/gw2/platform/resolver/extensions.js';
 import {
   createGw2ResolverReactionRegistry,
   defineGw2ResolverReactions
-} from '../../../js/platform/gw2/resolver/reaction-registry.js';
-import { createGw2ResolverRuntimeState } from '../../../js/platform/gw2/resolver/runtime-state.js';
+} from '../../../js/games/gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverRuntimeState } from '../../../js/games/gw2/platform/resolver/runtime-state.js';
 
 test('generic resolver modules contain no concrete equipment policy', () => {
-  const resolver = new URL('../../../js/platform/gw2/resolver/', import.meta.url);
+  const resolver = new URL('../../../js/games/gw2/platform/resolver/', import.meta.url);
 
   for (const [filename, forbidden] of [
     ['event-handlers.ts', /relic-rules|gear-data|FOOD_DATA|sigil-severance|criticalProgress/],

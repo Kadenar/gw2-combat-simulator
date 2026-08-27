@@ -1,9 +1,2 @@
-import { augmentSkill } from '../../../../platform/gw2/authoring/mechanics.js';
-import type { ElementalistCastContext } from '../../types.js';
-import { applyTempestShoutTraits } from './rules.js';
-
-export const tempestSkillHandlers = Object.freeze({
-  'elementalist.tempest-shout': augmentSkill<ElementalistCastContext>({
-    afterEffects: applyTempestShoutTraits
-  })
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/elementalist/specializations/tempest/handlers.js';

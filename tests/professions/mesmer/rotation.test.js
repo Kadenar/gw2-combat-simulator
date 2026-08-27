@@ -3,41 +3,47 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { prepareSimulationConfig } from '../../../js/platform/engine/config.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { applyBalanceProfilePatch } from '../../../js/platform/gw2/authoring/patches.js';
-import { chartValueAt } from '../../../js/platform/ui/results/charts/time-series.js';
-import { eventLogCsv } from '../../../js/platform/ui/results/event-log.js';
+import { prepareSimulationConfig } from '../../../js/games/gw2/platform/engine/config.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { applyBalanceProfilePatch } from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
+import { chartValueAt } from '../../../js/games/gw2/app/presentation/results/charts/time-series.js';
+import { eventLogCsv } from '../../../js/games/gw2/app/presentation/results/event-log.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails
-} from '../../../js/platform/ui/rotation/timeline.js';
-import { moveRotationEntry } from '../../../js/app/rotation/editing/operations.js';
-import { nextResultSortState, sortResultRows } from '../../../js/platform/ui/results/rotation-results.js';
+} from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
+import { moveRotationEntry } from '../../../js/games/gw2/app/rotation/editing/operations.js';
+import {
+  nextResultSortState,
+  sortResultRows
+} from '../../../js/games/gw2/app/presentation/results/rotation-results.js';
 import {
   buildChartSeries,
   formatResultTimelineTime,
   resultSummaryMetrics,
   skillBreakdownRows
-} from '../../../js/app/rotation/result/model.js';
-import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-view.js';
-import { displayedWeaponSkills } from '../../../js/app/rotation/palette/model.js';
-import { paletteSkillView } from '../../../js/app/rotation/palette/view.js';
+} from '../../../js/games/gw2/app/rotation/result/model.js';
+import { activeResourceGroup } from '../../../js/games/gw2/app/rotation/palette/resource-view.js';
+import { displayedWeaponSkills } from '../../../js/games/gw2/app/rotation/palette/model.js';
+import { paletteSkillView } from '../../../js/games/gw2/app/rotation/palette/view.js';
 import {
   continuumEndTimelineMarkers,
   shatterResourceSpends,
   timelineWeaponRows
-} from '../../../js/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
-import { rotationWarningItems } from '../../../js/app/rotation/result/warnings.js';
-import { RELIC_DATA } from '../../../js/platform/gw2/equipment/relics/catalog.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../js/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/professions/mesmer/specializations/chronomancer/profiles.js';
-import { toApplicationBuild } from '../../../js/professions/mesmer/build.js';
-import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
+} from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
+import { rotationWarningItems } from '../../../js/games/gw2/app/rotation/result/warnings.js';
+import { RELIC_DATA } from '../../../js/games/gw2/platform/equipment/relics/catalog.js';
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT
+} from '../../../js/games/gw2/content/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '../../../js/games/gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '../../../js/games/gw2/content/professions/mesmer/definition.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
+import { toApplicationBuild } from '../../../js/games/gw2/content/professions/mesmer/build.js';
+import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
   assert.equal(
@@ -1888,7 +1894,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
 
 test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
   const saved = JSON.parse(
-    readFileSync(new URL('../../../Builds/mesmer/b-condi-chronomancer.json', import.meta.url), 'utf8')
+    readFileSync(new URL('../../../data/gw2/builds/mesmer/b-condi-chronomancer.json', import.meta.url), 'utf8')
   );
   const build = toApplicationBuild({
     ...saved,

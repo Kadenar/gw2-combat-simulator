@@ -1,18 +1,2 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { spendCoreWarriorAdrenaline, syncWarriorAdrenaline } from '../../core/resources.js';
-import type { WarriorCastContext, WarriorSkill } from '../../types.js';
-
-/** Applies Berserker's fixed primal-burst and Berserk activation costs. */
-export function spendBerserkerAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
-  if (!skill.primalBurst && skill.handlerId !== 'warrior.berserk') {
-    return spendCoreWarriorAdrenaline(context, skill);
-  }
-
-  const state = professionCoreState(context);
-  const available = Number(state.adrenaline || 0);
-  const requested = skill.handlerId === 'warrior.berserk' ? 30 : Number(skill.adrenalineCost || 0);
-  const spent = Math.min(available, requested);
-  state.adrenaline = available - spent;
-  syncWarriorAdrenaline(context);
-  return spent;
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/warrior/specializations/berserker/resources.js';

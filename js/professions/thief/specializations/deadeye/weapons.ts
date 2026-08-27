@@ -1,12 +1,2 @@
-import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '../../core/weapons.js';
-import type { ThiefSkill, ThiefWeaponMatcherContext } from '../../types.js';
-
-// Deadeye replaces every base stealth attack with its malicious counterpart before shared weapon matching runs.
-export function deadeyeWeaponSkillMatchesSet(
-  skill: ThiefSkill,
-  pair: readonly (string | undefined)[] = [],
-  context: ThiefWeaponMatcherContext = {}
-): boolean {
-  if (skill.stealthAttack && !skill.malicious) return false;
-  return thiefCoreWeaponSkillMatchesSet(skill, pair, context);
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/thief/specializations/deadeye/weapons.js';

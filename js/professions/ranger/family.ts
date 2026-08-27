@@ -1,18 +1,3 @@
-import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
-import { activePatchPreview } from '../../patches/active-preview.js';
-import { createRangerBuildDefaults, migrateRangerBuild, validateRangerBuild } from './build.js';
-import { rangerNativeModules } from './modules.js';
-
-export const rangerProfession = defineNativeProfession({
-  id: 'ranger',
-  name: 'Ranger',
-  build: {
-    createBuildDefaults: createRangerBuildDefaults,
-    migrateBuild: migrateRangerBuild,
-    validateBuild: validateRangerBuild
-  },
-  modules: rangerNativeModules,
-  patchPreview: activePatchPreview
-});
-
-export default rangerProfession;
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/ranger/family.js';
+export { default } from '../../games/gw2/content/professions/ranger/family.js';

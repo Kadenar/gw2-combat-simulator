@@ -18,7 +18,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { loadProfessionAppAdapter } from '../../js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '../../js/games/gw2/app/profession/registry.js';
+import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 const DEFAULT_PROFESSIONS = [
   'elementalist',
@@ -60,9 +61,11 @@ function runSupportedBenchmark(adapter, app) {
   return adapter.simulateBuild(app.build.rotation, config);
 }
 
-async function captureProfession(professionId) {
+async function captureProfession(professionId, gameId) {
+  if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" has no benchmark simulator.`);
+  const data = resolveGameData(repoRoot, gameId);
   const [manifest, adapter] = await Promise.all([
-    readJson(`Builds/${professionId}/manifest.json`),
+    readJson(path.relative(repoRoot, path.join(data.builds, professionId, 'manifest.json'))),
     loadProfessionAppAdapter(professionId)
   ]);
 
@@ -117,7 +120,7 @@ async function captureProfession(professionId) {
   return metrics;
 }
 
-export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESSIONS) {
+export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESSIONS, { gameId = 'gw2' } = {}) {
   const unknown = professions.filter((profession) => !DEFAULT_PROFESSIONS.includes(profession));
 
   if (unknown.length) {
@@ -127,7 +130,7 @@ export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESS
   const metrics = [];
 
   for (const profession of professions) {
-    metrics.push(...(await captureProfession(profession)));
+    metrics.push(...(await captureProfession(profession, gameId)));
   }
 
   return metrics;
@@ -136,8 +139,8 @@ export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESS
 const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isMain) {
-  const requested = process.argv.slice(2);
-  const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS);
+  const { gameId, args: requested } = parseGameOption(process.argv.slice(2));
+  const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS, { gameId });
 
   process.stdout.write(`${JSON.stringify(metrics, null, 2)}\n`);
 }

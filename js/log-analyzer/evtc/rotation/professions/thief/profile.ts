@@ -1,9 +1,2 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { SPECTER_BUFF_TRANSITIONS } from './specter.js';
-
-export const thiefProfileSource: EvtcProfessionProfileSource = {
-  professionId: 'thief',
-  buffTransitionsBySpecialization: {
-    specter: SPECTER_BUFF_TRANSITIONS
-  }
-};
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../../games/gw2/integrations/logs/evtc/rotation/professions/thief/profile.js';

@@ -1,8 +1,2 @@
-export * from './catalog.js';
-export * from './model.js';
-export * from './profiles.js';
-export * from './selection.js';
-export * from './timeline.js';
-export * from './timing.js';
-export * from './rules/composites.js';
-export * from './rules/autoattack-chains.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/integrations/logs/lib/rotation/index.js';

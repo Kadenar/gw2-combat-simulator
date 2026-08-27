@@ -16,12 +16,18 @@
 import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';
-import { loadProfession } from '../../dist/js/app/profession/registry.js';
-import { decompressEvtcInput } from '../../dist/js/log-analyzer/evtc/decompression.js';
-import { parseEvtc } from '../../dist/js/log-analyzer/evtc/parser.js';
-import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '../../dist/js/log-analyzer/evtc/rotation/index.js';
+import { loadProfession } from '../../dist/js/games/gw2/app/profession/registry.js';
+import { decompressEvtcInput } from '../../dist/js/games/gw2/integrations/logs/evtc/decompression.js';
+import { parseEvtc } from '../../dist/js/games/gw2/integrations/logs/evtc/parser.js';
+import {
+  detectEvtcRotationPlayers,
+  reconstructEvtcRotation
+} from '../../dist/js/games/gw2/integrations/logs/evtc/rotation/index.js';
+import { parseGameOption } from '../lib/game-data.mjs';
 
-const input = process.argv[2];
+const { gameId, args } = parseGameOption(process.argv.slice(2));
+if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" does not support EVTC logs.`);
+const input = args[0];
 
 if (!input) {
   console.error(
@@ -33,7 +39,7 @@ if (!input) {
   process.exit(1);
 }
 
-const option = (prefix) => process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
+const option = (prefix) => args.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
 const requestedAddress = option('--player=');
 const source = await readFile(input);
 const expanded = await decompressEvtcInput(source);
@@ -75,7 +81,7 @@ if (!selected) {
 const profession = await loadProfession(selected.professionId);
 const result = reconstructEvtcRotation(log, profession?.catalog || null, {
   playerAddress: selected.address,
-  inferInstantCasts: !process.argv.includes('--no-instant-inference')
+  inferInstantCasts: !args.includes('--no-instant-inference')
 });
 const output = {
   metadata: {
@@ -86,7 +92,7 @@ const output = {
     timingSource: 'EVTC animation activations, state changes, and direct instant-skill effects',
     combatStartTimestampMs: result.combatStartTimestampMs,
     warnings: result.warnings,
-    ...(process.argv.includes('--timeline') ? { reconstructedActions: result.actions } : {})
+    ...(args.includes('--timeline') ? { reconstructedActions: result.actions } : {})
   },
   rotation: result.rotation
 };

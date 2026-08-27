@@ -6,13 +6,13 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from '../../js/app/build/io/build-template-import.js';
-import { elementalistCatalog } from '../../js/professions/elementalist/catalog.js';
-import { elementalistAppAdapter } from '../../js/professions/elementalist/app/app-definition.js';
-import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
-import { engineerAppAdapter } from '../../js/professions/engineer/app/app-definition.js';
-import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
-import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
+} from '../../js/games/gw2/app/build/io/build-template-import.js';
+import { elementalistCatalog } from '../../js/games/gw2/content/professions/elementalist/catalog.js';
+import { elementalistAppAdapter } from '../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
+import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
+import { engineerAppAdapter } from '../../js/games/gw2/content/professions/engineer/app/app-definition.js';
+import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
+import { mesmerAppAdapter } from '../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
 
 const ELEMENTALIST_CODE = '[&DQYfHSkvMBfHEicPwxIAAL4BAADLAMsAJgCWAAAAAAAAAAAAAAAAAAAAAAADVgBnAC8AAA==]';
 const ENGINEER_CODE = '[&DQMGJyY5SzYqDwAAhgAAAAcBAACTAQAAex0AAAAAAAAAAAAAAAAAAAAAAAACCQE2AAA=]';
@@ -97,16 +97,19 @@ test('cross-profession imports identify the build and offer its simulator', () =
   );
 });
 
-test('build-code import uses a review dialog instead of browser prompts', () => {
-  const pageControls = readFileSync(new URL('../../js/app/build/page-controls.ts', import.meta.url), 'utf8');
+test('GW2 contributes build-code controls that use a review dialog instead of browser prompts', () => {
+  const pageControls = readFileSync(new URL('../../js/games/gw2/app/build/page-controls.ts', import.meta.url), 'utf8');
+  const buildEditor = readFileSync(new URL('../../js/games/gw2/app/build-editor.ts', import.meta.url), 'utf8');
   const dialog = readFileSync(
-    new URL('../../js/app/build/io/build-template-import-dialog.ts', import.meta.url),
+    new URL('../../js/games/gw2/app/build/io/build-template-import-dialog.ts', import.meta.url),
     'utf8'
   );
 
   assert.doesNotMatch(pageControls, /\bprompt\s*\(/);
-  assert.match(pageControls, /\.combat-loadout-title/);
-  assert.match(pageControls, /combatLoadoutTitle\.append\(importCodeButton\)/);
+  assert.match(pageControls, /buildEditor\.bindControls/);
+  assert.doesNotMatch(pageControls, /\.combat-loadout-title|Import GW2 Build/);
+  assert.match(buildEditor, /\.combat-loadout-title/);
+  assert.match(buildEditor, /title\.append\(button\)/);
   assert.doesNotMatch(pageControls, /importBuildButton\.insertAdjacentElement/);
   assert.match(dialog, /createElement\(['"]dialog['"]\)/);
   assert.match(dialog, /data-build-template-weapon-select/);

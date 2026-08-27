@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
-} from '../../../js/professions/elementalist/specializations/catalyst/resolver.js';
-import { catalystAttributeRules } from '../../../js/professions/elementalist/specializations/catalyst/rules.js';
-import { createCatalystState } from '../../../js/professions/elementalist/specializations/catalyst/state.js';
+} from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/resolver.js';
+import { catalystAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/rules.js';
+import { createCatalystState } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
 
 // These unit checks exercise Catalyst state and catalog behavior directly so
 // their expectations do not depend on a saved full rotation.

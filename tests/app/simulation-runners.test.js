@@ -2,14 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ProfessionApp } from '../../js/app/profession-app.js';
-import { ModifierContributionRunner } from '../../js/app/simulation/modifier-contribution-runner.js';
-import { BaselineSimulationRunner } from '../../js/app/simulation/baseline-simulation-runner.js';
-import {
-  createProfessionWorkerEndpoint,
-  ManagedWorkerBatch
-} from '../../js/app/simulation/profession-worker-harness.js';
-import { RandomDistributionRunner } from '../../js/app/simulation/random-distribution-runner.js';
-import { RelicComparisonRunner } from '../../js/app/simulation/relic-comparison-runner.js';
+import { ModifierContributionRunner } from '../../js/games/gw2/app/simulation/modifier-contribution-runner.js';
+import { BaselineSimulationRunner } from '../../js/games/gw2/app/simulation/baseline-simulation-runner.js';
+import { createGameWorkerEndpoint, ManagedWorkerBatch } from '../../js/app/simulation/game-worker-harness.js';
+import { RandomDistributionRunner } from '../../js/games/gw2/app/simulation/random-distribution-runner.js';
+import { RelicComparisonRunner } from '../../js/games/gw2/app/simulation/relic-comparison-runner.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
@@ -21,7 +18,7 @@ function runTimersImmediately(t) {
   });
 }
 
-test('profession worker endpoints echo request identity and serialize loading and calculation errors', async () => {
+test('game worker endpoints route by game and content and serialize errors', async () => {
   let listener = null;
   const posted = [];
   const scope = {
@@ -32,13 +29,13 @@ test('profession worker endpoints echo request identity and serialize loading an
       posted.push(message);
     }
   };
-  createProfessionWorkerEndpoint({
+  createGameWorkerEndpoint({
     scope,
     echo: ({ revision }) => ({ revision }),
-    async loadAdapter(professionId) {
-      if (professionId === 'missing') return null;
+    async loadDriver({ contentId }) {
+      if (contentId === 'missing') return null;
 
-      if (professionId === 'load-failure') throw new Error('Adapter import failed.');
+      if (contentId === 'load-failure') throw new Error('Adapter import failed.');
       return {};
     },
     calculate(_adapter, { request }, postUpdate) {
@@ -49,15 +46,17 @@ test('profession worker endpoints echo request identity and serialize loading an
     }
   });
 
-  await listener({ data: { requestId: 17, revision: 4, request: { professionId: 'engineer' } } });
-  await listener({ data: { requestId: 18, revision: 5, request: { professionId: 'missing' } } });
-  await listener({ data: { requestId: 19, revision: 6, request: { professionId: 'load-failure' } } });
-  await listener({ data: { requestId: 20, revision: 7, request: { professionId: 'engineer', fail: true } } });
+  await listener({ data: { requestId: 17, revision: 4, request: { gameId: 'fake', contentId: 'engineer' } } });
+  await listener({ data: { requestId: 18, revision: 5, request: { gameId: 'fake', contentId: 'missing' } } });
+  await listener({ data: { requestId: 19, revision: 6, request: { gameId: 'fake', contentId: 'load-failure' } } });
+  await listener({
+    data: { requestId: 20, revision: 7, request: { gameId: 'fake', contentId: 'engineer', fail: true } }
+  });
 
   assert.deepEqual(posted, [
     { requestId: 17, revision: 4, progress: 0.5 },
     { requestId: 17, revision: 4, output: 'complete' },
-    { requestId: 18, revision: 5, error: 'No application adapter for missing.' },
+    { requestId: 18, revision: 5, error: 'No worker driver for fake/missing.' },
     { requestId: 19, revision: 6, error: 'Adapter import failed.' },
     { requestId: 20, revision: 7, error: 'Simulation failed.' }
   ]);
@@ -240,7 +239,8 @@ test('baseline runner publishes only the newest revision and reuses one worker',
     adapter: {
       baselineSimulationRequest() {
         return {
-          professionId: 'necromancer',
+          gameId: 'gw2',
+          contentId: 'necromancer',
           rotation: [],
           baseConfig: {},
           selectedPatchId: 'current'
@@ -521,7 +521,8 @@ test('relic comparison scheduling publishes availability without simulating', ()
     adapter: {
       relicComparisonRequest() {
         return {
-          professionId: 'engineer',
+          gameId: 'gw2',
+          contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
@@ -555,7 +556,8 @@ test('relic comparison run simulates Thorns once and stores the break-even model
     adapter: {
       relicComparisonRequest() {
         return {
-          professionId: 'engineer',
+          gameId: 'gw2',
+          contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
@@ -594,7 +596,8 @@ test('relic comparison run surfaces simulation failures', (t) => {
     adapter: {
       relicComparisonRequest() {
         return {
-          professionId: 'engineer',
+          gameId: 'gw2',
+          contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Akeem' },
           opponentRelic: 'Akeem',

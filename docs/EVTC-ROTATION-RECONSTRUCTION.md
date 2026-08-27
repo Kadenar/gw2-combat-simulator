@@ -57,8 +57,8 @@ For controlled experiments, import a profession contract and call `simulateGw2()
 Create `simulate.mjs` in the repository root:
 
 ```js
-import { simulateGw2 } from './js/platform/gw2/index.js';
-import { engineerProfession } from './js/professions/engineer/definition.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
+import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
 
 const result = simulateGw2({
   profession: engineerProfession,
@@ -123,9 +123,9 @@ A common headless use case is running the same scenario repeatedly with small ch
 `prepareSimulationConfig()` makes it convenient to define shared assumptions once and override individual values.
 
 ```js
-import { prepareSimulationConfig } from './js/platform/engine/config.js';
-import { simulateGw2 } from './js/platform/gw2/index.js';
-import { engineerProfession } from './js/professions/engineer/definition.js';
+import { prepareSimulationConfig } from './js/games/gw2/platform/engine/config.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
+import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
 
 const baseConfig = {
   specialization: 'Core',
@@ -211,7 +211,7 @@ This is the same general path used by the repository's preset benchmark tests.
 ```js
 import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from './js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from './js/games/gw2/app/profession/registry.js';
 
 const professionId = 'engineer';
 
@@ -396,7 +396,7 @@ The most commonly useful fields are:
 For a ready-to-use per-skill breakdown:
 
 ```js
-import { skillBreakdownRows } from './js/platform/ui/results/result-tables.js';
+import { skillBreakdownRows } from './js/games/gw2/app/presentation/results/result-tables.js';
 
 const rows = skillBreakdownRows(result);
 
@@ -472,8 +472,8 @@ This makes the headless API suitable for custom RNG analysis as well as determin
 Scripts that accept a profession as input can use the shared registry:
 
 ```js
-import { loadProfession } from './js/app/profession/registry.js';
-import { simulateGw2 } from './js/platform/gw2/index.js';
+import { loadProfession } from './js/games/gw2/app/profession/registry.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
 
 const professionId = process.argv[2] || 'engineer';
 

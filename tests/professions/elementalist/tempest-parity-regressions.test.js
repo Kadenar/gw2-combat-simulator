@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfessionAppAdapter } from '../../../js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '../../../js/games/gw2/app/profession/registry.js';
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
@@ -10,7 +10,7 @@ const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 // depending on the composition or indices of a saved full rotation.
 test('delayed Tempest shouts do not advance the serial rotation lane', async () => {
   const [savedBuild, adapter] = await Promise.all([
-    readFile(repoUrl('Builds/elementalist/b-condi-alac-tempest-pistol.json'), 'utf8').then(JSON.parse),
+    readFile(repoUrl('data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json'), 'utf8').then(JSON.parse),
     loadProfessionAppAdapter('elementalist')
   ]);
   const build = adapter.toApplicationBuild({

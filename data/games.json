@@ -1,0 +1,21 @@
+{
+  "games": [
+    {
+      "id": "gw2",
+      "runtimeData": [
+        {
+          "kind": "builds",
+          "source": "data/gw2/builds",
+          "publicPath": "data/gw2/builds",
+          "legacyPublicPaths": ["Builds"]
+        },
+        {
+          "kind": "rotations",
+          "source": "data/gw2/rotations",
+          "publicPath": "data/gw2/rotations",
+          "legacyPublicPaths": ["Rotations"]
+        }
+      ]
+    }
+  ]
+}

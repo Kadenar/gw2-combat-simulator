@@ -7,7 +7,7 @@ import {
   pasteRotationClipboard,
   rotationSelectionForEntry,
   selectRotationClipboardEntry
-} from '../../js/app/rotation/editing/clipboard.js';
+} from '../../js/games/gw2/app/rotation/editing/clipboard.js';
 
 test('rotation range selection accepts its endpoints in either order', () => {
   const first = rotationSelectionForEntry(null, 4, 8);

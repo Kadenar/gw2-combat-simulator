@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
-import { createCooldownController } from '../../../js/platform/engine/execution/cooldowns.js';
-import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
-import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
-import { createTaskQueue } from '../../../js/platform/engine/execution/tasks.js';
+import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
+import { createCooldownController } from '../../../js/games/gw2/platform/engine/execution/cooldowns.js';
+import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
+import { createTaskQueue } from '../../../js/games/gw2/platform/engine/execution/tasks.js';
 
 test('ammo recharge reductions carry overflow until maximum charges', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };

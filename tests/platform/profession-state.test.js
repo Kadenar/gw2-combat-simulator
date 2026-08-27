@@ -5,7 +5,7 @@ import {
   projectPublicProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState
-} from '../../js/platform/engine/profession/state.js';
+} from '../../js/games/gw2/platform/engine/profession/state.js';
 
 test('compatible profession-state reads accept nested and flat state without crossing specialization kinds', () => {
   const core = { resource: 10 };

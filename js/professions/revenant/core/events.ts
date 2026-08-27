@@ -1,22 +1,2 @@
-import type { SchedulerRecord, SimulationEventInput } from '../../../platform/engine/types.js';
-import type { RevenantSchedulerContext } from '../types.js';
-
-/** Filters packets that only intersect large targets while preserving them as diagnostic markers. */
-export function prepareRevenantHitboxEvent(
-  context: RevenantSchedulerContext,
-  event: SimulationEventInput
-): SimulationEventInput {
-  const assumptions = (context.config.professionAssumptions || {}) as SchedulerRecord;
-  if (String(assumptions.hitboxSize || 'small') === 'large' || event.largeHitboxOnly !== true) {
-    return event;
-  }
-
-  return {
-    ...event,
-    type: 'marker',
-    name: `${String(event.skillName || event.name || 'Revenant effect')} misses small hitbox`,
-    cancelled: true,
-    detail: 'excluded by Revenant target-hitbox rules',
-    revenantHitboxExcluded: true
-  };
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/content/professions/revenant/core/events.js';

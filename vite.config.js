@@ -3,8 +3,17 @@ import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-// Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
-const runtimeDirectories = ['Builds', 'Rotations'];
+// The game-owned manifest is the one source for namespaced runtime data and temporary public aliases.
+const gameDataManifest = JSON.parse(readFileSync(path.resolve('data', 'games.json'), 'utf8'));
+const runtimeData = gameDataManifest.games.flatMap((game) =>
+  game.runtimeData.map((entry) => ({ ...entry, gameId: game.id }))
+);
+const runtimeRoutes = runtimeData.flatMap((entry) =>
+  [entry.publicPath, ...(entry.legacyPublicPaths || [])].map((publicPath) => ({
+    publicPath: publicPath.replaceAll('\\', '/').replace(/^\/+|\/+$/g, ''),
+    source: path.resolve(entry.source)
+  }))
+);
 
 // Defines the content types for runtime data files.
 const runtimeContentTypes = {
@@ -108,14 +117,14 @@ function renderProfessionPages() {
   };
 }
 
-// Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
+// Copies each game-owned runtime directory to its canonical path and compatibility aliases.
 function copyRuntimeData() {
   return {
     name: 'copy-runtime-data',
     async writeBundle() {
       await Promise.all(
-        runtimeDirectories.map((directory) =>
-          cp(path.resolve(directory), path.resolve('dist', 'site', directory), {
+        runtimeRoutes.map(({ publicPath, source }) =>
+          cp(source, path.resolve('dist', 'site', publicPath), {
             recursive: true
           })
         )
@@ -124,11 +133,8 @@ function copyRuntimeData() {
   };
 }
 
-// Dev counterpart to copyRuntimeData: serve Builds/ and Rotations/ raw so the
-// dev server matches the built site layout, bypassing Vite's .json transform.
+// Dev counterpart to copyRuntimeData: serve canonical and legacy paths raw so JSON bypasses Vite transforms.
 function serveRuntimeData() {
-  const roots = runtimeDirectories.map((directory) => path.resolve(directory));
-
   return {
     name: 'serve-runtime-data',
     apply: 'serve',
@@ -136,14 +142,14 @@ function serveRuntimeData() {
       server.middlewares.use(async (request, response, next) => {
         if (!request.url) return next();
         const { pathname } = new URL(request.url, 'http://local');
-        const segment = pathname.split('/')[1];
-
-        if (!runtimeDirectories.includes(segment)) return next();
-        const target = path.resolve('.' + decodeURIComponent(pathname));
-
-        if (!roots.some((root) => target === root || target.startsWith(`${root}${path.sep}`))) {
-          return next();
-        }
+        const requestedPath = decodeURIComponent(pathname).replace(/^\/+/, '');
+        const route = runtimeRoutes.find(
+          ({ publicPath }) => requestedPath === publicPath || requestedPath.startsWith(`${publicPath}/`)
+        );
+        if (!route) return next();
+        const relative = requestedPath.slice(route.publicPath.length).replace(/^\/+/, '');
+        const target = path.resolve(route.source, relative);
+        if (target !== route.source && !target.startsWith(`${route.source}${path.sep}`)) return next();
 
         try {
           if ((await stat(target)).isDirectory()) return next();

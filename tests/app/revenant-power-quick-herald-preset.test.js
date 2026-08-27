@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfessionAppAdapter } from '../../js/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '../../js/games/gw2/app/profession/registry.js';
 
 test('Power Quickness Herald preset preserves the submitted build and equipment', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const herald = manifest.find((section) => section.section === 'Herald');
   const preset = herald.presets.find((candidate) => candidate.label === 'Power Quickness (Greatsword - Sword/Sword)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));

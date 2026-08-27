@@ -1,4 +1,2 @@
-/** Public deterministic primitives shared by engine domains. */
-export * from './clock.js';
-export * from './collections.js';
-export * from './simulation-random.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/platform/engine/core/index.js';

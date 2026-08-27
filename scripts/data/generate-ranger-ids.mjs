@@ -117,7 +117,7 @@ export async function generateRangerIds({ skills: apiSkills, specializations: ap
     ''
   ].join('\n');
 
-  const target = fileURLToPath(new URL('../../js/professions/ranger/data/ids.ts', import.meta.url));
+  const target = fileURLToPath(new URL('../../js/games/gw2/content/professions/ranger/data/ids.ts', import.meta.url));
 
   await writeFile(target, source, 'utf8');
   console.log(

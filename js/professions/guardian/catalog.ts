@@ -1,7 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { GUARDIAN_NON_DPS_SKILL_NAMES } from './catalog-data.js';
-import { guardianNativeModules } from './modules.js';
-
-export { GUARDIAN_NON_DPS_SKILL_NAMES };
-
-export const guardianCatalog = assembleNativeApplicationCatalog(guardianNativeModules);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/guardian/catalog.js';

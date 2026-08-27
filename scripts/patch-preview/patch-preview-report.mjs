@@ -5,8 +5,8 @@
  *   node scripts/patch-preview/patch-preview-report.mjs
  */
 
-import { activePatchPreview } from '../../dist/js/patches/active-preview.js';
-import { loadProfession } from '../../dist/js/app/profession/registry.js';
+import { loadProfession } from '../../dist/js/games/gw2/app/profession/registry.js';
+import { activePatchPreview } from '../../dist/js/games/gw2/integrations/patches/active-preview.js';
 
 if (!activePatchPreview) {
   console.log('No active patch preview is authored.');

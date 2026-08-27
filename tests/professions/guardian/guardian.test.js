@@ -2,29 +2,35 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession } from '../../../js/app/profession/registry.js';
-import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
-import { displayedSkillTiles } from '../../../js/app/rotation/palette/model.js';
-import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
+import { loadProfession } from '../../../js/games/gw2/app/profession/registry.js';
+import { skillBarInspectionStacks } from '../../../js/games/gw2/app/build/panels/skills.js';
+import { displayedSkillTiles } from '../../../js/games/gw2/app/rotation/palette/model.js';
+import {
+  automaticTomeStowTimelineMarkers,
+  timelineWeaponRows
+} from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { createCalculateAttributes } from '../../../js/games/gw2/platform/builds/attributes.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch
+} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild
-} from '../../../js/professions/guardian/build.js';
-import { applyGuardianBuildAttributeRules } from '../../../js/professions/guardian/build-attributes.js';
-import { guardianCatalog } from '../../../js/professions/guardian/catalog.js';
-import { DATA_SNAPSHOT } from '../../../js/professions/guardian/data/guardian-api-metadata.js';
-import { guardianProfession } from '../../../js/professions/guardian/definition.js';
-import { guardianAppAdapter } from '../../../js/professions/guardian/app/app-definition.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../js/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/core/profiles.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/dragonhunter/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/firebrand/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/willbender/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/luminary/profiles.js';
+} from '../../../js/games/gw2/content/professions/guardian/build.js';
+import { applyGuardianBuildAttributeRules } from '../../../js/games/gw2/content/professions/guardian/build-attributes.js';
+import { guardianCatalog } from '../../../js/games/gw2/content/professions/guardian/catalog.js';
+import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/guardian/data/guardian-api-metadata.js';
+import { guardianProfession } from '../../../js/games/gw2/content/professions/guardian/definition.js';
+import { guardianAppAdapter } from '../../../js/games/gw2/content/professions/guardian/app/app-definition.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../js/games/gw2/content/professions/guardian/data/ids.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/guardian/core/profiles.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/guardian/specializations/firebrand/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/guardian/specializations/willbender/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/guardian/specializations/luminary/profiles.js';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);

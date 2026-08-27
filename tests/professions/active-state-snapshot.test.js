@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistProfession } from '../../js/professions/elementalist/definition.js';
-import { engineerProfession } from '../../js/professions/engineer/definition.js';
-import { guardianProfession } from '../../js/professions/guardian/definition.js';
-import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
-import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
-import { rangerProfession } from '../../js/professions/ranger/definition.js';
-import { projectRangerEndState } from '../../js/professions/ranger/state.js';
-import { revenantProfession } from '../../js/professions/revenant/definition.js';
-import { thiefProfession } from '../../js/professions/thief/definition.js';
-import { warriorProfession } from '../../js/professions/warrior/definition.js';
+import { elementalistProfession } from '../../js/games/gw2/content/professions/elementalist/definition.js';
+import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
+import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
+import { rangerProfession } from '../../js/games/gw2/content/professions/ranger/definition.js';
+import { projectRangerEndState } from '../../js/games/gw2/content/professions/ranger/state.js';
+import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
+import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
+import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   return profession.ui.rotationStateSnapshot({ specialization, professionState, atSeconds, result });

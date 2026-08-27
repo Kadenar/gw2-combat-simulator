@@ -9,22 +9,22 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 
 ## Repository map
 
-| Path                          | Purpose                                                                                         |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| `js/app/`                     | Profession-neutral browser application and UI orchestration                                     |
-| `js/platform/engine/`         | Generic scheduler, event queue, state, and simulation primitives                                |
-| `js/platform/gw2/`            | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and profession infrastructure |
-| `js/platform/ui/`             | Shared UI/view-model primitives                                                                 |
-| `js/professions/`             | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI            |
-| `js/log-analyzer/lib/`        | Source-neutral log reconstruction contracts, scheduling, profiles, and reusable rules           |
-| `js/log-analyzer/evtc/`       | ArcDPS EVTC parsing, analysis, and source-specific reconstruction                               |
-| `js/log-analyzer/dps-report/` | Elite Insights / dps.report validation and source-specific reconstruction                       |
-| `js/app/patch-preview/`       | Local patch-preview authoring UI                                                                |
-| `js/patches/`                 | Active balance-preview manifest                                                                 |
-| `Builds/`                     | Saved simulator build presets                                                                   |
-| `Rotations/`                  | Saved simulator rotation presets                                                                |
-| `tests/`                      | Unit, integration, architecture, browser, and regression tests                                  |
-| `scripts/`                    | Build, data generation, analysis, audit, and authoring tools                                    |
+| Path                                  | Purpose                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `js/kernel/`                          | Game-neutral clock, collections, randomness, event-stream, queue, and observation contracts |
+| `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
+| `js/app/`                             | Game-neutral registry, bootstrap, worker harness, and shell                                 |
+| `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
+| `js/games/gw2/content/professions/`   | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
+| `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters          |
+| `js/games/gw2/integrations/logs/`     | EVTC and dps.report parsing and rotation reconstruction                                     |
+| `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                 |
+| `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                            |
+| `data/games.json`                     | Runtime game-data roots and compatibility aliases                                           |
+| `data/gw2/builds/`                    | Saved GW2 build presets                                                                     |
+| `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                  |
+| `tests/`                              | Unit, integration, architecture, browser, and regression tests                              |
+| `scripts/`                            | Build, data generation, analysis, audit, and authoring tools                                |
 
 At a high level:
 
@@ -67,16 +67,17 @@ Use this table as the first place to look.
 | Resolver reaction or custom resolved event                            | `resolver.ts`                                         |
 | Profession UI, palette, skill-bar, or active-state display            | `ui.ts`                                               |
 | Shared code used by several files within one profession               | `shared.ts`                                           |
-| New reusable GW2 mechanic                                             | `js/platform/gw2/`                                    |
-| Generic scheduling primitive unrelated to GW2                         | `js/platform/engine/`                                 |
-| Browser-only behavior                                                 | `js/app/`                                             |
-| Shared presentation/view-model behavior                               | `js/platform/ui/`                                     |
-| Source-neutral log reconstruction                                     | `js/log-analyzer/lib/`                                |
-| EVTC parsing or evidence inference                                    | `js/log-analyzer/evtc/`                               |
-| dps.report / Elite Insights parsing or inference                      | `js/log-analyzer/dps-report/`                         |
+| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                              |
+| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                          |
+| Game-neutral browser shell behavior                                   | `js/app/`                                             |
+| GW2 browser behavior                                                  | `js/games/gw2/app/`                                   |
+| Shared presentation/view-model behavior                               | `js/ui/`                                              |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/lib/`                 |
+| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
+| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
 | Upcoming balance changes                                              | Patch-preview system                                  |
 | Build migration/default/validation                                    | Profession `build.ts`                                 |
-| New profession page/registry entry                                    | `js/app/profession/registry.ts`                       |
+| New profession page/registry entry                                    | `js/games/gw2/app/profession/registry.ts`             |
 
 The main rule is:
 
@@ -93,37 +94,25 @@ do not duplicate shared GW2 behavior inside individual professions.
 js/app/
 ```
 
-`js/app/` owns the browser application.
-
-It should contain **application behavior**, not Guild Wars 2 combat mechanics.
-
-Examples include:
-
-- loading and saving builds;
-- rendering build panels;
-- the rotation builder;
-- charts and result displays;
-- worker orchestration;
-- import dialogs;
-- patch-preview controls;
-- browser navigation.
+`js/app/` owns the game-neutral registry, bootstrap, worker harness, and shell. Game-specific browser behavior belongs
+under its game package; GW2 uses `js/games/gw2/app/`.
 
 ## Main application files
 
-| Module              | Responsibility                                            |
-| ------------------- | --------------------------------------------------------- |
-| `app.ts`            | Browser entry point                                       |
-| `bootstrap.ts`      | Resolves the active profession and starts the application |
-| `profession-app.ts` | Shared application lifecycle and state coordinator        |
-| `embed.ts`          | Embedded simulator entry/support                          |
-| `tutorial.ts`       | Interactive application tutorial                          |
+| Module                              | Responsibility                                          |
+| ----------------------------------- | ------------------------------------------------------- |
+| `app.ts`                            | Browser entry point                                     |
+| `bootstrap.ts`                      | Resolves the active game and content and starts its app |
+| `game/registry.ts`                  | Validates and resolves game plug-ins                    |
+| `simulation/game-worker-harness.ts` | Routes worker requests by game and content              |
+| `shell/`                            | Neutral result contracts and workspace mounting         |
+| `embed.ts`                          | Embedded simulator entry/support                        |
 
-`ProfessionApp` coordinates the browser application but delegates profession-specific behavior to the active profession
-adapter.
+`js/games/gw2/app/profession-app.ts` coordinates the current GW2 browser application.
 
 ---
 
-## `js/app/profession/`
+## `js/games/gw2/app/profession/`
 
 Shared profession application composition.
 
@@ -139,7 +128,7 @@ The registry is also where a completely new profession would be exposed to the a
 
 ---
 
-## `js/app/build/`
+## `js/games/gw2/app/build/`
 
 Build authoring and persistence.
 
@@ -162,7 +151,7 @@ This layer may translate a build into application state, but it should not imple
 
 ---
 
-## `js/app/rotation/`
+## `js/games/gw2/app/rotation/`
 
 The shared rotation-builder application.
 
@@ -183,7 +172,7 @@ Profession-specific rotation presentation is supplied through profession UI hook
 
 ---
 
-## `js/app/simulation/`
+## `js/games/gw2/app/simulation/`
 
 Application-level simulation services.
 
@@ -206,7 +195,7 @@ They should not own profession mechanics.
 
 ---
 
-## `js/app/patch-preview/`
+## `js/games/gw2/integrations/patches/app/`
 
 Local balance-patch authoring UI.
 
@@ -217,19 +206,41 @@ See [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 
 ---
 
-# Shared engine
+# Neutral kernel
 
 ```text
-js/platform/engine/
+js/kernel/
 ```
 
-The engine layer contains simulator primitives that are **not specifically Guild Wars 2 rules**.
+The kernel contains the small primitives that make sense for any deterministic simulator: monotonic clock helpers,
+collections, seeded randomness, stable event queues, caller-owned event-stream identity, and observation windows. It
+must not import application or game packages.
+
+---
+
+# Neutral UI
+
+```text
+js/ui/
+```
+
+Neutral UI owns stable summary, breakdown, timeline, effect-lane, warning, state-snapshot, and extension-panel models.
+GW2 adapts its existing output through `js/games/gw2/app/presentation.ts`.
+
+---
+
+# GW2 simulation engine
+
+```text
+js/games/gw2/platform/engine/
+```
+
+This engine is part of the GW2 package because its scheduler, effects, skills, cooldowns, state, and profession
+contracts use GW2-shaped data. Only genuinely game-neutral primitives move to `js/kernel/`.
 
 Examples include:
 
 - scheduler infrastructure;
-- deterministic task queues;
-- event ordering;
 - cooldown/ammo machinery;
 - state containers;
 - effect materialization primitives;
@@ -253,14 +264,14 @@ Important modules include:
 | `ui-combinators.ts`         | Composition helpers for profession UI slices       |
 | `types.d.ts`                | Shared engine contracts                            |
 
-If a new abstraction would still make sense in a non-GW2 simulator, it probably belongs here.
+If a new abstraction would still make sense in a non-GW2 simulator, consider `js/kernel/`; otherwise keep it here.
 
 ---
 
 # Shared Guild Wars 2 platform
 
 ```text
-js/platform/gw2/
+js/games/gw2/platform/
 ```
 
 This layer owns behavior shared by multiple Guild Wars 2 professions.
@@ -368,7 +379,7 @@ rules.ts
 Shared GW2 resolution belongs in:
 
 ```text
-js/platform/gw2/resolver/
+js/games/gw2/platform/resolver/
 ```
 
 ---
@@ -376,7 +387,7 @@ js/platform/gw2/resolver/
 # Profession modules
 
 ```text
-js/professions/<profession>/
+js/games/gw2/content/professions/<profession>/
 ```
 
 Each profession is implemented as a **Core module plus one module for each elite specialization**.
@@ -384,7 +395,7 @@ Each profession is implemented as a **Core module plus one module for each elite
 For example:
 
 ```text
-js/professions/warrior/
+js/games/gw2/content/professions/warrior/
 ├── core/
 ├── specializations/
 │   ├── berserker/
@@ -748,7 +759,7 @@ Examples:
 - on-condition behavior;
 - resolver-owned proc logic.
 
-Shared strike and condition resolution stays under `js/platform/gw2/resolver/`.
+Shared strike and condition resolution stays under `js/games/gw2/platform/resolver/`.
 
 ---
 
@@ -808,7 +819,7 @@ Use descriptive action ownership rather than placing these in unrelated skill fi
 
 Helpers shared only within one profession or module family.
 
-Do not move owner-specific helpers into `js/platform/` simply to avoid imports between profession files.
+Do not move owner-specific helpers into `js/games/gw2/platform/` simply to avoid imports between profession files.
 
 A helper should become platform code only when it represents genuinely reusable engine or Guild Wars 2 behavior.
 
@@ -937,7 +948,7 @@ adapter.
 Browser-specific profession assembly belongs separately under:
 
 ```text
-js/professions/<profession>/app/
+js/games/gw2/content/professions/<profession>/app/
 ```
 
 This layer owns things such as:
@@ -953,7 +964,7 @@ Keep it separate from the engine-facing `definition.ts`.
 This separation allows:
 
 ```ts
-import { warriorProfession } from './js/professions/warrior/definition.js';
+import { warriorProfession } from './js/games/gw2/content/professions/warrior/definition.js';
 ```
 
 to work for headless simulation without loading browser UI/storage code.
@@ -998,13 +1009,13 @@ composition/presentation boundaries where required.
 Profession build defaults, migrations, and validation belong in:
 
 ```text
-js/professions/<profession>/build.ts
+js/games/gw2/content/professions/<profession>/build.ts
 ```
 
 Shared Guild Wars 2 build normalization belongs in:
 
 ```text
-js/platform/gw2/build-codec.ts
+js/games/gw2/platform/build-codec.ts
 ```
 
 Profession code should own only the fields that are unique to that profession.
@@ -1024,7 +1035,7 @@ Do not duplicate common gear/sigil/relic/weapon normalization inside individual 
 # Log analyzers
 
 ```text
-js/log-analyzer/
+js/games/gw2/integrations/logs/
 ├── lib/
 ├── evtc/
 └── dps-report/
@@ -1055,7 +1066,7 @@ See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md).
 # dps.report adapter
 
 ```text
-js/log-analyzer/dps-report/
+js/games/gw2/integrations/logs/dps-report/
 ```
 
 Owns behavior related to Elite Insights / dps.report data.
@@ -1072,13 +1083,13 @@ Do not add dps.report-specific parsing logic to profession simulator modules.
 Patch preview data lives under:
 
 ```text
-js/patches/
+js/games/gw2/integrations/patches/
 ```
 
 The local authoring application lives under:
 
 ```text
-js/app/patch-preview/
+js/games/gw2/integrations/patches/app/
 ```
 
 Patch previews are sparse overlays on top of existing profession-owned data.
@@ -1097,28 +1108,33 @@ See [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 
 ---
 
-# Shared UI platform
+# UI ownership
 
 ```text
-js/platform/ui/
+js/ui/
 ```
 
-This layer contains reusable UI models and primitives that are independent of any particular profession.
+This layer contains reusable UI models and primitives that are independent of any game. GW2-specific result transforms,
+tables, charts, event rendering, icons, and rotation presentation live under:
+
+```text
+js/games/gw2/app/presentation/
+```
 
 The dependency direction should remain:
 
 ```text
-app
+game presentation
  ↓
-platform/ui
+ui
 ```
 
 not:
 
 ```text
-platform/ui
+ui
  ↓
-app
+game or app
 ```
 
 Profession presentation reaches the application through explicit UI hooks rather than by importing application modules
@@ -1186,7 +1202,7 @@ maintaining a duplicate UI timer.
 A new specialization normally requires:
 
 ```text
-js/professions/<profession>/specializations/<specialization>/
+js/games/gw2/content/professions/<profession>/specializations/<specialization>/
 ```
 
 with only the files needed by that specialization.
@@ -1206,7 +1222,7 @@ defineNativeModule({
 Then add the module to:
 
 ```text
-js/professions/<profession>/modules.ts
+js/games/gw2/content/professions/<profession>/modules.ts
 ```
 
 after Core.
@@ -1231,7 +1247,7 @@ A completely new profession requires both engine and application integration.
 At a high level:
 
 ```text
-js/professions/new-profession/
+js/games/gw2/content/professions/new-profession/
     core/
     specializations/
     modules.ts
@@ -1244,7 +1260,7 @@ js/professions/new-profession/
 Then register it in:
 
 ```text
-js/app/profession/registry.ts
+js/games/gw2/app/profession/registry.ts
 ```
 
 and provide the associated profession page/build data.

@@ -7,50 +7,59 @@ import {
   loadProfessionAppAdapter,
   professionOptions,
   professionRoute
-} from '../../../js/app/profession/registry.js';
-import { skillBarInspectionStacks } from '../../../js/app/build/panels/skills.js';
-import { autoattackChainSkillAvailable } from '../../../js/app/rotation/palette/model.js';
-import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
-import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';
-import { activeResourceGroup } from '../../../js/app/rotation/palette/resource-view.js';
-import { shatterResourceSpends, timelineStepsWithChargeFills } from '../../../js/app/rotation/timeline/model.js';
-import { timelineDeadTimeMarkers } from '../../../js/platform/ui/rotation/timeline.js';
-import { createSimulationRandom } from '../../../js/platform/engine/core/simulation-random.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
+} from '../../../js/games/gw2/app/profession/registry.js';
+import { skillBarInspectionStacks } from '../../../js/games/gw2/app/build/panels/skills.js';
+import { autoattackChainSkillAvailable } from '../../../js/games/gw2/app/rotation/palette/model.js';
+import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
+import { buildChartSeries, skillBreakdownRows } from '../../../js/games/gw2/app/rotation/result/model.js';
+import { activeResourceGroup } from '../../../js/games/gw2/app/rotation/palette/resource-view.js';
+import {
+  shatterResourceSpends,
+  timelineStepsWithChargeFills
+} from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { timelineDeadTimeMarkers } from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
+import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch
+} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
-} from '../../../js/professions/warrior/build.js';
-import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
-import { warriorNativeModules } from '../../../js/professions/warrior/modules.js';
-import { warriorCoreModule } from '../../../js/professions/warrior/core/module.js';
-import { warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
-import { createWarriorCoreState } from '../../../js/professions/warrior/core/state.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/core/profiles.js';
-import { DATA_SNAPSHOT } from '../../../js/professions/warrior/data/warrior-api-metadata.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../js/professions/warrior/data/ids.js';
-import { warriorProfession } from '../../../js/professions/warrior/definition.js';
-import { berserkerModule } from '../../../js/professions/warrior/specializations/berserker/module.js';
-import { berserkerAttributeRules } from '../../../js/professions/warrior/specializations/berserker/rules.js';
-import { BERSERKER_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/specializations/berserker/profiles.js';
-import { bladeswornModule } from '../../../js/professions/warrior/specializations/bladesworn/module.js';
+} from '../../../js/games/gw2/content/professions/warrior/build.js';
+import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
+import { warriorNativeModules } from '../../../js/games/gw2/content/professions/warrior/modules.js';
+import { warriorCoreModule } from '../../../js/games/gw2/content/professions/warrior/core/module.js';
+import { warriorAppAdapter } from '../../../js/games/gw2/content/professions/warrior/app/app-definition.js';
+import { createWarriorCoreState } from '../../../js/games/gw2/content/professions/warrior/core/state.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/core/profiles.js';
+import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/warrior/data/warrior-api-metadata.js';
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT
+} from '../../../js/games/gw2/content/professions/warrior/data/ids.js';
+import { warriorProfession } from '../../../js/games/gw2/content/professions/warrior/definition.js';
+import { berserkerModule } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/module.js';
+import { berserkerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/rules.js';
+import { BERSERKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/profiles.js';
+import { bladeswornModule } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/module.js';
 import {
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
-} from '../../../js/professions/warrior/specializations/bladesworn/dragon-trigger.js';
-import { advanceBladesworn } from '../../../js/professions/warrior/specializations/bladesworn/traits.js';
-import { createBladeswornState } from '../../../js/professions/warrior/specializations/bladesworn/state.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/specializations/bladesworn/profiles.js';
-import { paragonModule } from '../../../js/professions/warrior/specializations/paragon/module.js';
-import { PARAGON_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/specializations/paragon/profiles.js';
-import { spellbreakerModule } from '../../../js/professions/warrior/specializations/spellbreaker/module.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerAttributeRules } from '../../../js/professions/warrior/specializations/spellbreaker/rules.js';
+} from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/dragon-trigger.js';
+import { advanceBladesworn } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/traits.js';
+import { createBladeswornState } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/state.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
+import { paragonModule } from '../../../js/games/gw2/content/professions/warrior/specializations/paragon/module.js';
+import { PARAGON_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/paragon/profiles.js';
+import { spellbreakerModule } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/module.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
+import { spellbreakerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/rules.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -279,7 +288,7 @@ test('Warrior core and elite profession resources remain isolated', () => {
 test('Warrior Core does not own elite resource, cast, UI, or trait branches', async () => {
   const sources = await Promise.all(
     ['availability.ts', 'handlers.ts', 'resources.ts', 'state.ts', 'traits.ts', 'ui.ts'].map((name) =>
-      readFile(new URL(`../../../js/professions/warrior/core/${name}`, import.meta.url), 'utf8')
+      readFile(new URL(`../../../js/games/gw2/content/professions/warrior/core/${name}`, import.meta.url), 'utf8')
     )
   );
   const coreSource = sources.join('\n');

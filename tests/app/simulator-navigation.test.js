@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulatorViewFromHash, simulatorViewHref } from '../../js/app/profession/navigation.js';
+import { simulatorViewFromHash, simulatorViewHref } from '../../js/games/gw2/app/profession/navigation.js';
 
 test('simulator navigation defaults to the workspace and recognizes analysis', () => {
   assert.equal(simulatorViewFromHash(''), 'workspace');

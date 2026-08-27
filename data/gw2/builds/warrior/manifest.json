@@ -1,0 +1,80 @@
+[
+  {
+    "section": "Bladesworn",
+    "presets": [
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
+        "benchmarkDps": 41913,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Berserker",
+    "presets": [
+      {
+        "label": "Power (Spear + Greatsword)",
+        "build": "data/gw2/builds/warrior/b-power-berserker-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
+        "benchmarkDps": 42254,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Hammer + Axe/Mace)",
+        "build": "data/gw2/builds/warrior/b-power-berserker-hammer-axe-mace.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
+        "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
+        "benchmarkDps": 42798,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Longbow + Sword/Torch)",
+        "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
+        "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
+        "benchmarkDps": 44332,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Spellbreaker",
+    "presets": [
+      {
+        "label": "Power (Dagger/Mace + Sword/Axe)",
+        "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
+        "benchmarkDps": 42813,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Dagger/Mace + Sword/Dagger)",
+        "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
+        "benchmarkDps": 43316,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Hammer + Dagger/Mace)",
+        "build": "data/gw2/builds/warrior/b-power-spellbreaker-hammer-dagger-mace.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
+        "dpsReportUrl": "https://dps.report/dzrB-20260721-123458_golem",
+        "benchmarkDps": 43065,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Paragon",
+    "presets": [
+      {
+        "label": "Power (Sword/Axe + Dagger/Mace)",
+        "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
+        "benchmarkDps": 42278,
+        "upToDate": true
+      }
+    ]
+  }
+]

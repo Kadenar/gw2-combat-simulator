@@ -9,18 +9,18 @@ import {
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '../../js/app/build/panels/options.js';
-import { getBuildExportPayload } from '../../js/app/build/io/files.js';
-import { skillBarDisplaySkill } from '../../js/app/build/panels/skills.js';
-import { clampStartingResourceValues } from '../../js/app/build/panels/traits.js';
-import { createDefaultBuild, replaceBuildConfiguration } from '../../js/app/build/state/persistence.js';
-import { groupedOptions, option } from '../../js/platform/ui/shared/html.js';
+} from '../../js/games/gw2/app/build/panels/options.js';
+import { getBuildExportPayload } from '../../js/games/gw2/app/build/io/files.js';
+import { skillBarDisplaySkill } from '../../js/games/gw2/app/build/panels/skills.js';
+import { clampStartingResourceValues } from '../../js/games/gw2/app/build/panels/traits.js';
+import { createDefaultBuild, replaceBuildConfiguration } from '../../js/games/gw2/app/build/state/persistence.js';
+import { groupedOptions, option } from '../../js/games/gw2/app/presentation/shared/html.js';
 import {
   loadProfessionAppAdapter,
   professionOptions,
   professionRegistry,
   professionRoute
-} from '../../js/app/profession/registry.js';
+} from '../../js/games/gw2/app/profession/registry.js';
 import {
   autoattackChainSkillAvailable,
   displayedSkillTiles,
@@ -30,8 +30,8 @@ import {
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows
-} from '../../js/app/rotation/palette/model.js';
-import { dragonChargeReleaseProjection } from '../../js/professions/warrior/specializations/bladesworn/charge-release.js';
+} from '../../js/games/gw2/app/rotation/palette/model.js';
+import { dragonChargeReleaseProjection } from '../../js/games/gw2/content/professions/warrior/specializations/bladesworn/charge-release.js';
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
@@ -43,20 +43,24 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows
-} from '../../js/app/rotation/timeline/model.js';
-import { addRotation, createRotationItem, insertRotationItems } from '../../js/app/rotation/editing/actions.js';
-import { syncProcVisibility } from '../../js/app/rotation/timeline/view.js';
-import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/shared/icons.js';
-import { renderResults } from '../../js/app/rotation/result/view.js';
-import { PREFIXES, PREFIX_GROUPS } from '../../js/platform/gw2/equipment/gear/stats.js';
-import { SIGIL_GROUPS } from '../../js/platform/gw2/equipment/sigils/catalog.js';
-import { SIGIL_NAMES } from '../../js/platform/gw2/equipment/sigils/data.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '../../js/platform/gw2/equipment/weapons/data.js';
-import { createGuardianBuildDefaults } from '../../js/professions/guardian/build.js';
-import { createEngineerBuildDefaults } from '../../js/professions/engineer/build.js';
-import { guardianProfession } from '../../js/professions/guardian/definition.js';
-import { createMesmerBuildDefaults } from '../../js/professions/mesmer/build.js';
-import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
+} from '../../js/games/gw2/app/rotation/timeline/model.js';
+import {
+  addRotation,
+  createRotationItem,
+  insertRotationItems
+} from '../../js/games/gw2/app/rotation/editing/actions.js';
+import { syncProcVisibility } from '../../js/games/gw2/app/rotation/timeline/view.js';
+import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/games/gw2/app/rotation/shared/icons.js';
+import { renderResults } from '../../js/games/gw2/app/rotation/result/view.js';
+import { PREFIXES, PREFIX_GROUPS } from '../../js/games/gw2/platform/equipment/gear/stats.js';
+import { SIGIL_GROUPS } from '../../js/games/gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_NAMES } from '../../js/games/gw2/platform/equipment/sigils/data.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '../../js/games/gw2/platform/equipment/weapons/data.js';
+import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
+import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build.js';
+import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 test('starting resource clamps cover every active resource view', () => {
@@ -639,9 +643,9 @@ test('an open event log expands past the normal rotation panel cap', async () =>
 
 test('timeline display checkboxes are owned by Simulation Config instead of the rotation output', async () => {
   const [displayControls, timelineView, timelineSize] = await Promise.all([
-    readFile(new URL('../../js/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/rotation/timeline/size.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../js/games/gw2/app/rotation/timeline/display-controls.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/rotation/timeline/view.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/rotation/timeline/size.ts', import.meta.url), 'utf8')
   ]);
 
   assert.match(displayControls, /summary\.textContent = 'Timeline Display'/);
@@ -765,7 +769,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
 });
 
 test('published simulation results refresh result-dependent palette state', async () => {
-  const source = await readFile(new URL('../../js/app/rotation/index.ts', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../../js/games/gw2/app/rotation/index.ts', import.meta.url), 'utf8');
   const outputRenderer = source.slice(source.indexOf('export function renderSimulationOutput'));
 
   assert.match(outputRenderer, /renderPalette\(app\);/);
@@ -787,7 +791,7 @@ test('current rotation DPS stays above the footer and hides in the professions v
 
 test('gear panel leaves current rotation DPS to the floating metric', async () => {
   const [gearPanel, professionApp, css] = await Promise.all([
-    readFile(new URL('../../js/app/build/panels/gear.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/build/panels/gear.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/profession-app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../css/style.css', import.meta.url), 'utf8')
   ]);
@@ -813,12 +817,12 @@ test('empty and authored rotations keep the same timeline height', async () => {
 
 test('shared app and platform helpers are profession neutral', async () => {
   const sources = await Promise.all([
-    readFile(new URL('../../js/app/simulation/modifier-contributions.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/build/state/persistence.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/simulation/modifier-contributions.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/build/state/persistence.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../js/app/app.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/simulation/config.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/platform/ui/results/rotation-results.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../js/games/gw2/app/simulation/config.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/simulation/modifier-contribution-worker.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/presentation/results/rotation-results.ts', import.meta.url), 'utf8')
   ]);
   const professionTerms = professionRegistry.flatMap((entry) => [entry.id, entry.name]);
 
@@ -889,7 +893,9 @@ test('the generic landing page and profession simulators have separate entries',
 });
 
 test('Mesmer default builds resolve without embedded rotations', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/mesmer/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/mesmer/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('mesmer');
   const presets = manifest.flatMap((section) => section.presets);
 
@@ -917,7 +923,9 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
 });
 
 test('Guardian Power Luminary default builds resolve', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/guardian/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/guardian/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('guardian');
   const section = manifest.find((candidate) => candidate.section === 'Luminary');
   const powerPreset = section.presets.find((preset) => preset.label === 'Power (Greatsword / Spear)');
@@ -1006,7 +1014,9 @@ test('Guardian Power Luminary default builds resolve', async () => {
 });
 
 test('Revenant Power Renegade Greatsword default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const [preset] = renegade.presets;
@@ -1024,14 +1034,16 @@ test('Revenant Power Renegade Greatsword default build resolves', async () => {
 });
 
 test('Revenant Power Renegade Hammer default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer - Sword/Sword)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, 'Builds/revenant/b-power-renegade-hammer.json');
+  assert.equal(preset.build, 'data/gw2/builds/revenant/b-power-renegade-hammer.json');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.equal(build.specializations[2].name, 'Renegade');
@@ -1043,7 +1055,9 @@ test('Revenant Power Renegade Hammer default build resolves', async () => {
 });
 
 test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const vindicator = manifest.find((section) => section.section === 'Vindicator');
   const energyPreset = vindicator.presets.find(
@@ -1061,9 +1075,9 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
   const hydroBuild = adapter.toApplicationBuild(hydroSaved);
   const dodgeCount = replay.rotation.filter((entry) => (entry.name || entry) === 'Dodge').length;
 
-  assert.equal(energyPreset.build, 'Builds/revenant/b-power-vindicator-greatsword-energy.json');
-  assert.equal(hydroPreset.build, 'Builds/revenant/b-power-vindicator-greatsword-hydro.json');
-  assert.equal(energyPreset.rotation, 'Rotations/revenant/r-power-vindicator-greatsword-benchmark.json');
+  assert.equal(energyPreset.build, 'data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json');
+  assert.equal(hydroPreset.build, 'data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json');
+  assert.equal(energyPreset.rotation, 'data/gw2/rotations/revenant/r-power-vindicator-greatsword-benchmark.json');
   assert.equal(Object.hasOwn(hydroPreset, 'rotation'), false);
   assert.equal(Object.hasOwn(energySaved, 'rotation'), false);
   assert.equal(Object.hasOwn(hydroSaved, 'rotation'), false);
@@ -1114,14 +1128,16 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
 });
 
 test('Revenant Condition Renegade Shortbow default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Shortbow - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, 'Builds/revenant/b-condi-renegade-shortbow-mace-axe.json');
+  assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.deepEqual(build.specializations, [
@@ -1137,14 +1153,16 @@ test('Revenant Condition Renegade Shortbow default build resolves', async () => 
 });
 
 test('Revenant Condition Renegade Spear default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Mace/Axe - Spear)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, 'Builds/revenant/b-condi-renegade-spear-mace-axe.json');
+  assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.deepEqual(build.specializations, [
@@ -1164,14 +1182,16 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
 });
 
 test('Revenant Condition Quickness Herald default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const herald = manifest.find((section) => section.section === 'Herald');
   const preset = herald.presets.find((candidate) => candidate.label === 'Condition Quickness (Shortbow - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, 'Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json');
+  assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.deepEqual(build.specializations, [
@@ -1191,14 +1211,16 @@ test('Revenant Condition Quickness Herald default build resolves', async () => {
 });
 
 test('Revenant Condition Conduit Mistfire default build resolves', async () => {
-  const manifest = JSON.parse(await readFile(new URL('../../Builds/revenant/manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(
+    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+  );
   const adapter = await loadProfessionAppAdapter('revenant');
   const conduit = manifest.find((section) => section.section === 'Conduit');
   const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Spear - Mace/Axe)');
   const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, 'Builds/revenant/b-condi-conduit-mistfire.json');
+  assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-conduit-mistfire.json');
   assert.equal(Object.hasOwn(saved, 'rotation'), false);
   assert.equal(build.profession, 'revenant');
   assert.deepEqual(build.specializations, [
@@ -1215,7 +1237,7 @@ test('Revenant Condition Conduit Mistfire default build resolves', async () => {
 
 test('Necromancer preset builds keep rotation data separate', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../Builds/necromancer/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../data/gw2/builds/necromancer/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('necromancer');
   const presets = manifest.flatMap((section) =>

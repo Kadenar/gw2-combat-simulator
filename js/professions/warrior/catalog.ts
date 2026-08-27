@@ -1,4 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { warriorNativeModules } from './modules.js';
-
-export const warriorCatalog = assembleNativeApplicationCatalog(warriorNativeModules);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/warrior/catalog.js';

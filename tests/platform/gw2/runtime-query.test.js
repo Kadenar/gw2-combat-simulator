@@ -12,7 +12,7 @@ import {
   targetConditionCount,
   targetHealthFraction,
   vulnerabilityStacks
-} from '../../../js/platform/gw2/combat/query/runtime-query.js';
+} from '../../../js/games/gw2/platform/combat/query/runtime-query.js';
 
 function context(overrides = {}) {
   return {

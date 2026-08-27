@@ -1,13 +1,2 @@
-type StateRestore = () => void;
-type StatePreserver = () => StateRestore;
-
-const statePreservers = new WeakMap<object, StatePreserver>();
-
-/** Lets a specialization preserve resolver-only fields without exposing their names to Core reconciliation. */
-export function registerNecromancerStatePreserver(state: object, preserver: StatePreserver): void {
-  statePreservers.set(state, preserver);
-}
-
-export function captureNecromancerStatePreserver(state: object): StateRestore {
-  return statePreservers.get(state)?.() || (() => undefined);
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/content/professions/necromancer/core/state-reconciliation.js';

@@ -1,13 +1,15 @@
 # Patch preview
 
-The patch-preview system lets the simulator model **one upcoming Guild Wars 2 balance patch** alongside the current live game data.
+The patch-preview system lets the simulator model **one upcoming Guild Wars 2 balance patch** alongside the current live
+game data.
 
-A preview is a sparse overlay on top of the existing simulator data. It does not duplicate profession catalogs, builds, or rotations.
+A preview is a sparse overlay on top of the existing simulator data. It does not duplicate profession catalogs, builds,
+or rotations.
 
 This allows the same build and rotation to be simulated against:
 
-* **Live** — the current simulator data;
-* **Preview** — live data plus the authored upcoming changes.
+- **Live** — the current simulator data;
+- **Preview** — live data plus the authored upcoming changes.
 
 The system is intended for upcoming **PvE changes that affect simulated behavior**.
 
@@ -50,7 +52,7 @@ export const activePatchPreview: PatchPreview | null = null;
 The file lives at:
 
 ```text
-js/patches/active-preview.ts
+js/games/gw2/integrations/patches/active-preview.ts
 ```
 
 ---
@@ -85,10 +87,10 @@ The normal simulator server does not expose the patch-authoring write API.
 
 At the top of the authoring page, configure:
 
-* **ID** — stable internal identifier for the preview;
-* **Label** — text shown in the simulator;
-* **Publish date** — optional patch publication date;
-* **Official patch notes URL** — link back to ArenaNet's source.
+- **ID** — stable internal identifier for the preview;
+- **Label** — text shown in the simulator;
+- **Publish date** — optional patch publication date;
+- **Official patch notes URL** — link back to ArenaNet's source.
 
 For example:
 
@@ -142,16 +144,16 @@ The **Skills** section exposes the simulator's live skill metadata grouped by pr
 
 Use it for changes such as:
 
-* strike coefficients;
-* condition stacks or durations;
-* boon stacks or durations;
-* cooldowns;
-* cast times;
-* ammo recharge;
-* resource costs;
-* hit counts;
-* effect timing;
-* other supported numeric skill fields.
+- strike coefficients;
+- condition stacks or durations;
+- boon stacks or durations;
+- cooldowns;
+- cast times;
+- ammo recharge;
+- resource costs;
+- hit counts;
+- effect timing;
+- other supported numeric skill fields.
 
 The UI displays:
 
@@ -170,7 +172,8 @@ Changing a number produces a guarded edit:
 
 The `from` value matters.
 
-When the preview is rebuilt, the patch system verifies that the live value is still `1.2`. If the underlying simulator data has changed, validation fails instead of silently applying the preview to a different baseline.
+When the preview is rebuilt, the patch system verifies that the live value is still `1.2`. If the underlying simulator
+data has changed, validation fails instead of silently applying the preview to a different baseline.
 
 ---
 
@@ -204,7 +207,8 @@ resourceCost
 resourceGain
 ```
 
-The available controls come from the actual live skill metadata. A field is only patchable when the skill exposes a supported numeric value.
+The available controls come from the actual live skill metadata. A field is only patchable when the skill exposes a
+supported numeric value.
 
 Prefer numeric skill IDs when possible.
 
@@ -361,7 +365,8 @@ The authoring UI exposes the live profile metadata and supported numeric values.
 
 Declarative trait and modifier behavior is authored through **modifier rules**.
 
-A trait may contribute several independent modifier rules, so preview edits target the stable **modifier rule ID**, not merely the trait ID.
+A trait may contribute several independent modifier rules, so preview edits target the stable **modifier rule ID**, not
+merely the trait ID.
 
 For a static modifier:
 
@@ -417,12 +422,13 @@ modifierRules: {
 
 This keeps preview changes:
 
-* numeric;
-* inspectable;
-* deterministic;
-* protected by the same stale-value validation.
+- numeric;
+- inspectable;
+- deterministic;
+- protected by the same stale-value validation.
 
-If a runtime calculation does not expose the changed number as a parameter, add that patchable seam to the implementation first.
+If a runtime calculation does not expose the changed number as a parameter, add that patchable seam to the
+implementation first.
 
 ---
 
@@ -430,20 +436,16 @@ If a runtime calculation does not expose the changed number as a parameter, add 
 
 Some numeric behavior does not belong to:
 
-* a skill;
-* a balance profile;
-* or a declarative modifier rule.
+- a skill;
+- a balance profile;
+- or a declarative modifier rule.
 
 For those cases, the preview schema supports **named patchable constants**.
 
 Example runtime code:
 
 ```ts
-const factor = patchRuntimeValue(
-  context.config.patchValues,
-  "warrior.traits.example.factor",
-  0.1,
-);
+const factor = patchRuntimeValue(context.config.patchValues, 'warrior.traits.example.factor', 0.1);
 ```
 
 The preview can then supply:
@@ -477,19 +479,20 @@ Not every balance patch is numeric.
 
 A patch may change:
 
-* when an effect triggers;
-* resource behavior;
-* skill availability;
-* a state transition;
-* target selection;
-* effect ownership;
-* another mechanic implemented in code.
+- when an effect triggers;
+- resource behavior;
+- skill availability;
+- a state transition;
+- target selection;
+- effect ownership;
+- another mechanic implemented in code.
 
 Do **not** create an inert numeric manifest entry simply to represent the patch note.
 
 Implement the new behavior in the appropriate profession/runtime code.
 
-If both Live and Preview behavior must exist simultaneously, branch on the selected patch through an explicit preview-aware seam.
+If both Live and Preview behavior must exist simultaneously, branch on the selected patch through an explicit
+preview-aware seam.
 
 The patch preview should model actual simulator behavior, not act as a checklist of every sentence in ArenaNet's notes.
 
@@ -501,12 +504,12 @@ The simulator models PvE.
 
 Do not create preview edits for:
 
-* PvP-only changes;
-* WvW-only changes;
-* description-only text changes;
-* systems the simulator does not model;
-* patch-note entries explicitly marked unchanged;
-* obsolete changes superseded by newer preview notes.
+- PvP-only changes;
+- WvW-only changes;
+- description-only text changes;
+- systems the simulator does not model;
+- patch-note entries explicitly marked unchanged;
+- obsolete changes superseded by newer preview notes.
 
 The official patch-notes URL remains the source for the complete announcement.
 
@@ -543,9 +546,11 @@ Factor 1.1 → 1.15.
 
 Authors do not maintain a second copy of patch-note prose.
 
-Manual overview notes are intentionally unsupported so the displayed summary cannot drift away from the actual structured preview.
+Manual overview notes are intentionally unsupported so the displayed summary cannot drift away from the actual
+structured preview.
 
-Runtime constants and ordinary code-only behavior changes are not automatically described by this generated diff overview.
+Runtime constants and ordinary code-only behavior changes are not automatically described by this generated diff
+overview.
 
 Use the official source link and code review for those changes.
 
@@ -568,7 +573,7 @@ The local authoring server then:
 5. writes:
 
 ```text
-js/patches/active-preview.ts
+js/games/gw2/integrations/patches/active-preview.ts
 ```
 
 A successful save changes source code on disk.
@@ -614,13 +619,13 @@ When a preview is active, the simulator evaluates the same build and rotation ag
 
 The comparison shows:
 
-* Live DPS;
-* Preview DPS;
-* absolute DPS difference;
-* percentage difference;
-* per-skill DPS changes;
-* generated change overview;
-* link to the official patch notes.
+- Live DPS;
+- Preview DPS;
+- absolute DPS difference;
+- percentage difference;
+- per-skill DPS changes;
+- generated change overview;
+- link to the official patch notes.
 
 For example:
 
@@ -734,17 +739,18 @@ They should not use the sparse catalog overlay to redefine major identity or top
 
 Changes such as:
 
-* completely new skills;
-* removed skills;
-* changed skill IDs;
-* major loadout changes;
-* new profession mechanics;
+- completely new skills;
+- removed skills;
+- changed skill IDs;
+- major loadout changes;
+- new profession mechanics;
 
 usually require ordinary implementation work.
 
 If that work must remain preview-only until release, make the implementation explicitly patch-aware.
 
-Existing build and rotation identities should remain stable whenever possible so the same scenario can be compared against Live and Preview.
+Existing build and rotation identities should remain stable whenever possible so the same scenario can be compared
+against Live and Preview.
 
 ---
 
@@ -755,7 +761,7 @@ The authoring UI writes source directly.
 Always inspect the generated diff for:
 
 ```text
-js/patches/active-preview.ts
+js/games/gw2/integrations/patches/active-preview.ts
 ```
 
 before committing it.
@@ -764,13 +770,13 @@ The manifest should contain only the intended sparse edits.
 
 In particular, verify:
 
-* profession;
-* skill/profile/rule identity;
-* live `from` value;
-* preview `to` value;
-* effect/tick index;
-* added or removed effects;
-* official source URL.
+- profession;
+- skill/profile/rule identity;
+- live `from` value;
+- preview `to` value;
+- effect/tick index;
+- added or removed effects;
+- official source URL.
 
 Then rebuild and run:
 
@@ -804,11 +810,14 @@ npm run patch-preview:report
 
 before promotion.
 
-The command builds the typed preview and resolves affected preview catalogs/runtimes so stale selectors and invalid modifier declarations fail before promotion.
+The command builds the typed preview and resolves affected preview catalogs/runtimes so stale selectors and invalid
+modifier declarations fail before promotion.
 
-It also prints a promotion checklist for supported authored targets such as skills, modifier rules, and runtime constants.
+It also prints a promotion checklist for supported authored targets such as skills, modifier rules, and runtime
+constants.
 
-Balance-profile patches are validated as part of preview catalog construction; inspect their authored manifest entries when promoting them as well.
+Balance-profile patches are validated as part of preview catalog construction; inspect their authored manifest entries
+when promoting them as well.
 
 Then:
 

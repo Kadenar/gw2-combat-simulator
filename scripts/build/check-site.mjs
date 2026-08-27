@@ -17,6 +17,8 @@ const pages = [
   'warrior.html'
 ];
 const runtimeAssets = [
+  path.join('data', 'gw2', 'builds', 'elementalist', 'manifest.json'),
+  path.join('data', 'gw2', 'rotations', 'elementalist', 'r-power-tempest-sword.json'),
   path.join('Builds', 'elementalist', 'manifest.json'),
   path.join('Rotations', 'elementalist', 'r-power-tempest-sword.json')
 ];

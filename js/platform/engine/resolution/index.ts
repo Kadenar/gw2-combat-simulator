@@ -1,3 +1,2 @@
-/** Public event-resolution and handler-dispatch entrypoint. */
-export * from './handler-registry.js';
-export * from './resolver.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/platform/engine/resolution/index.js';

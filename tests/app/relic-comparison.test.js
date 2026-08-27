@@ -7,7 +7,7 @@ import {
   THORNS_COMPARISON_OPPONENTS,
   buildRelicComparisonModel,
   relicComparisonAvailable
-} from '../../js/app/simulation/relic-comparison.js';
+} from '../../js/games/gw2/app/simulation/relic-comparison.js';
 
 test('relic comparison is offered only for allowlisted opponents, never Thorns itself', () => {
   assert.equal(RELIC_COMPARISON_TARGET, 'Thorns');

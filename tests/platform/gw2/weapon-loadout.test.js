@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '../../../js/platform/gw2/equipment/weapons/loadout.js';
+import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '../../../js/games/gw2/platform/equipment/weapons/loadout.js';
 
 test('configured weapon accessors read the caller-selected set without fallback', () => {
   const config = {

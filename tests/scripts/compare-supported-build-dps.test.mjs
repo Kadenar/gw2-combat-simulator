@@ -13,6 +13,7 @@ import {
   printDpsComparison,
   updateManifestBenchmarkDps
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
+import { parseGameOption } from '../../scripts/lib/game-data.mjs';
 
 test('DPS comparison reports only manifest builds outside the 1% tolerance', () => {
   const metrics = [
@@ -64,6 +65,12 @@ test('mode parsing defaults to dry mode and requires an explicit commit', () => 
   assert.throws(() => parseMode(['--unknown']), /Unknown argument/);
 });
 
+test('game option parsing defaults to GW2 and removes the shared option', () => {
+  assert.deepEqual(parseGameOption(['--commit']), { gameId: 'gw2', args: ['--commit'] });
+  assert.deepEqual(parseGameOption(['--game=gw2', '--dry']), { gameId: 'gw2', args: ['--dry'] });
+  assert.throws(() => parseGameOption(['--game=gw2', '--game=fake']), /only once/);
+});
+
 test('absolute DPS tolerance requires an explicit flag', () => {
   assert.equal(parseMaximumAbsoluteDpsError([]), null);
   assert.equal(parseMaximumAbsoluteDpsError(['--absolute-dps']), 100);
@@ -84,11 +91,16 @@ test('absolute DPS comparison output identifies the fixed tolerance', (context) 
 
 test('commit mode writes simulated DPS to matching manifest entries', async (context) => {
   const root = await mkdtemp(path.join(tmpdir(), 'gw2-benchmark-update-'));
-  const manifestDirectory = path.join(root, 'Builds', 'mesmer');
+  const manifestDirectory = path.join(root, 'data', 'gw2', 'builds', 'mesmer');
   const manifestPath = path.join(manifestDirectory, 'manifest.json');
 
   context.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(manifestDirectory, { recursive: true });
+  await writeFile(
+    path.join(root, 'data', 'games.json'),
+    JSON.stringify({ games: [{ id: 'gw2', runtimeData: [{ kind: 'builds', source: 'data/gw2/builds' }] }] }),
+    'utf8'
+  );
   await writeFile(
     manifestPath,
     `${JSON.stringify(
@@ -98,13 +110,13 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
           presets: [
             {
               label: 'Power',
-              build: 'Builds/mesmer/power.json',
-              rotation: 'Rotations/mesmer/power.json',
+              build: 'data/gw2/builds/mesmer/power.json',
+              rotation: 'data/gw2/rotations/mesmer/power.json',
               benchmarkDps: 40_000
             },
             {
               label: 'No rotation',
-              build: 'Builds/mesmer/no-rotation.json',
+              build: 'data/gw2/builds/mesmer/no-rotation.json',
               benchmarkDps: 30_000
             }
           ]
@@ -123,8 +135,8 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
         profession: 'mesmer',
         section: 'Chronomancer',
         label: 'Power',
-        build: 'Builds/mesmer/power.json',
-        rotation: 'Rotations/mesmer/power.json',
+        build: 'data/gw2/builds/mesmer/power.json',
+        rotation: 'data/gw2/rotations/mesmer/power.json',
         dps: 40_123.5
       }
     ],

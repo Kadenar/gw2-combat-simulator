@@ -1,9 +1,3 @@
-import type { PatchPreview } from '../platform/gw2/authoring/patches.js';
-
-/**
- * The repository supports one preview at a time. Keep this null until an
- * upcoming patch is intentionally authored; historical notes are not data.
- */
-export const activePatchPreview: PatchPreview | null = null;
-
-export default activePatchPreview;
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../games/gw2/integrations/patches/active-preview.js';
+export { default } from '../games/gw2/integrations/patches/active-preview.js';

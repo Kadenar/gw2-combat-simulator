@@ -1,6 +1,2 @@
-/** Read-only evidence surfaced after parsing but never applied to simulator state. */
-export interface RotationImportObservation {
-  readonly title: string;
-  readonly summary: string;
-  readonly detail: string;
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/app/build/io/rotation-import-model.js';

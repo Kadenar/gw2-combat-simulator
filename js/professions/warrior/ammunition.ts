@@ -1,9 +1,2 @@
-import { recordBladeswornAmmoSpend } from './specializations/bladesworn/ammunition.js';
-import type { WarriorCastContext } from './types.js';
-
-/** Routes generic ammo-spend facts to the active slice that reacts to them. */
-export function recordWarriorAmmoSpend(context: WarriorCastContext, roundsSpent: number, startedFull: boolean): void {
-  if (context.state.profession.specialization.kind === 'Bladesworn') {
-    recordBladeswornAmmoSpend(context, roundsSpent, startedFull);
-  }
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/warrior/ammunition.js';

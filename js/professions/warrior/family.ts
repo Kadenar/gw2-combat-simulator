@@ -1,18 +1,3 @@
-import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
-import { activePatchPreview } from '../../patches/active-preview.js';
-import { createWarriorBuildDefaults, migrateWarriorBuild, validateWarriorBuild } from './build.js';
-import { warriorNativeModules } from './modules.js';
-
-export const warriorProfession = defineNativeProfession({
-  id: 'warrior',
-  name: 'Warrior',
-  build: {
-    createBuildDefaults: createWarriorBuildDefaults,
-    migrateBuild: migrateWarriorBuild,
-    validateBuild: validateWarriorBuild
-  },
-  modules: warriorNativeModules,
-  patchPreview: activePatchPreview
-});
-
-export default warriorProfession;
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/warrior/family.js';
+export { default } from '../../games/gw2/content/professions/warrior/family.js';

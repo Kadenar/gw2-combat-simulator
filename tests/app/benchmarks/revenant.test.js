@@ -11,7 +11,7 @@ test('Condition Renegade spear preset counts opener damage from the first hit', 
   // precasts deal opener damage that belongs in the simulated DPS window.
   const saved = JSON.parse(
     await readFile(
-      new URL('../../../Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json', import.meta.url),
+      new URL('../../../data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json', import.meta.url),
       'utf8'
     )
   );

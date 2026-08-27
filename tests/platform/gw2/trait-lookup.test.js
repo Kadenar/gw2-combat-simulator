@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { hasTrait } from '../../../js/platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../js/games/gw2/platform/combat/state/traits.js';
 
 test('trait lookup accepts stable and numeric-string IDs from a normalized trait set', () => {
   assert.equal(hasTrait(new Set([123]), 123), true);

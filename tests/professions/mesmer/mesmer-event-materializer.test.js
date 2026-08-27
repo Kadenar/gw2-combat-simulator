@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMesmerEventMaterializer } from '../../../js/professions/mesmer/core/event-materializer.js';
+import { createMesmerEventMaterializer } from '../../../js/games/gw2/content/professions/mesmer/core/event-materializer.js';
 
 function createFixture() {
   const events = [];

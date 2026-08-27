@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '../../js/app/simulation/config.js';
-import { createSimulationRandom } from '../../js/platform/engine/core/simulation-random.js';
+import { createGw2SimulationConfig } from '../../js/games/gw2/app/simulation/config.js';
+import { createSimulationRandom } from '../../js/kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,
@@ -10,32 +10,32 @@ import {
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
-} from '../../js/app/simulation/random-distribution.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
+} from '../../js/games/gw2/app/simulation/random-distribution.js';
+import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild
-} from '../../js/professions/engineer/build.js';
-import { engineerAppAdapter } from '../../js/professions/engineer/app/app-definition.js';
-import { engineerProfession } from '../../js/professions/engineer/definition.js';
-import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/professions/engineer/data/ids.js';
-import { guardianProfession } from '../../js/professions/guardian/definition.js';
-import { createGuardianBuildDefaults } from '../../js/professions/guardian/build.js';
-import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
-import { createMesmerBuildDefaults } from '../../js/professions/mesmer/build.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/professions/mesmer/data/ids.js';
+} from '../../js/games/gw2/content/professions/engineer/build.js';
+import { engineerAppAdapter } from '../../js/games/gw2/content/professions/engineer/app/app-definition.js';
+import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
+import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '../../js/professions/necromancer/build.js';
-import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/professions/necromancer/data/ids.js';
-import { revenantProfession } from '../../js/professions/revenant/definition.js';
-import { createRevenantBuildDefaults } from '../../js/professions/revenant/build.js';
-import { thiefProfession } from '../../js/professions/thief/definition.js';
-import { createThiefBuildDefaults } from '../../js/professions/thief/build.js';
+} from '../../js/games/gw2/content/professions/necromancer/build.js';
+import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
+import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
+import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build.js';
+import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
+import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build.js';
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };

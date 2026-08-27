@@ -1,4 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { rangerNativeModules } from './modules.js';
-
-export const rangerCatalog = assembleNativeApplicationCatalog(rangerNativeModules);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/ranger/catalog.js';

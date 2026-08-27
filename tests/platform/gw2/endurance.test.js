@@ -6,7 +6,7 @@ import {
   enduranceReadyAt,
   grantEndurance,
   spendEndurance
-} from '../../../js/platform/gw2/combat/resources/endurance.js';
+} from '../../../js/games/gw2/platform/combat/resources/endurance.js';
 
 test('endurance advancement caps regeneration and does not mutate or rewind its input', () => {
   const state = Object.freeze({ endurance: 40, enduranceUpdatedAt: 2 });

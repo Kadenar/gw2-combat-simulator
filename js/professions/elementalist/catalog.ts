@@ -1,7 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { ELEMENTALIST_NATIVE_CATALOG_OPTIONS, elementalistNativeModules } from './modules.js';
-
-export const elementalistCatalog = assembleNativeApplicationCatalog(
-  elementalistNativeModules,
-  ELEMENTALIST_NATIVE_CATALOG_OPTIONS
-);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/elementalist/catalog.js';

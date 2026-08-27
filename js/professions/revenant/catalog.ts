@@ -1,4 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { revenantNativeModules } from './modules.js';
-
-export const revenantCatalog = assembleNativeApplicationCatalog(revenantNativeModules);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/revenant/catalog.js';

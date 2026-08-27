@@ -1,22 +1,3 @@
-import { defineNativeProfession } from '../../platform/gw2/authoring/profession.js';
-import { activePatchPreview } from '../../patches/active-preview.js';
-import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from './build.js';
-import { thiefWeaponSkillMatchesSet } from './catalog-data.js';
-import { thiefNativeModules } from './modules.js';
-
-export const thiefProfession = defineNativeProfession({
-  id: 'thief',
-  name: 'Thief',
-  build: {
-    createBuildDefaults: createThiefBuildDefaults,
-    migrateBuild: migrateThiefBuild,
-    validateBuild: validateThiefBuild
-  },
-  modules: thiefNativeModules,
-  patchPreview: activePatchPreview,
-  presentation: {
-    weaponSkillMatchesSet: thiefWeaponSkillMatchesSet
-  }
-});
-
-export default thiefProfession;
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/thief/family.js';
+export { default } from '../../games/gw2/content/professions/thief/family.js';

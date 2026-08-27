@@ -18,14 +18,17 @@
 import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';
-import { loadProfession } from '../../dist/js/app/profession/registry.js';
-import { fetchDpsReport } from '../../dist/js/log-analyzer/dps-report/url.js';
+import { loadProfession } from '../../dist/js/games/gw2/app/profession/registry.js';
+import { fetchDpsReport } from '../../dist/js/games/gw2/integrations/logs/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,
   reconstructDpsReportRotation
-} from '../../dist/js/log-analyzer/dps-report/rotation/index.js';
+} from '../../dist/js/games/gw2/integrations/logs/dps-report/rotation/index.js';
+import { parseGameOption } from '../lib/game-data.mjs';
 
-const input = process.argv[2];
+const { gameId, args } = parseGameOption(process.argv.slice(2));
+if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" does not support dps.report logs.`);
+const input = args[0];
 
 if (!input) {
   console.error(
@@ -36,7 +39,7 @@ if (!input) {
   process.exit(1);
 }
 
-const option = (prefix) => process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
+const option = (prefix) => args.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
 const requestedPlayer = option('--player=');
 const requestedPhase = option('--phase=');
 const buildPath = option('--build=');
@@ -103,7 +106,7 @@ const output = {
     timingSource: 'Elite Insights cast summaries from dps.report',
     combatStartTimestampMs: result.combatStartTimestampMs,
     warnings: result.warnings,
-    ...(process.argv.includes('--timeline') ? { reconstructedActions: result.actions } : {})
+    ...(args.includes('--timeline') ? { reconstructedActions: result.actions } : {})
   },
   rotation: result.rotation
 };

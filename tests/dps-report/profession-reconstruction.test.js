@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseDpsReport } from '../../js/log-analyzer/dps-report/parser.js';
-import { reconstructDpsReportRotation } from '../../js/log-analyzer/dps-report/rotation/index.js';
-import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
-import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
-import { warriorProfession } from '../../js/professions/warrior/definition.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
+import { parseDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/parser.js';
+import { reconstructDpsReportRotation } from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
+import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
+import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
+import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
+import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 

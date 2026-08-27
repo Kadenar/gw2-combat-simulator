@@ -1,5 +1,2 @@
-import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
-import { MESMER_NATIVE_CATALOG_OPTIONS } from './catalog-data.js';
-import { mesmerNativeModules } from './modules.js';
-
-export const mesmerCatalog = assembleNativeApplicationCatalog(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/mesmer/catalog.js';

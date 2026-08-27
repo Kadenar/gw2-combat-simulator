@@ -2,13 +2,19 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
-import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/professions/warrior/build.js';
-import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
-import { getActiveTraits } from '../../../js/professions/warrior/data/traits-data.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../js/professions/warrior/data/ids.js';
+import { warriorAppAdapter } from '../../../js/games/gw2/content/professions/warrior/app/app-definition.js';
+import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/games/gw2/content/professions/warrior/build.js';
+import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
+import { getActiveTraits } from '../../../js/games/gw2/content/professions/warrior/data/traits-data.js';
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT
+} from '../../../js/games/gw2/content/professions/warrior/data/ids.js';
 
-const buildUrl = new URL('../../../Builds/warrior/b-condi-berserker-longbow-sword-torch.json', import.meta.url);
+const buildUrl = new URL(
+  '../../../data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json',
+  import.meta.url
+);
 
 function skill(id) {
   return warriorCatalog.skillsById.get(id);

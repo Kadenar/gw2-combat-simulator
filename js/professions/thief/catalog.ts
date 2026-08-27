@@ -1,10 +1,2 @@
-import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/authoring/catalog.js';
-import { thiefWeaponSkillMatchesSet } from './catalog-data.js';
-import { thiefNativeModules } from './modules.js';
-import type { ThiefSkill } from './types.js';
-
-export { thiefWeaponSkillMatchesSet };
-export const thiefCatalog = assembleNativeApplicationCatalog(thiefNativeModules);
-export function thiefSkillRuntimeOwner(skill: ThiefSkill): string {
-  return nativeSkillRuntimeOwner(thiefNativeModules, skill);
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/thief/catalog.js';

@@ -9,10 +9,10 @@ import {
   templateHasBoon,
   templateSpecializations,
   undoTemplateLoad
-} from '../../js/app/build/panels/presets.js';
-import { normalizeRotation } from '../../js/platform/engine/execution/rotation.js';
-import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
-import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/professions/mesmer/data/ids.js';
+} from '../../js/games/gw2/app/build/panels/presets.js';
+import { normalizeRotation } from '../../js/games/gw2/platform/engine/execution/rotation.js';
+import { mesmerAppAdapter } from '../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
+import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
 
 function createApp() {
   return {
@@ -59,38 +59,38 @@ test('template discovery loads the profession-scoped manifest', async (t) => {
 
   await initBuildTemplates({ adapter: { id: 'mesmer' } });
 
-  assert.equal(requestedPath, 'Builds/mesmer/manifest.json');
+  assert.equal(requestedPath, 'data/gw2/builds/mesmer/manifest.json');
 });
 
 test('template metadata classifies damage type and boon roles', () => {
   const power = {
     label: 'Power',
-    build: 'Builds/mesmer/b-power-chronomancer.json',
+    build: 'data/gw2/builds/mesmer/b-power-chronomancer.json',
     section: 'Chronomancer'
   };
   const condi = {
     label: 'Condition',
-    build: 'Builds/mesmer/b-condi-chronomancer.json',
+    build: 'data/gw2/builds/mesmer/b-condi-chronomancer.json',
     section: 'Chronomancer'
   };
   const powerBoon = {
     label: 'Power Quickness',
-    build: 'Builds/thief/b-power-quick-deadeye.json',
+    build: 'data/gw2/builds/thief/b-power-quick-deadeye.json',
     section: 'Deadeye'
   };
   const condiBoon = {
     label: 'Condition Alacrity',
-    build: 'Builds/engineer/b-condi-alac-amalgam.json',
+    build: 'data/gw2/builds/engineer/b-condi-alac-amalgam.json',
     section: 'Amalgam'
   };
   const other = {
     label: 'Inferno',
-    build: 'Builds/elementalist/b-inferno-tempest.json',
+    build: 'data/gw2/builds/elementalist/b-inferno-tempest.json',
     section: 'Tempest'
   };
   const otherBoon = {
     label: 'Inferno Alacrity',
-    build: 'Builds/elementalist/b-inferno-alac-tempest.json',
+    build: 'data/gw2/builds/elementalist/b-inferno-alac-tempest.json',
     section: 'Tempest'
   };
 
@@ -128,7 +128,7 @@ test('filtered templates remain hidden despite their flex layout', () => {
 
 test('desktop template sidebar stays left of the simulator workspace', () => {
   const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
-  const source = readFileSync(new URL('../../js/app/build/panels/presets.ts', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../js/games/gw2/app/build/panels/presets.ts', import.meta.url), 'utf8');
 
   assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: 310px minmax\(0, 1fr\);/);
   assert.match(css, /\.profession-main\s*\{\s*min-width: 0;\s*grid-column: 2;\s*grid-row: 1;/);
@@ -143,14 +143,14 @@ test('desktop template sidebar stays left of the simulator workspace', () => {
 test('template actions load paired or partial state and support undo', async (t) => {
   const payloads = new Map([
     [
-      'Builds/mesmer/test-build.json',
+      'data/gw2/builds/mesmer/test-build.json',
       {
         profession: 'mesmer',
         marker: 'template',
         rotation: ['Embedded rotation is ignored']
       }
     ],
-    ['Rotations/mesmer/test-rotation.json', { rotation: ['Template rotation'] }]
+    ['data/gw2/rotations/mesmer/test-rotation.json', { rotation: ['Template rotation'] }]
   ]);
 
   t.mock.method(globalThis, 'fetch', async (url) => {
@@ -165,8 +165,8 @@ test('template actions load paired or partial state and support undo', async (t)
   const preset = {
     section: 'Chronomancer',
     label: 'Power',
-    build: 'Builds/mesmer/test-build.json',
-    rotation: 'Rotations/mesmer/test-rotation.json'
+    build: 'data/gw2/builds/mesmer/test-build.json',
+    rotation: 'data/gw2/rotations/mesmer/test-rotation.json'
   };
 
   const templateApp = createApp();
@@ -202,11 +202,14 @@ test('template actions load paired or partial state and support undo', async (t)
 
 test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
   const buildData = JSON.parse(
-    readFileSync(new URL('../../Builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
+    readFileSync(new URL('../../data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
   );
   const payloads = new Map([
-    ['Builds/mesmer/ambiguous-mirage.json', buildData],
-    ['Rotations/mesmer/ambiguous-mirage.json', { rotation: [{ name: 'Swap Weapons' }, { name: 'Lingering Thoughts' }] }]
+    ['data/gw2/builds/mesmer/ambiguous-mirage.json', buildData],
+    [
+      'data/gw2/rotations/mesmer/ambiguous-mirage.json',
+      { rotation: [{ name: 'Swap Weapons' }, { name: 'Lingering Thoughts' }] }
+    ]
   ]);
 
   t.mock.method(globalThis, 'fetch', async (url) => {
@@ -234,8 +237,8 @@ test('template loading resolves duplicate Mesmer skill names before the first si
     {
       section: 'Mirage',
       label: 'Condition - Dune Cloak',
-      build: 'Builds/mesmer/ambiguous-mirage.json',
-      rotation: 'Rotations/mesmer/ambiguous-mirage.json'
+      build: 'data/gw2/builds/mesmer/ambiguous-mirage.json',
+      rotation: 'data/gw2/rotations/mesmer/ambiguous-mirage.json'
     },
     'template',
     createButton()
@@ -262,7 +265,7 @@ test('a complete template without a rotation clears stale rotation state', async
     {
       section: 'Mirage',
       label: 'Power',
-      build: 'Builds/mesmer/build-only.json'
+      build: 'data/gw2/builds/mesmer/build-only.json'
     },
     'template',
     createButton()

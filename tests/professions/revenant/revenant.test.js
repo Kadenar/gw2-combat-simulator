@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
+import {
+  loadProfession,
+  loadProfessionAppAdapter,
+  professionRoute
+} from '../../../js/games/gw2/app/profession/registry.js';
 import {
   currentAutoattackSkill,
   displayedSkillTiles,
@@ -12,52 +16,58 @@ import {
   rotationPaletteGroups,
   rotationSelectedSlotSkills,
   weaponSkills
-} from '../../../js/app/rotation/palette/model.js';
+} from '../../../js/games/gw2/app/rotation/palette/model.js';
 import {
   paletteSkillView,
   renderPalette,
   resolvePaletteDropItem,
   suggestedPaletteInterruptMs
-} from '../../../js/app/rotation/palette/view.js';
-import { insertRotationItems } from '../../../js/app/rotation/editing/actions.js';
-import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
-import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
-import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
+} from '../../../js/games/gw2/app/rotation/palette/view.js';
+import { insertRotationItems } from '../../../js/games/gw2/app/rotation/editing/actions.js';
+import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
+import { createCalculateAttributes } from '../../../js/games/gw2/platform/builds/attributes.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch
+} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
+import { skillBreakdownRows } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
   validateRevenantBuild
-} from '../../../js/professions/revenant/build.js';
-import { applyRevenantBuildAttributeRules } from '../../../js/professions/revenant/build-attributes.js';
-import { revenantAppAdapter } from '../../../js/professions/revenant/app/app-definition.js';
-import { revenantCatalog } from '../../../js/professions/revenant/catalog.js';
+} from '../../../js/games/gw2/content/professions/revenant/build.js';
+import { applyRevenantBuildAttributeRules } from '../../../js/games/gw2/content/professions/revenant/build-attributes.js';
+import { revenantAppAdapter } from '../../../js/games/gw2/content/professions/revenant/app/app-definition.js';
+import { revenantCatalog } from '../../../js/games/gw2/content/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
-} from '../../../js/professions/revenant/specializations/vindicator/ui.js';
-import { DATA_SNAPSHOT } from '../../../js/professions/revenant/data/revenant-api-metadata.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '../../../js/professions/revenant/data/revenant-supplemental-skills.js';
+} from '../../../js/games/gw2/content/professions/revenant/specializations/vindicator/ui.js';
+import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/revenant/data/revenant-api-metadata.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/revenant/data/revenant-supplemental-skills.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../js/professions/revenant/data/ids.js';
+} from '../../../js/games/gw2/content/professions/revenant/data/ids.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.js';
 import {
   REVENANT_CORE_BALANCE_PROFILE_IDS,
   REVENANT_CORE_BASE_SKILL_MECHANICS
-} from '../../../js/professions/revenant/core/skills.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '../../../js/professions/revenant/specializations/conduit/skills.js';
-import { revenantProfession } from '../../../js/professions/revenant/definition.js';
+} from '../../../js/games/gw2/content/professions/revenant/core/skills.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/revenant/specializations/conduit/skills.js';
+import { revenantProfession } from '../../../js/games/gw2/content/professions/revenant/definition.js';
 import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
-} from '../../../js/professions/revenant/legend-rules.js';
-import { REVENANT_LEGENDS, revenantLegendLoadout } from '../../../js/professions/revenant/legend-loadout.js';
+} from '../../../js/games/gw2/content/professions/revenant/legend-rules.js';
+import {
+  REVENANT_LEGENDS,
+  revenantLegendLoadout
+} from '../../../js/games/gw2/content/professions/revenant/legend-loadout.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -725,11 +735,14 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
 
 test('Revenant modules preserve the declarative authoring contract', async () => {
   const [ids, coreSkills, renegadeSkills, catalog, modules] = await Promise.all([
-    readFile(new URL('../../../js/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/professions/revenant/core/skills.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/professions/revenant/specializations/renegade/skills.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/professions/revenant/modules.ts', import.meta.url), 'utf8')
+    readFile(new URL('../../../js/games/gw2/content/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/content/professions/revenant/core/skills.ts', import.meta.url), 'utf8'),
+    readFile(
+      new URL('../../../js/games/gw2/content/professions/revenant/specializations/renegade/skills.ts', import.meta.url),
+      'utf8'
+    ),
+    readFile(new URL('../../../js/games/gw2/content/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../../js/games/gw2/content/professions/revenant/modules.ts', import.meta.url), 'utf8')
   ]);
 
   assert.doesNotMatch(ids, /^import\b/m);
@@ -2226,7 +2239,7 @@ test('Corruption traits update attributes, duration, and chill triggers', () => 
 
 test('Notoriety applies its Might conversion at runtime without negative UI attributes', async () => {
   const saved = JSON.parse(
-    await readFile(new URL('../../../Builds/revenant/b-power-conduit.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/b-power-conduit.json', import.meta.url), 'utf8')
   );
   const attributes = calculateRevenantAttributes(migrateRevenantBuild(saved)).attributes;
 

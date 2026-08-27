@@ -4,32 +4,32 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { replaceBuild } from '../../js/app/build/state/persistence.js';
-import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
-import { strikeTimeline } from '../../js/platform/engine/effects/factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
-import { defineProfession } from '../../js/platform/engine/profession/contract.js';
-import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
+import { replaceBuild } from '../../js/games/gw2/app/build/state/persistence.js';
+import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
+import { strikeTimeline } from '../../js/games/gw2/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '../../js/games/gw2/platform/engine/events/events.js';
+import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
+import { SKILL_HANDLER_MODES } from '../../js/games/gw2/platform/engine/skills/handlers.js';
+import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../helpers/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/engineer.js';
-import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/state.js';
-import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/professions/elementalist/state.js';
+import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/engineer/state.js';
+import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/elementalist/state.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../fixtures/trait-coverage/elementalist.js';
 import { GUARDIAN_TRAIT_COVERAGE } from '../fixtures/trait-coverage/guardian.js';
-import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/professions/guardian/state.js';
+import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/guardian/state.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { NECROMANCER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/necromancer.js';
-import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necromancer/state.js';
+import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/necromancer/state.js';
 import { RANGER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/ranger.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/professions/ranger/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/ranger/state.js';
 import { REVENANT_TRAIT_COVERAGE } from '../fixtures/trait-coverage/revenant.js';
-import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/professions/revenant/state.js';
+import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/revenant/state.js';
 import { THIEF_TRAIT_COVERAGE } from '../fixtures/trait-coverage/thief.js';
-import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/state.js';
+import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/thief/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../fixtures/trait-coverage/warrior.js';
-import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/professions/warrior/state.js';
-import { professionRegistry, PROFESSION_ROUTES } from '../../js/app/profession/registry.js';
+import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/warrior/state.js';
+import { professionRegistry, PROFESSION_ROUTES } from '../../js/games/gw2/app/profession/registry.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,

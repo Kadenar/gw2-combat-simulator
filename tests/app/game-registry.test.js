@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { bootstrapGameApp } from '../../js/app/bootstrap.js';
 import { defineGameRegistry, loadGameContent } from '../../js/app/game/registry.js';
+import { loadGameWorkerDriver } from '../../js/games/worker-driver.js';
 import { createFakeGamePlugin } from '../fixtures/fake-game-plugin.js';
 
 // Builds a game with no GW2 dependencies so registry and bootstrap behavior stay content-vocabulary neutral.
@@ -19,8 +20,10 @@ function fakeRegistry(gameId = 'fake') {
 test('a non-GW2 game reaches the shared bootstrap through explicit game and content IDs', async () => {
   const root = { body: { dataset: { game: 'fake', content: 'pilot' } } };
   const app = await bootstrapGameApp(root, fakeRegistry());
+  const content = await loadGameContent('fake', 'pilot', fakeRegistry());
 
   assert.deepEqual(app, { root, started: true });
+  assert.equal(content.gameId, 'fake');
 });
 
 test('legacy profession markup defaults to the GW2 game ID', async () => {
@@ -32,7 +35,7 @@ test('legacy profession markup defaults to the GW2 game ID', async () => {
 
 test('the GW2 game plug-in exposes the existing lazy profession registry', async () => {
   const [{ professionRegistry }, { gw2Plugin }] = await Promise.all([
-    import('../../js/app/profession/registry.js'),
+    import('../../js/games/gw2/app/profession/registry.js'),
     import('../../js/games/gw2/plugin.js')
   ]);
 
@@ -40,7 +43,16 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
     gw2Plugin.content.map(({ id, name, route }) => ({ id, name, route })),
     professionRegistry.map(({ id, name, route }) => ({ id, name, route }))
   );
-  assert.equal((await loadGameContent('gw2', 'warrior'))?.gameId, 'gw2');
+  const content = await loadGameContent('gw2', 'warrior');
+  const adapter = await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'warrior' });
+  assert.equal(content.gameId, 'gw2');
+  assert.deepEqual(
+    adapter.buildEditor.sections.map(({ id }) => id),
+    ['gear', 'traits', 'attributes', 'skills', 'assumptions']
+  );
+  assert.equal(typeof adapter.presentation.createViewModel, 'function');
+  assert.equal(typeof adapter.capabilities.keybindImport.parse, 'function');
+  assert.equal(await loadGameWorkerDriver({ gameId: 'unknown', contentId: 'warrior' }), null);
   assert.equal(await loadGameContent('gw2', 'unknown'), null);
 });
 

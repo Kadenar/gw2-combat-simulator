@@ -2,17 +2,20 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { migrateRangerBuild } from '../../../js/professions/ranger/build.js';
-import { rangerCatalog } from '../../../js/professions/ranger/catalog.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../js/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '../../../js/professions/ranger/data/ranger-pet-data.js';
-import { rangerProfession } from '../../../js/professions/ranger/definition.js';
-import { rangerCoreCriticalReactions } from '../../../js/professions/ranger/core/resolver.js';
-import { rangerCoreModifierRules } from '../../../js/professions/ranger/core/rules.js';
-import { druidModifierRules } from '../../../js/professions/ranger/specializations/druid/rules.js';
-import { rangerAppAdapter } from '../../../js/professions/ranger/app/app-definition.js';
+import { timelineWeaponRows } from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { migrateRangerBuild } from '../../../js/games/gw2/content/professions/ranger/build.js';
+import { rangerCatalog } from '../../../js/games/gw2/content/professions/ranger/catalog.js';
+import {
+  RANGER_SKILL_IDS as ID,
+  RANGER_TRAIT_IDS as TRAIT
+} from '../../../js/games/gw2/content/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '../../../js/games/gw2/content/professions/ranger/data/ranger-pet-data.js';
+import { rangerProfession } from '../../../js/games/gw2/content/professions/ranger/definition.js';
+import { rangerCoreCriticalReactions } from '../../../js/games/gw2/content/professions/ranger/core/resolver.js';
+import { rangerCoreModifierRules } from '../../../js/games/gw2/content/professions/ranger/core/rules.js';
+import { druidModifierRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/rules.js';
+import { rangerAppAdapter } from '../../../js/games/gw2/content/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

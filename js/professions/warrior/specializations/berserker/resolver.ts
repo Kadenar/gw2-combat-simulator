@@ -1,9 +1,2 @@
-import { onAuraApplied } from '../../../../platform/gw2/authoring/mechanics.js';
-import { reactToBerserkerAura } from './traits.js';
-
-export const berserkerReactions = Object.freeze([
-  onAuraApplied({
-    id: 'warrior.berserker.fire-aura',
-    handler: reactToBerserkerAura
-  })
-]);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/warrior/specializations/berserker/resolver.js';

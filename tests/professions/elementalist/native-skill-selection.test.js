@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { availableSlotSkills } from '../../../js/app/build/panels/skills.js';
-import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
-import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
+import { availableSlotSkills } from '../../../js/games/gw2/app/build/panels/skills.js';
+import { elementalistAppAdapter } from '../../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
+import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
+import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
 
 function weaverApp(selectedSkills = {}) {
   const defaults = elementalistProfession.createBuildDefaults();

@@ -7,7 +7,7 @@ import {
   recordRotationHistory,
   redoRotation,
   undoRotation
-} from '../../js/app/rotation/editing/history.js';
+} from '../../js/games/gw2/app/rotation/editing/history.js';
 
 test('undo and redo defer repainting until their matching simulation result', () => {
   const initial = [{ type: 'cast', skillId: 1 }];

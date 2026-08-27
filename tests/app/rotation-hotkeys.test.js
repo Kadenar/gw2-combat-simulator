@@ -20,13 +20,13 @@ import {
   rotationUtilityHotkeyAction,
   saveRotationHotkeyBindings,
   saveRotationHotkeysEnabled
-} from '../../js/app/rotation/input/hotkeys.js';
+} from '../../js/games/gw2/app/rotation/input/hotkeys.js';
 import {
   gw2KeyboardCode,
   gw2MouseCode,
   parseGw2HotkeyBindingsXml
-} from '../../js/app/rotation/input/gw2-keybind-import.js';
-import { paletteSkillHtml } from '../../js/platform/ui/rotation/palette.js';
+} from '../../js/games/gw2/integrations/keybinds/parser.js';
+import { paletteSkillHtml } from '../../js/games/gw2/app/presentation/rotation/palette.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
   assert.deepEqual(defaultRotationHotkeyBindings(), {

@@ -10,33 +10,36 @@ import {
   professionOptions,
   professionRegistry,
   professionRoute
-} from '../../../js/app/profession/registry.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
-import { selectedGw2TraitValues } from '../../../js/platform/gw2/combat/query/combat-query.js';
+} from '../../../js/games/gw2/app/profession/registry.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch
+} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
+import { selectedGw2TraitValues } from '../../../js/games/gw2/platform/combat/query/combat-query.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
-} from '../../../js/professions/elementalist/build.js';
-import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
-import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
+} from '../../../js/games/gw2/content/professions/elementalist/build.js';
+import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
+import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '../../../js/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/professions/elementalist/core/elemental-profile.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/professions/elementalist/core/skills.js';
+} from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/games/gw2/content/professions/elementalist/core/elemental-profile.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/elementalist/core/skills.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
   elementalistBalanceValue
-} from '../../../js/professions/elementalist/core/profiles.js';
-import { elementalistAttunementRechargeDuration } from '../../../js/professions/elementalist/core/rules.js';
-import { TEMPEST_BALANCE_PROFILE_IDS } from '../../../js/professions/elementalist/specializations/tempest/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '../../../js/professions/elementalist/specializations/weaver/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS } from '../../../js/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS } from '../../../js/professions/elementalist/specializations/evoker/profiles.js';
-const professionRoot = new URL('../../../js/professions/elementalist/', import.meta.url);
+} from '../../../js/games/gw2/content/professions/elementalist/core/profiles.js';
+import { elementalistAttunementRechargeDuration } from '../../../js/games/gw2/content/professions/elementalist/core/rules.js';
+import { TEMPEST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/tempest/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/profiles.js';
+import { CATALYST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/evoker/profiles.js';
+const professionRoot = new URL('../../../js/games/gw2/content/professions/elementalist/', import.meta.url);
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
@@ -343,15 +346,15 @@ test('Elementalist canonical timelines retain causal and hitbox order for same-t
 });
 
 test('all Elementalist build and rotation assets migrate through the native codec', async () => {
-  const root = new URL('../../../', import.meta.url);
-  const manifest = JSON.parse(await readFile(new URL('Builds/elementalist/manifest.json', root), 'utf8'));
+  const root = new URL('../../..', import.meta.url);
+  const manifest = JSON.parse(await readFile(new URL('data/gw2/builds/elementalist/manifest.json', root), 'utf8'));
   const presets = manifest.flatMap((section) =>
     section.presets.map((preset) => ({ ...preset, section: section.section }))
   );
-  const buildFiles = (await readdir(new URL('Builds/elementalist/', root)))
+  const buildFiles = (await readdir(new URL('data/gw2/builds/elementalist/', root)))
     .filter((name) => name.startsWith('b-') && name.endsWith('.json'))
     .sort();
-  const rotationFiles = (await readdir(new URL('Rotations/elementalist/', root)))
+  const rotationFiles = (await readdir(new URL('data/gw2/rotations/elementalist/', root)))
     .filter((name) => name.startsWith('r-') && name.endsWith('.json'))
     .sort();
 

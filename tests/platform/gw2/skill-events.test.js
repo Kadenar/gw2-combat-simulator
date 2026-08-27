@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
-import { createEvent } from '../../../js/platform/engine/events/events.js';
-import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
+import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
+import { createEvent } from '../../../js/games/gw2/platform/engine/events/events.js';
+import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
+import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../js/platform/gw2/scheduler/skill-events.js';
+} from '../../../js/games/gw2/platform/scheduler/skill-events.js';
 
 function captureContext(effectDuration) {
   const events = [];

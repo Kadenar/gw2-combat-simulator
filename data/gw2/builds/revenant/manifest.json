@@ -1,0 +1,94 @@
+[
+  {
+    "section": "Renegade",
+    "presets": [
+      {
+        "label": "Power (Greatsword - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-benchmark.json",
+        "benchmarkDps": 43423,
+        "referenceDps": 43752,
+        "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
+        "upToDate": true
+      },
+      {
+        "label": "Power Renegade (Hammer - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-renegade-hammer.json",
+        "benchmarkDps": 42678
+      },
+      {
+        "label": "Power Alacrity (Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
+        "benchmarkDps": 34298
+      },
+      {
+        "label": "Condition (Shortbow - Mace/Axe)",
+        "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
+        "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
+        "benchmarkDps": 41440
+      },
+      {
+        "label": "Condition (Mace/Axe - Spear)",
+        "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
+        "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
+        "benchmarkDps": 41295
+      }
+    ]
+  },
+  {
+    "section": "Herald",
+    "presets": [
+      {
+        "label": "Power Quickness (Greatsword - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-quick-herald-greatsword-sword-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-quick-herald-greatsword-sword-sword-benchmark.json",
+        "benchmarkDps": 31704,
+        "referenceDps": 32073,
+        "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem"
+      },
+      {
+        "label": "Condition Quickness (Shortbow - Mace/Axe)",
+        "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
+        "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-benchmark.json",
+        "benchmarkDps": 32427
+      }
+    ]
+  },
+  {
+    "section": "Vindicator",
+    "presets": [
+      {
+        "label": "Power (Greatsword - Sword/Sword - Energy)",
+        "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-benchmark.json",
+        "benchmarkDps": 44960,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Greatsword - Sword/Sword - Hydro)",
+        "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
+        "benchmarkDps": 43700
+      }
+    ]
+  },
+  {
+    "section": "Conduit",
+    "presets": [
+      {
+        "label": "Power (Greatsword - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-conduit.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
+        "benchmarkDps": 42522,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Spear - Mace/Axe)",
+        "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
+        "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
+        "benchmarkDps": 39785,
+        "upToDate": true
+      }
+    ]
+  }
+]

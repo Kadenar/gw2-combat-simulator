@@ -1,12 +1,2 @@
-import type { ScrapperState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-
-// Only whirl finishers share Kinetic Accelerators' ICD; blast and leap combos
-// deliberately bypass this timestamp and can proc on every successful combo.
-export function createScrapperState(): ScrapperState {
-  return {
-    kineticAcceleratorsWhirlReadyAt: 0
-  };
-}
-
-export const scrapperState = defineProfessionSpecializationState('Scrapper', createScrapperState);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/engineer/specializations/scrapper/state.js';

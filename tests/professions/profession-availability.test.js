@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { denySkillCast } from '../../js/professions/lib/availability.js';
+import { denySkillCast } from '../../js/games/gw2/content/professions/lib/availability.js';
 
 test('shared profession availability helper distinguishes permanent denial from timed retry', () => {
   const skill = { name: 'Shroud Skill' };

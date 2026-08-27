@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createDefaultBuild, replaceBuild } from '../../../js/app/build/state/persistence.js';
-import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
-import { mesmerAppAdapter } from '../../../js/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '../../../js/professions/mesmer/build-attributes.js';
-import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
-import { resolveProfessionRuntime } from '../../../js/platform/engine/profession/family.js';
-import { createGw2CombatQuery } from '../../../js/platform/gw2/combat/query/combat-query.js';
+import { createDefaultBuild, replaceBuild } from '../../../js/games/gw2/app/build/state/persistence.js';
+import { createCalculateAttributes } from '../../../js/games/gw2/platform/builds/attributes.js';
+import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '../../../js/games/gw2/content/professions/mesmer/build-attributes.js';
+import { mesmerProfession } from '../../../js/games/gw2/content/professions/mesmer/definition.js';
+import { resolveProfessionRuntime } from '../../../js/games/gw2/platform/engine/profession/family.js';
+import { createGw2CombatQuery } from '../../../js/games/gw2/platform/combat/query/combat-query.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);

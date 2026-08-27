@@ -1,7 +1,2 @@
-import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
-import { activateChant, activateCommand } from './traits.js';
-
-export const paragonSkillHandlers = Object.freeze({
-  'warrior.chant': augmentSkillHandler(activateChant),
-  'warrior.command': augmentSkillHandler(activateCommand)
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/warrior/specializations/paragon/handlers.js';

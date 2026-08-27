@@ -4,54 +4,61 @@ import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createCanonicalCatalog } from '../../js/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
   resolveAutoattackChainStep
-} from '../../js/platform/engine/skills/autoattack-chains.js';
-import { conditionTimeline, strikeTimeline } from '../../js/platform/engine/effects/factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/platform/engine/events/events.js';
-import { HandlerRegistry } from '../../js/platform/engine/resolution/handler-registry.js';
-import { defineProfession } from '../../js/platform/engine/profession/contract.js';
-import { resolveScheduledStream } from '../../js/platform/engine/resolution/resolver.js';
-import { normalizeRotation } from '../../js/platform/engine/execution/rotation.js';
-import { createSchedulerState } from '../../js/platform/engine/execution/state.js';
-import { createScheduler } from '../../js/platform/engine/execution/scheduler.js';
-import { buildScheduledEventStream } from '../../js/platform/engine/events/scheduled-stream.js';
+} from '../../js/games/gw2/platform/engine/skills/autoattack-chains.js';
+import { conditionTimeline, strikeTimeline } from '../../js/games/gw2/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '../../js/games/gw2/platform/engine/events/events.js';
+import { HandlerRegistry } from '../../js/games/gw2/platform/engine/resolution/handler-registry.js';
+import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
+import { resolveScheduledStream } from '../../js/games/gw2/platform/engine/resolution/resolver.js';
+import { normalizeRotation } from '../../js/games/gw2/platform/engine/execution/rotation.js';
+import { createSchedulerState } from '../../js/games/gw2/platform/engine/execution/state.js';
+import { createScheduler } from '../../js/games/gw2/platform/engine/execution/scheduler.js';
+import { buildScheduledEventStream } from '../../js/games/gw2/platform/engine/events/scheduled-stream.js';
 import {
   augmentSkillHandler,
   replaceSkillHandler,
   SKILL_HANDLER_MODES
-} from '../../js/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
-import { professionRegistry } from '../../js/app/profession/registry.js';
-import { createProfessionWeaponData, WEAPON_DATA } from '../../js/platform/gw2/equipment/weapons/data.js';
-import { createGw2ResolverExtensions } from '../../js/platform/gw2/resolver/extensions.js';
-import { createRelicRuntime, createRelicTimelineRuntime } from '../../js/platform/gw2/equipment/relics/runtime.js';
-import { handleWeaknessVulnerabilityRelic } from '../../js/platform/gw2/resolver/relic-reactions.js';
-import { materializeBoonRelics } from '../../js/platform/gw2/scheduler/relic-materializer.js';
+} from '../../js/games/gw2/platform/engine/skills/handlers.js';
+import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+import { professionRegistry } from '../../js/games/gw2/app/profession/registry.js';
+import { createProfessionWeaponData, WEAPON_DATA } from '../../js/games/gw2/platform/equipment/weapons/data.js';
+import { createGw2ResolverExtensions } from '../../js/games/gw2/platform/resolver/extensions.js';
+import {
+  createRelicRuntime,
+  createRelicTimelineRuntime
+} from '../../js/games/gw2/platform/equipment/relics/runtime.js';
+import { handleWeaknessVulnerabilityRelic } from '../../js/games/gw2/platform/resolver/relic-reactions.js';
+import { materializeBoonRelics } from '../../js/games/gw2/platform/scheduler/relic-materializer.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
   relicStrikeMultiplier,
   recordPassiveRelicTimeline
-} from '../../js/platform/gw2/equipment/relics/query.js';
-import { sigilCriticalContribution } from '../../js/platform/gw2/equipment/sigils/rules.js';
+} from '../../js/games/gw2/platform/equipment/relics/query.js';
+import { sigilCriticalContribution } from '../../js/games/gw2/platform/equipment/sigils/rules.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '../../js/platform/gw2/combat/damage/stat-scaling.js';
-import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '../../js/professions/mesmer/build.js';
-import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
+} from '../../js/games/gw2/platform/combat/damage/stat-scaling.js';
+import {
+  BUILD_SCHEMA_VERSION,
+  migrateMesmerBuild,
+  validateMesmerBuild
+} from '../../js/games/gw2/content/professions/mesmer/build.js';
+import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
-import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
-import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
+import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
+import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '../../js/professions/mesmer/state.js';
+import { snapshotMesmerState } from '../../js/games/gw2/content/professions/mesmer/state.js';
 import { testProfession } from '../fixtures/test-profession.js';
-import { isStandardBoon } from '../../js/platform/gw2/combat/state/boons.js';
+import { isStandardBoon } from '../../js/games/gw2/platform/combat/state/boons.js';
 
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {

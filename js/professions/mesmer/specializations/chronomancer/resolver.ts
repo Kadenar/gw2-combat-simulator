@@ -1,3 +1,2 @@
-export const chronomancerEventHandlers = Object.freeze({
-  'mesmer.phantasm-resummoned': (): void => {}
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/chronomancer/resolver.js';

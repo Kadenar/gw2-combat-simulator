@@ -1,12 +1,2 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { BLADESWORN_BUFF_TRANSITIONS } from './bladesworn.js';
-
-/**
- * Adds EVTC-only Warrior evidence so Bladesworn Gunsaber buff changes become explicit bundle actions.
- */
-export const warriorProfileSource: EvtcProfessionProfileSource = {
-  professionId: 'warrior',
-  buffTransitionsBySpecialization: {
-    bladesworn: BLADESWORN_BUFF_TRANSITIONS
-  }
-};
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../../games/gw2/integrations/logs/evtc/rotation/professions/warrior/profile.js';

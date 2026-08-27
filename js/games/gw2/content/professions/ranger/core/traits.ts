@@ -1,0 +1,949 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/scheduler/skill-events.js';
+import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { enqueueOrdered } from '../../../../../../kernel/events/queue.js';
+import { isInternalCooldownReady } from '../../../../../../kernel/core/clock.js';
+import { hasTrait } from '../../../../platform/combat/state/traits.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '../../../../platform/combat/state/boons.js';
+import { gw2ResolverBoonDuration } from '../../../../platform/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '../../../../platform/scheduler/policy.js';
+import type { ResolvedCriticalHitOptions } from '../../../../integrations/patches/authoring/mechanics.js';
+import type { NativeResolvedDamageDetails } from '../../../../integrations/patches/authoring/module-types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { rangerPetCompanionId } from './pets.js';
+import {
+  eventSkill,
+  isPetStrike,
+  isPlayerStrike,
+  petDerivedConditionMetadata,
+  queueBleeding,
+  queueCondition,
+  targetHealthFraction
+} from './shared.js';
+import type {
+  RangerCastContext,
+  RangerResolverContext,
+  RangerResolverEvent,
+  RangerSchedulerContext,
+  RangerSkill
+} from '../types.js';
+import { rangerPetByName } from './state.js';
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from './profiles.js';
+
+function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
+  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
+}
+
+type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
+  RangerResolverContext,
+  RangerResolverEvent,
+  NativeResolvedDamageDetails
+>;
+
+function isBeastSkill(skill: RangerSkill): boolean {
+  return Boolean(skill.petSkill && !skill.petFamilySkill);
+}
+
+export function applyRangerDodgeTraits(context: RangerCastContext): void {
+  if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
+  const effect = profileEffect(context, PROFILE.lightOnYourFeet, 'buff');
+  emitSkillBuff(context, {
+    at: context.effectiveEnd,
+    source: 'Trait',
+    sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+    actorType: 'effect',
+    skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+    skillName: 'Light on your Feet',
+    kind: String(effect?.kind || 'light-on-your-feet'),
+    duration: Number(effect?.duration ?? 6),
+    stacks: Number(effect?.stacks ?? 1)
+  });
+}
+
+// On an eligible heal, consume Child of Earth's ICD and emit the initial
+// immobilize followed by the profile-defined Muddy Terrain condition pulses.
+function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
+  const state = professionCoreState(context);
+  const profile = rangerBalanceProfile(context, PROFILE.childOfEarth);
+  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
+    return;
+  }
+
+  state.childOfEarthReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
+  const at = context.effectiveEnd;
+  const immobilized = rangerBalanceProfileEffect(profile, 'condition', 0);
+  emitSkillCondition(context, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.CHILD_OF_EARTH,
+    actorType: 'effect',
+    skillId: TRAIT.CHILD_OF_EARTH,
+    skillName: 'Child of Earth',
+    name: 'Lesser Muddy Terrain - Immobilized',
+    condition: 'Immobilized',
+    duration: Number(immobilized?.duration ?? 1),
+    stacks: Number(immobilized?.stacks ?? 1),
+    triggeredBy: skill.name
+  });
+  const applications = Number(profile?.maximumStacks ?? 5);
+  const interval = Number(profile?.pulseInterval ?? 2);
+  for (let application = 0; application < applications; application += 1) {
+    for (const effect of [
+      rangerBalanceProfileEffect(profile, 'condition', 1),
+      rangerBalanceProfileEffect(profile, 'condition', 2)
+    ]) {
+      const condition = String(effect?.condition || '');
+      if (!condition) continue;
+      emitSkillCondition(context, {
+        at: at + application * interval,
+        source: 'Trait',
+        sourceId: TRAIT.CHILD_OF_EARTH,
+        actorType: 'effect',
+        skillId: TRAIT.CHILD_OF_EARTH,
+        skillName: 'Child of Earth',
+        name: `Lesser Muddy Terrain - ${condition}`,
+        condition,
+        duration: Number(effect?.duration ?? 0),
+        stacks: Number(effect?.stacks ?? 1),
+        triggeredBy: skill.name
+      });
+    }
+  }
+}
+
+// Route completed casts through shared Ranger trait families while consuming
+// transient Quick Draw state only on the next qualifying weapon skill.
+export function completeRangerTraits(context: RangerCastContext, skill: RangerSkill): void {
+  const state = professionCoreState(context);
+  if (skill.evades) applyRangerDodgeTraits(context);
+  if (
+    skill.type === 'Weapon' &&
+    skill.slot !== 'Weapon_1' &&
+    skill.id !== ID.SWAP_WEAPONS &&
+    context.start < state.quickDrawUntil
+  ) {
+    state.quickDrawUntil = 0;
+  }
+
+  if (skill.type === 'Heal') {
+    if (hasTrait(context, TRAIT.WELLSPRING)) {
+      const effect = profileEffect(context, PROFILE.wellspring, 'boon');
+      const kind = String(effect?.boon || 'regeneration');
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.WELLSPRING,
+        actorType: 'effect',
+        skillId: TRAIT.WELLSPRING,
+        skillName: 'Wellspring',
+        name: `Wellspring - ${kind}`,
+        kind,
+        boon: kind,
+        duration: Number(effect?.duration ?? 6),
+        stacks: Number(effect?.stacks ?? 1),
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
+    }
+
+    emitChildOfEarth(context, skill);
+  }
+
+  if (skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)) {
+    const effect = profileEffect(context, PROFILE.windborneNotes, 'boon');
+    const kind = String(effect?.boon || 'regeneration');
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.WINDBORNE_NOTES,
+      actorType: 'effect',
+      skillId: TRAIT.WINDBORNE_NOTES,
+      skillName: 'Windborne Notes',
+      name: `Windborne Notes - ${kind}`,
+      kind,
+      boon: kind,
+      duration: Number(effect?.duration ?? 6),
+      stacks: Number(effect?.stacks ?? 1),
+      recipients: 'party',
+      affectsSummons: true,
+      maximumRecipients: 5,
+      triggeredBy: skill.name
+    });
+  }
+
+  if (String(skill.description || '').startsWith('Command.')) {
+    applyRangerCommandTraits(context, skill);
+  }
+
+  if (!isBeastSkill(skill)) return;
+  applyRangerBeastSkillTraits(context, skill, true);
+}
+
+/** Applies shared Beast-skill traits after the active owner classifies the triggering skill. */
+export function applyRangerBeastSkillTraits(
+  context: RangerCastContext,
+  skill: RangerSkill,
+  triggerPoisonMaster: boolean
+): void {
+  const state = professionCoreState(context);
+  if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.start, state.rejuvenationReadyAt)) {
+    const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
+    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    state.rejuvenationReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
+    const kind = String(effect?.boon || 'regeneration');
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.REJUVENATION,
+      actorType: 'effect',
+      skillId: TRAIT.REJUVENATION,
+      skillName: 'Rejuvenation',
+      name: `Rejuvenation - ${kind}`,
+      kind,
+      boon: kind,
+      duration: Number(effect?.duration ?? 10),
+      stacks: Number(effect?.stacks ?? 1),
+      recipients: 'party',
+      affectsSummons: true,
+      maximumRecipients: 5,
+      triggeredBy: skill.name
+    });
+  }
+
+  const notBeforeCombat =
+    !context.hasExplicitCombatStart || (context.combatStartTime != null && context.start >= context.combatStartTime);
+  if (triggerPoisonMaster && hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
+    context.emit({
+      type: 'ranger.beast-skill-used',
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.POISON_MASTER,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name
+    });
+  }
+
+  if (
+    hasTrait(context, TRAIT.WOLFSONG) &&
+    rangerPetByName(professionCoreState(context).activePet).family === 'canine'
+  ) {
+    const effect = profileEffect(context, PROFILE.wolfsong, 'condition');
+    emitSkillCondition(context, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.WOLFSONG,
+      actorType: 'effect',
+      skillId: TRAIT.WOLFSONG,
+      skillName: 'Wolfsong',
+      name: 'Wolfsong - Vulnerability',
+      condition: String(effect?.condition || 'Vulnerability'),
+      duration: Number(effect?.duration ?? 6),
+      stacks: Number(effect?.stacks ?? 6),
+      triggeredBy: skill.name
+    });
+  }
+}
+
+// Apply combat-only weapon-swap traits on independent ICDs and arm Quick Draw's
+// one-use window for the next qualifying weapon skill.
+export function applyRangerWeaponSwapTraits(
+  context: RangerCastContext | RangerSchedulerContext,
+  skill: RangerSkill,
+  at = 'effectiveEnd' in context ? context.effectiveEnd : context.state.time
+): void {
+  const state = professionCoreState(context);
+  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
+    isInternalCooldownReady(at, state.tailWindReadyAt)
+  ) {
+    const profile = rangerBalanceProfile(context, PROFILE.tailWind);
+    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    state.tailWindReadyAt = at + Number(profile?.internalCooldown ?? 9);
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.TAIL_WIND,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Tail Wind',
+      kind: String(effect?.boon || 'swiftness'),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(effect?.boon || 'swiftness'),
+        Number(effect?.duration ?? 9)
+      ),
+      stacks: Number(effect?.stacks ?? 1)
+    });
+  }
+
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
+    isInternalCooldownReady(at, state.quickDrawReadyAt)
+  ) {
+    const profile = rangerBalanceProfile(context, PROFILE.quickDraw);
+    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    state.quickDrawReadyAt = at + Number(profile?.internalCooldown ?? 9);
+    state.quickDrawUntil = at + Number(profile?.durationMultiplier ?? 5);
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.QUICK_DRAW,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Quick Draw',
+      kind: String(effect?.boon || 'quickness'),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        String(effect?.boon || 'quickness'),
+        Number(effect?.duration ?? 3)
+      ),
+      stacks: Number(effect?.stacks ?? 1)
+    });
+  }
+
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
+    isInternalCooldownReady(at, state.furiousGripReadyAt)
+  ) {
+    const profile = rangerBalanceProfile(context, PROFILE.furiousGrip);
+    const effect = rangerBalanceProfileEffect(profile, 'boon');
+    state.furiousGripReadyAt = at + Number(profile?.internalCooldown ?? 9);
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.FURIOUS_GRIP,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Furious Grip',
+      kind: String(effect?.boon || 'fury'),
+      duration: gw2SchedulerBoonDuration(context, skill, String(effect?.boon || 'fury'), Number(effect?.duration ?? 5)),
+      stacks: Number(effect?.stacks ?? 1)
+    });
+  }
+}
+
+// Materialize pet-swap party boons and Clarion Bond's lesser warhorn package,
+// including its condition and blast finisher, at the swap completion time.
+export function applyRangerPetSwapTraits(context: RangerCastContext, skill: RangerSkill): void {
+  const state = professionCoreState(context);
+  const at = context.effectiveEnd;
+  const partyBoons: Array<{
+    sourceId: number;
+    sourceName: string;
+    kind: string;
+    duration: number;
+    stacks: number;
+  }> = [];
+  const inCombat = context.combatStartTime != null && context.start >= context.combatStartTime;
+  if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
+    const profile = rangerBalanceProfile(context, PROFILE.spiritedArrival);
+    const might = rangerBalanceProfileEffect(profile, 'boon', 0);
+    const fury = rangerBalanceProfileEffect(profile, 'boon', 1);
+    partyBoons.push(
+      {
+        sourceId: TRAIT.SPIRITED_ARRIVAL,
+        sourceName: 'Spirited Arrival',
+        kind: String(might?.boon || 'might'),
+        duration: Number(might?.duration ?? 12),
+        stacks: Number(might?.stacks ?? 6)
+      },
+      {
+        sourceId: TRAIT.SPIRITED_ARRIVAL,
+        sourceName: 'Spirited Arrival',
+        kind: String(fury?.boon || 'fury'),
+        duration: Number(fury?.duration ?? 8),
+        stacks: Number(fury?.stacks ?? 1)
+      }
+    );
+    for (const boon of partyBoons) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: boon.sourceId,
+        actorType: 'effect',
+        skillId: boon.sourceId,
+        skillName: boon.sourceName,
+        name: `${boon.sourceName} - ${boon.kind}`,
+        kind: boon.kind,
+        boon: boon.kind,
+        duration: boon.duration,
+        stacks: boon.stacks,
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
+    }
+
+    partyBoons.length = 0;
+  }
+
+  if (hasTrait(context, TRAIT.CLARION_BOND) && isInternalCooldownReady(context.start, state.clarionBondReadyAt)) {
+    const profile = rangerBalanceProfile(context, PROFILE.clarionBond);
+    state.clarionBondReadyAt = context.start + Number(profile?.internalCooldown ?? 15);
+    for (let index = 0; index < 3; index += 1) {
+      const effect = rangerBalanceProfileEffect(profile, 'boon', index);
+      const kind = String(effect?.boon || ['fury', 'might', 'swiftness'][index]);
+      partyBoons.push({
+        sourceId: TRAIT.CLARION_BOND,
+        sourceName: 'Clarion Bond',
+        kind,
+        duration: Number(effect?.duration ?? 5),
+        stacks: Number(effect?.stacks ?? [1, 6, 1][index])
+      });
+    }
+
+    // Emit Clarion Bond's boons before its condition and combo marker to preserve event ordering.
+    for (const boon of partyBoons) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: boon.sourceId,
+        actorType: 'effect',
+        skillId: boon.sourceId,
+        skillName: boon.sourceName,
+        name: `${boon.sourceName} - ${boon.kind}`,
+        kind: boon.kind,
+        boon: boon.kind,
+        duration: boon.duration,
+        stacks: boon.stacks,
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
+    }
+
+    const weakness = rangerBalanceProfileEffect(profile, 'condition');
+    emitSkillCondition(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.CLARION_BOND,
+      actorType: 'effect',
+      skillId: TRAIT.CLARION_BOND,
+      skillName: 'Clarion Bond',
+      name: 'Lesser Call of the Wild - Weakness',
+      condition: 'Weakness',
+      duration: Number(weakness?.duration ?? 5),
+      stacks: Number(weakness?.stacks ?? 1),
+      triggeredBy: skill.name
+    });
+    context.emit({
+      type: 'proc',
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.CLARION_BOND,
+      actorType: 'effect',
+      skillId: TRAIT.CLARION_BOND,
+      skillName: 'Clarion Bond',
+      name: 'Lesser Call of the Wild - Blast Finisher',
+      triggeredBy: skill.name,
+      comboFinishers: [
+        {
+          ownerId: 'ranger',
+          finisherType: 'Blast',
+          ambiguousFieldSelection: 'oldest'
+        }
+      ]
+    });
+  }
+}
+
+// Snapshot the Ranger's configured and still-active boons at command completion,
+// then mirror their current duration and stacks to the active companion only.
+export function applyRangerCommandTraits(context: RangerCastContext, skill: RangerSkill): void {
+  if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
+
+  const active = new Map<string, { duration: number; stacks: number }>();
+  for (const kind of GW2_STANDARD_BOONS) {
+    const configured = context.config.boons?.[kind];
+    const stacks = kind === 'might' ? Math.min(25, Math.max(0, Number(configured || 0))) : configured ? 1 : 0;
+    if (stacks > 0) active.set(kind, { duration: 3600, stacks });
+  }
+
+  for (const event of context.events) {
+    const kind = String(event.kind || '').toLowerCase();
+    const remaining = Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
+    if (
+      event.type !== 'buff' ||
+      event.affectsSelf === false ||
+      !isStandardBoon(kind) ||
+      Number(event.at) > context.effectiveEnd + context.epsilon ||
+      !(remaining > 0)
+    ) {
+      continue;
+    }
+
+    const previous = active.get(kind);
+    active.set(kind, {
+      duration: Math.max(remaining, Number(previous?.duration || 0)),
+      stacks: Math.min(
+        kind === 'might' || kind === 'stability' ? 25 : 1,
+        Number(previous?.stacks || 0) + Math.max(1, Number(event.stacks || 1))
+      )
+    });
+  }
+
+  for (const [kind, application] of active) {
+    emitSkillBuff(context, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.RESOUNDING_TIMBRE,
+      actorType: 'effect',
+      skillId: TRAIT.RESOUNDING_TIMBRE,
+      skillName: 'Resounding Timbre',
+      name: `Resounding Timbre - ${kind}`,
+      kind,
+      duration: application.duration,
+      stacks: application.stacks,
+      affectsSelf: false,
+      affectsSummons: true,
+      maximumRecipients: 1,
+      companionIds: [rangerPetCompanionId(context)],
+      triggeredBy: skill.name
+    });
+  }
+}
+
+// Spend the player or pet Opening Strike independently on its first qualifying
+// hit and attach Vulnerability plus Alpha Focus when selected.
+function consumeOpeningStrike(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (!hasTrait(context, TRAIT.OPENING_STRIKE)) return;
+  const state = professionCoreState(context);
+  const player = isPlayerStrike(event);
+  const pet = isPetStrike(event);
+  if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
+  const ready = player ? state.playerOpeningStrikeReady : state.petOpeningStrikeReady;
+  if (!ready) return;
+  if (player) state.playerOpeningStrikeReady = false;
+  else state.petOpeningStrikeReady = false;
+  const openingStrike = profileEffect(context, PROFILE.openingStrike, 'condition');
+  enqueueOrdered(context.queue, {
+    type: 'condition',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.OPENING_STRIKE,
+    actorType: 'effect',
+    skillId: TRAIT.OPENING_STRIKE,
+    skillName: 'Opening Strike',
+    name: 'Opening Strike - Vulnerability',
+    condition: 'Vulnerability',
+    duration: Number(openingStrike?.duration ?? 5),
+    stacks: Number(openingStrike?.stacks ?? 5),
+    triggeredBy: event.skillName
+  });
+  if (hasTrait(context, TRAIT.ALPHA_FOCUS)) {
+    const alphaFocus = profileEffect(context, PROFILE.alphaFocus, 'condition');
+    queueCondition(
+      context,
+      event,
+      String(alphaFocus?.condition || 'Crippled'),
+      Number(alphaFocus?.duration ?? 2),
+      Number(alphaFocus?.stacks ?? 1),
+      TRAIT.ALPHA_FOCUS,
+      'Alpha Focus'
+    );
+  }
+}
+
+// Convert the target's current health tier into ICD-bound Might stacks on a
+// qualifying player strike, using the resolver's cumulative damage state.
+function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
+  const state = professionCoreState(context);
+  if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
+  const health = targetHealthFraction(context);
+  const profile = rangerBalanceProfile(context, PROFILE.huntersGaze);
+  const maximumStacks = Number(profile?.maximumStacks ?? 3);
+  const stacks =
+    health < 0.25
+      ? maximumStacks
+      : health < 0.5
+        ? Math.max(0, maximumStacks - 1)
+        : health < 0.75
+          ? Math.max(0, maximumStacks - 2)
+          : 0;
+  if (!stacks) return;
+  state.huntersGazeReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
+  const might = rangerBalanceProfileEffect(profile, 'boon');
+  context.recordProc(
+    'trait',
+    "Hunter's Gaze",
+    event.at,
+    event.skillName,
+    `${stacks} might`,
+    context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
+  );
+  enqueueOrdered(context.queue, {
+    type: 'buff',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.HUNTERS_GAZE,
+    actorType: 'effect',
+    skillId: TRAIT.HUNTERS_GAZE,
+    skillName: "Hunter's Gaze",
+    name: "Hunter's Gaze - Might",
+    kind: String(might?.boon || 'might'),
+    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 5)),
+    stacks,
+    triggeredBy: event.skillName
+  });
+}
+
+function triggerPoisonMaster(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
+    return;
+  }
+
+  state.poisonMasterPetAttackReady = false;
+  const poison = profileEffect(context, PROFILE.poisonMaster, 'condition');
+  enqueueOrdered(context.queue, {
+    type: 'condition',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.POISON_MASTER,
+    actorType: 'effect',
+    skillId: TRAIT.POISON_MASTER,
+    skillName: 'Poison Master',
+    name: 'Poison Master - Poisoned',
+    condition: 'Poisoned',
+    duration: Number(poison?.duration ?? 8),
+    stacks: Number(poison?.stacks ?? 2),
+    triggeredBy: event.skillName
+  });
+}
+
+function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  if (event.at > state.poisonousStrikesExpiresAt) {
+    state.poisonousStrikesCharges = 0;
+  }
+
+  if (state.poisonousStrikesCharges <= 0 || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
+    return;
+  }
+
+  state.poisonousStrikesCharges -= 1;
+  const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
+  enqueueOrdered(context.queue, {
+    ...petDerivedConditionMetadata(context, event),
+    type: 'condition',
+    at: event.at,
+    source: 'ranger-pet',
+    sourceId: ID.DOUBLE_ARC,
+    actorType: 'summon',
+    skillId: ID.DOUBLE_ARC,
+    skillName: 'Poisonous Strikes',
+    name: 'Poisonous Strikes - Poisoned',
+    condition: 'Poisoned',
+    duration: Number(poison?.duration ?? 6),
+    stacks: Number(poison?.stacks ?? 1),
+    triggeredBy: event.skillName
+  });
+}
+
+function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  if (event.at > state.sharpeningStoneExpiresAt) {
+    state.sharpeningStoneCharges = 0;
+  }
+
+  if (state.sharpeningStoneCharges <= 0 || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
+    return;
+  }
+
+  state.sharpeningStoneCharges -= 1;
+  const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
+  enqueueOrdered(context.queue, {
+    type: 'condition',
+    at: event.at,
+    source: 'ranger',
+    sourceId: ID.SHARPENING_STONE,
+    actorType: 'effect',
+    skillId: ID.SHARPENING_STONE,
+    skillName: 'Sharpening Stone',
+    name: 'Sharpening Stone - Bleeding',
+    condition: 'Bleeding',
+    duration: Number(bleeding?.duration ?? 8),
+    stacks: Number(bleeding?.stacks ?? 1),
+    triggeredBy: event.skillName
+  });
+}
+
+function triggerArachnophobia(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (
+    !isPetStrike(event) ||
+    !hasTrait(context, TRAIT.ARACHNOPHOBIA) ||
+    (event.skillId !== ID.SPIT && event.skillId !== ID.TWIN_DARTS)
+  ) {
+    return;
+  }
+
+  const torment = profileEffect(context, PROFILE.arachnophobia, 'condition');
+  queueCondition(
+    context,
+    event,
+    String(torment?.condition || 'Torment'),
+    Number(torment?.duration ?? 3),
+    Number(torment?.stacks ?? 1),
+    TRAIT.ARACHNOPHOBIA,
+    'Arachnophobia'
+  );
+}
+
+// Mirror the active Strength of the Pack proc between Ranger and companion hits
+// while enforcing its event and cooldown guards.
+function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (!isPlayerStrike(event)) return;
+  const active = (context.boons.get('strength-of-the-pack') || []).some(
+    (application) => application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at
+  );
+  if (!active) return;
+  const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
+  enqueueOrdered(context.queue, {
+    type: 'buff',
+    at: event.at,
+    source: 'ranger',
+    sourceId: ID.STRENGTH_OF_THE_PACK,
+    actorType: 'effect',
+    skillId: ID.STRENGTH_OF_THE_PACK,
+    skillName: '"Strength of the Pack!"',
+    name: '"Strength of the Pack!" - Might',
+    kind: String(might?.boon || 'might'),
+    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 8)),
+    stacks: Number(might?.stacks ?? 1),
+    affectsSelf: false,
+    affectsSummons: true,
+    maximumRecipients: 5,
+    companionIds: [rangerPetCompanionId(context)],
+    triggeredBy: event.skillName
+  });
+}
+
+// Trigger Go for the Throat from its qualifying Ranger or pet event and apply the
+// profile-owned companion strike with stable ownership.
+function triggerGoForTheThroat(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  const skill = eventSkill(context, event);
+  const beastSkillId = state.activePetSkillIds.at(-1);
+  if (
+    event.skillId !== beastSkillId ||
+    !skill?.petSkill ||
+    skill.petFamilySkill ||
+    !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
+    !isInternalCooldownReady(event.at, state.goForTheThroatPetReadyAt)
+  ) {
+    return;
+  }
+
+  const profile = rangerBalanceProfile(context, PROFILE.goForTheThroat);
+  const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 0);
+  state.goForTheThroatPetReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
+  const duration = Number(lesserSicEm?.duration ?? 8);
+  context.recordProc(
+    'trait',
+    'Lesser "Sic \'Em!"',
+    event.at,
+    event.skillName,
+    `${duration}s, +40% pet strike damage`,
+    context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
+  );
+  enqueueOrdered(context.queue, {
+    type: 'buff',
+    at: event.at,
+    source: 'Trait',
+    sourceId: ID.LESSER_SIC_EM,
+    actorType: 'effect',
+    skillId: ID.LESSER_SIC_EM,
+    skillName: 'Lesser "Sic \'Em!"',
+    name: 'Lesser "Sic \'Em!"',
+    kind: String(lesserSicEm?.kind || 'lesser-sic-em-pet'),
+    duration,
+    stacks: Number(lesserSicEm?.stacks ?? 1),
+    affectsSelf: false,
+    affectsSummons: true,
+    maximumRecipients: 1,
+    companionIds: [rangerPetCompanionId(context)],
+    triggeredBy: event.skillName
+  });
+}
+
+export const rangerCoreCriticalReactions = Object.freeze({
+  id: 'ranger.sharpened-edges',
+  order: 20,
+  materialization: 'threshold',
+  chanceOnCriticalHit: 0.33,
+  actorTypes: ['player', 'summon'] as const,
+  when(context: RangerResolverContext, event: RangerResolverEvent): boolean {
+    return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
+  },
+  expectedProgress: {
+    get(context: RangerResolverContext): number {
+      return professionCoreState(context).sharpenedEdgesProgress;
+    },
+    set(context: RangerResolverContext, value: number): void {
+      professionCoreState(context).sharpenedEdgesProgress = value;
+    }
+  },
+  attribution: {
+    kind: 'trait' as const,
+    id: TRAIT.SHARPENED_EDGES
+  },
+  handler(context, event, _details, application): void {
+    // Sharpened Edges emits one bleeding application per threshold proc.
+    for (let proc = 0; proc < application.quantity; proc += 1) {
+      const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
+      queueBleeding(
+        context,
+        event,
+        Number(bleeding?.duration ?? 3),
+        TRAIT.SHARPENED_EDGES,
+        'Sharpened Edges',
+        Number(bleeding?.stacks ?? 1)
+      );
+    }
+  }
+} satisfies RangerCriticalHitDefinition);
+
+export const rangerCoreProfiledCriticalReaction = Object.freeze({
+  ...rangerCoreCriticalReactions,
+  chanceOnCriticalHit: (context: RangerResolverContext) =>
+    rangerBalanceValue(context, PROFILE.sharpenedEdges, 'criticalChance', 0.33)
+} satisfies RangerCriticalHitDefinition);
+
+export function reactToRangerCoreDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
+  const state = professionCoreState(context);
+  const skill = eventSkill(context, event);
+  consumeOpeningStrike(context, event);
+  // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so
+  // the triggering hit cannot benefit from the buff it creates.
+  triggerGoForTheThroat(context, event);
+  triggerHuntersGaze(context, event);
+  triggerPoisonMaster(context, event);
+  triggerPoisonousStrikes(context, event);
+  triggerSharpeningStone(context, event);
+  triggerArachnophobia(context, event);
+  triggerStrengthOfThePack(context, event);
+  if (
+    skill?.categories?.includes('Trap') &&
+    event.activationId &&
+    !state.trapCrippleActivations[event.activationId] &&
+    hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)
+  ) {
+    const cripple = profileEffect(context, PROFILE.trappersExpertise, 'condition');
+    state.trapCrippleActivations[event.activationId] = true;
+    enqueueOrdered(context.queue, {
+      type: 'condition',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.TRAPPERS_EXPERTISE,
+      actorType: 'effect',
+      skillId: TRAIT.TRAPPERS_EXPERTISE,
+      skillName: "Trapper's Expertise",
+      name: "Trapper's Expertise — Crippled",
+      condition: 'Crippled',
+      duration: Number(cripple?.duration ?? 3),
+      stacks: Number(cripple?.stacks ?? 1),
+      fixedDuration: true,
+      triggeredBy: event.skillName
+    });
+  }
+
+  if (state.bloodThirstCharges > 0 && event.sourceId !== ID.CRIPPLING_SHOT) {
+    state.bloodThirstCharges -= 1;
+    const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
+    queueBleeding(
+      context,
+      event,
+      Number(bleeding?.duration ?? 12),
+      ID.CRIPPLING_SHOT,
+      'Blood Thirst',
+      Number(bleeding?.stacks ?? 1)
+    );
+  }
+
+  if (
+    skill?.id === ID.CONCUSSION_SHOT &&
+    hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
+    context.config?.target?.defiant
+  ) {
+    const vulnerability = rangerBalanceProfileEffect(
+      rangerBalanceProfile(context, PROFILE.lightOnYourFeet),
+      'condition'
+    );
+    enqueueOrdered(context.queue, {
+      type: 'condition',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+      actorType: 'effect',
+      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+      skillName: 'Light on your Feet',
+      name: 'Light on your Feet — Vulnerability',
+      condition: String(vulnerability?.condition || 'Vulnerability'),
+      duration: Number(vulnerability?.duration ?? 1),
+      stacks: Number(vulnerability?.stacks ?? 10),
+      triggeredBy: event.skillName
+    });
+  }
+}
+
+// Record the target-control window and dispatch Ranger traits that react to
+// canonical control events without replaying the source effect.
+export function reactToRangerCoreControl(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  if (
+    !hasTrait(context, TRAIT.CARNIVORE) ||
+    (!isPlayerStrike(event) && !isPetStrike(event)) ||
+    !isInternalCooldownReady(event.at, state.carnivoreReadyAt)
+  ) {
+    return;
+  }
+
+  const profile = rangerBalanceProfile(context, PROFILE.carnivore);
+  const strike = rangerBalanceProfileEffect(profile, 'strike');
+  state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
+  enqueueOrdered(context.queue, {
+    type: 'damage',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.CARNIVORE,
+    actorType: 'effect',
+    skillId: TRAIT.CARNIVORE,
+    skillName: 'Carnivore',
+    name: 'Carnivore',
+    coefficient: Number(strike?.coefficient ?? 0.05),
+    hits: Number(strike?.hits ?? 1),
+    hitIndex: 1,
+    totalHits: Number(strike?.hits ?? 1),
+    skillWeapon: 'Unequipped',
+    canCrit: false,
+    damageKind: 'life-steal',
+    triggeredBy: event.skillName
+  });
+}
+
+export function reactToRangerCoreBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const kind = String(event.kind || '').toLowerCase();
+  const affectsSelf = event.affectsSelf !== false;
+  if (kind === 'fury' && affectsSelf && hasTrait(context, TRAIT.REMORSELESS)) {
+    const state = professionCoreState(context);
+    state.playerOpeningStrikeReady = true;
+    state.petOpeningStrikeReady = true;
+  }
+}

@@ -17,13 +17,13 @@ test('native build manifests and assets stay profession-scoped', async () => {
 
   for (const profession of professions) {
     const manifest = JSON.parse(
-      await readFile(new URL(`../../Builds/${profession}/manifest.json`, import.meta.url), 'utf8')
+      await readFile(new URL(`../../data/gw2/builds/${profession}/manifest.json`, import.meta.url), 'utf8')
     );
     const presets = manifest.flatMap((section) => section.presets);
 
     assert.ok(presets.length > 0, profession);
     for (const preset of presets) {
-      assert.match(preset.build, new RegExp(`^Builds/${profession}/[^/]+\\.json$`));
+      assert.match(preset.build, new RegExp(`^data/gw2/builds/${profession}/[^/]+\\.json$`));
       const build = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
 
       assert.equal(build.profession, profession);
@@ -34,7 +34,7 @@ test('native build manifests and assets stay profession-scoped', async () => {
       assert.equal(build.targetHealth, 4_000_000, preset.build);
 
       if (preset.rotation) {
-        assert.match(preset.rotation, new RegExp(`^Rotations/${profession}/[^/]+\\.json$`));
+        assert.match(preset.rotation, new RegExp(`^data/gw2/rotations/${profession}/[^/]+\\.json$`));
         const rotation = JSON.parse(await readFile(new URL(`../../${preset.rotation}`, import.meta.url), 'utf8'));
 
         assert.ok(Array.isArray(rotation.rotation));

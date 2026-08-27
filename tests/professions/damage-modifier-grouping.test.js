@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { guardianProfession } from '../../js/professions/guardian/definition.js';
-import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '../../js/professions/guardian/data/ids.js';
-import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
-import { MESMER_TRAIT_IDS as MESMER } from '../../js/professions/mesmer/data/ids.js';
-import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '../../js/professions/necromancer/data/ids.js';
+import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '../../js/games/gw2/content/professions/guardian/data/ids.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+import { MESMER_TRAIT_IDS as MESMER } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
+import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
 
 const guardianLuminaryRules = guardianProfession.resolveRuntime({
   specialization: 'Luminary'

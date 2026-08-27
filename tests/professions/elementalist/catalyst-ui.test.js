@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPalette } from '../../../js/app/rotation/palette/view.js';
-import { paletteView } from '../../../js/app/rotation/palette/model.js';
-import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
-import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
-import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '../../../js/professions/elementalist/data/ids.js';
+import { renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
+import { paletteView } from '../../../js/games/gw2/app/rotation/palette/model.js';
+import { elementalistAppAdapter } from '../../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
+import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
+import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
 
 const sphereIds = Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS);
 const sphereNames = [

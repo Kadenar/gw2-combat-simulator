@@ -280,13 +280,13 @@ npm run update:ranger-data
 ```text
 gw2-combat-simulator/
 ├── js/
-│   ├── platform/          Shared simulation engine and GW2 rules
-│   ├── professions/       Profession-specific implementations
-│   ├── app/               Browser application and shared UI
-│   └── log-analyzer/      Shared EVTC and dps.report rotation reconstruction
+│   ├── kernel/            Game-neutral simulation primitives
+│   ├── ui/                Game-neutral simulation views
+│   ├── app/               Game registry, bootstrap, and shell
+│   └── games/gw2/         GW2 platform, content, app, and integrations
 │
-├── Builds/                Canonical build presets
-├── Rotations/             Rotation presets
+├── data/games.json        Runtime game-data manifest
+├── data/gw2/              GW2 build and rotation presets
 ├── docs/                  Architecture and implementation documentation
 ├── scripts/               Build, data, analysis, and maintenance tooling
 │

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 3,
+  "profession": "engineer",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": ["Hammer", ""],
+  "alternateWeapons": ["", ""],
+  "rune": "Scholar",
+  "weaponSigils": [
+    ["Force", "Impact"],
+    ["Force", "Accuracy"]
+  ],
+  "relic": "Bloodstone",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Explosives",
+      "traits": "3-2-3"
+    },
+    {
+      "name": "Firearms",
+      "traits": "3-3-2"
+    },
+    {
+      "name": "Amalgam",
+      "traits": "2-2-1"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "A.E.D.",
+    "Utility1": "Grenade Kit",
+    "Utility2": "Bomb Kit",
+    "Utility3": "Throw Mine",
+    "Elite": "Flux State"
+  },
+  "selectedMorphSkillIds": [76927, 77104, 76705],
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "inDamagingField": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialHeat": 100,
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetArmor": 2597
+}

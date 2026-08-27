@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '../../js/platform/gw2/simulation/simulate.js';
-import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
-import { NECROMANCER_SKILL_IDS as NECRO_SKILL } from '../../js/professions/necromancer/data/ids.js';
-import { revenantProfession } from '../../js/professions/revenant/definition.js';
-import { REVENANT_LEGEND_IDS as LEGEND } from '../../js/professions/revenant/data/ids.js';
+import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
+import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
+import { NECROMANCER_SKILL_IDS as NECRO_SKILL } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
+import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
+import { REVENANT_LEGEND_IDS as LEGEND } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
 
 const target = Object.freeze({ armor: 2597, health: 1_000_000_000 });
 const attributes = Object.freeze({

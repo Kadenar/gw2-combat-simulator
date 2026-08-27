@@ -1,0 +1,109 @@
+[
+  {
+    "section": "Amalgam",
+    "presets": [
+      {
+        "label": "Power (Hammer - Symbiotic)",
+        "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+        "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
+        "benchmarkDps": 41724,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Rifle - Double Helix)",
+        "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
+        "benchmarkDps": 43624,
+        "upToDate": true
+      },
+      {
+        "label": "Condition Alacrity Spear (2 Kit)",
+        "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
+        "benchmarkDps": 35508,
+        "upToDate": true
+      },
+      {
+        "label": "Condition Alacrity (Pistol / Pistol - Tools)",
+        "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
+        "benchmarkDps": 37541,
+        "dpsReportUrl": "https://dps.report/h0tB-20260504-203415_golem",
+        "upToDate": true
+      },
+      {
+        "label": "Condition Spear (3 Kit)",
+        "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
+        "benchmarkDps": 42538,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Holosmith",
+    "presets": [
+      {
+        "label": "Condition (Pistol / Pistol)",
+        "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
+        "benchmarkDps": 43307,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Pistol / Pistol - Tools TRV)",
+        "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
+        "benchmarkDps": 36528,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
+        "benchmarkDps": 41661,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Mechanist",
+    "presets": [
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "benchmarkDps": 40148,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Rifle)",
+        "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "benchmarkDps": 38749,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Scrapper",
+    "presets": [
+      {
+        "label": "Condition Quickness (Spear)",
+        "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
+        "benchmarkDps": 33142,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Hammer)",
+        "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
+        "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
+        "benchmarkDps": 41434,
+        "upToDate": true
+      }
+    ]
+  }
+]

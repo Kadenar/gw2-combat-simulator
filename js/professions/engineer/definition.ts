@@ -1,2 +1,2 @@
-// Stable engine-facing Engineer entry point.
-export { engineerProfession, engineerProfession as default } from './family.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/content/professions/engineer/definition.js';

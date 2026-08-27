@@ -2,7 +2,7 @@ import { access } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const root = fileURLToPath(new URL('../../', import.meta.url));
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const sourceRoot = path.join(root, 'js');
 const buildRoot = path.join(root, 'dist', 'js');
 

@@ -1,3 +1,2 @@
-/** Public declarative effect authoring and materialization entrypoint. */
-export * from './factories.js';
-export * from './materializer.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/platform/engine/effects/index.js';

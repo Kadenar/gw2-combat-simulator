@@ -2,50 +2,60 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
-import { weaponSetLabelVisible } from '../../../js/app/build/panels/skills.js';
-import { simulationEventLogRows } from '../../../js/app/rotation/result/event-log.js';
-import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
-import { buildChartSeries, skillBreakdownRows } from '../../../js/app/rotation/result/model.js';
+import {
+  loadProfession,
+  loadProfessionAppAdapter,
+  professionRoute
+} from '../../../js/games/gw2/app/profession/registry.js';
+import { weaponSetLabelVisible } from '../../../js/games/gw2/app/build/panels/skills.js';
+import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
+import { paletteSkillView, renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
+import { buildChartSeries, skillBreakdownRows } from '../../../js/games/gw2/app/rotation/result/model.js';
 import {
   automaticPhotonForgeExitTimelineMarkers,
   timelineWeaponLineExitMarkerRowIndex,
   timelineWeaponRows
-} from '../../../js/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/authoring/patches.js';
+} from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch
+} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   toApplicationBuild,
   validateEngineerBuild
-} from '../../../js/professions/engineer/build.js';
-import { engineerCatalog } from '../../../js/professions/engineer/catalog.js';
-import { DATA_SNAPSHOT } from '../../../js/professions/engineer/data/engineer-api-metadata.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/professions/engineer/data/engineer-supplemental-skills.js';
+} from '../../../js/games/gw2/content/professions/engineer/build.js';
+import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
+import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/engineer/data/engineer-api-metadata.js';
+import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/engineer.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../js/professions/engineer/data/ids.js';
-import { engineerProfession } from '../../../js/professions/engineer/definition.js';
-import { engineerCoreModule } from '../../../js/professions/engineer/core/module.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/core/profiles.js';
-import { ENGINEER_CORE_SKILL_MECHANICS } from '../../../js/professions/engineer/core/skills.js';
-import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '../../../js/professions/engineer/core/turrets.js';
-import { amalgamModule } from '../../../js/professions/engineer/specializations/amalgam/module.js';
-import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/amalgam/profiles.js';
-import { amalgamAttributeRules } from '../../../js/professions/engineer/specializations/amalgam/rules.js';
-import { holosmithModule } from '../../../js/professions/engineer/specializations/holosmith/module.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/holosmith/profiles.js';
-import { holosmithProfileStrikeFactor } from '../../../js/professions/engineer/specializations/holosmith/heat-tiers.js';
-import { holosmithModifierRules } from '../../../js/professions/engineer/specializations/holosmith/rules.js';
-import { mechanistModule } from '../../../js/professions/engineer/specializations/mechanist/module.js';
-import { MECHANIST_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/mechanist/profiles.js';
-import { engineerMechAttributes } from '../../../js/professions/engineer/specializations/mechanist/state.js';
-import { scrapperModule } from '../../../js/professions/engineer/specializations/scrapper/module.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperSchedulerHooks } from '../../../js/professions/engineer/specializations/scrapper/rules.js';
-import { createScrapperState } from '../../../js/professions/engineer/specializations/scrapper/state.js';
-import { engineerAppAdapter } from '../../../js/professions/engineer/app/app-definition.js';
-import { AMALGAM_SKILL_MECHANICS } from '../../../js/professions/engineer/specializations/amalgam/skills.js';
+import {
+  ENGINEER_SKILL_IDS as ID,
+  ENGINEER_TRAIT_IDS as TRAIT
+} from '../../../js/games/gw2/content/professions/engineer/data/ids.js';
+import { engineerProfession } from '../../../js/games/gw2/content/professions/engineer/definition.js';
+import { engineerCoreModule } from '../../../js/games/gw2/content/professions/engineer/core/module.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/core/profiles.js';
+import { ENGINEER_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/engineer/core/skills.js';
+import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from '../../../js/games/gw2/content/professions/engineer/core/turrets.js';
+import { amalgamModule } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/module.js';
+import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/profiles.js';
+import { amalgamAttributeRules } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/rules.js';
+import { holosmithModule } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/module.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import { holosmithProfileStrikeFactor } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/heat-tiers.js';
+import { holosmithModifierRules } from '../../../js/games/gw2/content/professions/engineer/specializations/holosmith/rules.js';
+import { mechanistModule } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/module.js';
+import { MECHANIST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/profiles.js';
+import { engineerMechAttributes } from '../../../js/games/gw2/content/professions/engineer/specializations/mechanist/state.js';
+import { scrapperModule } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/module.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import { scrapperSchedulerHooks } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/rules.js';
+import { createScrapperState } from '../../../js/games/gw2/content/professions/engineer/specializations/scrapper/state.js';
+import { engineerAppAdapter } from '../../../js/games/gw2/content/professions/engineer/app/app-definition.js';
+import { AMALGAM_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/engineer/specializations/amalgam/skills.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -2581,12 +2591,12 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
 
   assert.equal(burst.castTimeMs, 960);
   assert.equal(burst.quicknessCastTimeMs, 640);
-  assert.equal(burst.interruptCommitMs, 280);
+  assert.equal(burst.interruptMode, 'per-packet');
   assert.deepEqual(
-    burst.effects.map((effect) => [effect.coefficient, effect.atMs, effect.interruptCommitMs]),
+    burst.effects.map((effect) => [effect.coefficient, effect.atMs]),
     [
-      [0.6, 320, 280],
-      [0.8, 600, 560]
+      [0.6, 320],
+      [0.8, 600]
     ]
   );
   assert.equal(burst.effects[0].comboFinishers[0].chance, 0.2);
@@ -2643,15 +2653,19 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
     ).events.filter((event) => event.type === 'damage' && ['Rifle Burst', 'Rifle Burst Grenade'].includes(event.name));
 
   assert.deepEqual(
-    interruptedPackets(279).map((event) => event.name),
+    interruptedPackets(319).map((event) => event.name),
     []
   );
   assert.deepEqual(
-    interruptedPackets(280).map((event) => event.name),
+    interruptedPackets(320).map((event) => event.name),
     ['Rifle Burst']
   );
   assert.deepEqual(
-    interruptedPackets(560).map((event) => event.name),
+    interruptedPackets(599).map((event) => event.name),
+    ['Rifle Burst']
+  );
+  assert.deepEqual(
+    interruptedPackets(600).map((event) => event.name),
     ['Rifle Burst', 'Rifle Burst Grenade']
   );
 });

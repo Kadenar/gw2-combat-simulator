@@ -7,42 +7,42 @@ import {
   suggestedActivationInterruptMs,
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
-} from '../../../js/platform/ui/rotation/editors/activation-editor.js';
-import { chargeReleaseRowLabel } from '../../../js/platform/ui/rotation/editors/charge-release-editor.js';
-import { validateDurationMs } from '../../../js/platform/ui/rotation/editors/duration-editor.js';
-import { positionFloatingEditor } from '../../../js/platform/ui/rotation/editors/floating-editor.js';
+} from '../../../js/games/gw2/app/presentation/rotation/editors/activation-editor.js';
+import { chargeReleaseRowLabel } from '../../../js/ui/rotation/editors/charge-release-editor.js';
+import { validateDurationMs } from '../../../js/ui/rotation/editors/duration-editor.js';
+import { positionFloatingEditor } from '../../../js/ui/rotation/editors/floating-editor.js';
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   chartValueAt,
   mountTimeSeriesCharts
-} from '../../../js/platform/ui/results/charts/time-series.js';
-import { eventLogCsv, eventLogRows, mountEventLog } from '../../../js/platform/ui/results/event-log.js';
+} from '../../../js/games/gw2/app/presentation/results/charts/time-series.js';
+import { eventLogCsv, eventLogRows, mountEventLog } from '../../../js/games/gw2/app/presentation/results/event-log.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '../../../js/platform/ui/rotation/palette.js';
-import { escapeHtml, gw2ApiText } from '../../../js/platform/ui/shared/html.js';
+} from '../../../js/games/gw2/app/presentation/rotation/palette.js';
+import { escapeHtml, gw2ApiText } from '../../../js/games/gw2/app/presentation/shared/html.js';
 import {
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
-} from '../../../js/platform/ui/rotation/insertion-cursor.js';
+} from '../../../js/ui/rotation/insertion-cursor.js';
 import {
   resultSummaryMetrics,
   targetHealthBreakpointSnapshots
-} from '../../../js/platform/ui/results/result-transform.js';
+} from '../../../js/games/gw2/app/presentation/results/result-transform.js';
 import {
   dismissResultMetricDetails,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
-} from '../../../js/platform/ui/results/rotation-results.js';
-import { mountRotationWarnings } from '../../../js/platform/ui/results/rotation-warnings.js';
+} from '../../../js/games/gw2/app/presentation/results/rotation-results.js';
+import { mountRotationWarnings } from '../../../js/ui/results/rotation-warnings.js';
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -52,7 +52,7 @@ import {
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
-} from '../../../js/platform/ui/rotation/timeline.js';
+} from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
 
 function inertContainer() {
   return {
@@ -114,17 +114,15 @@ test('floating editors flip and clamp beside connected anchors', () => {
 });
 
 test('activation editor suggests and validates manual interruption times', () => {
-  assert.equal(suggestedActivationInterruptMs(920, 1200), 919);
-  assert.equal(suggestedActivationInterruptMs(null, 500), 499);
-  assert.equal(suggestedActivationInterruptMs(0, 0), 1);
+  assert.equal(suggestedActivationInterruptMs(920, 1200), 880);
+  assert.equal(suggestedActivationInterruptMs(null, 500), 480);
+  assert.equal(suggestedActivationInterruptMs(0, 0), 40);
   assert.deepEqual(validateActivationInterruptMs('640', 920), {
     valid: true,
     value: 640
   });
-  assert.deepEqual(validateActivationInterruptMs('640.4', 920), {
-    valid: true,
-    value: 640
-  });
+  assert.match(validateActivationInterruptMs('640.4', 920).error, /divisible by 40 ms/);
+  assert.match(validateActivationInterruptMs('620', 920).error, /divisible by 40 ms/);
   assert.equal(validateActivationInterruptMs('', 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);

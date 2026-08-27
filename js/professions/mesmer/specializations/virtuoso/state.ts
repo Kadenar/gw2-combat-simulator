@@ -1,16 +1,2 @@
-import type { MesmerConfig, MesmerVirtuosoState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-
-export function createVirtuosoState(config: Partial<MesmerConfig> = {}): MesmerVirtuosoState {
-  return {
-    numericResource: 0,
-    nextForgeAt: config.infiniteForge ? 3 : Infinity,
-    bloodsongProgress: 0
-  };
-}
-
-export function createVirtuosoResolverState(): Record<string, never> {
-  return {};
-}
-
-export const virtuosoState = defineProfessionSpecializationState('Virtuoso', createVirtuosoState);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/virtuoso/state.js';

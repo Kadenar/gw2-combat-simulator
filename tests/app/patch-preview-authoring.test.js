@@ -10,14 +10,14 @@ import {
   numericEditForValue,
   numericEditValue,
   patchSearchText
-} from '../../js/app/patch-preview/model.js';
-import { engineerProfession } from '../../js/professions/engineer/definition.js';
-import { guardianProfession } from '../../js/professions/guardian/definition.js';
-import { necromancerProfession } from '../../js/professions/necromancer/definition.js';
-import { rangerProfession } from '../../js/professions/ranger/definition.js';
-import { revenantProfession } from '../../js/professions/revenant/definition.js';
-import { thiefProfession } from '../../js/professions/thief/definition.js';
-import { warriorProfession } from '../../js/professions/warrior/definition.js';
+} from '../../js/games/gw2/integrations/patches/app/model.js';
+import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
+import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
+import { rangerProfession } from '../../js/games/gw2/content/professions/ranger/definition.js';
+import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
+import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
+import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
 
 test('patch authoring omits unused skills but retains indirect runtime skills', () => {
   const engineerSkills = engineerProfession.patchAuthoring.modules.flatMap((module) => module.skills);
@@ -318,9 +318,12 @@ test('patch authoring generates an overview and discards manual notes', () => {
 });
 
 test('patch authoring UI uses an official source and read-only overview', async () => {
-  const source = await readFile(new URL('../../js/app/patch-preview/index.ts', import.meta.url), 'utf8');
+  const source = await readFile(
+    new URL('../../js/games/gw2/integrations/patches/app/index.ts', import.meta.url),
+    'utf8'
+  );
   const simulatorSource = await readFile(
-    new URL('../../js/app/simulation/patch-preview-view.ts', import.meta.url),
+    new URL('../../js/games/gw2/integrations/patches/view.ts', import.meta.url),
     'utf8'
   );
 

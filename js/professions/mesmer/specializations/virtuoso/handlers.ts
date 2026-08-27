@@ -1,5 +1,2 @@
-import { mesmerReplaceProfile } from '../../core/handlers.js';
-
-export const virtuosoSkillHandlers = Object.freeze({
-  'mesmer.bladesong': mesmerReplaceProfile
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/virtuoso/handlers.js';

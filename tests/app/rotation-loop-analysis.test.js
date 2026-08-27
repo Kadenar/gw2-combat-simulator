@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { analyzeRotationLoops } from '../../js/app/rotation/result/loop-analysis.js';
+import { analyzeRotationLoops } from '../../js/games/gw2/app/rotation/result/loop-analysis.js';
 
 const skills = [
   { id: 1, name: 'Grasping Dead', type: 'Weapon' },

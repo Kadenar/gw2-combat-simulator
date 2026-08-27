@@ -1,7 +1,7 @@
-import { createDefaultBuild } from '../../js/app/build/state/persistence.js';
-import { createCalculateAttributes } from '../../js/platform/gw2/builds/attributes.js';
-import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '../../js/professions/mesmer/build-attributes.js';
+import { createDefaultBuild } from '../../js/games/gw2/app/build/state/persistence.js';
+import { createCalculateAttributes } from '../../js/games/gw2/platform/builds/attributes.js';
+import { mesmerAppAdapter } from '../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '../../js/games/gw2/content/professions/mesmer/build-attributes.js';
 import { simulateMesmer } from './mesmer-simulation.js';
 
 // Fixtures use the same attribute calculator composed into the Mesmer adapter.

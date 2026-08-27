@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { guardianCatalog } from '../../../js/professions/guardian/catalog.js';
+import { guardianCatalog } from '../../../js/games/gw2/content/professions/guardian/catalog.js';
 
 const IMPLEMENTED = new Set([
   "Zealot's Resolution",

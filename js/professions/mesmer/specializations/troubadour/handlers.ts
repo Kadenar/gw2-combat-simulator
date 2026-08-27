@@ -1,6 +1,2 @@
-import { mesmerReplaceProfile } from '../../core/handlers.js';
-
-export const troubadourSkillHandlers = Object.freeze({
-  'mesmer.instrument': mesmerReplaceProfile,
-  'mesmer.crescendo': mesmerReplaceProfile
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/troubadour/handlers.js';

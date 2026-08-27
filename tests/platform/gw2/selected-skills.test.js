@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { normalizeSelectedSkillNames, selectedSkillNameSet } from '../../../js/platform/gw2/builds/selected-skills.js';
+import {
+  normalizeSelectedSkillNames,
+  selectedSkillNameSet
+} from '../../../js/games/gw2/platform/builds/selected-skills.js';
 
 test('selected skill names normalize array and slot-keyed loadouts', () => {
   assert.deepEqual(normalizeSelectedSkillNames(['One', 'Two']), ['One', 'Two']);

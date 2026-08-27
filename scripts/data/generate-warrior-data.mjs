@@ -709,11 +709,16 @@ export const ${constants[owner]}: Readonly<Record<number, SkillFragment>> = Obje
 ${owned.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, null, 2).replace(/\n/g, '\n  ')},`).join('\n')}
 });
 `;
-    const target = fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url));
+    const target = fileURLToPath(
+      new URL(`../../js/games/gw2/content/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url)
+    );
 
-    await mkdir(fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/`, import.meta.url)), {
-      recursive: true
-    });
+    await mkdir(
+      fileURLToPath(new URL(`../../js/games/gw2/content/professions/warrior/${roots[owner]}/`, import.meta.url)),
+      {
+        recursive: true
+      }
+    );
     await writeFile(target, source, 'utf8');
     console.log(`Wrote ${owned.length} ${owner} Warrior skill mechanics.`);
   }
@@ -751,7 +756,7 @@ ${owned.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, n
   ].join('\n');
 
   await writeFile(
-    fileURLToPath(new URL('../../js/professions/warrior/data/ids.ts', import.meta.url)),
+    fileURLToPath(new URL('../../js/games/gw2/content/professions/warrior/data/ids.ts', import.meta.url)),
     idsSource,
     'utf8'
   );
@@ -765,7 +770,9 @@ export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
 `;
 
   await writeFile(
-    fileURLToPath(new URL('../../js/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)),
+    fileURLToPath(
+      new URL('../../js/games/gw2/content/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)
+    ),
     supplementalSource,
     'utf8'
   );

@@ -1,5 +1,2 @@
-/** Public simulation event, queue, stream, and snapshot entrypoint. */
-export * from './events.js';
-export * from './queue.js';
-export * from './scheduled-stream.js';
-export * from './state-snapshots.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/platform/engine/events/index.js';

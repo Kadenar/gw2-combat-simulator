@@ -1,19 +1,2 @@
-import { defineProfessionApp, preferOffhand } from '../../../app/profession/define-app.js';
-import { applyWarriorBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
-import { warriorProfession } from '../definition.js';
-
-// Exposes Warrior only through the shared browser application contract.
-export const warriorAppAdapter = defineProfessionApp({
-  profession: warriorProfession,
-  applyBuildAttributeRules: applyWarriorBuildAttributeRules,
-  createDefaultTargetConditions,
-  toApplicationBuild,
-  specializationFallback: 'Strength',
-  runtime: {
-    buildConfigInputs: (app) => ({
-      initialResource: app.build.initialResource
-    })
-  },
-  defaultOffhand: preferOffhand('Axe')
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/content/professions/warrior/app/app-definition.js';

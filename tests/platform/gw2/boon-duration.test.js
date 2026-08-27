@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { gw2BoonDurationMultiplier, gw2StaticAttributes } from '../../../js/platform/gw2/combat/query/runtime-rules.js';
-import { gw2ResolverBoonDuration } from '../../../js/platform/gw2/resolver/boon-duration.js';
-import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '../../../js/platform/gw2/scheduler/policy.js';
+import {
+  gw2BoonDurationMultiplier,
+  gw2StaticAttributes
+} from '../../../js/games/gw2/platform/combat/query/runtime-rules.js';
+import { gw2ResolverBoonDuration } from '../../../js/games/gw2/platform/resolver/boon-duration.js';
+import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '../../../js/games/gw2/platform/scheduler/policy.js';
 
 test('the shared boon multiplier combines concentration, global, named, and sigil bonuses', () => {
   const stats = {

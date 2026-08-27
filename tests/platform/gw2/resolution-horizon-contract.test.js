@@ -4,11 +4,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
-import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { timelineDeadTimeMarkers } from '../../../js/platform/ui/rotation/timeline.js';
+import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { timelineDeadTimeMarkers } from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -623,7 +623,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
 });
 
 test('production source and catalog data cannot declare event-owned horizons', () => {
-  const roots = [path.join(repoRoot, 'js'), path.join(repoRoot, 'Builds')];
+  const roots = [path.join(repoRoot, 'js'), path.join(repoRoot, 'data', 'gw2', 'builds')];
   const violations = [];
   const visit = (entry) => {
     if (statSync(entry).isDirectory()) {
@@ -660,7 +660,7 @@ test('saved rotations and regression tooling cannot select observation policy', 
     }
   };
 
-  visit(path.join(repoRoot, 'Rotations'));
+  visit(path.join(repoRoot, 'data', 'gw2', 'rotations'));
   for (const relativePath of [
     'tests/app/benchmarks/preset-benchmark.js',
     'scripts/analysis/capture-supported-build-metrics.mjs'

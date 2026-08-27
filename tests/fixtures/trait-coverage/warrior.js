@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { warriorCatalog } from '../../../js/professions/warrior/catalog.js';
+import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Reckless Dodge',

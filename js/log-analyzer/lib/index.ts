@@ -1,2 +1,2 @@
-export * from './errors.js';
-export * from './rotation/index.js';
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/integrations/logs/lib/index.js';

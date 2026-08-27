@@ -7,13 +7,13 @@ import {
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
   ROTATION_TIMELINE_SIZE_OPTIONS
-} from '../../js/app/rotation/timeline/size.js';
+} from '../../js/games/gw2/app/rotation/timeline/size.js';
 import {
   normalizeRotationProcOverlayVisibility,
   readStoredRotationProcOverlayVisibility,
   ROTATION_PROC_OVERLAY_STORAGE_KEYS,
   storeRotationProcOverlayVisibility
-} from '../../js/app/rotation/timeline/proc-overlays.js';
+} from '../../js/games/gw2/app/rotation/timeline/proc-overlays.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,
@@ -22,8 +22,8 @@ import {
   reduceRotationWorkspaceState,
   syncRotationFocusResults,
   updateFloatingDps
-} from '../../js/app/rotation/workspace.js';
-import { currentTimelineResults, reconcileTimelineRows } from '../../js/app/rotation/timeline/view.js';
+} from '../../js/app/shell/workspace.js';
+import { currentTimelineResults, reconcileTimelineRows } from '../../js/games/gw2/app/rotation/timeline/view.js';
 
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
@@ -283,7 +283,10 @@ test('floating DPS mounts once and tracks the latest result', () => {
     },
     createElement: () => element(),
     getElementById: (id) => elements.get(id) || null,
-    querySelector: (selector) => (selector === '.landing-footer' ? footer : null)
+    querySelector: (selector) => {
+      if (selector === '.landing-footer') return footer;
+      return selector === '.simulation-workspace' ? {} : null;
+    }
   };
 
   const indicator = mountFloatingDps(root);

@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/platform/engine/profession/contract.js';
-import { createScheduler } from '../../../js/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '../../../js/platform/gw2/scheduler/policy.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '../../../js/games/gw2/platform/engine/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '../../../js/games/gw2/platform/scheduler/policy.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   return defineProfession({

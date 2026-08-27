@@ -1,25 +1,25 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCalculateAttributes } from '../../../js/platform/gw2/builds/attributes.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
+import { createCalculateAttributes } from '../../../js/games/gw2/platform/builds/attributes.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../helpers/trait-coverage.js';
-import { skillBreakdownRows } from '../../../js/platform/ui/results/result-tables.js';
-import { timelineWeaponRows } from '../../../js/app/rotation/timeline/model.js';
-import { paletteSkillView, renderPalette } from '../../../js/app/rotation/palette/view.js';
-import { activeResourceGroup, renderStartResource } from '../../../js/app/rotation/palette/resource-view.js';
+import { skillBreakdownRows } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
+import { timelineWeaponRows } from '../../../js/games/gw2/app/rotation/timeline/model.js';
+import { paletteSkillView, renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
+import { activeResourceGroup, renderStartResource } from '../../../js/games/gw2/app/rotation/palette/resource-view.js';
 import {
   paletteActionSkills,
   rotationSelectedSlotSkills,
   weaponPaletteRows
-} from '../../../js/app/rotation/palette/model.js';
-import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
-import { applyElementalistBuildAttributeRules } from '../../../js/professions/elementalist/build-attributes.js';
-import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
-import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
-import { elementalistCoreModifierRules } from '../../../js/professions/elementalist/core/modifiers.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/professions/elementalist/data/ids.js';
-import { weaverModifierRules } from '../../../js/professions/elementalist/specializations/weaver/modifiers.js';
+} from '../../../js/games/gw2/app/rotation/palette/model.js';
+import { elementalistAppAdapter } from '../../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
+import { applyElementalistBuildAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/build-attributes.js';
+import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
+import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
+import { elementalistCoreModifierRules } from '../../../js/games/gw2/content/professions/elementalist/core/modifiers.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
+import { weaverModifierRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.

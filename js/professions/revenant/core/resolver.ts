@@ -1,7 +1,2 @@
-import { handleRevenantState } from '../state.js';
-
-export { handleRevenantState } from '../state.js';
-
-export const revenantCoreEventHandlers = Object.freeze({
-  'revenant.state': handleRevenantState
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/content/professions/revenant/core/resolver.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2TimelineIndex } from '../../../js/platform/gw2/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '../../../js/games/gw2/platform/combat/query/timeline-index.js';
 
 function weaponSetEvent(at, causalOrder, weaponSet) {
   return {

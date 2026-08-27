@@ -4,9 +4,15 @@ import test from 'node:test';
 import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner
-} from '../../../js/platform/gw2/authoring/catalog.js';
-import { onResolvedCriticalHit, onResolvedDamage } from '../../../js/platform/gw2/authoring/mechanics.js';
-import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/authoring/profession.js';
+} from '../../../js/games/gw2/integrations/patches/authoring/catalog.js';
+import {
+  onResolvedCriticalHit,
+  onResolvedDamage
+} from '../../../js/games/gw2/integrations/patches/authoring/mechanics.js';
+import {
+  defineNativeModule,
+  defineNativeProfession
+} from '../../../js/games/gw2/integrations/patches/authoring/profession.js';
 
 const replaceHandler = Object.freeze({
   mode: 'replace',

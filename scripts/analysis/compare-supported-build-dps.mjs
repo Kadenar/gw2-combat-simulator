@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
+import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
 export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
@@ -102,7 +103,8 @@ function presetKey(section, preset) {
 }
 
 /** Replace manifest benchmark values only after every simulated preset has matched its source entry. */
-export async function updateManifestBenchmarkDps(metrics, root = repoRoot) {
+export async function updateManifestBenchmarkDps(metrics, root = repoRoot, gameId = 'gw2') {
+  const data = resolveGameData(root, gameId);
   const metricsByProfession = new Map();
   const pendingWrites = [];
   const skippedPresets = [];
@@ -117,7 +119,7 @@ export async function updateManifestBenchmarkDps(metrics, root = repoRoot) {
   }
 
   for (const [profession, professionMetrics] of metricsByProfession) {
-    const manifestPath = path.join(root, 'Builds', profession, 'manifest.json');
+    const manifestPath = path.join(data.builds, profession, 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     const unmatchedMetrics = new Map(professionMetrics.map((metric) => [presetKey(metric.section, metric), metric]));
 
@@ -207,7 +209,7 @@ export function parseMaximumAbsoluteDpsError(args) {
 const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isMain) {
-  const args = process.argv.slice(2);
+  const { gameId, args } = parseGameOption(process.argv.slice(2));
   const mode = parseMode(args);
   const maximumAbsoluteDpsError = parseMaximumAbsoluteDpsError(args);
 
@@ -217,11 +219,11 @@ if (isMain) {
       : 'Dry mode: manifest files will not be changed.'
   );
 
-  const metrics = await captureSupportedBuildMetrics();
+  const metrics = await captureSupportedBuildMetrics(undefined, { gameId });
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
 
   if (mode === 'commit') {
-    const update = await updateManifestBenchmarkDps(metrics);
+    const update = await updateManifestBenchmarkDps(metrics, repoRoot, gameId);
 
     console.log(
       `Updated ${update.updatedEntries} benchmarkDps entries (${update.changedEntries} changed) ` +

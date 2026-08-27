@@ -1,7 +1,2 @@
-import { LogAnalyzerError } from '../lib/errors.js';
-
-export class DpsReportError extends LogAnalyzerError {
-  constructor(code: string, message: string, context: Readonly<Record<string, unknown>> = {}) {
-    super('DpsReportError', code, message, context);
-  }
-}
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../games/gw2/integrations/logs/dps-report/errors.js';

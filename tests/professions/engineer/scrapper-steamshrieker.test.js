@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resolveProcIcon } from '../../../js/app/rotation/shared/icons.js';
-import { simulateGw2 } from '../../../js/platform/gw2/simulation/simulate.js';
-import { RELIC_DATA } from '../../../js/platform/gw2/equipment/relics/catalog.js';
-import { engineerCatalog } from '../../../js/professions/engineer/catalog.js';
-import { engineerProfession } from '../../../js/professions/engineer/definition.js';
+import { resolveProcIcon } from '../../../js/games/gw2/app/rotation/shared/icons.js';
+import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { RELIC_DATA } from '../../../js/games/gw2/platform/equipment/relics/catalog.js';
+import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
+import { engineerProfession } from '../../../js/games/gw2/content/professions/engineer/definition.js';
 
 const STEAMSHRIEKER_ICON = 'https://render.guildwars2.com/file/23B0F0A5BF05E05C9F527BF7EB4962C9F49C6F42/3441975.png';
 

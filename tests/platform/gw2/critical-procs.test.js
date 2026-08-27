@@ -5,8 +5,8 @@ import {
   advanceCriticalProc,
   criticalOpportunity,
   CRITICAL_PROC_PROGRESS_TOLERANCE
-} from '../../../js/platform/gw2/combat/critical-procs.js';
-import { advanceScheduledCriticalProc } from '../../../js/platform/gw2/scheduler/critical-facts.js';
+} from '../../../js/games/gw2/platform/combat/critical-procs.js';
+import { advanceScheduledCriticalProc } from '../../../js/games/gw2/platform/scheduler/critical-facts.js';
 
 function request(overrides = {}) {
   return {

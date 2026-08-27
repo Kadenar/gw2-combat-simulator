@@ -550,7 +550,7 @@ ${entries.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics,
 });${extraSource}
 `;
     const target = fileURLToPath(
-      new URL(`../../js/professions/ranger/${directories[owner]}/skills.ts`, import.meta.url)
+      new URL(`../../js/games/gw2/content/professions/ranger/${directories[owner]}/skills.ts`, import.meta.url)
     );
 
     await writeFile(target, source, 'utf8');

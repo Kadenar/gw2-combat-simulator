@@ -1,15 +1,2 @@
-import type { MesmerChronomancerState, MesmerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-
-export function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
-  return {
-    continuum: null,
-    timeBombUntil: 0
-  };
-}
-
-export function createChronomancerResolverState(): Record<string, never> {
-  return {};
-}
-
-export const chronomancerState = defineProfessionSpecializationState('Chronomancer', createChronomancerState);
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/chronomancer/state.js';

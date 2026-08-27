@@ -1,0 +1,402 @@
+import { getRotationItems, readJsonFile } from './files.js';
+import { isJsonRotationFile, readEvtcRotationFile } from './evtc-rotation-import.js';
+import { readDpsReportRotationData, readDpsReportRotationUrl } from './dps-report-rotation-import.js';
+import { isDpsReportData } from '../../../integrations/logs/dps-report/parser.js';
+import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
+import { errorMessage } from '../../../../../ui/shared/dom.js';
+
+import type { RotationCommand } from '../../../platform/engine/types.js';
+import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { RotationImportObservation } from './rotation-import-model.js';
+
+export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
+
+export interface RotationImportPreview {
+  readonly rotation: readonly RotationCommand[];
+  readonly actionCount: number;
+  readonly description: string;
+  readonly warnings: readonly string[];
+  readonly observations: readonly RotationImportObservation[];
+  readonly initialBlight?: number;
+}
+
+interface RotationImportDialogElements {
+  readonly dialog: HTMLDialogElement;
+  readonly dropZone: HTMLElement;
+  readonly status: HTMLElement;
+  readonly error: HTMLElement;
+  readonly warnings: HTMLElement;
+  readonly observations: HTMLElement;
+  readonly browseButton: HTMLButtonElement;
+  readonly reportInput: HTMLInputElement;
+  readonly reportButton: HTMLButtonElement;
+  readonly applyButton: HTMLButtonElement;
+  readonly closeButton: HTMLButtonElement;
+}
+
+/** Reads and validates a rotation file without replacing the active rotation until the user applies the preview. */
+export async function previewRotationFile(file: File, app: ProfessionAppState): Promise<RotationImportPreview> {
+  if (isJsonRotationFile(file)) {
+    const imported = await readJsonFile(file);
+    const rotation = getRotationItems(imported);
+    if (rotation) {
+      // JSON rotations may use any historical interchange shape; app state stays canonical.
+      return {
+        rotation: normalizeRotation(rotation, app.activeCatalog, { strict: true }),
+        actionCount: rotation.length,
+        description: `Loaded ${file.name}`,
+        warnings: [],
+        observations: []
+      };
+    }
+
+    if (isDpsReportData(imported)) {
+      const report = await readDpsReportRotationData(imported, app);
+      return {
+        rotation: report.rotation,
+        actionCount: report.actionCount,
+        description: `Reconstructed ${report.playerLabel} · ${report.phaseLabel}`,
+        warnings: report.warnings,
+        observations: []
+      };
+    }
+
+    throw new Error('Rotation array missing.');
+  }
+
+  const imported = await readEvtcRotationFile(file, app);
+  return {
+    rotation: imported.rotation,
+    actionCount: imported.actionCount,
+    description: `Reconstructed ${imported.playerLabel}`,
+    warnings: imported.warnings,
+    observations: imported.observations,
+    ...(imported.initialBlight == null ? {} : { initialBlight: imported.initialBlight })
+  };
+}
+
+/** Fetches and reconstructs a dps.report rotation without replacing the active rotation before review. */
+export async function previewDpsReportUrl(
+  input: string,
+  app: ProfessionAppState,
+  fetchImplementation: typeof fetch = fetch
+): Promise<RotationImportPreview> {
+  const imported = await readDpsReportRotationUrl(input, app, fetchImplementation);
+  return {
+    rotation: imported.rotation,
+    actionCount: imported.actionCount,
+    description: `Reconstructed ${imported.playerLabel} · ${imported.phaseLabel}`,
+    warnings: imported.warnings,
+    observations: []
+  };
+}
+
+/** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
+export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
+  app.build.rotation = [...preview.rotation];
+  // Harbinger replay depends on the Blight already present when the recorded rotation began.
+  if (preview.initialBlight != null) app.build.initialBlight = preview.initialBlight;
+  app.changed(false);
+}
+
+function ensureStyles(document: Document): void {
+  if (document.getElementById('rotation-import-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'rotation-import-styles';
+  style.textContent = `
+    .rotation-import-dialog { position:fixed; inset:0; width:min(560px, calc(100vw - 32px));
+      max-height:calc(100vh - 32px); margin:auto; padding:0; overflow:auto;
+      border:1px solid var(--border-light); border-radius:8px; background:var(--bg-panel);
+      color:var(--text); box-shadow:0 18px 60px rgba(0,0,0,.65); }
+    .rotation-import-dialog::backdrop { background:rgba(5,7,12,.78); }
+    .rotation-import-form { padding:18px; }
+    .rotation-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
+    .rotation-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
+    .rotation-import-experimental { margin:0 0 14px; padding:8px 10px; border:1px solid #a67c22;
+      border-radius:5px; background:rgba(166,124,34,.1); color:#e0bd68; font-size:11px; line-height:1.45; }
+    .rotation-import-drop { display:flex; min-height:150px; padding:20px; align-items:center;
+      justify-content:center; border:2px dashed var(--border-light); border-radius:8px;
+      background:var(--bg-panel-alt); text-align:center; transition:border-color .15s, background .15s; }
+    .rotation-import-drop.is-dragging { border-color:var(--accent); background:rgba(102,170,255,.08); }
+    .rotation-import-drop strong { display:block; margin-bottom:5px; color:var(--text-bright); font-size:13px; }
+    .rotation-import-drop small { display:block; margin:8px 0; color:var(--text-dim); font-size:10px; }
+    .rotation-import-report { display:flex; gap:6px; margin-top:10px; }
+    .rotation-import-report input { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
+      border-radius:5px; background:var(--bg-input); color:var(--text); }
+    .rotation-import-status { margin:12px 0 0; color:var(--text-dim); font-size:12px; }
+    .rotation-import-status.is-success { color:var(--health); }
+    .rotation-import-error { margin:12px 0 0; color:var(--condi); font-size:12px; white-space:pre-wrap; }
+    .rotation-import-warnings { margin:10px 0 0; color:var(--text-dim); font-size:11px; }
+    .rotation-import-warning-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+    .rotation-import-warning-list li { padding:8px 10px; border:1px solid var(--border);
+      border-left:3px solid #a67c22; border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
+    .rotation-import-warning-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
+    .rotation-import-observations { margin:10px 0 0; font-size:11px; }
+    .rotation-import-observation-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+    .rotation-import-observation-list li { padding:9px 10px; border:1px solid var(--border);
+      border-left:3px solid var(--accent); border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }
+    .rotation-import-observation-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
+    .rotation-import-observation-summary { color:var(--text); }
+    .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }
+    .rotation-import-actions { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; }
+    .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
+  `;
+  document.head.append(style);
+}
+
+function createDialog(document: Document): RotationImportDialogElements {
+  ensureStyles(document);
+  const dialog = document.createElement('dialog');
+  dialog.className = 'rotation-import-dialog';
+  dialog.setAttribute('aria-labelledby', 'rotation-import-title');
+  dialog.innerHTML = `<form class="rotation-import-form" method="dialog">
+    <h3 id="rotation-import-title">Load rotation</h3>
+    <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report link.</p>
+    <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report omits some raw EVTC evidence, so review the imported rotation before relying on it.</p>
+    <div class="rotation-import-drop" data-rotation-import-drop>
+      <div>
+        <strong>Drop a rotation or combat log here</strong>
+        <small>.json · .evtc · .evtc.zip · .zevtc</small>
+        <button type="button" class="btn btn-io" data-rotation-import-browse>Browse files</button>
+      </div>
+    </div>
+    <div class="rotation-import-report">
+      <input type="url" inputmode="url" placeholder="https://dps.report/…" aria-label="dps.report link" data-rotation-import-report-input>
+      <button type="button" class="btn btn-io" data-rotation-import-report>Import link</button>
+    </div>
+    <p class="rotation-import-status" role="status" data-rotation-import-status>Select a file or enter a link to begin.</p>
+    <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
+    <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
+    <div class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></div>
+    <div class="rotation-import-actions">
+      <button type="button" class="btn" data-rotation-import-close>Cancel</button>
+      <button type="button" class="btn btn-io" data-rotation-import-apply disabled>Apply rotation</button>
+    </div>
+  </form>`;
+  document.body.append(dialog);
+
+  const dropZone = dialog.querySelector<HTMLElement>('[data-rotation-import-drop]');
+  const status = dialog.querySelector<HTMLElement>('[data-rotation-import-status]');
+  const error = dialog.querySelector<HTMLElement>('[data-rotation-import-error]');
+  const warnings = dialog.querySelector<HTMLElement>('[data-rotation-import-warnings]');
+  const observations = dialog.querySelector<HTMLElement>('[data-rotation-import-observations]');
+  const browseButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-browse]');
+  const reportInput = dialog.querySelector<HTMLInputElement>('[data-rotation-import-report-input]');
+  const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
+  const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
+  const closeButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-close]');
+  if (
+    !dropZone ||
+    !status ||
+    !error ||
+    !warnings ||
+    !observations ||
+    !browseButton ||
+    !reportInput ||
+    !reportButton ||
+    !applyButton ||
+    !closeButton
+  ) {
+    throw new Error('Rotation import dialog failed to initialize.');
+  }
+
+  return {
+    dialog,
+    dropZone,
+    status,
+    error,
+    warnings,
+    observations,
+    browseButton,
+    reportInput,
+    reportButton,
+    applyButton,
+    closeButton
+  };
+}
+
+/** Renders technical import notices as labeled items that can be scanned independently. */
+function renderWarnings(element: HTMLElement, warnings: readonly string[]): void {
+  element.replaceChildren();
+  const list = element.ownerDocument.createElement('ul');
+  list.className = 'rotation-import-warning-list';
+  for (const warning of warnings) {
+    const item = element.ownerDocument.createElement('li');
+    const separator = warning.indexOf(':');
+    if (separator > 0 && separator < 40) {
+      const label = element.ownerDocument.createElement('strong');
+      label.textContent = warning.slice(0, separator);
+      item.append(label, warning.slice(separator + 1).trim());
+    } else {
+      item.textContent = warning;
+    }
+
+    list.append(item);
+  }
+
+  element.append(list);
+}
+
+/** Renders read-only combat-log evidence separately from reconstruction warnings. */
+function renderObservations(element: HTMLElement, observations: readonly RotationImportObservation[]): void {
+  element.replaceChildren();
+  const list = element.ownerDocument.createElement('ul');
+  list.className = 'rotation-import-observation-list';
+  for (const observation of observations) {
+    const item = element.ownerDocument.createElement('li');
+    const title = element.ownerDocument.createElement('strong');
+    const summary = element.ownerDocument.createElement('div');
+    const detail = element.ownerDocument.createElement('small');
+    title.textContent = observation.title;
+    summary.className = 'rotation-import-observation-summary';
+    summary.textContent = observation.summary;
+    detail.className = 'rotation-import-observation-detail';
+    detail.textContent = observation.detail;
+    item.append(title, summary, detail);
+    list.append(item);
+  }
+
+  element.append(list);
+}
+
+/** Connects the rotation load button to JSON, EVTC, and dps.report import flows. */
+export function bindRotationImportDialog(
+  app: ProfessionAppState,
+  button: HTMLElement,
+  fileInput: HTMLInputElement
+): void {
+  fileInput.accept = ROTATION_IMPORT_ACCEPT;
+  button.setAttribute('aria-haspopup', 'dialog');
+  button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report log';
+
+  const elements = createDialog(button.ownerDocument);
+  let importing = false;
+  let activePreview: RotationImportPreview | null = null;
+
+  const resetMessages = (): void => {
+    activePreview = null;
+    elements.applyButton.disabled = true;
+    elements.status.classList.remove('is-success');
+    elements.status.textContent = 'Select a file or enter a link to begin.';
+    elements.error.hidden = true;
+    elements.error.textContent = '';
+    elements.warnings.hidden = true;
+    elements.warnings.replaceChildren();
+    elements.observations.hidden = true;
+    elements.observations.replaceChildren();
+  };
+
+  const setImporting = (value: boolean): void => {
+    importing = value;
+    elements.browseButton.disabled = value;
+    elements.reportButton.disabled = value;
+    elements.reportInput.disabled = value;
+    elements.closeButton.disabled = value;
+    elements.applyButton.disabled = value || !activePreview;
+  };
+
+  const selectFile = async (file: File): Promise<void> => {
+    if (importing) return;
+    activePreview = null;
+    setImporting(true);
+    elements.status.classList.remove('is-success');
+    elements.status.textContent = `Reading ${file.name}…`;
+    elements.error.hidden = true;
+    elements.warnings.hidden = true;
+    elements.observations.hidden = true;
+    try {
+      const imported = await previewRotationFile(file, app);
+      activePreview = imported;
+      elements.status.classList.add('is-success');
+      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
+      if (imported.warnings.length) {
+        elements.warnings.hidden = false;
+      }
+
+      renderWarnings(elements.warnings, imported.warnings);
+      if (imported.observations.length) {
+        elements.observations.hidden = false;
+      }
+
+      renderObservations(elements.observations, imported.observations);
+    } catch (error) {
+      elements.status.textContent = `Could not import ${file.name}.`;
+      elements.error.hidden = false;
+      elements.error.textContent = errorMessage(error);
+    } finally {
+      fileInput.value = '';
+      setImporting(false);
+    }
+  };
+
+  const selectReport = async (): Promise<void> => {
+    if (importing) return;
+    const input = elements.reportInput.value.trim();
+    if (!input) return;
+    activePreview = null;
+    setImporting(true);
+    elements.status.classList.remove('is-success');
+    elements.status.textContent = 'Fetching dps.report…';
+    elements.error.hidden = true;
+    elements.warnings.hidden = true;
+    elements.observations.hidden = true;
+    try {
+      const imported = await previewDpsReportUrl(input, app);
+      activePreview = imported;
+      elements.status.classList.add('is-success');
+      elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
+      if (imported.warnings.length) {
+        elements.warnings.hidden = false;
+      }
+
+      renderWarnings(elements.warnings, imported.warnings);
+      renderObservations(elements.observations, imported.observations);
+    } catch (error) {
+      elements.status.textContent = 'Could not import the dps.report link.';
+      elements.error.hidden = false;
+      elements.error.textContent = errorMessage(error);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  button.addEventListener('click', () => {
+    resetMessages();
+    elements.dialog.showModal();
+  });
+  elements.browseButton.addEventListener('click', () => fileInput.click());
+  elements.reportButton.addEventListener('click', () => void selectReport());
+  elements.reportInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    void selectReport();
+  });
+  elements.applyButton.addEventListener('click', () => {
+    if (!activePreview) return;
+    applyRotationImportPreview(app, activePreview);
+    activePreview = null;
+    elements.dialog.close();
+  });
+  elements.closeButton.addEventListener('click', () => elements.dialog.close());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) void selectFile(file);
+  });
+  for (const eventName of ['dragenter', 'dragover']) {
+    elements.dropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      elements.dropZone.classList.add('is-dragging');
+    });
+  }
+
+  elements.dropZone.addEventListener('dragleave', (event) => {
+    event.preventDefault();
+    elements.dropZone.classList.remove('is-dragging');
+  });
+  elements.dropZone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    elements.dropZone.classList.remove('is-dragging');
+    const file = event.dataTransfer?.files[0];
+    if (file) void selectFile(file);
+  });
+}

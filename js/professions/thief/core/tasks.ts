@@ -1,6 +1,2 @@
-import { expireThievesGuild, handleThievesGuildAttack } from './actions.js';
-
-export const thiefCoreTaskHandlers = Object.freeze({
-  'thief.thieves-guild-attack': handleThievesGuildAttack,
-  'thief.thieves-guild-expire': expireThievesGuild
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../games/gw2/content/professions/thief/core/tasks.js';

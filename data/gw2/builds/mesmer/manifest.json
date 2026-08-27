@@ -1,0 +1,69 @@
+[
+  {
+    "section": "Chronomancer",
+    "presets": [
+      {
+        "label": "Power (Greatsword-Dagger/Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
+        "benchmarkDps": 43817,
+        "referenceDps": 44179
+      },
+      {
+        "label": "Power (Spear-Dagger/Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
+        "benchmarkDps": 44386,
+        "referenceDps": 44458
+      },
+      {
+        "label": "Condition (Staff-Scepter/Pistol)",
+        "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
+        "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
+        "benchmarkDps": 46031
+      }
+    ]
+  },
+  {
+    "section": "Mirage",
+    "presets": [
+      {
+        "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
+        "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
+        "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
+        "benchmarkDps": 40745,
+        "referenceDps": 40936
+      }
+    ]
+  },
+  {
+    "section": "Virtuoso",
+    "presets": [
+      {
+        "label": "Power (Spear / Greatsword)",
+        "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
+        "benchmarkDps": 41995,
+        "referenceDps": 42191
+      },
+      {
+        "label": "Condition (Dagger/Sword-Pistol)",
+        "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
+        "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
+        "benchmarkDps": 39899
+      }
+    ]
+  },
+  {
+    "section": "Troubadour",
+    "presets": [
+      {
+        "label": "Power (Dagger-Sword / Spear)",
+        "build": "data/gw2/builds/mesmer/b-power-troubadour.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-troubadour-bench.json",
+        "benchmarkDps": 42827,
+        "referenceDps": 42509
+      }
+    ]
+  }
+]

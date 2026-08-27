@@ -1,3 +1,2 @@
-import { reactToSpellbreakerControl, reactToSpellbreakerDamage } from './traits.js';
-
-export { reactToSpellbreakerControl, reactToSpellbreakerDamage };
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/warrior/specializations/spellbreaker/resolver.js';

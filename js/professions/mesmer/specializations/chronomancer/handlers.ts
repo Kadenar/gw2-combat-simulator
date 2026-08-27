@@ -1,6 +1,2 @@
-import { mesmerReplaceProfile } from '../../core/handlers.js';
-
-export const chronomancerSkillHandlers = Object.freeze({
-  'mesmer.continuum-shift': mesmerReplaceProfile,
-  'mesmer.continuum-split': mesmerReplaceProfile
-});
+// Compatibility export for the namespaced Phase 3-5 implementation.
+export * from '../../../../games/gw2/content/professions/mesmer/specializations/chronomancer/handlers.js';

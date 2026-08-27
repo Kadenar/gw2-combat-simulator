@@ -5,7 +5,7 @@ import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds
-} from '../../../js/platform/gw2/combat/state/boons.js';
+} from '../../../js/games/gw2/platform/combat/state/boons.js';
 
 test('duration-stacking boons use their in-game duration caps', () => {
   for (const [kind, cap] of [

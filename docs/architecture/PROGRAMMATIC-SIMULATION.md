@@ -29,10 +29,10 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import { prepareSimulationConfig } from './js/platform/engine/config.js';
-import { simulateGw2 } from './js/platform/gw2/index.js';
-import { skillBreakdownRows } from './js/platform/ui/results/result-tables.js';
-import { engineerProfession } from './js/professions/engineer/definition.js';
+import { prepareSimulationConfig } from './js/games/gw2/platform/engine/config.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
+import { skillBreakdownRows } from './js/games/gw2/app/presentation/results/result-tables.js';
+import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
@@ -108,8 +108,8 @@ Tests import source-looking `.js` paths and register a loader that redirects com
 For that reason, a headless script should use source-looking imports:
 
 ```js
-import { simulateGw2 } from './js/platform/gw2/index.js';
-import { engineerProfession } from './js/professions/engineer/definition.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
+import { engineerProfession } from './js/games/gw2/content/professions/engineer/definition.js';
 ```
 
 Run it after building:
@@ -263,8 +263,8 @@ Start with the base config near the top of the relevant profession test, then re
 Use the registry when the profession is selected by a command-line argument or configuration file:
 
 ```js
-import { loadProfession } from './js/app/profession/registry.js';
-import { simulateGw2 } from './js/platform/gw2/index.js';
+import { loadProfession } from './js/games/gw2/app/profession/registry.js';
+import { simulateGw2 } from './js/games/gw2/platform/index.js';
 
 const profession = await loadProfession('engineer');
 if (!profession) throw new Error('Unknown profession');
@@ -311,8 +311,8 @@ longer than `duration`.
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { simulationEventLogRows } from './js/app/rotation/result/event-log.js';
-import { resultSummaryMetrics } from './js/app/rotation/result/model.js';
+import { simulationEventLogRows } from './js/games/gw2/app/rotation/result/event-log.js';
+import { resultSummaryMetrics } from './js/games/gw2/app/rotation/result/model.js';
 
 console.table(resultSummaryMetrics(result));
 console.table(simulationEventLogRows(result, null, engineerProfession));
@@ -333,7 +333,7 @@ randomness: { mode: "stochastic", seed: 42 }
 ```
 
 One stochastic run is not a distribution. Scripts that compare random outcomes should run multiple seeds and summarize
-their results, as done by `js/app/simulation/random-distribution.ts`.
+their results, as done by `js/games/gw2/app/simulation/random-distribution.ts`.
 
 ## Current API status
 

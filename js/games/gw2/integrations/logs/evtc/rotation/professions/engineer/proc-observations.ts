@@ -1,0 +1,192 @@
+import type { BalanceProfile, CanonicalCatalog, Skill } from '../../../../../../platform/engine/types.js';
+import type { Gw2Config } from '../../../../../../platform/simulation/config.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../../../../content/professions/engineer/data/ids.js';
+import type { ParsedEvtc } from '../../../types.js';
+import {
+  EVTC_BLEEDING_SKILL_ID,
+  EVTC_CRIPPLED_SKILL_ID,
+  EVTC_CRITICAL_RESULT,
+  countPairedApplications,
+  expectedConditionDurationsMs,
+  hasSelectedTrait,
+  isOutgoingStrike,
+  matchingConditionApplications,
+  primaryStrikeTarget,
+  traitBalanceProfile
+} from '../condition-proc-observation.js';
+
+const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
+const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;
+const SERRATED_STEEL_BLEEDING_BASE_SECONDS = 6;
+const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
+  'drop mine',
+  'electric artillery',
+  'explosive entrance',
+  'explosive entrance (trait skill)',
+  'lesser grenade barrage',
+  'photonic blasting module'
+]);
+
+export interface EngineerShrapnelObservation {
+  readonly targetAddress: bigint;
+  readonly explosionHits: number;
+  readonly matchedApplications: number;
+  readonly observedProcRate: number;
+  readonly expectedProcChance: number;
+  readonly expectedApplications: number;
+  readonly matchedBleedingDurationsMs: readonly number[];
+  readonly matchedCrippledDurationsMs: readonly number[];
+}
+
+export interface EngineerSerratedSteelObservation {
+  readonly targetAddress: bigint;
+  readonly criticalHits: number;
+  readonly matchedApplications: number;
+  readonly observedProcRate: number;
+  readonly expectedProcChance: number;
+  readonly expectedApplications: number;
+  readonly matchedDurationsMs: readonly number[];
+}
+
+function normalized(value: unknown): string {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function isExplosionSkill(skill: Skill): boolean {
+  if (normalized(skill.name) === 'aim-assisted rocket') return false;
+  return Boolean(
+    EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
+    normalized(skill.damageKind) === 'explosion' ||
+    skill.explosion === true ||
+    normalized(skill.kit) === 'grenade kit' ||
+    normalized(skill.name) === 'devastator' ||
+    skill.categories?.some((category) => normalized(category) === 'explosion') ||
+    skill.effects?.some(
+      (effect) =>
+        normalized(effect.damageKind) === 'explosion' ||
+        effect.explosion === true ||
+        normalized(effect.metadata?.damageKind) === 'explosion'
+    )
+  );
+}
+
+/** Maps ArcDPS raw damage IDs to catalog skills that can trigger Shrapnel. */
+function explosionSkillIds(log: ParsedEvtc, catalog: Readonly<CanonicalCatalog>): ReadonlySet<number> {
+  const ids = new Set<number>();
+  const names = new Set<string>();
+  for (const skill of catalog.skills) {
+    if (!isExplosionSkill(skill)) continue;
+    const skillId = Number(skill.id);
+    if (Number.isFinite(skillId)) ids.add(skillId);
+    names.add(normalized(skill.name));
+  }
+
+  for (const skill of log.skills) {
+    const name = normalized(skill.name);
+    if (name !== 'aim-assisted rocket' && (names.has(name) || EVENT_FLAGGED_EXPLOSION_NAMES.has(name))) {
+      ids.add(skill.id);
+    }
+  }
+
+  return ids;
+}
+
+function expectedChance(profile: BalanceProfile): number | null {
+  const chance = Number(profile.procChance || 0);
+  return chance > 0 ? chance : null;
+}
+
+/** Counts only paired 6-second Bleeding and 1-second Crippled applications against explosion packets. */
+export function analyzeEngineerShrapnelObservation(
+  log: ParsedEvtc,
+  playerAddress: bigint,
+  catalog: Readonly<CanonicalCatalog>,
+  config: Gw2Config
+): EngineerShrapnelObservation | null {
+  if (!hasSelectedTrait(config, TRAIT.SHRAPNEL)) return null;
+  const profile = traitBalanceProfile(catalog, TRAIT.SHRAPNEL, 'Shrapnel');
+  if (!profile) return null;
+  const expectedProcChance = expectedChance(profile);
+  if (expectedProcChance == null) return null;
+
+  const targetAddress = primaryStrikeTarget(log, playerAddress);
+  if (targetAddress == null) return null;
+  const eligibleSkillIds = explosionSkillIds(log, catalog);
+  const explosionHits = log.events.filter(
+    (event) =>
+      event.target === targetAddress && isOutgoingStrike(event, playerAddress) && eligibleSkillIds.has(event.skillId)
+  ).length;
+  if (!explosionHits) return null;
+
+  const matchedBleedingDurationsMs = expectedConditionDurationsMs(SHRAPNEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);
+  const matchedCrippledDurationsMs = expectedConditionDurationsMs(SHRAPNEL_CRIPPLED_BASE_SECONDS, 'Crippled', config);
+  const bleeding = matchingConditionApplications(
+    log,
+    playerAddress,
+    targetAddress,
+    EVTC_BLEEDING_SKILL_ID,
+    matchedBleedingDurationsMs
+  );
+  const crippled = matchingConditionApplications(
+    log,
+    playerAddress,
+    targetAddress,
+    EVTC_CRIPPLED_SKILL_ID,
+    matchedCrippledDurationsMs
+  );
+  const matchedApplications = countPairedApplications(bleeding, crippled);
+
+  return {
+    targetAddress,
+    explosionHits,
+    matchedApplications,
+    observedProcRate: matchedApplications / explosionHits,
+    expectedProcChance,
+    expectedApplications: explosionHits * expectedProcChance,
+    matchedBleedingDurationsMs,
+    matchedCrippledDurationsMs
+  };
+}
+
+/** Compares critical packets with the requested expertise-scaled 6-second Serrated Steel Bleeding signature. */
+export function analyzeEngineerSerratedSteelObservation(
+  log: ParsedEvtc,
+  playerAddress: bigint,
+  catalog: Readonly<CanonicalCatalog>,
+  config: Gw2Config
+): EngineerSerratedSteelObservation | null {
+  if (!hasSelectedTrait(config, TRAIT.SERRATED_STEEL)) return null;
+  const profile = traitBalanceProfile(catalog, TRAIT.SERRATED_STEEL, 'Serrated Steel');
+  if (!profile) return null;
+  const expectedProcChance = expectedChance(profile);
+  if (expectedProcChance == null) return null;
+
+  const targetAddress = primaryStrikeTarget(log, playerAddress);
+  if (targetAddress == null) return null;
+  const criticalHits = log.events.filter(
+    (event) =>
+      event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
+  ).length;
+  if (!criticalHits) return null;
+
+  const matchedDurationsMs = expectedConditionDurationsMs(SERRATED_STEEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);
+  const matchedApplications = matchingConditionApplications(
+    log,
+    playerAddress,
+    targetAddress,
+    EVTC_BLEEDING_SKILL_ID,
+    matchedDurationsMs
+  ).length;
+
+  return {
+    targetAddress,
+    criticalHits,
+    matchedApplications,
+    observedProcRate: matchedApplications / criticalHits,
+    expectedProcChance,
+    expectedApplications: criticalHits * expectedProcChance,
+    matchedDurationsMs
+  };
+}
