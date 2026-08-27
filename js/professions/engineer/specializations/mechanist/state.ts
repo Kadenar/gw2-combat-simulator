@@ -49,21 +49,6 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
   ];
 }
 
-// Mech base stats before player inheritance. Precision is 1 (not 0) so the mech
-// can still land hits, but without Variable Mass Distributor the mech never
-// benefits from the player's gear precision.
-export const ENGINEER_MECH_BASE_ATTRIBUTES = Object.freeze({
-  power: 1000,
-  precision: 1,
-  toughness: 1000,
-  vitality: 1000,
-  ferocity: 0,
-  conditionDamage: 0,
-  expertise: 0,
-  concentration: 0,
-  healingPower: 0
-});
-
 function playerAttribute(stats: EngineerPlayerStats, key: keyof EngineerMechAttributes, fallback = 0): number {
   return Math.max(0, Number(stats?.[key] ?? fallback));
 }

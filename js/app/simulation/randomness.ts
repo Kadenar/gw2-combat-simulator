@@ -4,11 +4,7 @@ import {
   SIMULATION_RANDOMNESS_MODES,
   normalizeSimulationRandomness
 } from '../../platform/engine/core/simulation-random.js';
-import {
-  createProfessionAssumptionControls,
-  normalizeProfessionAssumptions,
-  validateProfessionAssumptions
-} from '../profession/assumptions.js';
+import { createProfessionAssumptionControls } from '../profession/assumptions.js';
 import type { ProfessionAssumptionControl } from '../profession/types.js';
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
@@ -41,16 +37,6 @@ export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<Profession
 export const DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS: Readonly<SimulationRandomnessAssumptions> = Object.freeze(
   Object.fromEntries(SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.map((control) => [control.key, control.defaultValue]))
 );
-
-export function normalizeSimulationRandomnessAssumptions(
-  assumptions: SimulationRandomnessAssumptions = {}
-): SimulationRandomnessAssumptions {
-  return normalizeProfessionAssumptions(assumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
-}
-
-export function validateSimulationRandomnessAssumptions(assumptions: SimulationRandomnessAssumptions = {}): string[] {
-  return validateProfessionAssumptions(assumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
-}
 
 export function simulationRandomnessFromAssumptions(
   assumptions: SimulationRandomnessAssumptions = {}

@@ -18,10 +18,6 @@ export function revenantUiState(context: RevenantUiContext = {}): Partial<Revena
   return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
-export function revenantUiSpecialization(context: RevenantUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
-}
-
 export function activeRevenantLegend(context: RevenantUiContext = {}): string {
   return revenantUiState(context).activeLegendId || context.build?.startingLegend || '';
 }

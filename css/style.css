@@ -7449,35 +7449,36 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   display: none;
 }
 
-.elementalist-theme .equipped-skill-bar-column {
+/* Both loadout layouts render the equipped skill bar with the same presentation. */
+:is(.elementalist-theme, .profession-loadout-theme) .equipped-skill-bar-column {
   padding-left: 20px;
   border-left: 1px solid var(--border);
 }
 
-.elementalist-theme .equipped-skill-bar-column .skill-bar {
+:is(.elementalist-theme, .profession-loadout-theme) .equipped-skill-bar-column .skill-bar {
   align-content: start;
   justify-content: stretch;
 }
 
-.elementalist-theme .skill-bar.has-inspection {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar.has-inspection {
   align-items: stretch;
   gap: 16px;
 }
 
-.elementalist-theme .skill-bar-selected {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-slot {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot {
   display: grid;
   justify-items: center;
   min-width: 0;
 }
 
-.elementalist-theme .skill-bar-selected .sbar-icon {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
   position: relative;
   width: 62px;
   height: 62px;
@@ -7486,7 +7487,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-slot.heal-border .sbar-icon {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot.heal-border .sbar-icon {
   border-color: #53a540;
 }
 
@@ -7494,14 +7495,14 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   border-color: #bb561f;
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-key,
-.elementalist-theme .skill-bar-selected .skill-bar-type {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key,
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
   display: block;
   width: 100%;
   text-align: center;
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-key {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key {
   position: relative;
   margin-top: 5px;
   color: #c4c4cc;
@@ -7509,7 +7510,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   font-size: 12px;
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-key::after {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-key::after {
   position: absolute;
   bottom: -7px;
   left: 50%;
@@ -7519,7 +7520,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   content: '';
 }
 
-.elementalist-theme .skill-bar-selected .skill-bar-type {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-type {
   margin-top: 7px;
   padding-top: 5px;
   color: #777785;
@@ -7530,7 +7531,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
 }
 
-.elementalist-theme .skill-bar-selected .sbar-icon-arrow {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon-arrow {
   position: absolute;
   right: 2px;
   bottom: 2px;
@@ -7549,7 +7550,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   place-items: center;
 }
 
-.elementalist-theme .skill-bar-selected .sbar-arrow {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-arrow {
   display: none;
 }
 
@@ -7559,7 +7560,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   gap: 14px;
 }
 
-.elementalist-theme .skill-bar-inspection-group {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-group {
   display: grid;
   gap: 7px;
   width: 100%;
@@ -7568,7 +7569,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   background: transparent;
 }
 
-.elementalist-theme .skill-bar-inspection-label {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-label {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -7580,13 +7581,13 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   border-bottom: 1px solid var(--border);
 }
 
-.elementalist-theme .skill-bar-inspection-label::before {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-label::before {
   color: var(--inspection-color);
   font-size: 10px;
   content: '◆';
 }
 
-.elementalist-theme .skill-bar-inspection-skills {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-skills {
   justify-content: flex-start;
   gap: 8px;
   width: max-content;
@@ -7597,7 +7598,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   background: rgba(8, 10, 17, 0.72);
 }
 
-.elementalist-theme .skill-bar-inspection-slot .sbar-icon {
+:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-slot .sbar-icon {
   width: 52px;
   height: 52px;
   border-width: 2px;
@@ -7635,11 +7636,11 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     grid-column: auto;
   }
 
-  .elementalist-theme .skill-bar-selected {
+  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
     gap: 5px;
   }
 
-  .elementalist-theme .skill-bar-selected .sbar-icon {
+  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
     width: min(58px, 14vw);
     height: min(58px, 14vw);
   }
@@ -7783,108 +7784,8 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   display: none;
 }
 
-.profession-loadout-theme .equipped-skill-bar-column {
-  padding-left: 20px;
-  border-left: 1px solid var(--border);
-}
-
-.profession-loadout-theme .equipped-skill-bar-column .skill-bar {
-  align-content: start;
-  justify-content: stretch;
-}
-
-.profession-loadout-theme .skill-bar.has-inspection {
-  align-items: stretch;
-  gap: 16px;
-}
-
-.profession-loadout-theme .skill-bar-selected {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  width: 100%;
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-slot {
-  display: grid;
-  justify-items: center;
-  min-width: 0;
-}
-
-.profession-loadout-theme .skill-bar-selected .sbar-icon {
-  position: relative;
-  width: 62px;
-  height: 62px;
-  border-color: #313344;
-  border-radius: 5px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-slot.heal-border .sbar-icon {
-  border-color: #53a540;
-}
-
 .profession-loadout-theme .skill-bar-selected .skill-bar-slot.elite-border .sbar-icon {
   border-color: var(--accent);
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-key,
-.profession-loadout-theme .skill-bar-selected .skill-bar-type {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-key {
-  position: relative;
-  margin-top: 5px;
-  color: #c4c4cc;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-key::after {
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  width: 1px;
-  height: 5px;
-  background: var(--border-light);
-  content: '';
-}
-
-.profession-loadout-theme .skill-bar-selected .skill-bar-type {
-  margin-top: 7px;
-  padding-top: 5px;
-  color: #777785;
-  font-size: 9px;
-  letter-spacing: 0.6px;
-  line-height: 1;
-  text-transform: uppercase;
-  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-}
-
-.profession-loadout-theme .skill-bar-selected .sbar-icon-arrow {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  z-index: 2;
-  display: grid;
-  width: 17px;
-  height: 15px;
-  color: #e7e7ed;
-  font-size: 8px;
-  line-height: 1;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 3px;
-  background: rgba(5, 5, 10, 0.82);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  place-items: center;
-}
-
-.profession-loadout-theme .skill-bar-selected .sbar-arrow {
-  display: none;
 }
 
 .profession-loadout-theme .skill-bar-inspection.necromancer-shroud,
@@ -7896,49 +7797,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 }
 
 .profession-loadout-theme .skill-bar-inspection-group {
-  display: grid;
   justify-self: stretch;
-  gap: 7px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.profession-loadout-theme .skill-bar-inspection-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 4px 5px;
-  color: var(--inspection-color);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 11px;
-  letter-spacing: 0.7px;
-  border-bottom: 1px solid var(--border);
-}
-
-.profession-loadout-theme .skill-bar-inspection-label::before {
-  color: var(--inspection-color);
-  font-size: 10px;
-  content: '◆';
-}
-
-.profession-loadout-theme .skill-bar-inspection-skills {
-  justify-content: flex-start;
-  gap: 8px;
-  width: max-content;
-  max-width: 100%;
-  padding: 7px 9px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(8, 10, 17, 0.72);
-}
-
-.profession-loadout-theme .skill-bar-inspection-slot .sbar-icon {
-  width: 52px;
-  height: 52px;
-  border-width: 2px;
-  border-radius: 5px;
 }
 
 .profession-loadout-theme .engineer-amalgam-protocols .skill-bar-inspection-skills {
@@ -8040,15 +7899,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   .profession-loadout-theme .weapon-set-preview .wskill {
     width: min(46px, 13vw);
     height: min(46px, 13vw);
-  }
-
-  .profession-loadout-theme .skill-bar-selected {
-    gap: 5px;
-  }
-
-  .profession-loadout-theme .skill-bar-selected .sbar-icon {
-    width: min(58px, 14vw);
-    height: min(58px, 14vw);
   }
 }
 

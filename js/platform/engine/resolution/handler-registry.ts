@@ -88,27 +88,4 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
 
     return handler(context, event);
   }
-
-  /**
-   * Returns the registered handler map as `[type, handler]` tuples.
-   *
-   * @returns {[string, EventHandler<TContext, TEvent>][]}
-   */
-  entries(): Array<[string, EventHandler<TContext, TEvent>]> {
-    return [...this.#handlers.entries()];
-  }
-}
-
-/**
- * Convenience constructor for object-literal handler maps.
- *
- * @template TContext
- * @template {{type: string}} TEvent
- * @param {Readonly<Record<string, EventHandler<TContext, TEvent>>>} [entries]
- */
-export function createHandlerRegistry<TContext, TEvent extends { type: string }>(
-  entries: Readonly<Record<string, EventHandler<TContext, TEvent>>> = {}
-): HandlerRegistry<TContext, TEvent> {
-  const registry = new HandlerRegistry<TContext, TEvent>();
-  return registry.registerAll(entries);
 }

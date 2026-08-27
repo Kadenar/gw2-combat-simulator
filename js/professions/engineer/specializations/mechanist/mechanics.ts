@@ -1,14 +1,4 @@
-import { ENGINEER_INTERNAL_IDS as INTERNAL, ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-
-// The autonomous basic attack has no player-facing slot, so consumers identify
-// its packet through an internal mechanic ID instead of a selectable skill ID.
-export const ENGINEER_TRIGGERED_MECHANICS = Object.freeze({
-  [INTERNAL.MECH_BASIC_ATTACK]: Object.freeze({
-    coefficient: 0.84,
-    hits: 2,
-    interval: 1.575
-  })
-});
+import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 
 // Rounded Quickness animation durations measured from the mech's EVTC
 // activations; command recovery is applied separately before basic attacks resume.

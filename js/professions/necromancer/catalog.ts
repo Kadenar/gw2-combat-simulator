@@ -4,4 +4,3 @@ import { necromancerNativeModules } from './modules.js';
 
 export { NECROMANCER_NON_DPS_SKILL_NAMES };
 export const necromancerCatalog = assembleNativeApplicationCatalog(necromancerNativeModules);
-export const NECROMANCER_SKILLS = necromancerCatalog.skills;

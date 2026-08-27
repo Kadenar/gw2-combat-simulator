@@ -1,8 +1,7 @@
 /**
  * Timing primitives shared across the engine: the floating-point tolerance and
- * iteration safety cap used everywhere, plus the near-equality and
- * internal-cooldown-ready predicates the scheduler and resolver rely on for
- * float-safe timeline math.
+ * iteration safety cap used everywhere, plus the internal-cooldown-ready
+ * predicate the scheduler and resolver rely on for timeline math.
  */
 
 /**
@@ -17,19 +16,6 @@ export const EPSILON = 0.0001;
  * long rotations.
  */
 export const ACTION_SAFETY_LIMIT = 100_000;
-
-/**
- * Returns true when two timeline values should be treated as equal within the
- * engine's tolerance window.
- *
- * @param {number} left
- * @param {number} right
- * @param {number} [epsilon]
- * @returns {boolean}
- */
-export function nearlyEqual(left: number, right: number, epsilon = EPSILON): boolean {
-  return Math.abs(Number(left) - Number(right)) <= epsilon;
-}
 
 /**
  * Internal cooldowns remain active through their recorded boundary timestamp.

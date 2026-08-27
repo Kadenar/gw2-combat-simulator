@@ -31,10 +31,3 @@ export function criticalDamageMultiplier(ferocity: number): number {
   // Returns a factor (1.5 means 150%), unlike the percentage-form helper above.
   return criticalDamageMultiplierFromFerocity(Math.max(0, Number(ferocity)));
 }
-
-/** Calculates the expected critical multiplier from fraction-form chance and damage. */
-export function expectedCriticalMultiplier(chance: number, multiplier: number): number {
-  // Fraction-form companion to expectedCritMultiplier.
-  const normalizedChance = clamp(Number(chance), 0, 1);
-  return 1 + normalizedChance * (Number(multiplier) - 1);
-}

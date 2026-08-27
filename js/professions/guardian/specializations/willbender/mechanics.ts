@@ -1,8 +1,5 @@
 import type { GuardianWillbenderState } from '../../types.js';
 
-export const WILLBENDER_FLAME_DURATION = 5;
-export const WILLBENDER_FLAME_INTERVAL = 1;
-export const WILLBENDER_TRIGGER_HITS = 5;
 export const WILLBENDER_MAX_LETHAL_TEMPO = 5;
 
 // Tyrant's Momentum shortens the window (4 s vs 6 s) but raises the per-stack bonus,

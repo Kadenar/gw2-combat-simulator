@@ -69,13 +69,3 @@ export function spendCoreWarriorAdrenaline(context: WarriorCastContext, skill: W
   syncWarriorAdrenaline(context);
   return available;
 }
-
-/** Applies only Core Warrior resource semantics for callers that already selected the Core policy. */
-export function applyCoreWarriorSkillResource(context: WarriorCastContext, skill: WarriorSkill): number {
-  const spent = spendCoreWarriorAdrenaline(context, skill);
-  if (Number(skill.adrenalineGain || 0) > 0) {
-    gainCoreWarriorAdrenaline(context, Number(skill.adrenalineGain));
-  }
-
-  return spent;
-}

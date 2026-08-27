@@ -1,7 +1,7 @@
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotEngineerState } from '../state.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { isEngineerToolbeltSkill } from './traits.js';
@@ -86,5 +86,3 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
   // "dodge" cause lets downstream state subscribers (e.g. scrapper gyro checks) react post-dodge
   emitStateSnapshot(context, 'engineer', at, 'dodge', snapshotEngineerState(context.state.profession));
 }
-
-export const ENGINEER_DODGE_SKILL_ID = ID.DODGE;

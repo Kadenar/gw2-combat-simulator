@@ -15,15 +15,6 @@ const CHANT_OF_ACTION = Object.freeze({
 });
 const CHANT_OF_ACTION_BUFF = 76865;
 
-// ArcDPS has emitted multiple IDs for the same Paragon profession skills.
-// Normalize them before catalog lookup so the replay uses one stable identity.
-export const PARAGON_SKILL_ID_ALIASES = Object.freeze({
-  69297: 45252,
-  69433: 45252,
-  80252: 80203,
-  80263: 80203
-});
-
 /**
  * Reconstructs the Paragon opener from initial self-buffs when Bull's Charge
  * supplies a reliable combat-start anchor. Bull's Charge crosses EnterCombat

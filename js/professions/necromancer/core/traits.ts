@@ -238,14 +238,6 @@ export function targetIsChilled(context: NecromancerResolverContext, at: number)
   return Number(professionCoreState(context).targetChilledUntil || 0) > at;
 }
 
-export function usesRandomTraitProcs(context: NecromancerResolverContext): boolean {
-  return context.random?.stochastic === true;
-}
-
-export function rolledCritical(details: NecromancerResolverReactionDetails): boolean {
-  return details.hitContext?.critical?.didCrit === true;
-}
-
 // Taste for Blood uses generic buff reporting while profession-owned pools
 // preserve independent charge consumption for every affected recipient.
 function consumeTasteForBloodBuff(context: NecromancerResolverContext, recipient: string, at: number): boolean {

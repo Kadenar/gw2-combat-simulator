@@ -17,8 +17,6 @@ import { PARAGON_SKILL_MECHANICS } from './specializations/paragon/skills.js';
 import type { CatalogEntity, Skill, SkillId } from '../../platform/engine/types.js';
 import type { NativeAutoattackChains } from '../../platform/gw2/authoring/module-types.js';
 
-export const WARRIOR_NON_DPS_SKILL_NAMES = Object.freeze(new Set<string>());
-
 const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
   14372, // "Shake It Off!"
   14392, // Endure Pain

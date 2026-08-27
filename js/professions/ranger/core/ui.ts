@@ -39,13 +39,6 @@ export function rangerUiSpecialization(context: RangerUiContext): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
-export function rangerNamedSkillIds(names: readonly string[]): SkillId[] {
-  return names.flatMap((name) => {
-    const id = rangerCatalog.skillsByName.get(name)?.id;
-    return id == null ? [] : [id];
-  });
-}
-
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
   const state = rangerUiState(context);
   if (Array.isArray(state.activePetSkillIds)) {

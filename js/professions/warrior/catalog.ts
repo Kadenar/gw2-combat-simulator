@@ -2,4 +2,3 @@ import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/c
 import { warriorNativeModules } from './modules.js';
 
 export const warriorCatalog = assembleNativeApplicationCatalog(warriorNativeModules);
-export const WARRIOR_SKILLS = warriorCatalog.skills;

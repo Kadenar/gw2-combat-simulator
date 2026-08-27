@@ -5,5 +5,3 @@ export const elementalistCatalog = assembleNativeApplicationCatalog(
   elementalistNativeModules,
   ELEMENTALIST_NATIVE_CATALOG_OPTIONS
 );
-
-export const ELEMENTALIST_SKILLS = elementalistCatalog.skills;

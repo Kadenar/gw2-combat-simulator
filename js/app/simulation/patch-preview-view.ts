@@ -1,15 +1,7 @@
 import { skillBreakdownRows } from '../rotation/result/model.js';
+import { escapeHtml } from '../../platform/ui/shared/html.js';
 import type { PatchComparison, ProfessionAppState } from '../profession/types.js';
 import type { PatchOverviewEntry } from '../../platform/gw2/authoring/patches.js';
-
-function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function httpUrl(value: string | undefined): string | null {
   if (!value) return null;

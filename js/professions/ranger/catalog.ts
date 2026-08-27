@@ -1,10 +1,4 @@
-import { assembleNativeApplicationCatalog, nativeSkillRuntimeOwner } from '../../platform/gw2/authoring/catalog.js';
+import { assembleNativeApplicationCatalog } from '../../platform/gw2/authoring/catalog.js';
 import { rangerNativeModules } from './modules.js';
-import type { RangerSkill } from './types.js';
 
 export const rangerCatalog = assembleNativeApplicationCatalog(rangerNativeModules);
-export const RANGER_SKILLS = rangerCatalog.skills;
-
-export function rangerSkillRuntimeOwner(skill: RangerSkill): string {
-  return nativeSkillRuntimeOwner(rangerNativeModules, skill);
-}

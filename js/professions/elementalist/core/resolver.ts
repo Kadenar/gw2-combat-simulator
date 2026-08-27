@@ -232,10 +232,6 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
   }
 }
 
-export function recordElementalistResolvedEvent(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  context.resolved.push(event);
-}
-
 export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, name: string): void {
   context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
 }

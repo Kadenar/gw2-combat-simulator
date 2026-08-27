@@ -31,20 +31,3 @@ export class EvtcError extends LogAnalyzerError<EvtcErrorCode> {
     this.details = details;
   }
 }
-
-export interface SerializedEvtcError {
-  readonly code: EvtcErrorCode;
-  readonly message: string;
-  readonly details?: Readonly<Record<string, string | number | boolean>>;
-}
-
-export function serializeEvtcError(error: unknown): SerializedEvtcError {
-  if (error instanceof EvtcError) {
-    return { code: error.code, message: error.message, details: error.details };
-  }
-
-  return {
-    code: 'WORKER_ERROR',
-    message: error instanceof Error ? error.message : String(error)
-  };
-}

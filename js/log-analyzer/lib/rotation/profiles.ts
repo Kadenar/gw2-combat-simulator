@@ -203,11 +203,3 @@ export const ROTATION_PROFILES: readonly RotationProfessionProfile[] = Object.fr
     )
   )
 );
-
-const profilesById = new Map(
-  ROTATION_PROFILES.map((profile) => [`${profile.professionId}:${profile.specializationId}`, profile])
-);
-
-export function rotationProfile(professionId: string, specializationId: string): RotationProfessionProfile | null {
-  return profilesById.get(`${professionId}:${specializationId}`) || null;
-}

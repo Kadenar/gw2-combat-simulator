@@ -5,4 +5,3 @@ import { engineerNativeModules } from './modules.js';
 export { ENGINEER_GENERATED_SKILL_IDS };
 
 export const engineerCatalog = assembleNativeApplicationCatalog(engineerNativeModules);
-export const ENGINEER_SKILLS = engineerCatalog.skills;

@@ -1,4 +1,5 @@
 import type { SkillEffect } from '../../platform/engine/types.js';
+import { escapeHtml } from '../../platform/ui/shared/html.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringBalanceProfile,
@@ -54,15 +55,6 @@ let changedOnly = false;
 let dirty = false;
 let status = 'Loading live authoring metadata…';
 let statusKind: 'neutral' | 'success' | 'error' = 'neutral';
-
-function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function jsonHtml(value: unknown): string {
   return escapeHtml(JSON.stringify(value, null, 2));

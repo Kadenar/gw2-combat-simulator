@@ -1,6 +1,4 @@
 /** Owns equipment slots, prefixes, base attributes, and infusion constants used by build calculation. */
-import type { Gw2WeaponDataEntry } from '../types.js';
-
 export const GEAR_SLOTS = [
   'Helm',
   'Shoulders',
@@ -17,8 +15,6 @@ export const GEAR_SLOTS = [
   'Weapon1',
   'Weapon2'
 ];
-
-export const WEAPON_SLOTS = new Set(['Weapon1', 'Weapon2']);
 
 // GEAR_STATS[prefix][slot] → { stat: value, ... }
 export const GEAR_STATS = {
@@ -630,30 +626,6 @@ export const PREFIX_GROUPS = [
     )
   }
 ];
-
-// Returns the list of effective gear slots for attribute calculation.
-// For 2H weapons: Weapon1 is replaced by Weapon2H, Weapon2 is removed.
-// `weapons` is the build.weapons array, e.g. ['Staff'] or ['Sword','Dagger'].
-/** Returns effective gear slots after accounting for two-handed weapons. */
-export function getActiveGearSlots(
-  weapons: readonly string[],
-  weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>
-): string[] {
-  const mh = weapons?.[0] || '';
-  const is2H = weaponData?.[mh]?.wielding === '2h';
-  if (is2H) {
-    return GEAR_SLOTS.filter((s) => s !== 'Weapon2').map((s) => (s === 'Weapon1' ? 'Weapon2H' : s));
-  }
-
-  return [...GEAR_SLOTS];
-}
-
-// Maps effective slot names back to display slot names for gear assignment.
-// Weapon2H → Weapon1 (since it's the single weapon piece).
-/** Maps an effective attribute slot back to its build-facing gear slot. */
-export function effectiveSlotToGearSlot(effectiveSlot: string): string {
-  return effectiveSlot === 'Weapon2H' ? 'Weapon1' : effectiveSlot;
-}
 
 // ─── Base Stats (level 80) ────────────────────────────────────────────────────
 export const BASE_STATS = {

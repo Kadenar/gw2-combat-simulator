@@ -3921,7 +3921,7 @@ test('every profession page exposes JSON and EVTC rotation files', async () => {
   ];
 
   for (const page of pages) {
-    const html = await readFile(new URL(`../../${page}.html`, import.meta.url), 'utf8');
+    const html = await readFile(new URL(`../../dist/site/${page}.html`, import.meta.url), 'utf8');
 
     assert.match(
       html,
