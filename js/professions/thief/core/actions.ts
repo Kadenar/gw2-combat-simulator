@@ -1,7 +1,10 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefState, gainThiefInitiative } from './shared.js';
+import { gainThiefInitiative } from './shared.js';
 import type {
   ThiefCastContext,
   ThiefScheduledTask,
@@ -60,7 +63,7 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
     }
   }
 
-  emitThiefState(context, at, 'thieves-guild');
+  emitStateSnapshot(context, 'thief', at, 'thieves-guild', snapshotThiefState(context.state.profession));
 }
 
 export function handleThievesGuildAttack(
@@ -76,8 +79,7 @@ export function handleThievesGuildAttack(
   // Recurring summon attacks are separate activations; only the packets from
   // this attack share its sampled weapon strength and causal ownership.
   const activationId = context.createActivationId('summon-attack');
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'thief',
     sourceId: 'thief.thieves-guild',
@@ -102,8 +104,7 @@ export function handleThievesGuildAttack(
     activationId
   });
   for (const condition of attack.conditions || []) {
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: task.at,
       source: 'thief',
       sourceId: 'thief.thieves-guild',
@@ -137,7 +138,7 @@ export function expireThievesGuild(
   const state = professionCoreState(context);
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
     state.activeThievesGuild = null;
-    emitThiefState(context, task.at, 'thieves-guild-expired');
+    emitStateSnapshot(context, 'thief', task.at, 'thieves-guild-expired', snapshotThiefState(context.state.profession));
   }
 }
 
@@ -146,7 +147,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.kneeling = false;
-  emitThiefState(context, at, 'stand');
+  emitStateSnapshot(context, 'thief', at, 'stand', snapshotThiefState(context.state.profession));
   const inCombat =
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
@@ -163,12 +164,12 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
 
 export function kneel(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = true;
-  emitThiefState(context, context.effectiveEnd, 'kneel');
+  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'kneel', snapshotThiefState(context.state.profession));
 }
 
 export function stand(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = false;
-  emitThiefState(context, context.effectiveEnd, 'stand');
+  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'stand', snapshotThiefState(context.state.profession));
 }
 
 export function activateAssassinsSignet(context: ThiefCastContext): void {
@@ -179,5 +180,5 @@ export function activateAssassinsSignet(context: ThiefCastContext): void {
   state.assassinsSignetPassiveDisabledUntil = Number(
     context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );
-  emitThiefState(context, at, 'assassins-signet');
+  emitStateSnapshot(context, 'thief', at, 'assassins-signet', snapshotThiefState(context.state.profession));
 }

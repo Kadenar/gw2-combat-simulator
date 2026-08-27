@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
@@ -288,8 +289,7 @@ function initializeSoulbeastPetOwnership(context: RangerSchedulerContext): void 
 
 function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill): void {
   if (skill.id === ID.SIC_EM) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.start,
       source: 'ranger',
       sourceId: skill.id,

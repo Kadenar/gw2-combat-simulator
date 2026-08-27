@@ -1,3 +1,4 @@
+import { emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '../../../../platform/gw2/combat/state/targets.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
@@ -5,7 +6,7 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { requiredShroud } from '../../core/availability.js';
-import { emitDamage, gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
+import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
 import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
@@ -54,11 +55,13 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 
   if (skill.categories?.includes('Shout') && hasNecromancerTrait(context, TRAIT.AUGURY_OF_DEATH)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.auguryOfDeath), 'strike');
-    emitDamage(context, skill, 0, {
+    emitSkillDamage(context, skill, {
+      at: context.effectiveEnd,
       name: 'Augury of Death',
       source: 'Trait',
       sourceId: TRAIT.AUGURY_OF_DEATH,
       actorType: 'effect',
+      coefficient: 0,
       skillWeapon: 'Unequipped',
       metadata: {
         flatStrikeBase: Number(effect?.flatStrikeBase || 276),

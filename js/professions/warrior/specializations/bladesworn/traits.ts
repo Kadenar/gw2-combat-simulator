@@ -1,3 +1,9 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -43,8 +49,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
     traitId = TRAIT.UNSEEN_SWORD;
     profile = warriorBalanceProfile(context, PROFILE.unseenSword);
     const strike = warriorBalanceProfileEffect(profile, 'strike');
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'Trait',
       sourceId: traitId,
@@ -59,8 +64,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
     traitId = TRAIT.SHARP_AS_THE_WIND;
     profile = warriorBalanceProfile(context, PROFILE.sharpAsTheWind);
     const burning = warriorBalanceProfileEffect(profile, 'condition');
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'Trait',
       sourceId: traitId,
@@ -76,8 +80,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
     traitId = TRAIT.RIVERS_FLOW;
     profile = warriorBalanceProfile(context, PROFILE.riversFlow);
     const might = warriorBalanceProfileEffect(profile, 'boon');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: traitId,
@@ -102,8 +105,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   }
 
   state.traitPositiveFlowUntil = at + positiveFlowDuration;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Trait',
     sourceId: traitId,
@@ -182,8 +184,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   emitDragonTriggerEntry(context, skill);
   if (hasTrait(context, TRAIT.DRAGONSCALE_DEFENSE)) {
     const stability = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.dragonscaleDefense), 'boon');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.DRAGONSCALE_DEFENSE,
@@ -240,8 +241,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     flowSpent: state.dragonTriggerFlowSpent,
     adrenalineBarsSpent: adrenalineSpent / 10
   });
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: impactAt,
     skillId: skill.id,
     sourceId: skill.id,
@@ -254,8 +254,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     dragonChargesSpent: charges
   });
   if (hasTrait(context, TRAIT.UNYIELDING_DRAGON)) {
-    context.emit({
-      type: 'control',
+    emitSkillControl(context, {
       at: impactAt,
       skillId: skill.id,
       sourceId: TRAIT.UNYIELDING_DRAGON,
@@ -268,8 +267,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   }
 
   if (hasTrait(context, TRAIT.DARING_DRAGON)) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.DARING_DRAGON,
@@ -303,8 +301,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   const profile = warriorBalanceProfile(context, PROFILE.artillerySlash);
   const strike = warriorBalanceProfileEffect(profile, 'strike', charges >= 2 ? 1 : 0);
   const control = warriorBalanceProfileEffect(profile, 'control');
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
     sourceId: skill.id,
@@ -315,8 +312,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     skillWeapon: 'Gunsaber',
     damageKind: 'explosion'
   });
-  context.emit({
-    type: 'control',
+  emitSkillControl(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
     sourceId: skill.id,
@@ -574,8 +570,7 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
     burningDuration: Number(burning?.duration ?? (supercharged ? 5 : 3)),
     supercharged
   });
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Warrior',
     sourceId: ID.OVERCHARGED_CARTRIDGES,
@@ -700,8 +695,7 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
     state.fierceAsFireExpiries = state.fierceAsFireExpiries.filter((expiresAt) => expiresAt > at);
     state.fierceAsFireExpiries.push(...Array(roundsSpent).fill(at + duration));
     state.fierceAsFireExpiries = state.fierceAsFireExpiries.slice(-Number(profile?.maximumStacks ?? 10));
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.FIERCE_AS_FIRE,
@@ -768,8 +762,7 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
   }): void => {
     reloadBladeswornAmmo(context, at);
     bladeswornState.from(context).tacticalReloadUntil = at + 10;
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Warrior',
       sourceId: skill.id,
@@ -815,8 +808,9 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
     const remaining = Math.max(0, state.gunsAndGloryUntil - event.at);
     const duration = Math.min(Number(profile?.maximumStacks ?? 12), remaining + Number(profile?.resourceGain ?? 3));
     state.gunsAndGloryUntil = event.at + duration;
-    context.emitDerived(event, {
-      type: 'buff',
+    emitSkillBuff(context, {
+      cause: event,
+
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.GUNS_AND_GLORY,
@@ -837,8 +831,9 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
       'condition',
       cartridges.supercharged ? 1 : 0
     );
-    context.emitDerived(event, {
-      type: 'condition',
+    emitSkillCondition(context, {
+      cause: event,
+
       at: event.at,
       source: 'Warrior',
       sourceId: ID.OVERCHARGED_CARTRIDGES,

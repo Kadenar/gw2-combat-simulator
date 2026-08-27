@@ -1,3 +1,4 @@
+import { emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -62,8 +63,9 @@ export function handleDeadlyBladesCriticalTask(
   });
   if (!application) return;
 
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     name: 'Deadly Blades — Vulnerability',
     skillName: event.skillName,

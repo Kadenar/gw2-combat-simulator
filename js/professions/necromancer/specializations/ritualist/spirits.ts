@@ -1,4 +1,12 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { ritualistState } from './state.js';
+import { snapshotNecromancerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
@@ -10,10 +18,6 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
-  emitBuff,
-  emitCondition,
-  emitDamage,
-  emitState,
   gainNecromancerLifeForce,
   hasTrait,
   registerNecromancerCreatureStrikeMultiplier,
@@ -88,19 +92,18 @@ function applyRitualistCreatureSummonTraits(
 
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
   const explosive = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.explosiveGrowth), 'strike');
-  emitDamage(context, skill, Number(explosive?.coefficient || 1.2) * count, {
+  emitSkillDamage(context, skill, {
     at,
     name: 'Explosive Growth',
     source: 'Trait',
     sourceId: TRAIT.EXPLOSIVE_GROWTH,
     actorType: 'effect',
-    skillWeapon: 'Unequipped',
-    metadata: {
-      skillId: TRAIT.EXPLOSIVE_GROWTH,
-      skillName: 'Explosive Growth',
-      parentSkillName: skill.name,
-      triggeredBy: skill.name
-    }
+    skillId: TRAIT.EXPLOSIVE_GROWTH,
+    skillName: 'Explosive Growth',
+    parentSkillName: skill.name,
+    triggeredBy: skill.name,
+    coefficient: Number(explosive?.coefficient || 1.2) * count,
+    skillWeapon: 'Unequipped'
   });
 }
 
@@ -353,43 +356,39 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
   const boonOptions = {
     metadata: { recipients: 'party', maximumRecipients: 5 }
   };
-  emitBuff(
-    context,
-    skill,
-    String(quickness?.boon || 'quickness'),
-    Number(quickness?.duration || 3.75),
-    Number(quickness?.stacks || 1),
-    boonOptions
-  );
+  emitSkillBuff(context, skill, {
+    at: context.effectiveEnd,
+    kind: String(quickness?.boon || 'quickness'),
+    duration: Number(quickness?.duration || 3.75),
+    stacks: Number(quickness?.stacks || 1),
+    ...boonOptions
+  });
   const boonIndex = key === 'anguish' ? 1 : key === 'wanderlust' ? 2 : 3;
   const boon = balanceProfileEffect(profile, 'boon', boonIndex);
   if (key === 'anguish') {
-    emitBuff(
-      context,
-      skill,
-      String(boon?.boon || 'might'),
-      Number(boon?.duration || 10),
-      Number(boon?.stacks || 8),
-      boonOptions
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: String(boon?.boon || 'might'),
+      duration: Number(boon?.duration || 10),
+      stacks: Number(boon?.stacks || 8),
+      ...boonOptions
+    });
   } else if (key === 'wanderlust') {
-    emitBuff(
-      context,
-      skill,
-      String(boon?.boon || 'fury'),
-      Number(boon?.duration || 5),
-      Number(boon?.stacks || 1),
-      boonOptions
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: String(boon?.boon || 'fury'),
+      duration: Number(boon?.duration || 5),
+      stacks: Number(boon?.stacks || 1),
+      ...boonOptions
+    });
   } else if (key === 'preservation') {
-    emitBuff(
-      context,
-      skill,
-      String(boon?.boon || 'resolution'),
-      Number(boon?.duration || 4),
-      Number(boon?.stacks || 1),
-      boonOptions
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: String(boon?.boon || 'resolution'),
+      duration: Number(boon?.duration || 4),
+      stacks: Number(boon?.stacks || 1),
+      ...boonOptions
+    });
   }
 }
 
@@ -399,8 +398,7 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
   const duration = Number(
     balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.painfulBond), 'buff')?.duration || 10
   );
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'necromancer',
     sourceId: skill.id,
@@ -435,8 +433,8 @@ function emitAnguishInitial(
   spirit: SpiritDefinition,
   at: number
 ): void {
-  emitCondition(context, skill, 'Crippled', 1, 4, { at });
-  emitCondition(context, skill, 'Vulnerability', 8, 10, { at });
+  emitSkillCondition(context, skill, { at, condition: 'Crippled', stacks: 1, duration: 4 });
+  emitSkillCondition(context, skill, { at, condition: 'Vulnerability', stacks: 8, duration: 10 });
   const hitCount = Number(spirit.summonHits || 1);
   const hitDelays =
     spirit.summonHitDelays ||
@@ -446,11 +444,12 @@ function emitAnguishInitial(
     );
   emitPainfulBond(context, skill, at + Number(hitDelays[0] || 0));
   for (let index = 0; index < hitDelays.length; index += 1) {
-    emitDamage(context, skill, spirit.summonCoefficient / hitCount, {
+    emitSkillDamage(context, skill, {
       at: at + Number(hitDelays[index]),
       name: skill.name,
       source: 'Spirit',
       actorType: 'player',
+      coefficient: spirit.summonCoefficient / hitCount,
       metadata: spiritMetadata(context, 'anguish', 'initial', {
         anguishConditionalDamage: true,
         weaponStrength: spirit.summonWeaponStrength,
@@ -468,13 +467,15 @@ function emitWanderlustInitial(
   at: number
 ): void {
   // The player's own initial swing lands 0.72 s into the cast animation, before the spirit materialises
-  emitDamage(context, skill, spirit.summonCoefficient, {
+  emitSkillDamage(context, skill, {
     at: context.start + 0.72,
+    coefficient: spirit.summonCoefficient,
     skillWeapon: activePrimaryWeapon(context)
   });
   const fieldAt = at + Number(spirit.lingeringDelay || 0);
-  emitDamage(context, skill, Number(spirit.lingeringCoefficient || 0), {
+  emitSkillDamage(context, skill, {
     at: fieldAt,
+    coefficient: Number(spirit.lingeringCoefficient || 0),
     hits: Number(spirit.lingeringHits || 1),
     interval: Number(spirit.lingeringInterval || 0),
     name: 'Spirit of Wanderlust - Initial Attack',
@@ -482,23 +483,32 @@ function emitWanderlustInitial(
     actorType: 'player',
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
-  emitCondition(context, skill, 'Chilled', 1, 2, { at: fieldAt });
-  emitCondition(context, skill, 'Vulnerability', 4, 6, {
+  emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
+  emitSkillCondition(context, skill, {
     at: fieldAt,
     source: 'Spirit',
     actorType: 'player',
+    condition: 'Vulnerability',
+    stacks: 4,
+    duration: 6,
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
-  emitCondition(context, skill, 'Weakness', 1, 4, {
+  emitSkillCondition(context, skill, {
     at: fieldAt + 2,
     source: 'Spirit',
     actorType: 'player',
+    condition: 'Weakness',
+    stacks: 1,
+    duration: 4,
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
-  emitCondition(context, skill, 'Slow', 1, 2, {
+  emitSkillCondition(context, skill, {
     at: fieldAt + 3,
     source: 'Spirit',
     actorType: 'player',
+    condition: 'Slow',
+    stacks: 1,
+    duration: 2,
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
 }
@@ -522,7 +532,9 @@ function summonSpirit(
     state.pendingSoulTwistSkill = skill.id;
   }
 
-  emitState(context, at, 'spirit-summoned');
+  emitStateSnapshot(context, 'necromancer', at, 'spirit-summoned', snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
   runCreatureSummonReactions(context, skill, at);
   emitEmpoweringSpirits(context, skill, spirit.key);
 
@@ -534,8 +546,8 @@ function summonSpirit(
     const boonOptions = {
       metadata: { recipients: 'party', maximumRecipients: 5 }
     };
-    emitBuff(context, skill, 'protection', 4, 1, boonOptions);
-    emitBuff(context, skill, 'vigor', 4, 1, boonOptions);
+    emitSkillBuff(context, skill, { at, kind: 'protection', duration: 4, stacks: 1, ...boonOptions });
+    emitSkillBuff(context, skill, { at, kind: 'vigor', duration: 4, stacks: 1, ...boonOptions });
   }
 
   queueSpiritAutoattacks(context, skill, spirit, at);
@@ -549,8 +561,9 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
     // Spirits still in their initial-attack window cannot participate in Summon Spirits
     if (!state.activeSpirits[spirit.key] || Number(state.spiritInitialUntil[spirit.key] || 0) > at) continue;
     if (spirit.activeCoefficient > 0 && spirit.activeHits > 0) {
-      emitDamage(context, skill, spirit.activeCoefficient, {
+      emitSkillDamage(context, skill, {
         at: at + spirit.activeDelay,
+        coefficient: spirit.activeCoefficient,
         hits: spirit.activeHits,
         interval: spirit.activeInterval,
         name: skill.name,
@@ -566,8 +579,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
     }
 
     if (spirit.key === 'wanderlust') {
-      context.emit({
-        type: 'control',
+      emitSkillControl(context, {
         at: at + spirit.activeDelay,
         source: 'Spirit',
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
@@ -586,7 +598,9 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
     );
   }
 
-  emitState(context, at, 'summon-spirits');
+  emitStateSnapshot(context, 'necromancer', at, 'summon-spirits', snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
 }
 
 function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -597,8 +611,9 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
     const essence = skill.effects?.find((effect) => effect.type === 'strike');
     // Impact lands at 14/15 of the way through the cast window (observed from EVTC timing)
     const impactAt = context.start + (context.fullEnd - context.start) * (14 / 15);
-    emitDamage(context, skill, Number(essence?.coefficient || 0.75), {
+    emitSkillDamage(context, skill, {
       at: impactAt,
+      coefficient: Number(essence?.coefficient || 0.75),
       skillWeapon: activePrimaryWeapon(context),
       metadata: {
         activeSpirits: spirits,
@@ -626,10 +641,12 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
   if (skill.id === ID.INNERVATE_ANGUISH) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const boons = skill.effects?.filter((effect) => effect.type === 'boon') || [];
-    emitDamage(context, skill, Number(strike?.coefficient || 1.3), {
+    emitSkillDamage(context, skill, {
+      at,
       source: 'Spirit',
       actorType: 'player',
       skillWeapon: 'Profession mechanic',
+      coefficient: Number(strike?.coefficient || 1.3),
       metadata: {
         summonKind: 'spirit',
         summonOwner: 'spirit:anguish',
@@ -641,18 +658,16 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       metadata: { recipients: 'party', maximumRecipients: 5 }
     };
     for (const boon of boons) {
-      emitBuff(
-        context,
-        skill,
-        String(boon.boon || ''),
-        Number(boon.duration || 0),
-        Number(boon.stacks || 1),
-        boonOptions
-      );
+      emitSkillBuff(context, skill, {
+        at,
+        kind: String(boon.boon || ''),
+        duration: Number(boon.duration || 0),
+        stacks: Number(boon.stacks || 1),
+        ...boonOptions
+      });
     }
   } else if (skill.id === ID.INNERVATE_WANDERLUST) {
-    context.emit({
-      type: 'control',
+    emitSkillControl(context, {
       at,
       source: 'Spirit',
       sourceId: skill.id,
@@ -667,15 +682,17 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
     const boonOptions = {
       metadata: { recipients: 'party', maximumRecipients: 5 }
     };
-    emitBuff(context, skill, 'aegis', 3, 1, boonOptions);
-    emitBuff(context, skill, 'resistance', 4, 1, boonOptions);
-    emitBuff(context, skill, 'stability', 5, 1, boonOptions);
+    emitSkillBuff(context, skill, { at, kind: 'aegis', duration: 3, stacks: 1, ...boonOptions });
+    emitSkillBuff(context, skill, { at, kind: 'resistance', duration: 4, stacks: 1, ...boonOptions });
+    emitSkillBuff(context, skill, { at, kind: 'stability', duration: 5, stacks: 1, ...boonOptions });
   } else {
     return false;
   }
 
   gainNecromancerLifeForce(context, 10, at);
-  emitState(context, at, 'innervate');
+  emitStateSnapshot(context, 'necromancer', at, 'innervate', snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
   return true;
 }
 

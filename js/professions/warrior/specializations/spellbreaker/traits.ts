@@ -1,3 +1,4 @@
+import { emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2RechargeRate } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -96,8 +97,9 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
       ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
     ) {
       const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.noEscape), 'condition');
-      context.emitDerived(event, {
-        type: 'condition',
+      emitSkillCondition(context, {
+        cause: event,
+
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.NO_ESCAPE,

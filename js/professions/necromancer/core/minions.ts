@@ -1,4 +1,7 @@
+import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 /**
  * Minion summon and command handlers.
  *
@@ -16,11 +19,7 @@ import {
   necromancerBalanceProfile
 } from './profiles.js';
 import {
-  emitCondition,
-  emitControl,
   runCreatureSummonReactions,
-  emitDamage,
-  emitState,
   gainNecromancerLifeForce,
   hasTrait,
   necromancerCreatureStrikeMultiplier
@@ -432,7 +431,14 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
     context.state.cooldowns.delete(skill.id);
   }
 
-  emitState(context, context.effectiveEnd, 'minion-summoned');
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    context.effectiveEnd,
+    'minion-summoned',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
   runCreatureSummonReactions(context, skill, context.effectiveEnd, definition.count);
   queueSummonAttacks(context, skill, definition, context.effectiveEnd);
   return true;
@@ -448,10 +454,11 @@ function emitMinionCommandEffects(
 ): void {
   const minion = minionDefinitionFor(context, definition.minion);
   if (Number(definition.coefficient || 0) > 0) {
-    emitDamage(context, skill, Number(definition.coefficient), {
+    emitSkillDamage(context, skill, {
       at,
       source: 'Minion',
       actorType: 'summon',
+      coefficient: Number(definition.coefficient),
       metadata: {
         summonKind: 'minion',
         ...summonStrikeMetadata(context, minion)
@@ -460,26 +467,32 @@ function emitMinionCommandEffects(
   }
 
   if (definition.condition) {
-    emitCondition(
-      context,
-      skill,
-      String(definition.condition[0]),
-      Number(definition.condition[1]),
-      Number(definition.condition[2]),
-      { at, source: 'Minion', actorType: 'summon' }
-    );
+    emitSkillCondition(context, skill, {
+      at,
+      source: 'Minion',
+      actorType: 'summon',
+      condition: String(definition.condition[0]),
+      stacks: Number(definition.condition[1]),
+      duration: Number(definition.condition[2])
+    });
   }
 
   for (const condition of definition.conditions || []) {
-    emitCondition(context, skill, String(condition[0]), Number(condition[1]), Number(condition[2]), {
+    emitSkillCondition(context, skill, {
       at,
       source: 'Minion',
-      actorType: 'summon'
+      actorType: 'summon',
+      condition: String(condition[0]),
+      stacks: Number(condition[1]),
+      duration: Number(condition[2])
     });
   }
 
   if (definition.control && definition.control !== 'blind') {
-    emitControl(context, skill, definition.control);
+    emitSkillControl(context, skill, {
+      at: context.effectiveEnd,
+      controlKind: definition.control
+    });
   }
 
   if (definition.control === 'blind') {
@@ -578,7 +591,14 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
     professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
   }
 
-  emitState(context, context.effectiveEnd, 'minion-command');
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    context.effectiveEnd,
+    'minion-command',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
   return true;
 }
 
@@ -606,20 +626,22 @@ function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill)
   for (let index = 0; index < Number(skill.summons || 0); index += 1) {
     const summonAt = start + index * Number(skill.summonInterval || 0);
     runCreatureSummonReactions(context, skill, summonAt);
-    emitDamage(context, skill, Number(attack?.coefficient || 0), {
+    emitSkillDamage(context, skill, {
       at: summonAt + Number(attack?.atMs || 0) / 1000,
       name: String(attack?.name || 'Unstable Horror - Attack'),
       source: 'Minion',
       sourceId: `unstable-horror.${index}`,
       actorType: 'summon',
+      coefficient: Number(attack?.coefficient || 0),
       metadata: { summonKind: 'minion' }
     });
-    emitDamage(context, skill, Number(explosion?.coefficient || 0), {
+    emitSkillDamage(context, skill, {
       at: summonAt + Number(explosion?.atMs || 0) / 1000,
       name: String(explosion?.name || 'Unstable Horror - Explosion'),
       source: 'Minion',
       sourceId: `unstable-horror.${index}`,
       actorType: 'summon',
+      coefficient: Number(explosion?.coefficient || 0),
       metadata: { summonKind: 'minion' }
     });
   }

@@ -11,7 +11,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js'
 import { thiefCoreCastAvailability } from './availability.js';
 import { advanceThiefCoreResources, completeThiefCoreResources, spendThiefCoreResources } from './resources.js';
 import { hasThiefTrait } from './state.js';
-import { snapshotThiefState } from '../state.js';
+import { snapshotThiefState } from './state.js';
 import { updateThiefTraitCastState } from './traits.js';
 import { updateThiefWeaponState } from './weapon-state.js';
 import { thiefCoreTaskHandlers } from './tasks.js';

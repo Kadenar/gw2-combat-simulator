@@ -1,3 +1,4 @@
+import { emitSkillControl } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext } from '../../types.js';
@@ -53,8 +54,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
     } else if (skill.name === 'Flowing Finesse' && element === 'Air') {
       emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', 'Superspeed', 1, 4, skill.name, skill.id);
     } else if (skill.name === 'Enervating Earth' && element === 'Air') {
-      context.emit({
-        type: 'control',
+      emitSkillControl(context, {
         at,
         source: skill.name,
         sourceId: skill.id,

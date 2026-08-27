@@ -1,7 +1,9 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { thiefPlayerEvent } from '../../core/rules.js';
 import { specterCastAvailability } from './availability.js';
 import { advanceSpecterResources, spendSpecterResources } from './shroud.js';
@@ -10,7 +12,6 @@ import { handleDarkSentry, handleLarcenousTorment, observeSpecterEvent } from '.
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
-import { emitThiefState } from '../../core/shared.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { ThiefSchedulerContext } from '../../types.js';
 
@@ -25,7 +26,13 @@ export const specterSchedulerHooks = Object.freeze({
       const state = specterState.from(context);
       state.shadowForce = state.maximumShadowForce;
       state.shadowForceUpdatedAt = context.state.time;
-      emitThiefState(context, context.state.time, 'cooldown-reset');
+      emitStateSnapshot(
+        context,
+        'thief',
+        context.state.time,
+        'cooldown-reset',
+        snapshotThiefState(context.state.profession)
+      );
     }
   },
   onEventScheduled: {

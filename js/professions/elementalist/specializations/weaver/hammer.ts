@@ -1,9 +1,10 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext } from '../../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../core/state.js';
 import { activeHammerOrbElements } from '../../core/hammer.js';
-import { activeBuffEvents, emitBuff, skillWeapon } from '../../core/mechanics.js';
+import { activeBuffEvents, skillWeapon } from '../../core/mechanics.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceValue
@@ -35,7 +36,16 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
     state.hammerOrbActivationIds[element] = context.reservationId;
     state.hammerOrbBuffUntil[element] = at + orbDuration;
     if (!previouslyActive.has(element)) {
-      emitBuff(context, at, `Hammer ${element} Orb`, 1, orbDuration, skill.name, skill.id);
+      emitSkillBuff(context, skill, {
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: `hammer ${element.toLowerCase()} orb`,
+        stacks: 1,
+        duration: orbDuration,
+        skillName: skill.name
+      });
     }
   }
 

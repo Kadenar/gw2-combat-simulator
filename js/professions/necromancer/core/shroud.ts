@@ -1,4 +1,7 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 /**
  * Shroud entry/exit and Lich Form handlers.
  *
@@ -16,15 +19,7 @@ import {
   necromancerBalanceProfile
 } from './profiles.js';
 import { advanceNecromancerState, leaveShroud } from './life-force.js';
-import {
-  addCarapace,
-  emitBuff,
-  emitCondition,
-  emitDamage,
-  emitState,
-  gainNecromancerLifeForce,
-  hasTrait
-} from './shared.js';
+import { addCarapace, gainNecromancerLifeForce, hasTrait } from './shared.js';
 import { runNecromancerShroudEnter } from './shroud-lifecycle.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 
@@ -73,52 +68,64 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   runNecromancerShroudEnter(context, skill, at);
 
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
-    emitBuff(context, skill, 'necromancer-soul-barbs', 15);
+    emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
   }
 
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    emitBuff(context, skill, 'might', 5, 5);
+    emitSkillBuff(context, skill, { at, kind: 'might', duration: 5, stacks: 5 });
   }
 
   if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-    emitBuff(context, skill, 'fury', 8);
+    emitSkillBuff(context, skill, { at, kind: 'fury', duration: 8, stacks: 1 });
   }
 
   if (hasTrait(context, TRAIT.SPEED_OF_SHADOWS)) {
-    emitBuff(context, skill, 'swiftness', 10);
+    emitSkillBuff(context, skill, { at, kind: 'swiftness', duration: 10, stacks: 1 });
   }
 
   if (hasTrait(context, TRAIT.ETERNAL_LIFE)) {
-    emitBuff(context, skill, 'protection', 3);
+    emitSkillBuff(context, skill, { at, kind: 'protection', duration: 3, stacks: 1 });
   }
 
   if (hasTrait(context, TRAIT.WEAKENING_SHROUD)) {
-    emitDamage(context, skill, 1.5, {
+    emitSkillDamage(context, skill, {
+      at,
       name: 'Weakening Shroud',
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,
       actorType: 'effect',
+      coefficient: 1.5,
       skillWeapon: 'Unequipped'
     });
-    emitCondition(context, skill, 'Bleeding', 2, 10, {
+    emitSkillCondition(context, skill, {
+      at,
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,
-      actorType: 'effect'
+      actorType: 'effect',
+      condition: 'Bleeding',
+      stacks: 2,
+      duration: 10
     });
-    emitCondition(context, skill, 'Weakness', 1, 6, {
+    emitSkillCondition(context, skill, {
+      at,
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,
-      actorType: 'effect'
+      actorType: 'effect',
+      condition: 'Weakness',
+      stacks: 1,
+      duration: 6
     });
   }
 
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
     const strike = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.spitefulSpirit), 'strike');
-    emitDamage(context, skill, Number(strike?.coefficient || 0), {
+    emitSkillDamage(context, skill, {
+      at,
       name: 'Spiteful Spirit',
       source: 'Trait',
       sourceId: TRAIT.SPITEFUL_SPIRIT,
       actorType: 'effect',
+      coefficient: Number(strike?.coefficient || 0),
       skillWeapon: 'Unequipped'
     });
   }
@@ -133,7 +140,9 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     shroudSwap: true,
     specialization
   });
-  emitState(context, at, 'shroud-enter');
+  emitStateSnapshot(context, 'necromancer', at, 'shroud-enter', snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
   return true;
 }
 
@@ -156,13 +165,17 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     state.lichEndsAt = at + 20;
     state.lastResourceAt = at;
     state.availableFlips[ID.EXIT_LICH_FORM] = state.lichEndsAt;
-    emitState(context, at, 'lich-enter');
+    emitStateSnapshot(context, 'necromancer', at, 'lich-enter', snapshotNecromancerState(context.state.profession), {
+      dedupeAcrossSourceIds: true
+    });
   } else {
     state.activeShroud = '';
     state.lichEndsAt = 0;
     delete state.availableFlips[ID.EXIT_LICH_FORM];
     gainNecromancerLifeForce(context, 15, at);
-    emitState(context, at, 'lich-exit');
+    emitStateSnapshot(context, 'necromancer', at, 'lich-exit', snapshotNecromancerState(context.state.profession), {
+      dedupeAcrossSourceIds: true
+    });
   }
 
   return true;

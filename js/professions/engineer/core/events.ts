@@ -1,26 +1,12 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { applyEngineerDerivedCondition, queueDamage } from './shared.js';
-import { snapshotEngineerState } from '../state.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerSchedulerContext,
   EngineerSkill
 } from '../types.js';
-
-// state snapshot is embedded in the event so the resolver can apply it without re-reading scheduler memory
-export function emitEngineerState(context: EngineerSchedulerContext, at: number, reason: string): void {
-  context.emit({
-    type: 'engineer.state',
-    at,
-    source: 'engineer',
-    sourceId: `engineer.state.${reason}`,
-    actorType: 'player',
-    reason,
-    state: snapshotEngineerState(context.state.profession)
-  });
-}
 
 // kit equip/stow is treated as a weapon bar swap by the sigil system — must emit sigil_swap (not a custom type)
 export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {

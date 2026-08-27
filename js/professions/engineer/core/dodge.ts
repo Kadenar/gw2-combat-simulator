@@ -1,7 +1,8 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasEngineerTrait } from './state.js';
-import { emitEngineerState } from './events.js';
 import { isEngineerToolbeltSkill } from './traits.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
@@ -84,7 +85,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
   }
 
   // "dodge" cause lets downstream state subscribers (e.g. scrapper gyro checks) react post-dodge
-  emitEngineerState(context, at, 'dodge');
+  emitStateSnapshot(context, 'engineer', at, 'dodge', snapshotEngineerState(context.state.profession));
 }
 
 export const ENGINEER_DODGE_SKILL_ID = ID.DODGE;

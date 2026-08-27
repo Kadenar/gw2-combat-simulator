@@ -1,7 +1,8 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../../types.js';
-import { emitElementalistBuff, emitElementalistProc } from '../../core/mechanics.js';
+import { elementalistEventSkill, emitElementalistProc } from '../../core/mechanics.js';
 import { elementalistBalanceEffect, elementalistBalanceValue } from '../../core/profiles.js';
 import { applyEvokerAttunementRechargePolicy } from './attunements.js';
 import { emitElectricEnchantment } from './enchantments.js';
@@ -20,15 +21,17 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   ) {
     state.ignitePassiveReadyAt = event.at + elementalistBalanceValue(context, PROFILE.ignite, 'pulseInterval', 1);
     const might = elementalistBalanceEffect(context, PROFILE.evocation, 'boon', 'Fire Familiar');
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      String(might?.boon || 'Might'),
-      Number(might?.stacks ?? 1),
-      Number(might?.duration ?? 6),
-      'Fire Familiar',
-      event.skillId ?? event.sourceId
-    );
+    const sourceId = event.skillId ?? event.sourceId;
+    emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
+      at: event.at,
+      source: 'Fire Familiar',
+      sourceId,
+      actorType: 'player',
+      kind: String(might?.boon || 'Might').toLowerCase(),
+      stacks: Number(might?.stacks ?? 1),
+      duration: Number(might?.duration ?? 6),
+      skillName: 'Fire Familiar'
+    });
   }
 
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {

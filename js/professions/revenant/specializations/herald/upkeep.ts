@@ -1,8 +1,9 @@
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
-import { emitRevenantBoon } from '../../core/boons.js';
-import { emitRevenantState } from '../../core/shared.js';
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { snapshotRevenantState } from '../../state.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
@@ -46,8 +47,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
   const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'quickness'), baseDuration);
 
   // Emit one self-affecting party boon and reserve the next legal pulse so threshold re-entry cannot bypass the ICD.
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'revenant',
     sourceId: TRAIT.ELEVATED_COMPASSION,
@@ -58,7 +58,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     kind: String(effect.boon || 'quickness'),
     duration,
     stacks: Math.max(1, Number(effect.stacks || 1)),
-    recipients: effect.recipients || 'party'
+    recipients: String(effect.recipients || 'party')
   });
 
   const cooldown = Math.max(context.epsilon, Number(profile.cooldown || 0));
@@ -120,7 +120,7 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
   }
 
-  emitRevenantState(context, at, 'facet-consumed');
+  emitStateSnapshot(context, 'revenant', at, 'facet-consumed', snapshotRevenantState(context.state.profession));
 }
 
 export function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: string): SkillId | undefined {
@@ -163,8 +163,12 @@ export function handleHeraldFacetPulse(
   const pulse = skill?.upkeepPulse as
     { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
   if (!skill || !pulse) return;
-  emitRevenantBoon(context, skill, pulse.kind, pulse.duration, pulse.stacks, {
+  emitSkillBuff(context, skill, {
     at: task.at,
+    name: `${skill.name} — ${pulse.kind}`,
+    kind: pulse.kind,
+    duration: pulse.duration,
+    stacks: pulse.stacks,
     recipients: 'party'
   });
   context.tasks.schedule({

@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
 import { gainThiefInitiative } from '../../core/shared.js';
@@ -19,45 +20,50 @@ export function deadeyeStealthAttackMaliceBonus(context: ThiefCastContext): numb
   return initialDeadeyeMalice(context);
 }
 
-export function emitDeadeyeBoon(
-  context: ThiefEmissionContext,
+/** Applies the malice-scaled condition owned by Malicious Ashen Assault. */
+export function applyMaliciousAshenAssaultCondition(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
   at: number,
-  boon: string,
-  duration: number,
-  stacks = 1,
-  source = 'Deadeye',
-  party = false
+  malice: number
 ): void {
-  const sourceSkill =
-    context.skill || ({ id: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`, name: source } as ThiefSkill);
-  context.emit({
-    type: 'buff',
+  if (malice <= 0) return;
+  const profile = thiefBalanceProfile(context, PROFILE.maliciousAshenAssault);
+  const torment = thiefBalanceProfileEffect(profile, 'condition');
+  emitSkillCondition(context, {
     at,
     source: 'Trait',
-    sourceId: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`,
     actorType: 'player',
-    skillId: context.skill?.id,
-    skillName: context.skill?.name,
-    name: `${source} — ${boon}`,
-    kind: boon.toLowerCase(),
-    boon,
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
-    stacks,
-    ...(party ? { recipients: 'party', maximumRecipients: 5 } : {})
+    skillId: context.skill?.id ?? null,
+    skillName: context.skill?.name ?? null,
+    condition: String(torment?.condition || 'Torment'),
+    duration: Number(torment?.duration || 0.5) + malice * Number(profile?.durationMultiplier || 0.5),
+    stacks: Number(torment?.stacks || 1),
+    sourceId: skill.id,
+    name: 'Malicious Ashen Assault — Torment'
   });
 }
 
 export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): void {
   if (!hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
   const quickness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled), 'boon');
-  emitDeadeyeBoon(
-    context,
+  const boon = String(quickness?.boon || 'Quickness');
+  const source = 'Be Quick or Be Killed';
+  const sourceId = `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`;
+  const sourceSkill = context.skill || ({ id: sourceId, name: source } as ThiefSkill);
+  emitSkillBuff(context, {
     at,
-    String(quickness?.boon || 'Quickness'),
-    Number(quickness?.duration || 4),
-    Number(quickness?.stacks || 1),
-    'Be Quick or Be Killed'
-  );
+    source: 'Trait',
+    sourceId,
+    actorType: 'player',
+    skillId: context.skill?.id ?? null,
+    skillName: context.skill?.name ?? null,
+    name: `${source} — ${boon}`,
+    kind: boon.toLowerCase(),
+    boon,
+    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, Number(quickness?.duration || 4)),
+    stacks: Number(quickness?.stacks || 1)
+  });
 }
 
 // Apply Deadeye traits triggered by consuming a stolen skill at its committed
@@ -66,15 +72,25 @@ export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: num
   if (!hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
   const profile = thiefBalanceProfile(context, PROFILE.fireForEffect);
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
-    emitDeadeyeBoon(
-      context,
+    const boon = String(effect.boon || effect.kind || '');
+    const source = 'Fire for Effect';
+    const sourceId = `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`;
+    const sourceSkill = context.skill || ({ id: sourceId, name: source } as ThiefSkill);
+    emitSkillBuff(context, {
       at,
-      String(effect.boon || effect.kind || ''),
-      Number(effect.duration || 12),
-      Number(effect.stacks || 1),
-      'Fire for Effect',
-      true
-    );
+      source: 'Trait',
+      sourceId,
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
+      name: `${source} — ${boon}`,
+      kind: boon.toLowerCase(),
+      boon,
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, Number(effect.duration || 12)),
+      stacks: Number(effect.stacks || 1),
+      recipients: 'party',
+      maximumRecipients: 5
+    });
   }
 }
 
@@ -93,13 +109,22 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
   const profile = thiefBalanceProfile(context, PROFILE.maleficentSeven);
   gainThiefInitiative(context, Number(profile?.resourceGain || 7), at, 'maleficent-seven');
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
-    emitDeadeyeBoon(
-      context,
+    const boon = String(effect.boon || effect.kind || '');
+    const source = 'Maleficent Seven';
+    const sourceId = `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`;
+    const sourceSkill = context.skill || ({ id: sourceId, name: source } as ThiefSkill);
+    emitSkillBuff(context, {
       at,
-      String(effect.boon || effect.kind || ''),
-      Number(effect.duration || 0),
-      Number(effect.stacks || 1),
-      'Maleficent Seven'
-    );
+      source: 'Trait',
+      sourceId,
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
+      name: `${source} — ${boon}`,
+      kind: boon.toLowerCase(),
+      boon,
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, Number(effect.duration || 0)),
+      stacks: Number(effect.stacks || 1)
+    });
   }
 }

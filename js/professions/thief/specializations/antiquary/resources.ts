@@ -1,7 +1,9 @@
 import { antiquaryState } from './state.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { hasThiefTrait } from '../../core/state.js';
-import { emitThiefState, gainThiefInitiative } from '../../core/shared.js';
+import { gainThiefInitiative } from '../../core/shared.js';
 import { pilferArtifacts } from './artifacts.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
 import { thiefBalanceProfile } from '../../core/profiles.js';
@@ -38,7 +40,7 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
     }
   }
 
-  emitThiefState(context, target, 'resources');
+  emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));
 }
 
 export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefSkill): void {

@@ -1,5 +1,7 @@
 import { vindicatorState } from './state.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from '../../state.js';
 /**
  * Revenant dodge execution.
  *
@@ -7,10 +9,9 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  * state, and emits the selected dodge replacement's delayed strike from the
  * immutable profile in this specialization's mechanics module.
  */
-import { emitRevenantState } from '../../core/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
-import { emitRevenantBoon } from '../../core/boons.js';
+import { emitSkillBuff, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
@@ -69,19 +70,20 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   if (songOfArboreum) {
     const vigor = enduranceProfile?.effects?.find((candidate) => candidate.type === 'boon');
     if (vigor) {
-      emitRevenantBoon(
-        context,
-        skill,
-        String(vigor.boon || 'vigor'),
-        Number(vigor.duration || 0),
-        Number(vigor.stacks || 1),
-        { at, sourceId: TRAIT.SONG_OF_ARBOREUM }
-      );
+      const kind = String(vigor.boon || 'vigor');
+      emitSkillBuff(context, skill, {
+        at,
+        sourceId: TRAIT.SONG_OF_ARBOREUM,
+        name: `${skill.name} — ${kind}`,
+        kind,
+        duration: Number(vigor.duration || 0),
+        stacks: Number(vigor.stacks || 1)
+      });
     }
   }
 
   // State snapshot carries endurance value to the resolver; must come after all mutations above.
-  emitRevenantState(context, at, 'energy-meld');
+  emitStateSnapshot(context, 'revenant', at, 'energy-meld', snapshotRevenantState(context.state.profession));
 }
 
 /** Toggles the active Luxon/Kurzick Alliance skill side. */
@@ -90,7 +92,7 @@ export function switchAllianceTactics(context: RevenantCastContext): void {
   const at = context.effectiveEnd;
   state.allianceSide = state.allianceSide === 'luxon' ? 'kurzick' : 'luxon';
   // State snapshot propagates the new side to the resolver for availability checks.
-  emitRevenantState(context, at, 'alliance-tactics');
+  emitStateSnapshot(context, 'revenant', at, 'alliance-tactics', snapshotRevenantState(context.state.profession));
 }
 
 /** Emits the configured Vindicator dodge replacement at cast completion. */
@@ -112,8 +114,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
   const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
   // Capture forerunner state before the Death Drop below may extend it for this same hit.
   const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'revenant',
     sourceId: skill.id,
@@ -136,8 +137,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     const duration = Math.max(0, Number(forerunnerEffect?.duration));
     // Forerunner window is set after the damage event is emitted; the current hit benefits from the old window.
     state.forerunnerOfDeathUntil = at + duration;
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'revenant',
       sourceId: TRAIT.FORERUNNER_OF_DEATH,
@@ -151,5 +151,11 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     });
   }
 
-  emitRevenantState(context, at, 'vindicator-dodge-impact');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    at,
+    'vindicator-dodge-impact',
+    snapshotRevenantState(context.state.profession)
+  );
 }

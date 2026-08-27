@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { firebrandState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
@@ -182,8 +183,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       skill.tome === 'justice' ? 0 : skill.tome === 'resolve' ? 1 : 2
     );
     if (boon) {
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.effectiveEnd,
         source: 'guardian',
         sourceId: GUARDIAN_TRAIT_IDS.LEGENDARY_LORE,
@@ -210,8 +210,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     state.ashesBurnDuration = Number(burn?.duration || 2);
     state.ashesNextTriggerAt = at;
     state.ashesExpiresAt = at + ashesDuration;
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'guardian',
       sourceId: skill.id,
@@ -225,8 +224,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       recipients: 'party',
       recipientCount: party.count + 1
     });
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'guardian',
       sourceId: skill.id,
@@ -248,8 +246,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
-      context.emit({
-        type: 'condition',
+      emitSkillCondition(context, {
         at: proc.at,
         source: 'guardian',
         sourceId: 'guardian.ashes-of-the-just',
@@ -412,8 +409,7 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
       at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - context.epsilon ||
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
     ) {
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at,
         source: 'guardian',
         sourceId: courage.id,

@@ -1,5 +1,7 @@
+import { emitSkillBuff } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { emitRevenantState } from './shared.js';
+import { snapshotRevenantState } from '../state.js';
 import type { RevenantCastContext, RevenantSkill } from '../types.js';
 
 /** Arms the finite Enchanted Daggers charge/expiry state. */
@@ -14,8 +16,7 @@ export function activateEnchantedDaggers(context: RevenantCastContext, skill: Re
     expiresAt: at + duration,
     readyAt: at
   };
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'revenant',
     sourceId: skill.id,
@@ -27,5 +28,5 @@ export function activateEnchantedDaggers(context: RevenantCastContext, skill: Re
     duration,
     stacks: charges
   });
-  emitRevenantState(context, at, 'enchanted-daggers');
+  emitStateSnapshot(context, 'revenant', at, 'enchanted-daggers', snapshotRevenantState(context.state.profession));
 }

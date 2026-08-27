@@ -1,5 +1,7 @@
+import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { emitEngineerState } from './events.js';
+import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { EngineerCastContext, EngineerScheduledTask, EngineerSchedulerContext, EngineerSkill } from '../types.js';
@@ -43,7 +45,13 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   state.electricArtilleryReadyAt = readyAt;
   // EA expires 14s after it arms; player loses the window if they don't fire it
   state.electricArtilleryExpiresAt = readyAt + 14;
-  emitEngineerState(context, context.effectiveEnd, 'lightning-rod-active');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    context.effectiveEnd,
+    'lightning-rod-active',
+    snapshotEngineerState(context.state.profession)
+  );
 
   for (let index = 0; index < LIGHTNING_ROD_PULSE_COUNT; index += 1) {
     const at = firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS;
@@ -87,7 +95,7 @@ export function scheduleConduitSurge(context: EngineerCastContext, skill: Engine
   // update focusedUntil in scheduler state for subsequent availability/damage checks
   professionCoreState(context).focusedUntil = Math.max(professionCoreState(context).focusedUntil, at + 10);
   // also emit a state event so the resolver's Focused window is synchronized
-  emitEngineerState(context, at, 'conduit-surge');
+  emitStateSnapshot(context, 'engineer', at, 'conduit-surge', snapshotEngineerState(context.state.profession));
   emitSpearEvent(context, skill, at, 'engineer.conduit-surge');
 }
 
@@ -115,7 +123,13 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = 0;
   state.electricArtilleryExpiresAt = 0;
-  emitEngineerState(context, at, 'electric-artillery-consumed');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    at,
+    'electric-artillery-consumed',
+    snapshotEngineerState(context.state.profession)
+  );
 }
 
 export function handleLightningRodCharge(
@@ -144,7 +158,13 @@ export function handleElectricArtilleryReady(
   state.electricArtilleryAvailable = true;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
   state.electricArtilleryReadyAt = 0;
-  emitEngineerState(context, task.at, 'electric-artillery-ready');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    task.at,
+    'electric-artillery-ready',
+    snapshotEngineerState(context.state.profession)
+  );
 }
 
 export function handleElectricArtilleryExpire(
@@ -159,14 +179,19 @@ export function handleElectricArtilleryExpire(
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = 0;
   state.electricArtilleryExpiresAt = 0;
-  emitEngineerState(context, task.at, 'electric-artillery-expired');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    task.at,
+    'electric-artillery-expired',
+    snapshotEngineerState(context.state.profession)
+  );
 }
 
 export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill: EngineerSkill): void {
   // Focused state changes the CC type from Stun to Launch
   const isFocused = professionCoreState(context).focusedUntil > context.effectiveEnd;
-  context.emit({
-    type: 'control',
+  emitSkillControl(context, {
     at: context.effectiveEnd,
     source: 'engineer',
     sourceId: skill.id,
@@ -186,8 +211,7 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, skill: 
   const activationId = `${context.reservationId}:focused-devastation`;
   for (let index = 0; index < 6; index += 1) {
     const at = impactAt + 0.16 * (index + 1);
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'engineer',
       sourceId: ID.FOCUSED_DEVASTATION,
@@ -205,8 +229,7 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, skill: 
       // projectile already in flight — events persist even if the cast is interrupted
       persistsAfterInterrupt: true
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'engineer',
       sourceId: ID.FOCUSED_DEVASTATION,

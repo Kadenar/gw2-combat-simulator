@@ -1,4 +1,6 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from '../state.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -6,7 +8,6 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * module applies passive regeneration, aggregate upkeep drain, exact starvation
  * timing, out-of-combat Energy capping and endurance regeneration.
  */
-import { emitRevenantState } from './shared.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
   RevenantCoreState,
@@ -102,10 +103,16 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
     state.activeUpkeeps = [];
     state.availableFlips = {};
     state.energyUpdatedAt = starvedAt;
-    emitRevenantState(context, starvedAt, 'upkeep-starved');
+    emitStateSnapshot(
+      context,
+      'revenant',
+      starvedAt,
+      'upkeep-starved',
+      snapshotRevenantState(context.state.profession)
+    );
     state.energy = regenerateRevenantEnergy(context, state, starvedAt, target, regeneration);
     state.energyUpdatedAt = target;
-    emitRevenantState(context, target, 'energy');
+    emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
     return;
   }
 
@@ -114,7 +121,7 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
       ? regenerateRevenantEnergy(context, state, from, target, rate)
       : Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate));
   state.energyUpdatedAt = target;
-  emitRevenantState(context, target, 'energy');
+  emitStateSnapshot(context, 'revenant', target, 'energy', snapshotRevenantState(context.state.profession));
 }
 
 /** Minimal Core state used to make active upkeep toggles free. */

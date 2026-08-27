@@ -1,8 +1,14 @@
+import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ThiefConfig, ThiefCoreState } from '../types.js';
 
 export const THIEF_BASE_HEALTH = 1645;
+
+/** Detaches the composed runtime state before it crosses the scheduler event boundary. */
+export function snapshotThiefState(state: unknown): Record<string, unknown> {
+  return structuredClone(flattenProfessionState(state));
+}
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
   // State initialization normalizes the canonical trait-ID selection once.

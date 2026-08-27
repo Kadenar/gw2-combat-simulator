@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { firebrandState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
@@ -6,7 +7,7 @@ import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/combat/sta
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';
-import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -80,7 +81,15 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     });
     if (passiveWasReady) {
       const quickness = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.swiftScholar), 'boon');
-      emitGuardianBuff(context, skill, at, 'quickness', Number(quickness?.duration || 3));
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: 'quickness',
+        duration: Number(quickness?.duration || 3),
+        stacks: 1
+      });
       emitGuardianProc(context, {
         name: 'Swift Scholar',
         at,
@@ -99,7 +108,14 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     const profile = guardianBalanceProfile(context, PROFILE.liberatorsVow);
     const quickness = guardianBalanceProfileEffect(profile, 'boon');
     state.liberatorsVowReadyAt = at + Number(profile?.internalCooldown || 7);
-    emitGuardianBuff(context, skill, at, 'quickness', Number(quickness?.duration || 2), {
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'quickness',
+      duration: Number(quickness?.duration || 2),
+      stacks: 1,
       recipients: 'party'
     });
     emitGuardianProc(context, {
@@ -120,8 +136,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
 
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS,
@@ -156,8 +171,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     const quickness = guardianBalanceProfileEffect(profile, 'boon');
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STALWART_SPEED, name: 'Stalwart Speed' } as GuardianSkill;
     state.stalwartSpeedReadyAt = event.at + Number(profile?.internalCooldown || 7);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: event.at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.STALWART_SPEED,
@@ -193,8 +207,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     const profile = guardianBalanceProfile(context, PROFILE.stoicDemeanor);
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
     for (const buff of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: event.at,
         source: 'guardian',
         sourceId: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR,
@@ -229,8 +242,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
       guardianBalanceProfile(context, PROFILE.unrelentingCriticism),
       'condition'
     );
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: event.at,
       source: 'guardian',
       sourceId: skill.id,

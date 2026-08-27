@@ -1,5 +1,7 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { emitEngineerBarSwap, emitEngineerState } from './events.js';
+import { snapshotEngineerState } from '../state.js';
+import { emitEngineerBarSwap } from './events.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
 function equipKit(context: EngineerCastContext, skill: EngineerSkill): void {
@@ -9,14 +11,14 @@ function equipKit(context: EngineerCastContext, skill: EngineerSkill): void {
   const kit = skill.kitName || skill.name;
   state.activeKit = kit;
   emitEngineerBarSwap(context, skill, at);
-  emitEngineerState(context, at, 'equip-kit');
+  emitStateSnapshot(context, 'engineer', at, 'equip-kit', snapshotEngineerState(context.state.profession));
 }
 
 function stowKit(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   professionCoreState(context).activeKit = '';
   emitEngineerBarSwap(context, skill, at);
-  emitEngineerState(context, at, 'stow-kit');
+  emitStateSnapshot(context, 'engineer', at, 'stow-kit', snapshotEngineerState(context.state.profession));
 }
 
 export const engineerKitSkillHandlers = Object.freeze({

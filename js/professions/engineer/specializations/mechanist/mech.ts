@@ -1,6 +1,13 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { mechanistState } from './state.js';
+import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { emitEngineerState } from '../../core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
@@ -103,8 +110,7 @@ function emitMechStrike(
   { at, coefficient, hits = 1, name, skillId, hitIndex = 1, totalHits = hits, basicAttack = true }: MechStrikeOptions
 ): void {
   const scaling = mechWeaponScaling(context, skillId);
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'engineer',
     sourceId: skillId,
@@ -174,13 +180,13 @@ function scheduleMechAttack(context: EngineerSchedulerContext, at: number, paylo
 function summonMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
   mechanistState.from(context).mech.active = true;
-  emitEngineerState(context, at, 'summon-mech');
+  emitStateSnapshot(context, 'engineer', at, 'summon-mech', snapshotEngineerState(context.state.profession));
 }
 
 function recallMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
   mechanistState.from(context).mech.active = false;
-  emitEngineerState(context, at, 'recall-mech');
+  emitStateSnapshot(context, 'engineer', at, 'recall-mech', snapshotEngineerState(context.state.profession));
 }
 
 export function isEngineerMechCommand(skill: EngineerSkill | undefined): boolean {
@@ -193,8 +199,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
   // Rocket Punch is the mech's activation, not another packet from the
   // player's triggering weapon cast, so it owns a separate strength roll.
   const activationId = context.createActivationId('summon-attack');
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.MECH_FIGHTER,
@@ -217,8 +222,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     activationId,
     triggeredBy: skill.name
   });
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.MECH_FIGHTER,
@@ -233,8 +237,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     activationId,
     triggeredBy: skill.name
   });
-  context.emit({
-    type: 'control',
+  emitSkillControl(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.MECH_FIGHTER,
@@ -277,8 +280,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
   }
 
   if (isEngineerMechCommand(skill) && hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.MECH_CORE_JADE_DYNAMO,
@@ -420,8 +422,7 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
       totalHits: hits,
       basicAttack: false
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: impactAt,
       source: 'engineer',
       sourceId: ID.JADE_BUSTER_CANNON,

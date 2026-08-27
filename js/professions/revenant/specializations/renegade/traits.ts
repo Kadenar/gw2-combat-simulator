@@ -1,3 +1,8 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl
+} from '../../../../platform/gw2/scheduler/skill-events.js';
 import { renegadeState } from './state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
@@ -54,8 +59,9 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
   if (!profile || !effect) return;
   const sourceSkill = { id: TRAIT.ENDLESS_ENMITY, name: 'Endless Enmity' } as RevenantSkill;
   state.endlessEnmityReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
-  context.emitDerived(event, {
-    type: 'buff',
+  emitSkillBuff(context, {
+    cause: event,
+
     at: event.at,
     source: 'revenant',
     sourceId: TRAIT.ENDLESS_ENMITY,
@@ -71,7 +77,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
       Number(effect.duration || 0)
     ),
     stacks: Number(effect.stacks || 1),
-    recipients: effect.recipients || 'party'
+    recipients: String(effect.recipients || 'party')
   });
 }
 
@@ -89,8 +95,9 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
   const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
   if (!profile || !effect) return;
   const duration = Number(effect.duration || effect.metadata?.duration || 0);
-  context.emitDerived(event, {
-    type: 'control',
+  emitSkillControl(context, {
+    cause: event,
+
     at: event.at,
     source: 'revenant',
     sourceId: TRAIT.VINDICATION,
@@ -99,7 +106,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
     skillName: 'Vindication',
     name: 'Vindication — Daze',
     ...(effect.metadata || {}),
-    controlKind: effect.metadata?.controlKind || 'daze',
+    controlKind: String(effect.metadata?.controlKind || 'daze'),
     duration,
     breakbar: Number(effect.metadata?.breakbar ?? duration * 100)
   });
@@ -237,8 +244,9 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   if (!profile || !effect) return;
   razorclaw.charges -= 1;
   razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     source: 'revenant',
     sourceId: ID.RAZORCLAWS_RAGE,

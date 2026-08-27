@@ -1,5 +1,6 @@
-import { flattenProfessionState, professionCoreState } from '../../platform/engine/profession/state.js';
-import { THIEF_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
+import { professionCoreState } from '../../platform/engine/profession/state.js';
+import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from './core/state.js';
+export { snapshotThiefState } from './core/state.js';
 import {
   ANTIQUARY_INACTIVE_STATE_DEFAULTS,
   ANTIQUARY_PUBLIC_END_STATE_KEYS
@@ -11,10 +12,6 @@ import {
 import { DEADEYE_INACTIVE_STATE_DEFAULTS, DEADEYE_PUBLIC_END_STATE_KEYS } from './specializations/deadeye/state.js';
 import { SPECTER_INACTIVE_STATE_DEFAULTS, SPECTER_PUBLIC_END_STATE_KEYS } from './specializations/specter/state.js';
 import type { ThiefEndStateProjectionOptions, ThiefResolverContext, ThiefResolverEvent, ThiefState } from './types.js';
-
-export function snapshotThiefState(state: unknown): ThiefState {
-  return structuredClone(flattenProfessionState(state) as unknown as ThiefState);
-}
 
 // The family projector composes each independently owned state slice into the stable public end-state contract.
 export const THIEF_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefState)[] = Object.freeze([
@@ -33,7 +30,7 @@ const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
 });
 
 export function projectThiefEndState({ schedulerState }: ThiefEndStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotThiefState(schedulerState.profession);
+  const state = snapshotThiefState(schedulerState.profession) as unknown as ThiefState;
   return Object.fromEntries(
     THIEF_PUBLIC_END_STATE_KEYS.map((key) => {
       const value = Object.hasOwn(state, key) ? state[key] : INACTIVE_STATE_DEFAULTS[key];

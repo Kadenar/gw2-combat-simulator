@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../platform/engine/types.js';
 import type {
@@ -6,7 +7,7 @@ import type {
 } from '../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import { HAMMER_ORB_SKILLS } from './constants.js';
-import { activeBuffEvents, emitBuff, emitProfiledCondition, profiledEffect, skillWeapon } from './mechanics.js';
+import { activeBuffEvents, emitProfiledCondition, profiledEffect, skillWeapon } from './mechanics.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 // Replace Grand Finale with one projectile per active orb, preserving each orb's
@@ -28,8 +29,7 @@ export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext
   for (let index = 0; index < active.length; index += 1) {
     const element = active[index];
     const strike = profiledEffect(context, PROFILE.grandFinale, 'strike', element);
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: skill.name,
       sourceId: skill.id,
@@ -97,7 +97,16 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
       state.hammerOrbActivationIds[element] = context.reservationId;
       state.hammerOrbBuffUntil[element] = at + orbDuration;
       if (!previouslyActive.has(element)) {
-        emitBuff(context, at, `Hammer ${element} Orb`, 1, orbDuration, skill.name, skill.id);
+        emitSkillBuff(context, skill, {
+          at,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          kind: `hammer ${element.toLowerCase()} orb`,
+          stacks: 1,
+          duration: orbDuration,
+          skillName: skill.name
+        });
       }
     }
 

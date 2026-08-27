@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { luminaryState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
@@ -199,8 +200,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
         coefficient: Number(strike?.coefficient || 1.5)
       })
     );
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: context.effectiveEnd + delay,
       source: 'guardian',
       sourceId: skill.id,
@@ -215,8 +215,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
 
   if (skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE && luminaryState.from(context).radiantCourageSwordArmed) {
     luminaryState.from(context).radiantCourageSwordArmed = false;
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'guardian',
       sourceId: GUARDIAN_SKILL_IDS.RADIANT_COURAGE,

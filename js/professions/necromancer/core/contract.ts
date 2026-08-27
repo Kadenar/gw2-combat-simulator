@@ -1,4 +1,7 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 import {
   gw2AlliedEffectRecipients,
   prepareGw2BuffCompanionCandidates
@@ -14,10 +17,6 @@ import { advanceNecromancerState, finalizeNecromancerCast } from './life-force.j
 import { transferNecromancerSelfConditions } from './conditions.js';
 import {
   addCarapace,
-  emitBuff,
-  emitCondition,
-  emitDamage,
-  emitState,
   gainNecromancerLifeForce,
   hasTrait,
   necromancerActiveBoonCompanionIds,
@@ -148,8 +147,11 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
     companionIds: selected.companionIds,
     recipientCount: selected.recipientCount
   };
-  emitBuff(context, skill, String(buff?.kind || 'taste-for-blood'), duration, stacks, {
+  emitSkillBuff(context, skill, {
     at: context.start,
+    kind: String(buff?.kind || 'taste-for-blood'),
+    duration,
+    stacks,
     metadata: recipients
   });
   context.emit({
@@ -184,15 +186,22 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   ) {
     state.traitProcReadyAt.darkDefense = context.effectiveEnd + 5;
     addCarapace(state, 10, context.effectiveEnd);
-    emitBuff(context, skill, 'protection', 3);
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: 'protection',
+      duration: 3,
+      stacks: 1
+    });
   }
 
   if (skill.categories?.includes('Signet') && hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING)) {
-    emitDamage(context, skill, 0, {
+    emitSkillDamage(context, skill, {
+      at: context.effectiveEnd,
       name: 'Signets of Suffering',
       source: 'Trait',
       sourceId: TRAIT.SIGNETS_OF_SUFFERING,
       actorType: 'effect',
+      coefficient: 0,
       skillWeapon: 'Unequipped',
       metadata: {
         flatStrikeBase: 1413,
@@ -208,11 +217,13 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     context.effectiveEnd >= Number(state.traitProcReadyAt.maliciousSwarm || 0)
   ) {
     state.traitProcReadyAt.maliciousSwarm = context.effectiveEnd + 15;
-    emitDamage(context, skill, 1, {
+    emitSkillDamage(context, skill, {
+      at: context.effectiveEnd,
       name: 'Lesser Signet of the Locust',
       source: 'Trait',
       sourceId: TRAIT.MALICIOUS_SWARM,
       actorType: 'effect',
+      coefficient: 1,
       skillWeapon: 'Unequipped'
     });
   }
@@ -220,29 +231,34 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (skill.shroudSlot === 4 && hasTrait(context, TRAIT.TRANSFUSION)) {
     // Give the derived packets Lesser Chilblains' real skill identity and artwork while retaining the shroud trigger.
     const lesserChilblainsIcon = String(context.catalog.skillsById.get(ID.CHILLBLAINS)?.icon || '');
-    const lesserChilblainsAttribution = {
-      skillId: ID.LESSER_CHILBLAINS,
-      skillName: 'Lesser Chilblains',
-      icon: lesserChilblainsIcon,
-      parentSkillName: skill.name,
-      triggeredBy: skill.name
-    };
-    emitDamage(context, skill, 1.8, {
+    emitSkillDamage(context, skill, {
+      at: context.effectiveEnd,
       name: 'Lesser Chilblains',
       source: 'Trait',
       sourceId: TRAIT.TRANSFUSION,
       actorType: 'effect',
+      skillId: ID.LESSER_CHILBLAINS,
+      skillName: 'Lesser Chilblains',
+      parentSkillName: skill.name,
+      triggeredBy: skill.name,
+      coefficient: 1.8,
       skillWeapon: 'Unequipped',
-      metadata: lesserChilblainsAttribution
+      metadata: { icon: lesserChilblainsIcon }
     });
-    emitCondition(context, skill, 'Poisoned', 2, 4, {
+    emitSkillCondition(context, skill, {
+      at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.TRANSFUSION,
       actorType: 'effect',
-      metadata: {
-        ...lesserChilblainsAttribution,
-        name: 'Lesser Chilblains - Poisoned'
-      }
+      skillId: ID.LESSER_CHILBLAINS,
+      skillName: 'Lesser Chilblains',
+      parentSkillName: skill.name,
+      triggeredBy: skill.name,
+      name: 'Lesser Chilblains - Poisoned',
+      condition: 'Poisoned',
+      stacks: 2,
+      duration: 4,
+      metadata: { icon: lesserChilblainsIcon }
     });
     context.emit({
       type: 'necromancer.chill',
@@ -340,7 +356,14 @@ export const necromancerSchedulerHooks = Object.freeze({
     state.lifeForce = state.maximumLifeForce;
     state.resource = state.lifeForce;
     state.selfConditions = [];
-    emitState(context, context.state.time, 'cooldown-reset');
+    emitStateSnapshot(
+      context,
+      'necromancer',
+      context.state.time,
+      'cooldown-reset',
+      snapshotNecromancerState(context.state.profession),
+      { dedupeAcrossSourceIds: true }
+    );
   },
   onEventScheduled,
   taskHandlers: Object.freeze({

@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import { SPECIALIZATIONS } from '../data/guardian-api-metadata.js';
@@ -84,30 +85,6 @@ export function emitGuardianProc(
     sourceSkill,
     detail,
     icon
-  });
-}
-
-export function emitGuardianBuff(
-  context: GuardianSchedulerContext,
-  skill: GuardianSkill,
-  at: number,
-  kind: string,
-  duration: number,
-  extra: SchedulerRecord = {}
-): void {
-  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'guardian',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    stacks: 1,
-    duration: adjustedDuration,
-    ...extra
   });
 }
 
@@ -217,18 +194,17 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
     }
 
     for (let index = 0; index < Number(might?.applications || 2); index += 1) {
-      emitGuardianBuff(
-        context,
-        skill,
-        context.start + (Number(might?.atMs || 5240) + index * Number(might?.intervalMs || 1000)) / 1000,
-        'might',
-        Number(might?.duration || 5),
-        {
-          stacks: Number(might?.stacks || 4),
-          recipients: 'party',
-          triggeredBy: 'Writ of Persistence'
-        }
-      );
+      emitSkillBuff(context, skill, {
+        at: context.start + (Number(might?.atMs || 5240) + index * Number(might?.intervalMs || 1000)) / 1000,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: 'might',
+        duration: Number(might?.duration || 5),
+        stacks: Number(might?.stacks || 4),
+        recipients: 'party',
+        triggeredBy: 'Writ of Persistence'
+      });
     }
   }
 
@@ -282,10 +258,15 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         virtueSlot === 'Profession_1' ? 0 : virtueSlot === 'Profession_2' ? 1 : 2
       );
       const boon = String(inspired?.boon || 'protection');
-      emitGuardianBuff(context, skill, at, boon, Number(inspired?.duration || 5), {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
         stacks: Number(inspired?.stacks || 1),
         sourceId: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-        name: 'Inspired Virtue'
+        actorType: 'player',
+        name: 'Inspired Virtue',
+        kind: boon,
+        duration: Number(inspired?.duration || 5)
       });
     }
 
@@ -294,17 +275,29 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         guardianBalanceProfile(context, PROFILE.virtueOfResolution),
         'boon'
       );
-      emitGuardianBuff(context, skill, at, 'resolution', Number(resolution?.duration || 3), {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
         sourceId: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
-        name: 'Virtue of Resolution'
+        actorType: 'player',
+        name: 'Virtue of Resolution',
+        kind: 'resolution',
+        duration: Number(resolution?.duration || 3),
+        stacks: 1
       });
     }
 
     if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) {
       const inspiring = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.inspiringVirtue), 'buff');
-      emitGuardianBuff(context, skill, at, 'guardian-inspiring-virtue', Number(inspiring?.duration || 6), {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
         sourceId: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
-        name: 'Inspiring Virtue'
+        actorType: 'player',
+        name: 'Inspiring Virtue',
+        kind: 'guardian-inspiring-virtue',
+        duration: Number(inspiring?.duration || 6),
+        stacks: 1
       });
     }
 
@@ -313,10 +306,15 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         guardianBalanceProfile(context, PROFILE.indomitableCourage),
         'boon'
       );
-      emitGuardianBuff(context, skill, at, 'stability', Number(stability?.duration || 4), {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
         stacks: Number(stability?.stacks || 3),
         sourceId: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
-        name: 'Indomitable Courage'
+        actorType: 'player',
+        name: 'Indomitable Courage',
+        kind: 'stability',
+        duration: Number(stability?.duration || 4)
       });
     }
   }
@@ -361,8 +359,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
           totalHits: 6 + hits
         })
       );
-      context.emit({
-        type: 'condition',
+      emitSkillCondition(context, {
         at: pulseAt,
         source: 'guardian',
         sourceId: skill.id,
@@ -459,8 +456,7 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
       guardianBalanceProfile(context, PROFILE.symbolicExposure),
       'condition'
     );
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: event.at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
@@ -481,8 +477,7 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
         id: GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION,
         name: event.skillName || 'Symbol of Resolution'
       } as GuardianSkill);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: event.at,
       source: 'guardian',
       sourceId: skillId,

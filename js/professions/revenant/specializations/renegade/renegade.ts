@@ -1,3 +1,5 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
@@ -6,7 +8,7 @@ import {
   gw2AlliedPlayerProcTimeline
 } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
-import { emitRevenantState } from '../../core/shared.js';
+import { snapshotRevenantState } from '../../state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { renegadeState } from './state.js';
@@ -161,8 +163,9 @@ export function grantKallasFervor(
 
   const duration = Math.max(0, Number(effect.duration || 0));
   state.kallasFervor.push({ at, expiresAt: at + duration });
-  context.emitDerived(cause, {
-    type: 'buff',
+  emitSkillBuff(context, {
+    cause: cause,
+
     at,
     source: 'revenant',
     sourceId,
@@ -174,7 +177,7 @@ export function grantKallasFervor(
     duration,
     stacks: Number(effect.stacks || 1)
   });
-  emitRevenantState(context, at, 'kallas-fervor');
+  emitStateSnapshot(context, 'revenant', at, 'kallas-fervor', snapshotRevenantState(context.state.profession));
   return true;
 }
 
@@ -195,7 +198,13 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
   }
 
   if (state.kallasFervor.length) {
-    emitRevenantState(context, at, 'kallas-fervor-refreshed');
+    emitStateSnapshot(
+      context,
+      'revenant',
+      at,
+      'kallas-fervor-refreshed',
+      snapshotRevenantState(context.state.profession)
+    );
   }
 
   return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks || 1)));
@@ -235,7 +244,13 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
     const allForOne = balanceProfileById(context, RENEGADE_PROFILE_IDS.allForOne);
     const core = professionCoreState(context);
     core.energy = Math.min(core.maximumEnergy, core.energy + Math.max(0, Number(allForOne?.resourceGain || 0)));
-    emitRevenantState(context, context.start, 'all-for-one');
+    emitStateSnapshot(
+      context,
+      'revenant',
+      context.start,
+      'all-for-one',
+      snapshotRevenantState(context.state.profession)
+    );
   }
 
   if (profile) emitProfileEffects(context, skill, profile);
@@ -277,8 +292,7 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
     internalCooldown: Math.max(0, Number(proc.cooldown || 0))
   });
   for (const alliedProc of alliedProcs) {
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: alliedProc.at,
       source: 'revenant',
       sourceId: skill.id,
@@ -313,7 +327,13 @@ export function completeBandTogether(
   profession.bandTogetherReady = true;
   profession.bandTogetherExpiresAt = context.effectiveEnd + Math.max(0, Number(effect.duration || 0));
   emitProfileEffects(context, bandTogether, bandTogether);
-  emitRevenantState(context, context.effectiveEnd, 'band-together');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    context.effectiveEnd,
+    'band-together',
+    snapshotRevenantState(context.state.profession)
+  );
 }
 
 /** Raw Renegade callbacks consumed by the module handler registry. */

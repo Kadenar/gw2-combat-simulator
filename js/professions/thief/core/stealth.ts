@@ -1,7 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefCondition, emitThiefState, gainThiefInitiative } from './shared.js';
+import { gainThiefInitiative } from './shared.js';
 import type { ThiefCastContext, ThiefCoreState, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
 import {
   thiefBalanceProfile,
@@ -54,15 +57,19 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     state.revealedUntil = context.start + 3;
   }
 
-  emitThiefState(context, context.start, 'stealth-attack');
+  emitStateSnapshot(context, 'thief', context.start, 'stealth-attack', snapshotThiefState(context.state.profession));
 }
 
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   if (hasThiefTrait(context.config, TRAIT.SUNDERING_SHADE)) {
     const vulnerability = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunderingShade), 'condition');
-    emitThiefCondition(context, {
+    emitSkillCondition(context, {
       at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
       condition: String(vulnerability?.condition || 'Vulnerability'),
       duration: Number(vulnerability?.duration || 5),
       stacks: Number(vulnerability?.stacks || 10),

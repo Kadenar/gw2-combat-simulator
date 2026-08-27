@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { soulbeastState } from './state.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
 import { applyUnstoppableUnion, soulbeastStanceDuration } from './traits.js';
@@ -45,8 +46,7 @@ export const soulbeastSkillHandlers = Object.freeze({
       // oneWolfPackUntil is written here so the resolver's per-hit ICD guard can cheaply
       // skip the active-buff lookup when the stance has clearly expired.
       soulbeastState.from(context).oneWolfPackUntil = context.start + duration;
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.start,
         source: 'ranger',
         sourceId: skill.id,
@@ -62,8 +62,7 @@ export const soulbeastSkillHandlers = Object.freeze({
   'ranger.vulture-stance': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.start,
         source: 'ranger',
         sourceId: skill.id,

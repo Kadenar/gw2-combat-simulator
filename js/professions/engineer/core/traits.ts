@@ -1,9 +1,11 @@
+import { emitSkillBuff, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotEngineerState } from '../state.js';
 import { hasEngineerTrait } from './state.js';
-import { emitEngineerState } from './events.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   engineerBalanceEffectValue,
@@ -27,86 +29,6 @@ import type {
   EngineerSkill
 } from '../types.js';
 
-interface EmitBuffOptions {
-  readonly at?: number;
-  readonly stacks?: number;
-  readonly sourceId?: SkillId;
-  readonly name?: string;
-}
-
-interface EmitTraitDamageOptions {
-  readonly name: string;
-  readonly coefficient: number;
-  readonly sourceId: SkillId;
-  readonly at?: number;
-  readonly hitIndex?: number;
-  readonly totalHits?: number;
-  readonly explosion?: boolean;
-  readonly weaponStrength?: number;
-  readonly staticDischarge?: boolean;
-}
-
-function emitBuff(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  kind: string,
-  duration: number,
-  { at = context.effectiveEnd, stacks = 1, sourceId = skill.id, name = skill.name }: EmitBuffOptions = {}
-): void {
-  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, Number(duration || 0));
-  context.emit({
-    type: 'buff',
-    at,
-    source: sourceId === skill.id ? 'engineer' : 'Trait',
-    sourceId,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name,
-    kind,
-    // GW2 hard cap on superspeed duration is 10s
-    duration: String(kind).toLowerCase() === 'superspeed' ? Math.min(10, adjustedDuration) : adjustedDuration,
-    stacks
-  });
-}
-
-function emitTraitDamage(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  {
-    name,
-    coefficient,
-    sourceId,
-    at = context.effectiveEnd,
-    hitIndex = 1,
-    totalHits = 1,
-    explosion = false,
-    weaponStrength,
-    staticDischarge = false
-  }: EmitTraitDamageOptions
-): void {
-  context.emit({
-    type: 'damage',
-    at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: name,
-    parentSkillName: skill.name,
-    name,
-    coefficient,
-    hits: 1,
-    hitIndex,
-    totalHits,
-    skillWeapon: 'Unequipped',
-    explosion,
-    ...(weaponStrength == null ? {} : { weaponStrength }),
-    ...(staticDischarge ? { staticDischarge: true } : {}),
-    triggeredBy: skill.name
-  });
-}
-
 // Specialization mechanics declare toolbelt behavior explicitly; ordinary
 // toolbelt skills continue to infer it from their equipped utility parent.
 export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
@@ -129,14 +51,22 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
   const hits = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'hits', 6);
   const coefficient = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'coefficient', 0.5);
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    emitTraitDamage(context, skill, {
+    emitSkillDamage(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.GRENADIER,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Lesser Grenade Barrage',
+      parentSkillName: skill.name,
       name: 'Lesser Grenade Barrage',
       coefficient,
-      sourceId: TRAIT.GRENADIER,
-      at,
+      hits: 1,
       hitIndex,
       totalHits: hits,
-      explosion: true
+      skillWeapon: 'Unequipped',
+      explosion: true,
+      triggeredBy: skill.name
     });
   }
 }
@@ -152,24 +82,33 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
     return;
   state.traitProcReadyAt.streamlinedKits =
     at + engineerBalanceValue(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
-  emitBuff(
-    context,
-    skill,
-    'swiftness',
-    engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
-    {
-      at,
-      sourceId: TRAIT.STREAMLINED_KITS,
-      name: 'Streamlined Kits — swiftness'
-    }
-  );
+  emitSkillBuff(context, skill, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.STREAMLINED_KITS,
+    actorType: 'player',
+    name: 'Streamlined Kits — swiftness',
+    kind: 'swiftness',
+    duration: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
+    stacks: 1
+  });
   if ((skill.kitName || skill.name) === 'Grenade Kit') {
-    emitTraitDamage(context, skill, {
+    emitSkillDamage(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.STREAMLINED_KITS,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Drop Mine',
+      parentSkillName: skill.name,
       name: 'Drop Mine',
       coefficient: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'strike', 'coefficient', 1.75),
-      sourceId: TRAIT.STREAMLINED_KITS,
-      at,
-      explosion: true
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: 'Unequipped',
+      explosion: true,
+      triggeredBy: skill.name
     });
   }
 }
@@ -179,26 +118,35 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
   const state = professionCoreState(context);
 
   if (hasEngineerTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) {
-    emitBuff(
-      context,
-      skill,
-      'vigor',
-      engineerBalanceEffectValue(context, PROFILE.optimizedActivation, 'boon', 'duration', 4),
-      {
-        at,
-        sourceId: TRAIT.OPTIMIZED_ACTIVATION,
-        name: 'Optimized Activation — vigor'
-      }
-    );
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.OPTIMIZED_ACTIVATION,
+      actorType: 'player',
+      name: 'Optimized Activation — vigor',
+      kind: 'vigor',
+      duration: engineerBalanceEffectValue(context, PROFILE.optimizedActivation, 'boon', 'duration', 4),
+      stacks: 1
+    });
   }
 
   if (hasEngineerTrait(context.config, TRAIT.STATIC_DISCHARGE)) {
-    emitTraitDamage(context, skill, {
+    emitSkillDamage(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.STATIC_DISCHARGE,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Static Discharge',
+      parentSkillName: skill.name,
       name: 'Static Discharge',
       coefficient: engineerBalanceEffectValue(context, PROFILE.staticDischarge, 'strike', 'coefficient', 0.33),
-      sourceId: TRAIT.STATIC_DISCHARGE,
-      at,
-      staticDischarge: true
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: 'Unequipped',
+      staticDischarge: true,
+      triggeredBy: skill.name
     });
   }
 
@@ -209,25 +157,29 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
     if (state.kineticCharges >= maximumCharges) {
       state.kineticCharges = 0;
       const buffDuration = engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'buff', 'duration', 5);
-      emitBuff(context, skill, 'kinetic-battery', buffDuration, {
+      emitSkillBuff(context, skill, {
         at,
+        source: 'Trait',
         sourceId: TRAIT.KINETIC_BATTERY,
-        name: 'Kinetic Battery'
+        actorType: 'player',
+        name: 'Kinetic Battery',
+        kind: 'kinetic-battery',
+        duration: buffDuration,
+        stacks: 1
       });
-      emitBuff(
-        context,
-        skill,
-        'quickness',
-        engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'boon', 'duration', 5),
-        {
-          at,
-          sourceId: TRAIT.KINETIC_BATTERY,
-          name: 'Kinetic Battery — quickness'
-        }
-      );
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.KINETIC_BATTERY,
+        actorType: 'player',
+        name: 'Kinetic Battery — quickness',
+        kind: 'quickness',
+        duration: engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'boon', 'duration', 5),
+        stacks: 1
+      });
     }
 
-    emitEngineerState(context, at, 'kinetic-battery');
+    emitStateSnapshot(context, 'engineer', at, 'kinetic-battery', snapshotEngineerState(context.state.profession));
   }
 }
 

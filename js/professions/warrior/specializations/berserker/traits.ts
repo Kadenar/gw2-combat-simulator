@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
@@ -12,44 +13,10 @@ import type {
   WarriorSkill
 } from '../../types.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
-import { emitBerserkMarker } from './mechanics.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { berserkerState } from './state.js';
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
-
-// Emit a normalized Berserker trait boon with optional party recipients and the
-// originating skill's attribution.
-function emitBoon(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-  name: string,
-  boon: string,
-  duration: number,
-  stacks = 1,
-  recipients?: string
-): void {
-  context.emit({
-    type: 'buff',
-    at: context.effectiveEnd,
-    source: 'Trait',
-    sourceId:
-      name === 'Burst of Aggression'
-        ? TRAIT.BURST_OF_AGGRESSION
-        : name === 'Bloody Roar'
-          ? TRAIT.BLOODY_ROAR
-          : TRAIT.HEAT_THE_SOUL,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
-    name,
-    kind: boon,
-    boon,
-    duration: gw2SchedulerBoonDuration(context, skill, boon, duration),
-    stacks,
-    ...(recipients ? { recipients } : {})
-  });
-}
 
 export function berserkEntryDuration(context: WarriorCastContext): number {
   const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.resources), 'buff');
@@ -62,26 +29,38 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
   const burstOfAggression = warriorBalanceProfile(context, PROFILE.burstOfAggression);
   for (const effect of burstOfAggression?.effects || []) {
     if (effect.type !== 'boon') continue;
-    emitBoon(
-      context,
-      skill,
-      'Burst of Aggression',
-      String(effect.boon || effect.kind || ''),
-      Number(effect.duration || 0),
-      Number(effect.stacks || 1)
-    );
+    const boon = String(effect.boon || effect.kind || '');
+    emitSkillBuff(context, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.BURST_OF_AGGRESSION,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Burst of Aggression',
+      kind: boon,
+      boon,
+      duration: gw2SchedulerBoonDuration(context, skill, boon, Number(effect.duration || 0)),
+      stacks: Number(effect.stacks || 1)
+    });
   }
 
   if (hasTrait(context, TRAIT.BLOODY_ROAR)) {
     const resistance = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.bloodyRoar), 'boon');
-    emitBoon(
-      context,
-      skill,
-      'Bloody Roar',
-      String(resistance?.boon || resistance?.kind || 'resistance'),
-      Number(resistance?.duration ?? 3.5),
-      Number(resistance?.stacks ?? 1)
-    );
+    const boon = String(resistance?.boon || resistance?.kind || 'resistance');
+    emitSkillBuff(context, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.BLOODY_ROAR,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Bloody Roar',
+      kind: boon,
+      boon,
+      duration: gw2SchedulerBoonDuration(context, skill, boon, Number(resistance?.duration ?? 3.5)),
+      stacks: Number(resistance?.stacks ?? 1)
+    });
   }
 }
 
@@ -134,7 +113,21 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
         : 0);
   }
 
-  if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
+  if (state.berserkUntil > previousUntil) {
+    // Refresh the visible Berserk window after extending its authoritative state duration.
+    emitSkillBuff(context, {
+      at: context.effectiveEnd,
+      source: 'Berserker',
+      sourceId: ID.BERSERK,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Berserk',
+      kind: 'berserk',
+      stacks: 1,
+      duration: Math.max(0, state.berserkUntil - context.effectiveEnd)
+    });
+  }
 }
 
 // Apply completed Rage-skill Burning and primal-burst party boons independently
@@ -143,8 +136,7 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
   if (!isComplete(context)) return;
   if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
     const burning = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.lastBlaze), 'condition');
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.LAST_BLAZE,
@@ -163,35 +155,45 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
     const quickness = warriorBalanceProfileEffect(profile, 'boon', 0);
     const fury = warriorBalanceProfileEffect(profile, 'boon', 1);
     const might = warriorBalanceProfileEffect(profile, 'boon', 2);
-    emitBoon(
-      context,
-      skill,
-      'Heat the Soul — Quickness',
-      'quickness',
-      skill.id === ID.DECAPITATE
-        ? Number(warriorBalanceProfile(context, PROFILE.smashBrawler)?.resourceGain ?? 2)
-        : Number(quickness?.duration ?? 5),
-      Number(quickness?.stacks ?? 1),
-      'party'
-    );
-    emitBoon(
-      context,
-      skill,
-      'Heat the Soul — Fury',
-      'fury',
-      Number(fury?.duration ?? 5),
-      Number(fury?.stacks ?? 1),
-      'party'
-    );
-    emitBoon(
-      context,
-      skill,
-      'Heat the Soul — Might',
-      'might',
-      Number(might?.duration ?? 5),
-      Number(might?.stacks ?? 3),
-      'party'
-    );
+    const boons = [
+      {
+        name: 'Heat the Soul — Quickness',
+        kind: 'quickness',
+        duration:
+          skill.id === ID.DECAPITATE
+            ? Number(warriorBalanceProfile(context, PROFILE.smashBrawler)?.resourceGain ?? 2)
+            : Number(quickness?.duration ?? 5),
+        stacks: Number(quickness?.stacks ?? 1)
+      },
+      {
+        name: 'Heat the Soul — Fury',
+        kind: 'fury',
+        duration: Number(fury?.duration ?? 5),
+        stacks: Number(fury?.stacks ?? 1)
+      },
+      {
+        name: 'Heat the Soul — Might',
+        kind: 'might',
+        duration: Number(might?.duration ?? 5),
+        stacks: Number(might?.stacks ?? 3)
+      }
+    ];
+    for (const boon of boons) {
+      emitSkillBuff(context, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.HEAT_THE_SOUL,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: boon.name,
+        kind: boon.kind,
+        boon: boon.kind,
+        duration: gw2SchedulerBoonDuration(context, skill, boon.kind, boon.duration),
+        stacks: boon.stacks,
+        recipients: 'party'
+      });
+    }
   }
 }
 
@@ -218,9 +220,10 @@ function emitFireAura(
     skillId: event.skillId,
     skillName: event.skillName
   } as const;
-  context.emitDerived(event, {
+  emitSkillBuff(context, {
+    cause: event,
     ...common,
-    type: 'buff',
+
     name: fromTrait ? 'King of Fires — Fire Aura' : 'Fire Aura — Leap Combo',
     kind: 'fire-aura',
     stacks: Number(effect?.stacks ?? 1),
@@ -344,16 +347,16 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
     sourceSkill: skill.name,
     detail: 'Fire Aura detonated'
   });
-  context.emit({
+  emitSkillDamage(context, {
     ...common,
-    type: 'damage',
+
     name: 'King of Fires — Fire Aura Detonation',
     coefficient: Number(strike?.coefficient ?? 0.7),
     canTriggerCriticalTraits: true
   });
-  context.emit({
+  emitSkillCondition(context, {
     ...common,
-    type: 'condition',
+
     name: 'King of Fires — Burning',
     condition: 'Burning',
     stacks: Number(burning?.stacks ?? 3),

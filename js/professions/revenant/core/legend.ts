@@ -1,4 +1,6 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from '../state.js';
 /**
  * Revenant legend-swap transition.
  *
@@ -10,7 +12,6 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasRevenantTrait } from './state.js';
 import { applyLegendInvocationTraits } from './legend-traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
-import { emitRevenantState } from './shared.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 /** Reports whether invocation-only combat effects may run at a timestamp. */
@@ -54,5 +55,5 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
     applyLegendInvocationTraits(context, skill);
   }
 
-  emitRevenantState(context, at, 'legend-swap');
+  emitStateSnapshot(context, 'revenant', at, 'legend-swap', snapshotRevenantState(context.state.profession));
 }

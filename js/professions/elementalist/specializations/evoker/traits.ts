@@ -1,7 +1,7 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext } from '../../types.js';
-import { emitElementalistBuff } from '../../core/mechanics.js';
 import { elementalistBalanceEffect } from '../../core/profiles.js';
 import { ALTRUISTIC_ASPECT_BOONS } from './constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -11,13 +11,14 @@ export function applyAltruisticAspect(context: ElementalistCastContext, skill: S
   const boon = ALTRUISTIC_ASPECT_BOONS.get(skill.id);
   if (!boon) return;
   const effect = elementalistBalanceEffect(context, PROFILE.altruisticAspect, 'boon', skill.name);
-  emitElementalistBuff(
-    context as never,
-    context.effectiveEnd,
-    String(effect?.boon || boon[0]),
-    Number(effect?.stacks ?? boon[1]),
-    Number(effect?.duration ?? boon[2]),
-    skill.name,
-    skill.id
-  );
+  emitSkillBuff(context, skill, {
+    at: context.effectiveEnd,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    kind: String(effect?.boon || boon[0]).toLowerCase(),
+    stacks: Number(effect?.stacks ?? boon[1]),
+    duration: Number(effect?.duration ?? boon[2]),
+    skillName: skill.name
+  });
 }

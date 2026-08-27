@@ -1,9 +1,11 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { hasThiefTrait } from '../../core/state.js';
-import { emitThiefState } from '../../core/shared.js';
 import { specterState } from './state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '../../types.js';
 import type {
@@ -27,41 +29,45 @@ interface DarkSentryTaskPayload extends Record<string, unknown> {
   readonly allyIndices?: readonly number[];
 }
 
-function emitShadeStepBoon(context: ThiefCastContext, boon: string, duration: number): void {
-  const party = gw2AlliedPlayerAssumptions(context.config);
-  context.emit({
-    type: 'buff',
-    at: context.effectiveEnd,
-    source: 'Trait',
-    sourceId: TRAIT.SHADESTEP,
-    actorType: 'player',
-    skillId: context.skill.id,
-    skillName: context.skill.name,
-    name: `Shade Step - ${boon}`,
-    kind: boon,
-    boon,
-    duration: gw2SchedulerBoonDuration(context, context.skill, boon, duration),
-    stacks: 1,
-    recipients: 'party',
-    recipientCount: party.count + 1
-  });
-}
-
 /** Adds Shade Step's ally boon and arms Dark Sentry for barrier skills. */
 export function completeShadowShroudSkill(context: ThiefCastContext, skill: ThiefSkill): void {
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   if (hasThiefTrait(context.config, TRAIT.SHADESTEP)) {
     const profile = thiefBalanceProfile(context, PROFILE.shadeStep);
-    if (skill.id === ID.GRASPING_SHADOWS) {
-      const boon = thiefBalanceProfileEffect(profile, 'boon', 0);
-      emitShadeStepBoon(context, String(boon?.boon || 'alacrity'), Number(boon?.duration || 5));
-    } else if (skill.id === ID.DAWNS_REPOSE) {
-      const boon = thiefBalanceProfileEffect(profile, 'boon', 1);
-      emitShadeStepBoon(context, String(boon?.boon || 'protection'), Number(boon?.duration || 5));
-    } else if (skill.id === ID.MIND_SHOCK) {
-      const boon = thiefBalanceProfileEffect(profile, 'boon', 2);
-      emitShadeStepBoon(context, String(boon?.boon || 'aegis'), Number(boon?.duration || 4));
+    const authoredBoon =
+      skill.id === ID.GRASPING_SHADOWS
+        ? { index: 0, fallback: 'alacrity', duration: 5 }
+        : skill.id === ID.DAWNS_REPOSE
+          ? { index: 1, fallback: 'protection', duration: 5 }
+          : skill.id === ID.MIND_SHOCK
+            ? { index: 2, fallback: 'aegis', duration: 4 }
+            : null;
+    if (authoredBoon) {
+      // Resolve the selected Shade Step packet once, then emit it through the canonical boon path.
+      const effect = thiefBalanceProfileEffect(profile, 'boon', authoredBoon.index);
+      const boon = String(effect?.boon || authoredBoon.fallback);
+      const party = gw2AlliedPlayerAssumptions(context.config);
+      emitSkillBuff(context, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.SHADESTEP,
+        actorType: 'player',
+        skillId: context.skill.id,
+        skillName: context.skill.name,
+        name: `Shade Step - ${boon}`,
+        kind: boon,
+        boon,
+        duration: gw2SchedulerBoonDuration(
+          context,
+          context.skill,
+          boon,
+          Number(effect?.duration || authoredBoon.duration)
+        ),
+        stacks: 1,
+        recipients: 'party',
+        recipientCount: party.count + 1
+      });
     }
   }
 
@@ -76,8 +82,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
     );
     if (!alliedRecipients) return;
     const allyIndices = Array.from({ length: alliedRecipients }, (_, index) => index + 1);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'thief',
       sourceId: skill.id,
@@ -131,7 +136,7 @@ export function handleLarcenousTorment(
     state.maximumShadowForce,
     state.shadowForce + stacks * Number(profile?.resourceGain || 0.5)
   );
-  emitThiefState(context, task.at, 'larcenous-torment');
+  emitStateSnapshot(context, 'thief', task.at, 'larcenous-torment', snapshotThiefState(context.state.profession));
 }
 
 export function handleDarkSentry(
@@ -166,8 +171,7 @@ export function handleDarkSentry(
   }
 
   state.darkSentryReadyAt = Math.max(0, ...Object.values(state.darkSentryReadyAtByAlly));
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: task.at,
     source: 'Trait',
     sourceId: TRAIT.DARK_SENTRY,
@@ -188,8 +192,7 @@ export function handleDarkSentry(
   if (party.strikesPerSecond > 0) {
     const procAt = task.at + 1 / party.strikesPerSecond;
     for (const allyIndex of eligibleAllies) {
-      context.emit({
-        type: 'condition',
+      emitSkillCondition(context, {
         at: procAt,
         source: 'Trait',
         sourceId: TRAIT.DARK_SENTRY,
@@ -206,7 +209,7 @@ export function handleDarkSentry(
     }
   }
 
-  emitThiefState(context, task.at, 'dark-sentry');
+  emitStateSnapshot(context, 'thief', task.at, 'dark-sentry', snapshotThiefState(context.state.profession));
 }
 
 /** Resolver-side life siphons fire once for every applied torment stack. */

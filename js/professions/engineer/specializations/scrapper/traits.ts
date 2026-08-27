@@ -1,7 +1,7 @@
+import { emitSkillBuff, emitSkillControl } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
-import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../../types.js';
 
@@ -24,58 +24,40 @@ function category(skill: EngineerSkill, name: string): boolean {
   return Boolean(skill.categories?.some((value) => String(value).toLowerCase() === name.toLowerCase()));
 }
 
-function emitBuff(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  kind: string,
-  duration: number,
-  sourceId: number,
-  name: string
-): void {
-  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
-  context.emit({
-    type: 'buff',
-    at: context.effectiveEnd,
-    source: 'Trait',
-    sourceId,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name,
-    kind,
-    // GW2 caps superspeed at 10s regardless of source; other statuses are uncapped here
-    duration: kind === 'superspeed' ? Math.min(10, adjustedDuration) : adjustedDuration,
-    stacks: 1
-  });
-}
-
 export function applyScrapperCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   // Speed of Synergy: healing toolbelt skills grant superspeed.
   // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 7s.
   if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingToolbeltSkill(context, skill)) {
-    emitBuff(
-      context,
-      skill,
-      'superspeed',
-      skill.toolbeltParentName === 'Med Kit'
-        ? engineerBalanceValue(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
-        : engineerBalanceValue(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
-      TRAIT.SPEED_OF_SYNERGY,
-      'Speed of Synergy — superspeed'
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.SPEED_OF_SYNERGY,
+      actorType: 'player',
+      name: 'Speed of Synergy — superspeed',
+      kind: 'superspeed',
+      duration:
+        skill.toolbeltParentName === 'Med Kit'
+          ? engineerBalanceValue(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
+          : engineerBalanceValue(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
+      stacks: 1,
+      maximumDuration: 10
+    });
   }
 
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
   if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.name !== 'Med Kit') {
-    emitBuff(
-      context,
-      skill,
-      'superspeed',
-      engineerBalanceValue(context, PROFILE.speedOfSynergy, 'threshold', 7),
-      TRAIT.SPEED_OF_SYNERGY,
-      'Speed of Synergy — superspeed'
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.SPEED_OF_SYNERGY,
+      actorType: 'player',
+      name: 'Speed of Synergy — superspeed',
+      kind: 'superspeed',
+      duration: engineerBalanceValue(context, PROFILE.speedOfSynergy, 'threshold', 7),
+      stacks: 1,
+      maximumDuration: 10
+    });
   }
 
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
@@ -83,14 +65,17 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
     hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) &&
     (category(skill, 'Well') || isFunctionGyro(skill))
   ) {
-    emitBuff(
-      context,
-      skill,
-      'superspeed',
-      engineerBalanceEffectValue(context, PROFILE.gyroscopicAcceleration, 'buff', 'duration', 5),
-      TRAIT.GYROSCOPIC_ACCELERATION,
-      'Gyroscopic Acceleration — superspeed'
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.GYROSCOPIC_ACCELERATION,
+      actorType: 'player',
+      name: 'Gyroscopic Acceleration — superspeed',
+      kind: 'superspeed',
+      duration: engineerBalanceEffectValue(context, PROFILE.gyroscopicAcceleration, 'buff', 'duration', 5),
+      stacks: 1,
+      maximumDuration: 10
+    });
   }
 
   // Remaining traits only proc on Function Gyro.
@@ -122,8 +107,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // System Shocker (master trait): Function Gyro dazes for 1s on cast.
   if (hasEngineerTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
-    context.emit({
-      type: 'control',
+    emitSkillControl(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.SYSTEM_SHOCKER,
@@ -138,13 +122,15 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
   if (hasEngineerTrait(context.config, TRAIT.MASS_MOMENTUM)) {
-    emitBuff(
-      context,
-      skill,
-      'stability',
-      engineerBalanceEffectValue(context, PROFILE.massMomentum, 'boon', 'duration', 3, 1),
-      TRAIT.MASS_MOMENTUM,
-      'Mass Momentum — stability'
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.MASS_MOMENTUM,
+      actorType: 'player',
+      name: 'Mass Momentum — stability',
+      kind: 'stability',
+      duration: engineerBalanceEffectValue(context, PROFILE.massMomentum, 'boon', 'duration', 3, 1),
+      stacks: 1
+    });
   }
 }

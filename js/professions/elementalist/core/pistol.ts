@@ -1,3 +1,4 @@
+import { emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '../types.js';
@@ -36,8 +37,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       });
     } else if (skill.name === 'Frozen Fusillade') {
       const delay = elementalistBalanceValue(context, PROFILE.frozenFusillade, 'initialDelay', 4);
-      context.emit({
-        type: 'damage',
+      emitSkillDamage(context, {
         at: at + delay,
         source: skill.name,
         sourceId: skill.id,
@@ -73,8 +73,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     } else if (skill.name === 'Boulder Blast') {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.
-      context.emit({
-        type: 'damage',
+      emitSkillDamage(context, {
         at,
         source: skill.name,
         sourceId: skill.id,

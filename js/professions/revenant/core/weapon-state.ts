@@ -1,11 +1,13 @@
+import { emitSkillBuff } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from '../state.js';
 /**
  * Revenant temporary weapon and flip state. The shared GW2 controller owns
  * canonical autoattack chains; this module owns Abyssal Strike, Imperial
  * Guard, True Strike, and the typed tasks that expire those follow-ups.
  */
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import { emitRevenantState } from './shared.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
@@ -54,8 +56,7 @@ const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.
 export function beginRevenantWeaponCast(context: RevenantCastContext, skill: RevenantSkill): void {
   if (skill.id !== ID.IMPERIAL_GUARD) return;
   professionCoreState(context).availableFlips[ID.TRUE_STRIKE] = true;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: context.start,
     source: 'revenant',
     sourceId: skill.id,
@@ -67,7 +68,13 @@ export function beginRevenantWeaponCast(context: RevenantCastContext, skill: Rev
     duration: Math.max(0, context.effectiveEnd - context.start),
     stacks: 1
   });
-  emitRevenantState(context, context.start, 'imperial-guard');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    context.start,
+    'imperial-guard',
+    snapshotRevenantState(context.state.profession)
+  );
 }
 
 /** Commits or consumes the Imperial Guard/True Strike temporary flip. */
@@ -100,16 +107,34 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
       ownerId: IMPERIAL_GUARD_OWNER,
       payload: {}
     });
-    emitRevenantState(context, context.effectiveEnd, 'imperial-guard');
+    emitStateSnapshot(
+      context,
+      'revenant',
+      context.effectiveEnd,
+      'imperial-guard',
+      snapshotRevenantState(context.state.profession)
+    );
   } else if (skill.id === ID.TRUE_STRIKE) {
     delete state.availableFlips[ID.TRUE_STRIKE];
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
-    emitRevenantState(context, context.effectiveEnd, 'true-strike');
+    emitStateSnapshot(
+      context,
+      'revenant',
+      context.effectiveEnd,
+      'true-strike',
+      snapshotRevenantState(context.state.profession)
+    );
   }
 }
 
 /** Removes True Strike when the scheduled Imperial Guard window expires. */
 export function expireImperialGuard(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   delete professionCoreState(context).availableFlips[ID.TRUE_STRIKE];
-  emitRevenantState(context, task.at, 'imperial-guard-expired');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    task.at,
+    'imperial-guard-expired',
+    snapshotRevenantState(context.state.profession)
+  );
 }

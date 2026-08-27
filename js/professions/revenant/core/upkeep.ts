@@ -1,13 +1,15 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { snapshotRevenantState } from '../state.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *
  * Toggles and releases shared upkeep skills and handles recurring Core upkeep
  * pulses. Elite specializations own any additional upkeep lifecycle.
  */
-import { emitRevenantState } from './shared.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
+import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
@@ -18,62 +20,8 @@ import type {
 
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
 
-interface UpkeepDamageOptions {
-  readonly actorType?: SimulationActorType;
-  readonly name?: string;
-  readonly hitIndex?: number;
-  readonly totalHits?: number;
-}
-
 interface UpkeepTaskPayload extends SchedulerRecord {
   readonly skillId: SkillId;
-}
-
-export function emitDamage(
-  context: RevenantSchedulerContext,
-  skill: RevenantSkill,
-  at: number,
-  coefficient: number,
-  options: UpkeepDamageOptions = {}
-): void {
-  context.emit({
-    type: 'damage',
-    at,
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: options.actorType || 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: options.name || skill.name,
-    coefficient,
-    hits: 1,
-    hitIndex: options.hitIndex || 1,
-    totalHits: options.totalHits || 1,
-    skillWeapon: 'Unequipped'
-  });
-}
-
-export function emitCondition(
-  context: RevenantSchedulerContext,
-  skill: RevenantSkill,
-  at: number,
-  condition: string,
-  stacks: number,
-  duration: number
-): void {
-  context.emit({
-    type: 'condition',
-    at,
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: `${skill.name} — ${condition}`,
-    condition,
-    stacks,
-    duration
-  });
 }
 
 function pulseIntervalForUpkeep(skill: RevenantSkill | undefined): number {
@@ -98,8 +46,18 @@ function emitEmbraceTheDarknessPulse(
     throw new Error('Embrace the Darkness is missing its pulse effects.');
   }
 
-  emitDamage(context, skill, at, Number(strike.coefficient || 0));
-  emitCondition(context, skill, at, 'Torment', Number(torment.stacks || 0), Number(torment.duration || 0));
+  emitSkillDamage(context, skill, {
+    at,
+    coefficient: Number(strike.coefficient || 0),
+    skillWeapon: 'Unequipped',
+    canCrit: null
+  });
+  emitSkillCondition(context, skill, {
+    at,
+    condition: 'Torment',
+    stacks: Number(torment.stacks || 0),
+    duration: Number(torment.duration || 0)
+  });
   active.empoweredNextPulse = false;
 }
 
@@ -111,7 +69,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
-    emitRevenantState(context, at, 'upkeep-disabled');
+    emitStateSnapshot(context, 'revenant', at, 'upkeep-disabled', snapshotRevenantState(context.state.profession));
     return;
   }
 
@@ -139,7 +97,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id }
   });
-  emitRevenantState(context, at, 'upkeep-enabled');
+  emitStateSnapshot(context, 'revenant', at, 'upkeep-enabled', snapshotRevenantState(context.state.profession));
 }
 
 /** Releases an upkeep parent and applies its manual-release cooldown. */
@@ -156,7 +114,7 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
     context.state.cooldowns.set(parent.id, at + cooldown);
   }
 
-  emitRevenantState(context, at, 'upkeep-released');
+  emitStateSnapshot(context, 'revenant', at, 'upkeep-released', snapshotRevenantState(context.state.profession));
 }
 
 /** Resolves one recurring upkeep pulse and schedules the next occurrence. */
@@ -177,10 +135,14 @@ export function handleRevenantUpkeepPulse(
     const hammers = Math.max(0, Math.trunc(Number(strike.hits || 0)));
     const coefficient = Number(strike.coefficient || 0);
     for (let hammer = 1; hammer <= hammers; hammer += 1) {
-      emitDamage(context, skill, task.at, coefficient, {
+      emitSkillDamage(context, skill, {
+        at: task.at,
+        coefficient,
         name: `Vengeful Hammers — Hammer ${hammer}`,
         hitIndex: hammer,
-        totalHits: hammers
+        totalHits: hammers,
+        skillWeapon: 'Unequipped',
+        canCrit: null
       });
     }
   }

@@ -1,4 +1,6 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 /**
  * Core (profession-agnostic) necromancer skill handlers.
  *
@@ -6,7 +8,6 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * `necromancerCoreSkillHandlers` map.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
-import { emitState } from './shared.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 
 function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -27,7 +28,14 @@ function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     delete state.availableFlips[skill.id];
   }
 
-  emitState(context, context.effectiveEnd, 'flip');
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    context.effectiveEnd,
+    'flip',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
   return false;
 }
 

@@ -1,5 +1,6 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { emitCondition, emitDamage, hasTrait } from '../../core/shared.js';
+import { hasTrait } from '../../core/shared.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
 
 export function darkBarrage(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -15,17 +16,22 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
     (hitAt) => hitAt <= context.effectiveEnd + context.epsilon
   ).length;
   if (landedHits > 0) {
-    emitDamage(context, skill, 0.6 * landedHits, {
+    emitSkillDamage(context, skill, {
       at,
+      coefficient: 0.6 * landedHits,
       hits: landedHits,
       interval,
       metadata: { totalHits: hits }
     });
   }
+
   // Each of the 8 hits independently applies 1 stack of Torment — conditions are emitted per-hit so they each get their own expiry timestamp.
   for (let index = 0; index < landedHits; index += 1) {
-    emitCondition(context, skill, 'Torment', 1, 3, {
-      at: at + index * interval
+    emitSkillCondition(context, skill, {
+      at: at + index * interval,
+      condition: 'Torment',
+      stacks: 1,
+      duration: 3
     });
   }
 

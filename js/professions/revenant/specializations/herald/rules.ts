@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
@@ -114,8 +115,9 @@ function handleSharedEmpowerment(context: RevenantSchedulerContext, task: Revena
   const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'might'), baseDuration);
   // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
   heraldState.from(context).sharedEmpowermentReadyAt = task.at + Math.max(0, Number(profile.cooldown || 0));
-  context.emitDerived(cause, {
-    type: 'buff',
+  emitSkillBuff(context, {
+    cause: cause,
+
     at: task.at,
     source: 'revenant',
     sourceId: TRAIT.SHARED_EMPOWERMENT,
@@ -126,7 +128,7 @@ function handleSharedEmpowerment(context: RevenantSchedulerContext, task: Revena
     kind: String(effect.boon || 'might'),
     duration,
     stacks: Math.max(1, Number(effect.stacks || 1)),
-    recipients: effect.recipients || 'party',
+    recipients: String(effect.recipients || 'party'),
     maximumRecipients: Number(effect.maximumRecipients || 5)
   });
 }

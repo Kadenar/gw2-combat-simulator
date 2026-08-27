@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
@@ -12,8 +13,7 @@ import { PERSISTING_FLAMES_FIELD_SKILLS } from './constants.js';
 import {
   applyElementalistAura,
   combatStarted,
-  emitBuff,
-  emitCondition,
+  elementalistEventSkill,
   emitElementalistProc,
   emitProfiledBuff,
   emitProfiledCondition,
@@ -46,8 +46,7 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
       sourceId
     });
   applySunspotAura();
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'Sunspot',
     sourceId,
@@ -111,8 +110,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     'durationPerTier',
     0.5
   );
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'Flame Expulsion',
     sourceId,
@@ -122,19 +120,20 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     coefficient: baseCoefficient + coefficientPerMight * cappedMight,
     skillWeapon: 'Unequipped'
   });
-  emitCondition(
-    context,
+  emitSkillCondition(context, elementalistEventSkill(context, 'Flame Expulsion', sourceId), {
     at,
-    'Burning',
-    elementalistEffectValue(context, PROFILE.pyromancersPuissance, 'condition', 'stacks', 1, 'Flame Expulsion'),
-    Math.min(
+    source: 'Flame Expulsion',
+    sourceId,
+    actorType: 'player',
+    condition: 'Burning',
+    stacks: elementalistEffectValue(context, PROFILE.pyromancersPuissance, 'condition', 'stacks', 1, 'Flame Expulsion'),
+    duration: Math.min(
       baseBurningDuration + burningDurationPerMight * cappedMight,
       baseBurningDuration +
         burningDurationPerMight * elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10)
     ),
-    'Flame Expulsion',
-    sourceId
-  );
+    skillName: 'Flame Expulsion'
+  });
   emitElementalistProc(context, {
     at,
     name: 'Flame Expulsion',
@@ -153,8 +152,7 @@ export function triggerElectricDischarge(
   sourceId: Skill['id']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Electric Discharge')) return;
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'Electric Discharge',
     sourceId,
@@ -195,8 +193,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
     return;
   }
 
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'Earthen Blast',
     sourceId,
@@ -270,15 +267,16 @@ export function triggerBountifulPower(
     state.bountifulPowerProgress -= threshold;
     emitProfiledBuff(context, at, PROFILE.bountifulPower, 'Quickness', 'Quickness', 1, 5, 'Bountiful Power', sourceId);
     const active = profiledEffect(context, PROFILE.bountifulPower, 'buff', 'Damage Window');
-    emitBuff(
-      context,
+    emitSkillBuff(context, elementalistEventSkill(context, 'Bountiful Power', sourceId), {
       at,
-      'Bountiful Power Active',
-      Number(active?.stacks ?? 1),
-      Number(active?.duration ?? 7),
-      'Bountiful Power',
-      sourceId
-    );
+      source: 'Bountiful Power',
+      sourceId,
+      actorType: 'player',
+      kind: 'bountiful power active',
+      stacks: Number(active?.stacks ?? 1),
+      duration: Number(active?.duration ?? 7),
+      skillName: 'Bountiful Power'
+    });
   }
 }
 
@@ -301,8 +299,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
           ? 'Blinding Flash (trait)'
           : 'Shock Wave (trait)';
   if (attunement === 'Fire') {
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source,
       sourceId: skill.id,
@@ -323,8 +320,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
       controlKind: 'blind'
     });
   } else if (attunement === 'Earth') {
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source,
       sourceId: skill.id,
@@ -457,15 +453,16 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
 
   if (hasTrait(context, 'Arcane Lightning') && skill.skillFamily === 'Arcane') {
     const arcaneWindow = profiledEffect(context, PROFILE.arcaneLightning, 'buff', 'Arcane Lightning');
-    emitBuff(
-      context,
+    emitSkillBuff(context, skill, {
       at,
-      'Arcane Lightning',
-      Number(arcaneWindow?.stacks ?? 1),
-      Number(arcaneWindow?.duration ?? 15),
-      skill.name,
-      skill.id
-    );
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'arcane lightning',
+      stacks: Number(arcaneWindow?.stacks ?? 1),
+      duration: Number(arcaneWindow?.duration ?? 15),
+      skillName: skill.name
+    });
     if (skill.name === 'Arcane Brilliance') {
       emitProfiledBuff(
         context,
@@ -622,10 +619,12 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     }
 
     if (state.primaryAttunement === 'Air') continue;
+
     const event = context.eventByOrder(candidate.eventOrder);
     if (!event) {
       throw new Error(`Missing Fresh Air critical event ${String(candidate.eventOrder)}.`);
     }
+
     const tracker = { progress: state.freshAirProgress, readyAt: 0 };
     const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
     state.freshAirProgress = tracker.progress;
@@ -656,8 +655,9 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
   if (event.type !== 'control' || event.actorType !== 'player') return;
   const sourceId = event.skillId ?? event.sourceId;
   if (hasTrait(context, 'Lightning Rod')) {
-    context.emitDerived(event, {
-      type: 'damage',
+    emitSkillDamage(context, {
+      cause: event,
+
       at: event.at,
       source: 'Lightning Rod',
       sourceId,

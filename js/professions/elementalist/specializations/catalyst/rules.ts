@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
@@ -9,7 +10,8 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
-import { applyElementalistAura, emitElementalistBuff } from '../../core/rules.js';
+import { applyElementalistAura } from '../../core/rules.js';
+import { elementalistEventSkill } from '../../core/mechanics.js';
 import type { ElementalistAttunement } from '../../core/state.js';
 import type { CatalystEmpowermentPool } from '../../types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
@@ -164,8 +166,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
         )
       : 1;
     const quickness = elementalistBalanceEffect(context, PROFILE.spectacularSphere, 'boon', 'Quickness');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.start,
       source: skill.name,
       sourceId: skill.id,
@@ -192,8 +193,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
             ? (['Air', 'fury', 1, 5] as const)
             : (['Earth', 'aegis', 1, 3] as const);
     const profiledBoon = elementalistBalanceEffect(context, PROFILE.spectacularSphere, 'boon', boon[0]);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.start,
       source: skill.name,
       sourceId: skill.id,
@@ -243,8 +243,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 
 function activateRelentlessFire(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: skill.name,
     sourceId: skill.id,
@@ -267,8 +266,7 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
       : elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
   state.shatteringIceUntil = at + duration;
   state.shatteringIceReadyAt = at;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: skill.name,
     sourceId: skill.id,
@@ -306,15 +304,16 @@ function activateElementalCelerity(context: ElementalistSchedulerContext, skill:
   for (const [element, kind, stacks, duration] of boons) {
     if (state.sphereExpiry[element] <= at) continue;
     const effect = elementalistBalanceEffect(context, PROFILE.elementalCelerity, 'boon', element);
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, skill, {
       at,
-      String(effect?.boon || kind),
-      Number(effect?.stacks ?? stacks),
-      Number(effect?.duration ?? duration),
-      skill.name,
-      skill.id
-    );
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(effect?.boon || kind).toLowerCase(),
+      stacks: Number(effect?.stacks ?? stacks),
+      duration: Number(effect?.duration ?? duration),
+      skillName: skill.name
+    });
   }
 }
 
@@ -356,15 +355,18 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   const core = professionCoreState(context);
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
     const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      'Empowering Auras',
-      1,
+    const source = String(event.skillName || event.source || 'Aura');
+    const sourceId = event.skillId ?? event.sourceId;
+    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+      at: event.at,
+      source,
+      sourceId,
+      actorType: 'player',
+      kind: 'empowering auras',
+      stacks: 1,
       duration,
-      String(event.skillName || event.source || 'Aura'),
-      event.skillId ?? event.sourceId
-    );
+      skillName: source
+    });
   }
 
   const implicitCombatEvent =
@@ -401,15 +403,18 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
     const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      'Elemental Empowerment',
-      Number(empowerment?.stacks ?? 1),
-      Number(empowerment?.duration ?? 15),
-      String(event.skillName || event.source || 'Elemental Epitome'),
-      event.skillId ?? event.sourceId
-    );
+    const source = String(event.skillName || event.source || 'Elemental Epitome');
+    const sourceId = event.skillId ?? event.sourceId;
+    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+      at: event.at,
+      source,
+      sourceId,
+      actorType: 'player',
+      kind: 'elemental empowerment',
+      stacks: Number(empowerment?.stacks ?? 1),
+      duration: Number(empowerment?.duration ?? 15),
+      skillName: source
+    });
     return;
   }
 
@@ -418,15 +423,16 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     const energyGain = elementalistBalanceValue(context, PROFILE.energizedElements, 'resourceGain', 2);
     state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
     const fury = elementalistBalanceEffect(context, PROFILE.energizedElements, 'boon', 'Fury');
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      String(fury?.boon || 'Fury'),
-      Number(fury?.stacks ?? 1),
-      Number(fury?.duration ?? 2),
-      'Energized Elements',
-      event.sourceId
-    );
+    emitSkillBuff(context, elementalistEventSkill(context, 'Energized Elements', event.sourceId), {
+      at: event.at,
+      source: 'Energized Elements',
+      sourceId: event.sourceId,
+      actorType: 'player',
+      kind: String(fury?.boon || 'Fury').toLowerCase(),
+      stacks: Number(fury?.stacks ?? 1),
+      duration: Number(fury?.duration ?? 2),
+      skillName: 'Energized Elements'
+    });
     if (state.energy !== before) {
       context.emitDerived(event, {
         type: 'resource',
@@ -479,15 +485,16 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
         event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
       if (attunement === 'Fire' || attunement === 'Earth') {
         const effect = elementalistBalanceEffect(context, PROFILE.elementalSynergy, 'boon', attunement);
-        emitElementalistBuff(
-          context as never,
-          event.at,
-          String(effect?.boon || (attunement === 'Fire' ? 'Might' : 'Stability')),
-          Number(effect?.stacks ?? (attunement === 'Fire' ? 6 : 2)),
-          Number(effect?.duration ?? (attunement === 'Fire' ? 10 : 6)),
-          'Elemental Synergy',
-          event.sourceId
-        );
+        emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {
+          at: event.at,
+          source: 'Elemental Synergy',
+          sourceId: event.sourceId,
+          actorType: 'player',
+          kind: String(effect?.boon || (attunement === 'Fire' ? 'Might' : 'Stability')).toLowerCase(),
+          stacks: Number(effect?.stacks ?? (attunement === 'Fire' ? 6 : 2)),
+          duration: Number(effect?.duration ?? (attunement === 'Fire' ? 10 : 6)),
+          skillName: 'Elemental Synergy'
+        });
       } else if (attunement === 'Air') {
         core.endurance = Math.min(
           elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100),
@@ -587,8 +594,7 @@ function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: Sche
     context.epsilon,
     maximumEmpowerment(context)
   );
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Elemental Empowerment',
     sourceId: 'Elemental Empowerment',

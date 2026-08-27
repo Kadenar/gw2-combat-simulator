@@ -1,7 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefCondition, emitThiefState, gainThiefInitiative } from './shared.js';
+import { gainThiefInitiative } from './shared.js';
 import type { ThiefCastContext } from '../types.js';
 import {
   thiefBalanceProfile,
@@ -15,7 +18,7 @@ export function performThiefDodge(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.endurance = Math.max(0, state.endurance - Number(resources?.resourceCost || 50));
-  emitThiefState(context, context.start, 'dodge');
+  emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
   if (hasThiefTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = thiefBalanceProfile(context, PROFILE.uncatchable);
     const bleeding = thiefBalanceProfileEffect(profile, 'condition', 0);
@@ -23,16 +26,24 @@ export function performThiefDodge(context: ThiefCastContext): void {
     const applications = Math.max(0, Number(bleeding?.applications || 3));
     for (let pulse = 0; pulse < applications; pulse += 1) {
       const at = context.start + Number(profile?.initialDelay || 0.8) + pulse * Number(profile?.pulseInterval || 1);
-      emitThiefCondition(context, {
+      emitSkillCondition(context, {
         at,
+        source: 'Trait',
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
         condition: String(bleeding?.condition || 'Bleeding'),
         duration: Number(bleeding?.duration || 5),
         stacks: Number(bleeding?.stacks || 1),
         sourceId: TRAIT.UNCATCHABLE,
         name: 'Uncatchable — Lesser Caltrops'
       });
-      emitThiefCondition(context, {
+      emitSkillCondition(context, {
         at,
+        source: 'Trait',
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
         condition: String(crippled?.condition || 'Crippled'),
         duration: Number(crippled?.duration || 1),
         stacks: Number(crippled?.stacks || 1),

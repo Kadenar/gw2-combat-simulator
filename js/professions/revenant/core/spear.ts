@@ -1,4 +1,7 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from '../state.js';
 /**
  * Revenant spear recharge and Crushing Abyss mechanics.
  *
@@ -7,7 +10,6 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * that use, then grants one new ten-second stack after its impact.
  */
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
-import { emitRevenantState } from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type {
   RevenantCastContext,
@@ -72,9 +74,9 @@ function emitAbyssalRazePackets(
     skillWeapon: 'Spear',
     ...(triggeredBy ? { triggeredBy } : {})
   };
-  context.emit({
+  emitSkillDamage(context, {
     ...common,
-    type: 'damage',
+
     name: triggeredBy ? 'Abyssal Raze — Crushing Abyss' : 'Abyssal Raze',
     coefficient,
     hits: 1,
@@ -82,18 +84,18 @@ function emitAbyssalRazePackets(
     totalHits: 1,
     crushingAbyssStacks
   });
-  context.emit({
+  emitSkillCondition(context, {
     ...common,
-    type: 'condition',
+
     name: 'Abyssal Raze — Torment',
     condition: 'Torment',
     stacks: Number(baseTorment.stacks || 0),
     duration: Number(baseTorment.duration || 0)
   });
   if (crushingAbyssStacks > 0) {
-    context.emit({
+    emitSkillCondition(context, {
       ...common,
-      type: 'condition',
+
       name: 'Abyssal Raze — Crushing Abyss Torment',
       condition: 'Torment',
       stacks: Number(crushingTorment.stacks || 0) * crushingAbyssStacks,
@@ -189,8 +191,7 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
   stacks.push(task.at + duration);
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = String(effect.name || 'Crushing Abyss');
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: task.at,
     source: 'revenant',
     sourceId: ID.ABYSSAL_RAZE,
@@ -217,7 +218,13 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
     name: effectName,
     detail: `${stacks.length}/${maximum} stacks`
   });
-  emitRevenantState(context, task.at, 'crushing-abyss-gain');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    task.at,
+    'crushing-abyss-gain',
+    snapshotRevenantState(context.state.profession)
+  );
 }
 
 /** Queues the max-stack weapon-swap attack at the swap's completion time. */
@@ -247,7 +254,13 @@ export function handleCrushingAbyssWeaponSwap(
   if (sameWeaponSet(context.config, origin, destination)) return;
   professionCoreState(context).crushingAbyss = [];
   emitAbyssalRazePackets(context, skill, task.at, maximum, 'Swap Weapons');
-  emitRevenantState(context, task.at, 'crushing-abyss-weapon-swap');
+  emitStateSnapshot(
+    context,
+    'revenant',
+    task.at,
+    'crushing-abyss-weapon-swap',
+    snapshotRevenantState(context.state.profession)
+  );
 }
 
 /** Removes expired Crushing Abyss stacks from projected scheduler state. */

@@ -1,21 +1,24 @@
 import { deadeyeState } from './state.js';
 import { augmentSkillHandler } from '../../../../platform/engine/skills/handlers.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { completeStealWithStoredSkills } from '../../core/steal.js';
 import { emitStealTraitEffects } from '../../core/traits.js';
-import { emitThiefCondition, emitThiefState, gainThiefInitiative } from '../../core/shared.js';
+import { gainThiefInitiative } from '../../core/shared.js';
 import { beginStealthAttack, completeStealthAttack } from '../../core/stealth.js';
 import { grantThiefStealth } from '../../core/weapon-state.js';
 import { consumeStoredStolenSkill } from '../../core/steal.js';
 import { deadeyeStolenSkillGrant } from './mechanics.js';
 import {
   applyMaleficentSeven,
+  applyMaliciousAshenAssaultCondition,
   applyDeadeyesMarkTraits,
   applyDeadeyeStolenSkillTraits,
   deadeyeStealthAttackMaliceBonus,
   initialDeadeyeMalice
 } from './traits.js';
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import type { ThiefCastContext, ThiefSimulationEvent, ThiefSkill } from '../../types.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -49,7 +52,7 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
     ownerId: 'thief.deadeye-mark',
     payload: { generation: state.markGeneration }
   });
-  emitThiefState(context, at, 'deadeyes-mark');
+  emitStateSnapshot(context, 'thief', at, 'deadeyes-mark', snapshotThiefState(context.state.profession));
 }
 
 function prepareDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkill): DeadeyeHandlerState {
@@ -142,7 +145,7 @@ function completeMercy(context: ThiefCastContext): void {
     context.effectiveEnd,
     'mercy'
   );
-  emitThiefState(context, context.effectiveEnd, 'mercy');
+  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'mercy', snapshotThiefState(context.state.profession));
 }
 
 function completeShadowFlare(context: ThiefCastContext): void {
@@ -150,19 +153,31 @@ function completeShadowFlare(context: ThiefCastContext): void {
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
   core.availableFlips[ID.SHADOW_SWAP] =
     context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.shadowFlare)?.durationMultiplier || 4);
-  emitThiefState(context, context.effectiveEnd, 'shadow-flare');
+  emitStateSnapshot(
+    context,
+    'thief',
+    context.effectiveEnd,
+    'shadow-flare',
+    snapshotThiefState(context.state.profession)
+  );
 }
 
 function completeShadowSwap(context: ThiefCastContext): void {
   delete professionCoreState(context).availableFlips[ID.SHADOW_SWAP];
-  emitThiefState(context, context.effectiveEnd, 'shadow-swap');
+  emitStateSnapshot(
+    context,
+    'thief',
+    context.effectiveEnd,
+    'shadow-swap',
+    snapshotThiefState(context.state.profession)
+  );
 }
 
 function prepareShadowMeld(context: ThiefCastContext): void {
   const core = professionCoreState(context);
   // Shadow Meld cancels the Revealed debuff at cast start (not cast end) so the player re-enters stealth immediately
   core.revealedUntil = Math.min(core.revealedUntil, context.start);
-  emitThiefState(context, context.start, 'shadow-meld');
+  emitStateSnapshot(context, 'thief', context.start, 'shadow-meld', snapshotThiefState(context.state.profession));
 }
 
 function prepareDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: ThiefSkill): DeadeyeHandlerState {
@@ -196,19 +211,9 @@ function completeDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: Thi
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   const at = context.effectiveEnd;
   const profile = thiefBalanceProfile(context, PROFILE.maliciousAshenAssault);
-  const torment = thiefBalanceProfileEffect(profile, 'condition');
   gainThiefInitiative(context, Number(profile?.resourceGain || 4), at, 'ashen-assault-refund');
-  if (Number(prepared.malice || 0) > 0) {
-    // Torment duration from Malicious Ashen Assault: 0.5s base + 0.5s per malice stack, only applied when malice > 0
-    emitThiefCondition(context, {
-      at,
-      condition: String(torment?.condition || 'Torment'),
-      duration: Number(torment?.duration || 0.5) + Number(prepared.malice) * Number(profile?.durationMultiplier || 0.5),
-      stacks: Number(torment?.stacks || 1),
-      sourceId: skill.id,
-      name: 'Malicious Ashen Assault — Torment'
-    });
-  }
+  // Torment duration scales with the pre-cast malice snapshot.
+  applyMaliciousAshenAssaultCondition(context, skill, at, Number(prepared.malice || 0));
 
   completeStealthAttack(context, skill);
 }

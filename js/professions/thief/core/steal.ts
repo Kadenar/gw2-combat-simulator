@@ -1,6 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { emitThiefState } from './shared.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
 import { applyStealCompletionTraits } from './traits.js';
 import type { SkillId } from '../../../platform/engine/types.js';
@@ -37,7 +38,15 @@ export function storeStolenSkillChoices(
       : hasThiefTrait(context.config, TRAIT.IMPROVISATION)
         ? Number(thiefBalanceProfile(context, PROFILE.improvisation)?.maximumStacks || 2)
         : 1;
-  if (emitState) emitThiefState(context, context.effectiveEnd, 'stolen-skill');
+  if (emitState) {
+    emitStateSnapshot(
+      context,
+      'thief',
+      context.effectiveEnd,
+      'stolen-skill',
+      snapshotThiefState(context.state.profession)
+    );
+  }
 }
 
 export function completeStealWithStoredSkills(
@@ -47,7 +56,7 @@ export function completeStealWithStoredSkills(
 ): void {
   storeStolenSkillChoices(context, skillIds, forcedSkillId, false);
   applyStealCompletionTraits(context, context.effectiveEnd);
-  emitThiefState(context, context.effectiveEnd, 'steal');
+  emitStateSnapshot(context, 'thief', context.effectiveEnd, 'steal', snapshotThiefState(context.state.profession));
 }
 
 export function completeSteal(context: ThiefCastContext): void {
@@ -65,5 +74,11 @@ export function consumeStoredStolenSkill(context: ThiefCastContext, skill: Thief
     state.storedStolenSkillIds = [];
   }
 
-  emitThiefState(context, context.effectiveEnd, 'stolen-skill-used');
+  emitStateSnapshot(
+    context,
+    'thief',
+    context.effectiveEnd,
+    'stolen-skill-used',
+    snapshotThiefState(context.state.profession)
+  );
 }

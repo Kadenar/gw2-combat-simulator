@@ -1,9 +1,10 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { emitBuff, gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
+import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
 import { advanceHarbingerBlight } from './blight.js';
 import { harbingerState } from './state.js';
 import {
@@ -63,17 +64,18 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       const quickness = balanceProfileEffect(profile, 'boon');
       const fury = balanceProfileEffect(profile, 'boon', 1);
       const recipients = { recipients: 'party' as const, maximumRecipients: 5 };
-      emitBuff(
-        context,
-        skill,
-        String(quickness?.boon || 'quickness'),
-        Number(quickness?.duration || 4),
-        Number(quickness?.stacks || 1),
-        {
-          metadata: recipients
-        }
-      );
-      emitBuff(context, skill, String(fury?.boon || 'fury'), Number(fury?.duration || 4), Number(fury?.stacks || 1), {
+      emitSkillBuff(context, skill, {
+        at,
+        kind: String(quickness?.boon || 'quickness'),
+        duration: Number(quickness?.duration || 4),
+        stacks: Number(quickness?.stacks || 1),
+        metadata: recipients
+      });
+      emitSkillBuff(context, skill, {
+        at,
+        kind: String(fury?.boon || 'fury'),
+        duration: Number(fury?.duration || 4),
+        stacks: Number(fury?.stacks || 1),
         metadata: recipients
       });
     }
@@ -82,20 +84,18 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       const profile = necromancerBalanceProfile(context, PROFILE.implacableFoe);
       const stability = balanceProfileEffect(profile, 'boon');
       const buff = balanceProfileEffect(profile, 'buff');
-      emitBuff(
-        context,
-        skill,
-        String(stability?.boon || 'stability'),
-        Number(stability?.duration || 5),
-        Number(stability?.stacks || 3)
-      );
-      emitBuff(
-        context,
-        skill,
-        String(buff?.kind || 'implacable-foe'),
-        Number(buff?.duration || 2),
-        Number(buff?.stacks || 1)
-      );
+      emitSkillBuff(context, skill, {
+        at,
+        kind: String(stability?.boon || 'stability'),
+        duration: Number(stability?.duration || 5),
+        stacks: Number(stability?.stacks || 3)
+      });
+      emitSkillBuff(context, skill, {
+        at,
+        kind: String(buff?.kind || 'implacable-foe'),
+        duration: Number(buff?.duration || 2),
+        stacks: Number(buff?.stacks || 1)
+      });
     }
   }
 
@@ -109,16 +109,18 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       recipients: 'party',
       maximumRecipients: 5
     };
-    emitBuff(
-      context,
-      skill,
-      String(quickness?.boon || 'quickness'),
-      Number(quickness?.duration || 4),
-      Number(quickness?.stacks || 1),
-      { at, metadata: deathlyHaste }
-    );
-    emitBuff(context, skill, String(fury?.boon || 'fury'), Number(fury?.duration || 4), Number(fury?.stacks || 1), {
+    emitSkillBuff(context, skill, {
       at,
+      kind: String(quickness?.boon || 'quickness'),
+      duration: Number(quickness?.duration || 4),
+      stacks: Number(quickness?.stacks || 1),
+      metadata: deathlyHaste
+    });
+    emitSkillBuff(context, skill, {
+      at,
+      kind: String(fury?.boon || 'fury'),
+      duration: Number(fury?.duration || 4),
+      stacks: Number(fury?.stacks || 1),
       metadata: deathlyHaste
     });
   }

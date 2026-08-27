@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 /**
  * Summoned-elemental subsystem for Glyph of Elementals (Fire / Earth).
  *
@@ -410,8 +411,7 @@ function emitStrike(
   if (pendingLightningJolt) {
     // Lightning Jolt is an allied one-shot charge, so the elemental consumes its copy on its next strike.
     elemental.pendingLightningJolt = null;
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       activationId: context.createActivationId('effect'),
       at: task.at,
       source: `${element} Elemental`,
@@ -437,8 +437,7 @@ function emitStrike(
     });
   }
 
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     activationId: task.payload?.activationId,
     at: task.at,
     source: `${element} Elemental`,
@@ -470,8 +469,7 @@ function emitPlayerOwnedCondition(
   stacks = 1
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     activationId: task.payload?.activationId,
     at: task.at,
     source: `${elemental.element} Elemental`,
@@ -492,8 +490,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals');
   if (!sourceSkill) return;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     activationId: task.payload?.activationId,
     at: task.at,
     source: 'Fire Elemental',
@@ -515,8 +512,7 @@ function emitStompProtection(context: ElementalistSchedulerContext, task: Schedu
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals (Earth)');
   if (!sourceSkill) return;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     activationId: task.payload?.activationId,
     at: task.at,
     source: 'Earth Elemental',

@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
@@ -94,8 +95,7 @@ export function applyWillbenderVirtueActivationTraits(
   );
   state[`${virtue}Until`] = at + duration;
   gainLethalTempo(state, at, tyrantsMomentum, Number(lethalTempo?.maximumStacks || 5), tempoDuration);
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'guardian',
     sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
@@ -109,8 +109,7 @@ export function applyWillbenderVirtueActivationTraits(
   });
   if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
     const vigor = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.restorativeVirtues), 'boon');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
@@ -126,8 +125,7 @@ export function applyWillbenderVirtueActivationTraits(
 
   if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
     const alacrity = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.phoenixProtocol), 'boon');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
@@ -247,8 +245,7 @@ function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSk
         (tyrantsMomentum ? 4 : 6)
     )
   );
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'guardian',
     sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
@@ -319,8 +316,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
   );
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
     const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.searingPact), 'condition');
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
@@ -382,8 +378,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
       const courage = guardianBalanceProfile(context, PROFILE.courageTrigger);
       for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
         const kind = String(boon.boon || '');
-        context.emit({
-          type: 'buff',
+        emitSkillBuff(context, {
           at,
           source: 'guardian',
           sourceId: ID.CRASHING_COURAGE_ID_62648,
@@ -405,8 +400,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         'boon',
         1
       );
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at,
         source: 'guardian',
         sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,

@@ -1,7 +1,8 @@
+import { emitStateSnapshot } from '../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../platform/engine/profession/state.js';
+import { snapshotRevenantState } from './state.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { baseRevenantEnergyCost } from './core/energy.js';
-import { emitRevenantState } from './core/shared.js';
 import { applyConduitEnergyCostRules } from './specializations/conduit/energy.js';
 import { applyVindicatorEnergyCostRules } from './specializations/vindicator/energy.js';
 import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeState, RevenantSkill } from './types.js';
@@ -37,5 +38,13 @@ export function spendRevenantEnergy(context: RevenantPrecastContext, skill: Reve
   const state = professionCoreState(context);
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
-  if (cost > 0) emitRevenantState(context, context.start, 'energy-spent');
+  if (cost > 0) {
+    emitStateSnapshot(
+      context,
+      'revenant',
+      context.start,
+      'energy-spent',
+      snapshotRevenantState(context.state.profession)
+    );
+  }
 }

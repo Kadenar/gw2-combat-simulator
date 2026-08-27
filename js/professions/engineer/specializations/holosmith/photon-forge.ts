@@ -1,11 +1,14 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { holosmithState } from './state.js';
+import { snapshotEngineerState } from '../../state.js';
 import { decorateHolosmithHeatEvent } from './heat-tiers.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
-import { emitEngineerBarSwap, emitEngineerState } from '../../core/events.js';
+import { emitEngineerBarSwap } from '../../core/events.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import {
@@ -149,8 +152,7 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
     id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
     name: 'Enhanced Capacity Storage Unit'
   } as EngineerSkill;
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
@@ -253,8 +255,7 @@ function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: 
 }
 
 function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, effectAt: number): void {
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: effectAt,
     source: 'Trait',
     sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -275,8 +276,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
       }
     ]
   });
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at: effectAt,
     source: 'Trait',
     sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -312,7 +312,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
 
   // Publish maximum heat at the overheat timestamp. The module blast and its
   // Solar Focusing Lens charges become active after the observed delay.
-  emitEngineerState(context, at, 'overheat');
+  emitStateSnapshot(context, 'engineer', at, 'overheat', snapshotEngineerState(context.state.profession));
   grantSolarFocusingLens(
     context,
     photonicBlastingModule ? effectAt : at,
@@ -341,7 +341,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
     state.photonForgeActive !== previousForgeActive ||
     state.overheated !== previousOverheated
   ) {
-    emitEngineerState(context, target, 'passive-heat');
+    emitStateSnapshot(context, 'engineer', target, 'passive-heat', snapshotEngineerState(context.state.profession));
   }
 }
 
@@ -395,7 +395,10 @@ export function handlePhotonForgePassiveHeat(
     }
   }
 
-  if (state.heat !== previousHeat) emitEngineerState(context, task.at, 'passive-heat');
+  if (state.heat !== previousHeat) {
+    emitStateSnapshot(context, 'engineer', task.at, 'passive-heat', snapshotEngineerState(context.state.profession));
+  }
+
   const coolingGraceActive =
     !state.photonForgeActive &&
     state.forgeExitedAt != null &&
@@ -428,7 +431,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   state.kitLockoutUntil = at + context.rechargeDurationFor({ ...skill, cooldown: baseKitLockout }, at);
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
   emitEngineerBarSwap(context, skill, at);
-  emitEngineerState(context, at, 'enter-forge');
+  emitStateSnapshot(context, 'engineer', at, 'enter-forge', snapshotEngineerState(context.state.profession));
 }
 
 function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
@@ -439,7 +442,7 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   startPassiveHeatCadence(context, at);
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
   emitEngineerBarSwap(context, skill, at);
-  emitEngineerState(context, at, 'exit-forge');
+  emitStateSnapshot(context, 'engineer', at, 'exit-forge', snapshotEngineerState(context.state.profession));
 }
 
 function scheduleHeatPulse(
@@ -508,7 +511,7 @@ export function handlePhotonForgeHeat(
   const previousHeat = state.heat;
   state.heat = Math.min(state.maximumHeat, state.heat + Math.max(0, Number(task.payload?.amount || 0)));
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
-  emitEngineerState(context, task.at, 'heat');
+  emitStateSnapshot(context, 'engineer', task.at, 'heat', snapshotEngineerState(context.state.profession));
 }
 
 // Invokes Vent Exhaust from its canonical skill record so the proc row, icon,
@@ -552,7 +555,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
   state.heatUpdatedAt = at;
   if (state.heat === 0) state.overheated = false;
-  emitEngineerState(context, at, 'vent-exhaust');
+  emitStateSnapshot(context, 'engineer', at, 'vent-exhaust', snapshotEngineerState(context.state.profession));
 }
 
 // Vigor is granted unconditionally on dodge; Vent Exhaust fires only when heat > 0.
@@ -561,8 +564,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
 export function triggerThermalReleaseValve(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasEngineerTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.THERMAL_RELEASE_VALVE,
@@ -625,8 +627,9 @@ export function observeHolosmithScheduledEvent(
 
   state.solarFocusingLensStacks -= 1;
   context.replaceEvent(event, { solarFocusingLens: true });
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.SOLAR_FOCUSING_LENS,

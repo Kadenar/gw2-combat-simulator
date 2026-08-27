@@ -1,7 +1,8 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasEngineerTrait } from './state.js';
-import { emitEngineerState } from './events.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerSchedulerContext } from '../types.js';
 
@@ -55,5 +56,5 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
     Number(state.endurance || 0) + (target - from) * engineerEnduranceRegenerationRate(context, (from + target) / 2)
   );
   state.enduranceUpdatedAt = target;
-  emitEngineerState(context, target, 'resources');
+  emitStateSnapshot(context, 'engineer', target, 'resources', snapshotEngineerState(context.state.profession));
 }

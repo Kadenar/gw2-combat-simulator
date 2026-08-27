@@ -1,3 +1,4 @@
+import { emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -71,8 +72,9 @@ export function handleVirtuosoExpectedProcTask(
   });
   if (!application) return;
   const effect = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.JAGGED_MIND), 'condition');
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     name: `${event.name} — Jagged Mind`,
     skillName: event.skillName,

@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
@@ -28,8 +29,7 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
   for (let boonIndex = 0; boonIndex < 2; boonIndex += 1) {
     const effect = rangerBalanceProfileEffect(profile, 'boon', (hawkeye ? 2 : 0) + boonIndex);
     const kind = String(effect?.boon || ['quickness', 'might'][boonIndex]);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.CLOUDBURST,
@@ -61,8 +61,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
       const duration = Number(effect?.duration ?? 10);
       // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
       state.galeForceUntil = context.effectiveEnd + duration;
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.effectiveEnd,
         source: 'Trait',
         sourceId: TRAIT.GALE_FORCE,

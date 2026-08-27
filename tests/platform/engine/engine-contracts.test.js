@@ -178,5 +178,24 @@ test('state snapshot emission removes only matching adjacent synchronization che
     null
   );
   assert.ok(emitStateSnapshot(context, event('fixture.state.third', { resource: 9 })));
-  assert.equal(events.length, 3);
+  const direct = emitStateSnapshot(context, 'fixture', 2, 'resource-update', { resource: 8 });
+  assert.deepEqual(
+    {
+      type: direct.type,
+      at: direct.at,
+      source: direct.source,
+      sourceId: direct.sourceId,
+      reason: direct.reason,
+      state: direct.state
+    },
+    {
+      type: 'fixture.state',
+      at: 2,
+      source: 'fixture',
+      sourceId: 'fixture.state.resource-update',
+      reason: 'resource-update',
+      state: { resource: 8 }
+    }
+  );
+  assert.equal(events.length, 4);
 });

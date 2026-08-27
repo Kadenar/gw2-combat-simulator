@@ -1,8 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefState, gainThiefInitiative } from './shared.js';
+import { gainThiefInitiative } from './shared.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type {
   ThiefPrecastContext,
@@ -82,7 +84,7 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     state.enduranceUpdatedAt = target;
   }
 
-  emitThiefState(context, target, 'resources');
+  emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));
 }
 
 // Spend initiative at cast start and apply Signets of Power's immediate refund
@@ -92,7 +94,13 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0) {
     state.initiative = Math.max(0, state.initiative - cost);
-    emitThiefState(context, context.start, 'initiative-spent');
+    emitStateSnapshot(
+      context,
+      'thief',
+      context.start,
+      'initiative-spent',
+      snapshotThiefState(context.state.profession)
+    );
   }
 
   if (

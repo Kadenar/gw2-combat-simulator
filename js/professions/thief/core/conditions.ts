@@ -1,10 +1,13 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import {
   gw2AlliedPlayerAssumptions,
   gw2AlliedPlayerProcTimeline
 } from '../../../platform/gw2/combat/state/allied-players.js';
-import { emitThiefState, gainThiefInitiative } from './shared.js';
+import { gainThiefInitiative } from './shared.js';
 import {
   beginStealthAttack as beginBaseStealthAttack,
   completeStealthAttack as completeBaseStealthAttack
@@ -37,49 +40,6 @@ const SPEAR_CHAIN_STAGE_BY_SKILL = new Map<number, number>([
 const THOUSAND_NEEDLES_PULSES = 5;
 const CALTROPS_PULSES = 10;
 const CALTROPS_CRIPPLE_PULSES = 5;
-
-// Emit a normalized Thief condition packet with optional activation and ally
-// trigger attribution.
-function emitCondition(
-  context: ThiefSchedulerContext,
-  {
-    at,
-    skillId,
-    skillName,
-    condition,
-    stacks,
-    duration,
-    name = `${skillName} — ${condition}`,
-    activationId,
-    triggeredByAlly
-  }: {
-    readonly at: number;
-    readonly skillId: SkillId;
-    readonly skillName: string;
-    readonly condition: string;
-    readonly stacks: number;
-    readonly duration: number;
-    readonly name?: string;
-    readonly activationId?: string;
-    readonly triggeredByAlly?: number;
-  }
-): void {
-  context.emit({
-    type: 'condition',
-    at,
-    source: 'thief',
-    sourceId: skillId,
-    actorType: 'player',
-    skillId,
-    skillName,
-    name,
-    condition,
-    stacks,
-    duration,
-    ...(activationId ? { activationId } : {}),
-    ...(triggeredByAlly ? { triggeredByAlly } : {})
-  });
-}
 
 export function spearChainStageForSkill(skillId: SkillId): number | null {
   return SPEAR_CHAIN_STAGE_BY_SKILL.get(Number(skillId)) ?? null;
@@ -161,7 +121,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearChainStage = (requiredStage + 1) % 3;
     state.spearLastWasFinisher = requiredStage === 2;
     state.spearPreviousSkillId = skill.id;
-    emitThiefState(context, at, 'spear-chain');
+    emitStateSnapshot(context, 'thief', at, 'spear-chain', snapshotThiefState(context.state.profession));
     return;
   }
 
@@ -175,7 +135,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
         at + Number(thiefBalanceProfile(context, PROFILE.distractingThrow)?.durationMultiplier || 10);
     }
 
-    emitThiefState(context, at, 'distracting-throw-lead');
+    emitStateSnapshot(context, 'thief', at, 'distracting-throw-lead', snapshotThiefState(context.state.profession));
     return;
   }
 
@@ -183,7 +143,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearChainStage = 0;
     state.spearLastWasFinisher = false;
     state.spearPreviousSkillId = skill.id;
-    emitThiefState(context, at, 'spear-stealth-attack');
+    emitStateSnapshot(context, 'thief', at, 'spear-stealth-attack', snapshotThiefState(context.state.profession));
   }
 }
 
@@ -219,8 +179,11 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
   });
   for (let index = 0; index < alliedProcs.length; index += 1) {
     const proc = alliedProcs[index];
-    emitCondition(context, {
+    emitSkillCondition(context, {
       at: proc.at,
+      source: 'thief',
+      sourceId: ID.SPIDER_VENOM,
+      actorType: 'player',
       skillId: ID.SPIDER_VENOM,
       skillName: 'Spider Venom',
       name: `Spider Venom — Ally ${proc.allyIndex} Poison`,
@@ -232,7 +195,7 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
     });
   }
 
-  emitThiefState(context, at, 'spider-venom');
+  emitStateSnapshot(context, 'thief', at, 'spider-venom', snapshotThiefState(context.state.profession));
 }
 
 export function prepareThousandNeedles(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -240,7 +203,7 @@ export function prepareThousandNeedles(context: ThiefCastContext, skill: ThiefSk
   const at = context.effectiveEnd;
   state.thousandNeedlesPrepared = true;
   state.thousandNeedlesArmedAt = at + Number(skill.durationMultiplier || 3);
-  emitThiefState(context, at, 'prepare-thousand-needles');
+  emitStateSnapshot(context, 'thief', at, 'prepare-thousand-needles', snapshotThiefState(context.state.profession));
 }
 
 export function activateThousandNeedles(context: ThiefCastContext, _skill: ThiefSkill): void {
@@ -248,7 +211,7 @@ export function activateThousandNeedles(context: ThiefCastContext, _skill: Thief
   state.thousandNeedlesPrepared = false;
   state.thousandNeedlesArmedAt = 0;
   state.thousandNeedlesGeneration += 1;
-  emitThiefState(context, context.start, 'thousand-needles');
+  emitStateSnapshot(context, 'thief', context.start, 'thousand-needles', snapshotThiefState(context.state.profession));
 }
 
 // Emit one Thousand Needles strike and its condition package, adding the opening
@@ -264,8 +227,7 @@ export function handleThousandNeedlesPulse(
 ): void {
   const pulse = Number(task.payload.pulse || 0);
   const activationId = task.payload.activationId;
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'thief',
     sourceId: ID.THOUSAND_NEEDLES,
@@ -278,8 +240,11 @@ export function handleThousandNeedlesPulse(
     ...(activationId ? { activationId } : {})
   });
   if (pulse === 0) {
-    emitCondition(context, {
+    emitSkillCondition(context, {
       at: task.at,
+      source: 'thief',
+      sourceId: ID.THOUSAND_NEEDLES,
+      actorType: 'player',
       skillId: ID.THOUSAND_NEEDLES,
       skillName: 'Thousand Needles',
       condition: 'Immobilized',
@@ -294,8 +259,11 @@ export function handleThousandNeedlesPulse(
     ['Bleeding', 2, 5],
     ['Crippled', 1, 2]
   ] as const) {
-    emitCondition(context, {
+    emitSkillCondition(context, {
       at: task.at,
+      source: 'thief',
+      sourceId: ID.THOUSAND_NEEDLES,
+      actorType: 'player',
       skillId: ID.THOUSAND_NEEDLES,
       skillName: 'Thousand Needles',
       condition,
@@ -341,8 +309,11 @@ export function handleCaltropsPulse(
 ): void {
   const pulse = Number(task.payload.pulse || 0);
   const activationId = task.payload.activationId;
-  emitCondition(context, {
+  emitSkillCondition(context, {
     at: task.at,
+    source: 'thief',
+    sourceId: ID.CALTROPS,
+    actorType: 'player',
     skillId: ID.CALTROPS,
     skillName: 'Caltrops',
     condition: 'Bleeding',
@@ -351,8 +322,11 @@ export function handleCaltropsPulse(
     activationId
   });
   if (pulse < CALTROPS_CRIPPLE_PULSES) {
-    emitCondition(context, {
+    emitSkillCondition(context, {
       at: task.at,
+      source: 'thief',
+      sourceId: ID.CALTROPS,
+      actorType: 'player',
       skillId: ID.CALTROPS,
       skillName: 'Caltrops',
       condition: 'Crippled',

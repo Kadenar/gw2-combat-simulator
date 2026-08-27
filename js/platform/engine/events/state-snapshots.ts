@@ -50,12 +50,44 @@ export function sameSnapshotValue(
   return sameSnapshotObject(left, right, seen);
 }
 
-/** Emits one synchronization checkpoint while collapsing only redundant adjacent same-time snapshots. */
+/** Emits a complete profession snapshot without requiring profession-local envelope adapters. */
+export function emitStateSnapshot(
+  context: StateSnapshotEmissionContext,
+  profession: string,
+  at: number,
+  reason: string,
+  state: object,
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null;
+/** Emits an explicitly authored synchronization checkpoint. */
 export function emitStateSnapshot(
   context: StateSnapshotEmissionContext,
   event: StateSnapshotEventInput,
-  { dedupeAcrossSourceIds = false }: StateSnapshotEmissionOptions = {}
+  options?: StateSnapshotEmissionOptions
+): SimulationEvent | null;
+/** Emits one synchronization checkpoint while collapsing only redundant adjacent same-time snapshots. */
+export function emitStateSnapshot(
+  context: StateSnapshotEmissionContext,
+  eventOrProfession: StateSnapshotEventInput | string,
+  atOrOptions?: number | StateSnapshotEmissionOptions,
+  reason?: string,
+  state?: object,
+  professionOptions: StateSnapshotEmissionOptions = {}
 ): SimulationEvent | null {
+  const profession = typeof eventOrProfession === 'string' ? eventOrProfession : null;
+  const event: StateSnapshotEventInput = profession
+    ? {
+        type: `${profession}.state`,
+        at: Number(atOrOptions || 0),
+        source: profession,
+        sourceId: `${profession}.state.${reason || 'update'}`,
+        actorType: 'player',
+        reason: reason || '',
+        state: state || {}
+      }
+    : (eventOrProfession as StateSnapshotEventInput);
+  const options = profession ? professionOptions : (atOrOptions as StateSnapshotEmissionOptions | undefined) || {};
+  const { dedupeAcrossSourceIds = false } = options;
   const previous = context.events.at(-1);
   const sameSourceId = dedupeAcrossSourceIds || previous?.sourceId === event.sourceId;
   if (

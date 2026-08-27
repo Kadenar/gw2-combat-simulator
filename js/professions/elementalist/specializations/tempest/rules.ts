@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type {
   AvailabilityResult,
   SchedulerRecord,
@@ -10,13 +11,13 @@ import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistS
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   applyElementalistAura,
-  emitElementalistBuff,
   emitElementalistProc,
   triggerEarthenBlast,
   triggerElectricDischarge,
   triggerFlameExpulsion,
   triggerSunspot
 } from '../../core/rules.js';
+import { elementalistEventSkill } from '../../core/mechanics.js';
 import { setElementalistAttunementReadyAt } from '../../core/state.js';
 import { armElementalistElementalLightningJolt } from '../../core/elementals.js';
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS, ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
@@ -35,17 +36,18 @@ const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOA
 export function applyTempestShoutTraits(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
   const might = elementalistBalanceEffect(context, PROFILE.tempestuousAria, 'boon', 'Shout Might');
-  emitElementalistBuff(
-    context as never,
-    context.effectiveEnd,
-    String(might?.boon || 'Might'),
-    Number(might?.stacks ?? 2),
-    Number(might?.duration ?? 10),
-    skill.name,
-    skill.id,
-    0,
-    'party'
-  );
+  emitSkillBuff(context, skill, {
+    at: context.effectiveEnd,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    kind: String(might?.boon || 'Might').toLowerCase(),
+    stacks: Number(might?.stacks ?? 2),
+    duration: Number(might?.duration ?? 10),
+    skillName: skill.name,
+    recipients: 'party',
+    maximumRecipients: 5
+  });
 }
 
 // Snapshot overload entry state and consume its attunement availability at cast
@@ -54,38 +56,42 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, 'Hardy Conduit')) {
     const protection = elementalistBalanceEffect(context, PROFILE.hardyConduit, 'boon', 'Protection');
-    emitElementalistBuff(
-      context as never,
-      context.start,
-      String(protection?.boon || 'Protection'),
-      Number(protection?.stacks ?? 1),
-      Number(protection?.duration ?? 3),
-      'Hardy Conduit',
-      skill.id
-    );
+    emitSkillBuff(context, skill, {
+      at: context.start,
+      source: 'Hardy Conduit',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(protection?.boon || 'Protection').toLowerCase(),
+      stacks: Number(protection?.stacks ?? 1),
+      duration: Number(protection?.duration ?? 3),
+      skillName: 'Hardy Conduit'
+    });
   }
 
   if (hasTrait(context, 'Harmonious Conduit')) {
     const swiftness = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Swiftness');
     const stability = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Stability');
-    emitElementalistBuff(
-      context as never,
-      context.start,
-      String(swiftness?.boon || 'Swiftness'),
-      Number(swiftness?.stacks ?? 1),
-      Number(swiftness?.duration ?? 8),
-      'Harmonious Conduit',
-      skill.id
-    );
-    emitElementalistBuff(
-      context as never,
-      context.start,
-      String(stability?.boon || 'Stability'),
-      Number(stability?.stacks ?? 1),
-      Number(stability?.duration ?? 4),
-      'Harmonious Conduit',
-      skill.id
-    );
+    for (const boon of [
+      {
+        kind: String(swiftness?.boon || 'Swiftness').toLowerCase(),
+        stacks: Number(swiftness?.stacks ?? 1),
+        duration: Number(swiftness?.duration ?? 8)
+      },
+      {
+        kind: String(stability?.boon || 'Stability').toLowerCase(),
+        stacks: Number(stability?.stacks ?? 1),
+        duration: Number(stability?.duration ?? 4)
+      }
+    ]) {
+      emitSkillBuff(context, skill, {
+        at: context.start,
+        source: 'Harmonious Conduit',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: 'Harmonious Conduit',
+        ...boon
+      });
+    }
   }
 
   if (skill.attunement === 'Fire') {
@@ -140,51 +146,41 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
     .sort((left: SimulationEvent, right: SimulationEvent) => left.at - right.at)
     .slice(0, elementalistBalanceValue(context, PROFILE.lucidSingularity, 'maximumStacks', 5));
   hits.forEach((event: SimulationEvent, index: number) => {
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      String(
-        elementalistBalanceEffect(
-          context,
-          PROFILE.lucidSingularity,
-          'boon',
-          index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity'
-        )?.boon || 'Alacrity'
-      ),
-      Number(
-        elementalistBalanceEffect(
-          context,
-          PROFILE.lucidSingularity,
-          'boon',
-          index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity'
-        )?.stacks ?? 1
-      ),
-      elementalistEffectValue(
+    const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
+    const alacrity = elementalistBalanceEffect(context, PROFILE.lucidSingularity, 'boon', effectName);
+    emitSkillBuff(context, skill, {
+      at: event.at,
+      source: 'Lucid Singularity',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(alacrity?.boon || 'Alacrity').toLowerCase(),
+      stacks: Number(alacrity?.stacks ?? 1),
+      duration: elementalistEffectValue(
         context,
         PROFILE.lucidSingularity,
         'boon',
         'duration',
         index === hits.length - 1 ? 4.5 : 1,
-        index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity'
+        effectName
       ),
-      'Lucid Singularity',
-      skill.id
-    );
+      skillName: 'Lucid Singularity'
+    });
   });
 }
 
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
     const protection = elementalistBalanceEffect(context, PROFILE.galeSong, 'boon', 'Protection');
-    emitElementalistBuff(
-      context as never,
-      context.effectiveEnd,
-      String(protection?.boon || 'Protection'),
-      Number(protection?.stacks ?? 1),
-      Number(protection?.duration ?? 3),
-      'Gale Song',
-      skill.id
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Gale Song',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(protection?.boon || 'Protection').toLowerCase(),
+      stacks: Number(protection?.stacks ?? 1),
+      duration: Number(protection?.duration ?? 3),
+      skillName: 'Gale Song'
+    });
   }
 
   if (!skill.overload) return;
@@ -224,8 +220,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (hasTrait(context, 'Transcendent Tempest')) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       // The completion buff applies to the final Overload packet and to
       // same-time follow-ups such as Lightning Jolt.
@@ -242,8 +237,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 
   if (skill.name === 'Overload Air') {
     const coefficient = elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 1.32);
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at: context.effectiveEnd,
       source: 'Lightning Jolt',
       sourceId: ID.LIGHTNING_JOLT,
@@ -300,15 +294,17 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
       state.latentStaminaReadyAt =
         event.at + elementalistBalanceValue(context, PROFILE.latentStamina, 'internalCooldown', 10);
       const vigor = elementalistBalanceEffect(context, PROFILE.latentStamina, 'boon', 'Vigor');
-      emitElementalistBuff(
-        context as never,
-        event.at,
-        String(vigor?.boon || 'Vigor'),
-        Number(vigor?.stacks ?? 1),
-        Number(vigor?.duration ?? 3),
-        'Latent Stamina',
-        event.skillId ?? event.sourceId
-      );
+      const sourceId = event.skillId ?? event.sourceId;
+      emitSkillBuff(context, elementalistEventSkill(context, 'Latent Stamina', sourceId), {
+        at: event.at,
+        source: 'Latent Stamina',
+        sourceId,
+        actorType: 'player',
+        kind: String(vigor?.boon || 'Vigor').toLowerCase(),
+        stacks: Number(vigor?.stacks ?? 1),
+        duration: Number(vigor?.duration ?? 3),
+        skillName: 'Latent Stamina'
+      });
     }
 
     return;
@@ -320,29 +316,31 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   if (hasTrait(context, 'Invigorating Torrents')) {
     for (const name of ['Vigor', 'Regeneration'] as const) {
       const boon = elementalistBalanceEffect(context, PROFILE.invigoratingTorrents, 'boon', name);
-      emitElementalistBuff(
-        context as never,
-        event.at,
-        String(boon?.boon || name),
-        Number(boon?.stacks ?? 1),
-        Number(boon?.duration ?? 5),
+      emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+        at: event.at,
         source,
-        sourceId
-      );
+        sourceId,
+        actorType: 'player',
+        kind: String(boon?.boon || name).toLowerCase(),
+        stacks: Number(boon?.stacks ?? 1),
+        duration: Number(boon?.duration ?? 5),
+        skillName: source
+      });
     }
   }
 
   if (hasTrait(context, 'Elemental Bastion')) {
     const alacrity = elementalistBalanceEffect(context, PROFILE.elementalBastion, 'boon', 'Alacrity');
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      String(alacrity?.boon || 'Alacrity'),
-      Number(alacrity?.stacks ?? 1),
-      Number(alacrity?.duration ?? 4),
+    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+      at: event.at,
       source,
-      sourceId
-    );
+      sourceId,
+      actorType: 'player',
+      kind: String(alacrity?.boon || 'Alacrity').toLowerCase(),
+      stacks: Number(alacrity?.stacks ?? 1),
+      duration: Number(alacrity?.duration ?? 4),
+      skillName: source
+    });
   }
 }
 

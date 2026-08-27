@@ -1,7 +1,7 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type { AvailabilityResult, SimulationEvent } from '../../../../platform/engine/types.js';
 import { denySkillCast as deny } from '../../../lib/availability.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
@@ -19,53 +19,6 @@ import {
 import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-function emitGraceOfTheLand(context: RangerCastContext, skill: RangerSkill, at: number): void {
-  const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.graceOfTheLand), 'boon');
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.GRACE_OF_THE_LAND,
-    actorType: 'effect',
-    skillId: TRAIT.GRACE_OF_THE_LAND,
-    skillName: 'Grace of the Land',
-    name: 'Grace of the Land - Alacrity',
-    kind: String(effect?.boon || 'alacrity'),
-    duration: gw2SchedulerBoonDuration(
-      context,
-      skill,
-      String(effect?.boon || 'alacrity'),
-      Number(effect?.duration ?? 1)
-    ),
-    stacks: Number(effect?.stacks ?? 1),
-    triggeredBy: skill.name
-  });
-}
-
-function emitEclipseCondition(
-  context: RangerCastContext,
-  skill: RangerSkill,
-  at: number,
-  condition: string,
-  duration: number,
-  stacks = 1
-): void {
-  context.emit({
-    type: 'condition',
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.ECLIPSE,
-    actorType: 'effect',
-    skillId: TRAIT.ECLIPSE,
-    skillName: 'Eclipse',
-    name: `Eclipse - ${condition}`,
-    condition,
-    duration,
-    stacks,
-    triggeredBy: skill.name
-  });
-}
-
 function eclipseEffect(context: RangerCastContext, index: number) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.eclipse), 'condition', index);
 }
@@ -74,38 +27,49 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
   // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
   const pulses = skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
+    const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.graceOfTheLand), 'boon');
+    const boon = String(effect?.boon || 'alacrity');
     for (const atMs of pulses) {
-      emitGraceOfTheLand(context, skill, context.start + atMs / 1000);
+      emitSkillBuff(context, skill, {
+        at: context.start + atMs / 1000,
+        source: 'Trait',
+        sourceId: TRAIT.GRACE_OF_THE_LAND,
+        actorType: 'effect',
+        skillId: TRAIT.GRACE_OF_THE_LAND,
+        skillName: 'Grace of the Land',
+        name: 'Grace of the Land - Alacrity',
+        kind: boon,
+        duration: Number(effect?.duration ?? 1),
+        stacks: Number(effect?.stacks ?? 1),
+        triggeredBy: skill.name
+      });
     }
   }
 
   if (!hasTrait(context, TRAIT.ECLIPSE)) return;
+  const applications: Array<{ at: number; condition: string; duration: number; stacks: number }> = [];
   switch (skill.id) {
     case ID.COSMIC_RAY:
       {
         const effect = eclipseEffect(context, 0);
-        emitEclipseCondition(
-          context,
-          skill,
-          context.start,
-          String(effect?.condition || 'Vulnerability'),
-          Number(effect?.duration ?? 8),
-          Number(effect?.stacks ?? 1)
-        );
+        applications.push({
+          at: context.start,
+          condition: String(effect?.condition || 'Vulnerability'),
+          duration: Number(effect?.duration ?? 8),
+          stacks: Number(effect?.stacks ?? 1)
+        });
       }
 
       break;
     case ID.SEED_OF_LIFE:
       {
         const effect = eclipseEffect(context, 1);
-        emitEclipseCondition(
-          context,
-          skill,
-          context.start,
-          String(effect?.condition || 'Poisoned'),
-          Number(effect?.duration ?? 8),
-          Number(effect?.stacks ?? 3)
-        );
+        applications.push({
+          at: context.start,
+          condition: String(effect?.condition || 'Poisoned'),
+          duration: Number(effect?.duration ?? 8),
+          stacks: Number(effect?.stacks ?? 3)
+        });
       }
 
       break;
@@ -113,28 +77,24 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
       // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
       {
         const effect = eclipseEffect(context, 2);
-        emitEclipseCondition(
-          context,
-          skill,
-          context.effectiveEnd,
-          String(effect?.condition || 'Immobilized'),
-          Number(effect?.duration ?? 3),
-          Number(effect?.stacks ?? 1)
-        );
+        applications.push({
+          at: context.effectiveEnd,
+          condition: String(effect?.condition || 'Immobilized'),
+          duration: Number(effect?.duration ?? 3),
+          stacks: Number(effect?.stacks ?? 1)
+        });
       }
 
       break;
     case ID.REJUVENATING_TIDES:
       {
         const effect = eclipseEffect(context, 3);
-        emitEclipseCondition(
-          context,
-          skill,
-          context.start,
-          String(effect?.condition || 'Chilled'),
-          Number(effect?.duration ?? 2),
-          Number(effect?.stacks ?? 1)
-        );
+        applications.push({
+          at: context.start,
+          condition: String(effect?.condition || 'Chilled'),
+          duration: Number(effect?.duration ?? 2),
+          stacks: Number(effect?.stacks ?? 1)
+        });
       }
 
       break;
@@ -142,17 +102,32 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
       for (const [index, atMs] of pulses.entries()) {
         // Final pulse applies 3 stacks of Burning; all prior pulses apply 1
         const effect = eclipseEffect(context, index === pulses.length - 1 ? 5 : 4);
-        emitEclipseCondition(
-          context,
-          skill,
-          context.start + atMs / 1000,
-          String(effect?.condition || 'Burning'),
-          Number(effect?.duration ?? 5),
-          Number(effect?.stacks ?? (index === pulses.length - 1 ? 3 : 1))
-        );
+        applications.push({
+          at: context.start + atMs / 1000,
+          condition: String(effect?.condition || 'Burning'),
+          duration: Number(effect?.duration ?? 5),
+          stacks: Number(effect?.stacks ?? (index === pulses.length - 1 ? 3 : 1))
+        });
       }
 
       break;
+  }
+
+  // Keep every Eclipse packet explicit while sharing only the authored application list.
+  for (const application of applications) {
+    emitSkillCondition(context, {
+      at: application.at,
+      source: 'Trait',
+      sourceId: TRAIT.ECLIPSE,
+      actorType: 'effect',
+      skillId: TRAIT.ECLIPSE,
+      skillName: 'Eclipse',
+      name: `Eclipse - ${application.condition}`,
+      condition: application.condition,
+      duration: application.duration,
+      stacks: application.stacks,
+      triggeredBy: skill.name
+    });
   }
 }
 

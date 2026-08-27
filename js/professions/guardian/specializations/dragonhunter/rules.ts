@@ -1,10 +1,11 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled } from '../../core/rules.js';
-import { emitGuardianBuff, emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../../types.js';
 import { dragonhunterState } from './state.js';
@@ -73,8 +74,7 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
     // activating Shield of Courage resets virtueReadyAt.courage, so pulses during
     // the active period are silently skipped (counter still advances to stay in phase).
     if (at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - context.epsilon) {
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at,
         source: 'guardian',
         sourceId: courage.id,
@@ -113,7 +113,15 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
     const aegis = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.huntersPremonition), 'boon');
-    emitGuardianBuff(context, skill, context.effectiveEnd, 'aegis', Number(aegis?.duration || 3));
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'aegis',
+      duration: Number(aegis?.duration || 3),
+      stacks: 1
+    });
   }
 }
 

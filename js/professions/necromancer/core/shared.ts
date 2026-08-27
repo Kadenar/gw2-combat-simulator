@@ -1,14 +1,9 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
-import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
- * Three groups of helpers:
- *   - Event emitters (`emitState`, `emitDamage`, `emitCondition`,
- *     `emitControl`, `emitBuff`) that stamp the common necromancer fields onto
- *     canonical events before pushing them through `context.emit`.
- *   - Timed-resource mutators for blight/carapace/shades and life force
+ * State snapshots and timed-resource mutators for blight/carapace/shades and life force
  *     (`purgeTimedState`, `addCarapace`, `addSoulShards`,
  *     `consumeSoulShards`, `gainNecromancerLifeForce`),
  *     plus the module-composed creature-summon reaction dispatcher.
@@ -18,7 +13,7 @@ import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotNecromancerState } from '../state.js';
 import { hasNecromancerTrait, syncNecromancerResources } from './state.js';
-import type { SimulationActorType, SkillId } from '../../../platform/engine/types.js';
+import type { SkillId } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerConfig,
@@ -31,165 +26,9 @@ import type {
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 
-interface EmitDamageOptions {
-  readonly at?: number;
-  readonly hits?: number;
-  readonly interval?: number;
-  readonly name?: string;
-  readonly source?: string;
-  readonly sourceId?: SkillId;
-  readonly actorType?: SimulationActorType;
-  readonly skillWeapon?: string;
-  readonly metadata?: Readonly<Record<string, unknown>>;
-}
-
-interface EmitEventOptions {
-  readonly at?: number;
-  readonly source?: string;
-  readonly sourceId?: SkillId;
-  readonly actorType?: SimulationActorType;
-  readonly metadata?: Readonly<Record<string, unknown>>;
-}
-
 export function hasTrait(context: { readonly config: NecromancerConfig }, traitId: SkillId): boolean {
   // Adapt the canonical config IDs to the set-based state helper at the lookup boundary.
   return hasNecromancerTrait(new Set(context.config?.selectedTraitIds || []), traitId);
-}
-
-export function emitState(context: NecromancerSchedulerContext, at: number, reason = ''): void {
-  emitStateSnapshot(
-    context,
-    {
-      type: 'necromancer.state',
-      at,
-      source: 'necromancer',
-      sourceId: `necromancer.state.${reason || 'update'}`,
-      actorType: 'player',
-      reason,
-      state: snapshotNecromancerState(context.state.profession)
-    },
-    { dedupeAcrossSourceIds: true }
-  );
-}
-
-// Emit a normalized Necromancer strike with optional summon ownership, timing,
-// weapon, and metadata overrides.
-export function emitDamage(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  coefficient: number,
-  {
-    at = context.effectiveEnd ?? context.state.time,
-    hits = 1,
-    interval = 0,
-    name = skill.name,
-    source = 'necromancer',
-    sourceId = skill.id,
-    actorType = 'player',
-    skillWeapon = String(skill.skillWeapon ?? (skill.type === 'Weapon' ? skill.weapon || '' : 'Unequipped')),
-    metadata = {}
-  }: EmitDamageOptions = {}
-): void {
-  const perHit = Number(coefficient || 0) / Math.max(1, hits);
-  for (let index = 0; index < Math.max(1, hits); index += 1) {
-    context.emit({
-      type: 'damage',
-      at: at + index * interval,
-      source,
-      sourceId,
-      actorType,
-      skillId: skill.id,
-      skillName: skill.name,
-      name,
-      coefficient: perHit,
-      hits: 1,
-      hitIndex: index + 1,
-      totalHits: hits,
-      skillWeapon,
-      canCrit: metadata.canCrit !== false,
-      ...metadata
-    });
-  }
-}
-
-export function emitCondition(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  name: string,
-  stacks: number,
-  duration: number,
-  {
-    at = context.effectiveEnd ?? context.state.time,
-    source = 'necromancer',
-    sourceId = skill.id,
-    actorType = 'player',
-    metadata = {}
-  }: EmitEventOptions = {}
-): void {
-  context.emit({
-    type: 'condition',
-    at,
-    source,
-    sourceId,
-    actorType,
-    skillId: skill.id,
-    skillName: skill.name,
-    name: `${skill.name} — ${name}`,
-    condition: name,
-    stacks,
-    duration,
-    ...metadata
-  });
-}
-
-export function emitControl(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  kind = 'control',
-  at = context.effectiveEnd ?? context.state.time,
-  duration = 0
-): void {
-  context.emit({
-    type: 'control',
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    controlKind: kind,
-    ...(duration > 0 ? { duration } : {})
-  });
-}
-
-export function emitBuff(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  kind: string,
-  duration: number,
-  stacks = 1,
-  {
-    at = context.effectiveEnd ?? context.state.time,
-    metadata = {}
-  }: {
-    readonly at?: number;
-    readonly metadata?: Readonly<Record<string, unknown>>;
-  } = {}
-): void {
-  const adjustedDuration = gw2SchedulerBoonDuration(context, skill, kind, duration);
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    duration: adjustedDuration,
-    stacks,
-    ...metadata
-  });
 }
 
 /** Returns stable identities for minions eligible to receive shared effects. */
@@ -271,7 +110,12 @@ export function gainNecromancerLifeForce(
     state.lifeForce + ((Number(amount) * Number(state.maximumLifeForce || 100)) / 100) * multiplier
   );
   syncNecromancerResources(state);
-  if (state.lifeForce !== before && reason) emitState(context, at, reason);
+  if (state.lifeForce !== before && reason) {
+    emitStateSnapshot(context, 'necromancer', at, reason, snapshotNecromancerState(context.state.profession), {
+      dedupeAcrossSourceIds: true
+    });
+  }
+
   return state.lifeForce - before;
 }
 

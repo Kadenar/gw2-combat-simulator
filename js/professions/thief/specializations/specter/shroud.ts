@@ -1,7 +1,10 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { specterState } from './state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasThiefTrait } from '../../core/state.js';
-import { emitThiefShroudSwap, emitThiefState } from '../../core/shared.js';
+import { emitThiefShroudSwap } from '../../core/shared.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { completeStealWithStoredSkills } from '../../core/steal.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
@@ -36,8 +39,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
     gw2AlliedPlayerAssumptions(context.config).count
   );
   if (alliedRecipients > 0) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'thief',
       sourceId: skill.id,
@@ -61,14 +63,14 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   }
 
   emitThiefShroudSwap(context, skill, at);
-  emitThiefState(context, at, 'enter-shadow-shroud');
+  emitStateSnapshot(context, 'thief', at, 'enter-shadow-shroud', snapshotThiefState(context.state.profession));
 }
 
 export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   specterState.from(context).shadowShroudActive = false;
   emitThiefShroudSwap(context, skill, at);
-  emitThiefState(context, at, 'exit-shadow-shroud');
+  emitStateSnapshot(context, 'thief', at, 'exit-shadow-shroud', snapshotThiefState(context.state.profession));
 }
 
 // Specter converts spent initiative into shadow force instead of consuming it for damage.
@@ -83,7 +85,7 @@ export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSki
     state.shadowForce + cost * Number(resources?.resourceGain || 1)
   );
   // Emit at cast start so the resource timeline reflects the gain immediately.
-  emitThiefState(context, context.start, 'shadow-force');
+  emitStateSnapshot(context, 'thief', context.start, 'shadow-force', snapshotThiefState(context.state.profession));
 }
 
 export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
@@ -110,10 +112,16 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
         },
         target
       );
-      emitThiefState(context, target, 'shadow-shroud-depleted');
+      emitStateSnapshot(
+        context,
+        'thief',
+        target,
+        'shadow-shroud-depleted',
+        snapshotThiefState(context.state.profession)
+      );
     }
   }
 
   state.shadowForceUpdatedAt = target;
-  emitThiefState(context, target, 'resources');
+  emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));
 }

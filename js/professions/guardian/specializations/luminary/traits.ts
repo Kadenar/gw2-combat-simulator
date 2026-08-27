@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { luminaryState } from './state.js';
 import { PIERCING_STANCE_IMPACT_MS } from './skills.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
@@ -7,13 +8,7 @@ import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skil
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
-import {
-  emitGuardianBuff,
-  emitGuardianProc,
-  guardianTraitIcon,
-  hasGuardianTrait,
-  isGuardianSymbolSkill
-} from '../../core/traits.js';
+import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait, isGuardianSymbolSkill } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -190,11 +185,27 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
     // Stack duration additively when already active rather than resetting the
     // expiry, matching the in-game stacking behavior.
     state.piercingStanceUntil = wasActive ? state.piercingStanceUntil + 8 : at + 8;
-    emitGuardianBuff(context, skill, at, 'guardian-piercing-stance', state.piercingStanceUntil - at);
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'guardian-piercing-stance',
+      duration: state.piercingStanceUntil - at,
+      stacks: 1
+    });
   } else if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
     // +0.001 offset ensures the buff is active when the modifier rule evaluates
     // strikes scheduled at effectiveEnd (strict > comparison in the rule).
-    emitGuardianBuff(context, skill, context.effectiveEnd + 0.001, 'guardian-daring-advance', 8);
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd + 0.001,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'guardian-daring-advance',
+      duration: 8,
+      stacks: 1
+    });
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.EFFULGENT_STANCE) {
@@ -240,8 +251,15 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   state.radiantWeaponsUsed[weapon] = true;
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
     const armaments = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.radiantArmaments), 'buff');
-    emitGuardianBuff(context, skill, at, 'guardian-radiant-armaments', Number(armaments?.duration || 10), {
-      radiantWeapon: weapon
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'guardian-radiant-armaments',
+      duration: Number(armaments?.duration || 10),
+      stacks: 1,
+      metadata: { radiantWeapon: weapon }
     });
     emitGuardianProc(context, {
       name: 'Radiant Armaments',
@@ -262,7 +280,15 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     state.empoweredArmamentsUntil = wasActive
       ? Math.min(at + maximumDuration, state.empoweredArmamentsUntil + duration)
       : at + duration;
-    emitGuardianBuff(context, skill, at, 'guardian-empowered-armaments', state.empoweredArmamentsUntil - at);
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'guardian-empowered-armaments',
+      duration: state.empoweredArmamentsUntil - at,
+      stacks: 1
+    });
     emitGuardianProc(context, {
       name: 'Empowered Armaments',
       at,
@@ -378,8 +404,7 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
     const sourceSkill =
       context.catalog.skillsById.get(event.skillId) ||
       ({ id: event.skillId, name: event.skillName || 'Luminous Staff' } as GuardianSkill);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: event.at,
       source: 'guardian',
       sourceId: event.skillId,

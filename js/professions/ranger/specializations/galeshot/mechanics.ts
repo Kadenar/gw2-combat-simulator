@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
@@ -120,8 +121,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     // Each missile-triggered Mistral is its own effect activation while its
     // strike and condition packets remain grouped under one identity.
     const activationId = context.createActivationId('effect');
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at: task.at,
       source: 'ranger',
       sourceId: ID.MISTRAL,
@@ -136,8 +136,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
       triggeredBy: payload?.skillName,
       activationId
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: task.at,
       source: 'ranger',
       sourceId: ID.MISTRAL,
@@ -164,8 +163,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
   restoreArrow(context, Number(profile?.resourceGain ?? 1));
   const hits = Number(strike?.hits ?? 3);
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at: task.at,
       source: 'Trait',
       sourceId: TRAIT.SHRIKE,
@@ -216,8 +214,7 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
     sourceSkill: payload?.skillName,
     detail: 'activated'
   });
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'Trait',
     sourceId: TRAIT.WUTHERING_WIND,
@@ -280,8 +277,7 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
   const profile = rangerBalanceProfile(context, PROFILE.flockTogether);
   const quickness = rangerBalanceProfileEffect(profile, 'boon');
   state.flockTogetherReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: context.effectiveEnd,
     source: 'Trait',
     sourceId: TRAIT.FLOCK_TOGETHER,

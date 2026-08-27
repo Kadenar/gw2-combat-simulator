@@ -1,5 +1,5 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
@@ -27,39 +27,19 @@ export function combatStarted(context: ElementalistSchedulerContext, at: number)
   return !context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime);
 }
 
-export function emitElementalistBuff(
+// Resolve procedural sources through the catalog so canonical emitters can
+// apply skill policy without hiding event construction behind another emitter.
+export function elementalistEventSkill(
   context: ElementalistSchedulerContext,
-  at: number,
-  kind: string,
-  stacks: number,
-  duration: number,
   source: string,
-  sourceId: Skill['id'],
-  priority = 0,
-  recipients: 'self' | 'party' = 'self'
-): void {
-  const normalizedKind = kind.toLowerCase();
-  const sourceSkill =
+  sourceId: Skill['id']
+): Skill {
+  return (
     context.catalog.skillsById.get(sourceId) ||
     context.catalog.skillsByName.get(source) ||
-    ({ id: sourceId, name: source } as Skill);
-  const adjustedDuration = gw2SchedulerBoonDuration(context, sourceSkill, normalizedKind, duration);
-  context.emit({
-    type: 'buff',
-    at,
-    source,
-    sourceId,
-    actorType: 'player',
-    kind: normalizedKind,
-    stacks,
-    duration: adjustedDuration,
-    skillName: source,
-    priority,
-    ...(recipients === 'party' ? { recipients: 'party', maximumRecipients: 5 } : {})
-  });
+    ({ id: sourceId, name: source } as Skill)
+  );
 }
-
-export const emitBuff = emitElementalistBuff;
 
 export function activeBuffEvents(context: ElementalistSchedulerContext, kind: string, at: number): SimulationEvent[] {
   const normalized = kind.toLowerCase();
@@ -70,28 +50,6 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
       event.at <= at &&
       event.at + Number(event.duration || 0) > at
   );
-}
-
-export function emitCondition(
-  context: ElementalistSchedulerContext,
-  at: number,
-  condition: string,
-  stacks: number,
-  duration: number,
-  source: string,
-  sourceId: Skill['id']
-): void {
-  context.emit({
-    type: 'condition',
-    at,
-    source,
-    sourceId,
-    actorType: 'player',
-    condition,
-    stacks,
-    duration,
-    skillName: source
-  });
 }
 
 export function profiledEffect(context: unknown, profileId: Skill['id'], type: string, name?: string) {
@@ -112,17 +70,19 @@ export function emitProfiledBuff(
   recipients: 'self' | 'party' = 'self'
 ): void {
   const effect = profiledEffect(context, profileId, 'boon', effectName);
-  emitBuff(
-    context,
+  const kind = String(effect?.boon || fallbackKind).toLowerCase();
+  emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
     at,
-    String(effect?.boon || fallbackKind),
-    Number(effect?.stacks ?? fallbackStacks),
-    Number(effect?.duration ?? fallbackDuration),
     source,
     sourceId,
+    actorType: 'player',
+    kind,
+    stacks: Number(effect?.stacks ?? fallbackStacks),
+    duration: Number(effect?.duration ?? fallbackDuration),
+    skillName: source,
     priority,
-    recipients
-  );
+    ...(recipients === 'party' ? { recipients: 'party', maximumRecipients: 5 } : {})
+  });
 }
 
 export function emitProfiledCondition(
@@ -137,15 +97,16 @@ export function emitProfiledCondition(
   sourceId: Skill['id']
 ): void {
   const effect = profiledEffect(context, profileId, 'condition', effectName);
-  emitCondition(
-    context,
+  emitSkillCondition(context, elementalistEventSkill(context, source, sourceId), {
     at,
-    String(effect?.condition || fallbackCondition),
-    Number(effect?.stacks ?? fallbackStacks),
-    Number(effect?.duration ?? fallbackDuration),
     source,
-    sourceId
-  );
+    sourceId,
+    actorType: 'player',
+    condition: String(effect?.condition || fallbackCondition),
+    stacks: Number(effect?.stacks ?? fallbackStacks),
+    duration: Number(effect?.duration ?? fallbackDuration),
+    skillName: source
+  });
 }
 
 // Emit a consistently attributed proc marker for skill- and trait-owned

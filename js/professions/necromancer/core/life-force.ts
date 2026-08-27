@@ -1,4 +1,7 @@
+import { emitSkillBuff, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/combat/state/allied-players.js';
 /**
  * Life-force resource clock and cast finalization.
@@ -18,7 +21,7 @@ import {
   balanceProfileEffect,
   necromancerBalanceProfile
 } from './profiles.js';
-import { emitDamage, emitState, gainNecromancerLifeForce, hasTrait, purgeTimedState } from './shared.js';
+import { gainNecromancerLifeForce, hasTrait, purgeTimedState } from './shared.js';
 import { runNecromancerResourceAdvance, runNecromancerShroudExit } from './shroud-lifecycle.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type {
@@ -74,8 +77,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, entryId, at);
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.SOUL_BARBS,
@@ -95,7 +97,9 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
     weaponSet: context.state.activeWeaponSet,
     shroudSwap: true
   });
-  emitState(context, at, reason);
+  emitStateSnapshot(context, 'necromancer', at, reason, snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
 }
 
 function selectedSkillNames(context: NecromancerSchedulerContext): readonly string[] {
@@ -216,9 +220,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
       ) {
         const skill = context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
         if (skill)
-          emitDamage(context, skill, 0, {
+          emitSkillDamage(context, skill, {
             at: state.vampirismNextAt,
             name: 'Signet of Vampirism - Passive Life Siphon',
+            coefficient: 0,
             skillWeapon: 'Unequipped',
             metadata: {
               flatStrikeBase: Number(strike?.flatStrikeBase || 0),
@@ -265,7 +270,9 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
   state.lastResourceAt = end;
   syncNecromancerResources(state);
-  emitState(context, end, 'advance');
+  emitStateSnapshot(context, 'necromancer', end, 'advance', snapshotNecromancerState(context.state.profession), {
+    dedupeAcrossSourceIds: true
+  });
 }
 
 export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
@@ -298,5 +305,12 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
     delete state.pendingShroudEntryId;
   }
 
-  emitState(context, context.effectiveEnd, 'after-cast');
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    context.effectiveEnd,
+    'after-cast',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
 }

@@ -1,4 +1,12 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '../state.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *
@@ -16,16 +24,7 @@ import {
   balanceProfileEffect,
   necromancerBalanceProfile
 } from './profiles.js';
-import {
-  addSoulShards,
-  consumeSoulShards,
-  emitBuff,
-  emitCondition,
-  emitControl,
-  emitState,
-  gainNecromancerLifeForce,
-  hasTrait
-} from './shared.js';
+import { addSoulShards, consumeSoulShards, gainNecromancerLifeForce, hasTrait } from './shared.js';
 import type { ScheduledTask, SchedulerRecord } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
@@ -52,7 +51,14 @@ function addShards(
   at = context.effectiveEnd
 ): void {
   addSoulShards(professionCoreState(context), stacks, at);
-  emitState(context, at, reason || `${skill.name}-soul-shards`);
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    at,
+    reason || `${skill.name}-soul-shards`,
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
 }
 
 function deadlySlice(context: NecromancerCastContext, skill: NecromancerSkill): void {
@@ -76,9 +82,18 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
   const soulShardsAtActivation = Number(professionCoreState(context).soulShards || 0);
   const bonusEffects = Boolean(context.config.target?.defiant || context.config.target?.activatingSkills);
-  emitControl(context, skill, 'daze', context.effectiveEnd, bonusEffects ? 1.5 : 0.25);
+  emitSkillControl(context, skill, {
+    at: context.effectiveEnd,
+    controlKind: 'daze',
+    duration: bonusEffects ? 1.5 : 0.25
+  });
   if (soulShardsAtActivation >= 3) {
-    emitCondition(context, skill, 'Immobilized', 1, 1.5);
+    emitSkillCondition(context, skill, {
+      at: context.effectiveEnd,
+      condition: 'Immobilized',
+      stacks: 1,
+      duration: 1.5
+    });
   }
 
   if (bonusEffects) {
@@ -105,8 +120,7 @@ function soulShardDamage(
   const profile = necromancerBalanceProfile(context, PROFILE.soulShards);
   const strike = balanceProfileEffect(profile, 'strike');
   const metadata = strike?.metadata || {};
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at,
     source: 'necromancer',
     sourceId: ID.SOUL_SHARDS,
@@ -159,7 +173,14 @@ function afterPerforateEffect(
 function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
   const perforateState = state as Partial<PerforateState> | null;
   if (perforateState?.interrupted) return;
-  emitState(context, perforateState?.at ?? context.effectiveEnd, 'perforate');
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    perforateState?.at ?? context.effectiveEnd,
+    'perforate',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
 }
 
 function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -188,7 +209,11 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
     Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
   if (!conditionCount) return;
-  emitBuff(context, skill, 'might', 8, conditionCount * 2, {
+  emitSkillBuff(context, skill, {
+    at: context.effectiveEnd,
+    kind: 'might',
+    duration: 8,
+    stacks: conditionCount * 2,
     metadata: { recipients: 'party', maximumRecipients: 5 }
   });
 }

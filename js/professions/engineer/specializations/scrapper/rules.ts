@@ -1,5 +1,5 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, playerStrike } from '../../core/rule-helpers.js';
@@ -39,31 +39,35 @@ function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event:
     context.catalog?.skillsById.get(event.skillId ?? '') ||
     context.catalog?.skillsByName.get(String(event.skillName || '')) ||
     ({ id: TRAIT.KINETIC_ACCELERATORS, name: 'Kinetic Accelerators' } as EngineerSkill);
-  const emitBoon = (kind: string, baseDuration: number, stacks: number): void => {
-    // Keep this as a canonical buff event: the scheduler needs it for cast
-    // timing and the result timeline needs it for effects-over-time graphs.
-    context.emitDerived(event, {
-      type: 'buff',
+  // Both packets share the triggering combo attribution but remain explicit canonical emissions.
+  for (const boon of [
+    {
+      kind: 'quickness',
+      duration: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 3),
+      stacks: 1
+    },
+    {
+      kind: 'might',
+      duration: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 10, 1),
+      stacks: engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'stacks', 3, 1)
+    }
+  ]) {
+    emitSkillBuff(context, {
+      skill: sourceSkill,
+      cause: event,
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.KINETIC_ACCELERATORS,
       actorType: 'effect',
       skillId: event.skillId,
       skillName: event.skillName,
-      name: `Kinetic Accelerators — ${kind}`,
-      kind,
-      duration: gw2SchedulerBoonDuration(context, sourceSkill, kind, baseDuration),
-      stacks,
+      name: `Kinetic Accelerators — ${boon.kind}`,
+      kind: boon.kind,
+      duration: boon.duration,
+      stacks: boon.stacks,
       recipients: 'party'
     });
-  };
-
-  emitBoon('quickness', engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 3), 1);
-  emitBoon(
-    'might',
-    engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 10, 1),
-    engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'stacks', 3, 1)
-  );
+  }
 }
 
 export const scrapperSchedulerHooks = Object.freeze({

@@ -4,7 +4,7 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
-import { emitRevenantBoon } from '../../core/boons.js';
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { hasRevenantTrait } from '../../core/state.js';
 import { revenantConduitFormIsActive } from './state.js';
@@ -94,7 +94,13 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
       .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
       ?.effects?.find((effect) => effect.metadata?.trigger === 'entity-skill');
     if (shared?.type === 'boon' && shared.boon) {
-      emitRevenantBoon(context, skill, shared.boon, Number(shared.duration || 0), Number(shared.stacks || 1));
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        name: `${skill.name} — ${shared.boon}`,
+        kind: shared.boon,
+        duration: Number(shared.duration || 0),
+        stacks: Number(shared.stacks || 1)
+      });
     }
   }
 }
@@ -143,8 +149,9 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
   // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
   if (event.at + context.epsilon < readyAt) return;
   state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     source: 'revenant',
     sourceId: TRAIT.MISTFIRE,

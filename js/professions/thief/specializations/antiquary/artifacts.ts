@@ -1,7 +1,10 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { antiquaryState } from './state.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { hasThiefTrait } from '../../core/state.js';
-import { emitThiefState, gainThiefInitiative } from '../../core/shared.js';
+import { gainThiefInitiative } from '../../core/shared.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import type {
@@ -42,31 +45,6 @@ function allArtifactChoices(): ThiefArtifactSlot[] {
       skillId
     }))
   ];
-}
-
-function emitBoon(
-  context: ThiefEmissionContext,
-  at: number,
-  boon: string,
-  duration: number,
-  stacks: number,
-  name: string
-): void {
-  const sourceSkill = context.skill || ({ id: name, name } as ThiefSkill);
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'thief',
-    sourceId: name,
-    actorType: 'player',
-    skillId: context.skill?.id,
-    skillName: context.skill?.name,
-    name,
-    kind: boon,
-    boon,
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
-    stacks
-  });
 }
 
 function reduceSkrittSwipeRecharge(context: ThiefSchedulerContext, at: number): void {
@@ -165,14 +143,14 @@ export function pilferArtifacts(
     reduceUtilityRecharges(context, at);
   }
 
-  emitThiefState(context, at, reason);
+  emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession));
 }
 
 export function reshuffleArtifacts(context: ThiefCastContext): void {
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
   state.artifactSlots = allArtifactChoices();
-  emitThiefState(context, at, 'artifacts-reshuffled');
+  emitStateSnapshot(context, 'thief', at, 'artifacts-reshuffled', snapshotThiefState(context.state.profession));
 }
 
 function extendExhilaratingEphemera(context: ThiefCastContext, state: AntiquaryState, at: number): void {
@@ -240,42 +218,38 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
     const might = thiefBalanceProfileEffect(profile, 'boon', 0);
     const protection = thiefBalanceProfileEffect(profile, 'boon', 1);
     const alacrity = thiefBalanceProfileEffect(profile, 'boon', 2);
-    if (slot?.kind === 'offensive') {
-      emitBoon(
-        context,
+    // Select the artifact-family packet first, then emit every selected boon through the canonical helper.
+    const boons = [
+      ...(slot?.kind === 'offensive' ? [{ effect: might, fallback: 'might', duration: 12, stacks: 10 }] : []),
+      ...(slot?.kind === 'defensive' ? [{ effect: protection, fallback: 'protection', duration: 5, stacks: 1 }] : []),
+      { effect: alacrity, fallback: 'alacrity', duration: 5, stacks: 1 }
+    ];
+    for (const packet of boons) {
+      const boon = String(packet.effect?.boon || packet.fallback);
+      emitSkillBuff(context, {
         at,
-        String(might?.boon || 'might'),
-        Number(might?.duration || 12),
-        Number(might?.stacks || 10),
-        'Possessive Hoarder'
-      );
+        source: 'thief',
+        sourceId: 'Possessive Hoarder',
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
+        name: 'Possessive Hoarder',
+        kind: boon,
+        boon,
+        duration: gw2SchedulerBoonDuration(
+          context,
+          context.skill || ({ id: 'Possessive Hoarder', name: 'Possessive Hoarder' } as ThiefSkill),
+          boon,
+          Number(packet.effect?.duration || packet.duration)
+        ),
+        stacks: Number(packet.effect?.stacks || packet.stacks)
+      });
     }
-
-    if (slot?.kind === 'defensive') {
-      emitBoon(
-        context,
-        at,
-        String(protection?.boon || 'protection'),
-        Number(protection?.duration || 5),
-        Number(protection?.stacks || 1),
-        'Possessive Hoarder'
-      );
-    }
-
-    emitBoon(
-      context,
-      at,
-      String(alacrity?.boon || 'alacrity'),
-      Number(alacrity?.duration || 5),
-      Number(alacrity?.stacks || 1),
-      'Possessive Hoarder'
-    );
   }
 
   if (skill.id === ID.CHAK_SHIELD && hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)) {
     const strike = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.meticulousCustodian), 'strike');
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'thief',
       sourceId: skill.id,
@@ -291,7 +265,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
 
   applyArtifactIdentity(context, skill, at);
   reduceSkrittSwipeRecharge(context, at);
-  emitThiefState(context, at, 'artifact-used');
+  emitStateSnapshot(context, 'thief', at, 'artifact-used', snapshotThiefState(context.state.profession));
 }
 
 export function completeForgedSurfer(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -321,8 +295,7 @@ function emitForgedSurferPacket(
 ): void {
   const bomb = Number(task.payload.bomb || 0);
   const name = bomb === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'thief',
     sourceId: task.payload.skillId,
@@ -333,8 +306,7 @@ function emitForgedSurferPacket(
     coefficient,
     hits: 1
   });
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at: task.at,
     source: 'thief',
     sourceId: task.payload.skillId,
@@ -416,8 +388,7 @@ function emitCannonBackfire(context: ThiefCastContext, at: number): void {
   const strike = thiefBalanceProfileEffect(profile, 'strike');
   const burning = thiefBalanceProfileEffect(profile, 'condition');
   const impactAt = at + Number(profile?.initialDelay || 2);
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: impactAt,
     source: 'thief',
     sourceId: ID.STONE_SUMMIT_CANNON,
@@ -428,8 +399,7 @@ function emitCannonBackfire(context: ThiefCastContext, at: number): void {
     coefficient: Number(strike?.coefficient || 3),
     hits: Number(strike?.hits || 1)
   });
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at: impactAt,
     source: 'thief',
     sourceId: ID.STONE_SUMMIT_CANNON,
@@ -455,8 +425,7 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       context.effectiveEnd +
       Number(profile?.initialDelay || 0.44) +
       (hitIndex - 1) * Number(profile?.pulseInterval || 0.283);
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'thief',
       sourceId: ID.STONE_SUMMIT_CANNON,
@@ -469,8 +438,7 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       hitIndex,
       totalHits: hits
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'thief',
       sourceId: ID.STONE_SUMMIT_CANNON,
@@ -527,7 +495,7 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
     tossCanachCoins(context, at, outcome === 'backfire');
   }
 
-  emitThiefState(context, at, `double-edge-${outcome}`);
+  emitStateSnapshot(context, 'thief', at, `double-edge-${outcome}`, snapshotThiefState(context.state.profession));
   return outcome;
 }
 
@@ -551,7 +519,7 @@ export function completeSkrittScuffle(context: ThiefCastContext, skill: ThiefSki
     ownerId: `thief.skritt-scuffle:${skill.id}:${at}`,
     payload: { expiresAt: summon.expiresAt }
   });
-  emitThiefState(context, at, 'skritt-scuffle');
+  emitStateSnapshot(context, 'thief', at, 'skritt-scuffle', snapshotThiefState(context.state.profession));
 }
 
 export function handleSkrittScuffle(

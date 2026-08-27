@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
@@ -104,8 +105,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const burning = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.sunSpirit), 'condition');
-      context.emit({
-        type: 'condition',
+      emitSkillCondition(context, {
         at: context.effectiveEnd,
         source: 'ranger',
         sourceId: ID.SOLAR_FLARE,
@@ -124,8 +124,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       if (!professionCoreState(context).petActive) return;
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.start,
         source: 'ranger',
         sourceId: skill.id,

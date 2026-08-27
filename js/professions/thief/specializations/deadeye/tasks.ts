@@ -1,4 +1,5 @@
-import { emitThiefState } from '../../core/shared.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { snapshotThiefState } from '../../core/state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '../../types.js';
 import { deadeyeState } from './state.js';
 import { resolveDeadeyeMaliceHit } from './mechanics.js';
@@ -18,7 +19,7 @@ export function expireDeadeyesMark(
   // Malice resets when the mark expires; a fresh Deadeye's Mark starts at 0 (or initialDeadeyeMalice if Malicious Intent is equipped)
   state.malice = 0;
   state.maleficentSevenTriggered = false;
-  emitThiefState(context, task.at, 'deadeyes-mark-expired');
+  emitStateSnapshot(context, 'thief', task.at, 'deadeyes-mark-expired', snapshotThiefState(context.state.profession));
 }
 
 export const deadeyeTaskHandlers = Object.freeze({

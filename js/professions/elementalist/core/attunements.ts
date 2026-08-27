@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../platform/engine/types.js';
@@ -7,7 +8,7 @@ import type {
 } from '../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, setElementalistAttunementReadyAt, type ElementalistAttunement } from './state.js';
 import { ATTUNEMENT_RECHARGE_SECONDS, OFF_ATTUNEMENT_RECHARGE_SECONDS } from './constants.js';
-import { combatStarted, emitBuff, emitProfiledBuff, profiledEffect } from './mechanics.js';
+import { combatStarted, emitProfiledBuff, profiledEffect } from './mechanics.js';
 import {
   grantElementalAttunementBoon,
   grantElementalistRockSolid,
@@ -168,16 +169,17 @@ export function onAttunementComplete(
     if (previous !== 'Air' && hasTrait(context, 'Fresh Air')) {
       state.freshAirLastResetAt = at;
       const freshAir = profiledEffect(context, PROFILE.freshAir, 'buff');
-      emitBuff(
-        context,
+      emitSkillBuff(context, skill, {
         at,
-        'Fresh Air',
-        Number(freshAir?.stacks ?? 1),
-        Number(freshAir?.duration ?? 5),
-        skill.name,
-        skill.id,
-        -10
-      );
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: 'fresh air',
+        stacks: Number(freshAir?.stacks ?? 1),
+        duration: Number(freshAir?.duration ?? 5),
+        skillName: skill.name,
+        priority: -10
+      });
     }
 
     if (hasTrait(context, 'One with Air')) {

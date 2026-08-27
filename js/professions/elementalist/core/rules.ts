@@ -1,3 +1,4 @@
+import { emitSkillControl, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { elementalistCoreAvailability } from './availability.js';
 import { elementalistAttunementRechargeDuration, onAttunementComplete, targetAttunement } from './attunements.js';
 import { AURA_TRANSMUTE_SKILLS, DODGE_ENDURANCE_COST, ETCHING_CHAINS } from './constants.js';
@@ -26,7 +27,7 @@ import { resetAutoattackChains } from '../../../platform/gw2/skills/autoattack-c
 
 export { elementalistCoreAvailability } from './availability.js';
 export { elementalistAlacrityAdjustedDuration, elementalistAttunementRechargeDuration } from './attunements.js';
-export { applyElementalistAura, emitElementalistBuff, emitElementalistProc } from './mechanics.js';
+export { applyElementalistAura, emitElementalistProc } from './mechanics.js';
 export {
   grantElementalistRockSolid,
   triggerBountifulPower,
@@ -189,8 +190,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
 
   if (followup.control && activationEvents[0]) {
     const first = activationEvents[0];
-    context.emit({
-      type: 'control',
+    emitSkillControl(context, {
       at: first.at,
       source: skill.name,
       sourceId: skill.id,
@@ -397,8 +397,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     const delay = elementalistBalanceValue(context, PROFILE.fulgor, 'initialDelay', 0.32);
     const interval = elementalistBalanceValue(context, PROFILE.fulgor, 'pulseInterval', 1);
     for (let index = 0; index < hits; index += 1) {
-      context.emit({
-        type: 'damage',
+      emitSkillDamage(context, {
         at: context.start + delay + index * interval,
         source: skill.name,
         sourceId: skill.id,

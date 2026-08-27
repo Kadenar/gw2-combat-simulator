@@ -1,7 +1,9 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
-import { emitEngineerState } from './events.js';
+import { snapshotEngineerState } from '../state.js';
 import type { SchedulerRecord, Skill, SkillEffect, SkillId } from '../../../platform/engine/types.js';
 import type { EngineerCastContext, EngineerScheduledTask, EngineerSchedulerContext, EngineerSkill } from '../types.js';
 
@@ -91,8 +93,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
   }
 
   if (skill.id === ID.HEALING_TURRET) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'engineer',
       sourceId: skill.id,
@@ -119,7 +120,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
     });
   }
 
-  emitEngineerState(context, at, 'deploy-turret');
+  emitStateSnapshot(context, 'engineer', at, 'deploy-turret', snapshotEngineerState(context.state.profession));
 }
 
 export function handleEngineerTurretAttack(
@@ -136,8 +137,7 @@ export function handleEngineerTurretAttack(
   const attackIndex = Number(task.payload.attackIndex || 1);
   const maximumAttacks = Number(attackSkill.ammo || 1);
   const attackName = String(strike.name || attackSkill.name);
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'engineer',
     sourceId: skillId,
@@ -155,8 +155,7 @@ export function handleEngineerTurretAttack(
   const condition = attackEffect(attackSkill, 'condition');
   const profile = { name: attackName, condition: condition?.condition };
   if (condition) {
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: task.at,
       source: 'engineer',
       sourceId: skillId,
@@ -164,7 +163,7 @@ export function handleEngineerTurretAttack(
       skillId,
       skillName: attackName,
       name: `${profile.name} — ${profile.condition}`,
-      condition: condition.condition,
+      condition: String(condition.condition),
       stacks: Number(condition.stacks || 1),
       duration: Number(condition.duration || 0)
     });

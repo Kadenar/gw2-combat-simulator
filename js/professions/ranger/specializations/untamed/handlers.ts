@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { untamedState } from './state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
@@ -61,8 +62,7 @@ export const untamedSkillHandlers = Object.freeze({
       const profileId = rangerWasUnleashed ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet;
       const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, profileId), 'boon');
       const boon = String(effect?.boon || (rangerWasUnleashed ? 'might' : 'protection'));
-      context.emit({
-        type: 'buff',
+      emitSkillBuff(context, {
         at: context.effectiveEnd,
         source: 'ranger',
         sourceId: skill.id,
@@ -87,8 +87,7 @@ export const untamedSkillHandlers = Object.freeze({
       // Venomous Outburst applies Vulnerability only when the target has a defiance bar
       // (defiant, disabled, or broken); it has no effect on normal enemies.
       if (context.config.target?.defiant || context.config.target?.disabled || context.config.target?.defianceBroken) {
-        context.emit({
-          type: 'condition',
+        emitSkillCondition(context, {
           at: context.start,
           // Attributed to ranger-pet so Ferocious Symbiosis cross-triggers correctly.
           source: 'ranger-pet',

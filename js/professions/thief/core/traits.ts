@@ -1,12 +1,20 @@
+import {
+  emitSkillBuff,
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/combat/state/targets.js';
 import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefCondition, emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';
+import { gainThiefEndurance, gainThiefInitiative } from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
 import type {
@@ -32,23 +40,6 @@ type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
   ThiefResolverReactionDetails
 >;
 
-function emitStealBoon(context: ThiefCastContext, at: number, boon: string, duration: number, stacks = 1): void {
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'Trait',
-    sourceId: `thief.steal.${boon}`,
-    actorType: 'player',
-    skillId: context.skill?.id,
-    skillName: context.skill?.name,
-    name: `Steal — ${boon}`,
-    kind: boon,
-    boon,
-    duration: gw2SchedulerBoonDuration(context, context.skill, boon, duration),
-    stacks
-  });
-}
-
 // Materialize all selected on-Steal conditions, strikes, boons, control, and
 // ICD-bound effects at the completed steal timestamp.
 export function emitStealTraitEffects(context: ThiefCastContext): void {
@@ -58,8 +49,12 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
   if (hasThiefTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
     const profile = thiefBalanceProfile(context, PROFILE.serpentsTouch);
     const poison = thiefBalanceProfileEffect(profile, 'condition');
-    emitThiefCondition(context, {
+    emitSkillCondition(context, {
       at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
       condition: String(poison?.condition || 'Poisoned'),
       duration: Number(poison?.duration || 10),
       stacks: potentPoison ? Number(profile?.playerStacks || 3) : Number(poison?.stacks || 2),
@@ -70,8 +65,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
 
   if (hasThiefTrait(context.config, TRAIT.MUG)) {
     const strike = traitEffect(context, PROFILE.mug, 'strike');
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.MUG,
@@ -87,8 +81,12 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
 
   if (hasThiefTrait(context.config, TRAIT.EVEN_THE_ODDS)) {
     const vulnerability = traitEffect(context, PROFILE.evenTheOdds, 'condition');
-    emitThiefCondition(context, {
+    emitSkillCondition(context, {
       at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
       condition: String(vulnerability?.condition || 'Vulnerability'),
       duration: Number(vulnerability?.duration || 10),
       stacks: Number(vulnerability?.stacks || 10),
@@ -99,8 +97,12 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
 
   if (hasThiefTrait(context.config, TRAIT.DEADLY_AMBUSH)) {
     const bleeding = traitEffect(context, PROFILE.deadlyAmbush, 'condition');
-    emitThiefCondition(context, {
+    emitSkillCondition(context, {
       at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
       condition: String(bleeding?.condition || 'Bleeding'),
       duration: Number(bleeding?.duration || 10),
       stacks: Number(bleeding?.stacks || 3),
@@ -113,41 +115,61 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     for (const effect of (thiefBalanceProfile(context, PROFILE.thrillOfTheCrime)?.effects || []).filter(
       (entry) => entry.type === 'boon'
     )) {
-      emitStealBoon(
-        context,
+      const boon = String(effect.boon || effect.kind || '');
+      emitSkillBuff(context, {
         at,
-        String(effect.boon || effect.kind || ''),
-        Number(effect.duration || 10),
-        Number(effect.stacks || 1)
-      );
+        source: 'Trait',
+        sourceId: `thief.steal.${boon}`,
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
+        name: `Steal — ${boon}`,
+        kind: boon,
+        boon,
+        duration: gw2SchedulerBoonDuration(context, context.skill, boon, Number(effect.duration || 10)),
+        stacks: Number(effect.stacks || 1)
+      });
     }
   }
 
   if (hasThiefTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) {
     const vigor = traitEffect(context, PROFILE.bountifulTheft, 'boon', 0);
     const might = traitEffect(context, PROFILE.bountifulTheft, 'boon', 1);
-    emitStealBoon(
-      context,
+    const vigorName = String(vigor?.boon || 'Vigor');
+    emitSkillBuff(context, {
       at,
-      String(vigor?.boon || 'Vigor'),
-      Number(vigor?.duration || 10),
-      Number(vigor?.stacks || 1)
-    );
+      source: 'Trait',
+      sourceId: `thief.steal.${vigorName}`,
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
+      name: `Steal — ${vigorName}`,
+      kind: vigorName,
+      boon: vigorName,
+      duration: gw2SchedulerBoonDuration(context, context.skill, vigorName, Number(vigor?.duration || 10)),
+      stacks: Number(vigor?.stacks || 1)
+    });
     if (context.config.target?.boonless !== false) {
-      emitStealBoon(
-        context,
+      const mightName = String(might?.boon || 'Might');
+      emitSkillBuff(context, {
         at,
-        String(might?.boon || 'Might'),
-        Number(might?.duration || 10),
-        Number(might?.stacks || 5)
-      );
+        source: 'Trait',
+        sourceId: `thief.steal.${mightName}`,
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
+        name: `Steal — ${mightName}`,
+        kind: mightName,
+        boon: mightName,
+        duration: gw2SchedulerBoonDuration(context, context.skill, mightName, Number(might?.duration || 10)),
+        stacks: Number(might?.stacks || 5)
+      });
     }
   }
 
   if (hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) {
     const control = traitEffect(context, PROFILE.sleightOfHand, 'control');
-    context.emit({
-      type: 'control',
+    emitSkillControl(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.SLEIGHT_OF_HAND,
@@ -167,16 +189,24 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
     if (at + 1e-9 >= readyAt) {
       state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown || 2);
-      emitThiefCondition(context, {
+      emitSkillCondition(context, {
         at,
+        source: 'Trait',
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
         condition: 'Blindness',
         duration: Number(blindness?.duration || 3),
         stacks: Number(blindness?.stacks || 1),
         sourceId: TRAIT.HIDDEN_THIEF,
         name: 'Hidden Thief - Blindness'
       });
-      emitThiefCondition(context, {
+      emitSkillCondition(context, {
         at,
+        source: 'Trait',
+        actorType: 'player',
+        skillId: context.skill?.id ?? null,
+        skillName: context.skill?.name ?? null,
         condition: 'Weakness',
         duration: Number(weakness?.duration || 3),
         stacks: Number(weakness?.stacks || 1),
@@ -227,7 +257,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
     state.leadAttackExpirations = expirations;
     state.leadAttacksStacks = expirations.length;
     state.leadAttacksUntil = expirations.length ? Math.max(...expirations) : 0;
-    emitThiefState(context, at, 'lead-attacks');
+    emitStateSnapshot(context, 'thief', at, 'lead-attacks', snapshotThiefState(context.state.profession));
   }
 
   if (skill.movementSkill) {
@@ -246,7 +276,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
         'hard-to-catch'
       );
     } else if (movementStateChanged) {
-      emitThiefState(context, at, 'fluid-strikes');
+      emitStateSnapshot(context, 'thief', at, 'fluid-strikes', snapshotThiefState(context.state.profession));
     }
   }
 
@@ -257,8 +287,12 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
     const potentPoison = hasThiefTrait(context.config, TRAIT.POTENT_POISON);
     const profile = thiefBalanceProfile(context, PROFILE.deadlyAmbition);
     const poison = thiefBalanceProfileEffect(profile, 'condition');
-    emitThiefCondition(context, {
+    emitSkillCondition(context, {
       at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
       condition: String(poison?.condition || 'Poisoned'),
       duration: Number(poison?.duration || 3),
       stacks: potentPoison ? Number(profile?.playerStacks || 2) : Number(poison?.stacks || 1),

@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
@@ -9,7 +10,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { modifyWeaverAttributes, weaverModifierRules } from './modifiers.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
-import { elementalistAlacrityAdjustedDuration, emitElementalistBuff, triggerBountifulPower } from '../../core/rules.js';
+import { elementalistAlacrityAdjustedDuration, triggerBountifulPower } from '../../core/rules.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -25,7 +26,7 @@ import {
 } from '../../core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { applyWeaverPistolState } from './pistol.js';
-import { emitProfiledBuff, emitProfiledCondition, skillWeapon } from '../../core/mechanics.js';
+import { elementalistEventSkill, emitProfiledBuff, emitProfiledCondition, skillWeapon } from '../../core/mechanics.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
@@ -44,15 +45,16 @@ function initialize(context: ElementalistSchedulerContext): void {
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
   if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context as never, 'Elements of Rage')) {
-    emitElementalistBuff(
-      context as never,
-      context.state.time,
-      'Elements of Rage',
-      1,
-      elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
-      'Starting Attunement',
-      'starting-attunement'
-    );
+    emitSkillBuff(context, elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'), {
+      at: context.state.time,
+      source: 'Starting Attunement',
+      sourceId: 'starting-attunement',
+      actorType: 'player',
+      kind: 'elements of rage',
+      stacks: 1,
+      duration: elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+      skillName: 'Starting Attunement'
+    });
   }
 }
 
@@ -166,15 +168,16 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
   if ((target === previous || unravelActive) && hasTrait(context, 'Elements of Rage')) {
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
       at,
-      'Elements of Rage',
-      1,
-      elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
       source,
-      sourceId
-    );
+      sourceId,
+      actorType: 'player',
+      kind: 'elements of rage',
+      stacks: 1,
+      duration: elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+      skillName: source
+    });
   }
 
   if (weaveSelfActive) {
@@ -183,7 +186,16 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     state.weaveSelfVisited = [...visited];
     const remaining = Math.max(0, state.weaveSelfUntil - at);
     if (target === 'Fire' || target === 'Air') {
-      emitElementalistBuff(context as never, at, `Weave Self ${target}`, 1, remaining, source, sourceId);
+      emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+        at,
+        source,
+        sourceId,
+        actorType: 'player',
+        kind: `weave self ${target.toLowerCase()}`,
+        stacks: 1,
+        duration: remaining,
+        skillName: source
+      });
     }
 
     if (visited.size >= ELEMENTALIST_ATTUNEMENTS.length) {
@@ -191,37 +203,37 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       state.weaveSelfVisited = [];
       const perfectWeaveDuration = elementalistBalanceValue(context, PROFILE.resources, 'recharge', 10);
       state.perfectWeaveUntil = at + perfectWeaveDuration;
-      emitElementalistBuff(context as never, at, 'Perfect Weave', 1, perfectWeaveDuration, source, sourceId);
-      emitElementalistBuff(context as never, at, 'Weave Self Fire', 1, perfectWeaveDuration, source, sourceId);
-      emitElementalistBuff(context as never, at, 'Weave Self Air', 1, perfectWeaveDuration, source, sourceId);
+      for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
+        emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+          at,
+          source,
+          sourceId,
+          actorType: 'player',
+          kind,
+          stacks: 1,
+          duration: perfectWeaveDuration,
+          skillName: source
+        });
+      }
     }
   }
 
   if (at < Number(context.combatStartTime || 0) - context.epsilon) return;
   if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
     const resistance = elementalistBalanceEffect(context, PROFILE.weaversProwess, 'boon', 'Resistance');
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {
       at,
-      String(resistance?.boon || 'Resistance'),
-      Number(resistance?.stacks ?? 1),
-      Number(resistance?.duration ?? 3),
-      "Weaver's Prowess",
-      sourceId
-    );
+      source: "Weaver's Prowess",
+      sourceId,
+      actorType: 'player',
+      kind: String(resistance?.boon || 'Resistance').toLowerCase(),
+      stacks: Number(resistance?.stacks ?? 1),
+      duration: Number(resistance?.duration ?? 3),
+      skillName: "Weaver's Prowess"
+    });
   }
 
   triggerBountifulPower(context as never, at, unravelActive ? 1 : 2, sourceId);
-}
-
-function emitBuff(
-  context: ElementalistCastContext,
-  skill: Skill,
-  kind: string,
-  stacks: number,
-  duration: number
-): void {
-  emitElementalistBuff(context as never, context.effectiveEnd, kind, stacks, duration, skill.name, skill.id);
 }
 
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
@@ -345,35 +357,43 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
             ? (['Air', 'Fury', 1] as const)
             : (['Earth', 'Protection', 1] as const);
     const profiledBoon = elementalistBalanceEffect(context, PROFILE.unravel, 'boon', boon[0]);
-    emitBuff(
-      context,
-      skill,
-      String(profiledBoon?.boon || boon[1]),
-      Number(profiledBoon?.stacks ?? boon[2]),
-      Number(profiledBoon?.duration ?? 5)
-    );
+    const boonKind = String(profiledBoon?.boon || boon[1]).toLowerCase();
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      name: skill.name,
+      kind: boonKind,
+      duration: Number(profiledBoon?.duration ?? 5),
+      stacks: Number(profiledBoon?.stacks ?? boon[2])
+    });
     if (hasTrait(context, 'Elements of Rage') && previousPrimary !== previousSecondary) {
-      emitBuff(
-        context,
-        skill,
-        'Elements of Rage',
-        1,
-        elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8)
-      );
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        name: skill.name,
+        kind: 'elements of rage',
+        duration: elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+        stacks: 1
+      });
     }
   }
 
   if (dualAttunements && state.ferventStanceUntil >= at) {
     const might = elementalistBalanceEffect(context, PROFILE.ferventStance, 'boon', 'Might');
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, skill, {
       at,
-      String(might?.boon || 'Might'),
-      Number(might?.stacks ?? 3),
-      Number(might?.duration ?? 8),
-      'Fervent Stance',
-      skill.id
-    );
+      source: 'Fervent Stance',
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(might?.boon || 'Might').toLowerCase(),
+      stacks: Number(might?.stacks ?? 3),
+      duration: Number(might?.duration ?? 8),
+      skillName: 'Fervent Stance'
+    });
   }
 }
 
@@ -404,9 +424,27 @@ function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: 
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
   if (core.primaryAttunement === 'Fire') {
-    emitElementalistBuff(context as never, at, 'Weave Self Fire', 1, duration, 'Weave Self', sourceId);
+    emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
+      at,
+      source: 'Weave Self',
+      sourceId,
+      actorType: 'player',
+      kind: 'weave self fire',
+      stacks: 1,
+      duration,
+      skillName: 'Weave Self'
+    });
   } else if (core.primaryAttunement === 'Air') {
-    emitElementalistBuff(context as never, at, 'Weave Self Air', 1, duration, 'Weave Self', sourceId);
+    emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
+      at,
+      source: 'Weave Self',
+      sourceId,
+      actorType: 'player',
+      kind: 'weave self air',
+      stacks: 1,
+      duration,
+      skillName: 'Weave Self'
+    });
   }
 }
 
@@ -477,8 +515,7 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
     Air: ['Vulnerability', 8, 3],
     Earth: ['Bleeding', 2, 6]
   };
-  context.emit({
-    type: 'damage',
+  emitSkillDamage(context, {
     at: task.at,
     source: 'elementalist',
     sourceId,
@@ -492,8 +529,7 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
   for (const attunement of attunements) {
     const [condition, stacks, duration] = effects[attunement];
     const effect = elementalistBalanceEffect(context, PROFILE.primordialStance, 'condition', attunement);
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: task.at,
       source: 'Primordial Stance',
       sourceId,

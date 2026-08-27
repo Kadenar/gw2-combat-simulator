@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
  * Condition-manipulation skill handlers.
@@ -15,7 +16,7 @@ import { createRelicTimelineRuntime } from '../../../platform/gw2/equipment/reli
 import { relicConditionDurationBonus } from '../../../platform/gw2/equipment/relics/query.js';
 import { projectCastRelativeEffectTimingMs } from '../../../platform/gw2/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { emitBuff, emitCondition, emitDamage, hasTrait } from './shared.js';
+import { hasTrait } from './shared.js';
 import type {
   NecromancerCastContext,
   NecromancerCoreState,
@@ -173,9 +174,9 @@ function emitTransferredApplication(
     transferredCondition: true,
     transferredFromSkillId: application.sourceSkillId
   } as const;
-  context.emit({
+  emitSkillCondition(context, {
     ...common,
-    type: 'condition',
+
     condition: application.condition,
     nonDamaging: !isDamagingCondition(application.condition)
   });
@@ -281,7 +282,11 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
   }
 
   if (skill.id === ID.BLOOD_IS_POWER) {
-    emitBuff(context, skill, 'might', 20, 5, {
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: 'might',
+      duration: 20,
+      stacks: 5,
       metadata: { recipients: 'party', maximumRecipients: 5 }
     });
   }
@@ -319,8 +324,11 @@ function darkPactOnHit(
 ): void {
   if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
   applyNecromancerSelfCondition(context, skill, 'Bleeding', 2, 10, event.at);
-  emitCondition(context, skill, 'Immobilized', 1, 6, {
-    at: event.at
+  emitSkillCondition(context, skill, {
+    at: event.at,
+    condition: 'Immobilized',
+    stacks: 1,
+    duration: 6
   });
 }
 
@@ -330,9 +338,9 @@ function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSk
     5,
     Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
-  emitDamage(context, skill, 1.16, { at: impactAt });
+  emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
   if (count > 0) {
-    emitCondition(context, skill, 'Torment', count, 4, { at: impactAt });
+    emitSkillCondition(context, skill, { at: impactAt, condition: 'Torment', stacks: count, duration: 4 });
   }
 
   return true;

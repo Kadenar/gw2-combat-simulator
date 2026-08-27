@@ -1,6 +1,7 @@
 import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { emitThiefState } from '../../core/shared.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { storeStolenSkillChoices } from '../../core/steal.js';
 import { hasThiefTrait } from '../../core/state.js';
 import type {
@@ -99,7 +100,7 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
     state.malice + Number(resources?.resourceGain || 1) + criticalMalice * Number(resources?.playerStacks || 1)
   );
   applyMaleficentSeven(context, event.at);
-  emitThiefState(context, event.at, 'malice');
+  emitStateSnapshot(context, 'thief', event.at, 'malice', snapshotThiefState(context.state.profession));
 }
 
 function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
@@ -111,12 +112,12 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
       state.malice + Number(thiefBalanceProfile(context, PROFILE.maliciousIntent)?.resourceGain || 2)
     );
     applyMaleficentSeven(context, event.at);
-    emitThiefState(context, event.at, 'malicious-intent');
+    emitStateSnapshot(context, 'thief', event.at, 'malicious-intent', snapshotThiefState(context.state.profession));
   }
 
   state.malice = 0;
   state.maleficentSevenTriggered = false;
-  emitThiefState(context, event.at, 'malice-spent');
+  emitStateSnapshot(context, 'thief', event.at, 'malice-spent', snapshotThiefState(context.state.profession));
 }
 
 export function resolveDeadeyeMaliceHit(
@@ -156,7 +157,13 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   state.stealthAttackCharges = 1;
   state.stealthAttackExpiresAt =
     context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.silentScope)?.durationMultiplier || 3);
-  emitThiefState(context, context.effectiveEnd, 'silent-scope');
+  emitStateSnapshot(
+    context,
+    'thief',
+    context.effectiveEnd,
+    'silent-scope',
+    snapshotThiefState(context.state.profession)
+  );
 }
 
 function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -176,7 +183,7 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
       sourceSkill: skill.name,
       detail: 'activated'
     });
-    emitThiefState(context, at, 'deadeye-relic');
+    emitStateSnapshot(context, 'thief', at, 'deadeye-relic', snapshotThiefState(context.state.profession));
   }
 
   if (hasThiefTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {

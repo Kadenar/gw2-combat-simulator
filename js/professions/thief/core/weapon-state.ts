@@ -1,7 +1,10 @@
+import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { snapshotThiefState } from './state.js';
 import { hasThiefTrait } from './state.js';
-import { emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';
+import { gainThiefEndurance, gainThiefInitiative } from './shared.js';
 import { updateSpearChainState } from './conditions.js';
 import type { ThiefCastContext, ThiefSkill } from '../types.js';
 
@@ -34,8 +37,7 @@ export function grantThiefStealth(
   }
 
   if (entering && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.CLOAKED_IN_SHADOW,
@@ -49,7 +51,7 @@ export function grantThiefStealth(
     });
   }
 
-  emitThiefState(context, at, 'stealth');
+  emitStateSnapshot(context, 'thief', at, 'stealth', snapshotThiefState(context.state.profession));
 }
 
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -85,12 +87,12 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] = at + Number(skill.flipDuration || (skill.dualWieldOpener ? 4 : 5));
-      emitThiefState(context, at, 'weapon-flip');
+      emitStateSnapshot(context, 'thief', at, 'weapon-flip', snapshotThiefState(context.state.profession));
     }
   }
 
   if (completed && skill.type === 'Weapon' && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
-    emitThiefState(context, at, 'weapon-flip-used');
+    emitStateSnapshot(context, 'thief', at, 'weapon-flip-used', snapshotThiefState(context.state.profession));
   }
 }

@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
@@ -13,7 +14,6 @@ import {
   targetAttunement,
   type ElementalistAttunementTraitTrigger
 } from '../../core/attunements.js';
-import { emitElementalistBuff } from '../../core/mechanics.js';
 import {
   grantElementalistRockSolid,
   triggerEarthenBlast,
@@ -155,41 +155,44 @@ export function triggerSpecializedElementEntry(
     triggerElectricDischarge(context as never, at, skill.id);
     if (hasTrait(context, 'One with Air')) {
       const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'buff', 'Superspeed');
-      emitElementalistBuff(
-        context as never,
+      emitSkillBuff(context, skill, {
         at,
-        String(superspeed?.kind || 'Superspeed'),
-        Number(superspeed?.stacks ?? 1),
-        Number(superspeed?.duration ?? 3),
-        skill.name,
-        skill.id
-      );
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(superspeed?.kind || 'Superspeed').toLowerCase(),
+        stacks: Number(superspeed?.stacks ?? 1),
+        duration: Number(superspeed?.duration ?? 3),
+        skillName: skill.name
+      });
     }
 
     if (hasTrait(context, 'Inscription')) {
       const resistance = elementalistBalanceEffect(context, CORE_PROFILE.inscription, 'boon', 'Air Entry');
-      emitElementalistBuff(
-        context as never,
+      emitSkillBuff(context, skill, {
         at,
-        String(resistance?.boon || 'Resistance'),
-        Number(resistance?.stacks ?? 1),
-        Number(resistance?.duration ?? 3),
-        skill.name,
-        skill.id
-      );
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(resistance?.boon || 'Resistance').toLowerCase(),
+        stacks: Number(resistance?.stacks ?? 1),
+        duration: Number(resistance?.duration ?? 3),
+        skillName: skill.name
+      });
     }
 
     if (hasTrait(context, 'Fresh Air')) {
       const freshAir = elementalistBalanceEffect(context, CORE_PROFILE.freshAir, 'buff');
-      emitElementalistBuff(
-        context as never,
+      emitSkillBuff(context, skill, {
         at,
-        String(freshAir?.kind || 'Fresh Air'),
-        Number(freshAir?.stacks ?? 1),
-        Number(freshAir?.duration ?? 5),
-        skill.name,
-        skill.id
-      );
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(freshAir?.kind || 'Fresh Air').toLowerCase(),
+        stacks: Number(freshAir?.stacks ?? 1),
+        duration: Number(freshAir?.duration ?? 5),
+        skillName: skill.name
+      });
     }
   } else if (element === 'Earth') {
     if (hasTrait(context, 'Earthen Blast') && procReady(CORE_PROFILE.earthenBlast)) {

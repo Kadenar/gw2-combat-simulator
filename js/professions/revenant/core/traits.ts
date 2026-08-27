@@ -9,8 +9,8 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasRevenantTrait } from './state.js';
-import { emitRevenantBoon } from './boons.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from './legend.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
@@ -89,8 +89,9 @@ export function handleImpossibleOddsStrike(
     return;
   const strike = effectByType(impossible, 'strike');
   state.traitProcReadyAt.impossibleOdds = task.at + Number(strike.intervalMs || 0) / 1000;
-  context.emitDerived(cause, {
-    type: 'damage',
+  emitSkillDamage(context, {
+    cause: cause,
+
     at: task.at + Number(strike.atMs || 0) / 1000,
     name: 'Impossible Odds',
     skillName: 'Impossible Odds',
@@ -104,30 +105,6 @@ export function handleImpossibleOddsStrike(
     skillId: impossible.id,
     skillWeapon: 'Unequipped',
     canTriggerCriticalSigils: true
-  });
-}
-
-function emitTraitCondition(
-  context: RevenantSchedulerContext,
-  cause: SimulationEvent,
-  traitId: SkillId,
-  name: string,
-  condition: string,
-  stacks: number,
-  duration: number
-): void {
-  context.emitDerived(cause, {
-    type: 'condition',
-    at: cause.at,
-    source: 'revenant',
-    sourceId: traitId,
-    actorType: 'player',
-    skillId: traitId,
-    skillName: name,
-    name: `${name} — ${condition}`,
-    condition,
-    stacks,
-    duration
   });
 }
 
@@ -208,8 +185,9 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
 
   state.nextThrillOfCombatAt = next + elapsedGrants * interval;
   if (activeGrants) {
-    context.emitDerived(event, {
-      type: 'buff',
+    emitSkillBuff(context, {
+      cause: event,
+
       at: event.at,
       source: 'revenant',
       sourceId: TRAIT.THRILL_OF_COMBAT,
@@ -231,8 +209,9 @@ function consumeBattleScar(context: RevenantSchedulerContext, event: RevenantSim
   pruneBattleScars(state, event.at);
   if (!state.battleScars.length) return;
   state.battleScars.pop();
-  context.emitDerived(event, {
-    type: 'damage',
+  emitSkillDamage(context, {
+    cause: event,
+
     at: event.at,
     source: 'revenant',
     sourceId: 'revenant.battle-scars',
@@ -299,18 +278,14 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
   ) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety);
     const boon = effectByType(profile, 'boon');
-    emitRevenantBoon(
-      context,
-      skill,
-      String(boon.boon || 'might'),
-      Number(boon.duration || 0),
-      Number(boon.stacks || 0),
-      {
-        at: context.effectiveEnd,
-        sourceId: TRAIT.NOTORIETY,
-        name: 'Notoriety — might'
-      }
-    );
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      sourceId: TRAIT.NOTORIETY,
+      name: 'Notoriety — might',
+      kind: String(boon.boon || 'might'),
+      duration: Number(boon.duration || 0),
+      stacks: Number(boon.stacks || 0)
+    });
   }
 
   if (!([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id))) {
@@ -370,8 +345,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       context.catalog.skillsById.get(event.skillId ?? '') ||
       ({ id: TRAIT.BRUTALITY, name: 'Brutality' } as RevenantSkill);
     professionCoreState(context).traitProcReadyAt.brutality = at + Number(profile.cooldown || 0);
-    context.emitDerived(event, {
-      type: 'buff',
+    emitSkillBuff(context, {
+      cause: event,
+
       at,
       source: 'revenant',
       sourceId: TRAIT.BRUTALITY,
@@ -393,30 +369,40 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   if (event.type === 'control' && hasRevenantTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining);
     const condition = effectByType(profile, 'condition');
-    emitTraitCondition(
-      context,
-      event,
-      TRAIT.DWARVEN_BATTLE_TRAINING,
-      'Dwarven Battle Training',
-      String(condition.condition || 'Weakness'),
-      Number(condition.stacks || 0),
-      Number(condition.duration || 0)
-    );
+    const conditionName = String(condition.condition || 'Weakness');
+    emitSkillCondition(context, {
+      cause: event,
+      at: event.at,
+      source: 'revenant',
+      sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
+      actorType: 'player',
+      skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
+      skillName: 'Dwarven Battle Training',
+      name: `Dwarven Battle Training — ${conditionName}`,
+      condition: conditionName,
+      stacks: Number(condition.stacks || 0),
+      duration: Number(condition.duration || 0)
+    });
   }
 
   if (event.type === 'condition') {
     if (event.condition === 'Chilled' && hasRevenantTrait(context.config, TRAIT.ABYSSAL_CHILL)) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill);
       const condition = effectByType(profile, 'condition');
-      emitTraitCondition(
-        context,
-        event,
-        TRAIT.ABYSSAL_CHILL,
-        'Abyssal Chill',
-        String(condition.condition || 'Torment'),
-        Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks || 1)),
-        Number(condition.duration || 0)
-      );
+      const conditionName = String(condition.condition || 'Torment');
+      emitSkillCondition(context, {
+        cause: event,
+        at: event.at,
+        source: 'revenant',
+        sourceId: TRAIT.ABYSSAL_CHILL,
+        actorType: 'player',
+        skillId: TRAIT.ABYSSAL_CHILL,
+        skillName: 'Abyssal Chill',
+        name: `Abyssal Chill — ${conditionName}`,
+        condition: conditionName,
+        stacks: Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks || 1)),
+        duration: Number(condition.duration || 0)
+      });
     }
 
     if (event.condition === 'Vulnerability' && hasRevenantTrait(context.config, TRAIT.DANCE_OF_DEATH)) {
@@ -443,8 +429,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         context.catalog.skillsById.get(event.skillId ?? '') ||
         ({ id: TRAIT.ASSASSINS_PRESENCE, name: "Assassin's Presence" } as RevenantSkill);
       state.traitProcReadyAt.assassinsPresence = event.at + Number(profile.cooldown || 0);
-      context.emitDerived(event, {
-        type: 'buff',
+      emitSkillBuff(context, {
+        cause: event,
+
         at: event.at,
         source: 'revenant',
         sourceId: TRAIT.ASSASSINS_PRESENCE,
@@ -474,8 +461,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         context.catalog.skillsById.get(event.skillId ?? '') ||
         ({ id: TRAIT.VICIOUS_REPRISAL, name: 'Vicious Reprisal' } as RevenantSkill);
       state.traitProcReadyAt.viciousReprisal = event.at + Number(profile.cooldown || 0);
-      context.emitDerived(event, {
-        type: 'buff',
+      emitSkillBuff(context, {
+        cause: event,
+
         at: event.at,
         source: 'revenant',
         sourceId: TRAIT.VICIOUS_REPRISAL,
@@ -502,15 +490,20 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses);
       const condition = effectByType(profile, 'condition');
       state.exposeDefensesUsed = true;
-      emitTraitCondition(
-        context,
-        event,
-        TRAIT.EXPOSE_DEFENSES,
-        'Expose Defenses',
-        String(condition.condition || 'Vulnerability'),
-        Number(condition.stacks || 0),
-        Number(condition.duration || 0)
-      );
+      const conditionName = String(condition.condition || 'Vulnerability');
+      emitSkillCondition(context, {
+        cause: event,
+        at: event.at,
+        source: 'revenant',
+        sourceId: TRAIT.EXPOSE_DEFENSES,
+        actorType: 'player',
+        skillId: TRAIT.EXPOSE_DEFENSES,
+        skillName: 'Expose Defenses',
+        name: `Expose Defenses — ${conditionName}`,
+        condition: conditionName,
+        stacks: Number(condition.stacks || 0),
+        duration: Number(condition.duration || 0)
+      });
     }
 
     const daggers = state.enchantedDaggers;
@@ -530,8 +523,9 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       const interval = Number(strike.intervalMs || 0) / 1000;
       daggers.charges -= 1;
       daggers.readyAt = event.at + interval;
-      context.emitDerived(event, {
-        type: 'damage',
+      emitSkillDamage(context, {
+        cause: event,
+
         at: event.at + interval,
         source: 'revenant',
         sourceId: ID.ENCHANTED_DAGGERS,

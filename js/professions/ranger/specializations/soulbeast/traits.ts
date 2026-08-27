@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -9,8 +10,7 @@ import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 export function applyUnstoppableUnion(context: RangerCastContext, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.UNSTOPPABLE_UNION)) return;
   const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.unstoppableUnion), 'boon');
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: context.start,
     source: 'Trait',
     sourceId: TRAIT.UNSTOPPABLE_UNION,

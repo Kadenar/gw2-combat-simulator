@@ -1,3 +1,4 @@
+import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -42,35 +43,6 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   NativeResolvedDamageDetails
 >;
 
-function emitPartyBoon(
-  context: RangerCastContext,
-  skill: RangerSkill,
-  sourceId: number,
-  sourceName: string,
-  kind: string,
-  baseDuration: number,
-  stacks = 1
-): void {
-  context.emit({
-    type: 'buff',
-    at: context.effectiveEnd,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: sourceId,
-    skillName: sourceName,
-    name: `${sourceName} - ${kind}`,
-    kind,
-    boon: kind,
-    duration: gw2SchedulerBoonDuration(context, skill, kind, baseDuration),
-    stacks,
-    recipients: 'party',
-    affectsSummons: true,
-    maximumRecipients: 5,
-    triggeredBy: skill.name
-  });
-}
-
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
@@ -78,8 +50,7 @@ function isBeastSkill(skill: RangerSkill): boolean {
 export function applyRangerDodgeTraits(context: RangerCastContext): void {
   if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
   const effect = profileEffect(context, PROFILE.lightOnYourFeet, 'buff');
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at: context.effectiveEnd,
     source: 'Trait',
     sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
@@ -104,8 +75,7 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
   state.childOfEarthReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
   const at = context.effectiveEnd;
   const immobilized = rangerBalanceProfileEffect(profile, 'condition', 0);
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.CHILD_OF_EARTH,
@@ -127,8 +97,7 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
     ]) {
       const condition = String(effect?.condition || '');
       if (!condition) continue;
-      context.emit({
-        type: 'condition',
+      emitSkillCondition(context, {
         at: at + application * interval,
         source: 'Trait',
         sourceId: TRAIT.CHILD_OF_EARTH,
@@ -162,15 +131,24 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
   if (skill.type === 'Heal') {
     if (hasTrait(context, TRAIT.WELLSPRING)) {
       const effect = profileEffect(context, PROFILE.wellspring, 'boon');
-      emitPartyBoon(
-        context,
-        skill,
-        TRAIT.WELLSPRING,
-        'Wellspring',
-        String(effect?.boon || 'regeneration'),
-        Number(effect?.duration ?? 6),
-        Number(effect?.stacks ?? 1)
-      );
+      const kind = String(effect?.boon || 'regeneration');
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.WELLSPRING,
+        actorType: 'effect',
+        skillId: TRAIT.WELLSPRING,
+        skillName: 'Wellspring',
+        name: `Wellspring - ${kind}`,
+        kind,
+        boon: kind,
+        duration: Number(effect?.duration ?? 6),
+        stacks: Number(effect?.stacks ?? 1),
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
     }
 
     emitChildOfEarth(context, skill);
@@ -178,15 +156,24 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
 
   if (skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)) {
     const effect = profileEffect(context, PROFILE.windborneNotes, 'boon');
-    emitPartyBoon(
-      context,
-      skill,
-      TRAIT.WINDBORNE_NOTES,
-      'Windborne Notes',
-      String(effect?.boon || 'regeneration'),
-      Number(effect?.duration ?? 6),
-      Number(effect?.stacks ?? 1)
-    );
+    const kind = String(effect?.boon || 'regeneration');
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.WINDBORNE_NOTES,
+      actorType: 'effect',
+      skillId: TRAIT.WINDBORNE_NOTES,
+      skillName: 'Windborne Notes',
+      name: `Windborne Notes - ${kind}`,
+      kind,
+      boon: kind,
+      duration: Number(effect?.duration ?? 6),
+      stacks: Number(effect?.stacks ?? 1),
+      recipients: 'party',
+      affectsSummons: true,
+      maximumRecipients: 5,
+      triggeredBy: skill.name
+    });
   }
 
   if (String(skill.description || '').startsWith('Command.')) {
@@ -208,15 +195,24 @@ export function applyRangerBeastSkillTraits(
     const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.rejuvenationReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
-    emitPartyBoon(
-      context,
-      skill,
-      TRAIT.REJUVENATION,
-      'Rejuvenation',
-      String(effect?.boon || 'regeneration'),
-      Number(effect?.duration ?? 10),
-      Number(effect?.stacks ?? 1)
-    );
+    const kind = String(effect?.boon || 'regeneration');
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.REJUVENATION,
+      actorType: 'effect',
+      skillId: TRAIT.REJUVENATION,
+      skillName: 'Rejuvenation',
+      name: `Rejuvenation - ${kind}`,
+      kind,
+      boon: kind,
+      duration: Number(effect?.duration ?? 10),
+      stacks: Number(effect?.stacks ?? 1),
+      recipients: 'party',
+      affectsSummons: true,
+      maximumRecipients: 5,
+      triggeredBy: skill.name
+    });
   }
 
   const notBeforeCombat =
@@ -238,8 +234,7 @@ export function applyRangerBeastSkillTraits(
     rangerPetByName(professionCoreState(context).activePet).family === 'canine'
   ) {
     const effect = profileEffect(context, PROFILE.wolfsong, 'condition');
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.WOLFSONG,
@@ -268,8 +263,7 @@ export function applyRangerWeaponSwapTraits(
     const profile = rangerBalanceProfile(context, PROFILE.tailWind);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.tailWindReadyAt = at + Number(profile?.internalCooldown ?? 9);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.TAIL_WIND,
@@ -292,8 +286,7 @@ export function applyRangerWeaponSwapTraits(
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.quickDrawReadyAt = at + Number(profile?.internalCooldown ?? 9);
     state.quickDrawUntil = at + Number(profile?.durationMultiplier ?? 5);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.QUICK_DRAW,
@@ -315,8 +308,7 @@ export function applyRangerWeaponSwapTraits(
     const profile = rangerBalanceProfile(context, PROFILE.furiousGrip);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.furiousGripReadyAt = at + Number(profile?.internalCooldown ?? 9);
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.FURIOUS_GRIP,
@@ -335,29 +327,55 @@ export function applyRangerWeaponSwapTraits(
 export function applyRangerPetSwapTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  const partyBoons: Array<{
+    sourceId: number;
+    sourceName: string;
+    kind: string;
+    duration: number;
+    stacks: number;
+  }> = [];
   const inCombat = context.combatStartTime != null && context.start >= context.combatStartTime;
   if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
     const profile = rangerBalanceProfile(context, PROFILE.spiritedArrival);
     const might = rangerBalanceProfileEffect(profile, 'boon', 0);
     const fury = rangerBalanceProfileEffect(profile, 'boon', 1);
-    emitPartyBoon(
-      context,
-      skill,
-      TRAIT.SPIRITED_ARRIVAL,
-      'Spirited Arrival',
-      String(might?.boon || 'might'),
-      Number(might?.duration ?? 12),
-      Number(might?.stacks ?? 6)
+    partyBoons.push(
+      {
+        sourceId: TRAIT.SPIRITED_ARRIVAL,
+        sourceName: 'Spirited Arrival',
+        kind: String(might?.boon || 'might'),
+        duration: Number(might?.duration ?? 12),
+        stacks: Number(might?.stacks ?? 6)
+      },
+      {
+        sourceId: TRAIT.SPIRITED_ARRIVAL,
+        sourceName: 'Spirited Arrival',
+        kind: String(fury?.boon || 'fury'),
+        duration: Number(fury?.duration ?? 8),
+        stacks: Number(fury?.stacks ?? 1)
+      }
     );
-    emitPartyBoon(
-      context,
-      skill,
-      TRAIT.SPIRITED_ARRIVAL,
-      'Spirited Arrival',
-      String(fury?.boon || 'fury'),
-      Number(fury?.duration ?? 8),
-      Number(fury?.stacks ?? 1)
-    );
+    for (const boon of partyBoons) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: boon.sourceId,
+        actorType: 'effect',
+        skillId: boon.sourceId,
+        skillName: boon.sourceName,
+        name: `${boon.sourceName} - ${boon.kind}`,
+        kind: boon.kind,
+        boon: boon.kind,
+        duration: boon.duration,
+        stacks: boon.stacks,
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
+    }
+
+    partyBoons.length = 0;
   }
 
   if (hasTrait(context, TRAIT.CLARION_BOND) && context.start >= state.clarionBondReadyAt) {
@@ -366,20 +384,38 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
     for (let index = 0; index < 3; index += 1) {
       const effect = rangerBalanceProfileEffect(profile, 'boon', index);
       const kind = String(effect?.boon || ['fury', 'might', 'swiftness'][index]);
-      emitPartyBoon(
-        context,
-        skill,
-        TRAIT.CLARION_BOND,
-        'Clarion Bond',
+      partyBoons.push({
+        sourceId: TRAIT.CLARION_BOND,
+        sourceName: 'Clarion Bond',
         kind,
-        Number(effect?.duration ?? 5),
-        Number(effect?.stacks ?? [1, 6, 1][index])
-      );
+        duration: Number(effect?.duration ?? 5),
+        stacks: Number(effect?.stacks ?? [1, 6, 1][index])
+      });
+    }
+
+    // Emit Clarion Bond's boons before its condition and combo marker to preserve event ordering.
+    for (const boon of partyBoons) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: boon.sourceId,
+        actorType: 'effect',
+        skillId: boon.sourceId,
+        skillName: boon.sourceName,
+        name: `${boon.sourceName} - ${boon.kind}`,
+        kind: boon.kind,
+        boon: boon.kind,
+        duration: boon.duration,
+        stacks: boon.stacks,
+        recipients: 'party',
+        affectsSummons: true,
+        maximumRecipients: 5,
+        triggeredBy: skill.name
+      });
     }
 
     const weakness = rangerBalanceProfileEffect(profile, 'condition');
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'Trait',
       sourceId: TRAIT.CLARION_BOND,
@@ -449,8 +485,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
   }
 
   for (const [kind, application] of active) {
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.RESOUNDING_TIMBRE,

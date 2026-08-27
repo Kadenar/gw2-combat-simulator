@@ -1,5 +1,6 @@
+import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { emitEngineerState } from './events.js';
+import { snapshotEngineerState } from '../state.js';
 import { turretOwnerId } from './turrets.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
@@ -11,7 +12,13 @@ function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   if (!Number.isFinite(flipSkillId)) return;
   professionCoreState(context).availableFlips[flipSkillId] = true;
   // effectiveEnd: flip becomes available after the cast completes, not when it starts
-  emitEngineerState(context, context.effectiveEnd, 'arm-flip');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    context.effectiveEnd,
+    'arm-flip',
+    snapshotEngineerState(context.state.profession)
+  );
 }
 
 function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
@@ -22,7 +29,13 @@ function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
     context.tasks.cancelOwner(turretOwnerId(parentId));
   }
 
-  emitEngineerState(context, context.effectiveEnd, 'consume-flip');
+  emitStateSnapshot(
+    context,
+    'engineer',
+    context.effectiveEnd,
+    'consume-flip',
+    snapshotEngineerState(context.state.profession)
+  );
 }
 
 export const engineerFlipSkillHandlers = Object.freeze({

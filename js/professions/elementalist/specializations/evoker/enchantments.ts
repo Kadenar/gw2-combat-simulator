@@ -1,3 +1,4 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
 import { emitElementalistProc } from '../../core/mechanics.js';
@@ -11,8 +12,9 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 export function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const strike = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'strike');
   const burning = elementalistBalanceEffect(context, PROFILE.galvanicEnchantment, 'condition');
-  context.emitDerived(event, {
-    type: 'damage',
+  emitSkillDamage(context, {
+    cause: event,
+
     at: event.at,
     source: 'Electric Enchantment',
     sourceId: event.skillId ?? event.sourceId,
@@ -21,8 +23,9 @@ export function emitElectricEnchantment(context: ElementalistSchedulerContext, e
     coefficient: Number(strike?.coefficient ?? 0.4),
     skillWeapon: 'Unequipped'
   });
-  context.emitDerived(event, {
-    type: 'condition',
+  emitSkillCondition(context, {
+    cause: event,
+
     at: event.at,
     source: 'Electric Enchantment',
     sourceId: event.skillId ?? event.sourceId,

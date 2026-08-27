@@ -1,3 +1,4 @@
+import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
@@ -20,8 +21,7 @@ function hasDruidTrait(context: RangerCastContext | RangerSchedulerContext, trai
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, duration: number, at: number): void {
   if (!hasDruidTrait(context, TRAIT.NATURAL_BALANCE)) return;
   const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.naturalBalance), 'buff');
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: 'Trait',
     sourceId: TRAIT.NATURAL_BALANCE,

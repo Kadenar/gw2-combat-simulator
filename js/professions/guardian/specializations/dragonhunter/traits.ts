@@ -1,3 +1,4 @@
+import { emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
 import { hasGuardianTrait } from '../../core/traits.js';
@@ -24,8 +25,7 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
       skillWeapon
     })
   );
-  context.emit({
-    type: 'condition',
+  emitSkillCondition(context, {
     at,
     source: 'guardian',
     sourceId: skill.id,

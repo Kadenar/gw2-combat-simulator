@@ -1,7 +1,10 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { snapshotThiefState } from '../../core/state.js';
 import { hasThiefTrait } from '../../core/state.js';
-import { emitThiefCondition, emitThiefState, gainThiefEndurance } from '../../core/shared.js';
+import { gainThiefEndurance } from '../../core/shared.js';
 import type { ThiefCastContext, ThiefDodge, ThiefSkill } from '../../types.js';
 import { daredevilState } from './state.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
@@ -122,10 +125,10 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
     const hits = Math.max(1, Number(authoredEffect?.hits || effect.hits || 1));
     const atMsList = effect.atMsList || [];
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-      context.emit({
+      emitSkillDamage(context, {
         ...common,
         at: atMsList[hitIndex - 1] == null ? common.at : context.start + atMsList[hitIndex - 1] / 1000,
-        type: 'damage',
+
         source: 'thief',
         coefficient: Number(authoredEffect?.coefficient || effect.coefficient || 0) / hits,
         hits: 1,
@@ -135,9 +138,9 @@ function emitDodgeEffect(context: ThiefCastContext, skill: ThiefSkill, effect: D
       });
     }
   } else if (effect.type === 'condition') {
-    context.emit({
+    emitSkillCondition(context, {
       ...common,
-      type: 'condition',
+
       name: `${dodgeSkillName} — ${effect.condition}`,
       condition: effect.condition,
       stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
@@ -175,7 +178,13 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
     state.weakeningStrikeReady = true;
   }
 
-  emitThiefState(context, context.effectiveEnd, 'daredevil-dodge');
+  emitStateSnapshot(
+    context,
+    'thief',
+    context.effectiveEnd,
+    'daredevil-dodge',
+    snapshotThiefState(context.state.profession)
+  );
   for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
     emitDodgeEffect(context, skill, effect);
   }
@@ -216,15 +225,19 @@ function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): voi
   if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
   state.weakeningStrikeReady = false;
   const weakness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.weakeningStrikes), 'condition');
-  emitThiefCondition(context, {
+  emitSkillCondition(context, {
     at: context.start,
+    source: 'Trait',
+    actorType: 'player',
+    skillId: context.skill?.id ?? null,
+    skillName: context.skill?.name ?? null,
     condition: String(weakness?.condition || 'Weakness'),
     duration: Number(weakness?.duration || 3),
     stacks: Number(weakness?.stacks || 1),
     sourceId: TRAIT.WEAKENING_STRIKES,
     name: 'Weakening Strikes — Weakness'
   });
-  emitThiefState(context, context.start, 'weakening-strikes');
+  emitStateSnapshot(context, 'thief', context.start, 'weakening-strikes', snapshotThiefState(context.state.profession));
 }
 
 export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkill): void {

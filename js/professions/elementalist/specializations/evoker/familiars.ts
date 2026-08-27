@@ -1,8 +1,9 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { castRelativeEffectTimingScale } from '../../../../platform/gw2/skills/timing.js';
 import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
-import { emitElementalistBuff, emitElementalistProc } from '../../core/mechanics.js';
+import { emitElementalistProc } from '../../core/mechanics.js';
 import { elementalistBalanceEffect, elementalistBalanceValue, elementalistEffectValue } from '../../core/profiles.js';
 import {
   BASIC_FAMILIARS,
@@ -42,8 +43,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
         const metadata = (tick.metadata || effect.metadata || {}) as SchedulerRecord;
         const comboFinishers = tick.comboFinishers || effect.comboFinishers;
         if (effect.type === 'strike') {
-          context.emit({
-            type: 'damage',
+          emitSkillDamage(context, {
             at,
             source: name,
             sourceId: familiar.id,
@@ -57,8 +57,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
             triggeredBy: sourceSkill.name
           });
         } else if (effect.type === 'condition') {
-          context.emit({
-            type: 'condition',
+          emitSkillCondition(context, {
             at,
             source: name,
             sourceId: familiar.id,
@@ -220,8 +219,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       context.start +
       elementalistBalanceValue(context, PROFILE.foxsFury, 'initialDelay', 0.56) /
         (context.hasBuff('quickness', context.start) ? 1.5 : 1);
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: skill.name,
       sourceId: skill.id,
@@ -231,8 +229,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       coefficient: Number(strike?.coefficient ?? [1.5, 2.25, 3][tier]),
       skillWeapon: 'Unequipped'
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: skill.name,
       sourceId: skill.id,
@@ -269,8 +266,7 @@ function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): v
     return;
   }
 
-  context.emit({
-    type: 'buff',
+  emitSkillBuff(context, {
     at,
     source: "Familiar's Prowess",
     sourceId: skill.id,
@@ -315,15 +311,16 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       'boon',
       quick ? 'Quickness' : 'Alacrity'
     );
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, skill, {
       at,
-      String(blessing?.boon || (quick ? 'Quickness' : 'Alacrity')),
-      Number(blessing?.stacks ?? 1),
-      Number(blessing?.duration ?? (quick ? 1.75 : 4)),
-      "Familiar's Blessing",
-      skill.id
-    );
+      source: "Familiar's Blessing",
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(blessing?.boon || (quick ? 'Quickness' : 'Alacrity')).toLowerCase(),
+      stacks: Number(blessing?.stacks ?? 1),
+      duration: Number(blessing?.duration ?? (quick ? 1.75 : 4)),
+      skillName: "Familiar's Blessing"
+    });
   }
 
   if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {
@@ -360,8 +357,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
 
   if (skill.name === 'Zap') {
     const zap = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'buff', 'Zap Window');
-    context.emit({
-      type: 'buff',
+    emitSkillBuff(context, {
       at,
       source: skill.name,
       sourceId: skill.id,
@@ -422,41 +418,43 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     materializeArmedElectricEnchantments(context, state);
   } else if (skill.name === "Toad's Fortitude" && state.element === 'Earth') {
     const resistance = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Toad Resistance');
-    emitElementalistBuff(
-      context as never,
+    emitSkillBuff(context, skill, {
       at,
-      String(resistance?.boon || 'Resistance'),
-      Number(resistance?.stacks ?? 1),
-      Number(resistance?.duration ?? 4),
-      skill.name,
-      skill.id
-    );
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(resistance?.boon || 'Resistance').toLowerCase(),
+      stacks: Number(resistance?.stacks ?? 1),
+      duration: Number(resistance?.duration ?? 4),
+      skillName: skill.name
+    });
   } else if (skill.name === "Fox's Fury") {
     const might = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Might');
     const fireMight = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Fire Bonus');
     const fury = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'boon', 'Fox Fury');
-    emitElementalistBuff(
-      context as never,
-      at,
-      String(might?.boon || 'Might'),
-      Number(might?.stacks ?? 8) + (state.element === 'Fire' ? Number(fireMight?.stacks ?? 3) : 0),
-      Number(might?.duration ?? 10),
-      skill.name,
-      skill.id,
-      0,
-      'party'
-    );
-    emitElementalistBuff(
-      context as never,
-      at,
-      String(fury?.boon || 'Fury'),
-      Number(fury?.stacks ?? 1),
-      Number(fury?.duration ?? 10),
-      skill.name,
-      skill.id,
-      0,
-      'party'
-    );
+    for (const boon of [
+      {
+        kind: String(might?.boon || 'Might').toLowerCase(),
+        stacks: Number(might?.stacks ?? 8) + (state.element === 'Fire' ? Number(fireMight?.stacks ?? 3) : 0),
+        duration: Number(might?.duration ?? 10)
+      },
+      {
+        kind: String(fury?.boon || 'Fury').toLowerCase(),
+        stacks: Number(fury?.stacks ?? 1),
+        duration: Number(fury?.duration ?? 10)
+      }
+    ]) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: skill.name,
+        recipients: 'party',
+        maximumRecipients: 5,
+        ...boon
+      });
+    }
   }
 
   // Basic familiars retain 90% weapon recharge; empowered familiars retain

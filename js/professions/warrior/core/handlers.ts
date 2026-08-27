@@ -1,3 +1,4 @@
+import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
@@ -87,8 +88,7 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
   });
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = context.fullEnd + pulse * interval;
-    const damage = context.emit({
-      type: 'damage',
+    const damage = emitSkillDamage(context, {
       at,
       source: 'Warrior',
       sourceId: skill.id,
@@ -102,7 +102,7 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
       totalHits: pulses,
       skillWeapon: skill.weapon || 'Longbow',
       persistsAfterInterrupt: true
-    });
+    })[0];
     if (
       !resource.berserkersPowerGranted &&
       grantBerserkersPowerOnFirstHit(context, skill, damage as WarriorSimulationEvent, resource.spent)
@@ -110,8 +110,7 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
       resource.berserkersPowerGranted = true;
     }
 
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'Warrior',
       sourceId: skill.id,
@@ -181,8 +180,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
   });
   for (let hitIndex = 1; hitIndex <= bullets; hitIndex += 1) {
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at: firstBulletAt + (hitIndex - 1) * bulletInterval,
       source: 'Warrior',
       sourceId: skill.id,

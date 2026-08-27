@@ -1,6 +1,6 @@
-import type { ScheduledTask, SkillId } from '../../../../platform/engine/types.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import type { ScheduledTask } from '../../../../platform/engine/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../resources.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
@@ -27,35 +27,6 @@ function emitParagonState(context: WarriorSchedulerContext, at: number, reason: 
       activeRefrain: state.activeRefrain,
       nextRefrainAt: state.nextRefrainAt
     }
-  });
-}
-
-function emitBoon(
-  context: WarriorSchedulerContext,
-  at: number,
-  sourceId: SkillId,
-  skillName: string,
-  boon: string,
-  duration: number,
-  stacks = 1,
-  affectsSelf = true
-): void {
-  const sourceSkill = context.catalog.skillsById.get(sourceId) || ({ id: sourceId, name: skillName } as WarriorSkill);
-  context.emit({
-    type: 'buff',
-    at,
-    source: 'Paragon',
-    sourceId,
-    actorType: 'player',
-    skillId: sourceId,
-    skillName,
-    name: `${skillName} — ${boon}`,
-    kind: boon,
-    boon,
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, duration),
-    stacks,
-    recipients: affectsSelf ? 'party' : 'allies',
-    affectsSelf
   });
 }
 
@@ -87,25 +58,44 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
         : 0)
   );
 
+  const openingBoons: Array<{ kind: string; duration: number; stacks: number }> = [];
   if (skill.id === ID.CHANT_OF_ACTION) {
     const might = warriorBalanceProfileEffect(chants, 'boon', 0);
     const fury = warriorBalanceProfileEffect(chants, 'boon', 1);
-    emitBoon(context, at, skill.id, skill.name, 'might', Number(might?.duration ?? 8), Number(might?.stacks ?? 5));
-    emitBoon(context, at, skill.id, skill.name, 'fury', Number(fury?.duration ?? 5), Number(fury?.stacks ?? 1));
+    openingBoons.push(
+      { kind: 'might', duration: Number(might?.duration ?? 8), stacks: Number(might?.stacks ?? 5) },
+      { kind: 'fury', duration: Number(fury?.duration ?? 5), stacks: Number(fury?.stacks ?? 1) }
+    );
   } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
     const vigor = warriorBalanceProfileEffect(chants, 'boon', 2);
-    emitBoon(context, at, skill.id, skill.name, 'vigor', Number(vigor?.duration ?? 5), Number(vigor?.stacks ?? 1));
+    openingBoons.push({ kind: 'vigor', duration: Number(vigor?.duration ?? 5), stacks: Number(vigor?.stacks ?? 1) });
   } else if (skill.id === ID.CHANT_OF_FREEDOM) {
     const stability = warriorBalanceProfileEffect(chants, 'boon', 3);
-    emitBoon(
-      context,
+    openingBoons.push({
+      kind: 'stability',
+      duration: Number(stability?.duration ?? 3),
+      stacks: Number(stability?.stacks ?? 1)
+    });
+  }
+
+  // Emit every selected opening packet directly so attribution stays visible at the behavior site.
+  for (const boon of openingBoons) {
+    emitSkillBuff(context, {
+      skill,
       at,
-      skill.id,
-      skill.name,
-      'stability',
-      Number(stability?.duration ?? 3),
-      Number(stability?.stacks ?? 1)
-    );
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — ${boon.kind}`,
+      kind: boon.kind,
+      boon: boon.kind,
+      duration: boon.duration,
+      stacks: boon.stacks,
+      recipients: 'party',
+      affectsSelf: true
+    });
   }
 
   if (hasTrait(context, TRAIT.FEVERISH_PULSE)) {
@@ -119,16 +109,22 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
       }
     }
 
-    emitBoon(
-      context,
+    emitSkillBuff(context, {
+      skill,
       at,
-      skill.id,
-      skill.name,
-      'alacrity',
-      Number(alacrity?.duration ?? 6),
-      Number(alacrity?.stacks ?? 1),
-      false
-    );
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — alacrity`,
+      kind: 'alacrity',
+      boon: 'alacrity',
+      duration: Number(alacrity?.duration ?? 6),
+      stacks: Number(alacrity?.stacks ?? 1),
+      recipients: 'allies',
+      affectsSelf: false
+    });
   }
 
   emitParagonState(context, at + context.epsilon, 'chant');
@@ -139,17 +135,48 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
 function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, at: number): void {
   const skill = context.catalog.skillsById.get(skillId);
   const skillName = skill?.name || 'Paragon Command';
+  const sourceSkill = skill || ({ id: skillId, name: skillName } as WarriorSkill);
   if (skillId === ID.FIND_THEIR_WEAKNESS) {
-    emitBoon(context, at, skillId, skillName, 'might', 10, 7);
+    emitSkillBuff(context, {
+      skill: sourceSkill,
+      at,
+      source: 'Paragon',
+      sourceId: skillId,
+      actorType: 'player',
+      skillId,
+      skillName,
+      name: `${skillName} — might`,
+      kind: 'might',
+      boon: 'might',
+      duration: 10,
+      stacks: 7,
+      recipients: 'party',
+      affectsSelf: true
+    });
     gainWarriorAdrenaline(context, 3);
   } else if (skillId === ID.NEVER_SURRENDER) {
-    emitBoon(context, at, skillId, skillName, 'resolution', 6);
-    emitBoon(context, at, skillId, skillName, 'regeneration', 6);
+    for (const boon of ['resolution', 'regeneration']) {
+      emitSkillBuff(context, {
+        skill: sourceSkill,
+        at,
+        source: 'Paragon',
+        sourceId: skillId,
+        actorType: 'player',
+        skillId,
+        skillName,
+        name: `${skillName} — ${boon}`,
+        kind: boon,
+        boon,
+        duration: 6,
+        stacks: 1,
+        recipients: 'party',
+        affectsSelf: true
+      });
+    }
   } else if (skillId === ID.BRACE_YOURSELVES) {
     gainWarriorAdrenaline(context, 10);
   } else if (skillId === ID.ON_YOUR_KNEES) {
-    context.emit({
-      type: 'damage',
+    emitSkillDamage(context, {
       at,
       source: 'Paragon',
       sourceId: skillId,
@@ -160,8 +187,7 @@ function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, a
       coefficient: 1.5,
       hits: 1
     });
-    context.emit({
-      type: 'condition',
+    emitSkillCondition(context, {
       at,
       source: 'Paragon',
       sourceId: skillId,
@@ -233,25 +259,45 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   if (!skill) return;
 
   let cost = 1;
+  const refrainBoons: Array<{ kind: string; duration: number; stacks?: number }> = [];
   if (skill.id === ID.CHANT_OF_ACTION) {
     const extra = hasTrait(context, TRAIT.ENDURING_REFRAIN) ? level : 0;
-    emitBoon(context, at, skill.id, skill.name, 'might', 8, level + extra);
-    if (level >= 2) emitBoon(context, at, skill.id, skill.name, 'fury', 5);
+    refrainBoons.push({ kind: 'might', duration: 8, stacks: level + extra });
+    if (level >= 2) refrainBoons.push({ kind: 'fury', duration: 5 });
   } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
     cost = level === 3 ? 3 : 2;
     if (level === 3) {
-      emitBoon(context, at, skill.id, skill.name, 'regeneration', 3);
+      refrainBoons.push({ kind: 'regeneration', duration: 3 });
     }
   } else if (skill.id === ID.CHANT_OF_FREEDOM) {
     cost = level;
-    emitBoon(context, at, skill.id, skill.name, 'swiftness', 3);
+    refrainBoons.push({ kind: 'swiftness', duration: 3 });
     if (level >= 2) {
-      emitBoon(context, at, skill.id, skill.name, 'resolution', 3);
+      refrainBoons.push({ kind: 'resolution', duration: 3 });
     }
 
     if (level === 3) {
-      emitBoon(context, at, skill.id, skill.name, 'protection', 3);
+      refrainBoons.push({ kind: 'protection', duration: 3 });
     }
+  }
+
+  for (const boon of refrainBoons) {
+    emitSkillBuff(context, {
+      skill,
+      at,
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — ${boon.kind}`,
+      kind: boon.kind,
+      boon: boon.kind,
+      duration: boon.duration,
+      stacks: boon.stacks ?? 1,
+      recipients: 'party',
+      affectsSelf: true
+    });
   }
 
   state.motivation = Math.max(0, motivation - cost);
