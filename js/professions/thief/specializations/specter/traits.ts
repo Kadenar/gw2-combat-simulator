@@ -1,6 +1,7 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -158,8 +159,8 @@ export function handleDarkSentry(
         )
       ]
     : Array.from({ length: maximumRecipients }, (_, index) => index + 1);
-  const eligibleAllies = requestedAllies.filter(
-    (allyIndex) => task.at + context.epsilon >= Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0)
+  const eligibleAllies = requestedAllies.filter((allyIndex) =>
+    isInternalCooldownReady(task.at, Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0))
   );
   const recipientCount = eligibleAllies.length;
   if (!recipientCount) return;

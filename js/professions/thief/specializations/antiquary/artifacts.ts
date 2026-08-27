@@ -1,5 +1,6 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { antiquaryState } from './state.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
@@ -65,7 +66,7 @@ function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
   const state = antiquaryState.from(context);
   if (
     !hasTrait(context.config, TRAIT.SCOUNDRELS_LUCK) ||
-    at + Number(context.epsilon || 0.0001) < Number(state.scoundrelsLuckReadyAt || 0) // ICD prevents banking more than one charge per 20s window
+    !isInternalCooldownReady(at, Number(state.scoundrelsLuckReadyAt || 0)) // ICD prevents banking more than one charge per 20s window
   )
     return;
   state.scoundrelsLuck = 1; // capped at 1: a second Swipe within the ICD does not stack another charge
@@ -87,7 +88,7 @@ function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
 function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.IMPROVISATION)) return;
   const state = antiquaryState.from(context);
-  if (at + Number(context.epsilon || 0.0001) < Number(state.improvisationReadyAt || 0)) return;
+  if (!isInternalCooldownReady(at, Number(state.improvisationReadyAt || 0))) return;
   const selected = context.config.selectedSkills || [];
   const selectedNames = new Set(
     (Array.isArray(selected) ? selected : Object.values(selected))

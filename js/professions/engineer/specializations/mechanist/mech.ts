@@ -5,6 +5,7 @@ import {
   emitSkillDamage
 } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { mechanistState } from './state.js';
 import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
@@ -272,7 +273,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     skill.type === 'Weapon' &&
     !skill.kit &&
     skill.slot === 'Weapon_3' &&
-    Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0) <= at + context.epsilon
+    isInternalCooldownReady(at, Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0))
   ) {
     professionCoreState(context).traitProcReadyAt.rocketPunch =
       at + engineerBalanceValue(context, PROFILE.rocketPunch, 'internalCooldown', 5);

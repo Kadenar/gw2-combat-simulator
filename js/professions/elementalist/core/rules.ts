@@ -396,6 +396,25 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     const hits = Math.max(0, Math.trunc(Number(pulse?.hits ?? 6)));
     const delay = elementalistBalanceValue(context, PROFILE.fulgor, 'initialDelay', 0.32);
     const interval = elementalistBalanceValue(context, PROFILE.fulgor, 'pulseInterval', 1);
+    // Fulgor owns one secondary action at a time, so a recast replaces only
+    // the prior action's pulses that had not occurred when the recast began.
+    for (const event of [...context.events]) {
+      if (
+        event.type !== 'damage' ||
+        event.fulgorSecondary !== true ||
+        event.cancelled === true ||
+        event.at < context.start - context.epsilon
+      ) {
+        continue;
+      }
+
+      context.replaceEvent(event, {
+        type: 'marker',
+        cancelled: true,
+        detail: 'replaced by a later Fulgor secondary action'
+      });
+    }
+
     for (let index = 0; index < hits; index += 1) {
       emitSkillDamage(context, {
         at: context.start + delay + index * interval,
@@ -407,6 +426,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
         coefficient: Number(pulse?.coefficient ?? 0),
         flatStrikeBase: Number(pulse?.flatStrikeBase ?? 200),
         flatStrikePowerCoeff: Number(pulse?.flatStrikePowerCoeff ?? 0.4),
+        fulgorSecondary: true,
         noCrit: true
       });
     }

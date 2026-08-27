@@ -198,6 +198,26 @@ test('Catalyst mechanics execute through native hooks', () => {
   );
 });
 
+test('a Fulgor recast replaces the pending secondary action pulses', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Catalyst']],
+    rotation: ['Fulgor', 1600, 'Elemental Celerity', 'Fulgor', 6000],
+    startAttunement: 'Air',
+    weapons: ['Spear', ''],
+    selectedSkills: {
+      Elite: 'Elemental Celerity'
+    },
+    targetHealth: 0
+  });
+  const secondary = result.events.filter((event) => event.fulgorSecondary === true);
+  const activePulses = secondary.filter((event) => event.type === 'damage');
+  const replacedPulses = secondary.filter((event) => event.cancelled === true);
+
+  assert.equal(activePulses.length, 9);
+  assert.equal(replacedPulses.length, 3);
+  assert.ok(replacedPulses.every((event) => event.detail === 'replaced by a later Fulgor secondary action'));
+});
+
 test('Tempest party boons affect the summoned elemental', () => {
   const simulateSharing = (sharePlayerBoonsWithSummons) =>
     runNative({

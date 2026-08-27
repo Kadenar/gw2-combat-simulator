@@ -5,6 +5,7 @@ import {
   emitSkillDamage
 } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
@@ -42,7 +43,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   }
 
   const state = bladeswornState.from(context);
-  if (at + context.epsilon < state.gunsaberSwapTraitReadyAt) return;
+  if (!isInternalCooldownReady(at, state.gunsaberSwapTraitReadyAt)) return;
   let traitId = 0;
   let profile;
   if (hasTrait(context, TRAIT.UNSEEN_SWORD)) {

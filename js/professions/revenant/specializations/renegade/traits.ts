@@ -4,6 +4,7 @@ import {
   emitSkillControl
 } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { renegadeState } from './state.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { activeKallasFervorStacks, grantKallasFervor, isBandTogetherReady } from './renegade.js';
@@ -50,7 +51,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
   }
 
   const state = renegadeState.from(context);
-  if (!enmity || criticals <= 0 || event.at + context.epsilon < Number(state.endlessEnmityReadyAt || 0)) {
+  if (!enmity || criticals <= 0 || !isInternalCooldownReady(event.at, Number(state.endlessEnmityReadyAt || 0))) {
     return;
   }
 
@@ -187,7 +188,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'fury' &&
     hasTrait(context.config, TRAIT.BLOOD_FURY) &&
-    event.at + context.epsilon >= Number(state.bloodFuryReadyAt || 0)
+    isInternalCooldownReady(event.at, Number(state.bloodFuryReadyAt || 0))
   ) {
     const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.bloodFury);
     state.bloodFuryReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
@@ -231,7 +232,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     Number(razorclaw?.charges || 0) <= 0 ||
     event.at >= Number(razorclaw.expiresAt || 0) ||
     // readyAt enforces the 1-second internal cooldown between player-hit-triggered bleeds
-    event.at + context.epsilon < Number(razorclaw.readyAt || 0)
+    !isInternalCooldownReady(event.at, Number(razorclaw.readyAt || 0))
   ) {
     return;
   }

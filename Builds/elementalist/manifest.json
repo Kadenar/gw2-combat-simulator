@@ -187,8 +187,7 @@
         "label": "Power (Spear)",
         "build": "Builds/elementalist/b-power-catalyst-spear.json",
         "rotation": "Rotations/elementalist/r-power-catalyst-spear.json",
-        "dpsReportUrl": "https://dps.report/MZij-20260417-144821_golem",
-        "benchmarkDps": 41811,
+        "benchmarkDps": 41572,
         "upToDate": true
       },
       {

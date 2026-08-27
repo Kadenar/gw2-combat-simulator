@@ -1,4 +1,5 @@
 import { conduitState } from './state.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -146,8 +147,8 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
   const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
   const burning = profile?.effects?.find((effect) => effect.type === 'condition');
   const readyAt = Number(state.mistfireReadyAt || 0);
-  // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
-  if (event.at + context.epsilon < readyAt) return;
+  // Mistfire follows the shared strict ICD boundary used by other event-driven procs.
+  if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
   emitSkillCondition(context, {
     cause: event,

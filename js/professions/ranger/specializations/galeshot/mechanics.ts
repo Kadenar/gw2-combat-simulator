@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
@@ -241,7 +242,7 @@ export function handleGaleshotDisableTask(context: RangerSchedulerContext, _task
   const state = galeshotState.from(context);
   if (
     !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
-    context.state.time + context.epsilon < state.thrillOfTheCatchReadyAt
+    !isInternalCooldownReady(context.state.time, state.thrillOfTheCatchReadyAt)
   ) {
     return;
   }
@@ -269,7 +270,7 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
   if (
     !hasTrait(context, TRAIT.FLOCK_TOGETHER) ||
     !isBeastSkill(skill) ||
-    context.effectiveEnd + context.epsilon < state.flockTogetherReadyAt
+    !isInternalCooldownReady(context.effectiveEnd, state.flockTogetherReadyAt)
   ) {
     return;
   }

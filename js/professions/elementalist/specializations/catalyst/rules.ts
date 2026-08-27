@@ -1,4 +1,5 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
@@ -265,7 +266,8 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
       ? elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationPerTier', 8)
       : elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
   state.shatteringIceUntil = at + duration;
-  state.shatteringIceReadyAt = at;
+  // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
+  state.shatteringIceReadyAt = 0;
   emitSkillBuff(context, {
     at,
     source: skill.name,
@@ -455,7 +457,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
     if (
       hasTrait(context, 'Elemental Epitome') &&
-      Number(state.elementalEpitomeReadyAt[attunement] || 0) <= event.at + context.epsilon
+      isInternalCooldownReady(event.at, Number(state.elementalEpitomeReadyAt[attunement] || 0))
     ) {
       state.elementalEpitomeReadyAt[attunement] =
         event.at + elementalistBalanceValue(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
@@ -479,7 +481,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
     if (
       hasTrait(context, 'Elemental Synergy') &&
-      Number(state.elementalSynergyReadyAt[attunement] || 0) <= event.at + context.epsilon
+      isInternalCooldownReady(event.at, Number(state.elementalSynergyReadyAt[attunement] || 0))
     ) {
       state.elementalSynergyReadyAt[attunement] =
         event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
@@ -618,7 +620,7 @@ function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: S
   const at = Number(task.payload?.applicationAt ?? task.at);
   if (context.combatStartTime != null && at < context.combatStartTime) return;
   const state = catalystState.from(context);
-  if (state.viciousEmpowermentReadyAt > at + context.epsilon) return;
+  if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
     at + elementalistBalanceValue(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
   const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');

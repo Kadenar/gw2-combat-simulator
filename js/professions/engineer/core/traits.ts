@@ -1,5 +1,6 @@
 import { emitSkillBuff, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
@@ -43,7 +44,7 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
   const state = professionCoreState(context);
   if (
     !hasTrait(context.config, TRAIT.GRENADIER) ||
-    at + context.epsilon < Number(state.traitProcReadyAt.grenadier || 0)
+    !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
   )
     return;
   state.traitProcReadyAt.grenadier = at + engineerBalanceValue(context, PROFILE.grenadier, 'internalCooldown', 20);
@@ -76,7 +77,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
   if (
     skill.handlerId !== 'engineer.kit-equip' ||
     !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
-    at + context.epsilon < Number(state.traitProcReadyAt.streamlinedKits || 0)
+    !isInternalCooldownReady(at, Number(state.traitProcReadyAt.streamlinedKits || 0))
   )
     return;
   state.traitProcReadyAt.streamlinedKits =
@@ -352,7 +353,11 @@ export function reactToEngineerDamage(
     });
   }
 
-  if (explosion && hasTrait(context, TRAIT.SHORT_FUSE) && Number(state.shortFuse || 0) <= event.at) {
+  if (
+    explosion &&
+    hasTrait(context, TRAIT.SHORT_FUSE) &&
+    isInternalCooldownReady(event.at, Number(state.shortFuse || 0))
+  ) {
     state.shortFuse = event.at + engineerBalanceValue(context, PROFILE.shortFuse, 'internalCooldown', 3);
     queueBuff(context, event, {
       name: 'Short Fuse',
@@ -439,7 +444,7 @@ export function reactToEngineerDamage(
   if (
     hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) &&
     isAimAssistedProjectile(context, event) &&
-    Number(state.aimAssistedRocket || 0) <= event.at
+    isInternalCooldownReady(event.at, Number(state.aimAssistedRocket || 0))
   ) {
     state.aimAssistedRocket =
       event.at + engineerBalanceValue(context, PROFILE.aimAssistedRocket, 'internalCooldown', 3);
@@ -511,7 +516,7 @@ export function reactToEngineerCondition(context: EngineerResolverContext, event
 
   if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.HEMATIC_FOCUS)) {
     const state = procState(context);
-    if (Number(state.hematicFocus || 0) <= event.at) {
+    if (isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) {
       state.hematicFocus = event.at + engineerBalanceValue(context, PROFILE.hematicFocus, 'internalCooldown', 8);
       queueBuff(context, event, {
         name: 'Hematic Focus',

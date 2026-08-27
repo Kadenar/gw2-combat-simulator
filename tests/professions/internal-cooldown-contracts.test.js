@@ -1,0 +1,248 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { elementalistCatalog } from '../../js/professions/elementalist/catalog.js';
+import { createElementalistCoreState } from '../../js/professions/elementalist/core/state.js';
+import { applyViciousEmpowerment } from '../../js/professions/elementalist/specializations/catalyst/resolver.js';
+import { createCatalystState } from '../../js/professions/elementalist/specializations/catalyst/state.js';
+import { engineerCatalog } from '../../js/professions/engineer/catalog.js';
+import { createEngineerCoreState } from '../../js/professions/engineer/core/state.js';
+import { reactToEngineerCondition } from '../../js/professions/engineer/core/traits.js';
+import { ENGINEER_TRAIT_IDS } from '../../js/professions/engineer/data/ids.js';
+import { guardianCatalog } from '../../js/professions/guardian/catalog.js';
+import { createGuardianCoreState } from '../../js/professions/guardian/core/state.js';
+import { reactToAshesHit } from '../../js/professions/guardian/specializations/firebrand/tomes.js';
+import { createFirebrandState } from '../../js/professions/guardian/specializations/firebrand/state.js';
+import { necromancerCatalog } from '../../js/professions/necromancer/catalog.js';
+import { createNecromancerCoreState } from '../../js/professions/necromancer/core/state.js';
+import { NECROMANCER_TRAIT_IDS } from '../../js/professions/necromancer/data/ids.js';
+import { scourgeSchedulerHooks } from '../../js/professions/necromancer/specializations/scourge/rules.js';
+import { createScourgeState } from '../../js/professions/necromancer/specializations/scourge/state.js';
+import { rangerCatalog } from '../../js/professions/ranger/catalog.js';
+import { createRangerCoreState } from '../../js/professions/ranger/core/state.js';
+import { RANGER_TRAIT_IDS } from '../../js/professions/ranger/data/ids.js';
+import { reactToSoulbeastBuff } from '../../js/professions/ranger/specializations/soulbeast/resolver.js';
+import { createSoulbeastState } from '../../js/professions/ranger/specializations/soulbeast/state.js';
+import { revenantCatalog } from '../../js/professions/revenant/catalog.js';
+import { createRevenantCoreState } from '../../js/professions/revenant/core/state.js';
+import { REVENANT_TRAIT_IDS } from '../../js/professions/revenant/data/ids.js';
+import { createRenegadeState } from '../../js/professions/revenant/specializations/renegade/state.js';
+import { observeRenegadeTraits } from '../../js/professions/revenant/specializations/renegade/traits.js';
+import { thiefCatalog } from '../../js/professions/thief/catalog.js';
+import { createThiefCoreState } from '../../js/professions/thief/core/state.js';
+import { reactToThiefCoreBuff } from '../../js/professions/thief/core/traits.js';
+import { THIEF_TRAIT_IDS } from '../../js/professions/thief/data/ids.js';
+import { warriorCatalog } from '../../js/professions/warrior/catalog.js';
+import { createWarriorCoreState } from '../../js/professions/warrior/core/state.js';
+import { WARRIOR_TRAIT_IDS } from '../../js/professions/warrior/data/ids.js';
+import { createSpellbreakerState } from '../../js/professions/warrior/specializations/spellbreaker/state.js';
+import { reactToSpellbreakerDamage } from '../../js/professions/warrior/specializations/spellbreaker/traits.js';
+
+const READY_AT = 1;
+const AFTER_READY_AT = 1.001;
+
+/** Builds the smallest scheduler/resolver context needed to exercise one profession-owned proc gate. */
+function professionContext({ id, catalog, core, specialization = {}, kind = 'Core', config = {}, traits = [] }) {
+  const events = [];
+  const procs = [];
+  const conditions = [];
+  const context = {
+    profession: { id },
+    catalog,
+    config,
+    traits: new Set(traits.length ? traits : config.selectedTraitIds || []),
+    state: {
+      activeWeaponSet: 1,
+      profession: {
+        core,
+        specialization: { kind, state: specialization }
+      }
+    },
+    activeWeaponSet: 1,
+    epsilon: 0.0001,
+    queue: [],
+    resolved: [],
+    boons: new Map(),
+    events,
+    query: { statsAt: () => ({}) },
+    recordProc: (...args) => procs.push(args),
+    applyCondition: (event) => conditions.push(event),
+    emit(event) {
+      events.push(event);
+      return event;
+    },
+    emitDerived(_cause, event) {
+      events.push(event);
+      return event;
+    }
+  };
+  return { context, events, procs, conditions };
+}
+
+test('Elementalist control traits stay blocked at the exact ICD boundary', () => {
+  const state = createCatalystState();
+  state.viciousEmpowermentReadyAt = READY_AT;
+  const { context, procs } = professionContext({
+    id: 'elementalist',
+    catalog: elementalistCatalog,
+    core: createElementalistCoreState(),
+    specialization: state,
+    kind: 'Catalyst',
+    traits: ['Vicious Empowerment']
+  });
+  const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };
+
+  applyViciousEmpowerment(context, event);
+  assert.equal(state.viciousEmpowermentReadyAt, READY_AT);
+  assert.equal(procs.length, 0);
+
+  applyViciousEmpowerment(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(state.viciousEmpowermentReadyAt > AFTER_READY_AT);
+  assert.equal(procs.length, 1);
+});
+
+test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
+  const core = createEngineerCoreState();
+  core.traitProcReadyAt.hematicFocus = READY_AT;
+  const config = { selectedTraitIds: [ENGINEER_TRAIT_IDS.HEMATIC_FOCUS] };
+  const { context } = professionContext({ id: 'engineer', catalog: engineerCatalog, core, config });
+  const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
+
+  reactToEngineerCondition(context, event);
+  assert.equal(core.traitProcReadyAt.hematicFocus, READY_AT);
+  assert.equal(context.queue.length, 0);
+
+  reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(core.traitProcReadyAt.hematicFocus > AFTER_READY_AT);
+  assert.equal(context.queue.length, 1);
+});
+
+test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
+  const state = createSoulbeastState();
+  state.essenceOfSpeedReadyAt = READY_AT;
+  const config = { selectedTraitIds: [RANGER_TRAIT_IDS.ESSENCE_OF_SPEED] };
+  const { context } = professionContext({
+    id: 'ranger',
+    catalog: rangerCatalog,
+    core: createRangerCoreState(),
+    specialization: state,
+    kind: 'Soulbeast',
+    config
+  });
+  const event = { type: 'buff', kind: 'quickness', at: READY_AT };
+
+  reactToSoulbeastBuff(context, event);
+  assert.equal(state.essenceOfSpeedReadyAt, READY_AT);
+  assert.equal(context.queue.length, 0);
+
+  reactToSoulbeastBuff(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(state.essenceOfSpeedReadyAt > AFTER_READY_AT);
+  assert.equal(context.queue.length, 1);
+});
+
+test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
+  const state = createRenegadeState();
+  state.bloodFuryReadyAt = READY_AT;
+  const config = { selectedTraitIds: [REVENANT_TRAIT_IDS.BLOOD_FURY] };
+  const { context } = professionContext({
+    id: 'revenant',
+    catalog: revenantCatalog,
+    core: createRevenantCoreState(),
+    specialization: state,
+    kind: 'Renegade',
+    config
+  });
+  const event = { type: 'buff', kind: 'fury', at: READY_AT };
+
+  observeRenegadeTraits(context, event);
+  assert.equal(state.bloodFuryReadyAt, READY_AT);
+  assert.equal(state.kallasFervor.length, 0);
+
+  observeRenegadeTraits(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(state.bloodFuryReadyAt > AFTER_READY_AT);
+  assert.equal(state.kallasFervor.length, 1);
+});
+
+test('Thief boon traits stay blocked at the exact ICD boundary', () => {
+  const core = createThiefCoreState();
+  core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
+  const config = { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] };
+  const { context } = professionContext({ id: 'thief', catalog: thiefCatalog, core, config });
+  const event = { type: 'buff', kind: 'fury', affectsSelf: true, at: READY_AT };
+
+  reactToThiefCoreBuff(context, event);
+  assert.equal(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);
+  assert.equal(context.queue.length, 0);
+
+  reactToThiefCoreBuff(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
+  assert.equal(context.queue.length, 1);
+});
+
+test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
+  const state = createSpellbreakerState();
+  state.magebaneTetherReadyAt = READY_AT;
+  const { context, procs } = professionContext({
+    id: 'warrior',
+    catalog: warriorCatalog,
+    core: createWarriorCoreState(),
+    specialization: state,
+    kind: 'Spellbreaker',
+    traits: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER]
+  });
+  context.helpers = { skillsById: new Map([[900001, { id: 900001, name: 'Boundary Burst', burst: true }]]) };
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, skillId: 900001, at: READY_AT };
+
+  reactToSpellbreakerDamage(context, event);
+  assert.equal(state.magebaneTetherReadyAt, READY_AT);
+  assert.equal(procs.length, 0);
+
+  reactToSpellbreakerDamage(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(state.magebaneTetherReadyAt > AFTER_READY_AT);
+  assert.equal(procs.length, 1);
+});
+
+test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
+  const state = createFirebrandState();
+  state.ashesCharges = 2;
+  state.ashesExpiresAt = 10;
+  state.ashesNextTriggerAt = READY_AT;
+  const { context, procs, conditions } = professionContext({
+    id: 'guardian',
+    catalog: guardianCatalog,
+    core: createGuardianCoreState(),
+    specialization: state,
+    kind: 'Firebrand'
+  });
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: READY_AT };
+
+  reactToAshesHit(context, event, { hitContext: {} });
+  assert.equal(state.ashesCharges, 2);
+  assert.equal(conditions.length, 0);
+
+  reactToAshesHit(context, { ...event, at: AFTER_READY_AT }, { hitContext: {} });
+  assert.equal(state.ashesCharges, 1);
+  assert.equal(conditions.length, 1);
+  assert.equal(procs.length, 1);
+});
+
+test('Necromancer condition traits stay blocked at the exact ICD boundary', () => {
+  const state = createScourgeState();
+  state.nourishingAshesReadyAt = READY_AT;
+  const config = { initialResource: 0, selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES] };
+  const { context } = professionContext({
+    id: 'necromancer',
+    catalog: necromancerCatalog,
+    core: createNecromancerCoreState(config),
+    specialization: state,
+    kind: 'Scourge',
+    config
+  });
+  const event = { type: 'condition', condition: 'Burning', at: READY_AT };
+
+  scourgeSchedulerHooks.onEventScheduled.handler(context, event);
+  assert.equal(state.nourishingAshesReadyAt, READY_AT);
+
+  scourgeSchedulerHooks.onEventScheduled.handler(context, { ...event, at: AFTER_READY_AT });
+  assert.ok(state.nourishingAshesReadyAt > AFTER_READY_AT);
+});

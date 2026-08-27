@@ -1,4 +1,5 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, procState, queueBuff, recordTrait } from '../../core/shared.js';
@@ -78,7 +79,7 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
     ) >= engineerBalanceValue(context, PROFILE.appliedForce, 'threshold', 10)
   ) {
     const state = procState(context);
-    if (Number(state.appliedForce || 0) <= event.at) {
+    if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
       state.appliedForce = event.at + engineerBalanceValue(context, PROFILE.appliedForce, 'internalCooldown', 10);
       queueBuff(context, event, {
         name: 'Applied Force',
@@ -106,7 +107,7 @@ function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerR
 
   const state = scrapperState.from(context);
   if (event.finisherType === 'Whirl') {
-    if (state.kineticAcceleratorsWhirlReadyAt > event.at + 1e-9) return;
+    if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return;
     state.kineticAcceleratorsWhirlReadyAt =
       event.at + engineerBalanceValue(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
   }

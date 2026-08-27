@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { firebrandState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
@@ -208,7 +209,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     const ashesDuration = Number(ashesBuff?.duration || 10);
     state.ashesCharges = Number(ashes?.maximumStacks || ashesBuff?.stacks || 2);
     state.ashesBurnDuration = Number(burn?.duration || 2);
-    state.ashesNextTriggerAt = at;
+    // A newly granted charge is unarmed so its first hit can trigger immediately.
+    state.ashesNextTriggerAt = 0;
     state.ashesExpiresAt = at + ashesDuration;
     emitSkillBuff(context, {
       at,
@@ -449,7 +451,7 @@ export function reactToAshesHit(
   if (
     state.ashesCharges <= 0 ||
     event.at >= state.ashesExpiresAt - Number(context.epsilon || 0.0001) ||
-    event.at + Number(context.epsilon || 0.0001) < state.ashesNextTriggerAt
+    !isInternalCooldownReady(event.at, state.ashesNextTriggerAt)
   )
     return;
 

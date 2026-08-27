@@ -1,4 +1,4 @@
-import { EPSILON } from '../../../../platform/engine/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../platform/gw2/resolver/types.js';
@@ -61,7 +61,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   const state = catalystState.from(context);
   const attunement = core.primaryAttunement;
   const epitomeReadyAt = Number(state.elementalEpitomeReadyAt[attunement] || 0);
-  if (hasTrait(context, 'Elemental Epitome') && epitomeReadyAt <= event.at + EPSILON) {
+  if (hasTrait(context, 'Elemental Epitome') && isInternalCooldownReady(event.at, epitomeReadyAt)) {
     state.elementalEpitomeReadyAt[attunement] =
       event.at + elementalistBalanceValue(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
     const aura =
@@ -83,7 +83,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   }
 
   const synergyReadyAt = Number(state.elementalSynergyReadyAt[attunement] || 0);
-  if (hasTrait(context, 'Elemental Synergy') && synergyReadyAt <= event.at + EPSILON) {
+  if (hasTrait(context, 'Elemental Synergy') && isInternalCooldownReady(event.at, synergyReadyAt)) {
     state.elementalSynergyReadyAt[attunement] =
       event.at + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
     if (attunement === 'Fire') {
@@ -141,7 +141,7 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   }
 
   const state = catalystState.from(context);
-  if (state.viciousEmpowermentReadyAt > event.at + EPSILON) return;
+  if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
     event.at + elementalistBalanceValue(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
   const empowerment = elementalistBalanceEffect(context, PROFILE.viciousEmpowerment, 'buff', 'Empowerment');
@@ -172,7 +172,8 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   if (kind === 'shattering ice' && event.affectsSelf !== false) {
     const state = catalystState.from(context);
     state.shatteringIceUntil = event.at + Math.max(0, Number(event.duration || 0));
-    state.shatteringIceReadyAt = event.at;
+    // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
+    state.shatteringIceReadyAt = 0;
     return;
   }
 
@@ -191,17 +192,16 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   );
 }
 
-// Spend active Shattering Ice state on eligible resolved hits and queue its
-// derived strike without allowing the proc to trigger itself.
+// Spend active Shattering Ice state on player-owned attacks, including fields
+// and effects, while preventing summons and the derived packet from retriggering it.
 export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const state = catalystState.from(context);
   if (
-    event.actorType !== 'player' ||
+    (event.actorType !== 'player' && event.actorType !== 'effect') ||
+    event.skillName === 'Shattering Ice Proc' ||
     !(Number(event.coefficient) > 0) ||
-    event.damageKind === 'field-tick' ||
-    event.isField ||
     state.shatteringIceUntil <= event.at + EPSILON ||
-    state.shatteringIceReadyAt > event.at + EPSILON
+    !isInternalCooldownReady(event.at, state.shatteringIceReadyAt)
   ) {
     return;
   }
@@ -221,6 +221,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     skillWeapon: 'Unequipped',
     triggeredBy: event.skillName
   });
+  
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,

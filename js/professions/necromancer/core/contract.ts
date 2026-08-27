@@ -180,7 +180,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (
     skill.type === 'Heal' &&
     hasTrait(context, TRAIT.DARK_DEFENSE) &&
-    context.effectiveEnd >= Number(state.traitProcReadyAt.darkDefense || 0)
+    isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.darkDefense || 0))
   ) {
     state.traitProcReadyAt.darkDefense = context.effectiveEnd + 5;
     addCarapace(state, 10, context.effectiveEnd);
@@ -212,7 +212,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (
     skill.type === 'Heal' &&
     hasTrait(context, TRAIT.MALICIOUS_SWARM) &&
-    context.effectiveEnd >= Number(state.traitProcReadyAt.maliciousSwarm || 0)
+    isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.maliciousSwarm || 0))
   ) {
     state.traitProcReadyAt.maliciousSwarm = context.effectiveEnd + 15;
     emitSkillDamage(context, skill, {

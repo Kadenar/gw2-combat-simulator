@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
-import { applyCatalystEmpowerment } from '../../../js/professions/elementalist/specializations/catalyst/resolver.js';
+import {
+  applyCatalystEmpowerment,
+  applyCatalystResolvedDamage
+} from '../../../js/professions/elementalist/specializations/catalyst/resolver.js';
 import { catalystAttributeRules } from '../../../js/professions/elementalist/specializations/catalyst/rules.js';
 import { createCatalystState } from '../../../js/professions/elementalist/specializations/catalyst/state.js';
 
@@ -82,4 +85,67 @@ test('Catalyst zero-damage finishers preserve combo metadata', () => {
   assert.equal(zeroCoefficientFinisher('Churning Earth', 'Blast'), true);
   assert.equal(zeroCoefficientFinisher('Aerial Agility', 'Leap'), true);
   assert.equal(zeroCoefficientFinisher('Aerial Agility (dash)', 'Leap'), true);
+});
+
+test('Shattering Ice is proc-only and accepts player-owned effect and field attacks after its interval boundary', () => {
+  const skill = elementalistCatalog.skillsByName.get('Shattering Ice');
+  const state = createCatalystState();
+  const context = {
+    profession: { specialization: { kind: 'Catalyst', state } },
+    config: {},
+    queue: []
+  };
+  state.shatteringIceUntil = 10;
+
+  assert.deepEqual(skill.effects, []);
+
+  applyCatalystResolvedDamage(context, {
+    type: 'damage',
+    at: 1,
+    actorType: 'effect',
+    skillName: 'Electric Discharge',
+    coefficient: 0.5
+  });
+  applyCatalystResolvedDamage(context, {
+    type: 'damage',
+    at: 2,
+    actorType: 'player',
+    skillName: 'Deploy Jade Sphere (Air)',
+    coefficient: 0.1,
+    damageKind: 'field-tick',
+    isField: true
+  });
+  applyCatalystResolvedDamage(context, {
+    type: 'damage',
+    at: 2.001,
+    actorType: 'player',
+    skillName: 'Deploy Jade Sphere (Air)',
+    coefficient: 0.1,
+    damageKind: 'field-tick',
+    isField: true
+  });
+  applyCatalystResolvedDamage(context, {
+    type: 'damage',
+    at: 3.002,
+    actorType: 'summon',
+    skillName: 'Summon attack',
+    coefficient: 1
+  });
+  applyCatalystResolvedDamage(context, {
+    type: 'damage',
+    at: 3.002,
+    actorType: 'effect',
+    skillName: 'Shattering Ice Proc',
+    coefficient: 0.6
+  });
+
+  assert.deepEqual(
+    context.queue.filter((event) => event.type === 'damage').map((event) => event.triggeredBy),
+    ['Electric Discharge', 'Deploy Jade Sphere (Air)']
+  );
+  assert.deepEqual(
+    context.queue.filter((event) => event.type === 'condition').map((event) => event.triggeredBy),
+    ['Electric Discharge', 'Deploy Jade Sphere (Air)']
+  );
+  assert.equal(state.shatteringIceReadyAt, 3.001);
 });

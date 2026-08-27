@@ -2,6 +2,7 @@ import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../pla
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {
@@ -288,7 +289,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   const at = context.effectiveEnd;
   const attunement = state.primaryAttunement;
   const key = `evasiveArcana${attunement}`;
-  if (Number(state.procReadyAt[key] || 0) > at + context.epsilon) return;
+  if (!isInternalCooldownReady(at, Number(state.procReadyAt[key] || 0))) return;
   state.procReadyAt[key] = at + elementalistBalanceValue(context, PROFILE.evasiveArcana, 'internalCooldown', 10);
   const source =
     attunement === 'Fire'
@@ -378,7 +379,10 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
   }
 
   if (skill.type === 'Heal') {
-    if (hasTrait(context, "Earth's Embrace") && Number(state.procReadyAt.earthsEmbrace || 0) <= at + context.epsilon) {
+    if (
+      hasTrait(context, "Earth's Embrace") &&
+      isInternalCooldownReady(at, Number(state.procReadyAt.earthsEmbrace || 0))
+    ) {
       state.procReadyAt.earthsEmbrace =
         at + elementalistBalanceValue(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
       emitProfiledBuff(
@@ -394,7 +398,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       );
     }
 
-    if (hasTrait(context, 'Soothing Ice') && Number(state.procReadyAt.soothingIce || 0) <= at + context.epsilon) {
+    if (hasTrait(context, 'Soothing Ice') && isInternalCooldownReady(at, Number(state.procReadyAt.soothingIce || 0))) {
       state.procReadyAt.soothingIce =
         at + elementalistBalanceValue(context, PROFILE.soothingIce, 'internalCooldown', 15);
       applyElementalistAura(context, {
@@ -689,7 +693,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
   const state = professionCoreState(context);
   if (
     !hasTrait(context, 'Elemental Lockdown') ||
-    Number(state.procReadyAt.elementalLockdown || 0) > event.at + context.epsilon
+    !isInternalCooldownReady(event.at, Number(state.procReadyAt.elementalLockdown || 0))
   ) {
     return;
   }

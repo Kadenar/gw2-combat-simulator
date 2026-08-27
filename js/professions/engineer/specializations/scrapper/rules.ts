@@ -1,4 +1,5 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -23,7 +24,7 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
 
   if (event.finisherType !== 'Whirl') return true;
   const state = scrapperState.from(context);
-  if (state.kineticAcceleratorsWhirlReadyAt > event.at + context.epsilon) {
+  if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) {
     return false;
   }
 

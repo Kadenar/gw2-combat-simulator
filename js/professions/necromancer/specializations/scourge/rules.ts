@@ -1,4 +1,5 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { CAST_READY, denyCast } from '../../../../platform/engine/skills/availability.js';
@@ -87,7 +88,7 @@ function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: Ne
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||
     !hasTrait(context, TRAIT.NOURISHING_ASHES) ||
-    event.at < state.nourishingAshesReadyAt
+    !isInternalCooldownReady(event.at, state.nourishingAshesReadyAt)
   ) {
     return;
   }

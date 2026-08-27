@@ -1,5 +1,6 @@
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { amalgamState } from './state.js';
 import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
@@ -336,7 +337,7 @@ export function handleMercurialTendencies(
   const at = task.at;
   const coreState = professionCoreState(context);
   const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
-  if (readyAt > at + context.epsilon) return;
+  if (!isInternalCooldownReady(at, readyAt)) return;
 
   let reducedBy = 0;
   const rechargeReduction = engineerBalanceValue(context, PROFILE.mercurialTendencies, 'rechargeReduction', 2.5);

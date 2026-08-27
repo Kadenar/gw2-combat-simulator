@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -177,7 +178,7 @@ export const untamedSchedulerHooks = Object.freeze({
     }
 
     const state = untamedState.from(context);
-    if (context.start + context.epsilon < state.letLooseReadyAt) return;
+    if (!isInternalCooldownReady(context.start, state.letLooseReadyAt)) return;
     const profileId = PROFILE.letLoose;
     state.letLooseReadyAt = context.start + rangerBalanceValue(context, profileId, 'internalCooldown', 9);
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.

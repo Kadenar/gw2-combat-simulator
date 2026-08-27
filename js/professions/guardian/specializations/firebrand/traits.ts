@@ -304,7 +304,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     state.ashesBurnDuration = Number(burn?.duration || 2);
     // Don't reset the trigger timer when stacking onto an active Ashes buff;
     // resetting would skip a burn that should have fired at the next hit.
-    state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : event.at;
+    state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : 0;
     state.ashesExpiresAt = event.at + duration;
     enqueueOrdered(context.queue, {
       type: 'guardian.ashes-expired',

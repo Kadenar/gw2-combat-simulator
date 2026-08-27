@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
@@ -308,7 +309,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (
     hasTrait(context, 'Superior Elements') &&
     dualAttunements &&
-    state.superiorElementsReadyAt <= at + context.epsilon
+    isInternalCooldownReady(at, state.superiorElementsReadyAt)
   ) {
     state.superiorElementsReadyAt =
       at + elementalistBalanceValue(context, PROFILE.superiorElements, 'internalCooldown', 4);

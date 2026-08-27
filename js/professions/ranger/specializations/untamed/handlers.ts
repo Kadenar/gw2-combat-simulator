@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { untamedState } from './state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { RangerCastContext, RangerSkill } from '../../types.js';
@@ -21,7 +22,7 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
     // Only Unleash Ranger opens an ambush window; Unleash Pet does not.
     !rangerUnleashed ||
     // Unleashed Power (minor trait) gates ambush grants to one per 9s; skip if on cooldown.
-    context.start + context.epsilon < state.unleashedPowerReadyAt
+    !isInternalCooldownReady(context.start, state.unleashedPowerReadyAt)
   ) {
     return;
   }

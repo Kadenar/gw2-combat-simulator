@@ -1,6 +1,7 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '../../../platform/gw2/combat/state/boons.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
@@ -68,7 +69,7 @@ export function applyRangerDodgeTraits(context: RangerCastContext): void {
 function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   const profile = rangerBalanceProfile(context, PROFILE.childOfEarth);
-  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || context.start < state.childOfEarthReadyAt) {
+  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
     return;
   }
 
@@ -191,7 +192,7 @@ export function applyRangerBeastSkillTraits(
   triggerPoisonMaster: boolean
 ): void {
   const state = professionCoreState(context);
-  if (hasTrait(context, TRAIT.REJUVENATION) && context.start >= state.rejuvenationReadyAt) {
+  if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.start, state.rejuvenationReadyAt)) {
     const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.rejuvenationReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
@@ -259,7 +260,11 @@ export function applyRangerWeaponSwapTraits(
 ): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.TAIL_WIND) && at >= state.tailWindReadyAt) {
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
+    isInternalCooldownReady(at, state.tailWindReadyAt)
+  ) {
     const profile = rangerBalanceProfile(context, PROFILE.tailWind);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.tailWindReadyAt = at + Number(profile?.internalCooldown ?? 9);
@@ -281,7 +286,11 @@ export function applyRangerWeaponSwapTraits(
     });
   }
 
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) && at >= state.quickDrawReadyAt) {
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
+    isInternalCooldownReady(at, state.quickDrawReadyAt)
+  ) {
     const profile = rangerBalanceProfile(context, PROFILE.quickDraw);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.quickDrawReadyAt = at + Number(profile?.internalCooldown ?? 9);
@@ -304,7 +313,11 @@ export function applyRangerWeaponSwapTraits(
     });
   }
 
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) && at >= state.furiousGripReadyAt) {
+  if (
+    inCombat &&
+    hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
+    isInternalCooldownReady(at, state.furiousGripReadyAt)
+  ) {
     const profile = rangerBalanceProfile(context, PROFILE.furiousGrip);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
     state.furiousGripReadyAt = at + Number(profile?.internalCooldown ?? 9);
@@ -378,7 +391,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
     partyBoons.length = 0;
   }
 
-  if (hasTrait(context, TRAIT.CLARION_BOND) && context.start >= state.clarionBondReadyAt) {
+  if (hasTrait(context, TRAIT.CLARION_BOND) && isInternalCooldownReady(context.start, state.clarionBondReadyAt)) {
     const profile = rangerBalanceProfile(context, PROFILE.clarionBond);
     state.clarionBondReadyAt = context.start + Number(profile?.internalCooldown ?? 15);
     for (let index = 0; index < 3; index += 1) {
@@ -551,7 +564,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: RangerResol
 function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
   const state = professionCoreState(context);
-  if (event.at < state.huntersGazeReadyAt) return;
+  if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
   const health = targetHealthFraction(context);
   const profile = rangerBalanceProfile(context, PROFILE.huntersGaze);
   const maximumStacks = Number(profile?.maximumStacks ?? 3);
@@ -732,7 +745,7 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: RangerReso
     !skill?.petSkill ||
     skill.petFamilySkill ||
     !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
-    event.at < state.goForTheThroatPetReadyAt
+    !isInternalCooldownReady(event.at, state.goForTheThroatPetReadyAt)
   ) {
     return;
   }
@@ -897,7 +910,7 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
   if (
     !hasTrait(context, TRAIT.CARNIVORE) ||
     (!isPlayerStrike(event) && !isPetStrike(event)) ||
-    event.at < state.carnivoreReadyAt
+    !isInternalCooldownReady(event.at, state.carnivoreReadyAt)
   ) {
     return;
   }

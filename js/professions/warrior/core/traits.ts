@@ -1,6 +1,7 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
@@ -45,7 +46,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     !(targetHealth > 0) ||
     damageDone < targetHealth * 0.5 ||
     !hasTrait(context, TRAIT.SIGNET_MASTERY) ||
-    event.at < Number(state.traitProcReadyAt.lesserSignetMight || 0)
+    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.lesserSignetMight || 0))
   ) {
     return;
   }
@@ -531,7 +532,7 @@ function applyArmsCriticalTraits(
   if (
     firstBurstHit &&
     hasTrait(context, TRAIT.SUNDERING_BURST) &&
-    event.at + context.epsilon >= Number(state.traitProcReadyAt.sunderingBurst || 0)
+    isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.sunderingBurst || 0))
   ) {
     const profile = warriorBalanceProfile(context, PROFILE.sunderingBurst);
     const effect = warriorBalanceProfileEffect(profile, 'condition', criticals > 0 ? 1 : 0);
@@ -598,7 +599,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   if (
     opportunistTrigger &&
     hasTrait(context, TRAIT.OPPORTUNIST) &&
-    event.at + context.epsilon >= Number(state.traitProcReadyAt.opportunist || 0)
+    isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.opportunist || 0))
   ) {
     const profile = warriorBalanceProfile(context, PROFILE.opportunist);
     const fury = warriorBalanceProfileEffect(profile, 'boon');
@@ -635,7 +636,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
 
     if (
       hasTrait(context, TRAIT.STALWART_STRENGTH) &&
-      event.at + context.epsilon >= Number(state.traitProcReadyAt.stalwartStrength || 0)
+      isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.stalwartStrength || 0))
     ) {
       const profile = warriorBalanceProfile(context, PROFILE.stalwartStrength);
       const stability = warriorBalanceProfileEffect(profile, 'boon');
@@ -690,7 +691,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
 
     if (hasTrait(context, TRAIT.AGGRESSIVE_ONSLAUGHT)) {
       const readyAt = Number(state.traitProcReadyAt.aggressiveOnslaught || 0);
-      if (event.at + context.epsilon >= readyAt) {
+      if (isInternalCooldownReady(event.at, readyAt)) {
         const profile = warriorBalanceProfile(context, PROFILE.aggressiveOnslaught);
         const quickness = warriorBalanceProfileEffect(profile, 'boon');
         state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown || 0.25);
@@ -774,7 +775,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         state.burstHitActivations[activationKey] = true;
         if (
           hasTrait(context, TRAIT.CULL_THE_WEAK) &&
-          event.at + context.epsilon >= Number(state.traitProcReadyAt.cullTheWeak || 0)
+          isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.cullTheWeak || 0))
         ) {
           state.traitProcReadyAt.cullTheWeak = event.at + 5;
           emitSkillCondition(context, {
@@ -822,7 +823,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
           );
         }
 
-        if (hasTrait(context, TRAIT.MARCHING_ORDERS) && event.at + context.epsilon >= state.soldierFocusReadyAt) {
+        if (hasTrait(context, TRAIT.MARCHING_ORDERS) && isInternalCooldownReady(event.at, state.soldierFocusReadyAt)) {
           const marchingOrders = warriorBalanceProfile(context, PROFILE.marchingOrders);
           const might = warriorBalanceProfileEffect(marchingOrders, 'boon');
           state.soldierFocusReadyAt = event.at + Number(marchingOrders?.internalCooldown || 10);
@@ -981,7 +982,7 @@ export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill:
 
   if (
     hasTrait(context, TRAIT.FURIOUS_BURST) &&
-    context.effectiveEnd + context.epsilon >= Number(state.traitProcReadyAt.furiousBurst || 0)
+    isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.furiousBurst || 0))
   ) {
     const profile = warriorBalanceProfile(context, PROFILE.furiousBurst);
     const fury = warriorBalanceProfileEffect(profile, 'boon');

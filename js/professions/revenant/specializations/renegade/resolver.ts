@@ -1,4 +1,5 @@
 import { renegadeState } from './state.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
@@ -46,7 +47,7 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
     active.has(soulcleave.id) &&
     // Exclude Soulcleave's own events to prevent self-triggering
     event.skillId !== soulcleave.id &&
-    event.at >= Number(renegadeState.from(context).soulcleaveReadyAt || 0)
+    isInternalCooldownReady(event.at, Number(renegadeState.from(context).soulcleaveReadyAt || 0))
   ) {
     renegadeState.from(context).soulcleaveReadyAt = event.at + Math.max(0, Number(proc.cooldown || 0));
     for (const effect of proc.effects || []) {

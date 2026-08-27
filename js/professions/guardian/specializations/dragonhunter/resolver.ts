@@ -1,4 +1,5 @@
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2ResolverBoonDuration } from '../../../../platform/gw2/resolver/boon-duration.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
@@ -135,7 +136,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
 
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
-    event.at < state.heavyLightReadyAt - Number(context.epsilon || 0.0001)
+    !isInternalCooldownReady(event.at, state.heavyLightReadyAt)
   ) {
     return;
   }

@@ -4529,7 +4529,7 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   assert.ok(Math.abs(acceleratedHit.damage / baseHit.damage - 2090 / 2000) < 1e-12);
 });
 
-test('Kinetic Accelerators applies its ICD only to whirl finishers', () => {
+test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {
   const boons = [];
   const context = {
     config: {
@@ -4566,6 +4566,7 @@ test('Kinetic Accelerators applies its ICD only to whirl finishers', () => {
   observe(context, combo('Leap', 2));
   observe(context, combo('Blast', 2));
   observe(context, combo('Whirl', 4));
+  observe(context, combo('Whirl', 4.001));
 
   const quickness = boons.filter((event) => event.kind === 'quickness');
   const might = boons.filter((event) => event.kind === 'might');
@@ -4576,7 +4577,7 @@ test('Kinetic Accelerators applies its ICD only to whirl finishers', () => {
       [1, 3],
       [2, 3],
       [2, 3],
-      [4, 3]
+      [4.001, 3]
     ]
   );
   assert.deepEqual(
@@ -4585,7 +4586,7 @@ test('Kinetic Accelerators applies its ICD only to whirl finishers', () => {
       [1, 10, 3],
       [2, 10, 3],
       [2, 10, 3],
-      [4, 10, 3]
+      [4.001, 10, 3]
     ]
   );
   assert.ok(boons.every((event) => event.recipients === 'party'));

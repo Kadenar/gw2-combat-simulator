@@ -28,9 +28,23 @@ const specializationAnalyzers: ReadonlyMap<string, ElementalistActionTransform> 
 ]);
 const TEMPEST_OVERLOAD_DWELL_MS = 5000;
 const HURL_PACKET_GROUP_MS = 1000;
+const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth']);
+const SPEAR_ETCHING_INITIAL_BUFFS = Object.freeze([
+  { buffSkillId: 73133, skillId: ID.ETCHING_VOLCANO, name: 'Etching: Volcano' },
+  { buffSkillId: 73144, skillId: ID.ETCHING_JO_KULHLAUP, name: 'Etching: Jökulhlaup' },
+  { buffSkillId: 72895, skillId: ID.ETCHING_DERECHO, name: 'Etching: Derecho' },
+  { buffSkillId: 72899, skillId: ID.ETCHING_HABOOB, name: 'Etching: Haboob' }
+]);
 
 function isAction(action: EvtcRecordedRotationAction, skillId: number): boolean {
   return action.rawSkillId === skillId || action.canonicalSkillId === skillId;
+}
+
+function configuredStartingAttunement(context: EvtcProfessionReconstructionContext): string {
+  const configured = String(context.professionConfig?.startAttunement || '')
+    .trim()
+    .toLowerCase();
+  return ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement.toLowerCase() === configured) || 'Fire';
 }
 
 function firstPlayerEventTime(context: EvtcProfessionReconstructionContext): number | null {
@@ -381,6 +395,64 @@ function filterUncommittedFlamestrikes(
   });
 }
 
+function openingSpearEtchingPrecasts(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const recovered = SPEAR_ETCHING_INITIAL_BUFFS.flatMap<EvtcRecordedRotationAction>(
+    ({ buffSkillId, skillId, name }) => {
+      const skill = findRotationSkill(skillId, name, context.catalog, context.profile);
+      if (!skill) return [];
+      const initial = context.log.events
+        .map((event, eventIndex) => ({ event, eventIndex }))
+        .find(
+          ({ event }) =>
+            event.target === context.playerAddress &&
+            event.skillId === buffSkillId &&
+            event.buff !== 0 &&
+            event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+        );
+      if (!initial) return [];
+      if (actions.some((action) => isAction(action, skillId) && action.start <= initial.event.time)) return [];
+
+      const totalDuration = Math.max(initial.event.value, initial.event.buffDamage);
+      const remainingDuration = Math.min(totalDuration, Math.max(0, initial.event.value));
+      const fieldStartedAt = initial.event.time - Math.max(0, totalDuration - remainingDuration);
+      const castDuration = quicknessRuntimeDurationMs(skill);
+      // An active seven-second etching buff identifies a cast that began before logging;
+      // age the buff back to field creation, then prepend the cast so its later full flip is available.
+      return [
+        {
+          start: fieldStartedAt - castDuration,
+          end: fieldStartedAt,
+          expectedDuration: castDuration,
+          rawSkillId: skillId,
+          rawName: name,
+          canonicalSkillId: skillId,
+          canonicalName: name,
+          evidence: 'initial-state' as const,
+          status: 'completed' as const,
+          eventIndex: context.log.events.length + initial.eventIndex,
+          precast: true
+        }
+      ];
+    }
+  );
+  if (!recovered.length) return [...actions];
+
+  const combined = [...actions, ...recovered];
+  const firstPrecastStart = Math.min(
+    ...combined.filter((action) => action.precast === true).map((action) => action.start)
+  );
+  // Initial attunement snapshots occur at log creation, after clipped precasts. Move
+  // the transition to the earliest recovered cast so replay enables that weapon skill first.
+  return combined.map((action) =>
+    action.initialState === true && action.start > firstPrecastStart
+      ? { ...action, start: firstPrecastStart, end: firstPrecastStart }
+      : action
+  );
+}
+
 function orderSimultaneousAttunementTransitions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -404,15 +476,17 @@ function orderSimultaneousAttunementTransitions(
 export function reconstructElementalistProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
+  const startingAttunement = configuredStartingAttunement(context);
   let actions = context.recordedActions.filter(
     (action) =>
       !(
         action.initialState === true &&
-        (action.rawSkillId === ID.FIRE_ATTUNEMENT || action.canonicalSkillId === ID.FIRE_ATTUNEMENT)
+        String(action.canonicalName || action.rawName) === `${startingAttunement} Attunement`
       )
   );
   actions = specializationAnalyzers.get(context.profile.specializationId)?.(context, actions) || actions;
   actions = openingTempestScepterPrecast(context, actions);
+  actions = openingSpearEtchingPrecasts(context, actions);
   actions = inferArcLightningChannelDurations(context, actions);
   actions = filterUncommittedFlamestrikes(context, actions);
   actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)];

@@ -1,5 +1,5 @@
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
-import { EPSILON } from '../../../platform/engine/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import { onResolvedCriticalHit } from '../../../platform/gw2/authoring/mechanics.js';
 import type { NativeResolvedDamageDetails } from '../../../platform/gw2/authoring/module-types.js';
@@ -421,7 +421,7 @@ export function applyElementalistResolvedCondition(context: Gw2ResolverRuntime, 
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   ) {
     const state = coreState(context);
-    if (Number(state.procReadyAt.strengthOfStone || 0) < event.at - EPSILON) {
+    if (isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) {
       state.procReadyAt.strengthOfStone =
         event.at + elementalistBalanceValue(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
       const bleeding = elementalistBalanceEffect(context, PROFILE.strengthOfStone, 'condition', 'Strength of Stone');

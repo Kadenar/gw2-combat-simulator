@@ -1,4 +1,5 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
@@ -104,7 +105,7 @@ function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: Rev
 
 function handleSharedEmpowerment(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
   const cause = context.eventByOrder(Number(task.payload?.eventOrder));
-  if (!cause || task.at + context.epsilon < heraldState.from(context).sharedEmpowermentReadyAt) return;
+  if (!cause || !isInternalCooldownReady(task.at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
   const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
   if (!profile || !effect) throw new Error('Missing Shared Empowerment balance profile.');

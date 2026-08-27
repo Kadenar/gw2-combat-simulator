@@ -1,4 +1,5 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
@@ -44,7 +45,7 @@ function consumeEvokerAttunementTraitCooldown(
   profileId: Skill['id']
 ): boolean {
   const key = String(profileId);
-  if (Number(state.attunementTraitProcReadyAt[key] || 0) > at + context.epsilon) return false;
+  if (!isInternalCooldownReady(at, Number(state.attunementTraitProcReadyAt[key] || 0))) return false;
 
   // Evoker owns the shared per-trait timer used by both real and familiar-triggered attunement entries.
   state.attunementTraitProcReadyAt[key] =

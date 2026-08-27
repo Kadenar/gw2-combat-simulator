@@ -1,5 +1,6 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import type { ScheduledTask } from '../../../../platform/engine/types.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../resources.js';
@@ -348,7 +349,7 @@ export function applyParagonWeaponSwapTraits(context: WarriorCastContext): void 
   const state = paragonState.from(context);
   if (
     hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) &&
-    context.effectiveEnd + context.epsilon >= state.inspiringImplementsReadyAt
+    isInternalCooldownReady(context.effectiveEnd, state.inspiringImplementsReadyAt)
   ) {
     const profile = warriorBalanceProfile(context, PROFILE.inspiringImplements);
     state.inspiringImplementsReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 4);

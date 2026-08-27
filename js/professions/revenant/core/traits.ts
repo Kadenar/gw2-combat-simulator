@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 /**
  * Scheduler-side Revenant trait lifecycle and event observation.
  *
@@ -335,8 +336,10 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     ['action', 'sigil_swap'].includes(event.type) &&
     event.skillId === ID.SWAP_WEAPONS &&
     hasTrait(context.config, TRAIT.BRUTALITY) &&
-    Number(event.endsAt ?? event.at) + context.epsilon >=
+    isInternalCooldownReady(
+      Number(event.endsAt ?? event.at),
       Number(professionCoreState(context).traitProcReadyAt.brutality || 0)
+    )
   ) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.brutality);
     const boon = effectByType(profile, 'boon');
@@ -421,7 +424,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     consumeBattleScar(context, event);
     if (
       hasTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
-      event.at + context.epsilon >= Number(state.traitProcReadyAt.assassinsPresence || 0)
+      isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.assassinsPresence || 0))
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
       const boon = effectByType(profile, 'boon');
@@ -453,7 +456,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     if (
       hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
       context.hasBuff('resolution', event.at) &&
-      event.at + context.epsilon >= Number(state.traitProcReadyAt.viciousReprisal || 0)
+      isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.viciousReprisal || 0))
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal);
       const boon = effectByType(profile, 'boon');
@@ -511,7 +514,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       event.skillId !== ID.ENCHANTED_DAGGERS &&
       Number(daggers?.charges || 0) > 0 &&
       event.at < Number(daggers.expiresAt || 0) &&
-      event.at + context.epsilon >= Number(daggers.readyAt || 0)
+      isInternalCooldownReady(event.at, Number(daggers.readyAt || 0))
     ) {
       const enchantedDaggers = context.catalog.skillsById.get(ID.ENCHANTED_DAGGERS);
       if (!enchantedDaggers) {

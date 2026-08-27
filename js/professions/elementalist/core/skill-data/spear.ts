@@ -15,6 +15,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // EVTC damage lands 520ms after activation; once the projectile reaches that
+    // commit point, preserve its impact even if the remaining animation is cancelled.
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
@@ -25,7 +28,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -547,6 +551,9 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // EVTC damage lands 520ms after activation; once the projectile reaches that
+    // commit point, preserve its strike and vulnerability if the animation is cancelled.
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
@@ -557,7 +564,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -571,6 +579,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

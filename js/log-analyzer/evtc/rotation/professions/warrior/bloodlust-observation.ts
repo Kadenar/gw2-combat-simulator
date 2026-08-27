@@ -49,9 +49,12 @@ export function analyzeWarriorBloodlustObservation(
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
 ): WarriorBloodlustObservation | null {
+  
   if (!hasBloodlust(config)) return null;
+
   const profile = bloodlustProfile(catalog);
   if (!profile) return null;
+
   const matchedDurationsMs = expectedBloodlustDurations(profile, config);
   if (!matchedDurationsMs.length) return null;
 

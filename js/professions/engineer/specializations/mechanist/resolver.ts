@@ -1,4 +1,5 @@
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyEngineerDerivedCondition, procState, queueBuff, recordTrait, resolverSkill } from '../../core/shared.js';
 import {
@@ -70,7 +71,10 @@ function reactToMechanistDamage(
   const state = procState(context);
   if (!isEngineerMechEvent(context, event)) return;
 
-  if (hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) && Number(state.singleEdgeCutters || 0) <= event.at) {
+  if (
+    hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
+    isInternalCooldownReady(event.at, Number(state.singleEdgeCutters || 0))
+  ) {
     // 1-second ICD: store next-eligible timestamp so rapid mech hits don't
     // trigger the trait on every packet.
     state.singleEdgeCutters = event.at + 1;
@@ -86,7 +90,10 @@ function reactToMechanistDamage(
     recordTrait(context, 'Mech Arms: Single-Edge Cutters', event);
   }
 
-  if (hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) && Number(state.highImpactDrivers || 0) <= event.at) {
+  if (
+    hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
+    isInternalCooldownReady(event.at, Number(state.highImpactDrivers || 0))
+  ) {
     // Same 1-second ICD pattern as Single-Edge Cutters above.
     state.highImpactDrivers = event.at + 1;
     queueBuff(context, event, {

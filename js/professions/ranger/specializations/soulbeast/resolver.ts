@@ -1,6 +1,7 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
 import type { Gw2TimedBuffApplication } from '../../../../platform/gw2/combat/state/types.js';
@@ -154,7 +155,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     event.actorType !== 'effect' &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
-    event.at >= state.oneWolfPackReadyAt
+    isInternalCooldownReady(event.at, state.oneWolfPackReadyAt)
   ) {
     const profile = rangerBalanceProfile(context, PROFILE.oneWolfPack);
     const strike = rangerBalanceProfileEffect(profile, 'strike');
@@ -183,7 +184,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
   if (
     activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
-    event.at >= state.vultureStanceReadyAt &&
+    isInternalCooldownReady(event.at, state.vultureStanceReadyAt) &&
     event.actorType !== 'effect'
   ) {
     const profile = rangerBalanceProfile(context, PROFILE.vultureStance);
@@ -245,7 +246,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     );
   }
 
-  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && event.at >= state.goForTheEyesReadyAt) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && isInternalCooldownReady(event.at, state.goForTheEyesReadyAt)) {
     const profile = rangerBalanceProfile(context, PROFILE.goForTheEyes);
     const blind = rangerBalanceProfileEffect(profile, 'blind');
     state.goForTheEyesReadyAt = event.at + Number(profile?.internalCooldown ?? 12);
@@ -262,7 +263,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     });
   }
 
-  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && event.at >= state.goForTheThroatReadyAt) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && isInternalCooldownReady(event.at, state.goForTheThroatReadyAt)) {
     const profile = rangerBalanceProfile(context, CORE_PROFILE.goForTheThroat);
     const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 1);
     state.goForTheThroatReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
@@ -304,7 +305,7 @@ export function reactToSoulbeastControl(context: RangerResolverContext, event: R
     );
   }
 
-  if (hasTrait(context, TRAIT.BESTIAL_RAGE) && event.at >= state.bestialRageReadyAt) {
+  if (hasTrait(context, TRAIT.BESTIAL_RAGE) && isInternalCooldownReady(event.at, state.bestialRageReadyAt)) {
     const profile = rangerBalanceProfile(context, PROFILE.bestialRage);
     const might = rangerBalanceProfileEffect(profile, 'boon', 0);
     const fury = rangerBalanceProfileEffect(profile, 'boon', 1);
@@ -363,7 +364,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Rang
   if (
     event.kind !== 'quickness' ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
-    event.at < state.essenceOfSpeedReadyAt
+    !isInternalCooldownReady(event.at, state.essenceOfSpeedReadyAt)
   ) {
     return;
   }

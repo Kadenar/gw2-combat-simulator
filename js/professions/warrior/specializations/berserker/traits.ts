@@ -1,6 +1,7 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { ScheduledTask } from '../../../../platform/engine/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -289,7 +290,7 @@ export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task:
   if (!event) return;
 
   const state = berserkerState.from(context);
-  if (event.at + context.epsilon < state.kingOfFiresReadyAt || criticalCount(context, event) === 0) {
+  if (!isInternalCooldownReady(event.at, state.kingOfFiresReadyAt) || criticalCount(context, event) === 0) {
     return;
   }
 

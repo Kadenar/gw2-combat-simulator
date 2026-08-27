@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import type {
   AvailabilityResult,
   SchedulerRecord,
@@ -290,7 +291,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
 
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
     const state = tempestState.from(context);
-    if (state.latentStaminaReadyAt <= event.at + context.epsilon) {
+    if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
       state.latentStaminaReadyAt =
         event.at + elementalistBalanceValue(context, PROFILE.latentStamina, 'internalCooldown', 10);
       const vigor = elementalistBalanceEffect(context, PROFILE.latentStamina, 'boon', 'Vigor');

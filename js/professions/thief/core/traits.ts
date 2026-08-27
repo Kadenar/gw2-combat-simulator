@@ -7,6 +7,7 @@ import {
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '../../../platform/gw2/combat/state/targets.js';
 import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
@@ -187,7 +188,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     const blindness = thiefBalanceProfileEffect(profile, 'condition', 0);
     const weakness = thiefBalanceProfileEffect(profile, 'condition', 1);
     const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
-    if (at + 1e-9 >= readyAt) {
+    if (isInternalCooldownReady(at, readyAt)) {
       state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown || 2);
       emitSkillCondition(context, {
         at,
@@ -471,7 +472,7 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
   const profile = thiefBalanceProfile(context, PROFILE.assassinsFury);
   const might = thiefBalanceProfileEffect(profile, 'boon');
   const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
-  if (event.at + EPSILON < readyAt) return;
+  if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown || 2);
   queueThiefBoon(context, event, {
     traitId: TRAIT.ASSASSINS_FURY,
@@ -563,7 +564,7 @@ function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolve
   const state = professionCoreState(context);
   const profile = thiefBalanceProfile(context, PROFILE.shadowSiphoning);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
-  if (event.at + 1e-9 < readyAt) return;
+  if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown || 1);
   enqueueSiphon(context, event, {
     sourceId: TRAIT.SHADOW_SIPHONING,
@@ -591,7 +592,7 @@ function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEve
   const profile = thiefBalanceProfile(context, PROFILE.panicStrike);
   const immobilized = thiefBalanceProfileEffect(profile, 'condition', 0);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
-  if (event.at + 1e-9 < readyAt) return;
+  if (!isInternalCooldownReady(event.at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown || 20);
   context.applyCondition({
     type: 'condition',

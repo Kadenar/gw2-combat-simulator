@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
@@ -62,7 +63,7 @@ export function completeThiefDodge(context: ThiefCastContext): void {
   const at = context.effectiveEnd;
   const profile = thiefBalanceProfile(context, PROFILE.upperHand);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.UPPER_HAND] || 0);
-  if (at + Number(context.epsilon || 0.0001) < readyAt) return;
+  if (!isInternalCooldownReady(at, readyAt)) return;
   state.traitProcReadyAt[TRAIT.UPPER_HAND] = at + Number(profile?.internalCooldown || 2);
   gainThiefInitiative(context, Number(profile?.resourceGain || 1), at, 'upper-hand');
 }

@@ -129,33 +129,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 200,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    // The activation only opens a proc window; successful attacks own every strike and chill packet.
+    effects: []
   },
   [ID.ELEMENTAL_CELERITY]: {
     name: 'Elemental Celerity',

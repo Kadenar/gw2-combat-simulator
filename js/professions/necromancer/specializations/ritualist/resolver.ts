@@ -1,5 +1,6 @@
 import { ritualistState } from './state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import type { SkillId } from '../../../../platform/engine/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import { handleNecromancerPainfulBond, handleNecromancerWeaponSpell } from './events.js';
@@ -147,13 +148,18 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
     if (!definition) continue;
     for (const key of keys) {
       const recipient = active.recipients?.[key];
-      if (!recipient || recipient.stacks <= 0 || recipient.nextAt > event.at) {
+      const internalCooldown = Number(definition.internalCooldown || 0);
+      if (
+        !recipient ||
+        recipient.stacks <= 0 ||
+        (internalCooldown > 0 && !isInternalCooldownReady(event.at, recipient.nextAt))
+      ) {
         continue;
       }
 
       recipient.stacks -= 1;
-      // nextAt enforces an ICD so rapid multi-hit attacks cannot consume multiple stacks simultaneously
-      recipient.nextAt = event.at + Number(definition.internalCooldown || 0);
+      // Positive weapon-spell ICDs use the strict shared boundary; zero preserves unrestricted charge consumption.
+      recipient.nextAt = event.at + internalCooldown;
       if (spell === 'nightmare') {
         queueNightmareWeapon(context, event, definition);
       } else {

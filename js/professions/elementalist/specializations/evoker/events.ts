@@ -1,4 +1,5 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../../types.js';
@@ -17,7 +18,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     event.type === 'condition' &&
     event.condition === 'Burning' &&
     state.element === 'Fire' &&
-    state.ignitePassiveReadyAt <= event.at + context.epsilon
+    isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
   ) {
     state.ignitePassiveReadyAt = event.at + elementalistBalanceValue(context, PROFILE.ignite, 'pulseInterval', 1);
     const might = elementalistBalanceEffect(context, PROFILE.evocation, 'boon', 'Fire Familiar');

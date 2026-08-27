@@ -1462,11 +1462,11 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
 
   const refreshed = simulate(
     'Untamed',
-    ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', { type: 'wait', durationMs: 8000 }, 'Unleash Ranger'],
+    ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', { type: 'wait', durationMs: 8001 }, 'Unleash Ranger'],
     { initialUntamedState: 'Ranger' }
   );
 
-  assert.equal(refreshed.endState.profession.ambushReadyUntil, 14);
+  assert.equal(refreshed.endState.profession.ambushReadyUntil, 14.001);
 });
 
 test('Untamed ambush skills require the specialization and an active unleash proc', () => {

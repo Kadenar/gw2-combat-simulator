@@ -1,5 +1,6 @@
 import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
@@ -154,7 +155,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.QUICK_POCKETS) &&
-    at + Number(context.epsilon || 0.0001) >= Number(state.quickPocketsReadyAt || 0)
+    isInternalCooldownReady(at, Number(state.quickPocketsReadyAt || 0))
   ) {
     const profile = thiefBalanceProfile(context, PROFILE.quickPockets);
     state.quickPocketsReadyAt = at + Number(profile?.internalCooldown || 8);

@@ -2748,15 +2748,19 @@ test('Herald facets pulse their boons every three seconds', () => {
   }
 });
 
-test('Shared Empowerment grants one stack of eight-second Might on a one-second ICD', () => {
-  const result = simulate('Herald', ['Pain Absorption', 'Pain Absorption', 'Pain Absorption'], {
-    selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
-    startingLegend: LEGEND.DEMON,
-    initialEnergy: 100,
-    selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
-    stats: { concentration: 0 },
-    allies: { count: 4 }
-  });
+test('Shared Empowerment grants one stack of eight-second Might on a strict one-second ICD', () => {
+  const result = simulate(
+    'Herald',
+    ['Pain Absorption', 'Pain Absorption', { type: 'wait', durationMs: 1 }, 'Pain Absorption'],
+    {
+      selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
+      startingLegend: LEGEND.DEMON,
+      initialEnergy: 100,
+      selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
+      stats: { concentration: 0 },
+      allies: { count: 4 }
+    }
+  );
   const applications = result.events.filter(
     (event) => event.type === 'buff' && event.skillName === 'Shared Empowerment'
   );
@@ -2766,7 +2770,7 @@ test('Shared Empowerment grants one stack of eight-second Might on a one-second 
     applications.map((event) => [event.at, event.kind, event.duration, event.stacks]),
     [
       [result.steps[0].end / 1000, 'might', 8, 1],
-      [result.steps[2].end / 1000, 'might', 8, 1]
+      [result.steps.at(-1).end / 1000, 'might', 8, 1]
     ]
   );
   assert.ok(applications.every((event) => event.alliedPlayerCount === 4));

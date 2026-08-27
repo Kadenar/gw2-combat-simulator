@@ -618,6 +618,149 @@ test('reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stom
   );
 });
 
+test('recovers an opening spear etching after the configured starting attunement', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5575,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({
+      time: 1_000,
+      target: PLAYER,
+      value: 6_080,
+      buffDamage: 7_000,
+      skillId: 72895,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({ time: 1_001, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 1_240,
+      value: 1_120,
+      buffDamage: 1_120,
+      skillId: 5737,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    }),
+    ...animation(ID.TWISTER, 1_240, 600),
+    ...animation(ID.FULGOR, 1_840, 560),
+    ...animation(ID.DERECHO, 2_400, 600),
+    ...animation(ID.ETCHING_DERECHO, 4_000, 240)
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260715',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 2,
+      skillCount: 7,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 67,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Catalyst',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5575, name: 'Air Attunement' },
+      { id: 72895, name: '72895' },
+      { id: 5737, name: 'Lightning Storm' },
+      { id: ID.TWISTER, name: 'Twister' },
+      { id: ID.FULGOR, name: 'Fulgor' },
+      { id: ID.DERECHO, name: 'Derecho' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.AIR_ATTUNEMENT, 'Air Attunement'),
+    catalogSkill(ID.ETCHING_DERECHO, 'Etching: Derecho', 'Weapon', {
+      slot: 'Weapon_5',
+      weapon: 'Spear',
+      attunement: 'Air',
+      quicknessCastTimeMs: 240
+    }),
+    catalogSkill(ID.GLYPH_OF_STORMS_AIR, 'Glyph of Storms (Air)', 'Utility', {
+      quicknessCastTimeMs: 1_120
+    }),
+    catalogSkill(ID.TWISTER, 'Twister', 'Weapon', {
+      slot: 'Weapon_4',
+      weapon: 'Spear',
+      attunement: 'Air',
+      quicknessCastTimeMs: 600
+    }),
+    catalogSkill(ID.FULGOR, 'Fulgor', 'Weapon', {
+      slot: 'Weapon_2',
+      weapon: 'Spear',
+      attunement: 'Air',
+      quicknessCastTimeMs: 560
+    }),
+    catalogSkill(ID.DERECHO, 'Derecho', 'Weapon', {
+      slot: 'Weapon_5',
+      weapon: 'Spear',
+      attunement: 'Air',
+      quicknessCastTimeMs: 600
+    })
+  ];
+  const reconstruct = (startAttunement) =>
+    reconstructEvtcRotation(fixture, { skills }, { professionConfig: { startAttunement } });
+  const fromFire = reconstruct('Fire');
+  const fromAir = reconstruct('Air');
+  const actionNames = (result) => result.actions.map((action) => action.name);
+
+  assert.deepEqual(fromFire.warnings, []);
+  assert.deepEqual(actionNames(fromFire), [
+    'Air Attunement',
+    'Etching: Derecho',
+    'Glyph of Storms (Air)',
+    'Twister',
+    'Fulgor',
+    'Derecho',
+    'Etching: Derecho'
+  ]);
+  assert.deepEqual(actionNames(fromAir), [
+    'Etching: Derecho',
+    'Glyph of Storms (Air)',
+    'Twister',
+    'Fulgor',
+    'Derecho',
+    'Etching: Derecho'
+  ]);
+  assert.equal(fromFire.actions.filter((action) => action.name === 'Etching: Derecho').length, 2);
+  assert.deepEqual(
+    fromFire.actions.slice(0, 3).map(({ name, timestampMs }) => ({ name, timestampMs })),
+    [
+      { name: 'Air Attunement', timestampMs: 0 },
+      { name: 'Etching: Derecho', timestampMs: 0 },
+      { name: 'Glyph of Storms (Air)', timestampMs: 280 }
+    ]
+  );
+});
+
 test('uses the Evoker parser to normalize familiar skills', () => {
   const events = [
     event({
