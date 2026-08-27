@@ -2789,8 +2789,8 @@ test('Warrior is exposed through the shared application registry', async () => {
   assert.equal(await loadProfession('warrior'), warriorProfession);
   assert.equal(typeof (await loadProfessionAppAdapter('warrior')).recalculate, 'function');
 
-  const html = await readFile(new URL('../../../warrior.html', import.meta.url), 'utf8');
+  const html = await readFile(new URL('../../../dist/site/warrior.html', import.meta.url), 'utf8');
 
   assert.match(html, /data-profession="warrior"/);
-  assert.match(html, /js\/app\/app\.js/);
+  assert.match(html, /assets\/app-[^"']+\.js/);
 });

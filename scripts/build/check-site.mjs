@@ -32,6 +32,17 @@ for (const page of pages) {
   if (!source.includes('assets/')) {
     throw new Error(`${page} does not reference a bundled asset.`);
   }
+
+  if (page !== 'index.html' && page !== 'patch-preview.html') {
+    const professionId = path.basename(page, '.html');
+    if (
+      !source.includes(`data-profession="${professionId}"`) ||
+      !source.includes('id="rotation-warnings"') ||
+      source.includes('{{')
+    ) {
+      throw new Error(`${page} was not expanded from the shared profession template.`);
+    }
+  }
 }
 
 await Promise.all(runtimeAssets.map((asset) => access(path.join(siteRoot, asset))));

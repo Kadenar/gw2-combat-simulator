@@ -3,21 +3,6 @@ import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-// Defines the entry points for the application's pages.
-const pageEntries = [
-  'index.html',
-  'patch-preview.html',
-  'elementalist.html',
-  'engineer.html',
-  'guardian.html',
-  'mesmer.html',
-  'necromancer.html',
-  'ranger.html',
-  'revenant.html',
-  'thief.html',
-  'warrior.html'
-];
-
 // Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
 const runtimeDirectories = ['Builds', 'Rotations'];
 
@@ -26,6 +11,98 @@ const runtimeContentTypes = {
   '.csv': 'text/csv; charset=utf-8',
   '.json': 'application/json; charset=utf-8'
 };
+
+// Supplies the profession-specific copy and display differences used by the shared simulator page template.
+const professionPages = {
+  elementalist: {
+    snapshot: 'Elementalist PvE API snapshot: August 12, 2026',
+    attributeNote:
+      'Values are calculated for the equipped weapon set. Dynamic Elementalist modifiers resolve during simulation.',
+    singleWeaponSet: true
+  },
+  engineer: {
+    snapshot: 'Engineer PvE API snapshot: July 28, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. Dynamic Engineer modifiers resolve during simulation.'
+  },
+  guardian: {
+    snapshot: 'Guardian PvE API snapshot: July 25, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses on weapon swap. Boons and conditional Guardian modifiers are resolved during simulation.',
+    showCooldownHint: true
+  },
+  mesmer: {
+    snapshot: 'Mesmer PvE data snapshot: July 23, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses when weapons are swapped. Boons are applied during simulation, not baked into the equipment totals above.',
+    showCooldownHint: true
+  },
+  necromancer: {
+    snapshot: 'Necromancer PvE API snapshot: July 25, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. Dynamic Necromancer modifiers resolve during simulation.'
+  },
+  ranger: {
+    snapshot: 'Ranger PvE API snapshot: August 8, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. Dynamic Ranger modifiers resolve during simulation.'
+  },
+  revenant: {
+    snapshot: 'Revenant PvE API snapshot: July 28, 2026',
+    attributeNote: 'Dynamic Revenant modifiers resolve during simulation.'
+  },
+  thief: {
+    snapshot: 'Thief PvE API snapshot: July 28, 2026',
+    attributeNote: 'Dynamic Thief modifiers resolve during simulation.'
+  },
+  warrior: {
+    snapshot: 'Warrior PvE API snapshot: August 8, 2026',
+    attributeNote:
+      'Values are calculated for the selected weapon set. Dynamic Warrior modifiers resolve during simulation.'
+  }
+};
+
+const professionPageTemplate = readFileSync(path.resolve('templates', 'profession.html'), 'utf8');
+
+// Defines the entry points for the application's pages.
+const pageEntries = [
+  'index.html',
+  'patch-preview.html',
+  ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)
+];
+
+// Expands each thin profession entry into the shared simulator document before Vite processes its assets.
+function renderProfessionPages() {
+  return {
+    name: 'render-profession-pages',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        const professionId = path.basename(ctx.filename || '', '.html');
+        const page = professionPages[professionId];
+
+        if (!page) return html;
+        if (!html.includes(`data-profession="${professionId}"`)) {
+          throw new Error(`${professionId}.html must identify itself with data-profession="${professionId}".`);
+        }
+
+        const name = professionId[0].toUpperCase() + professionId.slice(1);
+        return professionPageTemplate
+          .replaceAll('{{profession-id}}', professionId)
+          .replaceAll('{{profession-name}}', name)
+          .replaceAll('{{snapshot}}', page.snapshot)
+          .replaceAll('{{attribute-note}}', page.attributeNote)
+          .replaceAll('{{weapon-set-hidden}}', page.singleWeaponSet ? ' hidden' : '')
+          .replaceAll('{{weapon-set-two}}', page.singleWeaponSet ? '' : '<option value="2">2</option>')
+          .replaceAll('{{loadout-theme}}', page.singleWeaponSet ? '' : ' profession-loadout-theme')
+          .replaceAll(
+            '{{cooldown-hint}}',
+            page.showCooldownHint ? ' · cooldown badges show the state after the current timeline' : ''
+          );
+      }
+    }
+  };
+}
 
 // Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
 function copyRuntimeData() {
@@ -111,7 +188,7 @@ function injectGithubPagesRedirect() {
 export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,
-  plugins: [copyRuntimeData(), serveRuntimeData(), injectGithubPagesRedirect()],
+  plugins: [renderProfessionPages(), copyRuntimeData(), serveRuntimeData(), injectGithubPagesRedirect()],
   worker: {
     format: 'es'
   },

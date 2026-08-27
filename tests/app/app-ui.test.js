@@ -846,7 +846,7 @@ test('the generic landing page and profession simulators have separate entries',
   const professionPages = await Promise.all(
     professionRegistry.map(async (entry) => ({
       entry,
-      source: await readFile(new URL(`../../${entry.route}`, import.meta.url), 'utf8')
+      source: await readFile(new URL(`../../dist/site/${entry.route}`, import.meta.url), 'utf8')
     }))
   );
 
@@ -864,7 +864,7 @@ test('the generic landing page and profession simulators have separate entries',
     assert.match(source, /<a class="home-link" href="index\.html">← All professions<\/a>/);
     assert.equal(professionRoute(entry.id), entry.route);
     assert.match(source, new RegExp(`data-profession="${entry.id}"`));
-    assert.match(source, /js\/app\/app\.js/);
+    assert.match(source, /assets\/app-[^"']+\.js/);
     assert.match(source, /id="rotation-warnings"/);
     // Every profession uses the shared combat-loadout card so its weapons,
     // mechanics, and selectable skills stay together beside traits.

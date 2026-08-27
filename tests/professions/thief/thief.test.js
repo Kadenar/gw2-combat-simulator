@@ -2885,7 +2885,7 @@ test('Thief is a loadable native application', async () => {
   assert.equal(adapter.profession.id, 'thief');
   assert.equal(adapter.weaponSkillMatchesSet, thiefWeaponSkillMatchesSet);
   assert.ok(adapter.assumptionControls.length >= 3);
-  const html = await readFile(new URL('../../../thief.html', import.meta.url), 'utf8');
+  const html = await readFile(new URL('../../../dist/site/thief.html', import.meta.url), 'utf8');
 
   assert.match(html, /data-profession="thief"/);
   assert.match(html, /Thief<\/span> Rotation Simulator/);
