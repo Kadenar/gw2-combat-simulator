@@ -30,6 +30,17 @@ const CONDITION_ALIASES = Object.freeze({
   weakened: 'Weakness'
 });
 
+// The canonical damaging subset uses runtime condition names so resolution and
+// profession rules cannot disagree about aliases such as Poison and Poisoned.
+export const GW2_DAMAGING_CONDITIONS = Object.freeze([
+  'Bleeding',
+  'Burning',
+  'Confusion',
+  'Poisoned',
+  'Torment'
+] as const);
+const DAMAGING_CONDITION_SET = new Set<string>(GW2_DAMAGING_CONDITIONS);
+
 const CANONICAL_CONDITION_STATE_MAPS = new WeakSet<ReadonlyMap<string, unknown>>();
 
 export const CANONICAL_TARGET_CONDITIONS = Object.freeze([...new Set(Object.values(CONDITION_ALIASES))].sort());
@@ -54,6 +65,11 @@ export function canonicalTargetConditionName(value: unknown): string {
     (CONDITION_ALIASES as Readonly<Record<string, string>>)[normalized] ||
     normalized.charAt(0).toUpperCase() + normalized.slice(1)
   );
+}
+
+/** Checks damaging-condition membership after applying the shared alias normalization contract. */
+export function isDamagingCondition(value: unknown): boolean {
+  return DAMAGING_CONDITION_SET.has(canonicalTargetConditionName(value));
 }
 
 function normalizeTargetConditions(

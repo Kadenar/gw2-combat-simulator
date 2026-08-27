@@ -138,6 +138,8 @@ export const revenantSchedulerHooks = Object.freeze({
 
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { isStandardBoon } from '../../../platform/gw2/combat/state/boons.js';
+import { isDamagingCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   playerHealthFraction,
@@ -216,35 +218,19 @@ function periodicAssassinsPresence(context: RevenantModifierContext): boolean {
   return Math.max(0, context.time - start) % 10 < 3;
 }
 
-const DAMAGING_CONDITIONS = new Set(['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment']);
-
 // Count distinct self-affecting boons active at the query time for Revenant
 // modifiers that scale with boon variety.
 export function revenantActiveBoonCount(context: RevenantModifierContext): number {
-  const allowed = new Set([
-    'aegis',
-    'alacrity',
-    'fury',
-    'might',
-    'protection',
-    'quickness',
-    'regeneration',
-    'resistance',
-    'resolution',
-    'stability',
-    'swiftness',
-    'vigor'
-  ]);
   const active = new Set(
     Object.entries(context.config?.boons || {})
       .filter(([, value]) => (typeof value === 'number' ? value > 0 : Boolean(value)))
       .map(([kind]) => kind.toLowerCase())
-      .filter((kind) => allowed.has(kind))
+      .filter(isStandardBoon)
   );
   for (const [kind, applications] of context.runtime?.boons || []) {
     const normalized = String(kind).toLowerCase();
     if (
-      allowed.has(normalized) &&
+      isStandardBoon(normalized) &&
       applications.some((application) => application.at <= context.time && application.expiresAt > context.time)
     ) {
       active.add(normalized);
@@ -360,7 +346,7 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
   }
 
   if (
-    DAMAGING_CONDITIONS.has(String(context.condition || '')) &&
+    isDamagingCondition(context.condition) &&
     hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
     !professionStaticRulesApplied(context.config)
   ) {

@@ -3,6 +3,7 @@ import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
+import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';
@@ -116,21 +117,6 @@ function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   );
 }
 
-const BOON_KINDS = Object.freeze([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
-]);
-
 // Query boon state for the active companion, honoring summon-audience events
 // before falling back to configured assumptions.
 function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
@@ -155,8 +141,9 @@ function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
 }
 
 function activeBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'): number {
-  return BOON_KINDS.filter((boon) => (audience === 'pet' ? petBoonActive(context, boon) : boonActive(context, boon)))
-    .length;
+  return GW2_STANDARD_BOONS.filter((boon) =>
+    audience === 'pet' ? petBoonActive(context, boon) : boonActive(context, boon)
+  ).length;
 }
 
 function activePrimaryWeapon(context: Gw2ModifierContext): string {

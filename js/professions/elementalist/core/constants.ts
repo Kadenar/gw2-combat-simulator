@@ -69,17 +69,3 @@ export const ETCHING_CHAINS = Object.freeze([
     full: 'Haboob'
   }
 ] as const);
-export const BOON_KINDS = new Set([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
-]);

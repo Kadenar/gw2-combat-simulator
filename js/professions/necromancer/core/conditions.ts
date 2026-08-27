@@ -10,6 +10,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * apply/purge/transfer helpers reused by shroud/scheduler code.
  */
 import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../platform/gw2/combat/query/combat-query.js';
+import { isDamagingCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { createRelicTimelineRuntime } from '../../../platform/gw2/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '../../../platform/gw2/equipment/relics/query.js';
 import { projectCastRelativeEffectTimingMs } from '../../../platform/gw2/skills/timing.js';
@@ -24,8 +25,6 @@ import type {
   NecromancerSimulationEvent,
   NecromancerSkill
 } from '../types.js';
-
-const DAMAGING_CONDITIONS = new Set(['Bleeding', 'Burning', 'Confusion', 'Poison', 'Poisoned', 'Torment']);
 
 const CORRUPTION_SELF_CONDITIONS = Object.freeze({
   [ID.CONSUME_CONDITIONS]: Object.freeze({
@@ -178,7 +177,7 @@ function emitTransferredApplication(
     ...common,
     type: 'condition',
     condition: application.condition,
-    nonDamaging: !DAMAGING_CONDITIONS.has(application.condition)
+    nonDamaging: !isDamagingCondition(application.condition)
   });
 }
 

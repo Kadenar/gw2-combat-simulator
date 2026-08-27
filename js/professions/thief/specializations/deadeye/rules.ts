@@ -1,6 +1,7 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { GW2_STANDARD_BOONS } from '../../../../platform/gw2/combat/state/boons.js';
 import { boonActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { thiefEventSkill, thiefPlayerEvent, thiefRuntimeSpecializationState } from '../../core/rules.js';
@@ -34,20 +35,6 @@ export const deadeyeSchedulerHooks = Object.freeze({
   taskHandlers: deadeyeTaskHandlers
 });
 
-const BOON_KINDS = Object.freeze([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
-]);
 const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
 const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
   ID.MALICIOUS_BACKSTAB,
@@ -55,7 +42,7 @@ const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
 ]);
 
 function activeBoonCount(context: Gw2ModifierContext): number {
-  return BOON_KINDS.filter((boon) => boonActive(context, boon)).length;
+  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
 }
 
 function markedTarget(context: Gw2ModifierContext): boolean {

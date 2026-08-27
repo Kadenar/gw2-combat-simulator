@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { GW2_DAMAGING_CONDITIONS } from '../../../../platform/gw2/combat/state/targets.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -280,7 +281,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       blightGain: 15,
       effects: [
         { type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
-        ...['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment'].map((condition) => ({
+        ...GW2_DAMAGING_CONDITIONS.map((condition) => ({
           type: 'condition',
           condition,
           stacks: 3,

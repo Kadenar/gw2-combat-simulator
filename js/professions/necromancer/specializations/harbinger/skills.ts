@@ -6,6 +6,7 @@
  * makes elite weapon families profession-wide.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
+import { GW2_DAMAGING_CONDITIONS } from '../../../../platform/gw2/combat/state/targets.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
@@ -204,7 +205,7 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     blightGain: 15,
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1 },
-      ...['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment'].map((condition) => ({
+      ...GW2_DAMAGING_CONDITIONS.map((condition) => ({
         type: 'condition' as const,
         condition,
         stacks: 3,

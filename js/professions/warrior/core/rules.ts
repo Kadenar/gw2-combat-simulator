@@ -1,5 +1,6 @@
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
 import {
@@ -73,23 +74,8 @@ function activeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: nu
   return Math.min(maximum, stacks);
 }
 
-const WARRIOR_BOONS = Object.freeze([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
-]);
-
 function activeBoonCount(context: Gw2ModifierContext): number {
-  return WARRIOR_BOONS.filter((boon) => boonActive(context, boon)).length;
+  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
 }
 
 function targetBoonCount(context: Gw2ModifierContext): number {

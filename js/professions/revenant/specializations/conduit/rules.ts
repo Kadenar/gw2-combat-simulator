@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { isDamagingCondition } from '../../../../platform/gw2/combat/state/targets.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -117,7 +118,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'add',
     amount: 0.05,
     when: (context) =>
-      ['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment'].includes(String(context.condition || '')) &&
+      isDamagingCondition(context.condition) &&
       hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
       hasTrait(context, TRAIT.NUMINOUS_GIFT) &&
       !professionStaticRulesApplied(context.config)

@@ -2,6 +2,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 /** Soulbeast resolver-phase reactions and event handlers. */
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
 import type { Gw2TimedBuffApplication } from '../../../../platform/gw2/combat/state/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { RangerResolverContext, RangerResolverEvent } from '../../types.js';
@@ -25,25 +26,11 @@ export function handleSoulbeastModeEvent(context: RangerResolverContext, event: 
 
 // Extends active boon applications in the live boon map; only applications already running at event.at are stretched.
 export function handleRangerBoonExtension(context: RangerResolverContext, event: RangerResolverEvent): void {
-  const boons = new Set([
-    'aegis',
-    'alacrity',
-    'fury',
-    'might',
-    'protection',
-    'quickness',
-    'regeneration',
-    'resistance',
-    'resolution',
-    'stability',
-    'swiftness',
-    'vigor'
-  ]);
   const extension = Math.max(0, Number(event.duration || 0));
   const excluded = String(event.excludedKind || '');
   if (!(extension > 0)) return;
   for (const [kind, applications] of context.boons) {
-    if (!boons.has(kind) || kind === excluded) continue;
+    if (!isStandardBoon(kind) || kind === excluded) continue;
     for (const application of applications) {
       if (application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at) {
         // Cast needed because the runtime type treats expiresAt as readonly after resolution.

@@ -335,7 +335,12 @@ test('profession registry entries conform to the shared contracts', async () => 
 
       for (const effect of skill.effects) {
         if (effect.type !== 'custom') continue;
-        assert.equal(effect.eventType.startsWith(`${entry.id}.`), true, effect.eventType);
+        // Custom effects may materialize a shared engine event directly; only
+        // profession-owned event types require a namespaced runtime handler.
+        const usesSharedEvent = COMMON_EVENT_TYPES.includes(effect.eventType);
+        assert.equal(usesSharedEvent || effect.eventType.startsWith(`${entry.id}.`), true, effect.eventType);
+        if (usesSharedEvent) continue;
+
         const owner =
           skill.specialization &&
           profession.catalog.specializations.some(

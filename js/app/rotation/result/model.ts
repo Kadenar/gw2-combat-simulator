@@ -1,5 +1,5 @@
 import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
-import { durationStackingBoonCapSeconds } from '../../../platform/gw2/combat/state/boons.js';
+import { durationStackingBoonCapSeconds, isStandardBoon } from '../../../platform/gw2/combat/state/boons.js';
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt
@@ -76,21 +76,6 @@ const DURATION_STACK_CAPS: Readonly<Record<string, number>> = {
   Vigor: durationStackingBoonCapSeconds('vigor'),
   Swiftness: durationStackingBoonCapSeconds('swiftness')
 };
-
-const BOON_EFFECTS = new Set([
-  'aegis',
-  'alacrity',
-  'fury',
-  'might',
-  'protection',
-  'quickness',
-  'regeneration',
-  'resistance',
-  'resolution',
-  'stability',
-  'swiftness',
-  'vigor'
-]);
 
 /** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
 function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {
@@ -205,8 +190,7 @@ export function buildChartSeries(result: Gw2SimulationResult, sampleStepMs = 250
   const skillKeyByIdentity = skillDamageKeyByIdentity(result);
   return buildSharedChartSeries(result, sampleStepMs, {
     effectName,
-    effectType: (kind, event) =>
-      event.type === 'condition' ? 'condition' : BOON_EFFECTS.has(String(kind || '').toLowerCase()) ? 'boon' : 'buff',
+    effectType: (kind, event) => (event.type === 'condition' ? 'condition' : isStandardBoon(kind) ? 'boon' : 'buff'),
     replacementGroup: (kind) => (kind === 'guardian-radiant-armaments' ? String(kind) : ''),
     // Relic activation records are the authoritative source for temporary
     // relic state, including refreshes that extend the active window.

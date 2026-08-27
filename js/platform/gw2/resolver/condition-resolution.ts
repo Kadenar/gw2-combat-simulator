@@ -3,7 +3,7 @@ import { enqueueOrdered } from '../../engine/events/queue.js';
 import { conditionTickDamage } from '../combat/damage/condition-formulas.js';
 import { clamp } from '../combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '../combat/state/event-ownership.js';
-import { createPermanentTargetConditionStacks } from '../combat/state/targets.js';
+import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '../combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
@@ -24,8 +24,6 @@ interface CreateGw2ConditionResolutionOptions {
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
 const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
-const ENVIRONMENT_DAMAGING_CONDITIONS = Object.freeze(['Bleeding', 'Burning', 'Poisoned', 'Torment', 'Confusion']);
-
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
  * Successful applications dispatch after state insertion and tick scheduling.
@@ -84,7 +82,7 @@ export function createGw2ConditionResolution({
    */
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
     const startsAt = Number(ctx.combatStartTime ?? 0);
-    for (const condition of ENVIRONMENT_DAMAGING_CONDITIONS) {
+    for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
       if (!(stacks > 0)) continue;
 

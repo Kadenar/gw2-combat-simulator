@@ -1,6 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '../../../platform/gw2/combat/state/boons.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
@@ -417,22 +418,8 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
 export function applyRangerCommandTraits(context: RangerCastContext, skill: RangerSkill): void {
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
-  const boonKinds = new Set([
-    'aegis',
-    'alacrity',
-    'fury',
-    'might',
-    'protection',
-    'quickness',
-    'regeneration',
-    'resistance',
-    'resolution',
-    'stability',
-    'swiftness',
-    'vigor'
-  ]);
   const active = new Map<string, { duration: number; stacks: number }>();
-  for (const kind of boonKinds) {
+  for (const kind of GW2_STANDARD_BOONS) {
     const configured = context.config.boons?.[kind];
     const stacks = kind === 'might' ? Math.min(25, Math.max(0, Number(configured || 0))) : configured ? 1 : 0;
     if (stacks > 0) active.set(kind, { duration: 3600, stacks });
@@ -444,7 +431,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     if (
       event.type !== 'buff' ||
       event.affectsSelf === false ||
-      !boonKinds.has(kind) ||
+      !isStandardBoon(kind) ||
       Number(event.at) > context.effectiveEnd + context.epsilon ||
       !(remaining > 0)
     ) {

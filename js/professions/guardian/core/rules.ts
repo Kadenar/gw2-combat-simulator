@@ -1,6 +1,7 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { attributeProvenance } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
@@ -206,20 +207,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     parameters: { damagePerBoon: 0.005 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      [
-        'aegis',
-        'alacrity',
-        'fury',
-        'might',
-        'protection',
-        'quickness',
-        'regeneration',
-        'resistance',
-        'resolution',
-        'stability',
-        'swiftness',
-        'vigor'
-      ].filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon,
+      GW2_STANDARD_BOONS.filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon,
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
   },
   {
