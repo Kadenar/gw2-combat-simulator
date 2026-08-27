@@ -4,6 +4,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotNecromancerState } from '../state.js';
 import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/combat/state/allied-players.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 /**
  * Life-force resource clock and cast finalization.
  *
@@ -101,17 +102,12 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   });
 }
 
-function selectedSkillNames(context: NecromancerSchedulerContext): readonly string[] {
-  const selected = context.config.selectedSkills;
-  return Array.isArray(selected) ? selected : Object.values(selected || {});
-}
-
 function activeSignetOfUndeath(context: NecromancerSchedulerContext): boolean {
-  return selectedSkillNames(context).includes('Signet of Undeath');
+  return selectedSkillNameSet(context.config.selectedSkills).has('Signet of Undeath');
 }
 
 function activeSignetOfVampirism(context: NecromancerSchedulerContext): boolean {
-  return selectedSkillNames(context).includes('Signet of Vampirism');
+  return selectedSkillNameSet(context.config.selectedSkills).has('Signet of Vampirism');
 }
 
 // Configured party members contribute trigger-only attacks for Vampiric

@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import { engineerEnduranceReadyAt } from './resources.js';
@@ -6,10 +7,9 @@ import { denySkillCast as denyEngineerCast } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '../types.js';
 
-// config.selectedSkills can be an array of names or a slot-keyed object; both normalize to a Set<string>
+// Keep the Engineer-facing helper while the shared build boundary owns supported loadout shapes.
 export function selectedEngineerSkillNames(config: EngineerConfig): Set<string> {
-  const source = config.selectedSkills || [];
-  return new Set((Array.isArray(source) ? source : Object.values(source)).map(String));
+  return new Set(selectedSkillNameSet(config.selectedSkills));
 }
 
 export function engineerCoreCastAvailability(

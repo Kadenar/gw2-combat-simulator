@@ -53,7 +53,6 @@ export interface EngineerConfig extends Gw2Config {
   readonly initialHeat?: number;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
-  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export type EngineerEvolveAttributePool = Readonly<Gw2NumericAttributes>;

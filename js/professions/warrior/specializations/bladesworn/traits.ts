@@ -24,6 +24,7 @@ import {
 } from './dragon-trigger.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
+import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-skills.js';
 import { applyWarriorBurstSpendTraits, grantBerserkersPower } from '../../core/traits.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -612,11 +613,6 @@ const LUSH_FOREST_EXCLUDED_SKILL_IDS = new Set<number>([
   ID.ARTILLERY_SLASH
 ]);
 
-function selectedSkillNames(context: WarriorCastContext): Set<string> {
-  const source = context.config.selectedSkills || [];
-  return new Set((Array.isArray(source) ? source : Object.values(source)).map(String));
-}
-
 function activeWeaponNames(context: WarriorCastContext): Set<string> {
   const secondSet = context.state.activeWeaponSet === 2;
   return new Set(
@@ -644,7 +640,7 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
   }
 
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''))) {
-    const selected = selectedSkillNames(context);
+    const selected = selectedSkillNameSet(context.config.selectedSkills);
     return selected.size === 0 || selected.has(skill.name);
   }
 

@@ -1,5 +1,10 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
+import {
+  normalizeSelectedSkillNames,
+  selectedSkillNameSet,
+  type Gw2SelectedSkillLoadout
+} from '../../../platform/gw2/builds/selected-skills.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
@@ -78,18 +83,14 @@ export function engineerUiSpecialization(context: EngineerUiContext = {}): strin
 }
 
 function selectedNames(context: EngineerUiContext = {}): Set<string> {
-  const source: readonly string[] | Readonly<Record<string, string>> =
-    context.config?.selectedSkills || context.build?.selectedSkills || [];
-  const values = Array.isArray(source) ? source : Object.values(source as Readonly<Record<string, string>>);
-  return new Set(values);
+  return new Set(selectedSkillNameSet(context.config?.selectedSkills || context.build?.selectedSkills));
 }
 
 export function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | undefined)[] {
-  const source: readonly string[] | Readonly<Record<string, string>> =
-    context.config?.selectedSkills || context.build?.selectedSkills || [];
-  if (Array.isArray(source)) return [...source];
-  const slots = source as Readonly<Record<string, string>>;
-  return SKILL_SLOT_ORDER.map((slot) => slots[slot]);
+  const source: Gw2SelectedSkillLoadout = context.config?.selectedSkills || context.build?.selectedSkills || [];
+  if (Array.isArray(source)) return [...normalizeSelectedSkillNames(source)];
+  const slots = source as Readonly<Record<string, unknown>>;
+  return SKILL_SLOT_ORDER.map((slot) => normalizeSelectedSkillNames([slots[slot]])[0]);
 }
 
 export function selectedKitNames(context: EngineerUiContext): string[] {

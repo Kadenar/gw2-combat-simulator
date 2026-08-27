@@ -55,7 +55,6 @@ export interface ThiefConfig extends Gw2Config {
   readonly specialization?: string;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
-  readonly selectedSkills?: readonly (string | Skill)[] | Readonly<Record<string, string | Skill>>;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;

@@ -6,6 +6,7 @@ import {
 } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
+import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-skills.js';
 import { mechanistState } from './state.js';
 import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
@@ -19,7 +20,6 @@ import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/pol
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
   EngineerCastContext,
-  EngineerConfig,
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
@@ -93,15 +93,10 @@ interface MechStrikeOptions {
   readonly basicAttack?: boolean;
 }
 
-function selectedSkillNames(config: EngineerConfig = {}): Set<string> {
-  const selected = config.selectedSkills || [];
-  return new Set((Array.isArray(selected) ? selected : Object.values(selected)).map(String));
-}
-
 // Shift Signet passively applies quickness to the mech, speeding its attacks by
 // the standard 1.5× quickness multiplier only when the player also has quickness.
 function mechAttackRate(context: EngineerSchedulerContext): number {
-  return context.config.boons?.quickness && selectedSkillNames(context.config).has('Shift Signet')
+  return context.config.boons?.quickness && selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet')
     ? engineerBalanceValue(context, PROFILE.attackTiming, 'quicknessCastMultiplier', 1.5)
     : 1;
 }

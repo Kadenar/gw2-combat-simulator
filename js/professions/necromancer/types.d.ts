@@ -40,7 +40,6 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialBlight?: number;
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
-  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 

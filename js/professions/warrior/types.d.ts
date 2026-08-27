@@ -27,7 +27,6 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
 export interface WarriorConfig extends Gw2Config {
   readonly specialization?: string;
   readonly initialResource?: number;
-  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface WarriorCoreState {

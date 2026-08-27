@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type { ElementalistPrecastContext as ElementalistCastContext, ElementalistSchedulerContext } from '../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistCoreState } from './state.js';
@@ -20,16 +21,6 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceVa
 
 function ready(): AvailabilityResult {
   return { ready: true };
-}
-
-function selectedSkillNames(context: ElementalistCastContext): Set<string> {
-  const selected = context.config.selectedSkills;
-  const values = Array.isArray(selected)
-    ? selected
-    : selected && typeof selected === 'object'
-      ? Object.values(selected as Readonly<Record<string, string>>)
-      : [];
-  return new Set(values.map(String));
 }
 
 export function elementalistCoreAvailability(context: ElementalistCastContext, skill: Skill): AvailabilityResult {
@@ -99,7 +90,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   }
 
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.type))) {
-    const selected = selectedSkillNames(context);
+    const selected = selectedSkillNameSet(context.config.selectedSkills);
     // Flipped skills remain selectable through the equipped root without naming specialization-owned chains here.
     const selectedChainSkill = [...selected].some(
       (selectedName) => context.catalog.skillsByName.get(selectedName)?.nextChainId === skill.id

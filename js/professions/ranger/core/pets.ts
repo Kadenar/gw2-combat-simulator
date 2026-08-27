@@ -6,6 +6,7 @@ import {
   gw2SchedulerBoonDuration
 } from '../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type {
   ScheduledTask,
@@ -29,9 +30,7 @@ export function rangerPetCompanionId(context: RangerSchedulerContext | RangerRes
 }
 
 function petHasSelectedSkill(context: RangerSchedulerContext, skillName: string): boolean {
-  const source = context.config.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  return selected.map(String).includes(skillName);
+  return selectedSkillNameSet(context.config.selectedSkills).has(skillName);
 }
 
 // Level-80 Carrion Devourer and Fanged Iboga offensive attributes. Their

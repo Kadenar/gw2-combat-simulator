@@ -8,6 +8,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 
 import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
@@ -58,7 +59,6 @@ import type {
   MesmerRuntime,
   MesmerSchedulerContext,
   MesmerSchedulerTask,
-  MesmerSelectedSkill,
   MesmerShatterResolution,
   MesmerSkill
 } from '../types.js';
@@ -79,17 +79,6 @@ const TASK = Object.freeze({
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /**
- * Normalizes array- and slot-object-shaped selected skill configuration.
- *
- * @param {object} config Mesmer build configuration.
- * @returns {Array<unknown>} Selected skill values.
- */
-function selectedSkillValues(config: MesmerSchedulerContext['config']): MesmerSelectedSkill[] {
-  const selected = config.selectedSkills || [];
-  return Array.isArray(selected) ? selected : Object.values(selected);
-}
-
-/**
  * Resolves Signet of Illusions when it is present in the configured utility
  * loadout.
  *
@@ -99,14 +88,7 @@ function selectedSkillValues(config: MesmerSchedulerContext['config']): MesmerSe
 function equippedSignetOfIllusions(context: MesmerSchedulerContext): MesmerSkill | null {
   const skill = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
   if (!skill) return null;
-  const equipped = selectedSkillValues(context.config).some(
-    (candidate) =>
-      candidate === skill.name ||
-      Number(candidate) === skill.id ||
-      (typeof candidate === 'object' &&
-        candidate !== null &&
-        (candidate.name === skill.name || Number(candidate.id) === skill.id))
-  );
+  const equipped = selectedSkillNameSet(context.config.selectedSkills).has(skill.name);
   return equipped ? skill : null;
 }
 
@@ -1098,12 +1080,12 @@ function thornsStacksAt(time: number): number {
 // Reconcile build-time Mesmer bonuses with live relic stacks, timed trait stacks,
 // and signet cooldowns so panel-visible attributes are neither lost nor doubled.
 export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
-  const selectedSkills = Array.isArray(context.config?.selectedSkills) ? context.config.selectedSkills : [];
+  const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
   const thorns = context.config?.relic === 'Thorns' ? thornsStacksAt(context.time) * 30 : 0;
-  const midnightSelected = selectedSkills.includes('Signet of Midnight');
+  const midnightSelected = selectedSkills.has('Signet of Midnight');
   const midnightBonus = mesmerBalanceValue(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
   const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
-  const dominationSelected = selectedSkills.includes('Signet of Domination');
+  const dominationSelected = selectedSkills.has('Signet of Domination');
   const dominationBonus = mesmerBalanceValue(context, PROFILE.signetOfDomination, 'conditionDamageBonus', 180);
   const domination =
     dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;

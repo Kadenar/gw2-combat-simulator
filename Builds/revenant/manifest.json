@@ -20,19 +20,19 @@
         "label": "Power Alacrity (Sword/Sword)",
         "build": "Builds/revenant/b-power-alac-renegade-sword-sword.json",
         "rotation": "Rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
-        "benchmarkDps": 34305
+        "benchmarkDps": 34298
       },
       {
         "label": "Condition (Shortbow - Mace/Axe)",
         "build": "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 41462
+        "benchmarkDps": 41440
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
         "build": "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 41296
+        "benchmarkDps": 41295
       }
     ]
   },

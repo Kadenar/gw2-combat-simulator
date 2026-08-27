@@ -1,4 +1,5 @@
 import { clamp } from '../numeric.js';
+import { selectedSkillNameSet } from '../../builds/selected-skills.js';
 import { CANONICAL_TARGET_CONDITIONS, canonicalTargetConditionName, targetHasCondition } from '../state/targets.js';
 import { remainingTargetHealthFraction } from '../state/target-health.js';
 import type { Skill, SkillId } from '../../../engine/types.js';
@@ -18,14 +19,6 @@ interface RuntimeSkillCatalog<TSkill extends Skill> {
   };
 }
 
-function selectedSkillName(value: unknown): string {
-  if (value && typeof value === 'object' && 'name' in value) {
-    return String((value as { readonly name?: unknown }).name ?? value);
-  }
-
-  return String(value);
-}
-
 /** Resolves the current event's catalog skill across every supported modifier-context skill-id path. */
 export function eventSkill<TSkill extends Skill>(context: Gw2ModifierContext): TSkill | undefined {
   const event = context.event as RuntimeSkillEvent | null | undefined;
@@ -37,13 +30,7 @@ export function eventSkill<TSkill extends Skill>(context: Gw2ModifierContext): T
 
 /** Normalizes array and slot-record loadouts, including legacy embedded skill objects, into skill names. */
 export function selectedSkillNames(context: Gw2ModifierContext): ReadonlySet<string> {
-  const selected = context.config?.selectedSkills;
-  const values = Array.isArray(selected)
-    ? selected
-    : selected && typeof selected === 'object'
-      ? Object.values(selected as Readonly<Record<string, unknown>>)
-      : [];
-  return new Set(values.map(selectedSkillName));
+  return selectedSkillNameSet(context.config?.selectedSkills);
 }
 
 /** Tests a selected skill name without exposing the persisted loadout's array-or-record shape. */

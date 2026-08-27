@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
  *
@@ -938,9 +939,8 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
 // scheduler target, respecting the signet's active cooldown window.
 export function advanceWarriorTraits(context: WarriorSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  const selectedSkills = context.config.selectedSkills || [];
-  const selected = Array.isArray(selectedSkills) ? selectedSkills : Object.values(selectedSkills);
-  if (selected.map(String).includes('Signet of Rage')) {
+  const selected = selectedSkillNameSet(context.config.selectedSkills);
+  if (selected.has('Signet of Rage')) {
     while (state.signetOfRageNextAt > 0 && state.signetOfRageNextAt <= target + context.epsilon) {
       const at = state.signetOfRageNextAt;
       const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);

@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from './state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -142,9 +143,8 @@ function selectedSlotSkillGate(context: NecromancerPrecastContext, skill: Necrom
     return null;
   }
 
-  const source = context.config?.selectedSkills || [];
-  const selected = Array.isArray(source) ? source : Object.values(source);
-  if (!selected.length || selected.includes(skill.name)) return null;
+  const selected = selectedSkillNameSet(context.config?.selectedSkills);
+  if (selected.size === 0 || selected.has(skill.name)) return null;
   return deny(skill, 'necromancer.slot-skill', 'the skill is not equipped.');
 }
 

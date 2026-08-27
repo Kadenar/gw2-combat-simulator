@@ -1,6 +1,7 @@
 /** Owns the simulation/config.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SchedulerRecord, SimulationRandomnessConfig } from '../../engine/types.js';
 import type { Gw2AttributeProvenance } from '../builds/types.js';
+import type { Gw2SelectedSkillLoadout } from '../builds/selected-skills.js';
 import type { Gw2TargetConfig } from '../combat/state/types.js';
 import type { Gw2SigilSet, Gw2Stats } from '../equipment/types.js';
 
@@ -19,6 +20,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly weaponSet2Secondary?: string;
   readonly sigilSets?: readonly Gw2SigilSet[];
   readonly selectedTraitIds?: readonly (string | number)[];
+  readonly selectedSkills?: Gw2SelectedSkillLoadout;
   readonly relic?: string;
   readonly food?: string;
   readonly timeOfDay?: 'day' | 'night';

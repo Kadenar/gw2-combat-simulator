@@ -1,4 +1,5 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
+import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
 /**
  * Summoned-elemental subsystem for Glyph of Elementals (Fire / Earth).
  *
@@ -88,21 +89,10 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
     : retryCast(retryAt, 'elementalist.summoned-elemental', reason);
 }
 
-// Normalizes the loadout's selectedSkills (array or keyed object) into a name set.
-function selectedSkillNames(context: ElementalistSchedulerContext): ReadonlySet<string> {
-  const selected = context.config.selectedSkills;
-  const values = Array.isArray(selected)
-    ? selected
-    : selected && typeof selected === 'object'
-      ? Object.values(selected as Readonly<Record<string, string>>)
-      : [];
-  return new Set(values.map(String));
-}
-
 // Which elemental the loadout has slotted (drives auto-summon). Bare "Glyph of
 // Elementals" is treated as the Fire variant.
 function selectedElemental(context: ElementalistSchedulerContext): ElementalKind | null {
-  const selected = selectedSkillNames(context);
+  const selected = selectedSkillNameSet(context.config.selectedSkills);
   if (selected.has('Glyph of Elementals (Earth)')) return 'Earth';
   if (selected.has('Glyph of Elementals') || selected.has('Glyph of Elementals (Fire)')) {
     return 'Fire';

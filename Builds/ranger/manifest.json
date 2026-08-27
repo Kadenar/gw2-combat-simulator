@@ -18,14 +18,14 @@
         "label": "Power (Hammer / Axe-Axe)",
         "build": "Builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "Rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
-        "benchmarkDps": 43098,
+        "benchmarkDps": 43147,
         "upToDate": true
       },
       {
         "label": "Power (Hammer / Sword-Axe)",
         "build": "Builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "Rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
-        "benchmarkDps": 42680,
+        "benchmarkDps": 42679,
         "dpsReportUrl": "https://dps.report/pGzS-20260718-125337_golem",
         "upToDate": true
       }

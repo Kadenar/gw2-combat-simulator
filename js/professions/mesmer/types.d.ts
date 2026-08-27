@@ -21,6 +21,7 @@ import type {
   SkillId
 } from '../../platform/engine/types.js';
 import type { Gw2Build, Gw2BuildAttributeRuleContext, Gw2CanonicalBuild } from '../../platform/gw2/builds/types.js';
+import type { Gw2SelectedSkillValue } from '../../platform/gw2/builds/selected-skills.js';
 import type { Gw2Config } from '../../platform/gw2/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../platform/gw2/resolver/types.js';
 import type { Gw2CriticalResult } from '../../platform/gw2/combat/query/types.js';
@@ -54,7 +55,7 @@ export interface MesmerBuildAttributeRuleContext extends Omit<Gw2BuildAttributeR
   readonly build: MesmerBuild;
 }
 
-export type MesmerSelectedSkill = SkillId | Skill;
+export type MesmerSelectedSkill = Gw2SelectedSkillValue;
 
 /**
  * Prepared Mesmer scheduler configuration. The scheduler always has an active
@@ -68,7 +69,6 @@ export interface MesmerConfig extends Gw2Config {
   readonly initialResource?: number;
   readonly infiniteForge?: boolean;
   readonly weaponmasterTraining?: boolean;
-  readonly selectedSkills?: readonly MesmerSelectedSkill[] | Readonly<Record<string, MesmerSelectedSkill>>;
   readonly selectedTraitIds?: readonly SkillId[];
 }
 

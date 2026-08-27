@@ -15,7 +15,7 @@
         "build": "Builds/elementalist/b-power-weaver-spear.json",
         "rotation": "Rotations/elementalist/r-power-weaver-spear.json",
         "dpsReportUrl": "https://dps.report/WFtY-20260414-233745_golem",
-        "benchmarkDps": 40344,
+        "benchmarkDps": 40341,
         "upToDate": true
       },
       {
@@ -76,7 +76,7 @@
         "build": "Builds/elementalist/b-power-tempest-spear.json",
         "rotation": "Rotations/elementalist/r-power-tempest-spear.json",
         "dpsReportUrl": "https://dps.report/Xrj5-20260415-121634_golem",
-        "benchmarkDps": 42366,
+        "benchmarkDps": 42195,
         "upToDate": true
       },
       {
@@ -114,7 +114,7 @@
         "build": "Builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/B38a-20260414-224425_golem",
-        "benchmarkDps": 41972,
+        "benchmarkDps": 42135,
         "upToDate": true
       },
       {

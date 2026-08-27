@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-skills.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -26,7 +27,7 @@ import {
 import { engineerMechAttributes } from './state.js';
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
-import type { EngineerConfig, EngineerRechargeContext } from '../../types.js';
+import type { EngineerRechargeContext } from '../../types.js';
 
 export const mechanistSchedulerHooks = Object.freeze({
   initialize: {
@@ -71,11 +72,6 @@ function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
 
 function jDriveSignet(context: Gw2ModifierContext, name: string): boolean {
   return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) && selectedSignet(context, name);
-}
-
-function configuredSkillNames(config: EngineerConfig | undefined): Set<string> {
-  const selected = config?.selectedSkills || [];
-  return new Set((Array.isArray(selected) ? selected : Object.values(selected)).map(String));
 }
 
 export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -166,7 +162,7 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
     const overclockReadyAt = Number(context.state?.cooldowns?.get(ID.OVERCLOCK_SIGNET) || 0);
     const jDrive = hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
     if (
-      configuredSkillNames(context.config).has('Overclock Signet') &&
+      selectedSkillNameSet(context.config?.selectedSkills).has('Overclock Signet') &&
       (jDrive || overclockReadyAt <= Number(context.start || 0))
     ) {
       // J-Drive stacks its own 5% reduction on top of Overclock Signet's 20%,

@@ -67,7 +67,6 @@ export interface ElementalistConfig extends Gw2Config {
   readonly initialEvokerCharges?: number;
   readonly initialEvokerEmpowered?: number;
   readonly pistolBullets?: Readonly<Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>>;
-  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface ElementalistRuntimeState {

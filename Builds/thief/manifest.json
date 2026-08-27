@@ -51,7 +51,7 @@
         "label": "Condition (Scepter / Dagger)",
         "build": "Builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "Rotations/thief/r-condi-specter-scepter-dagger-bench.json",
-        "benchmarkDps": 36327,
+        "benchmarkDps": 36368,
         "upToDate": true
       }
     ]

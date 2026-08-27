@@ -1,6 +1,7 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
+import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-skills.js';
 import { antiquaryState } from './state.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
@@ -89,12 +90,7 @@ function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): voi
   if (!hasTrait(context.config, TRAIT.IMPROVISATION)) return;
   const state = antiquaryState.from(context);
   if (!isInternalCooldownReady(at, Number(state.improvisationReadyAt || 0))) return;
-  const selected = context.config.selectedSkills || [];
-  const selectedNames = new Set(
-    (Array.isArray(selected) ? selected : Object.values(selected))
-      .map((value) => (typeof value === 'string' ? value : value?.name))
-      .filter(Boolean)
-  );
+  const selectedNames = selectedSkillNameSet(context.config.selectedSkills);
   for (const name of selectedNames) {
     const skill = context.catalog.skillsByName.get(name);
     if (skill?.type !== 'Utility') continue;

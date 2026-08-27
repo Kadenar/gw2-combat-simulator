@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { CAST_READY, denyCast, retryCast } from '../../../../platform/engine/skills/availability.js';
+import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-skills.js';
 import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
 import { firebrandState } from './state.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
@@ -49,14 +50,9 @@ const MANTRA_BY_NORMAL_ID = new Map(MANTRAS.map((definition) => [definition.norm
 const MANTRA_BY_FINAL_ID = new Map(MANTRAS.map((definition) => [definition.finalId, definition]));
 
 function selectedMantras(context: GuardianSchedulerContext): readonly MantraDefinition[] {
-  const configured = context.config.selectedSkills;
+  const names = selectedSkillNameSet(context.config.selectedSkills);
   // No configured list means "all mantras are equipped"; default to the full set.
-  if (!Array.isArray(configured) || configured.length === 0) return MANTRAS;
-  const names = new Set(
-    configured.map((skill) =>
-      typeof skill === 'string' ? skill : String((skill as { readonly name?: string })?.name || '')
-    )
-  );
+  if (names.size === 0) return MANTRAS;
   return MANTRAS.filter((definition) => names.has(definition.rootName));
 }
 
