@@ -2,6 +2,7 @@ import { vindicatorState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { playerHealthFraction } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
@@ -13,7 +14,7 @@ import {
 import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { revenantCombatActive } from '../../core/legend.js';
-import { revenantPlayer, revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../core/rules.js';
+import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../core/rules.js';
 import { completeVindicatorDodge } from './dodge.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from './skills.js';
 import { modifyVindicatorCastDuration, modifyVindicatorRechargeDuration } from './traits.js';
@@ -42,7 +43,9 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      revenantPlayer(context) && hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) && enduranceNotFull(context)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) &&
+      enduranceNotFull(context)
   },
   {
     id: 'revenant.forerunner-of-death',
@@ -51,7 +54,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'damage-additive',
     amount: 0.25,
     when: (context) =>
-      revenantPlayer(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
       // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
       (context.event?.forerunnerOfDeathActive != null

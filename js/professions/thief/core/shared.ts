@@ -35,7 +35,9 @@ export function gainThiefInitiative(context: ThiefSchedulerContext, amount: numb
 
 export function gainThiefEndurance(context: ThiefSchedulerContext, amount: number, at: number, reason: string): void {
   const state = professionCoreState(context);
-  Object.assign(state, grantEndurance(state, Number(amount || 0), at, state.maximumEndurance));
+  // Preserve the regeneration anchor because completion-time grants run before
+  // the scheduler advances passive endurance through the completed cast.
+  Object.assign(state, grantEndurance(state, Number(amount || 0), state.enduranceUpdatedAt, state.maximumEndurance));
   // Record the updated resource immediately so downstream observers see the same scheduler state.
   emitStateSnapshot(context, {
     type: 'thief.state',

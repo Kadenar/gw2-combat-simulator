@@ -2,7 +2,7 @@ import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.j
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { playerHealthFraction, targetHealthFraction } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -195,7 +195,7 @@ export function soulbeastCastAvailability(context: RangerPrecastContext, skill: 
   return { ready: true };
 }
 
-// Soulbeast player modifiers follow outgoing ownership while merged-pet state remains a separate prerequisite.
+// Soulbeast player modifiers retain legacy effect eligibility while merged-pet state remains a separate prerequisite.
 export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'ranger.loud-whistle-player',
@@ -203,7 +203,9 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      beastmodeActive(context) &&
+      hasTrait(context, TRAIT.LOUD_WHISTLE)
   },
   {
     id: 'ranger.furious-strength',

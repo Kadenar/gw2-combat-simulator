@@ -1,13 +1,13 @@
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState,
   cloneEngineerAttributes,
-  eventSkill,
-  playerStrike
+  eventSkill
 } from '../../core/rule-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '../../core/rules.js';
 import { engineerBalanceValue } from '../../core/profiles.js';
@@ -44,7 +44,7 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 ] as const);
 
 function morphStrike(context: Gw2ModifierContext): boolean {
-  return Boolean(playerStrike(context) && eventSkill(context)?.categories?.includes('Morph'));
+  return Boolean(isGw2PlayerModifierEligibleEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
 }
 
 export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -54,7 +54,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      playerStrike(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.WILLING_HOST) &&
       activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
   },
@@ -71,7 +71,8 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.07,
     when: (context) =>
-      playerStrike(context) && activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
   },
   {
     id: 'engineer.carbolic-composition-duration',

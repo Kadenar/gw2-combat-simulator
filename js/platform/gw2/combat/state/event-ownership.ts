@@ -78,6 +78,15 @@ export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventInpu
 }
 
 /**
+ * Preserves profession-modifier compatibility for legacy effect packets that
+ * predate ownerActorType. An explicit owner always remains authoritative.
+ */
+export function isGw2PlayerModifierEligibleEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
+  if (event?.ownerActorType != null) return isGw2PlayerModifierOwnedEvent(event);
+  return isGw2PlayerModifierOwnedEvent(event) || gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.EFFECT;
+}
+
+/**
  * Identifies effect-owned damage that must not inherit a weapon profile from
  * the cast which triggered it. Source matching preserves compatibility for
  * older events without canonical actor ownership.

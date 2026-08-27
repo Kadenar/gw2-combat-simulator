@@ -1,6 +1,6 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
@@ -28,11 +28,6 @@ import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
   return eventSkill(context);
-}
-
-export function thiefPlayerEvent(context: Gw2ModifierContext): boolean {
-  // Thief player modifiers use outgoing ownership so unknown and environment actors cannot inherit them.
-  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
@@ -85,7 +80,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       damagePerCondition: 0.02
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
   },
   {
     id: 'thief.vampiric-slash-vulnerable',
@@ -93,7 +88,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.5,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       context.event?.name === 'Vampiric Slash — Life Siphon' &&
       thiefTargetHasCondition(context, 'Vulnerability')
   },
@@ -103,7 +98,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.EXECUTIONER) && thiefTargetHealthFraction(context) < 0.5
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, TRAIT.EXECUTIONER) &&
+      thiefTargetHealthFraction(context) < 0.5
   },
   {
     id: 'thief.ferocious-strikes',
@@ -111,7 +108,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
       thiefTargetHealthFraction(context) > 0.5
   },
@@ -120,7 +117,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     factor: 1.07,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.TWIN_FANGS)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
   },
   {
     id: 'thief.twin-fangs-critical-chance',
@@ -128,7 +125,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'add',
     amount: 0.07,
     when: (context) =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.TWIN_FANGS) && Boolean(context.config?.target?.defiant)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, TRAIT.TWIN_FANGS) &&
+      Boolean(context.config?.target?.defiant)
   },
   {
     id: 'thief.deadly-aim',
@@ -136,7 +135,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.DEADLY_AIM) && thiefEventSkill(context)?.weapon === 'Pistol'
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, TRAIT.DEADLY_AIM) &&
+      thiefEventSkill(context)?.weapon === 'Pistol'
   },
   {
     id: 'thief.larcenous-strike-boonless',
@@ -144,7 +145,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      thiefPlayerEvent(context) && thiefEventSkill(context)?.name === 'Larcenous Strike' && targetBoonless(context)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      thiefEventSkill(context)?.name === 'Larcenous Strike' &&
+      targetBoonless(context)
   },
   {
     id: 'thief.lead-attacks',
@@ -157,7 +160,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     amount: (context, _target, parameters) =>
       Math.min(parameters.maximumStacks, Number(thiefRuntimeState(context).leadAttacksStacks || 0)) *
       parameters.damagePerStack,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.LEAD_ATTACKS)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.LEAD_ATTACKS)
   },
   {
     id: 'thief.fluid-strikes',
@@ -165,7 +168,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.FLUID_STRIKES) &&
       Number(thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
   },
@@ -175,7 +178,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      thiefPlayerEvent(context) && Number(thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      Number(thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
   },
   {
     id: 'thief.backstab-position',
@@ -183,7 +187,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 2,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       thiefEventSkill(context)?.id === ID.BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
@@ -193,7 +197,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.33,
     when: (context) =>
-      thiefPlayerEvent(context) && context.event?.condition === 'Poisoned' && hasTrait(context, TRAIT.POTENT_POISON)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      context.event?.condition === 'Poisoned' &&
+      hasTrait(context, TRAIT.POTENT_POISON)
   },
   {
     id: 'thief.deadly-ambush-bleeding',
@@ -201,7 +207,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.25,
     when: (context) =>
-      thiefPlayerEvent(context) && context.event?.condition === 'Bleeding' && hasTrait(context, TRAIT.DEADLY_AMBUSH)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      context.event?.condition === 'Bleeding' &&
+      hasTrait(context, TRAIT.DEADLY_AMBUSH)
   },
   {
     id: 'thief.potent-poison-duration',
@@ -219,7 +227,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.KEEN_OBSERVER)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
   },
   {
     id: 'thief.hidden-killer',
@@ -229,7 +237,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) => {
       const state = thiefRuntimeState(context);
       return (
-        thiefPlayerEvent(context) &&
+        isGw2PlayerModifierEligibleEvent(context.event) &&
         hasTrait(context, TRAIT.HIDDEN_KILLER) &&
         (Number(state.stealthUntil || 0) > context.time || Number(state.revealedUntil || 0) + 1 > context.time)
       );

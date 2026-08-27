@@ -1,7 +1,8 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { engineerSpecializationState, playerStrike } from '../../core/rule-helpers.js';
+import { engineerSpecializationState } from '../../core/rule-helpers.js';
 import { holosmithCastAvailability } from './availability.js';
 import { holosmithEventMetadata, holosmithEventStrikeFactor } from './heat-tiers.js';
 import {
@@ -85,7 +86,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) => {
       const state = engineerSpecializationState(context, 'Holosmith');
       return (
-        playerStrike(context) &&
+        isGw2PlayerModifierEligibleEvent(context.event) &&
         hasTrait(context, TRAIT.LASERS_EDGE) &&
         (Boolean(state.photonForgeActive) ||
           (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
@@ -100,7 +101,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      playerStrike(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) &&
       holosmithEventMetadata(context.event).solarFocusingLens === true
   },
@@ -113,7 +114,8 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     // either a delayed packet's captured factor or a direct packet's live profile tier.
     factor: (context, _target, parameters) =>
       holosmithEventStrikeFactor(context, context.event || {}, parameters.defaultFactor),
-    when: (context) => playerStrike(context) && holosmithEventStrikeFactor(context, context.event || {}) > 1
+    when: (context) =>
+      isGw2PlayerModifierEligibleEvent(context.event) && holosmithEventStrikeFactor(context, context.event || {}) > 1
   }
 ]);
 

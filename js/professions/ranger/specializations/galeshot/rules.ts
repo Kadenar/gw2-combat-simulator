@@ -1,6 +1,6 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
@@ -198,7 +198,7 @@ function eventSkillId(context: Gw2ModifierContext): number {
   return Number(context.event?.skillId ?? context.skillId);
 }
 
-// Galeshot player modifiers use outgoing ownership without changing explicit pet-only branches.
+// Galeshot player modifiers retain legacy effect eligibility without changing explicit pet-only branches.
 export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'ranger.bird-of-prey',
@@ -206,7 +206,7 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.BIRD_OF_PREY) &&
       Boolean(context.config?.boons?.swiftness)
   },
@@ -220,7 +220,7 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) => galeForceAmount(context, parameters),
     when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.GALE_FORCE) &&
       (Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
   },

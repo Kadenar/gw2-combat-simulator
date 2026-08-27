@@ -1,13 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import {
   activeBoonStacks,
   eventSkill as gw2EventSkill,
   playerHealthFraction,
-  selectedSkillNames as gw2SelectedSkillNames,
   targetConditionCount,
-  targetHealthFraction,
-  vulnerabilityStacks
+  targetHealthFraction
 } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext } from '../../../platform/gw2/combat/modifiers/types.js';
@@ -42,21 +39,9 @@ export function engineerSpecializationState(context: Gw2ModifierContext, expecte
 // Preserve the profession helper surface while delegating GW2-wide queries to the shared runtime layer.
 export { activeBoonStacks, playerHealthFraction, targetConditionCount, targetHealthFraction };
 
-export function vulnerability(context: Gw2ModifierContext): number {
-  return vulnerabilityStacks(context);
-}
-
-// Player-only modifiers follow outgoing ownership; turrets, mechs, and unowned effects remain excluded.
-export function playerStrike(context: Gw2ModifierContext): boolean {
-  return isGw2PlayerModifierOwnedEvent(context.event);
-}
-
+// Narrow the shared generic lookup once so Engineer rules can read Engineer-only skill metadata without casts.
 export function eventSkill(context: Gw2ModifierContext): EngineerSkill | undefined {
   return gw2EventSkill<EngineerSkill>(context);
-}
-
-export function selectedSkillNames(context: Gw2ModifierContext): Set<string> {
-  return new Set(gw2SelectedSkillNames(context));
 }
 
 // Heavy Metal bonus scales with target health — higher bonus at lower health thresholds

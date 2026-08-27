@@ -2,6 +2,7 @@ import { materializeSkillEffectApplications } from '../../../../platform/engine/
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -9,7 +10,6 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
 import {
-  revenantPlayer,
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
   revenantTargetHasCondition,
@@ -54,7 +54,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      revenantPlayer(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.HEARTPIERCER) &&
       revenantTargetHasCondition(context, 'Bleeding')
   },
@@ -64,7 +64,9 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.25,
     when: (context) =>
-      revenantPlayer(context) && context.condition === 'Bleeding' && hasTrait(context, TRAIT.HEARTPIERCER)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      context.condition === 'Bleeding' &&
+      hasTrait(context, TRAIT.HEARTPIERCER)
   },
   {
     id: 'revenant.kallas-fervor-strike',
@@ -80,7 +82,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => revenantPlayer(context) && kallasFervorStacks(context) > 0
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && kallasFervorStacks(context) > 0
   },
   {
     id: 'revenant.kallas-fervor-condition',
@@ -96,7 +98,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => revenantPlayer(context) && kallasFervorStacks(context) > 0
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && kallasFervorStacks(context) > 0
   },
   {
     id: 'revenant.blood-fury-bleeding-duration',

@@ -4,8 +4,10 @@ import test from 'node:test';
 import { elementalistCoreModifierRules } from '../../js/professions/elementalist/core/modifiers.js';
 import { weaverModifierRules } from '../../js/professions/elementalist/specializations/weaver/modifiers.js';
 import { ENGINEER_TRAIT_IDS } from '../../js/professions/engineer/data/ids.js';
-import { playerStrike } from '../../js/professions/engineer/core/rule-helpers.js';
-import { applyEngineerSharpshooterConditionDamage } from '../../js/professions/engineer/core/rules.js';
+import {
+  applyEngineerSharpshooterConditionDamage,
+  engineerCoreModifierRules
+} from '../../js/professions/engineer/core/rules.js';
 import { amalgamModifierRules } from '../../js/professions/engineer/specializations/amalgam/rules.js';
 import { modifyNecromancerCoreAttributes } from '../../js/professions/necromancer/core/rules.js';
 import { reaperModifierRules } from '../../js/professions/necromancer/specializations/reaper/rules.js';
@@ -13,15 +15,17 @@ import { RANGER_TRAIT_IDS } from '../../js/professions/ranger/data/ids.js';
 import { rangerCoreModifierRules } from '../../js/professions/ranger/core/rules.js';
 import { galeshotModifierRules } from '../../js/professions/ranger/specializations/galeshot/rules.js';
 import { soulbeastModifierRules } from '../../js/professions/ranger/specializations/soulbeast/rules.js';
-import { revenantPlayer } from '../../js/professions/revenant/core/rules.js';
-import { thiefPlayerEvent } from '../../js/professions/thief/core/rules.js';
+import { REVENANT_TRAIT_IDS } from '../../js/professions/revenant/data/ids.js';
+import { revenantCoreModifierRules } from '../../js/professions/revenant/core/rules.js';
+import { THIEF_TRAIT_IDS } from '../../js/professions/thief/data/ids.js';
+import { thiefCoreModifierRules } from '../../js/professions/thief/core/rules.js';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],
   ['legacy player source', { source: 'Player' }, true],
   ['player-owned effect', { actorType: 'effect', ownerActorType: 'player' }, true],
   ['explicitly player-owned summon', { actorType: 'summon', ownerActorType: 'player' }, true],
-  ['unowned effect', { actorType: 'effect' }, false],
+  ['legacy unowned effect', { actorType: 'effect' }, true],
   ['summon-owned effect', { actorType: 'effect', ownerActorType: 'summon' }, false],
   ['environment actor', { actorType: 'environment' }, false],
   ['unknown actor', { actorType: 'unknown' }, false],
@@ -41,6 +45,9 @@ const soulbeastLoudWhistle = modifierRule(soulbeastModifierRules, 'ranger.loud-w
 const galeshotBirdOfPrey = modifierRule(galeshotModifierRules, 'ranger.bird-of-prey');
 const amalgamWillingHost = modifierRule(amalgamModifierRules, 'engineer.willing-host');
 const reaperShout = modifierRule(reaperModifierRules, 'necromancer.reaper-shout-melee');
+const engineerHighCaliber = modifierRule(engineerCoreModifierRules, 'engineer.high-caliber');
+const revenantFerociousAggression = modifierRule(revenantCoreModifierRules, 'revenant.ferocious-aggression');
+const thiefExposedWeakness = modifierRule(thiefCoreModifierRules, 'thief.exposed-weakness');
 
 const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   ['Elementalist core', (event) => elementalistStormsoul.when({ time: 1, event, traits: new Set(['Stormsoul']) })],
@@ -54,7 +61,10 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
         query: { targetHasCondition: () => true }
       })
   ],
-  ['Engineer core', (event) => playerStrike({ time: 1, event })],
+  [
+    'Engineer core',
+    (event) => engineerHighCaliber.when({ time: 1, event, traits: new Set([ENGINEER_TRAIT_IDS.HIGH_CALIBER]) })
+  ],
   [
     'Engineer Sharpshooter',
     (event) => {
@@ -126,13 +136,25 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
         config: { boons: { swiftness: true } }
       })
   ],
-  ['Revenant', (event) => revenantPlayer({ time: 1, event })],
-  ['Thief', (event) => thiefPlayerEvent({ time: 1, event })]
+  [
+    'Revenant',
+    (event) =>
+      revenantFerociousAggression.when({
+        time: 1,
+        event,
+        traits: new Set([REVENANT_TRAIT_IDS.FEROCIOUS_AGGRESSION]),
+        config: { boons: { fury: true } }
+      })
+  ],
+  [
+    'Thief',
+    (event) => thiefExposedWeakness.when({ time: 1, event, traits: new Set([THIEF_TRAIT_IDS.EXPOSED_WEAKNESS]) })
+  ]
 ]);
 
 // Each selected rule has only its non-ownership prerequisites enabled so these cases isolate attribution behavior.
 for (const [profession, predicate] of PLAYER_MODIFIER_PREDICATES) {
-  test(`${profession} player modifiers use canonical event ownership`, () => {
+  test(`${profession} player modifiers use compatible event ownership`, () => {
     for (const [label, event, expected] of OWNERSHIP_CASES) {
       assert.equal(Boolean(predicate(event)), expected, label);
     }

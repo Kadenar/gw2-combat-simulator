@@ -3,13 +3,7 @@ import { selectedSkillNameSet } from '../../../../platform/gw2/builds/selected-s
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/combat/query/runtime-rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import {
-  activeBoonStacks,
-  cloneEngineerAttributes,
-  engineerEvent,
-  eventSkill,
-  selectedSkillNames
-} from '../../core/rule-helpers.js';
+import { activeBoonStacks, cloneEngineerAttributes, engineerEvent, eventSkill } from '../../core/rule-helpers.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS,
   engineerBalanceProfile,
@@ -67,7 +61,8 @@ function engineerMechEvent(context: Gw2ModifierContext): boolean {
 }
 
 function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
-  return selectedSkillNames(context).has(name);
+  // Mechanist signet checks use the platform loadout normalizer directly.
+  return selectedSkillNameSet(context.config?.selectedSkills).has(name);
 }
 
 function jDriveSignet(context: Gw2ModifierContext, name: string): boolean {

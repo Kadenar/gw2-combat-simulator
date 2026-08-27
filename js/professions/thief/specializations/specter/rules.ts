@@ -1,10 +1,10 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
-import { thiefPlayerEvent } from '../../core/rules.js';
 import { specterCastAvailability } from './availability.js';
 import { advanceSpecterResources, spendSpecterResources } from './shroud.js';
 import { specterState } from './state.js';
@@ -88,7 +88,7 @@ export const specterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.2,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS) &&
       context.event?.condition === 'Torment'
   }

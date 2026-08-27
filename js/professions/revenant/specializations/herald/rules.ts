@@ -3,12 +3,13 @@ import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isStandardBoon } from '../../../../platform/gw2/combat/state/boons.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
-import { revenantActiveBoonCount, revenantPlayer, revenantTimedBuff } from '../../core/rules.js';
+import { revenantActiveBoonCount, revenantTimedBuff } from '../../core/rules.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -49,7 +50,7 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
     amount: (context) => revenantActiveBoonCount(context) * 0.01,
-    when: (context) => revenantPlayer(context) && hasTrait(context, TRAIT.REINFORCED_POTENCY)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.REINFORCED_POTENCY)
   }
 ]);
 

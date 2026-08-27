@@ -1,14 +1,10 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import {
-  thiefPlayerEvent,
-  thiefRuntimeState,
-  thiefRuntimeSpecializationState,
-  thiefTargetHasCondition
-} from '../../core/rules.js';
+import { thiefRuntimeState, thiefRuntimeSpecializationState, thiefTargetHasCondition } from '../../core/rules.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { DaredevilState, ThiefSchedulerContext } from '../../types.js';
 import { daredevilCastAvailability } from './availability.js';
@@ -57,7 +53,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.1,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.WEAKENING_STRIKES) &&
       thiefTargetHasCondition(context, 'Weakness')
   },
@@ -67,7 +63,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
       // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
       Number(thiefRuntimeState(context).endurance || 0) < Number(thiefRuntimeState(context).maximumEndurance || 100)
@@ -78,7 +74,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.BOUNDING_DODGER) &&
       Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) >
         context.time
@@ -89,7 +85,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.LOTUS_TRAINING) &&
       Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
         context.time

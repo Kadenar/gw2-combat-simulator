@@ -1,5 +1,5 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
@@ -22,11 +22,6 @@ export function elementalistAttunements(context: Gw2ModifierContext): Set<string
 
 function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement | string {
   return coreState(context).primaryAttunement || String(context.config?.startAttunement || 'Fire');
-}
-
-function playerEvent(context: Gw2ModifierContext): boolean {
-  // Player-only modifiers follow outgoing ownership so explicitly owned effects inherit them safely.
-  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 function eventWeapon(context: Gw2ModifierContext): string {
@@ -105,28 +100,33 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: 1.07,
     when: (context) =>
-      playerEvent(context) && hasTrait(context, "Pyromancer's Training") && targetHas(context, 'Burning')
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, "Pyromancer's Training") &&
+      targetHas(context, 'Burning')
   },
   {
     id: 'elementalist.serrated-stones',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.05,
-    when: (context) => playerEvent(context) && hasTrait(context, 'Serrated Stones') && targetHas(context, 'Bleeding')
+    when: (context) =>
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, 'Serrated Stones') &&
+      targetHas(context, 'Bleeding')
   },
   {
     id: 'elementalist.stormsoul',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.07,
-    when: (context) => playerEvent(context) && hasTrait(context, 'Stormsoul')
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, 'Stormsoul')
   },
   {
     id: 'elementalist.flow-like-water',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.1,
-    when: (context) => playerEvent(context) && hasTrait(context, 'Flow like Water')
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, 'Flow like Water')
   },
   {
     id: 'elementalist.bolt-to-the-heart',
@@ -134,7 +134,9 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: 1.2,
     when: (context) =>
-      playerEvent(context) && hasTrait(context, 'Bolt to the Heart') && targetHealthFraction(context) <= 0.5
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, 'Bolt to the Heart') &&
+      targetHealthFraction(context) <= 0.5
   },
   {
     id: 'elementalist.piercing-shards',
@@ -144,14 +146,16 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     factor: (context, _target, parameters) =>
       primaryAttunement(context) === 'Water' ? parameters.waterFactor : parameters.otherFactor,
     when: (context) =>
-      playerEvent(context) && hasTrait(context, 'Piercing Shards') && targetHas(context, 'Vulnerability')
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, 'Piercing Shards') &&
+      targetHas(context, 'Vulnerability')
   },
   {
     id: 'elementalist.zephyrs-speed-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.05,
-    when: (context) => playerEvent(context) && hasTrait(context, "Zephyr's Speed")
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, "Zephyr's Speed")
   },
   {
     id: 'elementalist.electric-discharge-critical-damage',

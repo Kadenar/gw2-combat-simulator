@@ -1,7 +1,7 @@
 import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
@@ -119,7 +119,7 @@ function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
 function playerModifierContext(context: Gw2ModifierContext): boolean {
   // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
   return context.event
-    ? isGw2PlayerModifierOwnedEvent(context.event)
+    ? isGw2PlayerModifierEligibleEvent(context.event)
     : context.actorType == null || context.actorType === 'player';
 }
 

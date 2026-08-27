@@ -1,9 +1,10 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { activeBoonStacks, playerStrike } from '../../core/rule-helpers.js';
+import { activeBoonStacks } from '../../core/rule-helpers.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../../platform/engine/types.js';
@@ -100,7 +101,7 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       ).length;
       return parameters.damageFactorPerBoon ** count;
     },
-    when: (context) => playerStrike(context) && hasTrait(context, TRAIT.OBJECT_IN_MOTION)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.OBJECT_IN_MOTION)
   }
 ]);
 

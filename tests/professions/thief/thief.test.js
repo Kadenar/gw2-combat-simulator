@@ -1752,6 +1752,8 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     .at(-1);
 
   assert.equal(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance, 10);
+  // Wild Strike's completion grant must not discard regeneration accrued during its cast.
+  assert.equal(chain.endState.profession.endurance, 70);
   const doubleStrikeHits = chain.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Double Strike'
   );

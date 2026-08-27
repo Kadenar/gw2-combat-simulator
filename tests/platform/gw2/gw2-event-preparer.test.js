@@ -5,6 +5,7 @@ import {
   gw2EventOwnerActorType,
   isGw2NonWeaponEffectEvent,
   isGw2PlayerActorEvent,
+  isGw2PlayerModifierEligibleEvent,
   isGw2PlayerModifierOwnedEvent
 } from '../../../js/platform/gw2/combat/state/event-ownership.js';
 import { createGw2EventPreparer } from '../../../js/platform/gw2/scheduler/event-preparer.js';
@@ -40,7 +41,11 @@ test('modifier ownership is independent from proc actor ownership', () => {
 
   assert.equal(isGw2PlayerActorEvent(playerOwnedEffect), false);
   assert.equal(isGw2PlayerModifierOwnedEvent(playerOwnedEffect), true);
+  assert.equal(isGw2PlayerModifierEligibleEvent(playerOwnedEffect), true);
   assert.equal(gw2EventOwnerActorType(playerOwnedEffect), 'player');
+  assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: 'effect' }), false);
+  assert.equal(isGw2PlayerModifierEligibleEvent({ actorType: 'effect' }), true);
+  assert.equal(isGw2PlayerModifierEligibleEvent({ actorType: 'effect', ownerActorType: 'summon' }), false);
   assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: 'summon' }), false);
   assert.equal(isGw2PlayerActorEvent({ actorType: 'environment' }), false);
   assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: 'environment' }), false);

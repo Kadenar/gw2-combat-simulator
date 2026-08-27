@@ -1,8 +1,9 @@
 import { antiquaryState } from './state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { thiefPlayerEvent, thiefRuntimeSpecializationState } from '../../core/rules.js';
+import { thiefRuntimeSpecializationState } from '../../core/rules.js';
 import { antiquaryCastAvailability } from './availability.js';
 import { handleForgedSurfer, handleSkrittScuffle } from './artifacts.js';
 import { advanceAntiquaryResources, spendAntiquaryResources } from './resources.js';
@@ -60,7 +61,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       Number(thiefRuntimeSpecializationState(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
   },
   {
@@ -82,7 +83,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
           ) / parameters.stackInterval
         )
       ) * parameters.damagePerStack,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
   },
   {
     id: 'thief.combat-high-condition',
@@ -103,7 +104,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
           ) / parameters.stackInterval
         )
       ) * parameters.damagePerStack,
-    when: (context) => thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH)
+    when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
   },
   {
     id: 'thief.kryptis-turret-damage',
@@ -111,7 +112,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     operation: 'multiply',
     factor: 1.15,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       Number(thiefRuntimeSpecializationState(context, 'Antiquary').kryptisDamageUntil || 0) > context.time
   },
   {
@@ -128,7 +129,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     } as Readonly<Record<string, number>>,
     factor: meticulousArtifactStrikeFactor,
     when: (context) =>
-      thiefPlayerEvent(context) &&
+      isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
       METICULOUS_ARTIFACT_STRIKE_IDS.has(Number(context.event?.skillId))
   },

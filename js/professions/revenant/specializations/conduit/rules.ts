@@ -2,6 +2,7 @@ import { conduitState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { isDamagingCondition } from '../../../../platform/gw2/combat/state/targets.js';
 import {
@@ -13,7 +14,6 @@ import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '../../legend-rule
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../legend-rules.js';
 import { bolsteredBondsBonuses } from '../../bolstered-bonds.js';
 import {
-  revenantPlayer,
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
   revenantTargetVulnerability
@@ -77,7 +77,9 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       return (base + parameters.bonus) / base;
     },
     when: (context) =>
-      revenantPlayer(context) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION) && hasTrait(context, TRAIT.NUMINOUS_GIFT)
+      isGw2PlayerModifierEligibleEvent(context.event) &&
+      hasTrait(context, TRAIT.TARGETED_DESTRUCTION) &&
+      hasTrait(context, TRAIT.NUMINOUS_GIFT)
   },
   {
     id: 'revenant.release-dervish-assassin-affinity',
