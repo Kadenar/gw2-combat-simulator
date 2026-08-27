@@ -1570,6 +1570,30 @@ test('Guardian autoattack chains and torch flips enforce sequence state', () => 
   assert.ok(flip.conditionDamage > 0);
 });
 
+test("Zealot's Flame preserves one-handed roots without exempting its flip", () => {
+  const sword = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Sword of Wrath', "Zealot's Flame", 'Sword Arc'],
+    config: { ...config, primaryWeapon: 'Sword', secondaryWeapon: 'Torch' }
+  });
+  const reset = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Sword of Wrath', "Zealot's Flame", "Zealot's Fire", 'Sword of Wrath'],
+    config: { ...config, primaryWeapon: 'Sword', secondaryWeapon: 'Torch' }
+  });
+
+  assert.deepEqual(sword.warnings, []);
+  assert.deepEqual(
+    sword.steps.map((step) => step.skill),
+    ['Sword of Wrath', "Zealot's Flame", 'Sword Arc']
+  );
+  assert.deepEqual(reset.warnings, []);
+  assert.deepEqual(
+    reset.steps.map((step) => step.skill),
+    ['Sword of Wrath', "Zealot's Flame", "Zealot's Fire", 'Sword of Wrath']
+  );
+});
+
 test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => {
   const result = simulateGw2({
     profession: guardianProfession,

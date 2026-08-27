@@ -1,6 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { EPSILON } from '../../../platform/engine/core/clock.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { mesmerRuntimeFor } from './runtime.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { MesmerConfig, MesmerPrecastContext, MesmerRuntime, MesmerSkill } from '../types.js';
@@ -27,8 +26,8 @@ export function isMesmerBuildSkillAvailable(
   return true;
 }
 
-// Gate casts by build eligibility, the current autoattack-chain step, and the
-// parent-controlled timing window for flip skills.
+// Gate casts by build eligibility and the parent-controlled timing window for
+// flip skills; shared GW2 code owns autoattack-chain ordering.
 export function mesmerAvailability(
   context: MesmerPrecastContext & {
     readonly mesmerRuntime?: MesmerRuntime;
@@ -45,22 +44,6 @@ export function mesmerAvailability(
       code: 'mesmer.build',
       reason: `${skill.name} is unavailable for this build.`
     };
-  }
-
-  const chain = resolveAutoattackChainStep(
-    context.catalog.autoattackChainPositions,
-    professionCoreState(state).autoattackChains,
-    skill.id
-  );
-  if (chain) {
-    if (!chain.matchesExpectedStep) {
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'mesmer.autoattack-chain',
-        reason: `Cannot cast ${skill.name}; cast ${runtime.skillsById.get(chain.expectedSkillId)?.name || chain.expectedSkillId} first.`
-      };
-    }
   }
 
   if (skill.mesmerMechanic?.flipParentId) {

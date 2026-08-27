@@ -15,12 +15,7 @@ import { projectedFreshAirReadyAt, targetAttunement } from './attunements.js';
 import { activeHammerOrbElements, hammerOrbMatchesAttunement } from './hammer.js';
 import { activeAura, etchingChain, skillWeapon } from './mechanics.js';
 import { updateEndurance } from './resources.js';
-import {
-  activeSecondaryAttunement,
-  autoattackChainAvailability,
-  isSelectedSlotSkill,
-  weaponAttunementAvailable
-} from './weapon-state.js';
+import { activeSecondaryAttunement, isSelectedSlotSkill, weaponAttunementAvailable } from './weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 function ready(): AvailabilityResult {
@@ -202,8 +197,6 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
       );
     }
 
-    const chainAvailability = autoattackChainAvailability(context, skill, state);
-    if (chainAvailability) return chainAvailability;
     return weaponAttunementAvailable(context, skill, state);
   }
 

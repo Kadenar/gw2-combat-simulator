@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyRangerWeaponSwapTraits } from '../../core/traits.js';
@@ -41,7 +42,7 @@ function emitAvatarWeaponSwap(
 ): void {
   // CA enter/exit swaps the visual weapon bar without changing activeWeaponSet; clearing chains avoids
   // resuming a mid-chain auto-attack on the wrong bar after the transition
-  professionCoreState(context).autoattackChains = {};
+  resetAutoattackChains(context);
   context.emit({
     type: 'sigil_swap',
     at,

@@ -17,8 +17,7 @@ import {
   completeWarriorSkill,
   handleWarriorArmsCriticalTask,
   initializeWarriorTraits,
-  observeWarriorEvent,
-  updateWarriorCastState
+  observeWarriorEvent
 } from './traits.js';
 import { advanceWarriorResources } from './resources.js';
 import { handleWarriorAdrenalineTask } from '../resources.js';
@@ -518,11 +517,6 @@ export const warriorCoreSchedulerHooks = Object.freeze({
       advanceWarriorResources(context, target);
       advanceWarriorTraits(context, target);
     }
-  },
-  afterCast: {
-    id: 'warrior.weapon-state',
-    order: 10,
-    handler: updateWarriorCastState
   },
   onEventScheduled: {
     id: 'warrior.adrenaline',

@@ -32,7 +32,9 @@ const AERIAL_AGILITY_CHAIN: readonly ElementalistSkillIdentity[] = Object.freeze
   { name: 'Aerial Agility (chain)', skillId: ID.AERIAL_AGILITY_CHAIN },
   { name: 'Aerial Agility (dash)', skillId: ID.AERIAL_AGILITY_DASH }
 ]);
-const CHAIN_RESET_MS = 4000;
+// Aerial Agility's flip survives intervening skills and expires roughly five
+// seconds after the last stage, matching the live skill-slot behavior.
+const AERIAL_AGILITY_FLIP_WINDOW_MS = 5000;
 const GLYPH_OF_STORMS = new Map<string, ElementalistSkillIdentity>([
   ['Firestorm', { name: 'Glyph of Storms (Fire)', skillId: ID.GLYPH_OF_STORMS_FIRE }],
   ['Ice Storm', { name: 'Glyph of Storms (Water)', skillId: ID.GLYPH_OF_STORMS_WATER }],
@@ -182,14 +184,12 @@ function normalizeRecordedActions(context: DpsReportProfessionReconstructionCont
 
     if (action.rawName === 'Aerial Agility') {
       aerialAgilityIndex =
-        lastAerialAgilityAt != null && action.start - lastAerialAgilityAt <= CHAIN_RESET_MS
+        lastAerialAgilityAt != null && action.start - lastAerialAgilityAt <= AERIAL_AGILITY_FLIP_WINDOW_MS
           ? (aerialAgilityIndex + 1) % AERIAL_AGILITY_CHAIN.length
           : 0;
       lastAerialAgilityAt = action.start;
       normalizedAction = canonicalize(normalizedAction, AERIAL_AGILITY_CHAIN[aerialAgilityIndex]);
     } else {
-      aerialAgilityIndex = -1;
-      lastAerialAgilityAt = null;
       const glyph = GLYPH_OF_STORMS.get(action.rawName);
       const element = swappedElement(action);
       if (glyph) {

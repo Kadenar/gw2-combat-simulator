@@ -1,12 +1,11 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
 import { warriorEnduranceReadyAt } from './resources.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { WarriorCastContext, WarriorSkill } from '../types.js';
 
-// Gate Warrior casts by endurance, autoattack progression, and adrenaline while
-// projecting a retry time from Signet of Rage's available passive pulses.
+// Gate Warrior casts by endurance and adrenaline while projecting a retry time
+// from Signet of Rage's available passive pulses; shared code owns chain order.
 export function warriorCastAvailability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
@@ -18,17 +17,6 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
           code: 'warrior.endurance',
           reason: 'Dodge requires 50 endurance.'
         };
-  }
-
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
-  if (chain && !chain.matchesExpectedStep) {
-    const expectedSkill = context.catalog.skillsById.get(chain.expectedSkillId);
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'warrior.autoattack-chain',
-      reason: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
-    };
   }
 
   const cost = Number(skill.adrenalineCost || 0);

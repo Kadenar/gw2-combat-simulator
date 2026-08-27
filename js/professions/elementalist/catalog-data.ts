@@ -456,8 +456,8 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
 // autoattack, so circularElementalistAutoattackChains (Weapon_1 only, to skip
 // the two-skill aura/transmute flips) never derives it. Declaring it explicitly
 // gives its stages a chainRoot/chainStep, which collapses them to one palette
-// tile and shares the in-order gating and reset-on-other-skill behavior the
-// dps-report reconstruction already models for the chain.
+// tile and reuses the shared in-order gate; Elementalist supplies its distinct
+// preserve, timeout, and cooldown-restart behavior as a transition extension.
 const AERIAL_AGILITY_CHAIN = Object.freeze(
   [ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH].map(Number)
 );

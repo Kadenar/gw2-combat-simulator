@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
 import { applyRangerWeaponSwapTraits } from '../../core/traits.js';
 import { applyGaleshotCycloneBowTraits } from './rules.js';
@@ -28,7 +28,7 @@ function emitGaleshotState(context: RangerCastContext, skill: RangerSkill, at = 
 function countAsWeaponSwap(context: RangerCastContext, skill: RangerSkill): void {
   // Entering/exiting the Cyclone Bow resets auto-attack chains the same way a
   // real weapon swap does, so the next auto starts at chain position 0.
-  professionCoreState(context).autoattackChains = {};
+  resetAutoattackChains(context);
   context.emit({
     type: 'weapon_set',
     at: context.effectiveEnd,

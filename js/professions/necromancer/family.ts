@@ -5,6 +5,7 @@ import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../platform/gw2/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';
+import { observeNecromancerAutoattackTransition } from './core/contract.js';
 
 // Merge direct hits and condition ticks by timestamp to find the first exact
 // scheduling boundary where cumulative damage moves the target below half health.
@@ -78,6 +79,26 @@ export const necromancerProfession = defineNativeProfession({
     validateBuild: validateNecromancerBuild
   },
   modules: necromancerNativeModules,
+  autoattackChains: {
+    overrides: [
+      {
+        // Sword retains its pending projectile step across other weapon casts only.
+        id: 'necromancer.weapon-skills-preserve-sword',
+        chainRootIds: [ID.ENERVATION_BLADE],
+        when: ({ interruptingSkill }) => interruptingSkill.type === 'Weapon',
+        decision: 'preserve'
+      },
+      {
+        id: 'necromancer.timed-and-form-casts-reset',
+        when: ({ interruptingSkill }) =>
+          Number(interruptingSkill.castTimeMs || 0) > 0 ||
+          Boolean(interruptingSkill.shroud) ||
+          interruptingSkill.handlerId === 'necromancer.shroud',
+        decision: 'reset'
+      }
+    ],
+    onTransition: observeNecromancerAutoattackTransition
+  },
   patchPreview: activePatchPreview,
   simulation: Object.freeze({
     refineSchedulerConfig: refineNecromancerSchedulerConfig

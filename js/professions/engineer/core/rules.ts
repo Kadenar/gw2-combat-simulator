@@ -7,7 +7,6 @@ import { advanceEngineerResources } from './resources.js';
 import { handleElectricArtilleryExpire, handleElectricArtilleryReady, handleLightningRodCharge } from './spear.js';
 import { applyEngineerCastTraits, isEngineerToolbeltSkill } from './traits.js';
 import { handleEngineerTurretAttack } from './turrets.js';
-import { updateEngineerWeaponState } from './weapon-state.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,
@@ -350,11 +349,6 @@ export const engineerCoreSchedulerHooks = Object.freeze({
     handler: advanceEngineerResources
   },
   afterCast: Object.freeze([
-    {
-      id: 'engineer.weapon-state',
-      order: 10,
-      handler: updateEngineerWeaponState
-    },
     {
       id: 'engineer.core-traits',
       order: 20,

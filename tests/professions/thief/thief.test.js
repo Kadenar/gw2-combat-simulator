@@ -577,6 +577,17 @@ test('weapon swap preserves shared initiative', () => {
   assert.equal(resetChain.steps.filter((step) => step.skill === 'Double Strike').length, 2);
 });
 
+test('a pre-commit cancellation does not advance the Thief autoattack chain', () => {
+  const result = simulate('Core', [{ name: 'Double Strike', interruptMs: 1 }, 'Double Strike'], {
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Dagger'
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[0].cancelledBeforeCommit, true);
+  assert.equal(result.endState.profession.autoattackChains[ID.DOUBLE_STRIKE], ID.WILD_STRIKE);
+});
+
 test('stealth attacks remove stealth, apply Revealed, and block replacement', () => {
   const result = simulate('Core', ['Cloak and Dagger', 'Backstab', 'Cloak and Dagger', 'Backstab']);
 

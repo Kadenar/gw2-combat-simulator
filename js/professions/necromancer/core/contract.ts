@@ -26,7 +26,11 @@ import {
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { necromancerWeaponTaskHandlers } from './weapons.js';
 import { necromancerMinionTaskHandlers } from './minions.js';
-import { necromancerBuildAvailability, necromancerCastAvailability, requiredShroud } from './availability.js';
+import { necromancerBuildAvailability, necromancerCastAvailability } from './availability.js';
+import {
+  resetAutoattackChains,
+  type AutoattackChainTransitionContext
+} from '../../../platform/gw2/skills/autoattack-chains.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
@@ -49,14 +53,27 @@ function expireSwordAutoattackChain(context: NecromancerSchedulerContext, task: 
   const root = Number(task.payload?.root);
   const next = Number(task.payload?.next);
   const state = professionCoreState(context);
-  if (Number(state.autoattackChains[root]) === next) delete state.autoattackChains[root];
+  if (Number(state.autoattackChains[root]) === next) resetAutoattackChains(context, [root]);
+}
+
+/** Keeps the Necromancer sword's three-second continuation window aligned with shared transitions. */
+export function observeNecromancerAutoattackTransition(transition: AutoattackChainTransitionContext): void {
+  const sword = transition.result.transitions.find((change) => Number(change.chainRootId) === ID.ENERVATION_BLADE);
+  if (!transition.result.committed || !sword || sword.decision === 'preserve') return;
+  const context = transition.cast as unknown as NecromancerCastContext;
+  context.tasks.cancelOwner(SWORD_AUTOATTACK_EXPIRY_OWNER);
+  if (sword.decision !== 'advance' || sword.nextSkillId == null) return;
+  context.tasks.schedule({
+    type: SWORD_AUTOATTACK_EXPIRY_TASK,
+    at: context.effectiveEnd + SWORD_AUTOATTACK_RETENTION_SECONDS,
+    ownerId: SWORD_AUTOATTACK_EXPIRY_OWNER,
+    payload: { root: sword.chainRootId, next: sword.nextSkillId }
+  });
 }
 
 /**
- * Updates autoattack chains, flip availability, and completion-gated Core
- * life-force traits for one cast. Chain interruption happens even when the
- * current cast is interrupted; the sword exception expires three seconds
- * after its latest completed step. All other state changes require completion.
+ * Updates flip availability and completion-gated Core life-force traits after
+ * the shared controller has committed autoattack-chain state.
  *
  * @param {object} context Scheduler after-cast context.
  * @param {object} skill Completed or interrupted skill.
@@ -65,40 +82,13 @@ function expireSwordAutoattackChain(context: NecromancerSchedulerContext, task: 
 function updateNecromancerCastState(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
   const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain) {
-    if (chain.root === ID.ENERVATION_BLADE) context.tasks.cancelOwner(SWORD_AUTOATTACK_EXPIRY_OWNER);
-    if (!completed || chain.next == null) {
-      delete state.autoattackChains[chain.root];
-    } else {
-      state.autoattackChains[chain.root] = chain.next;
-      if (chain.root === ID.ENERVATION_BLADE) {
-        // Other weapon casts leave this task intact, so they preserve but never extend the three-second window.
-        context.tasks.schedule({
-          type: SWORD_AUTOATTACK_EXPIRY_TASK,
-          at: context.effectiveEnd + SWORD_AUTOATTACK_RETENTION_SECONDS,
-          ownerId: SWORD_AUTOATTACK_EXPIRY_OWNER,
-          payload: { root: chain.root, next: chain.next }
-        });
-      }
-    }
-  } else if (
-    skill.type === 'Weapon' ||
-    Number(skill.castTimeMs || 0) > 0 ||
-    requiredShroud(skill) ||
-    skill.handlerId === 'necromancer.shroud'
-  ) {
-    // Necromancer sword is an in-game exception: other weapon skills do not break its pending autoattack step.
-    const preservedSwordStep = skill.type === 'Weapon' ? state.autoattackChains[ID.ENERVATION_BLADE] : undefined;
-    state.autoattackChains = preservedSwordStep == null ? {} : { [ID.ENERVATION_BLADE]: preservedSwordStep };
-    if (preservedSwordStep == null) context.tasks.cancelOwner(SWORD_AUTOATTACK_EXPIRY_OWNER);
-  }
-
   if (!completed) return;
+
+  const chainNext = context.catalog.autoattackChainPositions.get(Number(skill.id))?.next;
 
   if (
     skill.flipSkillId != null &&
-    skill.flipSkillId !== chain?.next &&
+    skill.flipSkillId !== chainNext &&
     skill.flipSkillId !== skill.nextChainId &&
     skill.handlerId !== 'necromancer.minion'
   ) {

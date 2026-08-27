@@ -18,6 +18,7 @@ import { applyElementalistBuildAttributeRules } from '../../../js/professions/el
 import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 import { elementalistCoreModifierRules } from '../../../js/professions/elementalist/core/modifiers.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/professions/elementalist/data/ids.js';
 import { weaverModifierRules } from '../../../js/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
@@ -1348,6 +1349,79 @@ test('a concurrent attunement swap preserves the in-flight auto chain', () => {
     result.events.some((event) => event.type === 'action' && event.skillName === 'Fire Swipe'),
     true
   );
+});
+
+test('Ride the Lightning preserves sword roots without exempting other dagger skills', () => {
+  const preserved = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Charged Strike', 'Ride the Lightning', 'Polaric Slash'],
+    startAttunement: 'Air',
+    weapons: ['Sword', 'Dagger']
+  });
+  const reset = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Charged Strike', 'Updraft', 'Charged Strike'],
+    startAttunement: 'Air',
+    weapons: ['Sword', 'Dagger']
+  });
+
+  assert.deepEqual(preserved.warnings, []);
+  assert.deepEqual(
+    preserved.steps.map((step) => step.skill),
+    ['Charged Strike', 'Ride the Lightning', 'Polaric Slash']
+  );
+  assert.deepEqual(reset.warnings, []);
+  assert.deepEqual(
+    reset.steps.map((step) => step.skill),
+    ['Charged Strike', 'Updraft', 'Charged Strike']
+  );
+});
+
+test('Ride the Lightning preserves the timed Aerial Agility flip sequence', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Aerial Agility', 'Ride the Lightning', 'Aerial Agility (chain)', 'Aerial Agility (dash)'],
+    startAttunement: 'Air',
+    weapons: ['Pistol', 'Dagger']
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.skill),
+    ['Aerial Agility', 'Ride the Lightning', 'Aerial Agility (chain)', 'Aerial Agility (dash)']
+  );
+});
+
+test('Aerial Agility expires after five seconds while its original cooldown keeps counting down', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Aerial Agility', 5100],
+    startAttunement: 'Air',
+    weapons: ['Pistol', 'Dagger']
+  });
+
+  assert.equal(result.endState.profession.autoattackChains[ID.AERIAL_AGILITY], undefined);
+  assert.ok(result.endState.cooldowns['Aerial Agility'].remaining > 0);
+});
+
+test('using the first Aerial Agility follow-up restarts its full cooldown', () => {
+  const unused = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Aerial Agility', 2000],
+    startAttunement: 'Air',
+    weapons: ['Pistol', 'Dagger']
+  });
+  const used = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Aerial Agility', 2000, 'Aerial Agility (chain)'],
+    startAttunement: 'Air',
+    weapons: ['Pistol', 'Dagger']
+  });
+  const initialDuration = unused.endState.cooldowns['Aerial Agility'].readyAt - unused.steps[0].end;
+  const followup = used.steps[2];
+
+  assert.equal(used.endState.cooldowns['Aerial Agility'].readyAt - followup.end, initialDuration);
+  assert.ok(used.endState.cooldowns['Aerial Agility'].readyAt > unused.endState.cooldowns['Aerial Agility'].readyAt);
 });
 
 test('rotation palette resolves equipped glyphs to the active attunement', () => {

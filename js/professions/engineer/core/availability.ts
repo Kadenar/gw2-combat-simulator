@@ -1,26 +1,15 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import { engineerEnduranceReadyAt } from './resources.js';
 import { denySkillCast as denyEngineerCast } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
-import type { EngineerConfig, EngineerCoreState, EngineerPrecastContext, EngineerSkill } from '../types.js';
+import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '../types.js';
 
 // config.selectedSkills can be an array of names or a slot-keyed object; both normalize to a Set<string>
 export function selectedEngineerSkillNames(config: EngineerConfig): Set<string> {
   const source = config.selectedSkills || [];
   return new Set((Array.isArray(source) ? source : Object.values(source)).map(String));
-}
-
-// autoattackChains[root] tracks the NEXT expected skill in the chain; absent = expect root (first hit)
-export function expectedEngineerChainSkill(
-  context: EngineerPrecastContext,
-  skill: EngineerSkill,
-  state: EngineerCoreState
-): boolean {
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
-  return chain?.matchesExpectedStep ?? true;
 }
 
 export function engineerCoreCastAvailability(
@@ -141,10 +130,6 @@ export function engineerCoreCastAvailability(
     !selectedEngineerSkillNames(context.config).has(skill.toolbeltParentName)
   ) {
     return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${skill.toolbeltParentName} is not equipped.`);
-  }
-
-  if (!expectedEngineerChainSkill(context, skill, state)) {
-    return denyEngineerCast(skill, 'engineer.autoattack-chain', 'cast the earlier chain skill first.');
   }
 
   return { ready: true };

@@ -56,14 +56,6 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain) {
-    if (chain.next == null) delete state.autoattackChains[chain.root];
-    else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === 'Weapon') {
-    state.autoattackChains = {};
-  }
-
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }

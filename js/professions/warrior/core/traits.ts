@@ -946,15 +946,3 @@ export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill:
     });
   }
 }
-
-export function updateWarriorCastState(context: WarriorCastContext, skill: WarriorSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const state = professionCoreState(context);
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain) {
-    if (chain.next == null) delete state.autoattackChains[chain.root];
-    else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === 'Weapon') {
-    state.autoattackChains = {};
-  }
-}

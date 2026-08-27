@@ -37,6 +37,7 @@ import type {
 import type { ModifierRulePatchEdit, ProfessionPatchPreview } from './patches.js';
 import type { Gw2ModifierRule } from '../combat/modifiers/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../resolver/types.js';
+import { createGw2AutoattackChainMechanics, type Gw2AutoattackChainOptions } from '../skills/autoattack-chains.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -334,7 +335,9 @@ function compileNativeModule(
   module: AnyNativeModule,
   applicationCatalog: Readonly<CanonicalCatalog>,
   fragment: Readonly<ProfessionModuleCatalogFragment>,
-  modifierRules?: readonly Gw2ModifierRule[]
+  modifierRules?: readonly Gw2ModifierRule[],
+  installAutoattackChainController = false,
+  autoattackChainOptions: Gw2AutoattackChainOptions = {}
 ): ProfessionModuleDefinition {
   const mechanics = module.mechanics || {};
   const castRules = {
@@ -355,6 +358,14 @@ function compileNativeModule(
     ...((mechanics.castLifecycle || []) as NativeSchedulerMechanic[])
   ]) {
     appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
+  }
+
+  // Core receives the GW2-wide gate and committed-cast transition automatically;
+  // specialization modules only contribute scoped configuration through the family.
+  if (installAutoattackChainController) {
+    const controller = createGw2AutoattackChainMechanics(autoattackChainOptions);
+    appendOrderedHook(castRules, 'availability', controller.availability as NativeSchedulerMechanic);
+    appendOrderedHook(schedulerHooks, 'afterCast', controller.castLifecycle as NativeSchedulerMechanic);
   }
 
   const resolverHooks = {
@@ -462,7 +473,9 @@ export function defineNativeProfession<
       core,
       assembly.catalog,
       assembly.fragments.get('Core')!,
-      modifierRulesByModule.get('Core')
+      modifierRulesByModule.get('Core'),
+      true,
+      definition.autoattackChains
     ),
     specializations: Object.fromEntries(
       modules

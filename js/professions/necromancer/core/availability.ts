@@ -1,5 +1,4 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from './state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -41,20 +40,6 @@ export function requiredShroud(skill?: NecromancerSkill): string {
 }
 
 const READY: Readonly<AvailabilityResult> = Object.freeze({ ready: true });
-
-// Autoattack-chain position gate shared by in-shroud and baseline skills: a
-// chain link is castable only when it is the expected next link.
-function chainVerdict(
-  context: NecromancerPrecastContext,
-  skill: NecromancerSkill,
-  state: NecromancerCoreState
-): Readonly<AvailabilityResult> {
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
-  if (!chain) return READY;
-  return chain.matchesExpectedStep
-    ? READY
-    : deny(skill, 'necromancer.autoattack-chain', 'cast the earlier chain skill first.');
-}
 
 // The Devouring Darkness / Feast of Corruption swap terminates here so its
 // out-of-shroud requirement never falls through to the baseline gate (which the
@@ -137,7 +122,7 @@ function inShroudGate(
     return deny(skill, 'necromancer.wrong-shroud', `requires ${shroud} shroud.`);
   }
 
-  return chainVerdict(context, skill, state);
+  return READY;
 }
 
 function activeMinionGate(
@@ -171,7 +156,7 @@ function baselineGate(
   skill: NecromancerSkill,
   { state, activeShroud }: AvailabilityEnvironment
 ): Readonly<AvailabilityResult> {
-  if (skill.usableInShroud) return chainVerdict(context, skill, state);
+  if (skill.usableInShroud) return READY;
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
@@ -197,7 +182,7 @@ function baselineGate(
     return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
   }
 
-  return chainVerdict(context, skill, state);
+  return READY;
 }
 
 // First-match dispatch: each gate returns a verdict for skills in its domain or

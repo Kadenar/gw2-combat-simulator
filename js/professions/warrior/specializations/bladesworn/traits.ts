@@ -16,6 +16,7 @@ import {
   type DragonFlowRateSegment
 } from './dragon-trigger.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 import { applyWarriorBurstSpendTraits, grantBerserkersPower } from '../../core/traits.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -117,7 +118,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
 }
 
 function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill): void {
-  professionCoreState(context).autoattackChains = {};
+  resetAutoattackChains(context);
   if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
     professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
   }
@@ -731,7 +732,7 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   delete state.ammoStartedFullByActivation[context.reservationId];
   delete state.dragonAdrenalineSpentByActivation[context.reservationId];
   if (skill.gunsaberSkill && !context.catalog.autoattackChainPositions.has(Number(skill.id))) {
-    professionCoreState(context).autoattackChains = {};
+    resetAutoattackChains(context);
   }
 }
 

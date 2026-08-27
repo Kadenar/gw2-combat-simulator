@@ -3393,7 +3393,7 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
   assert.equal(swapped.endState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BOLT);
 });
 
-test('utility casts preserve spear autoattack-chain progress', () => {
+test('short utility casts preserve spear autoattack-chain progress', () => {
   const result = simulateMesmer(
     ['Psycut', 'Well of Eternity', 'Psystrike'],
     defaultSimulationConfig({
@@ -3408,6 +3408,24 @@ test('utility casts preserve spear autoattack-chain progress', () => {
   assert.deepEqual(
     result.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Psycut', 'Well of Eternity', 'Psystrike']
+  );
+});
+
+test('an interrupted Troubadour instrument still resets the spear autoattack chain', () => {
+  const result = simulateMesmer(
+    ['Psycut', { type: 'cast', skillId: ID.HARMONIOUS_HARP_ALTERNATE, interruptAfterMs: 480 }, 'Psycut'],
+    defaultSimulationConfig({
+      specialization: 'Troubadour',
+      initialResource: 3,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: ''
+    })
+  );
+
+  assert.equal(result.steps[1].cancelledBeforeCommit, true);
+  assert.deepEqual(
+    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    ['Psycut', 'Harmonious Harp', 'Psycut']
   );
 });
 

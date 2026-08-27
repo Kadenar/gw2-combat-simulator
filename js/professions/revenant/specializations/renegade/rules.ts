@@ -130,11 +130,6 @@ export const renegadeCastRules = Object.freeze({
 });
 
 function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  // Citadel Bombardment interrupts Core weapon chains, but the ownership decision stays with Renegade.
-  if (context.action?.cancelled !== true && skill.id === ID.CITADEL_BOMBARDMENT) {
-    professionCoreState(context).autoattackChains = {};
-  }
-
   if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;

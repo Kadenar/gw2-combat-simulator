@@ -27,3 +27,11 @@ export type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from './module-types.js';
+export type {
+  AutoattackChainContext,
+  AutoattackChainOverride,
+  AutoattackChainTransition,
+  AutoattackChainTransitionContext,
+  AutoattackChainTransitionResult,
+  Gw2AutoattackChainOptions
+} from '../skills/autoattack-chains.js';

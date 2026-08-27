@@ -1,5 +1,6 @@
 import { luminaryState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
@@ -147,7 +148,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   // Reset active weapon so traits don't carry stale weapon state across entries.
   state.radiantWeapon = '';
   // Autoattack chains must be wiped because the weapon bar changes entirely.
-  professionCoreState(context).autoattackChains = {};
+  resetAutoattackChains(context);
   if (entering) {
     state.radiantWeaponsUsed = {};
   }
@@ -374,7 +375,7 @@ export function advanceRadiantForgeState(context: GuardianSchedulerContext, targ
     state.radiantForgeEndsAt = 0;
     state.radiantForgeEnteredAt = 0;
     state.radiantWeapon = '';
-    professionCoreState(context).autoattackChains = {};
+    resetAutoattackChains(context);
     professionCoreState(context).availableFlips = {};
   }
 }

@@ -543,7 +543,7 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
 });
 
 test('Twice as Vicious activates from a disable', () => {
-  const rotation = ['Overbearing Smash', 'Heavy Smash'];
+  const rotation = ['Overbearing Smash', 'Hammer Strike', 'Hammer Slam', 'Heavy Smash'];
   const config = {
     primaryWeapon: 'Hammer',
     selectedPet: 'Pig',
@@ -1101,10 +1101,11 @@ test("Soulbeast applies Sic 'Em to the merged ranger and to the pet while unmerg
 });
 
 test('Poisonous Strikes follows Soulbeast pet ownership', () => {
-  const merged = simulate('Soulbeast', ['Double Arc', 'Deadly Delivery'], { primaryWeapon: 'Dagger' });
+  const daggerChain = ['Groundwork Gouge', 'Leading Swipe', 'Serpent Stab', 'Deadly Delivery'];
+  const merged = simulate('Soulbeast', ['Double Arc', ...daggerChain], { primaryWeapon: 'Dagger' });
   const unmerged = simulate(
     'Soulbeast',
-    ['Leave Beastmode', 'Double Arc', 'Deadly Delivery', { type: 'wait', durationMs: 3000 }],
+    ['Leave Beastmode', 'Double Arc', ...daggerChain, { type: 'wait', durationMs: 3000 }],
     { primaryWeapon: 'Dagger', selectedPet: 'Carrion Devourer' }
   );
   const procs = (result) =>
@@ -1255,6 +1256,25 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
   assert.equal(currentAutoattackSkill(app).id, ID.HEAVY_SMASH);
   app.results = afterSmash;
   assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_STRIKE);
+});
+
+test('Ranger rejects out-of-order autoattack chain steps', () => {
+  const result = simulate('Soulbeast', ['Hammer Slam', 'Hammer Strike', 'Heavy Smash'], {
+    primaryWeapon: 'Hammer',
+    selectedHammerSkillIds: [
+      ID.UNLEASHED_WILD_SWING,
+      ID.OVERBEARING_SMASH,
+      ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+      ID.UNLEASHED_THUMP
+    ]
+  });
+
+  assert.deepEqual(
+    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    ['Hammer Strike']
+  );
+  assert.match(result.warnings.join(' '), /cast Hammer Strike first/);
+  assert.match(result.warnings.join(' '), /cast Hammer Slam first/);
 });
 
 test('Power Soulbeast EVTC damage cutoffs preserve interrupted packets', () => {

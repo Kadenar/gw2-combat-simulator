@@ -18,6 +18,7 @@ import type {
 } from '../resolver/types.js';
 import type { Gw2ModifierRule } from '../combat/modifiers/types.js';
 import type { PatchPreview, PatchRuntimeValues, ProfessionPatchPreview } from './patches.js';
+import type { Gw2AutoattackChainOptions } from '../skills/autoattack-chains.js';
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -250,6 +251,8 @@ export interface NativeProfessionDefinition<
   readonly presentation?: TPresentation;
   readonly simulation?: TSimulation | null;
   readonly catalog?: NativeCatalogOptions;
+  /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */
+  readonly autoattackChains?: Gw2AutoattackChainOptions;
   /** The repository-wide singular active preview, when one is authored. */
   readonly patchPreview?: PatchPreview | null;
 }

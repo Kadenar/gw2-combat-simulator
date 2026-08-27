@@ -2,6 +2,7 @@ import { defineNativeProfession } from '../../platform/gw2/authoring/profession.
 import { activePatchPreview } from '../../patches/active-preview.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild, validateGuardianBuild } from './build.js';
 import { guardianNativeModules } from './modules.js';
+import { GUARDIAN_SKILL_IDS as ID } from './data/ids.js';
 
 export const guardianProfession = defineNativeProfession({
   id: 'guardian',
@@ -12,6 +13,17 @@ export const guardianProfession = defineNativeProfession({
     validateBuild: validateGuardianBuild
   },
   modules: guardianNativeModules,
+  autoattackChains: {
+    overrides: [
+      {
+        // Torch can coexist only with one-handed roots; two-handed chains must still reset.
+        id: 'guardian.zealots-flame-preserves-one-handed-roots',
+        chainRootIds: [ID.SWORD_OF_WRATH, ID.TRUE_STRIKE, ID.CORE_CLEAVE],
+        interruptingSkillIds: [ID.ZEALOTS_FLAME],
+        decision: 'preserve'
+      }
+    ]
+  },
   patchPreview: activePatchPreview
 });
 

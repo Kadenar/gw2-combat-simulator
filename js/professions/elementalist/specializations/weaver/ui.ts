@@ -30,6 +30,19 @@ function hasElementsOfRage(context: SchedulerRecord): boolean {
   return getActiveTraits(build?.specializations || []).some((trait) => trait.name === 'Elements of Rage');
 }
 
+// An attunement swap changes Weaver's primary-hand bar immediately, but GW2
+// leaves the previous element's progressed autoattack on slot 1 until its chain resolves.
+function isCarriedAutoattackSkill(context: SchedulerRecord, skill: Skill): boolean {
+  const state = uiState(context);
+  const carryover = state.autoattackCarryover as SchedulerRecord | undefined;
+  const root = Number(carryover?.root);
+  if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
+  if (String(carryover?.attunement || '') !== String(skill.attunement || '')) return false;
+  const chains = (state.autoattackChains || context.autoattackChains || {}) as SchedulerRecord;
+  const expected = chains[String(root)] ?? root;
+  return Number(skill.id) === Number(expected) || skill.name === expected;
+}
+
 // Mirror scheduler availability for dual-attuned hands and flipover skills so
 // the palette explains which half of the current attunement pair blocks a skill.
 function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
@@ -72,6 +85,7 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
   }
 
   if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
+  if (isCarriedAutoattackSkill(context, skill)) return { available: true, message: '' };
   const dualAttunements = weaverDualAttunements(skill);
   const required = dualAttunements || [String(skill.attunement)];
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
@@ -285,9 +299,17 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
   const renderSkill = context.renderSkill;
   const layout = weaverWeaponPaletteLayout(skills);
   const active = (candidates: readonly Skill[]): Skill[] => candidates.filter(isAvailable);
-  const primarySkills = (layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || []).filter(
-    (skill) => Boolean(skill.chainRoot) || isAvailable(skill)
-  );
+  const currentPrimarySkills = (
+    layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || []
+  ).filter((skill) => Boolean(skill.chainRoot) || isAvailable(skill));
+  const carriedAutoattack = skills.find((skill) => isCarriedAutoattackSkill(context, skill));
+  let replacedPrimaryAutoattack = false;
+  const primarySkills = currentPrimarySkills.map((skill) => {
+    if (!carriedAutoattack || replacedPrimaryAutoattack || skill.slot !== 'Weapon_1') return skill;
+    replacedPrimaryAutoattack = true;
+    return carriedAutoattack;
+  });
+  if (carriedAutoattack && !replacedPrimaryAutoattack) primarySkills.unshift(carriedAutoattack);
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));
   const currentCluster = (

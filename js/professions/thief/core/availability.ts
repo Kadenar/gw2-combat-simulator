@@ -1,5 +1,4 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
 import { thiefEnduranceReadyAt, thiefInitiativeRegenerationRate } from './resources.js';
 import { spearChainStageForSkill } from './conditions.js';
@@ -135,11 +134,6 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
       `requires ${skill.initiativeCost} initiative.`,
       context.start + Math.max(0, missing) / thiefInitiativeRegenerationRate(state, context)
     );
-  }
-
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
-  if (chain && !chain.matchesExpectedStep) {
-    return deny(skill, 'thief.autoattack-chain', 'cast the earlier chain skill first.');
   }
 
   return { ready: true };

@@ -1,6 +1,6 @@
-import { professionCoreState } from '../../../engine/profession/state.js';
 import { replaceSkillHandler } from '../../../engine/skills/handlers.js';
-import type { SimulationEventInput, Skill, SkillHandlerStrategy, SkillId } from '../../../engine/types.js';
+import { resetAutoattackChains } from '../../skills/autoattack-chains.js';
+import type { SimulationEventInput, Skill, SkillHandlerStrategy } from '../../../engine/types.js';
 
 interface Gw2WeaponSwapContext {
   readonly state: {
@@ -15,10 +15,6 @@ interface Gw2WeaponSwapContext {
   emit(event: SimulationEventInput): unknown;
 }
 
-interface Gw2WeaponSwapCoreState {
-  autoattackChains: Record<string, SkillId>;
-}
-
 /**
  * Applies the GW2-wide weapon-set transition before invoking profession-owned
  * follow-up behavior, so every profession shares state, event, and hook order.
@@ -27,7 +23,7 @@ export function performGw2WeaponSwap(context: object, skill: Skill): boolean {
   const swapContext = context as Gw2WeaponSwapContext;
   const weaponSet = swapContext.state.activeWeaponSet === 1 ? 2 : 1;
   swapContext.state.activeWeaponSet = weaponSet;
-  (professionCoreState(swapContext) as Gw2WeaponSwapCoreState).autoattackChains = {};
+  resetAutoattackChains(swapContext);
   swapContext.emit({
     type: 'weapon_set',
     at: swapContext.effectiveEnd,

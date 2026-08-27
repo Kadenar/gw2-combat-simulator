@@ -515,19 +515,19 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
 
   const skippedFirstStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Steel Divide'], { initialResource: 100 });
 
-  assert.match(skippedFirstStep.warnings[0], /Cast Swift Cut first/);
+  assert.match(skippedFirstStep.warnings[0], /cast Swift Cut first/);
 
   const skippedSecondStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Explosive Thrust'], {
     initialResource: 100
   });
 
-  assert.match(skippedSecondStep.warnings[0], /Cast Steel Divide first/);
+  assert.match(skippedSecondStep.warnings[0], /cast Steel Divide first/);
 
   const resetChain = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Blooming Fire', 'Steel Divide'], {
     initialResource: 100
   });
 
-  assert.match(resetChain.warnings[0], /Cast Swift Cut first/);
+  assert.match(resetChain.warnings[0], /cast Swift Cut first/);
 });
 
 test('Warrior adrenaline renders one bar for each ten adrenaline', () => {

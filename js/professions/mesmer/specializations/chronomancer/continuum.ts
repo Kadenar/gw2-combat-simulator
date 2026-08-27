@@ -1,5 +1,6 @@
 import { chronomancerState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { replaceAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
@@ -72,9 +73,7 @@ export function createContinuumController({
         }
       ])
     );
-    professionCoreState(state).autoattackChains = {
-      ...(continuum.autoattackChains || {})
-    };
+    replaceAutoattackChains(state, continuum.autoattackChains || {});
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);

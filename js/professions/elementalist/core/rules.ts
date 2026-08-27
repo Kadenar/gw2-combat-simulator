@@ -21,7 +21,8 @@ import {
   processFreshAirCandidates,
   triggerEvasiveArcana
 } from './traits.js';
-import { shareAttunementVariantRecharge, updateAutoattackChainState } from './weapon-state.js';
+import { elementalistWeaponStateTaskHandlers, shareAttunementVariantRecharge } from './weapon-state.js';
+import { resetAutoattackChains } from '../../../platform/gw2/skills/autoattack-chains.js';
 
 export { elementalistCoreAvailability } from './availability.js';
 export { elementalistAlacrityAdjustedDuration, elementalistAttunementRechargeDuration } from './attunements.js';
@@ -359,7 +360,6 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   const state = professionCoreState(context);
   applyConjureState(context, skill);
   applySpecialSkillProgression(context, skill);
-  updateAutoattackChainState(context, skill, state);
   shareAttunementVariantRecharge(context, skill);
   if (skill.name === 'Dodge') {
     updateEndurance(
@@ -493,7 +493,7 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
             rockBarrierRelease: true
           })
       );
-      delete state.autoattackChains[Number(root.id)];
+      resetAutoattackChains(context, [root.id]);
     }
   }
 }
@@ -570,7 +570,10 @@ export const elementalistCoreCastRules = Object.freeze({
 });
 
 export const elementalistCoreSchedulerHooks = Object.freeze({
-  taskHandlers: elementalistElementalTaskHandlers,
+  taskHandlers: Object.freeze({
+    ...elementalistElementalTaskHandlers,
+    ...elementalistWeaponStateTaskHandlers
+  }),
   prepareEvent: Object.freeze([
     {
       id: 'elementalist.boon-companion-candidates',

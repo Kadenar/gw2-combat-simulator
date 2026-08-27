@@ -87,7 +87,7 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
 
-test('reconstructs the Aerial Agility chain and resets it after another skill or a long gap', () => {
+test('reconstructs Aerial Agility across other skills and resets it after a five-second gap', () => {
   const report = reportFixture(
     'Elementalist',
     [
@@ -95,13 +95,19 @@ test('reconstructs the Aerial Agility chain and resets it after another skill or
         id: ID.AERIAL_AGILITY,
         skills: [
           { castTime: 0, duration: 500, timeGained: 0 },
-          { castTime: 500, duration: 500, timeGained: 0 },
           { castTime: 1_000, duration: 500, timeGained: 0 },
-          { castTime: 2_000, duration: 500, timeGained: 0 },
-          { castTime: 7_001, duration: 500, timeGained: 0 }
+          { castTime: 1_500, duration: 500, timeGained: 0 },
+          { castTime: 2_500, duration: 500, timeGained: 0 },
+          { castTime: 7_501, duration: 500, timeGained: 0 }
         ]
       },
-      { id: ID.FIREBALL, skills: [{ castTime: 1_500, duration: 500, timeGained: 0 }] }
+      {
+        id: ID.FIREBALL,
+        skills: [
+          { castTime: 500, duration: 500, timeGained: 0 },
+          { castTime: 2_000, duration: 500, timeGained: 0 }
+        ]
+      }
     ],
     {
       [`s${ID.AERIAL_AGILITY}`]: { name: 'Aerial Agility' },
@@ -129,6 +135,7 @@ test('reconstructs the Aerial Agility chain and resets it after another skill or
     result.actions.map((action) => action.name),
     [
       'Aerial Agility',
+      'Fireball',
       'Aerial Agility (chain)',
       'Aerial Agility (dash)',
       'Fireball',

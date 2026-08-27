@@ -1,8 +1,6 @@
 import { holosmithState } from './state.js';
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
-import { expectedEngineerChainSkill } from '../../core/availability.js';
 import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { EngineerPrecastContext } from '../../types.js';
@@ -43,8 +41,7 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
     const queuedChainAfterOverheat =
       skill.slot === 'Weapon_1' &&
       state.overheated &&
-      Math.abs(context.start - Number(state.forgeExitedAt || 0)) <= Number(context.epsilon || 0.0001) &&
-      expectedEngineerChainSkill(context, skill, professionCoreState(context));
+      Math.abs(context.start - Number(state.forgeExitedAt || 0)) <= Number(context.epsilon || 0.0001);
     if (!state.photonForgeActive && !queuedChainAfterOverheat) {
       return denyEngineerCast(skill, 'engineer.forge-inactive', 'enter Photon Forge first.');
     }

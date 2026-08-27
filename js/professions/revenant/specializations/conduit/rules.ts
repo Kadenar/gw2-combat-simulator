@@ -206,11 +206,6 @@ export const conduitCastRules = Object.freeze({
 
 function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   afterConduitTraitCast(context, skill);
-  // Beguiling Haze interrupts Core weapon chains, but Conduit owns which cast causes that transition.
-  if (context.action?.cancelled !== true && skill.handlerId === 'revenant.beguiling-haze') {
-    professionCoreState(context).autoattackChains = {};
-  }
-
   if (skill.handlerId !== 'revenant.upkeep') return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   const state = conduitState.from(context);

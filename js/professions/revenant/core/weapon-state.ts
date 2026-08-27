@@ -1,10 +1,8 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 /**
- * Revenant weapon-chain and temporary flip state.
- *
- * Advances canonical autoattack chains after casts and resets them on
- * interrupting actions. It also owns Imperial Guard's blocking window, the
- * temporary True Strike flip, and the typed task that expires that follow-up.
+ * Revenant temporary weapon and flip state. The shared GW2 controller owns
+ * canonical autoattack chains; this module owns Abyssal Strike, Imperial
+ * Guard, True Strike, and the typed tasks that expire those follow-ups.
  */
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { emitRevenantState } from './shared.js';
@@ -16,7 +14,7 @@ import type {
   RevenantSkill
 } from '../types.js';
 
-/** Advances or resets the active weapon autoattack chain after a cast. */
+/** Updates the Revenant-specific Abyssal Strike sequence after shared chain handling. */
 export function updateRevenantWeaponState(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
   if (context.action?.cancelled === true) return;
@@ -24,16 +22,6 @@ export function updateRevenantWeaponState(context: RevenantCastContext, skill: R
     state.abyssalStrikeSecondCast = !state.abyssalStrikeSecondCast;
   } else if (skill.type === 'Weapon' || Number(skill.castTimeMs || 0) > 0) {
     state.abyssalStrikeSecondCast = false;
-  }
-
-  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (chain) {
-    if (chain.next == null) delete state.autoattackChains[chain.root];
-    else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.id === ID.DODGE) {
-    state.autoattackChains = {};
-  } else if (skill.id !== ID.TEMPORAL_RIFT && skill.type === 'Weapon') {
-    state.autoattackChains = {};
   }
 }
 

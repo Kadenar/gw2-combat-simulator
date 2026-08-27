@@ -75,8 +75,6 @@ const TASK = Object.freeze({
   signetIllusionsPassive: 'mesmer.signet-illusions-passive'
 });
 
-const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
-const BRIEF_AUTOATTACK_CHAIN_PRESERVING_CAST_MS = 400;
 // Stable task owner for Signet of Illusions' passive resource cycle.
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
@@ -374,68 +372,6 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
 }
 
 /**
- * Determines whether a non-chain cast is allowed to preserve a pending
- * Mesmer autoattack chain.
- *
- * @param {number} rootId Root skill ID of the pending chain.
- * @param {object} skill Newly completed skill.
- * @returns {boolean} Whether the chain should remain pending.
- */
-function preservesAutoattackChain(rootId: number, skill: MesmerSkill): boolean {
-  // Brief support casts can be woven into a weapon sequence, while longer casts
-  // leave enough time for ordinary non-persistent chains to return to their root.
-  if (skill.type !== 'Weapon') {
-    return Number(skill.quicknessCastTimeMs ?? skill.castTimeMs ?? 0) <= BRIEF_AUTOATTACK_CHAIN_PRESERVING_CAST_MS;
-  }
-
-  return (
-    PRESERVED_WEAPON_CHAIN_ROOT_IDS.has(rootId) || (rootId === ID.LACERATING_CHOP && skill.id === ID.IMAGINARY_AXES)
-  );
-}
-
-/**
- * Advances, resets, or selectively preserves Mesmer autoattack-chain state
- * after a skill completes.
- *
- * @param {object} runtime Active Mesmer runtime.
- * @param {object} skill Completed skill.
- * @param {boolean} interrupted Whether the cast ended before its full duration.
- * @returns {void}
- */
-function updateAutoattackChains(runtime: MesmerRuntime, skill: MesmerSkill, interrupted: boolean): void {
-  const { state, catalog } = runtime.context;
-  const chains = professionCoreState(state).autoattackChains;
-  const position = catalog.autoattackChainPositions.get(skill.id);
-  if (position) {
-    if (interrupted) {
-      // The active slot stays on the same chain step when that step is interrupted.
-      return;
-    }
-
-    // Object.keys yields string keys; chain roots are numeric skill ids, so
-    // coerce before comparing against or passing to numeric-id consumers.
-    for (const root of Object.keys(chains).map(Number)) {
-      if (root !== position.root) delete chains[root];
-    }
-
-    if (position.next == null) {
-      delete chains[position.root];
-    } else {
-      chains[position.root] = position.next;
-    }
-
-    return;
-  }
-
-  if (Number(skill.castTimeMs || 0) > 0 && skill.rechargeAnchor !== 'castStart') {
-    for (const root of Object.keys(chains).map(Number)) {
-      const preserve = preservesAutoattackChain(root, skill);
-      if (!preserve) delete chains[root];
-    }
-  }
-}
-
-/**
  * Commits all completion-time Mesmer mechanics for a skill.
  *
  * This includes interrupted resource restoration, profession actions,
@@ -478,7 +414,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       return;
     }
 
-    updateAutoattackChains(runtime, skill, interrupted);
     if (skill.id === ID.SWAP_WEAPONS) return;
     let clarityConsumed = false;
     let specializationHandled = false;

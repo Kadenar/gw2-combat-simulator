@@ -1,5 +1,4 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { resolveAutoattackChainStep } from '../../../platform/engine/skills/autoattack-chains.js';
 import { isLegalRevenantLegendId } from '../legend-rules.js';
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { revenantEnduranceReadyAt } from './energy.js';
@@ -9,7 +8,7 @@ import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '../types.js';
 
 // Centralize Revenant cast gates for legends, energy, endurance, upkeeps, timed
-// flips, specialization ownership, and autoattack progression.
+// flips, and specialization ownership; shared GW2 code owns chain progression.
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
@@ -110,11 +109,6 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
       `requires ${cost} energy.`,
       cooldownReadyAt > context.start + context.epsilon ? cooldownReadyAt : null
     );
-  }
-
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, state.autoattackChains, skill.id);
-  if (chain && !chain.matchesExpectedStep) {
-    return denyRevenantSkill(skill, 'revenant.autoattack-chain', 'cast the earlier chain skill first.');
   }
 
   return { ready: true };

@@ -20,14 +20,6 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
 
   const state = professionCoreState(context);
-  const chain = typeof skill.id === 'number' ? context.catalog.autoattackChainPositions.get(skill.id) : undefined;
-  if (chain) {
-    if (chain.next == null) delete state.autoattackChains[chain.root];
-    else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === 'Weapon') {
-    state.autoattackChains = {};
-  }
-
   // Panther's Prowl grants one three-second spear stealth attack choice; all
   // four affected slots flip together and the chosen attack consumes the set.
   if (skill.id === ID.PANTHERS_PROWL) {
