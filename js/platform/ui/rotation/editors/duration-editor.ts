@@ -1,3 +1,5 @@
+import { mountFloatingEditor } from './floating-editor.js';
+
 export interface DurationEditorOptions {
   readonly anchor: HTMLElement;
   readonly heading: string;
@@ -17,8 +19,6 @@ export interface DurationEditorHandle {
 
 export type DurationValidation =
   { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
-
-let activeEditor: DurationEditorHandle | null = null;
 
 export function validateDurationMs(
   rawValue: string | number,
@@ -46,13 +46,7 @@ export function validateDurationMs(
   return { valid: true, value };
 }
 
-export function closeDurationEditor(): void {
-  activeEditor?.close();
-}
-
 export function openDurationEditor(options: DurationEditorOptions): DurationEditorHandle {
-  closeDurationEditor();
-
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor rotation-duration-editor';
   editor.setAttribute('role', 'dialog');
@@ -104,67 +98,7 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
     error.textContent = '';
   });
 
-  let closed = false;
-  const position = (): void => {
-    if (!options.anchor.isConnected) {
-      handle.close();
-      return;
-    }
-
-    const anchorRect = options.anchor.getBoundingClientRect();
-    const editorRect = editor.getBoundingClientRect();
-    const gap = 12;
-    const viewportPadding = 8;
-    let opensLeft = false;
-    let left = anchorRect.right + gap;
-    if (left + editorRect.width > window.innerWidth - viewportPadding) {
-      opensLeft = true;
-      left = anchorRect.left - editorRect.width - gap;
-    }
-
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - editorRect.width - viewportPadding));
-    const anchorCenter = anchorRect.top + anchorRect.height / 2;
-    const top = Math.max(
-      viewportPadding,
-      Math.min(anchorCenter - 76, window.innerHeight - editorRect.height - viewportPadding)
-    );
-    editor.classList.toggle('opens-left', opensLeft);
-    editor.style.left = `${Math.round(left)}px`;
-    editor.style.top = `${Math.round(top)}px`;
-    editor.style.setProperty(
-      '--activation-editor-arrow-y',
-      `${Math.round(Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)))}px`
-    );
-  };
-
-  const onOutsidePointerDown = (event: PointerEvent): void => {
-    const target = event.target;
-    if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
-      handle.close();
-    }
-  };
-
-  const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      handle.close();
-    }
-  };
-
-  const onViewportChange = (): void => position();
-  const handle: DurationEditorHandle = {
-    element: editor,
-    close(): void {
-      if (closed) return;
-      closed = true;
-      document.removeEventListener('pointerdown', onOutsidePointerDown, true);
-      document.removeEventListener('keydown', onKeyDown, true);
-      document.removeEventListener('scroll', onViewportChange, true);
-      window.removeEventListener('resize', onViewportChange);
-      editor.remove();
-      if (activeEditor === handle) activeEditor = null;
-    }
-  };
+  const handle = mountFloatingEditor(editor, options.anchor);
 
   const applyChanges = (): void => {
     const validation = validateDurationMs(input.value, options.minimumMs, options.maximumMs);
@@ -188,13 +122,6 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
     }
   });
 
-  document.body.append(editor);
-  activeEditor = handle;
-  position();
-  document.addEventListener('pointerdown', onOutsidePointerDown, true);
-  document.addEventListener('keydown', onKeyDown, true);
-  document.addEventListener('scroll', onViewportChange, true);
-  window.addEventListener('resize', onViewportChange);
   input.focus();
   input.select();
   return handle;

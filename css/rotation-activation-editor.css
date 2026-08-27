@@ -51,11 +51,12 @@
 
 .rotation-activation-editor {
   --activation-editor-accent: #9d7bd0;
-  --activation-editor-arrow-y: 72px;
+  --floating-editor-arrow-y: 72px;
   position: fixed;
-  z-index: 2000;
+  inset: auto;
   box-sizing: border-box;
   width: min(286px, calc(100vw - 16px));
+  margin: 0;
   padding: 16px;
   border: 1px solid var(--activation-editor-accent);
   border-radius: 7px;
@@ -96,7 +97,7 @@
 
 .rotation-activation-editor::before {
   position: absolute;
-  top: calc(var(--activation-editor-arrow-y) - 6px);
+  top: calc(var(--floating-editor-arrow-y) - 6px);
   left: -6px;
   width: 10px;
   height: 10px;

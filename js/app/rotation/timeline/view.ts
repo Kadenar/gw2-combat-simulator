@@ -11,12 +11,11 @@ import {
 } from '../../../platform/ui/rotation/timeline.js';
 import {
   activationDamageCommitMs,
-  closeActivationEditor,
   openActivationEditor,
   suggestedActivationInterruptMs
 } from '../../../platform/ui/rotation/editors/activation-editor.js';
-import { closeChargeReleaseEditor } from '../../../platform/ui/rotation/editors/charge-release-editor.js';
-import { closeDurationEditor, openDurationEditor } from '../../../platform/ui/rotation/editors/duration-editor.js';
+import { openDurationEditor } from '../../../platform/ui/rotation/editors/duration-editor.js';
+import { closeFloatingEditor } from '../../../platform/ui/rotation/editors/floating-editor.js';
 import { escapeHtml as esc } from '../../../platform/ui/shared/html.js';
 import {
   mountRotationInsertionCursor,
@@ -43,7 +42,6 @@ import {
 import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '../editing/operations.js';
 import {
-  closeDoubleEdgeEditor,
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
@@ -460,10 +458,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
 
 export function renderTimeline(app: ProfessionAppState): void {
   // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
-  closeActivationEditor();
-  closeChargeReleaseEditor();
-  closeDoubleEdgeEditor();
-  closeDurationEditor();
+  closeFloatingEditor();
   const element = document.getElementById('rotation-timeline');
   const procElement = document.getElementById('rotation-procs');
   if (!element) return;

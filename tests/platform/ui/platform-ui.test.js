@@ -10,6 +10,7 @@ import {
 } from '../../../js/platform/ui/rotation/editors/activation-editor.js';
 import { chargeReleaseRowLabel } from '../../../js/platform/ui/rotation/editors/charge-release-editor.js';
 import { validateDurationMs } from '../../../js/platform/ui/rotation/editors/duration-editor.js';
+import { positionFloatingEditor } from '../../../js/platform/ui/rotation/editors/floating-editor.js';
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
@@ -60,6 +61,57 @@ function inertContainer() {
     querySelectorAll: () => []
   };
 }
+
+test('floating editors flip and clamp beside connected anchors', () => {
+  const originalWindow = globalThis.window;
+  const classes = new Set();
+  const properties = {};
+  const style = {
+    left: '',
+    top: '',
+    setProperty(name, value) {
+      properties[name] = value;
+    }
+  };
+  const editor = {
+    classList: {
+      toggle(name, active) {
+        if (active) classes.add(name);
+        else classes.delete(name);
+      }
+    },
+    getBoundingClientRect: () => ({ width: 200, height: 160 }),
+    style
+  };
+
+  try {
+    globalThis.window = { innerWidth: 500, innerHeight: 400 };
+    const rightAnchor = {
+      isConnected: true,
+      getBoundingClientRect: () => ({ left: 100, right: 140, top: 100, height: 40 })
+    };
+    assert.equal(positionFloatingEditor(editor, rightAnchor), true);
+    assert.equal(style.left, '152px');
+    assert.equal(style.top, '44px');
+    assert.equal(properties['--floating-editor-arrow-y'], '76px');
+    assert.equal(classes.has('opens-left'), false);
+
+    const leftAnchor = {
+      isConnected: true,
+      getBoundingClientRect: () => ({ left: 190, right: 230, top: 0, height: 20 })
+    };
+    globalThis.window.innerWidth = 220;
+    assert.equal(positionFloatingEditor(editor, leftAnchor), true);
+    assert.equal(style.left, '8px');
+    assert.equal(style.top, '8px');
+    assert.equal(properties['--floating-editor-arrow-y'], '18px');
+    assert.equal(classes.has('opens-left'), true);
+    assert.equal(positionFloatingEditor(editor, { ...rightAnchor, isConnected: false }), false);
+  } finally {
+    if (originalWindow === undefined) delete globalThis.window;
+    else globalThis.window = originalWindow;
+  }
+});
 
 test('activation editor suggests and validates manual interruption times', () => {
   assert.equal(suggestedActivationInterruptMs(920, 1200), 919);

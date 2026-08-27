@@ -1,4 +1,5 @@
 import type { Skill } from '../../../engine/types.js';
+import { mountFloatingEditor } from './floating-editor.js';
 
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;
@@ -22,8 +23,6 @@ export interface ActivationEditorHandle {
 
 export type ActivationInterruptValidation =
   { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
-
-let activeEditor: ActivationEditorHandle | null = null;
 
 export function suggestedActivationInterruptMs(
   fullCastMs: number | null | undefined,
@@ -126,13 +125,7 @@ export function validateActivationConcurrentOffsetMs(
   return { valid: true, value: Math.round(parsed) };
 }
 
-export function closeActivationEditor(): void {
-  activeEditor?.close();
-}
-
 export function openActivationEditor(options: ActivationEditorOptions): ActivationEditorHandle {
-  closeActivationEditor();
-
   // Instant casts edit their offset into the previous cast; cast-bar skills keep the interruption workflow.
   const behavior = options.behavior || 'interrupt';
   const isConcurrentBehavior = behavior === 'concurrent';
@@ -269,67 +262,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   });
   updateMode();
 
-  let closed = false;
-  const position = (): void => {
-    if (!options.anchor.isConnected) {
-      handle.close();
-      return;
-    }
-
-    const anchorRect = options.anchor.getBoundingClientRect();
-    const editorRect = editor.getBoundingClientRect();
-    const gap = 12;
-    const viewportPadding = 8;
-    let opensLeft = false;
-    let left = anchorRect.right + gap;
-    if (left + editorRect.width > window.innerWidth - viewportPadding) {
-      opensLeft = true;
-      left = anchorRect.left - editorRect.width - gap;
-    }
-
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - editorRect.width - viewportPadding));
-    const anchorCenter = anchorRect.top + anchorRect.height / 2;
-    const top = Math.max(
-      viewportPadding,
-      Math.min(anchorCenter - 76, window.innerHeight - editorRect.height - viewportPadding)
-    );
-    editor.classList.toggle('opens-left', opensLeft);
-    editor.style.left = `${Math.round(left)}px`;
-    editor.style.top = `${Math.round(top)}px`;
-    editor.style.setProperty(
-      '--activation-editor-arrow-y',
-      `${Math.round(Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)))}px`
-    );
-  };
-
-  const onOutsidePointerDown = (event: PointerEvent): void => {
-    const target = event.target;
-    if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
-      handle.close();
-    }
-  };
-
-  const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      handle.close();
-    }
-  };
-
-  const onViewportChange = (): void => position();
-  const handle: ActivationEditorHandle = {
-    element: editor,
-    close(): void {
-      if (closed) return;
-      closed = true;
-      document.removeEventListener('pointerdown', onOutsidePointerDown, true);
-      document.removeEventListener('keydown', onKeyDown, true);
-      document.removeEventListener('scroll', onViewportChange, true);
-      window.removeEventListener('resize', onViewportChange);
-      editor.remove();
-      if (activeEditor === handle) activeEditor = null;
-    }
-  };
+  const handle = mountFloatingEditor(editor, options.anchor);
 
   const applyChanges = (): void => {
     if (normalRadio.checked) {
@@ -367,13 +300,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     }
   });
 
-  document.body.append(editor);
-  activeEditor = handle;
-  position();
-  document.addEventListener('pointerdown', onOutsidePointerDown, true);
-  document.addEventListener('keydown', onKeyDown, true);
-  document.addEventListener('scroll', onViewportChange, true);
-  window.addEventListener('resize', onViewportChange);
   if (hasConfiguredTiming) {
     input.focus();
     input.select();

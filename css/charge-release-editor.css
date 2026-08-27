@@ -1,10 +1,11 @@
 .rotation-charge-release-editor {
   --charge-release-editor-accent: #e2b84f;
-  --charge-release-editor-arrow-y: 72px;
+  --floating-editor-arrow-y: 72px;
   position: fixed;
-  z-index: 1200;
+  inset: auto;
   width: min(470px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
+  margin: 0;
   overflow: auto;
   padding: 14px;
   border: 1px solid var(--charge-release-editor-accent);
@@ -17,7 +18,7 @@
 .rotation-charge-release-editor::before {
   content: '';
   position: absolute;
-  top: calc(var(--charge-release-editor-arrow-y) - 6px);
+  top: calc(var(--floating-editor-arrow-y) - 6px);
   left: -7px;
   width: 12px;
   height: 12px;
