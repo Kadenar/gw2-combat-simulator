@@ -1,4 +1,9 @@
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
+import type {
+  EngineerSerratedSteelObservation,
+  EngineerShrapnelObservation
+} from '../../../log-analyzer/evtc/rotation/professions/engineer/proc-observations.js';
+import type { NecromancerBarbedPrecisionObservation } from '../../../log-analyzer/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import type { WarriorBloodlustObservation } from '../../../log-analyzer/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
 import type { ProfessionAppState } from '../../profession/types.js';
@@ -17,17 +22,83 @@ function percent(value: number): string {
   return `${(value * 100).toFixed(2).replace(/\.00$/, '')}%`;
 }
 
+interface ProcRateResult {
+  readonly matchedApplications: number;
+  readonly observedProcRate: number;
+  readonly expectedProcChance: number;
+  readonly expectedApplications: number;
+}
+
+function durationList(durations: readonly number[]): string {
+  return durations.map((duration) => `${duration.toLocaleString()} ms`).join(' or ');
+}
+
 /** Presents inferred EVTC roll evidence without feeding it into reconstruction or simulation state. */
-function bloodlustImportObservation(result: WarriorBloodlustObservation | null): RotationImportObservation[] {
+function procImportObservation(
+  result: ProcRateResult | null,
+  title: string,
+  eligibleHits: number,
+  eligibleHitLabel: string,
+  detail: string
+): RotationImportObservation[] {
   if (!result) return [];
-  const durations = result.matchedDurationsMs.map((duration) => `${duration.toLocaleString()} ms`).join(' or ');
   return [
     {
-      title: 'Bloodlust proc rate',
-      summary: `${result.matchedApplications} matched applications / ${result.criticalHits} critical hits = ${percent(result.observedProcRate)}; configured chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
-      detail: `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durations} Bloodlust duration. EVTC does not name the originating trait, so that attribution is inferred by duration.`
+      title,
+      summary: `${result.matchedApplications} matched applications / ${eligibleHits} ${eligibleHitLabel} = ${percent(result.observedProcRate)}; configured chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
+      detail: `${detail} EVTC does not name the originating trait, so that attribution is inferred by duration.`
     }
   ];
+}
+
+function bloodlustImportObservation(result: WarriorBloodlustObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Bloodlust proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Bloodlust duration.`
+      : ''
+  );
+}
+
+function shrapnelImportObservation(result: EngineerShrapnelObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Shrapnel proc rate',
+    result?.explosionHits || 0,
+    'explosion hits',
+    result
+      ? `The applications are paired player-to-target Bleeding and Crippled records matching the active build's ${durationList(result.matchedBleedingDurationsMs)} and ${durationList(result.matchedCrippledDurationsMs)} durations.`
+      : ''
+  );
+}
+
+function serratedSteelImportObservation(result: EngineerSerratedSteelObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Serrated Steel proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Serrated Steel duration.`
+      : ''
+  );
+}
+
+function barbedPrecisionImportObservation(
+  result: NecromancerBarbedPrecisionObservation | null
+): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Barbed Precision proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Barbed Precision duration.`
+      : ''
+  );
 }
 
 /** True when a selected rotation file should use the existing JSON importer. */
@@ -64,15 +135,55 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     playerAddress: selected.address,
     ...reconstructionOptions
   });
-  const bloodlust =
-    selected.professionId === 'warrior'
-      ? rotationModule.analyzeWarriorBloodlustObservation(
+  const playerAddress = BigInt(selected.address);
+  const observations: RotationImportObservation[] = [];
+  if (selected.professionId === 'warrior') {
+    observations.push(
+      ...bloodlustImportObservation(
+        rotationModule.analyzeWarriorBloodlustObservation(
           log,
-          BigInt(selected.address),
+          playerAddress,
           app.activeCatalog,
           reconstructionOptions.professionConfig
         )
-      : null;
+      )
+    );
+  }
+
+  if (selected.professionId === 'engineer') {
+    observations.push(
+      ...shrapnelImportObservation(
+        rotationModule.analyzeEngineerShrapnelObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      ),
+      ...serratedSteelImportObservation(
+        rotationModule.analyzeEngineerSerratedSteelObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'necromancer') {
+    observations.push(
+      ...barbedPrecisionImportObservation(
+        rotationModule.analyzeNecromancerBarbedPrecisionObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
   return {
     // Reconstruction output is an external format; canonicalize it at this boundary.
     rotation: normalizeRotation(result.rotation, app.activeCatalog, {
@@ -80,7 +191,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     }),
     actionCount: result.actions.length,
     warnings: result.warnings,
-    observations: bloodlustImportObservation(bloodlust),
+    observations,
     playerLabel: `${selected.character} (${selected.account || selected.address})`
   };
 }

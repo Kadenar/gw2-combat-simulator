@@ -1,6 +1,6 @@
 import type { BalanceProfile, CanonicalCatalog } from '../../../../../platform/engine/types.js';
 import type { Gw2Config } from '../../../../../platform/gw2/simulation/config.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../../../professions/warrior/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../../../../professions/necromancer/data/ids.js';
 import type { ParsedEvtc } from '../../../types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
@@ -13,7 +13,9 @@ import {
   traitBalanceProfile
 } from '../condition-proc-observation.js';
 
-export interface WarriorBloodlustObservation {
+const BARBED_PRECISION_BLEEDING_BASE_SECONDS = 3;
+
+export interface NecromancerBarbedPrecisionObservation {
   readonly targetAddress: bigint;
   readonly criticalHits: number;
   readonly matchedApplications: number;
@@ -23,37 +25,23 @@ export interface WarriorBloodlustObservation {
   readonly matchedDurationsMs: readonly number[];
 }
 
-function hasBloodlust(config: Gw2Config): boolean {
-  return hasSelectedTrait(config, TRAIT.BLOODLUST);
+function expectedChance(profile: BalanceProfile): number | null {
+  const chance = Number(profile.criticalChance || profile.procChance || 0);
+  return chance > 0 ? chance : null;
 }
 
-function bloodlustProfile(catalog: Readonly<CanonicalCatalog>): BalanceProfile | null {
-  return traitBalanceProfile(catalog, TRAIT.BLOODLUST, 'Bloodlust');
-}
-
-function expectedBloodlustDurations(profile: BalanceProfile, config: Gw2Config): readonly number[] {
-  const effect = profile.effects?.find(
-    (candidate) => candidate.type === 'condition' && candidate.condition?.toLowerCase() === 'bleeding'
-  );
-  const baseDurationSeconds = Number(effect?.duration || 0);
-  return expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config);
-}
-
-/**
- * Compares ArcDPS critical-result packets with duration-matched Bleeding applications.
- * EVTC does not name the originating trait, so this remains explicit diagnostic evidence rather than rotation input.
- */
-export function analyzeWarriorBloodlustObservation(
+/** Compares Necromancer critical packets with expertise-scaled 3-second Barbed Precision Bleeding applications. */
+export function analyzeNecromancerBarbedPrecisionObservation(
   log: ParsedEvtc,
   playerAddress: bigint,
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
-): WarriorBloodlustObservation | null {
-  if (!hasBloodlust(config)) return null;
-  const profile = bloodlustProfile(catalog);
+): NecromancerBarbedPrecisionObservation | null {
+  if (!hasSelectedTrait(config, TRAIT.BARBED_PRECISION)) return null;
+  const profile = traitBalanceProfile(catalog, TRAIT.BARBED_PRECISION, 'Barbed Precision');
   if (!profile) return null;
-  const matchedDurationsMs = expectedBloodlustDurations(profile, config);
-  if (!matchedDurationsMs.length) return null;
+  const expectedProcChance = expectedChance(profile);
+  if (expectedProcChance == null) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
   if (targetAddress == null) return null;
@@ -63,6 +51,7 @@ export function analyzeWarriorBloodlustObservation(
   ).length;
   if (!criticalHits) return null;
 
+  const matchedDurationsMs = expectedConditionDurationsMs(BARBED_PRECISION_BLEEDING_BASE_SECONDS, 'Bleeding', config);
   const matchedApplications = matchingConditionApplications(
     log,
     playerAddress,
@@ -70,8 +59,6 @@ export function analyzeWarriorBloodlustObservation(
     EVTC_BLEEDING_SKILL_ID,
     matchedDurationsMs
   ).length;
-  const expectedProcChance = Number(profile.procChance || 0);
-  if (!(expectedProcChance > 0)) return null;
 
   return {
     targetAddress,
