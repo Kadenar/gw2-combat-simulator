@@ -129,10 +129,12 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
 
   // Match the timeline's charge-aware markers so the strip includes idle gaps
   // and the complete attempted duration of interrupted casts that never committed.
+  const combatStartMs = resultCombatReferenceMs(result);
+  // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
   const deadTimeMarkers = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result)),
     result.resolvedEvents || []
-  );
+  ).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   metrics.splice(1, 0, {
     label: 'Total Idle Time',
