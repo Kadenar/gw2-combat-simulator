@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { advanceEndurance, enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext } from '../types.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -20,16 +21,18 @@ export function advanceRangerResources(context: RangerSchedulerContext, target: 
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
-  state.endurance = Math.min(
-    state.maximumEndurance,
-    state.endurance + (target - from) * rangerEnduranceRegenerationRate(context, (from + target) / 2)
+  Object.assign(
+    state,
+    advanceEndurance(
+      state,
+      target,
+      rangerEnduranceRegenerationRate(context, (from + target) / 2),
+      state.maximumEndurance
+    )
   );
-  state.enduranceUpdatedAt = target;
 }
 
 export function rangerEnduranceReadyAt(context: RangerCastContext, cost: number): number | null {
-  const missing = Math.max(0, cost - professionCoreState(context).endurance);
-  if (missing <= context.epsilon) return context.start;
   const rate = rangerEnduranceRegenerationRate(context, context.start);
-  return rate > 0 ? context.start + missing / rate : null;
+  return enduranceReadyAt(professionCoreState(context).endurance, cost, context.start, rate, context.epsilon);
 }

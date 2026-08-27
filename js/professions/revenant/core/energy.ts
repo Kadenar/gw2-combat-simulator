@@ -1,6 +1,7 @@
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from '../state.js';
+import { advanceEndurance, enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -60,11 +61,8 @@ export function revenantEnduranceRegenerationRate(
 
 export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
-  const required = Math.max(0, Number(cost || 0));
-  const missing = required - current;
-  if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = revenantEnduranceRegenerationRate(context, context.start);
-  return rate > 0 ? context.start + missing / rate : null;
+  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
 }
 
 /**
@@ -79,8 +77,7 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
     const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
-    state.endurance = Math.min(state.maximumEndurance, state.endurance + (target - enduranceFrom) * enduranceRate);
-    state.enduranceUpdatedAt = target;
+    Object.assign(state, advanceEndurance(state, target, enduranceRate, state.maximumEndurance));
   }
 
   if (target <= from) return;

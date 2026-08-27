@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { advanceEndurance, enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerSchedulerContext } from '../types.js';
 
@@ -36,11 +37,8 @@ export function engineerEnduranceReadyAt(
   cost: number
 ): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
-  const missing = Math.max(0, Number(cost || 0) - current);
-  // already within epsilon of the cost — return start so the scheduler retries immediately
-  if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = engineerEnduranceRegenerationRate(context, context.start);
-  return rate > 0 ? context.start + missing / rate : null;
+  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
 }
 
 export function advanceEngineerResources(context: EngineerSchedulerContext, target: number): void {
@@ -48,13 +46,17 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
   // rate is evaluated at the midpoint of the window — accurate when vigor doesn't toggle mid-advance
-  state.endurance = Math.min(
-    Number(
-      state.maximumEndurance ||
-        engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
-    ),
-    Number(state.endurance || 0) + (target - from) * engineerEnduranceRegenerationRate(context, (from + target) / 2)
+  Object.assign(
+    state,
+    advanceEndurance(
+      state,
+      target,
+      engineerEnduranceRegenerationRate(context, (from + target) / 2),
+      Number(
+        state.maximumEndurance ||
+          engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
+      )
+    )
   );
-  state.enduranceUpdatedAt = target;
   emitStateSnapshot(context, 'engineer', target, 'resources', snapshotEngineerState(context.state.profession));
 }

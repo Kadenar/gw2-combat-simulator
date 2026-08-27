@@ -1,6 +1,7 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
+import { advanceEndurance, enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -36,11 +37,8 @@ export function thiefEnduranceRegenerationRate(
 
 export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
-  const required = Math.max(0, Number(cost || 0));
-  const missing = required - current;
-  if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = thiefEnduranceRegenerationRate(context, context.start);
-  return rate > 0 ? context.start + missing / rate : null;
+  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
 }
 
 // Advance initiative and endurance regeneration while pruning expired Lead
@@ -77,11 +75,15 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
 
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
-    state.endurance = Math.min(
-      state.maximumEndurance,
-      state.endurance + (target - enduranceFrom) * thiefEnduranceRegenerationRate(context, (enduranceFrom + target) / 2)
+    Object.assign(
+      state,
+      advanceEndurance(
+        state,
+        target,
+        thiefEnduranceRegenerationRate(context, (enduranceFrom + target) / 2),
+        state.maximumEndurance
+      )
     );
-    state.enduranceUpdatedAt = target;
   }
 
   emitStateSnapshot(context, 'thief', target, 'resources', snapshotThiefState(context.state.profession));

@@ -1,6 +1,7 @@
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from '../state.js';
+import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 /**
  * Core Revenant action-handler map.
  *
@@ -15,7 +16,7 @@ import type { RevenantCastContext, RevenantSkill } from '../types.js';
 /** Pays the profession-wide endurance cost for a dodge. */
 export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
-  state.endurance = Math.max(0, state.endurance - Number(skill.resourceCost || 0));
+  Object.assign(state, spendEndurance(state, Number(skill.resourceCost || 0), context.start, state.maximumEndurance));
   emitStateSnapshot(context, 'revenant', context.start, 'dodge', snapshotRevenantState(context.state.profession));
 }
 

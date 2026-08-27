@@ -11,6 +11,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { modifyWeaverAttributes, weaverModifierRules } from './modifiers.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import { elementalistAlacrityAdjustedDuration, triggerBountifulPower } from '../../core/rules.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
@@ -298,9 +299,14 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       } else if (element === 'Air') {
         emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', 'Swiftness', 1, 5, skill.name, skill.id);
       } else if (element === 'Earth') {
-        core.endurance = Math.min(
-          elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100),
-          core.endurance + elementalistBalanceValue(context, PROFILE.swiftRevenge, 'resourceGain', 25)
+        Object.assign(
+          core,
+          grantEndurance(
+            core,
+            elementalistBalanceValue(context, PROFILE.swiftRevenge, 'resourceGain', 25),
+            at,
+            elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+          )
         );
       }
     }

@@ -1,4 +1,9 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import {
+  advanceEndurance,
+  enduranceReadyAt,
+  grantEndurance
+} from '../../../platform/gw2/combat/resources/endurance.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
@@ -14,24 +19,31 @@ export function advanceWarriorResources(context: WarriorSchedulerContext, target
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
-  state.endurance = Math.min(
-    state.maximumEndurance,
-    state.endurance + (target - from) * warriorEnduranceRegenerationRate(context, (from + target) / 2)
+  Object.assign(
+    state,
+    advanceEndurance(
+      state,
+      target,
+      warriorEnduranceRegenerationRate(context, (from + target) / 2),
+      state.maximumEndurance
+    )
   );
-  state.enduranceUpdatedAt = target;
 }
 
 export function warriorEnduranceReadyAt(context: WarriorCastContext, cost: number): number | null {
-  const missing = Math.max(0, Number(cost || 0) - professionCoreState(context).endurance);
-  if (missing <= context.epsilon) return context.start;
   const rate = warriorEnduranceRegenerationRate(context, context.start);
-  return rate > 0 ? context.start + missing / rate : null;
+  return enduranceReadyAt(
+    professionCoreState(context).endurance,
+    Number(cost || 0),
+    context.start,
+    rate,
+    context.epsilon
+  );
 }
 
 export function gainWarriorEndurance(context: WarriorSchedulerContext, amount: number, at = context.state.time): void {
   const state = professionCoreState(context);
-  state.endurance = Math.min(state.maximumEndurance, state.endurance + Math.max(0, Number(amount || 0)));
-  state.enduranceUpdatedAt = Math.max(state.enduranceUpdatedAt, at);
+  Object.assign(state, grantEndurance(state, Number(amount || 0), at, state.maximumEndurance));
 }
 
 export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {

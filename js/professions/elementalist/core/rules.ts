@@ -39,6 +39,7 @@ export {
 
 import { criticalChance } from '../../../platform/gw2/combat/damage/calculations.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { grantEndurance, spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -241,9 +242,14 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       at,
       Boolean(context.config.boons?.vigor)
     );
-    state.endurance = Math.min(
-      elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100),
-      state.endurance + Number(skill.resourceGain)
+    Object.assign(
+      state,
+      grantEndurance(
+        state,
+        Number(skill.resourceGain),
+        at,
+        elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100)
+      )
     );
   }
 }
@@ -364,9 +370,14 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       context.effectiveEnd,
       Boolean(context.config.boons?.vigor)
     );
-    state.endurance = Math.max(
-      0,
-      state.endurance - elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST)
+    Object.assign(
+      state,
+      spendEndurance(
+        state,
+        elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST),
+        context.effectiveEnd,
+        elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100)
+      )
     );
     triggerEvasiveArcana(context, skill);
   }

@@ -12,6 +12,7 @@ import { snapshotRevenantState } from '../../state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
@@ -42,12 +43,10 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
     ? balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.songOfArboreum)
     : skill;
   // Song of Arboreum is mutually exclusive with the base endurance amount.
-  coreState.endurance = Math.min(
-    coreState.maximumEndurance,
-    coreState.endurance + Math.max(0, Number(enduranceProfile?.resourceGain))
+  Object.assign(
+    coreState,
+    grantEndurance(coreState, Number(enduranceProfile?.resourceGain), at, coreState.maximumEndurance)
   );
-  // enduranceUpdatedAt must be stamped after a manual grant so regen calculations start from here.
-  coreState.enduranceUpdatedAt = at;
   if (hasTrait(context.config, TRAIT.REAVERS_CURSE)) {
     const reaversCurse = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     const effect = reaversCurse?.effects?.find((candidate) => candidate.type === 'buff');

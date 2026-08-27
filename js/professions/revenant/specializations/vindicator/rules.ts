@@ -4,6 +4,7 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { playerHealthFraction } from '../../../../platform/gw2/combat/query/runtime-query.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -104,11 +105,10 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_ALLIANCE, event.at, TRAIT.SONG_OF_THE_MISTS);
-  coreState.endurance = Math.min(
-    coreState.maximumEndurance,
-    coreState.endurance + Math.max(0, Number(song.resourceGain || 0))
+  Object.assign(
+    coreState,
+    grantEndurance(coreState, Number(song.resourceGain || 0), event.at, coreState.maximumEndurance)
   );
-  coreState.enduranceUpdatedAt = event.at;
 }
 
 export const vindicatorAttributeRules = Object.freeze({

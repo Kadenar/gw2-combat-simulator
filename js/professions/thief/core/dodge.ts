@@ -2,6 +2,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
+import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
@@ -18,7 +19,10 @@ import {
 export function performThiefDodge(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
-  state.endurance = Math.max(0, state.endurance - Number(resources?.resourceCost || 50));
+  Object.assign(
+    state,
+    spendEndurance(state, Number(resources?.resourceCost || 50), context.start, state.maximumEndurance)
+  );
   emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = thiefBalanceProfile(context, PROFILE.uncatchable);

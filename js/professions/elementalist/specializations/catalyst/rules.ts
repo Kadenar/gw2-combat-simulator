@@ -10,6 +10,7 @@ import type {
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { applyElementalistAura } from '../../core/rules.js';
 import { elementalistEventSkill } from '../../core/mechanics.js';
@@ -498,9 +499,14 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
           skillName: 'Elemental Synergy'
         });
       } else if (attunement === 'Air') {
-        core.endurance = Math.min(
-          elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100),
-          core.endurance + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50)
+        Object.assign(
+          core,
+          grantEndurance(
+            core,
+            elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50),
+            event.at,
+            elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+          )
         );
       }
     }

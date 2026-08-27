@@ -1,5 +1,6 @@
 import { emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
@@ -201,8 +202,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = professionCoreState(context);
   const cost = Number(warriorBalanceProfile(context, PROFILE.resources)?.resourceCost || 50);
-  state.endurance = Math.max(0, state.endurance - cost);
-  state.enduranceUpdatedAt = context.start;
+  Object.assign(state, spendEndurance(state, cost, context.start, state.maximumEndurance));
   applyRecklessDodge(context, skill);
   return true;
 }

@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
+import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { isEngineerToolbeltSkill } from './traits.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
@@ -30,9 +31,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
   const state = professionCoreState(context);
   const at = context.start;
   const enduranceCost = engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'resourceCost', 50);
-  state.endurance = Math.max(0, Number(state.endurance || 0) - enduranceCost);
-  // enduranceUpdatedAt anchors the regen formula in resources.ts — must update alongside any endurance change
-  state.enduranceUpdatedAt = at;
+  Object.assign(state, spendEndurance(state, enduranceCost, at, state.maximumEndurance));
 
   context.emit({
     type: 'engineer.dodge',

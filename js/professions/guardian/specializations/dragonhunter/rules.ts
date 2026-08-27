@@ -2,6 +2,7 @@ import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.j
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled } from '../../core/rules.js';
@@ -98,8 +99,7 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
     const endurance = Number(guardianBalanceProfile(context, PROFILE.huntersDetermination)?.resourceGain || 100);
-    core.endurance = Math.min(core.maximumEndurance, core.endurance + endurance);
-    core.enduranceUpdatedAt = context.effectiveEnd;
+    Object.assign(core, grantEndurance(core, endurance, context.effectiveEnd, core.maximumEndurance));
     emitGuardianProc(context, {
       name: "Hunter's Determination",
       at: context.effectiveEnd,

@@ -1,5 +1,6 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { spendEndurance } from '../../../platform/gw2/combat/resources/endurance.js';
 import { replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
@@ -15,8 +16,15 @@ import {
 
 function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
-  state.endurance = Math.max(0, state.endurance - rangerBalanceValue(context, PROFILE.resources, 'resourceCost', 50));
-  state.enduranceUpdatedAt = context.start;
+  Object.assign(
+    state,
+    spendEndurance(
+      state,
+      rangerBalanceValue(context, PROFILE.resources, 'resourceCost', 50),
+      context.start,
+      state.maximumEndurance
+    )
+  );
   applyRangerDodgeTraits(context);
   return true;
 }

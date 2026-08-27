@@ -3,6 +3,7 @@ import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../platform/gw2/resolver/types.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import type { ElementalistResolverContext } from '../../types.js';
 import {
   activeElementalistBuffs,
@@ -107,9 +108,14 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
         'Elemental Synergy'
       );
     } else if (attunement === 'Air') {
-      core.endurance = Math.min(
-        elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100),
-        core.endurance + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50)
+      Object.assign(
+        core,
+        grantEndurance(
+          core,
+          elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50),
+          event.at,
+          elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+        )
       );
     }
 
@@ -221,7 +227,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     skillWeapon: 'Unequipped',
     triggeredBy: event.skillName
   });
-  
+
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,

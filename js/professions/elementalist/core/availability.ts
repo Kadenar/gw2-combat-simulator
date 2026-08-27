@@ -1,21 +1,16 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
 import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
+import { enduranceReadyAt } from '../../../platform/gw2/combat/resources/endurance.js';
 import { denySkillCast as unavailable } from '../../lib/availability.js';
 import type { ElementalistPrecastContext as ElementalistCastContext, ElementalistSchedulerContext } from '../types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistCoreState } from './state.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURED_WEAPONS,
-  DODGE_ENDURANCE_COST,
-  ENDURANCE_PER_SECOND,
-  HAMMER_ORB_SKILLS
-} from './constants.js';
+import { AURA_TRANSMUTE_SKILLS, CONJURED_WEAPONS, DODGE_ENDURANCE_COST, HAMMER_ORB_SKILLS } from './constants.js';
 import { elementalistElementalAvailability } from './elementals.js';
 import { projectedFreshAirReadyAt, targetAttunement } from './attunements.js';
 import { activeHammerOrbElements, hammerOrbMatchesAttunement } from './hammer.js';
 import { activeAura, etchingChain, skillWeapon } from './mechanics.js';
-import { updateEndurance } from './resources.js';
+import { elementalistEnduranceRegenerationRate, updateEndurance } from './resources.js';
 import { activeSecondaryAttunement, isSelectedSlotSkill, weaponAttunementAvailable } from './weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
@@ -57,21 +52,22 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
       Boolean(context.config.boons?.vigor)
     );
     const enduranceCost = elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST);
-    const regeneration = elementalistBalanceValue(
-      context,
-      PROFILE.resources,
-      'enduranceRegenerationPerSecond',
-      ENDURANCE_PER_SECOND
-    );
-    const vigorMultiplier = elementalistBalanceValue(context, PROFILE.resources, 'vigorRegenerationMultiplier', 1.5);
     return state.endurance + context.epsilon >= enduranceCost
       ? ready()
       : unavailable(
           skill,
           'elementalist.endurance',
           `requires ${enduranceCost} endurance.`,
-          context.start +
-            (enduranceCost - state.endurance) / (regeneration * (context.config.boons?.vigor ? vigorMultiplier : 1))
+          enduranceReadyAt(
+            state.endurance,
+            enduranceCost,
+            context.start,
+            elementalistEnduranceRegenerationRate(
+              context as unknown as ElementalistSchedulerContext,
+              Boolean(context.config.boons?.vigor)
+            ),
+            context.epsilon
+          )
         );
   }
 

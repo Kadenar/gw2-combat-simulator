@@ -2,6 +2,7 @@ import { isInternalCooldownReady } from '../../engine/core/clock.js';
 import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
 import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
 import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
+import { grantEndurance } from '../combat/resources/endurance.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
@@ -131,8 +132,18 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
     const current = Number(resources.endurance);
     if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;
     const amount = Math.max(0, Number(proc.amount || 0));
-    resources.endurance = Math.min(maximum, current + amount);
-    resources.enduranceUpdatedAt = cause.at;
+    Object.assign(
+      resources,
+      grantEndurance(
+        {
+          endurance: current,
+          enduranceUpdatedAt: Number(resources.enduranceUpdatedAt ?? cause.at)
+        },
+        amount,
+        cause.at,
+        maximum
+      )
+    );
     context.emitDerived(cause, {
       type: 'resource',
       at: cause.at,
