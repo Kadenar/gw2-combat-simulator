@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { castRelativeEffectTimingScale } from '../../../../platform/gw2/skills/timing.js';
 import type { SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../types.js';
@@ -23,10 +23,6 @@ import {
 } from './resources.js';
 import { evokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 // reads effects directly from the catalog so balance patches to those skills propagate without code changes
 function releaseElementalProcession(context: ElementalistCastContext, sourceSkill: Skill): void {

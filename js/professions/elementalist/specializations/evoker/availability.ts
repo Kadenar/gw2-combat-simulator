@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { AvailabilityResult, Skill } from '../../../../platform/engine/types.js';
 import type { ElementalistPrecastContext } from '../../types.js';
@@ -7,10 +7,6 @@ import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './constants.js';
 import { evokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { elementalistBalanceValue } from '../../core/profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 function targetAttunement(skill: Skill): ElementalistAttunement | null {
   if (skill.skillFamily !== 'Attunement') return null;

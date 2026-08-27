@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { Skill } from '../../../platform/engine/types.js';
 import type { ElementalistCastContext as ElementalistLifecycleContext } from '../types.js';
@@ -9,10 +9,6 @@ import {
   elementalistBalanceValue,
   elementalistEffectValue
 } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 // Track equipped and ground-copy conjures as timed flip state so pickup and
 // expiry behavior share one source of truth.

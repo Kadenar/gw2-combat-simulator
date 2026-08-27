@@ -40,7 +40,7 @@ import { criticalChance } from '../../../platform/gw2/combat/damage/calculations
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 export { elementalistCoreAttributeRules } from './modifiers.js';
 import type {
@@ -79,10 +79,6 @@ import {
   elementalistBalanceValue,
   elementalistEffectValue
 } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 function scheduleElementalistSkill(context: ElementalistLifecycleContext, skill: Skill): boolean {
   return scheduleGrandFinaleProfile(context, skill);

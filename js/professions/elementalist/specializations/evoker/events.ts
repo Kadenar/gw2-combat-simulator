@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../../types.js';
 import { emitElementalistBuff, emitElementalistProc } from '../../core/mechanics.js';
@@ -7,10 +7,6 @@ import { applyEvokerAttunementRechargePolicy } from './attunements.js';
 import { emitElectricEnchantment } from './enchantments.js';
 import { evokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 export function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = evokerState.from(context);

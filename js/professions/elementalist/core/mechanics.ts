@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import type { SimulationEvent, Skill } from '../../../platform/engine/types.js';
@@ -10,10 +10,6 @@ import {
   elementalistBalanceEffect,
   elementalistBalanceValue
 } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 export function skillWeapon(skill: Skill): string {
   return String(skill.weapon || skill.skillWeapon || '');

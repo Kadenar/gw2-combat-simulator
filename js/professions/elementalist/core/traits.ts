@@ -1,4 +1,4 @@
-import { hasTrait as hasGw2Trait } from '../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '../../../platform/gw2/scheduler/critical-facts.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
@@ -24,10 +24,6 @@ import {
   elementalistBalanceValue,
   elementalistEffectValue
 } from './profiles.js';
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
-}
 
 // Trait-skill packets carry canonical artwork so result tables do not fall back to the triggering attunement icon.
 const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';

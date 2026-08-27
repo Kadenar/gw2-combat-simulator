@@ -7,7 +7,7 @@ import type {
 } from '../../../../platform/engine/types.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import type { Gw2ModifierContext } from '../../../../platform/gw2/combat/modifiers/types.js';
-import { hasTrait as hasGw2Trait } from '../../../../platform/gw2/combat/state/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { applyElementalistAura, emitElementalistBuff } from '../../core/rules.js';
 import type { ElementalistAttunement } from '../../core/state.js';
@@ -54,10 +54,6 @@ function initialize(context: ElementalistSchedulerContext): void {
   const state = catalystState.from(context);
   state.maximumEnergy = maximumEnergy(context);
   state.energy = Math.min(state.maximumEnergy, state.energy);
-}
-
-function hasTrait(context: unknown, trait: string): boolean {
-  return hasGw2Trait(context as never, trait);
 }
 
 function catalystModifierState(context: Gw2ModifierContext): CatalystStateLike {
