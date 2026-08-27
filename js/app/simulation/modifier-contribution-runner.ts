@@ -3,26 +3,25 @@ import {
   modifierContributionWorkerCount,
   partitionModifierComparisons
 } from './modifier-contributions.js';
+import { ManagedWorkerBatch, type ProfessionWorkerResponseEnvelope } from './profession-worker-harness.js';
 import type { ModifierContribution, ProfessionAppState } from '../profession/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 
-interface ModifierContributionWorkerMessage {
-  readonly requestId: number;
-  readonly error?: unknown;
+interface ModifierContributionWorkerMessage extends ProfessionWorkerResponseEnvelope {
   readonly contributions?: ModifierContribution[];
 }
 
 export class ModifierContributionRunner {
   readonly app: ProfessionAppState;
   timer: ReturnType<typeof setTimeout> | null;
-  readonly workers: Set<Worker>;
   requestId: number;
+  private readonly batch: ManagedWorkerBatch<ModifierContributionWorkerMessage>;
 
   constructor(app: ProfessionAppState) {
     this.app = app;
     this.timer = null;
-    this.workers = new Set();
+    this.batch = new ManagedWorkerBatch();
     this.requestId = 0;
   }
 
@@ -31,11 +30,14 @@ export class ModifierContributionRunner {
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
-    for (const worker of this.workers) {
-      worker.terminate();
-    }
+    const failContributions = (): void => {
+      if (requestId !== this.requestId || !app.results) return;
+      app.results.modifierContributionsStale = false;
+      app.adapter.renderResults(app);
+    };
 
-    this.workers.clear();
+    // A new schedule owns a fresh batch, terminating and invalidating any prior pool.
+    this.batch.begin(requestId, failContributions);
 
     if (!app.build.rotation.length || !app.results) {
       if (app.results) app.results.modifierContributionsStale = false;
@@ -47,17 +49,6 @@ export class ModifierContributionRunner {
     const applyContributions = (contributions: ModifierContribution[]): void => {
       if (requestId !== this.requestId || !app.results) return;
       app.results.contributions = contributions;
-      app.results.modifierContributionsStale = false;
-      app.adapter.renderResults(app);
-    };
-
-    const failContributions = (): void => {
-      if (requestId !== this.requestId || !app.results) return;
-      for (const worker of this.workers) {
-        worker.terminate();
-      }
-
-      this.workers.clear();
       app.results.modifierContributionsStale = false;
       app.adapter.renderResults(app);
     };
@@ -84,47 +75,23 @@ export class ModifierContributionRunner {
         }
 
         const completed: ModifierContribution[][] = [];
-        let failed = false;
         for (const comparisons of batches) {
-          const worker = new Worker(new URL('./modifier-contribution-worker.js', import.meta.url), { type: 'module' });
-          this.workers.add(worker);
-          const finishWorker = (): void => {
-            worker.terminate();
-            this.workers.delete(worker);
-          };
-
-          worker.addEventListener('message', (event: MessageEvent<ModifierContributionWorkerMessage>) => {
-            const { data } = event;
-            if (failed || data.requestId !== requestId || requestId !== this.requestId) {
-              return;
-            }
-
-            finishWorker();
-            if (data.error) {
-              failed = true;
-              failContributions();
-              return;
-            }
-
-            completed.push(data.contributions || []);
-            if (completed.length === batches.length) {
-              applyContributions(mergeModifierContributions(completed));
-            }
-          });
-          worker.addEventListener(
-            'error',
-            () => {
-              if (failed) return;
-              failed = true;
-              finishWorker();
-              failContributions();
-            },
-            { once: true }
-          );
-          worker.postMessage({
+          if (!this.batch.isActive(requestId)) break;
+          this.batch.spawn(
+            new URL('./modifier-contribution-worker.js', import.meta.url),
             requestId,
-            request: { ...request, comparisons }
-          });
+            {
+              requestId,
+              request: { ...request, comparisons }
+            },
+            (data, worker) => {
+              this.batch.finish(worker);
+              completed.push(data.contributions || []);
+              if (completed.length === batches.length) {
+                applyContributions(mergeModifierContributions(completed));
+              }
+            }
+          );
         }
 
         return;

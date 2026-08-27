@@ -4,6 +4,7 @@ import {
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
 } from './random-distribution.js';
+import { ManagedWorkerBatch, type ProfessionWorkerResponseEnvelope } from './profession-worker-harness.js';
 import type {
   ProfessionAppState,
   RandomDistributionOutcome,
@@ -11,10 +12,8 @@ import type {
   RandomDistributionSummary
 } from '../profession/types.js';
 
-interface RandomDistributionWorkerMessage {
-  readonly requestId: number;
+interface RandomDistributionWorkerMessage extends ProfessionWorkerResponseEnvelope {
   readonly progress?: { readonly completed?: number };
-  readonly error?: unknown;
   readonly distribution?: {
     readonly samples?: readonly number[];
     readonly outcomes?: readonly RandomDistributionOutcome[];
@@ -24,18 +23,18 @@ interface RandomDistributionWorkerMessage {
 export class RandomDistributionRunner {
   readonly app: ProfessionAppState;
   timer: ReturnType<typeof setTimeout> | null;
-  readonly workers: Set<Worker>;
   requestId: number;
+  private readonly batch: ManagedWorkerBatch<RandomDistributionWorkerMessage>;
 
   constructor(app: ProfessionAppState) {
     this.app = app;
     this.timer = null;
-    this.workers = new Set();
+    this.batch = new ManagedWorkerBatch();
     this.requestId = 0;
   }
 
   get isRunning(): boolean {
-    return this.workers.size > 0;
+    return this.batch.isRunning;
   }
 
   schedule(run = false): void {
@@ -43,11 +42,16 @@ export class RandomDistributionRunner {
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
-    for (const worker of this.workers) {
-      worker.terminate();
-    }
+    const failDistribution = (error: unknown): void => {
+      if (requestId !== this.requestId || !app.results) return;
+      app.results.randomDistributionStale = false;
+      app.results.randomDistributionError =
+        error instanceof Error ? error.message : String(error || 'RNG distribution failed.');
+      app.adapter.renderResults(app);
+    };
 
-    this.workers.clear();
+    // Each requested distribution replaces the prior pool and invalidates its pending responses.
+    this.batch.begin(requestId, failDistribution);
 
     const results = app.results;
     if (!results || !app.build.rotation.length) {
@@ -116,19 +120,6 @@ export class RandomDistributionRunner {
       app.adapter.renderResults(app);
     };
 
-    const failDistribution = (error: unknown): void => {
-      if (requestId !== this.requestId || !app.results) return;
-      for (const worker of this.workers) {
-        worker.terminate();
-      }
-
-      this.workers.clear();
-      app.results.randomDistributionStale = false;
-      app.results.randomDistributionError =
-        error instanceof Error ? error.message : String(error || 'RNG distribution failed.');
-      app.adapter.renderResults(app);
-    };
-
     this.timer = setTimeout(() => {
       this.timer = null;
       if (requestId !== this.requestId) return;
@@ -154,67 +145,43 @@ export class RandomDistributionRunner {
         const completedSamples: Array<readonly number[] | null> = batches.map(() => null);
         const completedOutcomes: Array<readonly RandomDistributionOutcome[] | null> = batches.map(() => null);
         let completedWorkers = 0;
-        let failed = false;
 
         batches.forEach((batch, batchIndex) => {
-          const worker = new Worker(new URL('./random-distribution-worker.js', import.meta.url), { type: 'module' });
-          this.workers.add(worker);
-          const finishWorker = (): void => {
-            worker.terminate();
-            this.workers.delete(worker);
-          };
-
-          worker.addEventListener('message', (event: MessageEvent<RandomDistributionWorkerMessage>) => {
-            const { data } = event;
-            if (failed || data.requestId !== requestId || requestId !== this.requestId) {
-              return;
-            }
-
-            if (data.progress) {
-              batchProgress[batchIndex] = Math.max(0, Math.min(batch.trials, Number(data.progress.completed || 0)));
-              const completed = batchProgress.reduce((sum, value) => sum + value, 0);
-              applyProgress({
-                completed,
-                total: request.trials,
-                percent: (completed / request.trials) * 100
-              });
-              return;
-            }
-
-            finishWorker();
-            if (data.error) {
-              failed = true;
-              failDistribution(data.error);
-              return;
-            }
-
-            completedSamples[batchIndex] = data.distribution?.samples || [];
-            completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
-            completedWorkers += 1;
-            if (completedWorkers === batches.length) {
-              const outcomes = completedOutcomes.flatMap((batchOutcomes) => batchOutcomes || []);
-              applyDistribution(
-                outcomes.length
-                  ? summarizeRandomDistributionOutcomes(outcomes)
-                  : summarizeRandomDistribution(completedSamples.flatMap((samples) => samples || []))
-              );
-            }
-          });
-          worker.addEventListener(
-            'error',
-            (event) => {
-              if (failed) return;
-              failed = true;
-              finishWorker();
-              failDistribution(event.error ?? event.message);
-            },
-            { once: true }
-          );
-          worker.postMessage({
+          if (!this.batch.isActive(requestId)) return;
+          this.batch.spawn(
+            new URL('./random-distribution-worker.js', import.meta.url),
             requestId,
-            request: { ...request, ...batch },
-            includeSamples: true
-          });
+            {
+              requestId,
+              request: { ...request, ...batch },
+              includeSamples: true
+            },
+            (data, worker) => {
+              if (data.progress) {
+                batchProgress[batchIndex] = Math.max(0, Math.min(batch.trials, Number(data.progress.completed || 0)));
+                const completed = batchProgress.reduce((sum, value) => sum + value, 0);
+                applyProgress({
+                  completed,
+                  total: request.trials,
+                  percent: (completed / request.trials) * 100
+                });
+                return;
+              }
+
+              this.batch.finish(worker);
+              completedSamples[batchIndex] = data.distribution?.samples || [];
+              completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
+              completedWorkers += 1;
+              if (completedWorkers === batches.length) {
+                const outcomes = completedOutcomes.flatMap((batchOutcomes) => batchOutcomes || []);
+                applyDistribution(
+                  outcomes.length
+                    ? summarizeRandomDistributionOutcomes(outcomes)
+                    : summarizeRandomDistribution(completedSamples.flatMap((samples) => samples || []))
+                );
+              }
+            }
+          );
         });
         return;
       }

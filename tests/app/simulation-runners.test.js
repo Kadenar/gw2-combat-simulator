@@ -4,6 +4,10 @@ import test from 'node:test';
 import { ProfessionApp } from '../../js/app/profession-app.js';
 import { ModifierContributionRunner } from '../../js/app/simulation/modifier-contribution-runner.js';
 import { BaselineSimulationRunner } from '../../js/app/simulation/baseline-simulation-runner.js';
+import {
+  createProfessionWorkerEndpoint,
+  ManagedWorkerBatch
+} from '../../js/app/simulation/profession-worker-harness.js';
 import { RandomDistributionRunner } from '../../js/app/simulation/random-distribution-runner.js';
 import { RelicComparisonRunner } from '../../js/app/simulation/relic-comparison-runner.js';
 
@@ -16,6 +20,112 @@ function runTimersImmediately(t) {
     return 0;
   });
 }
+
+test('profession worker endpoints echo request identity and serialize loading and calculation errors', async () => {
+  let listener = null;
+  const posted = [];
+  const scope = {
+    addEventListener(_type, nextListener) {
+      listener = nextListener;
+    },
+    postMessage(message) {
+      posted.push(message);
+    }
+  };
+  createProfessionWorkerEndpoint({
+    scope,
+    echo: ({ revision }) => ({ revision }),
+    async loadAdapter(professionId) {
+      if (professionId === 'missing') return null;
+
+      if (professionId === 'load-failure') throw new Error('Adapter import failed.');
+      return {};
+    },
+    calculate(_adapter, { request }, postUpdate) {
+      if (request.fail) throw new Error('Simulation failed.');
+
+      postUpdate({ progress: 0.5 });
+      return { output: 'complete' };
+    }
+  });
+
+  await listener({ data: { requestId: 17, revision: 4, request: { professionId: 'engineer' } } });
+  await listener({ data: { requestId: 18, revision: 5, request: { professionId: 'missing' } } });
+  await listener({ data: { requestId: 19, revision: 6, request: { professionId: 'load-failure' } } });
+  await listener({ data: { requestId: 20, revision: 7, request: { professionId: 'engineer', fail: true } } });
+
+  assert.deepEqual(posted, [
+    { requestId: 17, revision: 4, progress: 0.5 },
+    { requestId: 17, revision: 4, output: 'complete' },
+    { requestId: 18, revision: 5, error: 'No application adapter for missing.' },
+    { requestId: 19, revision: 6, error: 'Adapter import failed.' },
+    { requestId: 20, revision: 7, error: 'Simulation failed.' }
+  ]);
+});
+
+test('managed worker batches terminate completed and failed workers and reject stale responses', (t) => {
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  t.after(() => {
+    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    else delete globalThis.Worker;
+  });
+
+  class ControlledWorker {
+    constructor() {
+      this.listeners = new Map();
+      this.terminated = false;
+    }
+
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+
+    postMessage() {}
+
+    terminate() {
+      this.terminated = true;
+    }
+
+    respond(message) {
+      this.listeners.get('message')?.({ data: message });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: ControlledWorker
+  });
+
+  const failures = [];
+  const handled = [];
+  const batch = new ManagedWorkerBatch();
+  batch.begin(1, (error) => failures.push(error));
+  const completedWorker = batch.spawn(new URL('https://example.com/worker.js'), 1, {}, (message, worker) => {
+    handled.push(message.value);
+    batch.finish(worker);
+  });
+  const supersededWorker = batch.spawn(new URL('https://example.com/worker.js'), 1, {}, () => {
+    assert.fail('a superseded response must not run');
+  });
+
+  completedWorker.respond({ requestId: 1, value: 'complete' });
+  assert.equal(completedWorker.terminated, true);
+  assert.deepEqual(handled, ['complete']);
+
+  batch.begin(2, (error) => failures.push(error));
+  assert.equal(supersededWorker.terminated, true);
+  supersededWorker.respond({ requestId: 1, value: 'stale' });
+
+  const failedWorker = batch.spawn(new URL('https://example.com/worker.js'), 2, {}, () => {});
+  const peerWorker = batch.spawn(new URL('https://example.com/worker.js'), 2, {}, () => {});
+  failedWorker.respond({ requestId: 2, error: 'Batch failed.' });
+
+  assert.deepEqual(handled, ['complete']);
+  assert.deepEqual(failures, ['Batch failed.']);
+  assert.equal(failedWorker.terminated, true);
+  assert.equal(peerWorker.terminated, true);
+  assert.equal(batch.isRunning, false);
+});
 
 test('rotation-only changes paint the builder once with their matching result', (t) => {
   const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
@@ -168,6 +278,82 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
 
   assert.doesNotThrow(() => runner.schedule());
   assert.equal(results.modifierContributionsStale, false);
+  assert.equal(renderCount, 1);
+});
+
+test('modifier worker batches ignore superseded responses and terminate on completion', (t) => {
+  runTimersImmediately(t);
+  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  t.after(() => {
+    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
+    else delete globalThis.Worker;
+  });
+
+  const workers = [];
+  class ControlledWorker {
+    constructor() {
+      this.listeners = new Map();
+      this.terminated = false;
+      workers.push(this);
+    }
+
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+
+    postMessage(message) {
+      this.message = message;
+    }
+
+    terminate() {
+      this.terminated = true;
+    }
+
+    respond(message) {
+      this.listeners.get('message')?.({ data: message });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    writable: true,
+    value: ControlledWorker
+  });
+
+  const results = { contributions: [], modifierContributionsStale: false };
+  let renderCount = 0;
+  const app = {
+    build: { rotation: STRIKE_ROTATION },
+    results,
+    adapter: {
+      modifierContributionRequest() {
+        return { comparisons: [{}] };
+      },
+      renderResults() {
+        renderCount += 1;
+      }
+    },
+    randomDistributionRunner: { isRunning: false }
+  };
+  const runner = new ModifierContributionRunner(app);
+
+  runner.schedule();
+  runner.schedule();
+  assert.equal(workers[0].terminated, true);
+  workers[0].respond({
+    requestId: 1,
+    contributions: [{ id: 'old', name: 'Old', dpsIncrease: 1, pctIncrease: 1 }]
+  });
+  assert.deepEqual(results.contributions, []);
+
+  workers[1].respond({
+    requestId: 2,
+    contributions: [{ id: 'new', name: 'New', dpsIncrease: 2, pctIncrease: 2 }]
+  });
+  assert.deepEqual(
+    results.contributions.map(({ id }) => id),
+    ['new']
+  );
+  assert.equal(workers[1].terminated, true);
   assert.equal(renderCount, 1);
 });
 
