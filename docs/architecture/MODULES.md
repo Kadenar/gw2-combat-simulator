@@ -127,14 +127,13 @@ adapter.
 
 Shared profession application composition.
 
-| Module              | Responsibility                                     |
-| ------------------- | -------------------------------------------------- |
-| `registry.ts`       | Lazy registry of every profession                  |
-| `create-adapter.ts` | Creates the browser adapter around a profession    |
-| `create-runtime.ts` | Connects application builds to `simulateGw2()`     |
-| `define-app.ts`     | Composes native profession application definitions |
-| `assumptions.ts`    | Shared assumption-control contracts                |
-| `slot-loadout.ts`   | Shared heal/utility/elite loadout behavior         |
+| Module              | Responsibility                                 |
+| ------------------- | ---------------------------------------------- |
+| `registry.ts`       | Lazy registry of every profession              |
+| `create-runtime.ts` | Connects application builds to `simulateGw2()` |
+| `define-app.ts`     | Composes native profession browser adapters    |
+| `assumptions.ts`    | Shared assumption-control contracts            |
+| `slot-loadout.ts`   | Shared heal/utility/elite loadout behavior     |
 
 The registry is also where a completely new profession would be exposed to the application.
 

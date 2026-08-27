@@ -1,13 +1,19 @@
 import { createCalculateAttributes } from '../../platform/gw2/builds/attributes.js';
-import { createGw2AppAdapter } from './create-adapter.js';
+import { RELIC_NAMES } from '../../platform/gw2/equipment/relics/catalog.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '../../platform/gw2/equipment/weapons/data.js';
+import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/equipment/weapons/skill-matcher.js';
+import { renderRotationBuilder } from '../rotation/index.js';
+import { renderResults } from '../rotation/result/view.js';
 import { createProfessionRuntime } from './create-runtime.js';
 import type { Skill } from '../../platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,
+  ProfessionAssumptionControl,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
   ProfessionSkillAvailabilityContext,
-  Gw2AppAdapter
+  Gw2AppAdapter,
+  ProfessionSlotLoadout
 } from './types.js';
 
 /**
@@ -69,31 +75,31 @@ export function defineProfessionApp({
     calculateAttributes,
     ...runtime
   });
-  const appAdapter = createGw2AppAdapter({
+
+  return Object.freeze({
+    id: profession.id,
+    name: profession.name,
     profession,
     storageKey,
     globalName,
-    filenames,
+    filenames: Object.freeze({ ...filenames }),
     resetPrompt,
     specializationFallback,
+    specializations: profession.catalog.specializations,
+    weaponData: createProfessionWeaponData(profession.catalog, {
+      weaponData: WEAPON_DATA
+    }),
+    relicNames: RELIC_NAMES,
     createDefaultTargetConditions,
     toApplicationBuild,
-    eliteSpecialization: runtimeApi.eliteSpecialization,
-    recalculate: runtimeApi.recalculate,
-    simulateBuild: runtimeApi.simulateBuild,
-    simulationConfig: runtimeApi.simulationConfig,
-    rotationEndStateAt: runtimeApi.rotationEndStateAt,
-    baselineSimulationRequest: runtimeApi.baselineSimulationRequest,
-    calculateBaselineSimulation: runtimeApi.calculateBaselineSimulation,
-    runSimulation: runtimeApi.runSimulation,
-    modifierContributionRequest: runtimeApi.modifierContributionRequest,
-    calculateModifierContributions: runtimeApi.calculateModifierContributions,
-    randomDistributionRequest: runtimeApi.randomDistributionRequest,
-    relicComparisonRequest: runtimeApi.relicComparisonRequest,
-    calculateRandomDistribution: runtimeApi.calculateRandomDistribution,
+    ...runtimeApi,
+    renderResults,
+    renderRotationBuilder,
+    slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
+    assumptionControls: (profession.ui.assumptionControls ||
+      Object.freeze([])) as readonly ProfessionAssumptionControl[],
+    weaponSkillMatchesSet: profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     isSkillAvailable,
     defaultOffhand
   });
-
-  return appAdapter;
 }

@@ -525,7 +525,9 @@ export interface ProfessionRuntimeApi {
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;
 }
 
-export interface Gw2AppAdapterOptions {
+export interface Gw2AppAdapter extends ProfessionRuntimeApi {
+  readonly id: string;
+  readonly name: string;
   readonly profession: ProfessionAppContract;
   readonly storageKey: string;
   readonly globalName: string;
@@ -534,26 +536,8 @@ export interface Gw2AppAdapterOptions {
   readonly specializationFallback: string;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
-  readonly eliteSpecialization: ProfessionRuntimeApi['eliteSpecialization'];
-  readonly recalculate: ProfessionRuntimeApi['recalculate'];
-  readonly simulateBuild: ProfessionRuntimeApi['simulateBuild'];
-  readonly simulationConfig: ProfessionRuntimeApi['simulationConfig'];
-  readonly rotationEndStateAt: ProfessionRuntimeApi['rotationEndStateAt'];
-  readonly baselineSimulationRequest: ProfessionRuntimeApi['baselineSimulationRequest'];
-  readonly calculateBaselineSimulation: ProfessionRuntimeApi['calculateBaselineSimulation'];
-  readonly runSimulation: ProfessionRuntimeApi['runSimulation'];
-  readonly modifierContributionRequest: ProfessionRuntimeApi['modifierContributionRequest'];
-  readonly calculateModifierContributions: ProfessionRuntimeApi['calculateModifierContributions'];
-  readonly randomDistributionRequest: ProfessionRuntimeApi['randomDistributionRequest'];
-  readonly relicComparisonRequest: ProfessionRuntimeApi['relicComparisonRequest'];
-  readonly calculateRandomDistribution: ProfessionRuntimeApi['calculateRandomDistribution'];
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
-}
-
-export interface Gw2AppAdapter extends Gw2AppAdapterOptions {
-  readonly id: string;
-  readonly name: string;
   readonly specializations: CanonicalCatalog['specializations'];
   readonly weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   readonly relicNames: readonly string[];
