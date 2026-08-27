@@ -30,6 +30,7 @@ import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/p
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { bladeswornState } from './state.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSimulationEvent, WarriorSkill } from '../../types.js';
+import { gw2ConfiguredWeaponSet } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 
 const UNSEEN_SWORD_STRIKE_ID = 62847;
 
@@ -614,12 +615,8 @@ const LUSH_FOREST_EXCLUDED_SKILL_IDS = new Set<number>([
 ]);
 
 function activeWeaponNames(context: WarriorCastContext): Set<string> {
-  const secondSet = context.state.activeWeaponSet === 2;
   return new Set(
-    [
-      secondSet ? context.config.weaponSet2Primary : context.config.primaryWeapon,
-      secondSet ? context.config.weaponSet2Secondary : context.config.secondaryWeapon
-    ]
+    gw2ConfiguredWeaponSet(context.config, context.state.activeWeaponSet === 2 ? 2 : 1)
       .map((weapon) => String(weapon || ''))
       .filter(Boolean)
   );

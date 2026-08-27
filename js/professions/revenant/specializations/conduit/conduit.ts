@@ -2,6 +2,7 @@ import { conduitState } from './state.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from '../../state.js';
+import { gw2PrimaryWeapon } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -102,7 +103,8 @@ function targetsHit(context: RevenantCastContext, maximum = 5): number {
 
 function activeWeapon(context: RevenantSchedulerContext): string | undefined {
   // activeWeaponSet is 1-indexed; value 2 means the swap weapon set is currently active.
-  return Number(context.state.activeWeaponSet) === 2 ? context.config.weaponSet2Primary : context.config.primaryWeapon;
+  const weaponSet = Number(context.state.activeWeaponSet) === 2 ? 2 : 1;
+  return gw2PrimaryWeapon(context.config, weaponSet);
 }
 
 // Profession attacks inherit the active weapon; slot and triggered attacks use

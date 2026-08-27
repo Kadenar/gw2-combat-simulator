@@ -14,6 +14,7 @@ import type {
   SkillId
 } from '../../../platform/engine/types.js';
 import type { NecromancerSimulationEvent, NecromancerSkill, NecromancerState, NecromancerUiContext } from '../types.js';
+import { gw2PrimaryWeapon } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 let necromancerCatalog: Readonly<CanonicalCatalog>;
 
@@ -312,8 +313,8 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
   const equippedWeapons = [
     ...(context.build?.weapons || []),
     ...(context.build?.alternateWeapons || []),
-    context.config?.primaryWeapon,
-    context.config?.weaponSet2Primary
+    gw2PrimaryWeapon(context.config, 1),
+    gw2PrimaryWeapon(context.config, 2)
   ];
   return equippedWeapons.includes('Spear') || Number(state.soulShards || 0) > 0
     ? [

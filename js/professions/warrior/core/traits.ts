@@ -4,6 +4,7 @@ import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
  *
@@ -556,12 +557,9 @@ function applyArmsCriticalTraits(
 }
 
 export function initializeWarriorTraits(context: WarriorSchedulerContext): void {
-  const weapons = [
-    context.config.primaryWeapon,
-    context.config.secondaryWeapon,
-    context.config.weaponSet2Primary,
-    context.config.weaponSet2Secondary
-  ].map(String);
+  const weapons = [...gw2ConfiguredWeaponSet(context.config, 1), ...gw2ConfiguredWeaponSet(context.config, 2)].map(
+    String
+  );
   if (
     weapons.includes('Dagger') ||
     hasTrait(context, TRAIT.BLOODLUST) ||

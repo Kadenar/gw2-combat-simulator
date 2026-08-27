@@ -16,6 +16,7 @@ import type {
 import type { Gw2SimulationResult } from '../../../platform/gw2/simulation/types.js';
 import type { WarriorSpecializationSelection } from '../data/traits-data.js';
 import type { WarriorSimulationEvent, WarriorSkill, WarriorState, WarriorUiContext } from '../types.js';
+import { gw2PrimaryWeapon } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 /** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
 const SIGNET_MASTERY_MAX_STACKS = 5;
@@ -58,7 +59,7 @@ function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): str
     return String(weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '');
   }
 
-  return String(weaponSet === 1 ? context.config?.primaryWeapon || '' : context.config?.weaponSet2Primary || '');
+  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
 }
 
 function weaponSetBurstSkillId(

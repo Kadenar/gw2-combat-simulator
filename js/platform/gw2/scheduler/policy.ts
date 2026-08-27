@@ -48,6 +48,7 @@ import type {
   SkillEffect
 } from '../../engine/types.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '../equipment/weapons/skill-matcher.js';
+import { gw2ConfiguredWeaponSet } from '../equipment/weapons/loadout.js';
 import type { Gw2CombatQuery } from '../combat/query/types.js';
 import type { Gw2Config } from '../simulation/config.js';
 import type { Gw2SchedulerPolicy } from './types.js';
@@ -159,14 +160,6 @@ export function gw2SchedulerBoonDuration<TProfessionState extends object>(
   );
 }
 
-function configuredWeaponSet(config: Gw2Config, weaponSet: number): [string | undefined, string | undefined] {
-  if (weaponSet === 2) {
-    return [config.weaponSet2Primary, config.weaponSet2Secondary];
-  }
-
-  return [config.primaryWeapon, config.secondaryWeapon];
-}
-
 export function isGw2WeaponSkillEquipped(
   context: SchedulerContext,
   skill: Skill,
@@ -182,7 +175,7 @@ export function isGw2WeaponSkillEquipped(
     return true;
   }
 
-  const configured = configuredWeaponSet(context.config as Gw2Config, context.state?.activeWeaponSet === 2 ? 2 : 1);
+  const configured = gw2ConfiguredWeaponSet(context.config as Gw2Config, context.state?.activeWeaponSet === 2 ? 2 : 1);
   // Empty weapon configuration is treated as an unrestricted sandbox build.
   return (
     configured.every((value) => !value) ||

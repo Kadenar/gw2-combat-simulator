@@ -13,6 +13,7 @@ import { activeLethalTempo, gainLethalTempo } from './mechanics.js';
 import { willbenderState } from './state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { gw2ConfiguredWeaponSet } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 
 function lethalTempoStacks(context: Gw2ModifierContext): number {
   return activeLethalTempo(willbenderState.from(context), context.time);
@@ -145,10 +146,7 @@ export function applyWillbenderVirtueActivationTraits(
 }
 
 function activeWeaponNames(context: GuardianSchedulerContext): Set<string> {
-  const configured =
-    context.state.activeWeaponSet === 2
-      ? [context.config.weaponSet2Primary, context.config.weaponSet2Secondary]
-      : [context.config.primaryWeapon, context.config.secondaryWeapon];
+  const configured = gw2ConfiguredWeaponSet(context.config, context.state.activeWeaponSet === 2 ? 2 : 1);
   return new Set(configured.map((weapon) => String(weapon || '')).filter(Boolean));
 }
 

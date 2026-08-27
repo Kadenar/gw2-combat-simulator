@@ -26,6 +26,7 @@ import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorRuntimeState, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import type { WarriorCoreState } from '../types.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 export { snapshotWarriorState } from '../state.js';
 
@@ -44,8 +45,8 @@ const eventSkill = (context: Gw2ModifierContext): WarriorSkill | undefined => gw
 function targetControlled(context: Gw2ModifierContext): boolean {
   return Boolean(
     context.config?.target?.controlled ||
-      context.config?.target?.defiant ||
-      Number(coreState(context).targetControlledUntil || 0) > context.time
+    context.config?.target?.defiant ||
+    Number(coreState(context).targetControlledUntil || 0) > context.time
   );
 }
 
@@ -97,12 +98,9 @@ function targetBoonCount(context: Gw2ModifierContext): number {
 function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
   if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  const primary = String(
-    weaponSet === 1 ? context.config?.primaryWeapon || '' : context.config?.weaponSet2Primary || ''
-  );
-  const secondary = String(
-    weaponSet === 1 ? context.config?.secondaryWeapon || '' : context.config?.weaponSet2Secondary || ''
-  );
+  const [configuredPrimary, configuredSecondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
+  const primary = String(configuredPrimary || '');
+  const secondary = String(configuredSecondary || '');
   return primary === weapon || secondary === weapon;
 }
 
@@ -444,11 +442,8 @@ function roundToActionTick(durationSeconds: number): number {
 
 function modifyCastDuration(context: WarriorCastContext, duration: number): number {
   const skill = context.skill;
-  const offhand = String(
-    context.state.activeWeaponSet === 2
-      ? context.config.weaponSet2Secondary || ''
-      : context.config.secondaryWeapon || ''
-  );
+  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
+  const offhand = String(gw2ConfiguredWeaponSet(context.config, weaponSet)[1] || '');
   const measured = Number(skill.dualWieldCastTimeMs || 0);
   const dualWielding =
     hasTrait(context, TRAIT.DUAL_WIELDING) &&

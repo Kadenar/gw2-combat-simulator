@@ -6,15 +6,13 @@ import type { GuardianCastContext, GuardianSkill } from '../../types.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { dragonhunterState } from './state.js';
 import { applySoaringDevastation, bigGameHunterTetherDuration } from './traits.js';
+import { gw2PrimaryWeapon } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 
 function activePrimaryWeapon(context: GuardianCastContext): string {
   // Soaring Devastation's strike uses the active weapon's power scaling, so
   // we must resolve which weapon set is live at cast time rather than always using set 1.
-  return String(
-    context.state.activeWeaponSet === 2
-      ? context.config.weaponSet2Primary || context.config.primaryWeapon || ''
-      : context.config.primaryWeapon || ''
-  );
+  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
+  return String(gw2PrimaryWeapon(context.config, weaponSet) || gw2PrimaryWeapon(context.config, 1) || '');
 }
 
 function activateDragonhunterVirtue(context: GuardianCastContext, skill: GuardianSkill): boolean {

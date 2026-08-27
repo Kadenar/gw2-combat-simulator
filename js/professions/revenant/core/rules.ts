@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.
@@ -164,8 +165,7 @@ export interface RevenantModifierContext extends Gw2ModifierContext {
 
 function revenantRuntimeState(context: RevenantModifierContext): Partial<RevenantState> | RevenantRuntimeState {
   return (context.runtime?.profession ?? context.state?.profession ?? {}) as
-    | Partial<RevenantState>
-    | RevenantRuntimeState;
+    Partial<RevenantState> | RevenantRuntimeState;
 }
 
 export function revenantRuntimeCoreState(context: RevenantModifierContext): Partial<RevenantCoreState> {
@@ -189,7 +189,7 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
 
 function activeOffhand(context: RevenantModifierContext): boolean {
   const set = Number(context.runtime?.activeWeaponSet || 1);
-  return Boolean(set === 2 ? context.config?.weaponSet2Secondary : context.config?.secondaryWeapon);
+  return Boolean(gw2ConfiguredWeaponSet(context.config, set)[1]);
 }
 
 function targetHasDefensiveBoon(context: RevenantModifierContext): boolean {

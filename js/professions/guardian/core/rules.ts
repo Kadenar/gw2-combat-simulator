@@ -13,6 +13,7 @@ import { advanceSpearIlluminationState, updateSpearIlluminationState } from './s
 import { observeGuardianScheduledEvent, updateGuardianTraitCastState } from './traits.js';
 import { updateWeaponCastState } from './weapon-state.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from './profiles.js';
+import { gw2PrimaryWeapon } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
   SchedulerRecord & {
@@ -27,9 +28,7 @@ type GuardianAmmoModifierContext = GuardianSchedulerContext &
 /** @param {Gw2ModifierContext} context */
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   const state = context.runtime?.profession as
-    | { readonly core?: Partial<GuardianState> }
-    | Partial<GuardianState>
-    | undefined;
+    { readonly core?: Partial<GuardianState> } | Partial<GuardianState> | undefined;
   return state && 'core' in state && state.core ? state.core : (state as Partial<GuardianState>) || {};
 }
 
@@ -38,7 +37,7 @@ function activeWeapon(context: Gw2ModifierContext): string | undefined {
   const eventWeapon = context.event?.skillWeapon;
   if (typeof eventWeapon === 'string') return eventWeapon;
   const weaponSet = context.timeline?.activeWeaponSetAt(context.time) || 1;
-  return weaponSet === 2 ? context.config?.weaponSet2Primary : context.config?.primaryWeapon;
+  return gw2PrimaryWeapon(context.config, weaponSet);
 }
 
 /** @param {string | undefined} weapon */

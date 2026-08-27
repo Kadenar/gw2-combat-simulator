@@ -28,6 +28,7 @@ import type { Gw2ResolvedStats } from '../../../platform/gw2/combat/query/types.
 import type { RangerSchedulerContext, RangerSkill } from '../types.js';
 import type { RangerCastContext } from '../types.js';
 import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 export const rangerCoreSchedulerHooks = Object.freeze({
   prepareEvent: {
@@ -153,16 +154,12 @@ function activeBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'
 }
 
 function activePrimaryWeapon(context: Gw2ModifierContext): string {
-  return Number(context.runtime?.activeWeaponSet) === 2
-    ? String(context.config?.weaponSet2Primary || '')
-    : String(context.config?.primaryWeapon || '');
+  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
+  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
 }
 
 function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
-  const weapons =
-    weaponSet === 2
-      ? [context.config?.weaponSet2Primary, context.config?.weaponSet2Secondary]
-      : [context.config?.primaryWeapon, context.config?.secondaryWeapon];
+  const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return weapons.some((weapon) => names.includes(String(weapon || '')));
 }
 
@@ -559,9 +556,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     when: (context) =>
       Boolean(
         String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') &&
-          (context.config?.target?.defiant ||
-            context.config?.target?.disabled ||
-            context.config?.target?.defianceBroken)
+        (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken)
       )
   },
   {

@@ -14,6 +14,7 @@ import type { Gw2ResolvedStats } from '../../../../platform/gw2/combat/query/typ
 import { thiefBalanceProfile } from '../../core/profiles.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { ThiefSchedulerContext } from '../../types.js';
+import { gw2PrimaryWeapon } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 
 export const specterSchedulerHooks = Object.freeze({
   advance: advanceSpecterResources,
@@ -49,9 +50,7 @@ export const specterSchedulerHooks = Object.freeze({
 // Second Opinion grants an extra +90 condition damage only while wielding Scepter in the active set.
 function wieldingScepter(context: Gw2ModifierContext): boolean {
   const activeSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  return activeSet === 2
-    ? context.config?.weaponSet2Primary === 'Scepter'
-    : context.config?.primaryWeapon === 'Scepter';
+  return gw2PrimaryWeapon(context.config, activeSet) === 'Scepter';
 }
 
 function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {

@@ -9,6 +9,7 @@ import { emitStateSnapshot } from '../../../../platform/engine/events/state-snap
 import { ritualistState } from './state.js';
 import { snapshotNecromancerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
+import { gw2PrimaryWeapon } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -225,11 +226,10 @@ function spiritDefinition(
 }
 
 function activePrimaryWeapon(context: NecromancerCastContext): string {
-  return String(
-    context.state.activeWeaponSet === 2
-      ? context.config.weaponSet2Primary || context.config.primaryWeapon || ''
-      : context.config.primaryWeapon || ''
-  );
+  // Player-owned spirit skill packets inherit the weapon selected at cast time,
+  // with the existing set-1 fallback retained for incomplete sandbox configs.
+  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
+  return String(gw2PrimaryWeapon(context.config, weaponSet) || gw2PrimaryWeapon(context.config, 1) || '');
 }
 
 function spiritMetadata(

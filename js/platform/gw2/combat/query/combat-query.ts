@@ -29,6 +29,7 @@ import {
   runtimeTargetConditionStacks
 } from '../state/targets.js';
 import { createGw2TimelineIndex } from './timeline-index.js';
+import { gw2PrimaryWeapon } from '../../equipment/weapons/loadout.js';
 
 import type {
   CatalogEntity,
@@ -177,7 +178,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     const cached = activeConfigsByWeaponSet.get(normalizedWeaponSet);
     if (cached) return cached;
     const activeConfig = configWithBaselineStats(normalizedWeaponSet);
-    const calculatedPrimaryWeapon = (normalizedWeaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || '';
+    const calculatedPrimaryWeapon = gw2PrimaryWeapon(config, normalizedWeaponSet) || '';
     const resolved = {
       ...activeConfig,
       attributeProvenance: {

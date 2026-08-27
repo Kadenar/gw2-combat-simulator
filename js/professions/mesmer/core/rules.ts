@@ -9,6 +9,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '../../../platform/gw2/builds/selected-skills.js';
+import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '../../../platform/gw2/equipment/weapons/loadout.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/combat/query/runtime-rules.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
@@ -216,8 +217,10 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     peithaSkills: new Set(MESMER_CORE_PEITHA_SKILLS),
     peithaProjectileDelays: { ...MESMER_CORE_PEITHA_PROJECTILE_DELAYS }
   };
-  const activePrimaryWeapon = () =>
-    state.activeWeaponSet === 1 ? config.primaryWeapon : config.weaponSet2Primary || config.primaryWeapon;
+  const activePrimaryWeapon = () => {
+    const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;
+    return gw2PrimaryWeapon(config, weaponSet) || gw2PrimaryWeapon(config, 1) || '';
+  };
 
   const emit = (event: SimulationEventInput): SimulationEvent | null => {
     const active = runtime.activeEmission;
@@ -556,7 +559,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
  * @returns {void}
  */
 export function initializeMesmerScheduler(context: MesmerSchedulerContext): void {
-  if (context.state.activeWeaponSet === 2 && !context.config.weaponSet2Primary && !context.config.weaponSet2Secondary) {
+  if (context.state.activeWeaponSet === 2 && gw2ConfiguredWeaponSet(context.config, 2).every((weapon) => !weapon)) {
     context.state.activeWeaponSet = 1;
   }
 
@@ -568,7 +571,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
   }
 
   const initial = clamp(Number(config.initialResource || 0), 0, runtime.resourceDefinition.maximum);
-  runtime.resources.gainResources(0, initial, config.primaryWeapon, 'initial', {
+  runtime.resources.gainResources(0, initial, gw2PrimaryWeapon(config, 1), 'initial', {
     kind: 'initial'
   });
   for (const skill of context.catalog.skills) {
@@ -713,10 +716,10 @@ function triggerChaoticInterruption(context: MesmerSchedulerContext, event: Simu
   }
 
   const set = context.state.activeWeaponSet;
-  const mainhand =
-    set === 1 ? context.config.primaryWeapon : context.config.weaponSet2Primary || context.config.primaryWeapon;
-  const offhand =
-    set === 1 ? context.config.secondaryWeapon : context.config.weaponSet2Secondary || context.config.secondaryWeapon;
+  const [configuredMainhand, configuredOffhand] = gw2ConfiguredWeaponSet(context.config, set);
+  const [primaryMainhand, primaryOffhand] = gw2ConfiguredWeaponSet(context.config, 1);
+  const mainhand = configuredMainhand || primaryMainhand;
+  const offhand = configuredOffhand || primaryOffhand;
 
   let targetId: number | null = null;
   if (mainhand === 'Staff') targetId = ID.PHANTASMAL_WARLOCK;

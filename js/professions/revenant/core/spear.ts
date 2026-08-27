@@ -2,6 +2,7 @@ import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../pla
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from '../state.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 /**
  * Revenant spear recharge and Crushing Abyss mechanics.
  *
@@ -35,9 +36,7 @@ function crushingAbyssStacksAt(state: RevenantCoreState, at: number): number {
 }
 
 function weaponSet(config: RevenantConfig, set: number): string[] {
-  return set === 2
-    ? [config.weaponSet2Primary || '', config.weaponSet2Secondary || '']
-    : [config.primaryWeapon || '', config.secondaryWeapon || ''];
+  return gw2ConfiguredWeaponSet(config, set).map((weapon) => weapon || '');
 }
 
 function sameWeaponSet(config: RevenantConfig, first: number, second: number): boolean {

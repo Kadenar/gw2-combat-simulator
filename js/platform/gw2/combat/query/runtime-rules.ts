@@ -5,6 +5,7 @@ import { gw2BaseRecharge } from '../../skills/recharge.js';
 import type { Gw2Config } from '../../simulation/config.js';
 import type { Gw2ResolvedStats } from './types.js';
 import type { Gw2SigilSet, Gw2Stats } from '../../equipment/types.js';
+import { gw2PrimaryWeapon } from '../../equipment/weapons/loadout.js';
 
 interface RechargeRateOptions {
   readonly alacrityRate?: number;
@@ -143,7 +144,7 @@ export function gw2WeaponStrength(
       : weaponStrengthAliasMatchers(aliases).find(({ pattern }) => pattern.test(explicit))?.weapon;
   const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
   const skillWeapon = String(event.skillWeapon || '');
-  const primaryWeapon = String(config.primaryWeapon || '');
+  const primaryWeapon = String(gw2PrimaryWeapon(config, 1) || '');
   // Precedence moves from event-specific metadata to build defaults, then the
   // generic Utility entry and caller fallback.
   return Number(

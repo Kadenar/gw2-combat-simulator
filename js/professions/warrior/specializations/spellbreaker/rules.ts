@@ -9,6 +9,7 @@ import { syncWarriorAdrenaline } from '../../core/resources.js';
 import type { WarriorSchedulerContext } from '../../types.js';
 import { observeSpellbreakerEvent } from './traits.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { gw2PrimaryWeapon } from '../../../../platform/gw2/equipment/weapons/loadout.js';
 
 export const spellbreakerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
@@ -61,7 +62,7 @@ function spellbreakerStateAt(context: Gw2ModifierContext): {
 
 function activePrimaryWeapon(context: Gw2ModifierContext): string {
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  return String(weaponSet === 2 ? context.config?.weaponSet2Primary || '' : context.config?.primaryWeapon || '');
+  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
 }
 
 function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {

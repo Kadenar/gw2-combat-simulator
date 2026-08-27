@@ -6,11 +6,12 @@ import { storedStolenSkillChoices } from './steal.js';
 import { denySkillCast as deny } from '../../lib/availability.js';
 import type { AvailabilityResult } from '../../../platform/engine/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
-  return context.state.activeWeaponSet === 2
-    ? [context.config.weaponSet2Primary || '', context.config.weaponSet2Secondary || '']
-    : [context.config.primaryWeapon || '', context.config.secondaryWeapon || ''];
+  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
+  const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
+  return [primary || '', secondary || ''];
 }
 
 function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): boolean {

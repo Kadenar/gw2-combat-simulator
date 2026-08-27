@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/equipment/weapons/skill-matcher.js';
+import { gw2ConfiguredWeaponSet } from '../../../platform/gw2/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
@@ -130,10 +131,8 @@ function hasHammerEquipped(context: RangerUiContext): boolean {
   return [
     ...(context.build?.weapons || []),
     ...(context.build?.alternateWeapons || []),
-    context.config?.primaryWeapon,
-    context.config?.secondaryWeapon,
-    context.config?.weaponSet2Primary,
-    context.config?.weaponSet2Secondary
+    ...gw2ConfiguredWeaponSet(context.config, 1),
+    ...gw2ConfiguredWeaponSet(context.config, 2)
   ].includes('Hammer');
 }
 
