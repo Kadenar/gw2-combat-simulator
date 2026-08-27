@@ -112,6 +112,38 @@ export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly defaults: TBuild;
 }
 
+export interface Gw2BuildExtraFieldBase {
+  readonly defaultValue?: number | string;
+  readonly label?: string;
+  readonly validationMessage?: string;
+}
+
+export interface Gw2BoundedNumberBuildField extends Gw2BuildExtraFieldBase {
+  readonly type: 'number';
+  readonly defaultValue?: number;
+  readonly minimum: number;
+  readonly maximum: number;
+}
+
+export interface Gw2BoundedIntegerBuildField extends Gw2BuildExtraFieldBase {
+  readonly type: 'integer';
+  readonly defaultValue?: number;
+  readonly minimum: number;
+  readonly maximum: number;
+}
+
+export interface Gw2EnumBuildField<TValue extends string = string> extends Gw2BuildExtraFieldBase {
+  readonly type: 'enum';
+  readonly defaultValue?: TValue;
+  readonly values: readonly TValue[];
+}
+
+export type Gw2BuildExtraFieldDescriptor = Gw2BoundedNumberBuildField | Gw2BoundedIntegerBuildField | Gw2EnumBuildField;
+
+export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> = Readonly<
+  Partial<Record<Extract<keyof TBuild, string>, Gw2BuildExtraFieldDescriptor>>
+>;
+
 export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: TBuild;
   readonly specialization: string;
@@ -129,6 +161,7 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly catalog: CanonicalCatalog;
   readonly createDefaults: () => TBuild;
   readonly migrations?: Readonly<Record<number, (saved: SchedulerRecord) => SchedulerRecord>>;
+  readonly extraFields?: Gw2BuildExtraFieldDescriptors<TBuild>;
   readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext<TBuild>) => TBuild;
   readonly validateExtra?: (build: TBuild) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;
   readonly legacyGearAliases?: Readonly<Record<string, string>>;

@@ -1,14 +1,9 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
 import { warriorCatalog } from './catalog.js';
 import type { WarriorCanonicalBuild } from './types.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 export const WARRIOR_BUILD_SCHEMA_VERSION = 3;
@@ -53,25 +48,18 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
   };
 }
 
-const warriorBuildCodec = createGw2BuildCodec<WarriorCanonicalBuild>({
+const warriorBuildCodec = createProfessionBuildCodec<WarriorCanonicalBuild>({
   professionId: WARRIOR_PROFESSION_ID,
   schemaVersion: WARRIOR_BUILD_SCHEMA_VERSION,
   catalog: warriorCatalog,
   createDefaults: createWarriorBuildDefaults,
-  normalizeExtra(build, { saved }) {
-    return {
-      ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialResource: boundedNumber(saved.initialResource ?? 0, 0, 0, 100)
-    };
-  },
-  validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 100)) {
-      errors.push('initialResource must be between 0 and 100.');
+  // The descriptor is the single contract for persisted adrenaline/flow bounds.
+  extraFields: {
+    initialResource: {
+      type: 'number',
+      minimum: 0,
+      maximum: 100
     }
-
-    return errors;
   }
 });
 

@@ -1,18 +1,12 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber, enumValue } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
-import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { revenantCatalog } from './catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from './data/ids.js';
 import { revenantLegendLoadout } from './legend-loadout.js';
-import type { RevenantCanonicalBuild, RevenantDodge } from './types.js';
+import type { RevenantCanonicalBuild } from './types.js';
 import type { Gw2SlotLoadout } from '../../platform/gw2/builds/types.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
@@ -71,36 +65,29 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
   };
 }
 
-const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
+const revenantBuildCodec = createProfessionBuildCodec<RevenantCanonicalBuild>({
   professionId: REVENANT_PROFESSION_ID,
   schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,
   catalog: revenantCatalog,
   createDefaults: createRevenantBuildDefaults,
   slotLoadout: revenantLegendLoadout as unknown as Gw2SlotLoadout<RevenantCanonicalBuild>,
-  normalizeExtra(build, { saved }) {
-    return {
-      ...build,
-      assumptions: normalizeProfessionAssumptions(
-        normalizeSimulationRandomnessAssumptions(build.assumptions),
-        REVENANT_ASSUMPTION_CONTROLS
-      ),
-      initialEnergy: boundedNumber(saved.initialEnergy ?? 50, 0, 0, 100),
-      selectedDodge: enumValue(String(saved.selectedDodge || ''), REVENANT_DODGES, 'Death Drop') as RevenantDodge,
-      allianceSide: enumValue(saved.allianceSide, ['luxon', 'kurzick'], 'luxon')
-    };
-  },
-  validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    errors.push(...validateProfessionAssumptions(build.assumptions, REVENANT_ASSUMPTION_CONTROLS));
-    if (!(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)) {
-      errors.push('initialEnergy must be between 0 and 100.');
+  assumptionControls: REVENANT_ASSUMPTION_CONTROLS,
+  // Legend resources and Vindicator choices use the same schema in both paths.
+  extraFields: {
+    initialEnergy: {
+      type: 'number',
+      minimum: 0,
+      maximum: 100
+    },
+    selectedDodge: {
+      type: 'enum',
+      values: REVENANT_DODGES
+    },
+    allianceSide: {
+      type: 'enum',
+      values: ['luxon', 'kurzick'],
+      validationMessage: 'allianceSide must be luxon or kurzick.'
     }
-
-    if (!['luxon', 'kurzick'].includes(build.allianceSide)) {
-      errors.push('allianceSide must be luxon or kurzick.');
-    }
-
-    return errors;
   }
 });
 

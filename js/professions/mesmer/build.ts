@@ -1,17 +1,12 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
 import { normalizeRotation } from '../../platform/engine/execution/rotation.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
 import { mesmerCatalog } from './catalog.js';
 import { resolveMesmerSkillIdFromDuplicateName } from './data/duplicate-skill-names.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import type { MesmerCanonicalBuild } from './types.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
@@ -75,26 +70,24 @@ function plainObject(value: unknown): SchedulerRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : {};
 }
 
-const mesmerBuildCodec = createGw2BuildCodec({
+const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
   professionId: PROFESSION_ID,
   schemaVersion: BUILD_SCHEMA_VERSION,
   catalog: mesmerCatalog,
   createDefaults: createMesmerBuildDefaults,
+  // Clone, blade, and note resources share one persisted numeric range.
+  extraFields: {
+    initialResource: {
+      type: 'number',
+      minimum: 0,
+      maximum: 5
+    }
+  },
   normalizeExtra(build, { saved }) {
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      rotation: normalizeRotation(disambiguateMesmerRotationSkillNames(saved), mesmerCatalog),
-      initialResource: boundedNumber(saved.initialResource ?? 5, 0, 0, 5)
+      rotation: normalizeRotation(disambiguateMesmerRotationSkillNames(saved), mesmerCatalog)
     };
-  },
-  validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 5)) {
-      errors.push('initialResource must be between 0 and 5.');
-    }
-
-    return errors;
   }
 });
 

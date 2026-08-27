@@ -1,16 +1,10 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber, enumValue } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  normalizeSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
+import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '../lib/build-codec.js';
 import { THIEF_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from './catalog.js';
-import type { ThiefCanonicalBuild, ThiefDodge } from './types.js';
+import type { ThiefCanonicalBuild } from './types.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
@@ -25,10 +19,6 @@ import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 export const THIEF_BUILD_SCHEMA_VERSION = 3;
 export const THIEF_PROFESSION_ID = 'thief';
 
-const THIEF_BUILD_ASSUMPTION_CONTROLS = Object.freeze([
-  ...THIEF_ASSUMPTION_CONTROLS,
-  ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS
-]);
 const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
 
 export { createDefaultTargetConditions };
@@ -67,23 +57,38 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
     },
     selectedDodge: 'Dodge',
     ...createCommonBuildDefaults({
-      assumptions: normalizeProfessionAssumptions({}, THIEF_BUILD_ASSUMPTION_CONTROLS)
+      assumptions: normalizeProfessionBuildAssumptions({}, THIEF_ASSUMPTION_CONTROLS)
     }),
     initialInitiative: 12,
     initialShadowForce: 0
   };
 }
 
-const thiefBuildCodec = createGw2BuildCodec({
+const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
   professionId: THIEF_PROFESSION_ID,
   schemaVersion: THIEF_BUILD_SCHEMA_VERSION,
   catalog: thiefCatalog,
   createDefaults: createThiefBuildDefaults,
-  normalizeExtra(build, { saved }) {
-    const assumptions = normalizeProfessionAssumptions(
-      normalizeSimulationRandomnessAssumptions(build.assumptions),
-      THIEF_BUILD_ASSUMPTION_CONTROLS
-    );
+  assumptionControls: THIEF_ASSUMPTION_CONTROLS,
+  // Initiative, shadow force, and dodge choice share one persisted schema.
+  extraFields: {
+    initialInitiative: {
+      type: 'number',
+      minimum: 0,
+      maximum: 15
+    },
+    initialShadowForce: {
+      type: 'number',
+      minimum: 0,
+      maximum: 100
+    },
+    selectedDodge: {
+      type: 'enum',
+      values: THIEF_DODGES
+    }
+  },
+  normalizeExtra(build) {
+    const assumptions = { ...build.assumptions };
     delete assumptions.markedTargetChoice;
     delete assumptions.playerHealthPercent;
     delete assumptions.targetDistance;
@@ -94,18 +99,11 @@ const thiefBuildCodec = createGw2BuildCodec({
     delete assumptions.deadeyeStolenSkillChoice;
     return {
       ...build,
-      assumptions,
-      initialInitiative: boundedNumber(saved.initialInitiative ?? 12, 0, 0, 15),
-      initialShadowForce: boundedNumber(saved.initialShadowForce ?? 0, 0, 0, 100),
-      selectedDodge: enumValue(String(saved.selectedDodge), THIEF_DODGES, 'Dodge') as ThiefDodge
+      assumptions
     };
   },
   validateExtra(build) {
-    const errors = validateProfessionAssumptions(build.assumptions, THIEF_BUILD_ASSUMPTION_CONTROLS);
-    if (!(Number(build.initialInitiative) >= 0 && Number(build.initialInitiative) <= 15))
-      errors.push('initialInitiative must be between 0 and 15.');
-    if (!(Number(build.initialShadowForce) >= 0 && Number(build.initialShadowForce) <= 100))
-      errors.push('initialShadowForce must be between 0 and 100.');
+    const errors: string[] = [];
     for (const pair of [build.weapons, build.alternateWeapons]) {
       if (!Array.isArray(pair)) continue;
       const [mainHand] = pair;

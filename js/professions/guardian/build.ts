@@ -1,13 +1,8 @@
 import { normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedInteger } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
 import { guardianCatalog } from './catalog.js';
 import type { GuardianCanonicalBuild } from './types.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
@@ -83,27 +78,22 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
   };
 }
 
-const guardianBuildCodec = createGw2BuildCodec({
+const guardianBuildCodec = createProfessionBuildCodec<GuardianCanonicalBuild>({
   professionId: GUARDIAN_PROFESSION_ID,
   schemaVersion: GUARDIAN_BUILD_SCHEMA_VERSION,
   catalog: guardianCatalog,
   createDefaults: createGuardianBuildDefaults,
-  normalizeExtra(build, { saved }) {
-    const configured = Number(saved.initialTomePages ?? 5);
-    const { initialResource: _discardedInitialResource, ...current } = build;
-    return {
-      ...current,
-      assumptions: normalizeSimulationRandomnessAssumptions(current.assumptions),
-      initialTomePages: boundedInteger(Number.isFinite(configured) ? configured : 5, 5, 0, 8)
-    };
-  },
-  validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(Number(build.initialTomePages) >= 0 && Number(build.initialTomePages) <= 8)) {
-      errors.push('initialTomePages must be between 0 and 8.');
+  // Tome pages are integer-valued; migration truncates before applying bounds.
+  extraFields: {
+    initialTomePages: {
+      type: 'integer',
+      minimum: 0,
+      maximum: 8
     }
-
-    return errors;
+  },
+  normalizeExtra(build) {
+    const { initialResource: _discardedInitialResource, ...current } = build;
+    return current as GuardianCanonicalBuild;
   }
 });
 

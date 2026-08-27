@@ -1,10 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { enumValue } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
-import { normalizeSimulationRandomnessAssumptions } from '../../app/simulation/randomness.js';
+import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '../lib/build-codec.js';
 import { RANGER_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { rangerCatalog } from './catalog.js';
 import { RANGER_PETS } from './data/ranger-pet-data.js';
@@ -77,18 +74,37 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     ],
     initialUntamedState: 'Pet',
     ...createCommonBuildDefaults({
-      assumptions: normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
+      assumptions: normalizeProfessionBuildAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
     }),
     initialAstralForce: 100,
     initialArrows: 8
   };
 }
 
-const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
+const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
   professionId: RANGER_PROFESSION_ID,
   schemaVersion: RANGER_BUILD_SCHEMA_VERSION,
   catalog: rangerCatalog,
   createDefaults: createRangerBuildDefaults,
+  assumptionControls: RANGER_ASSUMPTION_CONTROLS,
+  // Starting-state enums and resources share one migration/validation schema.
+  extraFields: {
+    initialUntamedState: {
+      type: 'enum',
+      values: ['Pet', 'Ranger'],
+      validationMessage: 'initialUntamedState must be either "Pet" or "Ranger".'
+    },
+    initialAstralForce: {
+      type: 'number',
+      minimum: 0,
+      maximum: 100
+    },
+    initialArrows: {
+      type: 'number',
+      minimum: 0,
+      maximum: 8
+    }
+  },
   normalizeExtra(build, { saved }) {
     const savedAssumptions =
       saved.assumptions && typeof saved.assumptions === 'object' ? (saved.assumptions as Record<string, unknown>) : {};
@@ -100,10 +116,6 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
       astralForceHealingEventsPerSecond: _fakeAstralForceHealingRate,
       ...supportedAssumptions
     } = build.assumptions;
-    const assumptions = normalizeProfessionAssumptions(
-      normalizeSimulationRandomnessAssumptions(supportedAssumptions),
-      RANGER_ASSUMPTION_CONTROLS
-    );
     const requestedPet = String(saved.selectedPet ?? savedAssumptions.selectedPet ?? 'Pig');
     const selectedPet = RANGER_PETS.some((pet) => pet.name === requestedPet) ? requestedPet : 'Pig';
     const requestedPet2 = String(saved.selectedPet2 ?? 'Lynx');
@@ -111,35 +123,20 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
     return {
       ...build,
       rotation: build.rotation.filter(keepRangerRotationCommand),
-      assumptions,
+      assumptions: supportedAssumptions,
       selectedPet,
       selectedPet2,
-      selectedHammerSkillIds: normalizeRangerHammerSkillIds(saved.selectedHammerSkillIds),
-      initialUntamedState: enumValue(saved.initialUntamedState, ['Pet', 'Ranger'], 'Pet'),
-      initialAstralForce: Math.max(0, Math.min(100, Number(saved.initialAstralForce ?? 100))),
-      initialArrows: Math.max(0, Math.min(8, Number(saved.initialArrows ?? 8)))
+      selectedHammerSkillIds: normalizeRangerHammerSkillIds(saved.selectedHammerSkillIds)
     };
   },
   validateExtra(build) {
-    const errors = validateProfessionAssumptions(build.assumptions, RANGER_ASSUMPTION_CONTROLS);
-    if (!(Number(build.initialAstralForce) >= 0 && Number(build.initialAstralForce) <= 100)) {
-      errors.push('initialAstralForce must be between 0 and 100.');
-    }
-
-    if (!(Number(build.initialArrows) >= 0 && Number(build.initialArrows) <= 8)) {
-      errors.push('initialArrows must be between 0 and 8.');
-    }
-
+    const errors: string[] = [];
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet)) {
       errors.push('selectedPet must name an available Ranger pet.');
     }
 
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet2)) {
       errors.push('selectedPet2 must name an available Ranger pet.');
-    }
-
-    if (!['Pet', 'Ranger'].includes(build.initialUntamedState)) {
-      errors.push('initialUntamedState must be either "Pet" or "Ranger".');
     }
 
     const selectedHammerSkillIds = Array.isArray(build.selectedHammerSkillIds)

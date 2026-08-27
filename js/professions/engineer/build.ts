@@ -1,12 +1,7 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 import { engineerCatalog } from './catalog.js';
 import type { RotationCommand, SchedulerRecord, Skill } from '../../platform/engine/types.js';
@@ -141,27 +136,29 @@ function normalizeMorphRotation(
   });
 }
 
-const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
+const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   professionId: ENGINEER_PROFESSION_ID,
   schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
   catalog: engineerCatalog,
   createDefaults: createEngineerBuildDefaults,
+  // Heat normalization and validation share this one persisted-field contract.
+  extraFields: {
+    initialHeat: {
+      type: 'number',
+      minimum: 0,
+      maximum: 150
+    }
+  },
   normalizeExtra(build, { saved }) {
     const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialHeat: boundedNumber(saved.initialHeat ?? 0, 0, 0, 150),
       selectedMorphSkillIds,
       rotation: normalizeMorphRotation(build.rotation, saved.rotation, selectedMorphSkillIds)
     };
   },
   validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(Number(build.initialHeat) >= 0 && Number(build.initialHeat) <= 150)) {
-      errors.push('initialHeat must be between 0 and 150.');
-    }
-
+    const errors: string[] = [];
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
     const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot));
     const names = morphs.map((id) => engineerCatalog.skillsById.get(Number(id))?.name);

@@ -6,12 +6,15 @@ import { RUNE_NAMES } from '../equipment/gear/runes.js';
 import { SIGIL_NAMES } from '../equipment/sigils/data.js';
 import { UTILITY_NAMES } from '../equipment/consumables/utilities.js';
 import { clamp, finiteNumber } from '../combat/numeric.js';
+import { boundedInteger, boundedNumber, enumValue } from './normalization.js';
 import { normalizeWeaponSigils } from '../equipment/sigils/loadout.js';
 import type { CanonicalCatalog, SchedulerRecord, Skill, SkillId } from '../../engine/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2BuildCodec,
   Gw2BuildCodecOptions,
+  Gw2BuildExtraFieldDescriptor,
+  Gw2BuildExtraFieldDescriptors,
   Gw2BuildInfusion,
   Gw2BuildSpecialization,
   Gw2BuildValidationOptions,
@@ -65,6 +68,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   catalog,
   createDefaults,
   migrations = {},
+  extraFields = {} as Gw2BuildExtraFieldDescriptors<TBuild>,
   normalizeExtra = (build) => build,
   validateExtra = () => [],
   legacyGearAliases = {},
@@ -81,6 +85,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   if (!catalog?.skillsById || typeof createDefaults !== 'function') {
     throw new TypeError('Build codec requires a catalog and createDefaults.');
   }
+
+  validateExtraFieldDescriptors(extraFields);
 
   const aliases = Object.freeze({
     ...DEFAULT_GEAR_ALIASES,
@@ -164,6 +170,9 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       migrated.relic = defaults.relic;
     }
 
+    // Extra-field descriptors apply the same bounds and enum vocabulary used
+    // by validation before profession-specific migration or repair hooks run.
+    migrated = normalizeExtraBuildFields(migrated, saved, defaults, extraFields);
     migrated = normalizeExtra(migrated, { saved, defaults });
     if (!migrated || typeof migrated !== 'object' || Array.isArray(migrated)) {
       throw new TypeError('normalizeExtra must return a build object.');
@@ -209,9 +218,10 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       return common;
     }
 
+    const descriptorErrors = validateExtraBuildFields(build as TBuild, extraFields);
     const extra = validateExtra(build as TBuild);
     const extraErrors = Array.isArray(extra) ? extra : extra?.errors || [];
-    const errors = [...common.errors, ...extraErrors.map(String)];
+    const errors = [...common.errors, ...descriptorErrors, ...extraErrors.map(String)];
     return { valid: errors.length === 0, errors };
   }
 
@@ -226,6 +236,99 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     validateBuild,
     toApplicationBuild
   });
+}
+
+/**
+ * Fails fast when a codec declares unusable field bounds or an empty enum so
+ * persisted builds cannot be normalized against an ambiguous contract.
+ */
+function validateExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild>(
+  descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
+): void {
+  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+    if (!descriptor || !['number', 'integer', 'enum'].includes(descriptor.type)) {
+      throw new TypeError(`Extra build field ${field} requires a supported descriptor type.`);
+    }
+
+    if (descriptor.type === 'enum') {
+      if (!descriptor.values.length || descriptor.values.some((value) => typeof value !== 'string')) {
+        throw new TypeError(`Extra build field ${field} requires at least one string enum value.`);
+      }
+
+      continue;
+    }
+
+    if (
+      !Number.isFinite(descriptor.minimum) ||
+      !Number.isFinite(descriptor.maximum) ||
+      descriptor.minimum > descriptor.maximum
+    ) {
+      throw new TypeError(`Extra build field ${field} requires finite, ordered bounds.`);
+    }
+  }
+}
+
+/**
+ * Normalizes declarative profession fields from their persisted values while
+ * taking missing-value defaults from the profession's canonical build.
+ */
+function normalizeExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
+  build: TBuild,
+  saved: SchedulerRecord,
+  defaults: TBuild,
+  descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
+): TBuild {
+  const normalized: SchedulerRecord = { ...build };
+  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+    const configuredDefault = descriptor.defaultValue ?? defaults[field];
+    const value = saved[field] ?? configuredDefault;
+    if (descriptor.type === 'number') {
+      normalized[field] = boundedNumber(value, Number(configuredDefault), descriptor.minimum, descriptor.maximum);
+    } else if (descriptor.type === 'integer') {
+      normalized[field] = boundedInteger(value, Number(configuredDefault), descriptor.minimum, descriptor.maximum);
+    } else {
+      const fallback = enumValue(configuredDefault, descriptor.values, descriptor.values[0]);
+      normalized[field] = enumValue(value, descriptor.values, fallback);
+    }
+  }
+
+  return normalized as TBuild;
+}
+
+/**
+ * Validates canonical profession fields with the same descriptors used during
+ * migration so range and enum contracts cannot drift into separate rules.
+ */
+function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
+  build: TBuild,
+  descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
+): string[] {
+  const errors: string[] = [];
+  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+    const value = build[field];
+    let valid = false;
+    if (descriptor.type === 'enum') {
+      valid = typeof value === 'string' && descriptor.values.includes(value);
+    } else {
+      const numeric = Number(value);
+      valid =
+        Number.isFinite(numeric) &&
+        numeric >= descriptor.minimum &&
+        numeric <= descriptor.maximum &&
+        (descriptor.type !== 'integer' || Number.isInteger(numeric));
+    }
+
+    if (valid) continue;
+    const label = descriptor.label || field;
+    errors.push(
+      descriptor.validationMessage ||
+        (descriptor.type === 'enum'
+          ? `${label} must be one of ${descriptor.values.join(', ')}.`
+          : `${label} must be between ${descriptor.minimum} and ${descriptor.maximum}.`)
+    );
+  }
+
+  return errors;
 }
 
 /**

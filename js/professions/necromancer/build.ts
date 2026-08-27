@@ -1,14 +1,9 @@
 import { GEAR_SLOTS } from '../../platform/gw2/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2/equipment/sigils/loadout.js';
-import { createGw2BuildCodec } from '../../platform/gw2/builds/codec.js';
-import { boundedNumber } from '../../platform/gw2/builds/normalization.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/builds/default-target-conditions.js';
-import {
-  normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions
-} from '../../app/simulation/randomness.js';
 import { necromancerCatalog } from './catalog.js';
 import type { NecromancerCanonicalBuild } from './types.js';
+import { createProfessionBuildCodec } from '../lib/build-codec.js';
 import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
@@ -70,40 +65,28 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
   };
 }
 
-const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
+const necromancerBuildCodec = createProfessionBuildCodec<NecromancerCanonicalBuild>({
   professionId: NECROMANCER_PROFESSION_ID,
   schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
   catalog: necromancerCatalog,
   createDefaults: createNecromancerBuildDefaults,
-  normalizeExtra(build, { saved }) {
-    return {
-      ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
-      initialResource: boundedNumber(saved.initialResource ?? 100, 0, 0, 100),
-      initialBlight: Math.max(0, Math.min(25, Math.trunc(Number(saved.initialBlight || 0)))),
-      initialCascadingCorruptionStacks: Math.max(
-        0,
-        Math.min(19, Math.trunc(Number(saved.initialCascadingCorruptionStacks || 0)))
-      )
-    };
-  },
-  validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 100)) {
-      errors.push('initialResource must be between 0 and 100.');
+  // Life force stays continuous; stack-like Harbinger resources are integers.
+  extraFields: {
+    initialResource: {
+      type: 'number',
+      minimum: 0,
+      maximum: 100
+    },
+    initialBlight: {
+      type: 'integer',
+      minimum: 0,
+      maximum: 25
+    },
+    initialCascadingCorruptionStacks: {
+      type: 'integer',
+      minimum: 0,
+      maximum: 19
     }
-
-    if (!(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)) {
-      errors.push('initialBlight must be between 0 and 25.');
-    }
-
-    if (!(
-      Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19
-    )) {
-      errors.push('initialCascadingCorruptionStacks must be between 0 and 19.');
-    }
-
-    return errors;
   }
 });
 
