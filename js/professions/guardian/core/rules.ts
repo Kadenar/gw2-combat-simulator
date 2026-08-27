@@ -2,9 +2,8 @@ import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/comb
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { attributeProvenance } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
-import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
-import { hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
+import { hasSelectedSkill, targetConditionActive } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
@@ -28,7 +27,9 @@ type GuardianAmmoModifierContext = GuardianSchedulerContext &
 /** @param {Gw2ModifierContext} context */
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   const state = context.runtime?.profession as
-    { readonly core?: Partial<GuardianState> } | Partial<GuardianState> | undefined;
+    | { readonly core?: Partial<GuardianState> }
+    | Partial<GuardianState>
+    | undefined;
   return state && 'core' in state && state.core ? state.core : (state as Partial<GuardianState>) || {};
 }
 
@@ -38,18 +39,6 @@ function activeWeapon(context: Gw2ModifierContext): string | undefined {
   if (typeof eventWeapon === 'string') return eventWeapon;
   const weaponSet = context.timeline?.activeWeaponSetAt(context.time) || 1;
   return weaponSet === 2 ? context.config?.weaponSet2Primary : context.config?.primaryWeapon;
-}
-
-/**
- * @param {Gw2ModifierContext} context
- * @param {string} condition
- */
-function targetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
-  if (context.query?.targetHasCondition) {
-    return Boolean(context.query.targetHasCondition(condition, context.time, context.runtime));
-  }
-
-  return targetHasConfiguredCondition(context.config || {}, condition, context.time, context.runtime);
 }
 
 /** @param {string | undefined} weapon */
@@ -238,7 +227,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.1,
-    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER) && targetHasCondition(context, 'Burning')
+    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER) && targetConditionActive(context, 'Burning')
   },
   {
     id: 'guardian.righteous-instincts',
@@ -285,7 +274,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: 1.05,
     order: 100,
-    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.FIERY_WRATH) && targetHasCondition(context, 'Burning')
+    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.FIERY_WRATH) && targetConditionActive(context, 'Burning')
   },
   {
     id: 'guardian.symbolic-exposure',
@@ -294,7 +283,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     factor: 1.05,
     order: 100,
     when: (context) =>
-      hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE) && targetHasCondition(context, 'Vulnerability')
+      hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE) && targetConditionActive(context, 'Vulnerability')
   },
   {
     id: 'guardian.amplified-wrath-damage',

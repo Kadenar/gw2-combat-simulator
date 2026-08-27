@@ -2,6 +2,7 @@ import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.j
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { grantEndurance } from '../../../../platform/gw2/combat/resources/endurance.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
@@ -12,10 +13,6 @@ import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } fro
 import { dragonhunterState } from './state.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-
-function targetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
-  return Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime));
-}
 
 export const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -33,7 +30,7 @@ export const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.free
     factor: 1.1,
     order: 100,
     when: (context) =>
-      hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_AGGRESSION) && targetHasCondition(context, 'Crippled')
+      hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_AGGRESSION) && targetConditionActive(context, 'Crippled')
   },
   {
     id: 'guardian.dragonhunter.heavy-light',

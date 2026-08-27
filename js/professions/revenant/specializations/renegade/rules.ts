@@ -4,17 +4,13 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
-import {
-  revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState,
-  revenantTargetHasCondition,
-  revenantTimedBuff
-} from '../../core/rules.js';
+import { revenantRuntimeCoreState, revenantRuntimeSpecializationState, revenantTimedBuff } from '../../core/rules.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { grantKallasFervor } from './renegade.js';
@@ -56,7 +52,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.HEARTPIERCER) &&
-      revenantTargetHasCondition(context, 'Bleeding')
+      targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'revenant.heartpiercer-bleeding',

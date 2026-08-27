@@ -1,4 +1,3 @@
-import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
@@ -6,6 +5,7 @@ import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
+  targetConditionActive,
   targetConditionCount,
   targetHealthFraction
 } from '../../../platform/gw2/combat/query/runtime-query.js';
@@ -45,14 +45,6 @@ export function necromancerEventSkill(context: Gw2ModifierContext): NecromancerS
   return eventSkill<NecromancerSkill>(context);
 }
 
-export function necromancerTargetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
-  if (context.query?.targetHasCondition) {
-    return Boolean(context.query.targetHasCondition(condition, context.time, context.runtime));
-  }
-
-  return targetHasConfiguredCondition(context.config || {}, condition, context.time, context.runtime);
-}
-
 export function necromancerTargetConditionCount(context: Gw2ModifierContext): number {
   return targetConditionCount(context);
 }
@@ -67,7 +59,7 @@ export function necromancerActiveShroud(context: Gw2ModifierContext): string {
 
 export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   return (
-    necromancerTargetHasCondition(context, 'Chilled') ||
+    targetConditionActive(context, 'Chilled') ||
     Number(necromancerRuntimeCoreState(context).targetChilledUntil || 0) > context.time
   );
 }
@@ -209,9 +201,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     factor: 1.5,
     order: 100,
     when: (context) =>
-      Boolean(
-        necromancerEventSkill(context)?.id === ID.LIFE_SIPHON && necromancerTargetHasCondition(context, 'Bleeding')
-      )
+      Boolean(necromancerEventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding'))
   },
   {
     id: 'necromancer.target-the-weak-critical-chance',

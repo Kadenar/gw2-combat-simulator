@@ -73,6 +73,15 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
   return clamp(base + dynamic, 0, maximum);
 }
 
+/** Gives an installed query adapter precedence while retaining config/runtime condition fallback for partial contexts. */
+export function targetConditionActive(context: Gw2ModifierContext, condition: string): boolean {
+  return Boolean(
+    context.query?.targetHasCondition
+      ? context.query.targetHasCondition(condition, context.time, context.runtime)
+      : targetHasCondition(context.config || {}, condition, context.time, context.runtime)
+  );
+}
+
 /** Counts distinct configured or live target conditions through the canonical combat query when available. */
 export function targetConditionCount(context: Gw2ModifierContext): number {
   const names = new Set([
@@ -80,11 +89,7 @@ export function targetConditionCount(context: Gw2ModifierContext): number {
     ...Object.keys(context.config?.target?.conditions || {}).map(canonicalTargetConditionName),
     ...[...(context.runtime?.conditionState?.keys?.() || [])].map(canonicalTargetConditionName)
   ]);
-  return [...names].filter((condition) =>
-    context.query?.targetHasCondition
-      ? context.query.targetHasCondition(condition, context.time, context.runtime)
-      : targetHasCondition(context.config || {}, condition, context.time, context.runtime)
-  ).length;
+  return [...names].filter((condition) => targetConditionActive(context, condition)).length;
 }
 
 /** Reads target Vulnerability through the shared combat-query stack calculation. */

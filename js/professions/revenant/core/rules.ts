@@ -144,6 +144,7 @@ import { isDamagingCondition } from '../../../platform/gw2/combat/state/targets.
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   playerHealthFraction,
+  targetConditionActive,
   targetHealthFraction,
   vulnerabilityStacks
 } from '../../../platform/gw2/combat/query/runtime-query.js';
@@ -163,7 +164,8 @@ export interface RevenantModifierContext extends Gw2ModifierContext {
 
 function revenantRuntimeState(context: RevenantModifierContext): Partial<RevenantState> | RevenantRuntimeState {
   return (context.runtime?.profession ?? context.state?.profession ?? {}) as
-    Partial<RevenantState> | RevenantRuntimeState;
+    | Partial<RevenantState>
+    | RevenantRuntimeState;
 }
 
 export function revenantRuntimeCoreState(context: RevenantModifierContext): Partial<RevenantCoreState> {
@@ -183,18 +185,6 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
   return (context.runtime?.boons?.get(kind) || []).some(
     (application) => application.at <= context.time && application.expiresAt > context.time
   );
-}
-
-export function revenantTargetHealthFraction(context: RevenantModifierContext): number {
-  return targetHealthFraction(context);
-}
-
-export function revenantTargetHasCondition(context: RevenantModifierContext, condition: string): boolean {
-  return Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime));
-}
-
-export function revenantTargetVulnerability(context: RevenantModifierContext): number {
-  return vulnerabilityStacks(context);
 }
 
 function activeOffhand(context: RevenantModifierContext): boolean {
@@ -276,7 +266,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.DWARVEN_BATTLE_TRAINING) &&
-      revenantTargetHasCondition(context, 'Weakness')
+      targetConditionActive(context, 'Weakness')
   },
   {
     id: 'revenant.vicious-reprisal',
@@ -303,13 +293,13 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.UNSUSPECTING_STRIKES) &&
-      revenantTargetHealthFraction(context) > 0.8
+      targetHealthFraction(context) > 0.8
   },
   {
     id: 'revenant.targeted-destruction',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    factor: (context) => 1 + revenantTargetVulnerability(context) * 0.005,
+    factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
     when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
   },
   {
@@ -330,7 +320,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.SWIFT_TERMINATION) &&
-      revenantTargetHealthFraction(context) < 0.5
+      targetHealthFraction(context) < 0.5
   }
 ]);
 

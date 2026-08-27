@@ -2,6 +2,7 @@ import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { elementalistAttunements, elementalistTimedBuffStacks } from '../../core/modifiers.js';
 import type { ElementalistRuntimeState } from '../../types.js';
@@ -47,7 +48,7 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, 'Superior Elements') &&
-      Boolean(context.query?.targetHasCondition('Weakness', context.time, context.runtime))
+      targetConditionActive(context, 'Weakness')
   }
 ]);
 

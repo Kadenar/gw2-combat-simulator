@@ -3,6 +3,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
+import { vulnerabilityStacks } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { isDamagingCondition } from '../../../../platform/gw2/combat/state/targets.js';
 import {
@@ -13,11 +14,7 @@ import {
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '../../legend-rules.js';
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../legend-rules.js';
 import { bolsteredBondsBonuses } from '../../bolstered-bonds.js';
-import {
-  revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState,
-  revenantTargetVulnerability
-} from '../../core/rules.js';
+import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../core/rules.js';
 import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
 import {
@@ -73,7 +70,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // Numinous Gift unlocks Targeted Destruction's bonus; the factor is expressed as a multiplier delta on top of
     // the existing vulnerability bonus so both traits stack multiplicatively with the base formula.
     factor: (context, _target, parameters) => {
-      const base = 1 + revenantTargetVulnerability(context) * parameters.vulnerabilityPerStack;
+      const base = 1 + vulnerabilityStacks(context) * parameters.vulnerabilityPerStack;
       return (base + parameters.bonus) / base;
     },
     when: (context) =>

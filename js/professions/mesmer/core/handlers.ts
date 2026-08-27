@@ -1,14 +1,9 @@
 import { augmentSkill, replaceSkill } from '../../../platform/gw2/authoring/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/equipment/weapons/swap.js';
+import { canonicalTargetConditionName } from '../../../platform/gw2/combat/state/targets.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from './mechanics.js';
 import type { SimulationEvent, Skill, SkillEffect, SkillHandlerStrategy } from '../../../platform/engine/types.js';
 import type { MesmerHandlerContext } from '../types.js';
-
-function conditionName(value: unknown): string {
-  const normalized = String(value || '').toLowerCase();
-  if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
 
 function effectWeaponStrength(effect: SkillEffect, skill: Skill): number | undefined {
   if (effect.weaponStrength != null) return Number(effect.weaponStrength);
@@ -49,7 +44,7 @@ function observeDeclarativeEffect(
   }
 
   if (event.type === 'condition') {
-    const condition = conditionName(event.condition);
+    const condition = canonicalTargetConditionName(event.condition);
     context.replaceEvent(event, {
       source: 'Player',
       sourceId: skill.name,

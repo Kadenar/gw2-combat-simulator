@@ -1,5 +1,6 @@
 import { materializeSkillEffectApplications } from '../../../platform/engine/effects/materializer.js';
 import { gw2ActorTypeForSource } from '../../../platform/gw2/combat/state/event-ownership.js';
+import { canonicalTargetConditionName } from '../../../platform/gw2/combat/state/targets.js';
 
 import type {
   ConditionEffect,
@@ -20,12 +21,6 @@ interface MesmerEventMaterializerOptions {
   readonly emit: (event: SimulationEventInput) => SimulationEvent | null;
   readonly activePrimaryWeapon: () => string;
   readonly weaponStrength: Readonly<Record<string, number>>;
-}
-
-function conditionName(value: unknown): string {
-  const normalized = String(value || '').toLowerCase();
-  if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
 /** Preserves clone/phantasm behavior as summon subtype metadata while source labels remain compatible. */
@@ -70,7 +65,7 @@ export function createMesmerEventMaterializer({
     });
 
   const addCondition: MesmerAddCondition = (skillName, at, condition, source = 'Player', label = '', extra = {}) => {
-    const name = conditionName(condition.name);
+    const name = canonicalTargetConditionName(condition.name);
     if (!condition.duration) return [];
     const eventSource = String(extra.source || source);
     const sourceId = extra.sourceId ?? skillName;
@@ -83,7 +78,7 @@ export function createMesmerEventMaterializer({
     const ticks = Array.isArray(condition.ticks)
       ? condition.ticks.map((tick) => ({
           ...tick,
-          condition: conditionName(tick.condition)
+          condition: canonicalTargetConditionName(tick.condition)
         }))
       : undefined;
     const effect: ConditionEffect = ticks?.length

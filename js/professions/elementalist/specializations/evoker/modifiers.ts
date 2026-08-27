@@ -1,6 +1,7 @@
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { elementalistMightStacks, elementalistTimedBuffStacks } from '../../core/modifiers.js';
 import { elementalistBalanceValue } from '../../core/profiles.js';
@@ -13,9 +14,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.05,
-    when: (context) =>
-      hasTrait(context, 'Fiery Might') &&
-      Boolean(context.query?.targetHasCondition('Burning', context.time, context.runtime))
+    when: (context) => hasTrait(context, 'Fiery Might') && targetConditionActive(context, 'Burning')
   },
   {
     id: 'elementalist.familiars-prowess-strike',

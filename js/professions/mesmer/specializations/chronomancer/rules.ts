@@ -3,7 +3,7 @@ import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { EPSILON } from '../../../../platform/engine/core/clock.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
-import { targetHasCondition } from '../../../../platform/gw2/combat/state/targets.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -66,9 +66,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       hasTrait(context, TRAIT.TIME_CATCHES_UP) &&
       Boolean(context.event?.shatterTraitEligible) &&
-      ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) =>
-        targetHasCondition(context.config || {}, condition, context.time, context.runtime)
-      )
+      ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) => targetConditionActive(context, condition))
   },
   {
     id: 'mesmer.flow-of-time-critical-chance',

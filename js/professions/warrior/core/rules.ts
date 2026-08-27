@@ -2,10 +2,10 @@ import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attri
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
-import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
 import {
   eventSkill as gw2EventSkill,
   hasSelectedSkill,
+  targetConditionActive,
   targetHealthFraction
 } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
@@ -44,8 +44,8 @@ const eventSkill = (context: Gw2ModifierContext): WarriorSkill | undefined => gw
 function targetControlled(context: Gw2ModifierContext): boolean {
   return Boolean(
     context.config?.target?.controlled ||
-    context.config?.target?.defiant ||
-    Number(coreState(context).targetControlledUntil || 0) > context.time
+      context.config?.target?.defiant ||
+      Number(coreState(context).targetControlledUntil || 0) > context.time
   );
 }
 
@@ -279,9 +279,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.LEG_SPECIALIST) &&
-      ['Crippled', 'Chilled', 'Immobilized'].some((condition) =>
-        targetHasCondition(context.config || {}, condition, context.time, context.runtime)
-      )
+      ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
   },
   {
     id: 'warrior.warriors-cunning',
@@ -297,9 +295,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.1,
     order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.CULL_THE_WEAK) &&
-      targetHasCondition(context.config || {}, 'Weakness', context.time, context.runtime)
+    when: (context) => hasTrait(context, TRAIT.CULL_THE_WEAK) && targetConditionActive(context, 'Weakness')
   },
   {
     id: 'warrior.merciless-hammer',
@@ -334,9 +330,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.05,
-    when: (context) =>
-      hasTrait(context, TRAIT.DEEP_STRIKES) &&
-      targetHasCondition(context.config || {}, 'Bleeding', context.time, context.runtime)
+    when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'warrior.unsuspecting-foe',

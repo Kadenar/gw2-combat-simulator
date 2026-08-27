@@ -9,7 +9,11 @@ import {
   gw2EventActorType,
   isGw2PlayerModifierEligibleEvent
 } from '../../../platform/gw2/combat/state/event-ownership.js';
-import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
+import {
+  eventSkill as gw2EventSkill,
+  hasSelectedSkill,
+  targetConditionActive
+} from '../../../platform/gw2/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';
 import { rangerCoreCastAvailability } from './availability.js';
@@ -383,7 +387,7 @@ function targetImpaired(context: Gw2ModifierContext): boolean {
   }
 
   return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
-    Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime))
+    targetConditionActive(context, condition)
   );
 }
 
@@ -555,7 +559,9 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     when: (context) =>
       Boolean(
         String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') &&
-        (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken)
+          (context.config?.target?.defiant ||
+            context.config?.target?.disabled ||
+            context.config?.target?.defianceBroken)
       )
   },
   {

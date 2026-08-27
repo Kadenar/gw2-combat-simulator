@@ -8,6 +8,7 @@ import {
   hasSelectedSkill,
   playerHealthFraction,
   selectedSkillNames,
+  targetConditionActive,
   targetConditionCount,
   targetHealthFraction,
   vulnerabilityStacks
@@ -103,4 +104,18 @@ test('target condition and vulnerability queries use canonical combat-query fact
 
   assert.equal(targetConditionCount(modifierContext), 3);
   assert.equal(vulnerabilityStacks(modifierContext), 12);
+});
+
+test('target condition activity prefers the query adapter and falls back to canonical target state', () => {
+  const configured = context({ config: { target: { conditions: { burn: true } } } });
+  const runtime = context({
+    runtime: {
+      conditionState: new Map([['Weakness', { stacks: [{ appliedAt: 0, expiresAt: 10, weight: 1 }] }]])
+    }
+  });
+
+  assert.equal(targetConditionActive(configured, 'Burning'), true);
+  assert.equal(targetConditionActive(runtime, 'Weakness'), true);
+  assert.equal(targetConditionActive({ ...configured, query: { targetHasCondition: () => false } }, 'Burning'), false);
+  assert.equal(targetConditionActive(context(), 'Burning'), false);
 });

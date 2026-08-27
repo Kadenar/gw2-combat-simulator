@@ -1,7 +1,7 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
-import { targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
+import { targetConditionActive, targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
@@ -9,7 +9,9 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceVa
 
 function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> {
   const profession = context.runtime?.profession as
-    { core?: Partial<ElementalistCoreState> } | Partial<ElementalistCoreState> | undefined;
+    | { core?: Partial<ElementalistCoreState> }
+    | Partial<ElementalistCoreState>
+    | undefined;
   if (!profession) return {};
   if ('core' in profession) return profession.core || {};
   return profession as Partial<ElementalistCoreState>;
@@ -26,10 +28,6 @@ function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement 
 
 function eventWeapon(context: Gw2ModifierContext): string {
   return String(context.event?.skillWeapon || context.event?.weapon || '');
-}
-
-function targetHas(context: Gw2ModifierContext, condition: string): boolean {
-  return Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime));
 }
 
 export function elementalistMightStacks(context: Gw2ModifierContext): number {
@@ -102,7 +100,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, "Pyromancer's Training") &&
-      targetHas(context, 'Burning')
+      targetConditionActive(context, 'Burning')
   },
   {
     id: 'elementalist.serrated-stones',
@@ -112,7 +110,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, 'Serrated Stones') &&
-      targetHas(context, 'Bleeding')
+      targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'elementalist.stormsoul',
@@ -148,7 +146,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, 'Piercing Shards') &&
-      targetHas(context, 'Vulnerability')
+      targetConditionActive(context, 'Vulnerability')
   },
   {
     id: 'elementalist.zephyrs-speed-critical-chance',

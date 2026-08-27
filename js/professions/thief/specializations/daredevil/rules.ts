@@ -3,8 +3,9 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { professionStaticRulesApplied } from '../../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { targetConditionActive } from '../../../../platform/gw2/combat/query/runtime-query.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { thiefRuntimeState, thiefRuntimeSpecializationState, thiefTargetHasCondition } from '../../core/rules.js';
+import { thiefRuntimeState, thiefRuntimeSpecializationState } from '../../core/rules.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { DaredevilState, ThiefSchedulerContext } from '../../types.js';
 import { daredevilCastAvailability } from './availability.js';
@@ -55,7 +56,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.WEAKENING_STRIKES) &&
-      thiefTargetHasCondition(context, 'Weakness')
+      targetConditionActive(context, 'Weakness')
   },
   {
     id: 'thief.havoc-specialist',

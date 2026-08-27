@@ -5,6 +5,7 @@ import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
+  targetConditionActive,
   targetConditionCount,
   targetHealthFraction
 } from '../../../platform/gw2/combat/query/runtime-query.js';
@@ -59,14 +60,6 @@ export function thiefRuntimeSpecializationState<TState extends object = Schedule
   return state as Partial<TState>;
 }
 
-export function thiefTargetHealthFraction(context: Gw2ModifierContext): number {
-  return targetHealthFraction(context);
-}
-
-export function thiefTargetHasCondition(context: Gw2ModifierContext, condition: string): boolean {
-  return Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime));
-}
-
 function targetBoonless(context: Gw2ModifierContext): boolean {
   return context.config?.target?.boonless !== false;
 }
@@ -90,7 +83,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       context.event?.name === 'Vampiric Slash — Life Siphon' &&
-      thiefTargetHasCondition(context, 'Vulnerability')
+      targetConditionActive(context, 'Vulnerability')
   },
   {
     id: 'thief.executioner',
@@ -100,7 +93,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.EXECUTIONER) &&
-      thiefTargetHealthFraction(context) < 0.5
+      targetHealthFraction(context) < 0.5
   },
   {
     id: 'thief.ferocious-strikes',
@@ -110,7 +103,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierEligibleEvent(context.event) &&
       hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
-      thiefTargetHealthFraction(context) > 0.5
+      targetHealthFraction(context) > 0.5
   },
   {
     id: 'thief.twin-fangs-critical-damage',

@@ -1052,7 +1052,7 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
 });
 
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
-import { targetHasCondition } from '../../../platform/gw2/combat/state/targets.js';
+import { targetConditionActive } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
@@ -1123,11 +1123,7 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
 const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
 
 function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolean {
-  return ['Fear', 'Taunt'].some((condition) =>
-    context.query?.targetHasCondition
-      ? context.query.targetHasCondition(condition, context.time, context.runtime)
-      : targetHasCondition(context.config || {}, condition, context.time, context.runtime)
-  );
+  return ['Fear', 'Taunt'].some((condition) => targetConditionActive(context, condition));
 }
 
 function superiorityComplexFactor(

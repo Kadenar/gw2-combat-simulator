@@ -1,7 +1,7 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { isGw2PlayerModifierEligibleEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
-import { vulnerabilityStacks } from '../../../platform/gw2/combat/query/runtime-query.js';
+import { targetConditionActive, vulnerabilityStacks } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { engineerCoreCastAvailability } from './availability.js';
@@ -131,9 +131,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
-    when: (context) =>
-      context.event?.skillName === 'Flame Jet' &&
-      Boolean(context.query?.targetHasCondition('Burning', context.time, context.runtime))
+    when: (context) => context.event?.skillName === 'Flame Jet' && targetConditionActive(context, 'Burning')
   },
   {
     id: 'engineer.high-caliber',
