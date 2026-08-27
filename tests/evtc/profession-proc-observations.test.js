@@ -5,12 +5,16 @@ import {
   analyzeEngineerSerratedSteelObservation,
   analyzeEngineerShrapnelObservation
 } from '../../js/log-analyzer/evtc/rotation/professions/engineer/proc-observations.js';
+import { analyzeMesmerSharperImagesObservation } from '../../js/log-analyzer/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import { analyzeNecromancerBarbedPrecisionObservation } from '../../js/log-analyzer/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/professions/engineer/data/ids.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/professions/necromancer/data/ids.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
+const CLONE = 0x3000n;
+const OTHER_CLONE = 0x4000n;
 const EXPLOSION_SKILL_ID = 1_000;
 const STRIKE_SKILL_ID = 2_000;
 
@@ -61,7 +65,8 @@ function fixture(
   skills = [
     { id: EXPLOSION_SKILL_ID, name: 'Test Explosion' },
     { id: STRIKE_SKILL_ID, name: 'Test Strike' }
-  ]
+  ],
+  agents = []
 ) {
   return {
     header: {
@@ -69,11 +74,11 @@ function fixture(
       arcdpsBuild: '20260815',
       revision: 1,
       encounterId: 16_199,
-      agentCount: 0,
+      agentCount: agents.length,
       skillCount: skills.length,
       eventCount: events.length
     },
-    agents: [],
+    agents,
     skills,
     events
   };
@@ -122,6 +127,13 @@ const barbedPrecisionProfile = {
   profileKind: 'trait',
   criticalChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
+};
+
+const sharperImagesProfile = {
+  id: MESMER_TRAIT.SHARPER_IMAGES,
+  name: 'Sharper Images',
+  profileKind: 'trait',
+  effects: [{ type: 'condition', condition: 'Bleeding', duration: 5 }]
 };
 
 test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applications are paired', () => {
@@ -240,9 +252,48 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
   });
 });
 
+test('pairs owned clone criticals with same-clone expertise-scaled Sharper Images applications', () => {
+  const result = analyzeMesmerSharperImagesObservation(
+    fixture(
+      [
+        event({ time: 900, sourceInstance: 7 }),
+        event({ time: 1_000, source: CLONE, sourceMasterInstance: 7 }),
+        condition(1_025, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
+        condition(1_025, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
+        event({ time: 1_100, source: CLONE, sourceMasterInstance: 7 }),
+        condition(1_200, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
+        event({ time: 1_300, source: OTHER_CLONE, sourceMasterInstance: 8 }),
+        condition(1_300, 736, 7_500, { source: OTHER_CLONE, sourceMasterInstance: 8 })
+      ],
+      undefined,
+      [
+        { address: CLONE, character: 'Clone' },
+        { address: OTHER_CLONE, character: 'Clone' }
+      ]
+    ),
+    PLAYER,
+    catalog([sharperImagesProfile]),
+    {
+      selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
+      stats: { expertise: 750 }
+    }
+  );
+
+  assert.deepEqual(result, {
+    targetAddress: TARGET,
+    cloneCriticalHits: 2,
+    matchedApplications: 1,
+    observedProcRate: 0.5,
+    expectedProcChance: 1,
+    expectedApplications: 2,
+    matchedDurationsMs: [7_500]
+  });
+});
+
 test('does not infer profession trait procs when the active build omits each trait', () => {
   const log = fixture([event({ skillId: EXPLOSION_SKILL_ID })]);
   assert.equal(analyzeEngineerShrapnelObservation(log, PLAYER, catalog([shrapnelProfile]), {}), null);
   assert.equal(analyzeEngineerSerratedSteelObservation(log, PLAYER, catalog([serratedSteelProfile]), {}), null);
+  assert.equal(analyzeMesmerSharperImagesObservation(log, PLAYER, catalog([sharperImagesProfile]), {}), null);
   assert.equal(analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, catalog([barbedPrecisionProfile]), {}), null);
 });

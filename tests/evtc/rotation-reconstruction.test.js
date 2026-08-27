@@ -12,6 +12,7 @@ import {
   detectEvtcRotationPlayers,
   EVTC_PROFESSION_ROTATION_PARSERS,
   getEvtcProfessionRotationParser,
+  initialHarbingerBlight,
   reconstructEvtcRotation
 } from '../../js/log-analyzer/evtc/rotation/index.js';
 
@@ -779,6 +780,76 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
     result.actions.some((action) => action.name === 'Swap Weapons'),
     false
   );
+});
+
+test('reconstructs a Soul Barbs shroud precast and Harbinger starting Blight', () => {
+  const initialBuff = (skillId) =>
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId,
+      buff: 1,
+      stateChange: 18
+    });
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: 'Fixture Harbinger'
+      }
+    ],
+    skills: [{ id: 45_846, name: 'Harrowing Wave' }],
+    events: [
+      initialBuff(53_489),
+      initialBuff(62_653),
+      initialBuff(62_653),
+      initialBuff(62_653),
+      event({ time: 10_000, stateChange: 1 }),
+      event({ time: 10_000, stateChange: 67, skillId: 45_846 })
+    ]
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        [62_567, 'Harbinger Shroud', 'Profession'],
+        [62_540, 'Exit Harbinger Shroud', 'Profession'],
+        [45_846, 'Harrowing Wave', 'Weapon']
+      ].map(([id, name, type]) => ({
+        id,
+        name,
+        type,
+        slot: type === 'Profession' ? 'Profession_1' : 'Weapon_4',
+        specialization: type === 'Profession' ? 'Harbinger' : 'Scourge',
+        castTimeMs: 0,
+        effects: [],
+        implemented: true
+      }))
+    },
+    { inferInstantCasts: false }
+  );
+
+  assert.deepEqual(result.rotation, [
+    { name: 'Harbinger Shroud', skillId: 62_567 },
+    { name: 'Exit Harbinger Shroud', skillId: 62_540 },
+    { name: '__wait', waitMs: 9_000 },
+    { name: '__combat_start' },
+    { name: 'Harrowing Wave', skillId: 45_846 }
+  ]);
+  assert.equal(initialHarbingerBlight(fixture, PLAYER), 3);
+
+  const app = { build: { rotation: [], initialBlight: 0 }, changed() {} };
+  applyRotationImportPreview(app, {
+    rotation: result.rotation,
+    actionCount: result.actions.length,
+    description: 'Fixture Harbinger',
+    warnings: [],
+    observations: [],
+    initialBlight: initialHarbingerBlight(fixture, PLAYER)
+  });
+  assert.equal(app.build.initialBlight, 3);
 });
 
 test('reconstructs Plague Signet once per passive-buff removal', () => {

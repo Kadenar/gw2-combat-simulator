@@ -17,6 +17,7 @@ export interface RotationImportPreview {
   readonly description: string;
   readonly warnings: readonly string[];
   readonly observations: readonly RotationImportObservation[];
+  readonly initialBlight?: number;
 }
 
 interface RotationImportDialogElements {
@@ -69,7 +70,8 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     actionCount: imported.actionCount,
     description: `Reconstructed ${imported.playerLabel}`,
     warnings: imported.warnings,
-    observations: imported.observations
+    observations: imported.observations,
+    ...(imported.initialBlight == null ? {} : { initialBlight: imported.initialBlight })
   };
 }
 
@@ -92,6 +94,8 @@ export async function previewDpsReportUrl(
 /** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
 export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
   app.build.rotation = [...preview.rotation];
+  // Harbinger replay depends on the Blight already present when the recorded rotation began.
+  if (preview.initialBlight != null) app.build.initialBlight = preview.initialBlight;
   app.changed(false);
 }
 

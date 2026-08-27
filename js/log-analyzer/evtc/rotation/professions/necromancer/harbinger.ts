@@ -1,11 +1,12 @@
 import { EVTC_STATE_CHANGE } from '../../../types.js';
 import type { EvtcRotationBuffTransition } from '../../profiles.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { effectAction, hasRecordedAction, INSTANT_SIGNAL_WINDOW_MS } from './shared.js';
+import { effectAction, hasRecordedAction, initialSelfBuffCount, INSTANT_SIGNAL_WINDOW_MS } from './shared.js';
 
 const PLAGUE_SIGNET = Object.freeze({ name: 'Plague Signet', skillId: 10562 });
 const PLAGUE_SIGNET_PASSIVE_BUFF = 72368;
 const BLOOD_IS_POWER = Object.freeze({ name: 'Blood Is Power', skillId: 10544 });
+const BLIGHT_BUFF = 62653;
 
 export const HARBINGER_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
   {
@@ -15,6 +16,11 @@ export const HARBINGER_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] =
     suppressWeaponSwap: true
   }
 ];
+
+/** Reads Harbinger's starting Blight stacks from the EVTC initial-state records. */
+export function initialHarbingerBlight(log: EvtcProfessionReconstructionContext['log'], playerAddress: bigint): number {
+  return Math.min(25, initialSelfBuffCount(log, playerAddress, BLIGHT_BUFF));
+}
 
 function isAction(
   action: EvtcRecordedRotationAction,

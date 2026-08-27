@@ -3,6 +3,7 @@ import type {
   EngineerSerratedSteelObservation,
   EngineerShrapnelObservation
 } from '../../../log-analyzer/evtc/rotation/professions/engineer/proc-observations.js';
+import type { MesmerSharperImagesObservation } from '../../../log-analyzer/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import type { NecromancerBarbedPrecisionObservation } from '../../../log-analyzer/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import type { WarriorBloodlustObservation } from '../../../log-analyzer/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
@@ -16,6 +17,7 @@ export interface ImportedEvtcRotation {
   readonly warnings: readonly string[];
   readonly observations: readonly RotationImportObservation[];
   readonly playerLabel: string;
+  readonly initialBlight?: number;
 }
 
 function percent(value: number): string {
@@ -45,7 +47,7 @@ function procImportObservation(
   return [
     {
       title,
-      summary: `${result.matchedApplications} matched applications / ${eligibleHits} ${eligibleHitLabel} = ${percent(result.observedProcRate)}; configured chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
+      summary: `${result.matchedApplications} matched applications / ${eligibleHits} ${eligibleHitLabel} = ${percent(result.observedProcRate)}; modeled chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
       detail: `${detail} EVTC does not name the originating trait, so that attribution is inferred by duration.`
     }
   ];
@@ -83,6 +85,19 @@ function serratedSteelImportObservation(result: EngineerSerratedSteelObservation
     'critical hits',
     result
       ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Serrated Steel duration.`
+      : ''
+  );
+}
+
+/** Explains the clone ownership and timing constraints behind inferred Sharper Images applications. */
+function sharperImagesImportObservation(result: MesmerSharperImagesObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Sharper Images clone proc rate',
+    result?.cloneCriticalHits || 0,
+    'owned clone critical hits',
+    result
+      ? `ArcDPS marked the owned clone strike packets as critical. Each application is a same-clone Bleeding record within 50 ms matching the active build's ${durationList(result.matchedDurationsMs)} Sharper Images duration. Phantasm hits are excluded.`
       : ''
   );
 }
@@ -171,6 +186,19 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     );
   }
 
+  if (selected.professionId === 'mesmer') {
+    observations.push(
+      ...sharperImagesImportObservation(
+        rotationModule.analyzeMesmerSharperImagesObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
   if (selected.professionId === 'necromancer') {
     observations.push(
       ...barbedPrecisionImportObservation(
@@ -192,6 +220,9 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     actionCount: result.actions.length,
     warnings: result.warnings,
     observations,
-    playerLabel: `${selected.character} (${selected.account || selected.address})`
+    playerLabel: `${selected.character} (${selected.account || selected.address})`,
+    ...(selected.specializationId === 'harbinger'
+      ? { initialBlight: rotationModule.initialHarbingerBlight(log, playerAddress) }
+      : {})
   };
 }
