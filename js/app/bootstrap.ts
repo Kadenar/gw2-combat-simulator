@@ -1,21 +1,18 @@
-import { ProfessionApp } from './profession-app.js';
-import { loadProfessionAppAdapter } from './profession/registry.js';
+import { gameRegistry, loadGameContent } from './game/registry.js';
+import type { GameRegistryEntry } from './game/contracts.js';
 
-export async function bootstrapProfessionApp(root: Document = document): Promise<ProfessionApp> {
-  const professionId = root.body.dataset.profession;
-  if (!professionId) {
-    throw new Error('Profession page is missing data-profession.');
-  }
+/** Resolves page identity through the game seam, with legacy GW2 profession markup as a compatibility fallback. */
+export async function bootstrapGameApp(
+  root: Document = document,
+  registry: readonly GameRegistryEntry[] = gameRegistry
+): Promise<unknown> {
+  const gameId = root.body.dataset.game || 'gw2';
+  const contentId = root.body.dataset.content || root.body.dataset.profession;
+  if (!contentId) throw new Error('Simulator page is missing data-content or data-profession.');
 
-  const adapter = await loadProfessionAppAdapter(professionId);
-  if (!adapter) {
-    throw new Error(`No native application adapter is registered for "${professionId}".`);
-  }
-
-  const app = new ProfessionApp(adapter);
-  const globalScope = window as unknown as Record<string, unknown>;
-  globalScope.professionApp = app;
-  if (adapter.globalName) globalScope[adapter.globalName] = app;
-  await app.init();
-  return app;
+  const content = await loadGameContent(gameId, contentId, registry);
+  if (!content) throw new Error(`No playable content is registered for "${gameId}/${contentId}".`);
+  return content.mount(root);
 }
+
+export { bootstrapGameApp as bootstrapProfessionApp };

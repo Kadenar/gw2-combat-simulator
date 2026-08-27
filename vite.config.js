@@ -86,6 +86,10 @@ function renderProfessionPages() {
           throw new Error(`${professionId}.html must identify itself with data-profession="${professionId}".`);
         }
 
+        if (!html.includes('data-game="gw2"') || !html.includes(`data-content="${professionId}"`)) {
+          throw new Error(`${professionId}.html must identify game "gw2" and content "${professionId}".`);
+        }
+
         const name = professionId[0].toUpperCase() + professionId.slice(1);
         return professionPageTemplate
           .replaceAll('{{profession-id}}', professionId)
