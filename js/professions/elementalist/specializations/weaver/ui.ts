@@ -303,13 +303,15 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
     layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || []
   ).filter((skill) => Boolean(skill.chainRoot) || isAvailable(skill));
   const carriedAutoattack = skills.find((skill) => isCarriedAutoattackSkill(context, skill));
-  let replacedPrimaryAutoattack = false;
-  const primarySkills = currentPrimarySkills.map((skill) => {
-    if (!carriedAutoattack || replacedPrimaryAutoattack || skill.slot !== 'Weapon_1') return skill;
-    replacedPrimaryAutoattack = true;
-    return carriedAutoattack;
+  let placedCarriedAutoattack = false;
+  const primarySkills = currentPrimarySkills.flatMap((skill) => {
+    if (!carriedAutoattack || placedCarriedAutoattack || skill.slot !== 'Weapon_1') return [skill];
+    placedCarriedAutoattack = true;
+    // Keep the carried step first for normal weapon-1 input, while exposing the
+    // current root beside it as an explicit way to cancel and restart the chain.
+    return [carriedAutoattack, skill];
   });
-  if (carriedAutoattack && !replacedPrimaryAutoattack) primarySkills.unshift(carriedAutoattack);
+  if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));
   const currentCluster = (

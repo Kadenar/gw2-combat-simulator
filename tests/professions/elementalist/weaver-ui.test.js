@@ -151,8 +151,10 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
   const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
 
   assert.match(currentHtml, /data-skill="Polaric Slash"/);
-  assert.doesNotMatch(currentHtml, /data-skill="Fire Strike"/);
+  assert.match(currentHtml, /data-skill="Fire Strike"/);
+  assert.ok(currentHtml.indexOf('data-skill="Polaric Slash"') < currentHtml.indexOf('data-skill="Fire Strike"'));
   assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
+  assert.match(currentHtml, /data-skill="Fire Strike"[^>]*draggable="true"/);
 });
 
 test('Weaver active state shows remaining Weave Self and Perfect Weave time', () => {

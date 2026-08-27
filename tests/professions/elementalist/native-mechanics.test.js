@@ -1327,6 +1327,24 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
   );
 });
 
+test('Weaver can cancel a carried autoattack by starting the current primary chain', () => {
+  const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
+  const fireRoot = elementalistCatalog.skillsByName.get('Fire Strike').id;
+  const fireSecond = elementalistCatalog.skillsByName.get('Fire Swipe').id;
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
+    rotation: ['Charged Strike', 'Fire Attunement', 'Fire Strike'],
+    startAttunement: 'Air',
+    secondaryAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger']
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.autoattackCarryover, null);
+  assert.equal(result.endState.profession.autoattackChains[airRoot], undefined);
+  assert.equal(result.endState.profession.autoattackChains[fireRoot], fireSecond);
+});
+
 test('a concurrent attunement swap preserves the in-flight auto chain', () => {
   const airAttunement = elementalistCatalog.skillsByName.get('Air Attunement');
   const result = runNative({
