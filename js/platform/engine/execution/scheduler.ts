@@ -944,6 +944,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     if (concurrent && instant && start < state.time - epsilon) {
       start = state.time;
     }
+
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;

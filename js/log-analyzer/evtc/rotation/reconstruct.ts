@@ -1022,6 +1022,7 @@ export function reconstructWithProfile(
         .filter((time): time is number => time != null && Number.isFinite(time))
         .sort((left, right) => left - right)[0] ?? null;
   }
+
   if (options.includeCombatStart !== false) {
     combatStart = replayCombatStart(professionActions, combatStart);
   }

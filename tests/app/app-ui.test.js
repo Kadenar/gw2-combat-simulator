@@ -857,7 +857,6 @@ test('the generic landing page and profession simulators have separate entries',
     professionOptions,
     professionRegistry.map(({ id, name }) => ({ id, name }))
   );
-  assert.equal(new Set(professionRegistry.map((entry) => entry.route)).size, professionRegistry.length);
   assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
   assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
   for (const { entry, source } of professionPages) {

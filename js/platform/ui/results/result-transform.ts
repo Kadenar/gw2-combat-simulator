@@ -86,6 +86,7 @@ export function resultSummaryMetrics(
       }
     );
   }
+
   return metrics;
 }
 
@@ -123,6 +124,7 @@ export function targetHealthBreakpointSnapshots(
       addDamage(event.at, event.damage, 'player');
     }
   }
+
   for (const condition of result?.environmentConditionBreakdown || []) {
     for (const tick of condition.damageTicks) {
       addDamage(tick.at, tick.damage, 'environment');

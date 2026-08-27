@@ -90,6 +90,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
     throw new TypeError('Double Edge outcome must be either success or backfire.');
   }
+
   return {
     type: 'cast',
     skillId,

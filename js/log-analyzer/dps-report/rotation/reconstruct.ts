@@ -250,6 +250,7 @@ function replayActionEnd(action: DpsReportResolvedAction): number {
     const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
     if (runtimeDuration > 0) return Math.max(action.end, action.start + runtimeDuration);
   }
+
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action.end;
   const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;

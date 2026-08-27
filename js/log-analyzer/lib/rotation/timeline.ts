@@ -72,6 +72,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       const actionOrder = policy.compareSimultaneousActions?.(left.action, right.action) ?? 0;
       if (actionOrder !== 0) return actionOrder;
     }
+
     return leftIndex - rightIndex;
   });
 

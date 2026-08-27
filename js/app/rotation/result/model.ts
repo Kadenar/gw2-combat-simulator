@@ -99,6 +99,7 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   if (legitimateMs > 0) {
     details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
   }
+
   if (explicitWaitMs > 0) {
     details.push({ label: 'Explicit waits', value: formatTimelineDuration(explicitWaitMs) });
   }

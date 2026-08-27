@@ -17,7 +17,7 @@ export default [
     rules: {
       '@stylistic/padding-line-between-statements': [
         'error',
-        // Blank line after block-like statements
+        // Blank line after block-like statements, including ordinary braced if statements.
         {
           blankLine: 'always',
           prev: 'block-like',
@@ -42,7 +42,7 @@ export default [
     rules: {
       '@stylistic/padding-line-between-statements': [
         'error',
-        // Blank line after block-like statements
+        // Blank line after block-like statements, including ordinary braced if statements.
         {
           blankLine: 'always',
           prev: 'block-like',

@@ -121,8 +121,8 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
 
   /**
    * Retrieves the active traits based on the selected specializations.
-   * @param selections 
-   * @returns 
+   * @param selections
+   * @returns
    */
   function getActiveTraits(selections: readonly ProfessionTraitSelection[] | null = []): TTrait[] {
     const active: TTrait[] = [];

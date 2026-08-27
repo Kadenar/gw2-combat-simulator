@@ -54,6 +54,7 @@ function validateState(state: CriticalProcState | undefined, id: string): Critic
   if (!Number.isFinite(state.progress) || state.progress < 0) {
     throw new TypeError(`${id} critical proc progress must be a finite non-negative number.`);
   }
+
   if (Number.isNaN(Number(state.readyAt))) {
     throw new TypeError(`${id} critical proc readyAt must be numeric.`);
   }
@@ -121,6 +122,7 @@ export function advanceCriticalProc(
     if (opportunity.sampledCriticals == null) {
       throw new TypeError(`${request.id} stochastic critical proc requires sampled criticals.`);
     }
+
     const sampledCriticals = finiteNonNegative(opportunity.sampledCriticals, `${request.id} sampled criticals`);
     if (!Number.isInteger(sampledCriticals)) {
       throw new TypeError(`${request.id} sampled criticals must be an integer.`);
@@ -133,6 +135,7 @@ export function advanceCriticalProc(
       if (typeof request.roll !== 'function') {
         throw new TypeError(`${request.id} stochastic secondary chance requires a roll function.`);
       }
+
       quantity = 0;
       for (let critical = 0; critical < sampledCriticals; critical += 1) {
         if (request.roll(chanceOnCriticalHit, request.randomStream || request.id)) quantity += 1;

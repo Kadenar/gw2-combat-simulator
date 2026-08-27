@@ -7,16 +7,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": [
-    "scripts/**/*.js",
-    "scripts/**/*.mjs",
-    "server.mjs"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "Builds",
-    "referenced-repos",
-    "**/agent-*/**"
-  ]
+  "include": ["scripts/**/*.js", "scripts/**/*.mjs", "server.mjs"],
+  "exclude": ["node_modules", "dist", "Builds", "referenced-repos", "**/agent-*/**"]
 }

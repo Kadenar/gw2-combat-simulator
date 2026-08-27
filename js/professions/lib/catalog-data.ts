@@ -11,8 +11,7 @@ export interface ProfessionModuleDataOptions<TContext extends object, TSkill ext
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
 export type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';
@@ -88,6 +87,7 @@ export function createFlipParentMap<TSkill extends FlipSkillLike>(
     const childId = parent.flipSkillId;
 
     if (childId == null) continue;
+
     if (childId === parent.nextChainId) continue;
 
     const child = byId.get(childId);

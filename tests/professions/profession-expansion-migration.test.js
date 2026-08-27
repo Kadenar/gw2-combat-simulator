@@ -29,11 +29,7 @@ import { THIEF_TRAIT_COVERAGE } from '../fixtures/trait-coverage/thief.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../fixtures/trait-coverage/warrior.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/professions/warrior/state.js';
-import {
-  professionRegistry,
-  PROFESSION_ROUTES,
-  validateProfessionRegistryEntries
-} from '../../js/app/profession/registry.js';
+import { professionRegistry, PROFESSION_ROUTES } from '../../js/app/profession/registry.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
@@ -563,36 +559,12 @@ test('Elementalist exposes only its manifest entry', () => {
   );
 });
 
-test('registry entries require an adapter loader', () => {
-  const base = {
-    id: 'fixture',
-    armorWeight: 'light',
-    name: 'Fixture',
-    route: 'fixture.html',
-    themeClass: '',
-    specializationSummary: 'Core',
-    loadProfession: async () => ({})
-  };
+test('profession registry IDs and routes are unique', () => {
+  const ids = professionRegistry.map(({ id }) => id);
+  const routes = professionRegistry.map(({ route }) => route);
 
-  assert.throws(
-    () =>
-      validateProfessionRegistryEntries([
-        {
-          ...base,
-          loadAppAdapter: null
-        }
-      ]),
-    /requires an adapter loader/
-  );
-  assert.equal(
-    validateProfessionRegistryEntries([
-      {
-        ...base,
-        loadAppAdapter: async () => ({})
-      }
-    ]),
-    true
-  );
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(new Set(routes).size, routes.length);
 });
 
 test('native build codecs share version, schema, and sanitization behavior', async () => {

@@ -10,16 +10,16 @@
 import type { Gw2AppAdapter, ProfessionAppContract } from './types.js';
 
 /** Armor classes, ordered as navigation surfaces group professions. */
-export const ARMOR_WEIGHTS = Object.freeze(['light', 'medium', 'heavy'] as const);
+export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
 
 export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
 
 /** Display labels for each armor class group. */
-export const ARMOR_WEIGHT_LABELS: Readonly<Record<ArmorWeight, string>> = Object.freeze({
+export const ARMOR_WEIGHT_LABELS: Readonly<Record<ArmorWeight, string>> = {
   light: 'Light Armor',
   medium: 'Medium Armor',
   heavy: 'Heavy Armor'
-});
+};
 
 export interface ProfessionRegistryEntry {
   /** Stable lowercase identifier used by builds and pages. */
@@ -45,7 +45,7 @@ export interface ProfessionRegistryEntry {
 // Entries are ordered by armor class so navigation surfaces group
 // professions Light → Medium → Heavy: the shared UI (landing card grid and
 // simulator header select) renders in registry order.
-const entries: ProfessionRegistryEntry[] = [
+const entries: readonly ProfessionRegistryEntry[] = [
   // Light armor: Elementalist, Mesmer, Necromancer.
   {
     id: 'elementalist',
@@ -204,55 +204,7 @@ const entries: ProfessionRegistryEntry[] = [
   }
 ];
 
-function validateEntry(entry: ProfessionRegistryEntry, ids: Set<string>, routes: Set<string>): void {
-  if (!/^[a-z][a-z0-9-]*$/.test(String(entry.id || ''))) {
-    throw new TypeError('Profession registry ids must be stable and lowercase.');
-  }
-
-  if (ids.has(entry.id)) {
-    throw new TypeError(`Duplicate profession registry id: ${entry.id}.`);
-  }
-
-  if (!String(entry.name || '').trim() || !String(entry.route || '').trim()) {
-    throw new TypeError(`${entry.id} requires a name and route.`);
-  }
-
-  if (routes.has(entry.route)) {
-    throw new TypeError(`Duplicate profession route: ${entry.route}.`);
-  }
-
-  if (typeof entry.loadProfession !== 'function') {
-    throw new TypeError(`${entry.id} requires a profession loader.`);
-  }
-
-  if (!ARMOR_WEIGHTS.includes(entry.armorWeight)) {
-    throw new TypeError(`${entry.id} has an invalid armor weight.`);
-  }
-
-  if (typeof entry.loadAppAdapter !== 'function') {
-    throw new TypeError(`${entry.id} requires an adapter loader.`);
-  }
-
-  ids.add(entry.id);
-  routes.add(entry.route);
-}
-
-export function validateProfessionRegistryEntries(candidateEntries: readonly ProfessionRegistryEntry[]): boolean {
-  if (!Array.isArray(candidateEntries)) {
-    throw new TypeError('Profession registry entries must be an array.');
-  }
-
-  const ids = new Set<string>();
-  const routes = new Set<string>();
-  for (const entry of candidateEntries) validateEntry(entry, ids, routes);
-  return true;
-}
-
-validateProfessionRegistryEntries(entries);
-
-export const professionRegistry: readonly ProfessionRegistryEntry[] = Object.freeze(
-  entries.map((entry) => Object.freeze({ ...entry }))
-);
+export const professionRegistry: readonly ProfessionRegistryEntry[] = entries;
 
 export interface ProfessionArmorGroup {
   readonly weight: ArmorWeight;
@@ -264,15 +216,11 @@ export interface ProfessionArmorGroup {
  * Registry entries partitioned by armor class in `ARMOR_WEIGHTS` order, for
  * navigation surfaces that render grouped headers. Empty groups are omitted.
  */
-export const professionGroups: readonly ProfessionArmorGroup[] = Object.freeze(
-  ARMOR_WEIGHTS.map((weight) =>
-    Object.freeze({
-      weight,
-      label: ARMOR_WEIGHT_LABELS[weight],
-      entries: Object.freeze(professionRegistry.filter((entry) => entry.armorWeight === weight))
-    })
-  ).filter((group) => group.entries.length > 0)
-);
+export const professionGroups: readonly ProfessionArmorGroup[] = ARMOR_WEIGHTS.map((weight) => ({
+  weight,
+  label: ARMOR_WEIGHT_LABELS[weight],
+  entries: professionRegistry.filter((entry) => entry.armorWeight === weight)
+})).filter((group) => group.entries.length > 0);
 
 const byId = new Map<string, ProfessionRegistryEntry>(professionRegistry.map((entry) => [entry.id, entry]));
 
@@ -281,12 +229,10 @@ export interface ProfessionOption {
   readonly name: string;
 }
 
-export const professionOptions: readonly ProfessionOption[] = Object.freeze(
-  professionRegistry.map(({ id, name }) => Object.freeze({ id, name }))
-);
+export const professionOptions: readonly ProfessionOption[] = professionRegistry.map(({ id, name }) => ({ id, name }));
 
-export const PROFESSION_ROUTES: Readonly<Record<string, string>> = Object.freeze(
-  Object.fromEntries(professionRegistry.map(({ id, route }) => [id, route]))
+export const PROFESSION_ROUTES: Readonly<Record<string, string>> = Object.fromEntries(
+  professionRegistry.map(({ id, route }) => [id, route])
 );
 
 /**

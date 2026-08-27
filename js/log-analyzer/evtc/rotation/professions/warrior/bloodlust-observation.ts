@@ -49,7 +49,6 @@ export function analyzeWarriorBloodlustObservation(
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
 ): WarriorBloodlustObservation | null {
-  
   if (!hasBloodlust(config)) return null;
 
   const profile = bloodlustProfile(catalog);
@@ -60,6 +59,7 @@ export function analyzeWarriorBloodlustObservation(
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
   if (targetAddress == null) return null;
+
   const criticalHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT

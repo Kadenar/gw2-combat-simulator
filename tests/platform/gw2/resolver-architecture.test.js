@@ -586,6 +586,7 @@ test('environment conditions do not change player attribution over an equal obse
   for (const field of ['totalDamage', 'dps', 'strikeDamage', 'conditionDamage', 'firstHitTime', 'lastHitTime']) {
     assert.equal(ambient[field], baseline[field], field);
   }
+
   assert.deepEqual(ambient.breakdown, baseline.breakdown);
   assert.ok(ambient.environmentDamage > 0);
 });
