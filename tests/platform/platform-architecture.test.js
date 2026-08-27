@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile, readdir } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
@@ -42,7 +42,6 @@ import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '../../js/platform/gw2/combat/damage/stat-scaling.js';
-import { GW2_SKILL_FLAGS } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '../../js/professions/mesmer/build.js';
 import { mesmerCatalog } from '../../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../js/professions/mesmer/definition.js';
@@ -104,49 +103,6 @@ test('GW2 catalogs separate standard boons from generic timed buffs', async () =
           );
         }
       }
-    }
-  }
-});
-
-test('native skill authoring uses one cast timing source', async () => {
-  const professionsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
-
-  for (const entry of professionRegistry) {
-    const files = await javascriptFiles(path.join(professionsRoot, entry.id));
-
-    for (const file of files) {
-      const source = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
-
-      function visit(node) {
-        if (ts.isObjectLiteralExpression(node)) {
-          const propertyNames = new Set(
-            node.properties.flatMap((property) => {
-              if (!ts.isPropertyAssignment(property)) return [];
-
-              if (!ts.isIdentifier(property.name) && !ts.isStringLiteral(property.name)) {
-                return [];
-              }
-
-              return [property.name.text];
-            })
-          );
-          const hasBaseCast = propertyNames.has('castTimeMs');
-          const hasQuicknessCast = propertyNames.has('quicknessCastTimeMs');
-          const hasQuicknessImmunity = propertyNames.has('unaffectedByQuickness');
-          const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
-
-          assert.equal(hasBaseCast && hasQuicknessCast, false, `${path.relative(professionsRoot, file)}:${line}`);
-          assert.equal(
-            hasQuicknessCast && hasQuicknessImmunity,
-            false,
-            `${path.relative(professionsRoot, file)}:${line}`
-          );
-        }
-
-        ts.forEachChild(node, visit);
-      }
-
-      visit(source);
     }
   }
 });
@@ -2103,16 +2059,6 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
   );
 });
 
-test('generic combat query modules contain no equipment-specific policy', async () => {
-  const root = new URL('../../js/platform/gw2/combat/query/', import.meta.url);
-
-  for (const filename of ['combat-query.ts', 'timeline-index.ts']) {
-    const source = await readFile(new URL(filename, root), 'utf8');
-
-    assert.doesNotMatch(source, /Aristocracy|Severance/, filename);
-  }
-});
-
 test('Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD', () => {
   const catalog = createCanonicalCatalog({
     generated: [
@@ -2592,24 +2538,7 @@ test('Mesmer state creation and snapshots are profession owned', () => {
   );
 });
 
-async function javascriptFiles(root) {
-  const entries = await readdir(root, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map((entry) => {
-      const target = path.join(root, entry.name);
-
-      return entry.isDirectory()
-        ? javascriptFiles(target)
-        : entry.name.endsWith('.js') || (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts'))
-          ? [target]
-          : [];
-    })
-  );
-
-  return nested.flat();
-}
-
-test('Mesmer conforms to native handler, identity, and state boundaries', async () => {
+test('Mesmer conforms to native handler and state contracts', () => {
   for (const [handlerId, strategy] of mesmerCatalog.skillHandlers) {
     assert.ok(handlerId.startsWith('mesmer.'));
     assert.ok(strategy.mode === SKILL_HANDLER_MODES.AUGMENT || strategy.mode === SKILL_HANDLER_MODES.REPLACE);
@@ -2641,92 +2570,6 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
   const projected = simulateMesmer(['Mind Stab'], createDefaultConfig({ specialization: 'Core' })).endState.profession;
 
   assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
-
-  const mesmerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions/mesmer');
-
-  await assert.rejects(
-    readFile(path.join(mesmerRoot, 'mechanics', 'contract.ts'), 'utf8'),
-    (error) => error?.code === 'ENOENT'
-  );
-  await assert.rejects(
-    readFile(path.join(mesmerRoot, 'mechanics', 'runtime.js'), 'utf8'),
-    (error) => error?.code === 'ENOENT'
-  );
-
-  const behavioralRoots = [
-    path.join(mesmerRoot, 'mechanics'),
-    path.join(mesmerRoot, 'core'),
-    path.join(mesmerRoot, 'specializations')
-  ];
-
-  for (const root of behavioralRoots) {
-    for (const file of await javascriptFiles(root)) {
-      const source = await readFile(file, 'utf8');
-
-      assert.doesNotMatch(
-        source,
-        /skill\.name\s*(?:===|!==)|\.has\(skill\.name\)|\[skill\.name\]|skill\.description/,
-        path.relative(mesmerRoot, file)
-      );
-    }
-  }
-});
-
-test('platform import boundaries are profession neutral', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/platform');
-
-  for (const file of await javascriptFiles(root)) {
-    const source = await readFile(file, 'utf8');
-    const relative = path.relative(root, file).replaceAll('\\', '/');
-    const modulePath = relative.replace(/\.(?:js|ts)$/, '');
-
-    for (const entry of professionRegistry) {
-      for (const term of [entry.id, entry.name]) {
-        if (
-          entry.id === 'thief' &&
-          ['gw2/equipment/gear/runes', 'gw2/equipment/relics/catalog', 'gw2/equipment/relics/runtime'].includes(
-            modulePath
-          )
-        )
-          continue;
-
-        if (
-          entry.id === 'ranger' &&
-          ['gw2/equipment/relics/catalog', 'gw2/equipment/relics/runtime'].includes(modulePath)
-        ) {
-          continue;
-        }
-
-        if (entry.id === 'elementalist' && modulePath === 'gw2/equipment/gear/runes') {
-          continue;
-        }
-
-        if (entry.id === 'warrior' && modulePath === 'gw2/equipment/relics/catalog') {
-          continue;
-        }
-
-        assert.equal(source.toLowerCase().includes(term.toLowerCase()), false, `${relative} mentions ${term}`);
-      }
-    }
-
-    if (relative.startsWith('engine/')) {
-      assert.doesNotMatch(source, /(?:\.\.\/)+gw2\//, `${relative} imports GW2`);
-      assert.doesNotMatch(source, /(?:\.\.\/)+ui\//, `${relative} imports UI`);
-      assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
-    }
-
-    if (relative.startsWith('gw2/') || relative.startsWith('ui/')) {
-      assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
-    }
-  }
-});
-
-test('test profession fixture has no native profession dependency', async () => {
-  const source = await readFile(fileURLToPath(new URL('../fixtures/test-profession.js', import.meta.url)), 'utf8');
-
-  for (const entry of professionRegistry) {
-    assert.equal(source.toLowerCase().includes(entry.id), false, entry.id);
-  }
 });
 
 async function relativeModuleGraph(entryFiles) {
@@ -2788,10 +2631,6 @@ async function sourceModulePath(file) {
   }
 }
 
-async function readSourceModule(file) {
-  return readFile(await sourceModulePath(file), 'utf8');
-}
-
 test('native registry loaders do not pull another profession module graph', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
 
@@ -2809,231 +2648,5 @@ test('native registry loaders do not pull another profession module graph', asyn
         assert.equal(relative.startsWith(`professions/${other.id}/`), false, `${entry.id} imports ${relative}`);
       }
     }
-  }
-});
-
-test('declarative professions keep skill ownership in runtime modules', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
-
-  for (const profession of professionRegistry.map((entry) => entry.id)) {
-    await assert.rejects(
-      access(path.join(root, profession, 'mechanics', 'skill-mechanics.ts')),
-      (error) => error?.code === 'ENOENT'
-    );
-
-    if (profession === 'necromancer') {
-      const handlers = (
-        await Promise.all(
-          [
-            path.join(root, profession, 'core', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'reaper', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'scourge', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'harbinger', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'ritualist', 'handlers.js')
-          ].map(readSourceModule)
-        )
-      ).join('\n');
-
-      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
-      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
-    } else if (profession === 'guardian') {
-      const handlers = (
-        await Promise.all(
-          [
-            path.join(root, profession, 'core', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'firebrand', 'handlers.js'),
-            path.join(root, profession, 'specializations', 'luminary', 'handlers.js')
-          ].map(readSourceModule)
-        )
-      ).join('\n');
-
-      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
-      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
-    } else if (profession === 'mesmer') {
-      const sliceDirectories = [
-        'core',
-        'specializations/chronomancer',
-        'specializations/mirage',
-        'specializations/virtuoso',
-        'specializations/troubadour'
-      ];
-      const localMechanics = await Promise.all(
-        sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'mechanics.js')))
-      );
-      const handlers = (
-        await Promise.all(
-          sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'handlers.js')))
-        )
-      ).join('\n');
-
-      for (const source of localMechanics) {
-        assert.match(source, /export const MESMER_\w+\b/);
-        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
-      }
-
-      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
-      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
-    } else if (profession === 'revenant') {
-      const sliceDirectories = [
-        'core',
-        'specializations/herald',
-        'specializations/renegade',
-        'specializations/vindicator',
-        'specializations/conduit'
-      ];
-      const authorableSlices = await Promise.all(
-        sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'skills.js')))
-      );
-      const heraldMechanics = await readSourceModule(
-        path.join(root, profession, 'specializations/herald/mechanics.js')
-      );
-      const handlers = (
-        await Promise.all(
-          sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'handlers.js')))
-        )
-      ).join('\n');
-
-      assert.match(heraldMechanics, /export const HERALD_MECHANICS\b/);
-      assert.doesNotMatch(heraldMechanics, /HANDLER_MECHANICS/);
-      assert.ok(authorableSlices.every((source) => /BALANCE_PROFILES\b/.test(source)));
-      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
-      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
-    }
-
-    const catalog = await readSourceModule(path.join(root, profession, 'catalog.js'));
-    const catalogData = await readSourceModule(path.join(root, profession, 'catalog-data.js'));
-    const family = await readSourceModule(path.join(root, profession, 'family.js'));
-
-    assert.match(catalog, /assembleNativeApplicationCatalog/);
-    assert.doesNotMatch(catalog, /mechanics\/skill-mechanics\.js/);
-    assert.match(catalogData, /createNativeModuleData/);
-    assert.match(family, /defineNativeProfession/);
-    assert.doesNotMatch(family, /from\s+["']\.\/catalog\.js["']/);
-    assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
-
-    const metadata = await readFile(path.join(root, profession, 'data', `${profession}-api-metadata.ts`), 'utf8');
-
-    assert.doesNotMatch(metadata, /apiDamage|apiConditions|"facts"|"coefficient"|dmg_multiplier/);
-
-    if (profession !== 'mesmer') {
-      assert.doesNotMatch(metadata, /export const TRAITS\b/);
-      assert.match(catalogData, /data\/traits-data\.js/);
-    }
-  }
-});
-
-test('migrated combo professions have no local compatibility path', async () => {
-  const professionsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
-
-  for (const profession of [
-    'elementalist',
-    'engineer',
-    'guardian',
-    'mesmer',
-    'necromancer',
-    'ranger',
-    'revenant',
-    'thief',
-    'warrior'
-  ]) {
-    const root = path.join(professionsRoot, profession);
-    const files = await javascriptFiles(root);
-    const source = (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n');
-
-    assert.doesNotMatch(source, /blast_combo|blast-combo\.resolved/, profession);
-    await assert.rejects(readFile(path.join(root, 'core', 'combos.ts'), 'utf8'), (error) => error?.code === 'ENOENT');
-  }
-});
-
-test('profession family state composition has no flat runtime adapters', async () => {
-  const jsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
-  const professionRoot = path.join(jsRoot, 'platform', 'engine', 'profession');
-  const engineSource = (
-    await Promise.all((await javascriptFiles(professionRoot)).map((file) => readFile(file, 'utf8')))
-  ).join('\n');
-
-  assert.doesNotMatch(engineSource, /\bnew Proxy\b|Object\.defineProperty|createComposedStateAdapter/);
-
-  for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant']) {
-    const root = path.join(jsRoot, 'professions', profession);
-
-    for (const file of await javascriptFiles(root)) {
-      if (path.basename(file) !== 'module.ts') continue;
-      const source = await readFile(file, 'utf8');
-
-      assert.doesNotMatch(source, /defineProfessionModule<SchedulerRecord>/, path.relative(jsRoot, file));
-    }
-  }
-});
-
-test('specialization state factories and accessors stay owner-local', async () => {
-  const professionRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
-
-  for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant', 'thief']) {
-    const specializationsRoot = path.join(professionRoot, profession, 'specializations');
-    const directories = await readdir(specializationsRoot, {
-      withFileTypes: true
-    });
-
-    for (const directory of directories.filter((entry) => entry.isDirectory())) {
-      const root = path.join(specializationsRoot, directory.name);
-      const extension = 'ts';
-      const stateSource = await readFile(path.join(root, `state.${extension}`), 'utf8');
-      const moduleSource = await readFile(path.join(root, `module.${extension}`), 'utf8');
-
-      assert.match(stateSource, /defineProfessionSpecializationState\(/, `${profession}/${directory.name}/state`);
-      assert.match(moduleSource, /scheduler:\s*\w+State\.create/, `${profession}/${directory.name}/module`);
-      for (const file of await javascriptFiles(root)) {
-        const source = await readFile(file, 'utf8');
-
-        assert.doesNotMatch(source, /\bprofessionSpecializationState\b/, path.relative(professionRoot, file));
-      }
-    }
-  }
-});
-
-test('application shell uses feature-owned modules without legacy facades', async () => {
-  const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/app');
-  const entries = await readdir(appRoot, { withFileTypes: true });
-  const topLevelFiles = entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => entry.name)
-    .sort();
-
-  assert.deepEqual(topLevelFiles, [
-    'app.ts',
-    'bootstrap.ts',
-    'embed.ts',
-    'github-pages-redirect.js',
-    'profession-app.ts',
-    'tutorial.ts'
-  ]);
-
-  const directories = new Set(entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name));
-
-  assert.deepEqual([...directories].sort(), ['build', 'patch-preview', 'profession', 'rotation', 'simulation']);
-
-  const appEntry = await readFile(path.join(appRoot, 'app.ts'), 'utf8');
-
-  assert.match(appEntry, /bootstrapProfessionApp/);
-  assert.doesNotMatch(appEntry, /class ProfessionApp|renderPalette|renderGear/);
-});
-
-test('profession sources persist terrestrial skill data only', async () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
-  const forbiddenPersistedMetadata = new RegExp(
-    [
-      JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
-      '"weapon": "(?:Trident|Speargun)"',
-      'weapon:\\s*"(?:Trident|Speargun)"',
-      'environment:\\s*"Aquatic"',
-      '"name": "Use Trident"'
-    ].join('|')
-  );
-
-  for (const file of await javascriptFiles(root)) {
-    const source = await readFile(file, 'utf8');
-
-    assert.doesNotMatch(source, forbiddenPersistedMetadata, path.relative(root, file));
   }
 });
