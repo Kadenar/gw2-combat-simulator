@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const FIREBRAND_BALANCE_PROFILE_IDS = Object.freeze({
@@ -19,16 +20,6 @@ export const FIREBRAND_BALANCE_PROFILE_IDS = Object.freeze({
   unrelentingCriticism: TRAIT.UNRELENTING_CRITICISM,
   quickfire: TRAIT.QUICKFIRE,
   passiveCourage: 'guardian.firebrand.passive-courage'
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

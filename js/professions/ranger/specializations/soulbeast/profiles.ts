@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const SOULBEAST_BALANCE_PROFILE_IDS = Object.freeze({
@@ -19,16 +20,6 @@ export const SOULBEAST_BALANCE_PROFILE_IDS = Object.freeze({
   versatileArchetype: 'ranger.soulbeast.archetype.versatile',
   ferociousArchetype: 'ranger.soulbeast.archetype.ferocious',
   supportiveArchetype: 'ranger.soulbeast.archetype.supportive'
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 const archetype = (id: string, name: string, fields: Readonly<Record<string, number>>): BalanceProfile => ({

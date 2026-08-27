@@ -1,4 +1,5 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const TEMPEST_BALANCE_PROFILE_IDS = Object.freeze({
@@ -15,16 +16,6 @@ export const TEMPEST_BALANCE_PROFILE_IDS = Object.freeze({
   transcendentTempest: TRAIT.TRANSCENDENT_TEMPEST,
   lucidSingularity: TRAIT.LUCID_SINGULARITY,
   elementalBastion: TRAIT.ELEMENTAL_BASTION
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({

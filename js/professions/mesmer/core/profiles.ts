@@ -1,4 +1,13 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../platform/gw2/authoring/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileValue
+} from '../../../platform/gw2/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from './mechanics.js';
 import type { MesmerShatter, MesmerTraitDamage } from '../types.js';
@@ -29,30 +38,6 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   sharperImages: TRAIT.SHARPER_IMAGES,
   shatterStorm: TRAIT.SHATTER_STORM,
   bountifulBlades: TRAIT.BOUNTIFUL_BLADES
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  parentId: SkillId,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 export function mesmerShatterProfile(
@@ -257,40 +242,12 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   })
 ]);
 
-type ProfileContext = {
-  readonly catalog?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly helpers?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly profession?: {
-    readonly catalog?: {
-      readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-    };
-  };
-  readonly runtime?: {
-    readonly profession?: {
-      readonly catalog?: {
-        readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-      };
-    };
-  };
-};
-
 export function mesmerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  const source = (context || {}) as ProfileContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id)
-  );
+  return balanceProfileFromContext(context, id);
 }
 
 export function mesmerBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  const value = mesmerBalanceProfile(context, id)?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  return balanceProfileValue(mesmerBalanceProfile(context, id), field, fallback);
 }
 
 export function mesmerBalanceProfileEffect(
@@ -298,7 +255,7 @@ export function mesmerBalanceProfileEffect(
   type: string,
   index = 0
 ): SkillEffect | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type)[index];
+  return balanceProfileEffect(profile, type, index);
 }
 
 // Overlay balance-profile values onto declarative shatter definitions while

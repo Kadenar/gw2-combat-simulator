@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '../../core/profiles.js';
 import { MESMER_CHRONOMANCER_SHATTERS, MESMER_CHRONOMANCER_TRAIT_DAMAGE } from './mechanics.js';
@@ -22,16 +23,6 @@ export const CHRONOMANCER_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> 
   [ID.TIME_SINK]: CHRONOMANCER_BALANCE_PROFILE_IDS.timeSink,
   [ID.REWINDER]: CHRONOMANCER_BALANCE_PROFILE_IDS.rewinder,
   [ID.SPLIT_SECOND]: CHRONOMANCER_BALANCE_PROFILE_IDS.splitSecond
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

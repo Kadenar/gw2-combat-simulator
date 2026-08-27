@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const DEADEYE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -13,16 +14,6 @@ export const DEADEYE_BALANCE_PROFILE_IDS = Object.freeze({
   fireForEffect: TRAIT.FIRE_FOR_EFFECT,
   silentScope: TRAIT.SILENT_SCOPE,
   premeditation: TRAIT.PREMEDITATION
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

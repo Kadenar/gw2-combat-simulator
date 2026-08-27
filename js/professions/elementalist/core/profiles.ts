@@ -1,4 +1,13 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../platform/gw2/authoring/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileValue
+} from '../../../platform/gw2/combat/state/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 
 export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -62,30 +71,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   evasiveArcana: TRAIT.EVASIVE_ARCANA,
   arcaneLightning: TRAIT.ARCANE_LIGHTNING,
   bountifulPower: TRAIT.BOUNTIFUL_POWER
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  parentId: SkillId,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 const namedBoon = (name: string, boon: string, stacks: number, duration: number): SkillEffect => ({
@@ -469,40 +454,12 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   })
 ]);
 
-type ProfileContext = {
-  readonly catalog?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly helpers?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly profession?: {
-    readonly catalog?: {
-      readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-    };
-  };
-  readonly runtime?: {
-    readonly profession?: {
-      readonly catalog?: {
-        readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-      };
-    };
-  };
-};
-
 export function elementalistBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  const source = (context || {}) as ProfileContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id)
-  );
+  return balanceProfileFromContext(context, id);
 }
 
 export function elementalistBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  const value = elementalistBalanceProfile(context, id)?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  return balanceProfileValue(elementalistBalanceProfile(context, id), field, fallback);
 }
 
 export function elementalistBalanceEffect(
@@ -512,10 +469,7 @@ export function elementalistBalanceEffect(
   name?: string,
   index = 0
 ): SkillEffect | undefined {
-  const effects = (elementalistBalanceProfile(context, id)?.effects || []).filter(
-    (effect) => effect.type === type && (name == null || effect.name === name)
-  );
-  return effects[index];
+  return balanceProfileEffect(elementalistBalanceProfile(context, id), type, index, name);
 }
 
 export function elementalistEffectValue(
@@ -527,6 +481,5 @@ export function elementalistEffectValue(
   name?: string,
   index = 0
 ): number {
-  const value = elementalistBalanceEffect(context, id, type, name, index)?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  return balanceProfileValue(elementalistBalanceEffect(context, id, type, name, index), field, fallback);
 }

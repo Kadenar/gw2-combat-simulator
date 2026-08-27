@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const SCOURGE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -14,16 +15,6 @@ export const SCOURGE_BALANCE_PROFILE_IDS = Object.freeze({
   fellBeacon: TRAIT.FELL_BEACON,
   sandSage: TRAIT.SAND_SAGE,
   nourishingAshes: TRAIT.NOURISHING_ASHES
-});
-
-const trait = (id: string | number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

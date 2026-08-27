@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const SPELLBREAKER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -9,16 +10,6 @@ export const SPELLBREAKER_BALANCE_PROFILE_IDS = Object.freeze({
   noEscape: TRAIT.NO_ESCAPE,
   pureStrike: TRAIT.PURE_STRIKE,
   sunAndMoonStyle: TRAIT.SUN_AND_MOON_STYLE
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

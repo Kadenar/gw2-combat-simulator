@@ -1,4 +1,10 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../platform/gw2/authoring/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileValue
+} from '../../../platform/gw2/combat/state/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 
 export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -23,16 +29,6 @@ export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   chemicalRounds: TRAIT.CHEMICAL_ROUNDS,
   energyAmplifier: TRAIT.ENERGY_AMPLIFIER,
   sharpshooter: TRAIT.SHARPSHOOTER
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -159,35 +155,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   })
 ]);
 
-type ProfileContext = {
-  readonly catalog?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly helpers?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly profession?: {
-    readonly catalog?: {
-      readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-    };
-  };
-  readonly runtime?: {
-    readonly profession?: {
-      readonly catalog?: {
-        readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-      };
-    };
-  };
-};
-
 export function engineerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  const source = context as ProfileContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id)
-  );
+  return balanceProfileFromContext(context, id);
 }
 
 export function engineerBalanceProfileEffect(
@@ -195,12 +164,11 @@ export function engineerBalanceProfileEffect(
   type: string,
   index = 0
 ): SkillEffect | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type)[index];
+  return balanceProfileEffect(profile, type, index);
 }
 
 export function engineerBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
-  const value = engineerBalanceProfile(context, id)?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  return balanceProfileValue(engineerBalanceProfile(context, id), field, fallback);
 }
 
 export function engineerBalanceEffectValue(
@@ -211,8 +179,9 @@ export function engineerBalanceEffectValue(
   fallback: number,
   index = 0
 ): number {
-  const effect = engineerBalanceProfileEffect(engineerBalanceProfile(context, id), type, index) as
-    Readonly<Record<string, unknown>> | undefined;
-  const value = effect?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  return balanceProfileValue(
+    engineerBalanceProfileEffect(engineerBalanceProfile(context, id), type, index),
+    field,
+    fallback
+  );
 }

@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const REAPER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -10,16 +11,6 @@ export const REAPER_BALANCE_PROFILE_IDS = Object.freeze({
   chillingVictory: TRAIT.CHILLING_VICTORY,
   blightersBoon: TRAIT.BLIGHTERS_BOON,
   reapersOnslaught: TRAIT.REAPERS_ONSLAUGHT
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

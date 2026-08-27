@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const DRAGONHUNTER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -10,16 +11,6 @@ export const DRAGONHUNTER_BALANCE_PROFILE_IDS = Object.freeze({
   passiveCourage: 'guardian.dragonhunter.passive-courage',
   dulledSenses: TRAIT.DULLED_SENSES,
   heavyLight: TRAIT.HEAVY_LIGHT
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

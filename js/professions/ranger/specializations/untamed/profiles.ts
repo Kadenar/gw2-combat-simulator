@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const UNTAMED_BALANCE_PROFILE_IDS = Object.freeze({
@@ -10,16 +11,6 @@ export const UNTAMED_BALANCE_PROFILE_IDS = Object.freeze({
   ferociousSymbiosis: TRAIT.FEROCIOUS_SYMBIOSIS,
   debilitatingBlows: TRAIT.DEBILITATING_BLOWS,
   enhancingImpact: TRAIT.ENHANCING_IMPACT
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 // Stable IDs connect mech inheritance, attack sequencing, signet rules, and
@@ -16,15 +17,6 @@ export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
 
 // Supply standard trait metadata once; callers add only the values and effects
 // read by the Mechanist runtime.
-const trait = (id: number | string, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
 
 // Keep native mech scaling and cadence beside trait tuning so both autonomous
 // attacks and commanded attacks use the same balance-profile lookup path.

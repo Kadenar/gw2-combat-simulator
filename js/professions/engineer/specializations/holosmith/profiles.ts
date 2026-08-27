@@ -1,4 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as skillVariant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 // These IDs are the shared lookup contract between heat-state code, delayed
@@ -19,27 +23,6 @@ export const HOLOSMITH_BALANCE_PROFILE_IDS = Object.freeze({
   solarFocusingLens: TRAIT.SOLAR_FOCUSING_LENS,
   enhancedCapacity: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   photonicBlastingModule: TRAIT.PHOTONIC_BLASTING_MODULE
-});
-
-// Profile builders attach the catalog metadata common to each profile kind so
-// individual entries can focus on their patchable mechanic values.
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const skillVariant = (id: string, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'skill-variant',
-  categories: ['Skill variant'],
-  effects: [],
-  ...fields
 });
 
 // Heat-tier profiles are applied after activation heat is snapshotted, keeping

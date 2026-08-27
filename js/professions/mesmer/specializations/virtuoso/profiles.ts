@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '../../core/profiles.js';
 import { MESMER_VIRTUOSO_SHATTERS, MESMER_VIRTUOSO_TRAIT_DAMAGE } from './mechanics.js';
@@ -26,16 +27,6 @@ export const VIRTUOSO_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Ob
   [ID.BLADESONG_SORROW]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongSorrow,
   [ID.BLADESONG_HARMONY]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongHarmony,
   [ID.BLADESONG_DISTORTION]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongDistortion
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

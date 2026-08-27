@@ -1,4 +1,8 @@
 import type { BalanceProfile, SkillEffect } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile } from '../../core/profiles.js';
 import { MESMER_MIRAGE_AMBUSH_ATTACKS } from './mechanics.js';
@@ -34,30 +38,6 @@ export const MIRAGE_AMBUSH_PROFILE_IDS: Readonly<Record<string, string>> = Objec
   Spear: MIRAGE_BALANCE_PROFILE_IDS.fracturedGlass,
   Staff: MIRAGE_BALANCE_PROFILE_IDS.chaosVortex,
   Sword: MIRAGE_BALANCE_PROFILE_IDS.mirageThrust
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  parentId: number,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 function attackStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'): SkillEffect {

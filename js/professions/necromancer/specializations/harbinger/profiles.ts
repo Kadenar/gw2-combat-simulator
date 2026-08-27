@@ -1,4 +1,8 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { GW2_DAMAGING_CONDITIONS } from '../../../../platform/gw2/combat/state/targets.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
@@ -22,30 +26,6 @@ export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
   elixirOfAmbitionEmpowered: 'necromancer.harbinger.elixir-of-ambition-empowered',
   devouringCutEmpowered: 'necromancer.harbinger.devouring-cut-empowered',
   voraciousArcEmpowered: 'necromancer.harbinger.voracious-arc-empowered'
-});
-
-const trait = (id: string | number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  name: string,
-  parentId: number,
-  fields: Readonly<Record<string, unknown>>
-): BalanceProfile => ({
-  id,
-  name,
-  parentId,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -172,8 +152,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   }),
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfPromiseEmpowered,
-    'Elixir of Promise - Empowered',
     ID.ELIXIR_OF_PROMISE,
+    'Elixir of Promise - Empowered',
     {
       blightCost: 5,
       blightGain: 10,
@@ -189,7 +169,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       ]
     }
   ),
-  variant(HARBINGER_BALANCE_PROFILE_IDS.elixirOfRiskEmpowered, 'Elixir of Risk - Empowered', ID.ELIXIR_OF_RISK, {
+  variant(HARBINGER_BALANCE_PROFILE_IDS.elixirOfRiskEmpowered, ID.ELIXIR_OF_RISK, 'Elixir of Risk - Empowered', {
     blightCost: 5,
     blightGain: 10,
     effects: [
@@ -224,15 +204,15 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       }
     ]
   }),
-  variant(HARBINGER_BALANCE_PROFILE_IDS.elixirOfBlissEmpowered, 'Elixir of Bliss - Empowered', ID.ELIXIR_OF_BLISS, {
+  variant(HARBINGER_BALANCE_PROFILE_IDS.elixirOfBlissEmpowered, ID.ELIXIR_OF_BLISS, 'Elixir of Bliss - Empowered', {
     blightCost: 5,
     blightGain: 10,
     effects: [{ type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' }]
   }),
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfIgnoranceEmpowered,
-    'Elixir of Ignorance - Empowered',
     ID.ELIXIR_OF_IGNORANCE,
+    'Elixir of Ignorance - Empowered',
     {
       blightCost: 5,
       blightGain: 10,
@@ -241,8 +221,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   ),
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfAnguishEmpowered,
-    'Elixir of Anguish - Empowered',
     ID.ELIXIR_OF_ANGUISH,
+    'Elixir of Anguish - Empowered',
     {
       blightCost: 5,
       blightGain: 10,
@@ -274,8 +254,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   ),
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfAmbitionEmpowered,
-    'Elixir of Ambition - Empowered',
     ID.ELIXIR_OF_AMBITION,
+    'Elixir of Ambition - Empowered',
     {
       blightCost: 10,
       blightGain: 15,
@@ -319,7 +299,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       ]
     }
   ),
-  variant(HARBINGER_BALANCE_PROFILE_IDS.devouringCutEmpowered, 'Devouring Cut - Empowered', ID.DEVOURING_CUT, {
+  variant(HARBINGER_BALANCE_PROFILE_IDS.devouringCutEmpowered, ID.DEVOURING_CUT, 'Devouring Cut - Empowered', {
     blightCost: 5,
     effects: [
       { type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
@@ -332,7 +312,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       }
     ]
   }),
-  variant(HARBINGER_BALANCE_PROFILE_IDS.voraciousArcEmpowered, 'Voracious Arc - Empowered', ID.VORACIOUS_ARC, {
+  variant(HARBINGER_BALANCE_PROFILE_IDS.voraciousArcEmpowered, ID.VORACIOUS_ARC, 'Voracious Arc - Empowered', {
     blightCost: 5,
     effects: [
       { type: 'strike', coefficient: 2.8, hits: 1, actorType: 'player' },

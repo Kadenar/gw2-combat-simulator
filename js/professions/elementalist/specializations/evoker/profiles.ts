@@ -1,4 +1,8 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const EVOKER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -21,30 +25,6 @@ export const EVOKER_BALANCE_PROFILE_IDS = Object.freeze({
   specializedElements: TRAIT.SPECIALIZED_ELEMENTS,
   specializedElementsBasicRecharge: 'elementalist.evoker.specialized-elements.basic-recharge',
   specializedElementsEmpoweredRecharge: 'elementalist.evoker.specialized-elements.empowered-recharge'
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  parentId: SkillId,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({

@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
@@ -13,16 +14,6 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   empoweredArmaments: TRAIT.EMPOWERED_ARMAMENTS,
   illuminatingInspiration: TRAIT.ILLUMINATING_INSPIRATION,
   justiceIsBlind: TRAIT.JUSTICE_IS_BLIND
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

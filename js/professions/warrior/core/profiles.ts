@@ -1,4 +1,9 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../platform/gw2/authoring/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext
+} from '../../../platform/gw2/combat/state/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
 
 export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -41,16 +46,6 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   blademaster: TRAIT.BLADEMASTER,
   signetPassives: 'warrior.core.signet-passives',
   signetOfFuryActive: 'warrior.core.signet-of-fury-active'
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -274,35 +269,8 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }
 ]);
 
-type ProfileContext = {
-  readonly catalog?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly helpers?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly profession?: {
-    readonly catalog?: {
-      readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-    };
-  };
-  readonly runtime?: {
-    readonly profession?: {
-      readonly catalog?: {
-        readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-      };
-    };
-  };
-};
-
 export function warriorBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  const source = context as ProfileContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id)
-  );
+  return balanceProfileFromContext(context, id);
 }
 
 export function warriorBalanceProfileEffect(
@@ -310,5 +278,5 @@ export function warriorBalanceProfileEffect(
   type: string,
   index = 0
 ): SkillEffect | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type)[index];
+  return balanceProfileEffect(profile, type, index);
 }

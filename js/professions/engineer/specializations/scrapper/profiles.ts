@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 // Trait IDs double as balance-profile IDs so scheduler and resolver hooks read
@@ -14,15 +15,6 @@ export const SCRAPPER_BALANCE_PROFILE_IDS = Object.freeze({
 
 // Normalize trait catalog metadata while leaving each profile responsible only
 // for the values and effects its behavior consumes.
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
 
 // Centralizing these values keeps combo prediction, resolved proc attribution,
 // and cast-time trait effects aligned under balance overrides.

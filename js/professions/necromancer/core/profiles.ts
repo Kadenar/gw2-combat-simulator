@@ -1,4 +1,9 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../platform/gw2/authoring/balance-profiles.js';
+import {
+  balanceProfileEffect as selectBalanceProfileEffect,
+  balanceProfileFromContext
+} from '../../../platform/gw2/combat/state/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 
 export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -33,16 +38,6 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   lingeringCurse: TRAIT.LINGERING_CURSE,
   vitalPersistence: TRAIT.VITAL_PERSISTENCE,
   spitefulSpirit: TRAIT.SPITEFUL_SPIRIT
-});
-
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 const minion = (
@@ -577,27 +572,8 @@ export const NECROMANCER_MINION_PROFILE_BY_SKILL_ID: Readonly<Record<number, str
   [ID.SUMMON_FLESH_GOLEM]: NECROMANCER_CORE_BALANCE_PROFILE_IDS.fleshGolemAttack
 });
 
-type ProfileContext = {
-  readonly catalog?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly helpers?: {
-    readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  };
-  readonly profession?: {
-    readonly catalog?: {
-      readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-    };
-  };
-};
-
 export function necromancerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
-  const source = context as ProfileContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id)
-  );
+  return balanceProfileFromContext(context, id);
 }
 
 export function balanceProfileEffect(
@@ -605,5 +581,5 @@ export function balanceProfileEffect(
   type: string,
   index = 0
 ): SkillEffect | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type)[index];
+  return selectBalanceProfileEffect(profile, type, index);
 }

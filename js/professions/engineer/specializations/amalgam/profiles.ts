@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 // Stable profile IDs let runtime mechanics request patchable values without
@@ -16,15 +17,6 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
 
 // Supply the catalog metadata shared by every trait profile; each entry below
 // only needs to declare the values and effects its mechanic consumes.
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
 
 // Mechanic profiles collect protocol durations, strain scaling, and Evolve
 // tuning that would otherwise be spread across scheduler and modifier code.

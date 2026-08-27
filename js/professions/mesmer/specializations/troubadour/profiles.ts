@@ -1,4 +1,8 @@
 import type { BalanceProfile, SkillId } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerTraitDamageProfile } from '../../core/profiles.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS, MESMER_TROUBADOUR_TRAIT_DAMAGE } from './mechanics.js';
@@ -35,30 +39,6 @@ export const TROUBADOUR_INSTRUMENT_PROFILE_IDS: Readonly<Record<number, string>>
   [ID.HARMONIOUS_HARP]: TROUBADOUR_BALANCE_PROFILE_IDS.harmoniousHarp,
   [ID.HARMONIOUS_HARP_ALTERNATE]: TROUBADOUR_BALANCE_PROFILE_IDS.harmoniousHarpAlternate,
   [ID.DEAFENING_DRUM]: TROUBADOUR_BALANCE_PROFILE_IDS.deafeningDrum
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
-const variant = (
-  id: string,
-  parentId: SkillId,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 /** Builds the patchable balance profile for one Troubadour instrument. */

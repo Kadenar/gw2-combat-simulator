@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const SPECTER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -11,16 +12,6 @@ export const SPECTER_BALANCE_PROFILE_IDS = Object.freeze({
   darkSentry: TRAIT.DARK_SENTRY,
   secondOpinion: TRAIT.SECOND_OPINION,
   strengthOfShadows: TRAIT.STRENGTH_OF_SHADOWS
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '../../../../platform/engine/types.js';
+import { defineTraitProfile as trait } from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const ANTIQUARY_BALANCE_PROFILE_IDS = Object.freeze({
@@ -20,16 +21,6 @@ export const ANTIQUARY_BALANCE_PROFILE_IDS = Object.freeze({
   exhilaratingEphemera: TRAIT.EXHILARATING_EPHEMERA,
   possessiveHoarder: TRAIT.POSSESSIVE_HOARDER,
   meticulousCustodian: TRAIT.METICULOUS_CUSTODIAN
-});
-
-const trait = (id: number, name: string, fields: Readonly<Record<string, unknown>>): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
 });
 
 export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

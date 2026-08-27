@@ -1,4 +1,8 @@
 import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+import {
+  defineSkillVariantProfile as variant,
+  defineTraitProfile as trait
+} from '../../../../platform/gw2/authoring/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 
 export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -22,16 +26,6 @@ export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
   flowState: TRAIT.FLOW_STATE
 });
 
-const trait = (id: SkillId, name: string, fields: Readonly<Record<string, unknown>> = {}): BalanceProfile => ({
-  id,
-  name,
-  profileKind: 'trait',
-  categories: ['Trait'],
-  skillFamily: 'Trait',
-  effects: [],
-  ...fields
-});
-
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -46,20 +40,6 @@ const buff = (name: string, kind: string, stacks: number, duration: number): Ski
   kind,
   stacks,
   duration
-});
-
-const variant = (
-  id: string,
-  parentId: SkillId,
-  name: string,
-  fields: Readonly<Record<string, unknown>> = {}
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  effects: [],
-  ...fields
 });
 
 const condition = (name: string, conditionName: string, stacks: number, duration: number): SkillEffect => ({

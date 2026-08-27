@@ -1,5 +1,7 @@
 /** Public authoring surface for declaring native profession modules and their mechanics. */
 export { defineNativeModule, defineNativeProfession } from './profession.js';
+export { defineSkillVariantProfile, defineTraitProfile } from './balance-profiles.js';
+export type { BalanceProfileFields } from './balance-profiles.js';
 export { assembleNativeApplicationCatalog, createNativeModuleData, nativeSkillRuntimeOwner } from './catalog.js';
 export {
   augmentSkill,
