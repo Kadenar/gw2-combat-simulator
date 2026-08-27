@@ -6,6 +6,7 @@ import { enqueueOrdered } from '../../../platform/engine/events/queue.js';
 import { isInternalCooldownReady } from '../../../platform/engine/core/clock.js';
 import { isGw2PlayerActorEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { combinedTargetDamage } from '../../../platform/gw2/combat/state/target-health.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-duration.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { buildGuardianStrike } from './events.js';
@@ -24,29 +25,12 @@ import type {
   GuardianSkill
 } from '../types.js';
 
-type GuardianTraitContext =
-  | (GuardianCastContext & { readonly traits?: ReadonlySet<SkillId> })
-  | (GuardianSchedulerContext & { readonly traits?: ReadonlySet<SkillId> })
-  | (GuardianResolverContext & { readonly traits?: ReadonlySet<SkillId> });
-
 const TRAIT_BY_ID = new Map(
   SPECIALIZATIONS.flatMap((specialization) => [
     ...specialization.minorTraits,
     ...specialization.majorTraits.flat()
   ]).map((trait) => [Number(trait.id), trait])
 );
-
-export function hasGuardianTrait(context: GuardianTraitContext, traitId: SkillId): boolean {
-  // Resolver contexts use normalized traits; raw configuration remains a
-  // fallback for application contexts that have not built a combat query.
-  if (context.traits?.has(traitId) || context.traits?.has(String(traitId))) {
-    return true;
-  }
-
-  return Boolean(
-    context.config?.selectedTraitIds?.some((value) => value === traitId || String(value) === String(traitId))
-  );
-}
 
 export function guardianTraitIcon(traitId: SkillId): string {
   return TRAIT_BY_ID.get(Number(traitId))?.icon || '';
@@ -140,7 +124,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
   const at = context.effectiveEnd;
   if (
     skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE)
   ) {
     const profile = guardianBalanceProfile(context, PROFILE.writOfPersistence);
     const extension = Number(guardianBalanceProfileEffect(profile, 'buff')?.duration || 2);
@@ -242,7 +226,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
         {
           ownerId: 'guardian',
           fieldType: 'Fire',
-          duration: hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS) ? 5 * durationMultiplier : 5,
+          duration: hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS) ? 5 * durationMultiplier : 5,
           startAnchor: 'castEnd'
         }
       ]
@@ -251,7 +235,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   const virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
   if (virtueSlot) {
-    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) {
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) {
       const inspired = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.inspiredVirtue),
         'boon',
@@ -270,7 +254,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
       });
     }
 
-    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)) {
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)) {
       const resolution = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.virtueOfResolution),
         'boon'
@@ -287,7 +271,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
       });
     }
 
-    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) {
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) {
       const inspiring = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.inspiringVirtue), 'buff');
       emitSkillBuff(context, skill, {
         at,
@@ -301,7 +285,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
       });
     }
 
-    if (virtueSlot === 'Profession_3' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)) {
+    if (virtueSlot === 'Profession_3' && hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)) {
       const stability = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.indomitableCourage),
         'boon'
@@ -321,7 +305,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   if (
     virtueSlot === 'Profession_1' &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) &&
     isInternalCooldownReady(at, professionCoreState(context).furiousFocusReadyAt)
   ) {
     const lesserSymbol =
@@ -335,10 +319,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
     emitLesserSymbolOfBlades(context, skill, at);
   }
 
-  if (
-    skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
-  ) {
+  if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES && hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)) {
     const profile = guardianBalanceProfile(context, PROFILE.masterOfConsecrations);
     const strike = guardianBalanceProfileEffect(profile, 'strike');
     const burning = guardianBalanceProfileEffect(profile, 'condition');
@@ -434,7 +415,7 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'resolution' &&
     Number(event.duration || 0) > 0 &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
   ) {
     context.replaceEvent(event, {
       duration:
@@ -451,7 +432,7 @@ export function observeGuardianScheduledEvent(context: GuardianSchedulerContext,
     return;
   }
 
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)) {
     const exposure = guardianBalanceProfileEffect(
       guardianBalanceProfile(context, PROFILE.symbolicExposure),
       'condition'
@@ -608,7 +589,7 @@ function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianRe
   }
 
   const state = resolverState(context);
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
     const profile = guardianBalanceProfile(context, PROFILE.symbolicAvenger);
     if (event.at >= state.symbolicAvengerUntil - resolverEpsilon(context)) {
       state.symbolicAvengerStacks = 0;
@@ -631,7 +612,7 @@ function reactToSymbolTraits(context: GuardianResolverContext, event: GuardianRe
 
   if (
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
   ) {
     // Lesser Symbol applies target Vulnerability directly so it shares condition duration and stacking rules.
     enqueueOrdered(context.queue, {
@@ -665,7 +646,7 @@ function reactToZealotsResolution(context: GuardianResolverContext, event: Guard
       targetHealth * Number(guardianBalanceProfile(context, PROFILE.zealotsResolution)?.threshold || 0.25)
     ) ||
     !isInternalCooldownReady(event.at, Number(state.zealotsResolutionReadyAt || 0)) ||
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION) ||
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION) ||
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
   ) {
     return;
@@ -708,7 +689,7 @@ function queueRighteousMight(context: GuardianResolverContext, at: number, detai
 export function reactToGuardianBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (
     String(event.kind || '').toLowerCase() !== 'resolution' ||
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
   ) {
     return;
   }
@@ -737,7 +718,7 @@ export function reactToGuardianBuffTraits(context: GuardianResolverContext, even
 export function handleRighteousInstinctsTick(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = resolverState(context);
   if (
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
     event.at > Number(state.resolutionUntil || 0) + resolverEpsilon(context) ||
     Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > resolverEpsilon(context)
   ) {

@@ -2,7 +2,7 @@ import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.j
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { specterState } from './state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { emitThiefShroudSwap } from '../../core/shared.js';
 import { snapshotThiefState } from '../../core/state.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
@@ -18,7 +18,7 @@ export function completeSiphon(context: ThiefCastContext): void {
   state.shadowForce = Math.min(
     state.maximumShadowForce,
     state.shadowForce +
-      (hasThiefTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
+      (hasTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
         ? Number(thiefBalanceProfile(context, PROFILE.amplifiedSiphoning)?.resourceGain || 27.5)
         : Number(resources?.lifeForceGain || 25))
   );

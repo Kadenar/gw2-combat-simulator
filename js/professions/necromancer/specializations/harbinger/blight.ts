@@ -18,7 +18,7 @@ import { snapshotNecromancerState } from '../../state.js';
  * which procs Meltdown every 20 stacks. Exports `necromancerBlightSkillHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../core/shared.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSchedulerContext, NecromancerSkill } from '../../types.js';
 import type { BalanceProfile, SkillEffect } from '../../../../platform/engine/types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';

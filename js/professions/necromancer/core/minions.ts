@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
@@ -18,12 +19,7 @@ import {
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
   necromancerBalanceProfile
 } from './profiles.js';
-import {
-  runCreatureSummonReactions,
-  gainNecromancerLifeForce,
-  hasTrait,
-  necromancerCreatureStrikeMultiplier
-} from './shared.js';
+import { runCreatureSummonReactions, gainNecromancerLifeForce, necromancerCreatureStrikeMultiplier } from './shared.js';
 import type { ScheduledTask, SchedulerRecord, SkillEffect, SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 

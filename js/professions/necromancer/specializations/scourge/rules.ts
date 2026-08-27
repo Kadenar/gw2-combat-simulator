@@ -15,7 +15,7 @@ import type {
 } from '../../types.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
+import { gainNecromancerLifeForce } from '../../core/shared.js';
 import { purgeScourgeTimedState, scourgeState } from './state.js';
 
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
@@ -62,18 +62,20 @@ function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maxim
 function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityResult {
   // Herald of Sorrow owns the mutually exclusive F5 replacement at the Scourge boundary.
   if (skill.id === ID.SANDSTORM_SHROUD) {
-    return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW)
+    return hasTrait(context, TRAIT.HERALD_OF_SORROW)
       ? CAST_READY
       : denyCast('necromancer.trait-replacement', `${skill.name} is unavailable — requires Herald of Sorrow.`);
   }
+
   if (skill.id === ID.DESERT_SHROUD) {
-    return hasNecromancerTrait(context, TRAIT.HERALD_OF_SORROW)
+    return hasTrait(context, TRAIT.HERALD_OF_SORROW)
       ? denyCast(
           'necromancer.trait-replacement',
           `${skill.name} is unavailable — replaced by Sandstorm Shroud while Herald of Sorrow is selected.`
         )
       : CAST_READY;
   }
+
   return CAST_READY;
 }
 
@@ -84,7 +86,7 @@ function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: Ne
   if (
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||
-    !hasNecromancerTrait(context, TRAIT.NOURISHING_ASHES) ||
+    !hasTrait(context, TRAIT.NOURISHING_ASHES) ||
     event.at < state.nourishingAshesReadyAt
   ) {
     return;

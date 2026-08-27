@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -19,7 +20,6 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   gainNecromancerLifeForce,
-  hasTrait,
   registerNecromancerCreatureStrikeMultiplier,
   registerCreatureSummonReaction,
   runCreatureSummonReactions

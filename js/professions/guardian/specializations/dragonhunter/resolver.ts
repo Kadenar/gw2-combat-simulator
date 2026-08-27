@@ -3,7 +3,8 @@ import { gw2ResolverBoonDuration } from '../../../../platform/gw2/resolver/boon-
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import { guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { guardianTraitIcon } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '../../types.js';
 import { dragonhunterState } from './state.js';
@@ -81,7 +82,7 @@ export function reactToDragonhunterJusticeHit(
   }
 
   if (
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER) ||
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER) ||
     dragonhunterState.from(context).tetherUntil <= event.at ||
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0)
@@ -113,7 +114,7 @@ export function reactToDragonhunterJusticeHit(
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = dragonhunterState.from(context);
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const crippled = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.dulledSenses), 'condition');
     // Control-triggered conditions resolve immediately so their reactions
     // share the originating control timestamp.
@@ -133,7 +134,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   }
 
   if (
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
     event.at < state.heavyLightReadyAt - Number(context.epsilon || 0.0001)
   ) {
     return;

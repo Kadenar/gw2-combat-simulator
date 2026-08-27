@@ -1,6 +1,7 @@
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { resetAutoattackChains } from '../../../../platform/gw2/skills/autoattack-chains.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyRangerWeaponSwapTraits } from '../../core/traits.js';
@@ -11,15 +12,8 @@ import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK = 'ranger.druid-astral-force-damage';
 
-// Uses config directly rather than hasTrait() because hasTrait() may not be available in both CastContext and SchedulerContext
-function hasDruidTrait(context: RangerCastContext | RangerSchedulerContext, traitId: number): boolean {
-  return Boolean(
-    context.config.selectedTraitIds?.some((selected) => selected === traitId || String(selected) === String(traitId))
-  );
-}
-
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, duration: number, at: number): void {
-  if (!hasDruidTrait(context, TRAIT.NATURAL_BALANCE)) return;
+  if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return;
   const effect = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.naturalBalance), 'buff');
   emitSkillBuff(context, {
     at,
@@ -130,7 +124,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
 
   state.astralForceUpdatedAt = target;
   if (
-    !hasDruidTrait(context, TRAIT.NATURAL_MENDER) ||
+    !hasTrait(context, TRAIT.NATURAL_MENDER) ||
     state.astralForce >= state.maximumAstralForce ||
     target < state.naturalMenderReadyAt - context.epsilon
   ) {
@@ -150,7 +144,7 @@ export function astralForceReadyAt(context: RangerCastContext): number | null {
   state.astralForce = Math.min(maximum, state.astralForce);
   const naturalMenderForce = rangerBalanceValue(context, PROFILE.naturalMender, 'resourceGain', 8);
   const naturalMenderInterval = rangerBalanceValue(context, PROFILE.naturalMender, 'pulseInterval', 3);
-  const naturalMender = hasDruidTrait(context, TRAIT.NATURAL_MENDER);
+  const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
   if (state.astralForce >= maximum - context.epsilon) return context.start;
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
   if (!naturalMender) return null;
@@ -190,6 +184,6 @@ export function handleDruidAstralForceDamageTask(context: RangerSchedulerContext
   state.maximumAstralForce = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 100);
   state.astralForce = Math.min(
     state.maximumAstralForce,
-    state.astralForce + directDamageForce * (hasDruidTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
+    state.astralForce + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
   );
 }

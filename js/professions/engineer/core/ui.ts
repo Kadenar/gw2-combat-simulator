@@ -1,5 +1,6 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {
@@ -129,8 +130,7 @@ function usesToolsTraitline(context: EngineerUiContext): boolean {
   if ((context.build?.specializations || []).some((selection) => selection?.name === 'Tools')) return true;
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
-  const selected = new Set((context.config?.selectedTraitIds || []).map((value) => String(value)));
-  return engineerTraits.some((trait) => trait.specialization === 'Tools' && selected.has(String(trait.id)));
+  return engineerTraits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
 }
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip

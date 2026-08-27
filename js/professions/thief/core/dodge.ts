@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from './shared.js';
 import type { ThiefCastContext } from '../types.js';
 import {
@@ -19,7 +19,7 @@ export function performThiefDodge(context: ThiefCastContext): void {
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.endurance = Math.max(0, state.endurance - Number(resources?.resourceCost || 50));
   emitStateSnapshot(context, 'thief', context.start, 'dodge', snapshotThiefState(context.state.profession));
-  if (hasThiefTrait(context.config, TRAIT.UNCATCHABLE)) {
+  if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     const profile = thiefBalanceProfile(context, PROFILE.uncatchable);
     const bleeding = thiefBalanceProfileEffect(profile, 'condition', 0);
     const crippled = thiefBalanceProfileEffect(profile, 'condition', 1);
@@ -57,7 +57,7 @@ export function performThiefDodge(context: ThiefCastContext): void {
 // Grant Upper Hand's initiative at dodge completion only when its independent
 // cooldown is ready.
 export function completeThiefDodge(context: ThiefCastContext): void {
-  if (!hasThiefTrait(context.config, TRAIT.UPPER_HAND)) return;
+  if (!hasTrait(context.config, TRAIT.UPPER_HAND)) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const profile = thiefBalanceProfile(context, PROFILE.upperHand);

@@ -44,7 +44,7 @@ function initialize(context: ElementalistSchedulerContext): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context as never, 'Elements of Rage')) {
+  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context, 'Elements of Rage')) {
     emitSkillBuff(context, elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'), {
       at: context.state.time,
       source: 'Starting Attunement',

@@ -9,7 +9,7 @@ import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy
  * own invocation behavior through specialization-local observers.
  */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasRevenantTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '../../../platform/engine/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
@@ -129,7 +129,7 @@ function emitSongOfTheMists(
 }
 
 function emitInvokingTorment(context: RevenantCastContext, at: number): void {
-  const diabolicInferno = hasRevenantTrait(context.config, TRAIT.DIABOLIC_INFERNO);
+  const diabolicInferno = hasTrait(context.config, TRAIT.DIABOLIC_INFERNO);
   emitLegendInvocationProfile(
     context,
     REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
@@ -143,15 +143,15 @@ function emitInvokingTorment(context: RevenantCastContext, at: number): void {
 export function applyLegendInvocationTraits(context: RevenantCastContext, swapSkill: RevenantSkill): void {
   const at = context.effectiveEnd;
   const legendId = professionCoreState(context).activeLegendId;
-  if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+  if (CORE_LEGENDS.has(legendId) && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitSpiritBoon(context, swapSkill, legendId, at);
   }
 
-  if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
+  if (CORE_LEGENDS.has(legendId) && hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
     emitSongOfTheMists(context, swapSkill, legendId, at);
   }
 
-  if (hasRevenantTrait(context.config, TRAIT.INVOKING_TORMENT)) {
+  if (hasTrait(context.config, TRAIT.INVOKING_TORMENT)) {
     emitInvokingTorment(context, at);
   }
 }

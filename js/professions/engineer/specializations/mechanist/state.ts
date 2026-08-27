@@ -1,6 +1,7 @@
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { selectedEngineerTraits } from '../../core/state.js';
 import type { BalanceProfile, SkillId } from '../../../../platform/engine/types.js';
 import type { EngineerConfig, EngineerMechAttributes, EngineerPlayerStats, MechanistState } from '../../types.js';
 
@@ -23,7 +24,7 @@ export const MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Mechanis
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {
   const pick = (groups: readonly (readonly [SkillId, SkillId])[]): SkillId => {
     for (const [traitId, skillId] of groups) {
-      if (hasEngineerTrait(traits, traitId)) return skillId;
+      if (hasTrait(traits, traitId)) return skillId;
     }
 
     return groups[0][1];
@@ -73,9 +74,9 @@ export function engineerMechAttributes(
   profile?: BalanceProfile
 ): EngineerMechAttributes {
   const traits = selectedEngineerTraits(config);
-  const conductive = hasEngineerTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
-  const channeling = hasEngineerTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
-  const variable = hasEngineerTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
+  const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
+  const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
+  const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
   const profileNumber = (field: string, fallback: number): number => {
     const value = profile?.[field];
     return Number.isFinite(Number(value)) ? Number(value) : fallback;

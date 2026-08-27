@@ -2,7 +2,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasEngineerTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { isEngineerToolbeltSkill } from './traits.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
@@ -44,7 +44,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     skillName: skill.name
   });
 
-  if (hasEngineerTrait(context.config, TRAIT.POWER_WRENCH)) {
+  if (hasTrait(context.config, TRAIT.POWER_WRENCH)) {
     const reducedBy = reduceMatchingCooldowns(
       context,
       (candidate) => candidate.type === 'Elite' || candidate.slot === 'Elite',
@@ -67,7 +67,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     }
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
+  if (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
     const reducedBy = reduceMatchingCooldowns(context, isEngineerToolbeltSkill, 1, at);
     if (reducedBy > 0) {
       context.emit({

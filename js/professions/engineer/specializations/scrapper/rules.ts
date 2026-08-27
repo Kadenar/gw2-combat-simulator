@@ -4,7 +4,6 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { activeBoonStacks, playerStrike } from '../../core/rule-helpers.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
-import { hasEngineerTrait } from '../../core/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { SchedulerRecord, SimulationEvent } from '../../../../platform/engine/types.js';
 import type { EngineerMaximumAmmoContext, EngineerSchedulerContext, EngineerSkill } from '../../types.js';
@@ -14,7 +13,7 @@ import { applyScrapperCastTraits } from './traits.js';
 
 function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, event: SimulationEvent): boolean {
   if (
-    !hasEngineerTrait(context.config, TRAIT.KINETIC_ACCELERATORS) ||
+    !hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS) ||
     event.type !== 'combo' ||
     event.schedulerPrediction !== 'combo-result' ||
     !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))
@@ -118,7 +117,7 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Sched
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 function modifyScrapperMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill?.name === 'Function Gyro' && hasEngineerTrait(context.config, TRAIT.EX_MACHINA)
+  return context.skill?.name === 'Function Gyro' && hasTrait(context.config, TRAIT.EX_MACHINA)
     ? Math.max(2, Number(maximum || 0))
     : maximum;
 }

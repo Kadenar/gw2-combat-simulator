@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
@@ -7,9 +8,7 @@ import { gw2AlliedPlayerAssumptions } from '../../../platform/gw2/combat/state/a
  * Life-force resource clock and cast finalization.
  *
  * `advanceNecromancerState` integrates everything that happens between two
- * points in time: shroud life-force drain (and auto-exit on depletion),
- * specialization-owned resource clocks, Signet of Undeath/Vampirism passives,
- * Eternal Life regen, and Lich Form expiry. `leaveShroud` performs
+ * points in time: shroud life-force drain (and auto-exit on depletion), * specialization-owned resource clocks, Signet of Undeath/Vampirism passives, * Eternal Life regen, and Lich Form expiry. `leaveShroud` performs
  * the shroud-exit bookkeeping (recharge, Soul Barbs, weapon swap). `finalize-
  * NecromancerCast` runs after each cast to advance the clock and apply skill
  * life-force gain. Called on a tight loop, so it stays allocation-light.
@@ -21,7 +20,7 @@ import {
   balanceProfileEffect,
   necromancerBalanceProfile
 } from './profiles.js';
-import { gainNecromancerLifeForce, hasTrait, purgeTimedState } from './shared.js';
+import { gainNecromancerLifeForce, purgeTimedState } from './shared.js';
 import { runNecromancerResourceAdvance, runNecromancerShroudExit } from './shroud-lifecycle.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type {

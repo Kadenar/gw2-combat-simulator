@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from './shared.js';
 import { updateSpearChainState } from './conditions.js';
 import type { ThiefCastContext, ThiefSkill } from '../types.js';
@@ -26,17 +26,17 @@ export function grantThiefStealth(
   if (state.revealedUntil > at) return;
   const entering = state.stealthUntil <= at;
   state.stealthUntil = Math.min(at + 15, Math.max(at, state.stealthUntil) + duration);
-  if (entering && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
+  if (entering && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, 'enter-stealth');
   }
 
-  if (entering && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+  if (entering && hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     state.spiderVenomCharges = Math.min(6, Number(state.spiderVenomCharges || 0) + 3);
     state.spiderVenomExpiresAt = at + 24;
     state.spiderVenomGeneration += 1;
   }
 
-  if (entering && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
+  if (entering && hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     emitSkillCondition(context, {
       at,
       source: 'Trait',

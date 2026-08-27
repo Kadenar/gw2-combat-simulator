@@ -1,6 +1,6 @@
 import { holosmithState } from './state.js';
 import { engineerBalanceValue } from '../../core/profiles.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { HOLOSMITH_HEAT } from './mechanics.js';
@@ -56,7 +56,7 @@ export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
     heat: Number(holosmithState.from(context).heat || 0),
-    enhancedCapacitySelected: hasEngineerTrait(source.config || {}, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+    enhancedCapacitySelected: hasTrait(source.config || {}, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
   });
 }
 

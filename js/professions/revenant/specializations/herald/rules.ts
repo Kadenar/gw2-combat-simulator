@@ -8,7 +8,6 @@ import type { Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { revenantActiveBoonCount, revenantPlayer, revenantTimedBuff } from '../../core/rules.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -88,7 +87,7 @@ function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: Rev
     event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
     !isStandardBoon(event.kind) ||
     !appliedToAlly ||
-    !hasRevenantTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
+    !hasTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
     !Number.isFinite(event.__order)
   ) {
     return;
@@ -162,11 +161,11 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
     return;
   }
 
-  if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+  if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, HERALD_SPIRIT_BOON_PROFILE_ID, event.at, TRAIT.SPIRIT_BOON);
   }
 
-  if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
+  if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_DRAGON, event.at, TRAIT.SONG_OF_THE_MISTS);
 }
 

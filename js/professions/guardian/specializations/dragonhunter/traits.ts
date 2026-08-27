@@ -1,13 +1,13 @@
 import { emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
-import { hasGuardianTrait } from '../../core/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import type { GuardianCastContext, GuardianSkill } from '../../types.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function applySoaringDevastation(context: GuardianCastContext, skill: GuardianSkill, skillWeapon: string): void {
-  if (!hasGuardianTrait(context, TRAIT.SOARING_DEVASTATION)) return;
+  if (!hasTrait(context, TRAIT.SOARING_DEVASTATION)) return;
   const at = context.effectiveEnd;
   const profile = guardianBalanceProfile(context, PROFILE.soaringDevastation);
   const strike = guardianBalanceProfileEffect(profile, 'strike');
@@ -42,7 +42,7 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
 export function bigGameHunterTetherDuration(context: GuardianCastContext): number {
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
   // unlocks the Vulnerability condition and passive Crippled in the resolver.
-  return hasGuardianTrait(context, TRAIT.BIG_GAME_HUNTER)
+  return hasTrait(context, TRAIT.BIG_GAME_HUNTER)
     ? Number(guardianBalanceProfile(context, PROFILE.bigGameHunter)?.pulseInterval || 12)
     : 6;
 }

@@ -12,7 +12,6 @@ import {
 import { denySkillCast as denyRevenantSkill } from '../../../lib/availability.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
 import { revenantCombatActive } from '../../core/legend.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import { revenantPlayer, revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../core/rules.js';
 import { completeVindicatorDodge } from './dodge.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from './skills.js';
@@ -97,11 +96,11 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
 
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
-  if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+  if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon, event.at, TRAIT.SPIRIT_BOON);
   }
 
-  if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
+  if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_ALLIANCE, event.at, TRAIT.SONG_OF_THE_MISTS);

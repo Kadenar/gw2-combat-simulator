@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { emitSkillCondition } from '../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from './shared.js';
 import type { ThiefCastContext, ThiefCoreState, ThiefSkill, ThiefStealthAttackChargeState } from '../types.js';
 import {
@@ -33,7 +33,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     stealthAttackState.stealthAttackCharges = Number(stealthAttackState.stealthAttackCharges || 0) - 1;
   }
 
-  if (stealthed && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
+  if (stealthed && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(
       context,
       Number(thiefBalanceProfile(context, PROFILE.shadowsRejuvenation)?.resourceGain || 1),
@@ -42,7 +42,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     );
   }
 
-  if (stealthed && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+  if (stealthed && hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const profile = thiefBalanceProfile(context, PROFILE.leechingVenoms);
     state.spiderVenomCharges = Math.min(
       Number(profile?.maximumStacks || 6),
@@ -62,7 +62,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
 
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {
   const at = context.effectiveEnd;
-  if (hasThiefTrait(context.config, TRAIT.SUNDERING_SHADE)) {
+  if (hasTrait(context.config, TRAIT.SUNDERING_SHADE)) {
     const vulnerability = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunderingShade), 'condition');
     emitSkillCondition(context, {
       at,

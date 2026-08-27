@@ -7,7 +7,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { materializeSkillEffectApplications } from '../../../../platform/engine/effects/materializer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { emitEngineerBarSwap } from '../../core/events.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -61,7 +61,7 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   const heatPerSecond =
     engineerBalanceValue(context, PROFILE.heat, 'energyRegenerationPerSecond', HOLOSMITH_HEAT.basePassivePerSecond) +
-    (hasEngineerTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
+    (hasTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
       ? engineerBalanceValue(context, PROFILE.heat, 'resourceGain', HOLOSMITH_HEAT.lightDensityBonusPerSecond)
       : 0);
 
@@ -72,7 +72,7 @@ function passiveHeatPerTick(context: EngineerSchedulerContext): number {
 function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): number {
   const state = holosmithState.from(context);
   if (state.photonForgeActive || state.forgeExitedAt == null) return 0;
-  if (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
+  if (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
 
   const elapsedSinceExit = at - state.forgeExitedAt;
   if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + context.epsilon) return 0;
@@ -173,7 +173,7 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
 // time spent above the heat threshold within the provided segments.
 // readyAt tracks the next eligible emission time across calls so pulses aren't doubled.
 function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, segments: readonly HeatSegment[]): void {
-  if (!hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) return;
+  if (!hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) return;
   const state = holosmithState.from(context);
   let readyAt = state.enhancedCapacityMightReadyAt;
   for (const segment of segments) {
@@ -205,7 +205,7 @@ function triggerInstantEnhancedCapacityMight(
 ): void {
   const state = holosmithState.from(context);
   if (
-    !hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
+    !hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
     previousHeat > HOLOSMITH_HEAT.enhancedCapacityThreshold ||
     state.heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold
   )
@@ -215,7 +215,7 @@ function triggerInstantEnhancedCapacityMight(
 }
 
 export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
-  if (!hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
+  if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
   const state = holosmithState.from(context);
   state.solarFocusingLensStacks = stacks;
   state.solarFocusingLensReadyAt = at;
@@ -291,7 +291,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
 
 function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
-  const photonicBlastingModule = hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
+  const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
   const effectDelay = photonicBlastingModule
     ? engineerBalanceValue(context, PROFILE.photonicBlastingModule, 'initialDelay', HOLOSMITH_HEAT.overheatEffectDelay)
     : HOLOSMITH_HEAT.overheatEffectDelay;
@@ -562,7 +562,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
 // Photonic Blasting Module suppresses Vent Exhaust while holding heat before the
 // explosion fires (overheated=false), because the heat must stay at max for PBM.
 export function triggerThermalReleaseValve(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
-  if (!hasEngineerTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
+  if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
   emitSkillBuff(context, {
     at,
@@ -581,8 +581,7 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
     ),
     stacks: engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'stacks', 1)
   });
-  if (state.heat <= 0 || (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated))
-    return;
+  if (state.heat <= 0 || (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated)) return;
   triggerVentExhaust(context, skill, at);
 }
 
@@ -614,7 +613,7 @@ export function observeHolosmithScheduledEvent(
     event.type !== 'damage' ||
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
+    !hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
   )
     return;
   const state = holosmithState.from(context);

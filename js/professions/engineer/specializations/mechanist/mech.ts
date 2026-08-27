@@ -9,7 +9,7 @@ import { mechanistState } from './state.js';
 import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { MECHANIST_ATTACK_TIMING } from './mechanics.js';
@@ -279,7 +279,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     emitRocketPunch(context, skill, at);
   }
 
-  if (isEngineerMechCommand(skill) && hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
+  if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     emitSkillBuff(context, {
       at,
       source: 'Trait',
@@ -326,7 +326,7 @@ export function handleEngineerMechAttack(
 
   const rate = mechAttackRate(context);
   const phase = Number(task.payload?.phase || 0);
-  if (hasEngineerTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
+  if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
     const firstArm = phase === 0;
     emitMechStrike(context, {
       at: task.at,

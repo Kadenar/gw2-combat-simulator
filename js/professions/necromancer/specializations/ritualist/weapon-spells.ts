@@ -11,7 +11,8 @@ import {
   gw2AlliedEffectRecipients,
   gw2AlliedPlayerProcTimeline
 } from '../../../../platform/gw2/combat/state/allied-players.js';
-import { hasTrait, necromancerActiveMinionCompanionIds } from '../../core/shared.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { necromancerActiveMinionCompanionIds } from '../../core/shared.js';
 import { necromancerBalanceProfile } from '../../core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';

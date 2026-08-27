@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../../platform/engine/events/state-snap
 import type { SkillId } from '../../../../platform/engine/types.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gainThiefEndurance } from '../../core/shared.js';
 import type { ThiefCastContext, ThiefDodge, ThiefSkill } from '../../types.js';
 import { daredevilState } from './state.js';
@@ -173,7 +173,7 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
       context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.lotusTraining)?.durationMultiplier || 6);
   }
 
-  if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
+  if (hasTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
     // Arm the one-shot Weakness proc; it fires on the very next attacking skill
     state.weakeningStrikeReady = true;
   }
@@ -192,7 +192,7 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
 
 function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
-  if (cost > 0 && skill.weapon === 'Staff' && hasThiefTrait(context.config, TRAIT.STAFF_MASTER)) {
+  if (cost > 0 && skill.weapon === 'Staff' && hasTrait(context.config, TRAIT.STAFF_MASTER)) {
     // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(
       context,
@@ -202,7 +202,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
     );
   }
 
-  if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
+  if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
     gainThiefEndurance(
       context,
       Number(thiefBalanceProfile(context, PROFILE.brawlersTenacity)?.resourceGain || 15),

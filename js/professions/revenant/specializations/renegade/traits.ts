@@ -5,7 +5,7 @@ import {
 } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { renegadeState } from './state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasRevenantTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { activeKallasFervorStacks, grantKallasFervor, isBandTogetherReady } from './renegade.js';
 import { RENEGADE_PROFILE_IDS } from './skills.js';
 import { advanceScheduledCriticalProc } from '../../../../platform/gw2/scheduler/critical-facts.js';
@@ -35,8 +35,8 @@ function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulat
 }
 
 function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const ambush = hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER);
-  const enmity = hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
+  const ambush = hasTrait(context.config, TRAIT.AMBUSH_COMMANDER);
+  const enmity = hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (!ambush && !enmity) return;
   const criticals = criticalCount(context, event);
   // Ambush Commander procs on any positional advantage OR any crit; both paths share the same grant.
@@ -86,7 +86,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
     event.skillId !== ID.CITADEL_BOMBARDMENT ||
     // Citadel Bombardment is multi-hit; Vindication daze fires only on the first impact
     Number(event.hitIndex || 1) !== 1 ||
-    !hasRevenantTrait(context.config, TRAIT.VINDICATION)
+    !hasTrait(context.config, TRAIT.VINDICATION)
   ) {
     return;
   }
@@ -123,7 +123,7 @@ function applyKallasFervorLifeSiphon(context: RevenantSchedulerContext, event: R
   const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
   if (!stacks) return;
   const profile = context.catalog.balanceProfilesById.get(
-    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+    hasTrait(context.config, TRAIT.LASTING_LEGACY)
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
       : RENEGADE_PROFILE_IDS.kallasFervor
   );
@@ -135,15 +135,12 @@ function applyKallasFervorLifeSiphon(context: RevenantSchedulerContext, event: R
 
 export function initializeRenegadeTraits(context: RevenantSchedulerContext): void {
   const fervorProfile = context.catalog.balanceProfilesById.get(
-    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+    hasTrait(context.config, TRAIT.LASTING_LEGACY)
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
       : RENEGADE_PROFILE_IDS.kallasFervor
   );
   renegadeState.from(context).kallasFervorMaximumStacks = Math.max(1, Number(fervorProfile?.maximumStacks || 1));
-  if (
-    hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) ||
-    hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY)
-  ) {
+  if (hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY)) {
     // Tells the materializer to sample and record didCrit on every damage event so that the deferred critical-traits task can read a concrete boolean in stochastic mode
     context.schedulerPolicy.requireCriticalFacts?.();
   }
@@ -179,7 +176,7 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
       // context.start is preferred; context.at is the fallback for recharge-only contexts
       Number(context.start ?? context.at)
     ) &&
-    hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
+    hasTrait(context.config, TRAIT.ALL_FOR_ONE)
     ? duration * Math.max(0, Number(allForOne?.rechargeMultiplier ?? 1))
     : duration;
 }
@@ -189,7 +186,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'fury' &&
-    hasRevenantTrait(context.config, TRAIT.BLOOD_FURY) &&
+    hasTrait(context.config, TRAIT.BLOOD_FURY) &&
     event.at + context.epsilon >= Number(state.bloodFuryReadyAt || 0)
   ) {
     const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.bloodFury);
@@ -210,7 +207,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   }
 
   const tracksCriticalTraits =
-    hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
+    hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (tracksCriticalTraits) {
     if (context.config.randomness?.mode === 'stochastic') {
       // Shared critical materialization runs at priority -60. Resolve

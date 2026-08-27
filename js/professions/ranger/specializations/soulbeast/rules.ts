@@ -267,11 +267,7 @@ export const soulbeastCastRules = Object.freeze({
   },
   // Merged skills are player actions, so undo Core's pet-only Pack Alpha recharge modifier.
   modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
-    if (
-      !context.skill?.petSkill ||
-      !context.skill.beastmodeSkill ||
-      !hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)
-    ) {
+    if (!context.skill?.petSkill || !context.skill.beastmodeSkill || !hasTrait(context, TRAIT.PACK_ALPHA)) {
       return duration;
     }
 

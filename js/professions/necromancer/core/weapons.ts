@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -24,7 +25,7 @@ import {
   balanceProfileEffect,
   necromancerBalanceProfile
 } from './profiles.js';
-import { addSoulShards, consumeSoulShards, gainNecromancerLifeForce, hasTrait } from './shared.js';
+import { addSoulShards, consumeSoulShards, gainNecromancerLifeForce } from './shared.js';
 import type { ScheduledTask, SchedulerRecord } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,

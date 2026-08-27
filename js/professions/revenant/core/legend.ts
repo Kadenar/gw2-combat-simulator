@@ -9,7 +9,7 @@ import { snapshotRevenantState } from '../state.js';
  * modules react to the swap event with their own state and invocation effects.
  */
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasRevenantTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { applyLegendInvocationTraits } from './legend-traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
@@ -34,8 +34,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
   const chargedMists = context.catalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
   if (!chargedMists) throw new Error('Missing Charged Mists balance profile.');
   state.energy =
-    Math.floor(previousEnergy) <= Number(chargedMists.threshold || 0) &&
-    hasRevenantTrait(context.config, TRAIT.CHARGED_MISTS)
+    Math.floor(previousEnergy) <= Number(chargedMists.threshold || 0) && hasTrait(context.config, TRAIT.CHARGED_MISTS)
       ? Number(chargedMists.resourceGain || 0)
       : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;

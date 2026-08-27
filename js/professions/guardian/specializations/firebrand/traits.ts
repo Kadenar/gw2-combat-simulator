@@ -7,7 +7,8 @@ import { gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/combat/sta
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { emitGuardianEvent } from '../../core/events.js';
-import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { emitGuardianProc, guardianTraitIcon } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -102,7 +103,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
 
   if (
     skill.type === 'Heal' &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.LIBERATORS_VOW) &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.LIBERATORS_VOW) &&
     isInternalCooldownReady(at, state.liberatorsVowReadyAt)
   ) {
     const profile = guardianBalanceProfile(context, PROFILE.liberatorsVow);
@@ -127,7 +128,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     });
   }
 
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) && isFinalMantraCharge(context, skill)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) && isFinalMantraCharge(context, skill)) {
     const profile = guardianBalanceProfile(context, PROFILE.weightyTerms);
     const slow = guardianBalanceProfileEffect(profile, 'condition');
     const pageGain = Number(profile?.resourceGain || 2);
@@ -164,7 +165,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   if (
     event.type === 'buff' &&
     ['aegis', 'stability'].includes(kind) &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STALWART_SPEED) &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.STALWART_SPEED) &&
     isInternalCooldownReady(event.at, state.stalwartSpeedReadyAt)
   ) {
     const profile = guardianBalanceProfile(context, PROFILE.stalwartSpeed);
@@ -200,10 +201,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   const qualifyingStoicCondition =
     event.type === 'condition' &&
     ['immobilized', 'slow', 'slowed'].includes(String(event.condition || '').toLowerCase());
-  if (
-    (event.type === 'control' || qualifyingStoicCondition) &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
-  ) {
+  if ((event.type === 'control' || qualifyingStoicCondition) && hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)) {
     const profile = guardianBalanceProfile(context, PROFILE.stoicDemeanor);
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
     for (const buff of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
@@ -236,7 +234,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   if (
     skill?.weapon === 'Axe' &&
     event.actorType === 'player' &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM)
   ) {
     const bleeding = guardianBalanceProfileEffect(
       guardianBalanceProfile(context, PROFILE.unrelentingCriticism),
@@ -275,7 +273,7 @@ export function reactToFirebrandJusticeHit(
   } = {}
 ): void {
   reactToJusticeHitWithOptions(context, event, dependencies, {
-    retainsPassive: hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE),
+    retainsPassive: hasTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE),
     skillId: GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
     skillName: 'Tome of Justice'
   });
@@ -288,7 +286,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     // Skip if the event goes to allies only AND no allies are configured —
     // there is nobody to trigger Quickfire from.
     (event.affectsSelf === false && Number(event.alliedPlayerCount || 0) <= 0) ||
-    !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||
+    !hasTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||
     !isInternalCooldownReady(event.at, state.quickfireReadyAt)
   ) {
     return;

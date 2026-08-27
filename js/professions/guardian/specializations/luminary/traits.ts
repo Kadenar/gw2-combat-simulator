@@ -8,7 +8,8 @@ import { projectCastRelativeEffectTimingMs } from '../../../../platform/gw2/skil
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
-import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait, isGuardianSymbolSkill } from '../../core/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill } from '../../core/traits.js';
 import { reactToJusticeHitWithOptions } from '../../core/virtues.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -85,7 +86,7 @@ function detonateLightAura(context: GuardianCastContext, skill: GuardianSkill, a
 function grantLightAura(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
   if (
     lightAuraActive(luminaryState.from(context), at, context.epsilon) &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
     detonateLightAura(context, skill, at);
   }
@@ -117,7 +118,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
   const state = luminaryState.from(context);
   const activationAt = context.start;
   const impactAt = context.effectiveEnd;
-  const sovereign = hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT);
+  const sovereign = hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT);
   if (sovereign && isLuminaryDetonator(skill)) {
     detonateLightAura(context, skill, activationAt);
   }
@@ -130,7 +131,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
       (skillId) => skillId === skill.id
     ) ||
     (enteringRadiantForge && sovereign) ||
-    (virtueOne && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
+    (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
   if (grantsImmediately) {
     if (enteringRadiantForge) {
       // Bypass grantLightAura to avoid a spurious Sovereign of Light detonation:
@@ -144,7 +145,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
     }
   }
 
-  if (virtueOne && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
+  if (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
     const blind = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.justiceIsBlind), 'blind');
     context.emit({
       type: 'blind',
@@ -249,7 +250,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
     const armaments = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.radiantArmaments), 'buff');
     emitSkillBuff(context, skill, {
       at,
@@ -270,7 +271,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     });
   }
 
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
     const profile = guardianBalanceProfile(context, PROFILE.empoweredArmaments);
     const duration = Number(profile?.resourceGain || 6);
     const maximumDuration = Number(profile?.maximumStacks || 20);
@@ -298,7 +299,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     });
   }
 
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
     const reduction = Number(guardianBalanceProfile(context, PROFILE.illuminatingInspiration)?.rechargeReduction || 4);
     reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {
@@ -338,7 +339,7 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
   if (!virtue) return;
   const at = context.effectiveEnd;
   const state = luminaryState.from(context);
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS) && resetRadiantWeaponCooldowns(context, virtue)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS) && resetRadiantWeaponCooldowns(context, virtue)) {
     emitGuardianProc(context, {
       name: 'Master-at-Arms',
       at,

@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from './shared.js';
 import type {
   ThiefCastContext,
@@ -153,7 +153,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
     (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
   if (
     inCombat &&
-    hasThiefTrait(context.config, TRAIT.QUICK_POCKETS) &&
+    hasTrait(context.config, TRAIT.QUICK_POCKETS) &&
     at + Number(context.epsilon || 0.0001) >= Number(state.quickPocketsReadyAt || 0)
   ) {
     const profile = thiefBalanceProfile(context, PROFILE.quickPockets);

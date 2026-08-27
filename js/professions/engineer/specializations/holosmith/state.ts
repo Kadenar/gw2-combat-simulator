@@ -1,6 +1,7 @@
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { selectedEngineerTraits } from '../../core/state.js';
 import { HOLOSMITH_HEAT } from './mechanics.js';
 import type { EngineerConfig, HolosmithState } from '../../types.js';
 
@@ -32,7 +33,7 @@ export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Holosmit
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
   const traits = selectedEngineerTraits(config);
   // Resource capacity is structural Holosmith state, not patchable balance data.
-  const maximumHeat = hasEngineerTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+  const maximumHeat = hasTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ? HOLOSMITH_HEAT.enhancedCapacityMaximum
     : HOLOSMITH_HEAT.baseMaximum;
   const initialHeat = Math.min(maximumHeat, Math.max(0, Number(config.initialHeat || 0)));

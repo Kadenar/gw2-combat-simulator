@@ -3,7 +3,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { snapshotThiefState } from '../../core/state.js';
 import { storeStolenSkillChoices } from '../../core/steal.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type {
   ThiefCastContext,
   ThiefScheduledTask,
@@ -35,7 +35,7 @@ export function deadeyeStolenSkillGrant(context: ThiefCastContext): {
   readonly forcedSkillId: number | null;
 } {
   // Fire for Effect replaces Deadeye's choice pool with Steal Time, matching the trait's forced stolen skill.
-  return hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)
+  return hasTrait(context.config, TRAIT.FIRE_FOR_EFFECT)
     ? { skillIds: [ID.STEAL_TIME], forcedSkillId: ID.STEAL_TIME }
     : { skillIds: DEADEYE_STOLEN_SKILL_IDS, forcedSkillId: null };
 }
@@ -57,7 +57,7 @@ function markedAt(context: ThiefSchedulerContext, at: number): boolean {
 export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   const state = deadeyeState.from(context);
-  state.maximumMalice = hasThiefTrait(context.config, TRAIT.MALEFICENT_SEVEN)
+  state.maximumMalice = hasTrait(context.config, TRAIT.MALEFICENT_SEVEN)
     ? Number(resources?.minimumStacks || 7)
     : Number(resources?.maximumStacks || 5);
   state.malice = Math.min(state.malice, state.maximumMalice);
@@ -105,7 +105,7 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
 
 function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
-  if (hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
+  if (hasTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
     // Malicious Intent grants 2 malice on consumption before zeroing it out, allowing Maleficent Seven to trigger one final time
     state.malice = Math.min(
       state.maximumMalice,
@@ -147,7 +147,7 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = deadeyeState.from(context);
   if (
     skill.id !== ID.DODGE ||
-    !hasThiefTrait(context.config, TRAIT.SILENT_SCOPE) ||
+    !hasTrait(context.config, TRAIT.SILENT_SCOPE) ||
     state.malice <= Number(thiefBalanceProfile(context, PROFILE.silentScope)?.threshold || 3)
   ) {
     return;
@@ -186,7 +186,7 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
     emitStateSnapshot(context, 'thief', at, 'deadeye-relic', snapshotThiefState(context.state.profession));
   }
 
-  if (hasThiefTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {
+  if (hasTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {
     // One in the Chamber recharges the stolen skill on every cantrip use, overwriting any previously stored skill
     const grant = deadeyeStolenSkillGrant(context);
     storeStolenSkillChoices(context, grant.skillIds, grant.forcedSkillId);

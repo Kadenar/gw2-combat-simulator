@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
+import { gainNecromancerLifeForce } from '../../core/shared.js';
 import { advanceHarbingerBlight } from './blight.js';
 import { harbingerState } from './state.js';
 import {
@@ -51,7 +51,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (skill.id === ID.HARBINGER_SHROUD && professionCoreState(context).activeShroud === 'harbinger') {
     // Reset the per-second cursor to the next whole second so blight ticks don't accumulate a fractional offset over time.
     state.nextBlightAt = Math.floor(at) + 1;
-    if (hasNecromancerTrait(context, TRAIT.CORRUPTED_TALENT)) {
+    if (hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(
         context,
         Number(necromancerBalanceProfile(context, PROFILE.corruptedTalent)?.lifeForceGain || 15),
@@ -59,7 +59,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       );
     }
 
-    if (hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
+    if (hasTrait(context, TRAIT.DEATHLY_HASTE)) {
       const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
       const quickness = balanceProfileEffect(profile, 'boon');
       const fury = balanceProfileEffect(profile, 'boon', 1);
@@ -80,7 +80,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       });
     }
 
-    if (hasNecromancerTrait(context, TRAIT.IMPLACABLE_FOE)) {
+    if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
       const profile = necromancerBalanceProfile(context, PROFILE.implacableFoe);
       const stability = balanceProfileEffect(profile, 'boon');
       const buff = balanceProfileEffect(profile, 'buff');
@@ -99,7 +99,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     }
   }
 
-  if (skill.id === ID.DARK_BARRAGE && hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
+  if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
     const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
     const quickness = balanceProfileEffect(profile, 'boon');
     const fury = balanceProfileEffect(profile, 'boon', 1);

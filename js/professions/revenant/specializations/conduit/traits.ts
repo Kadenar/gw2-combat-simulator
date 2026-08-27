@@ -6,7 +6,7 @@ import {
 } from '../../data/ids.js';
 import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from '../../core/legend.js';
-import { hasRevenantTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { revenantConduitFormIsActive } from './state.js';
 import { applyCosmicWisdomAfterCast } from './conduit.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
@@ -52,7 +52,7 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
   if (
     skill?.id === ID.SWAP_LEGENDS &&
     revenantCombatActive(context, context.at) &&
-    hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
+    hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
     const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
     // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
@@ -80,7 +80,7 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
   }
 
   // Kinetic Insight reduces Release Potential recharge by 20%, applied after all other recharge modifiers.
-  return skill?.handlerId === 'revenant.release-potential' && hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
+  return skill?.handlerId === 'revenant.release-potential' && hasTrait(context.config, TRAIT.KINETIC_INSIGHT)
     ? duration * 0.8
     : duration;
 }
@@ -89,7 +89,7 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
   // Cosmic Wisdom form procs (Lesser Enchanted Daggers, Dervish Attack) fire after cast completes.
   applyCosmicWisdomAfterCast(context, skill);
   // Shared Wisdom swiftness is only granted for Entity legend skills, not for all Conduit skills.
-  if (skill.legendId === LEGEND.ENTITY && hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)) {
+  if (skill.legendId === LEGEND.ENTITY && hasTrait(context.config, TRAIT.SHARED_WISDOM)) {
     const shared = context.catalog.balanceProfilesById
       .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
       ?.effects?.find((effect) => effect.metadata?.trigger === 'entity-skill');
@@ -137,7 +137,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
     event.type !== 'control' ||
     // Twin Moon Sweep emits control events as part of its own chain; Mistfire must not double-proc off them.
     (event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) ||
-    !hasRevenantTrait(context.config, TRAIT.MISTFIRE)
+    !hasTrait(context.config, TRAIT.MISTFIRE)
   ) {
     return;
   }

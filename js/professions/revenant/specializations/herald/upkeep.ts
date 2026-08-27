@@ -4,7 +4,7 @@ import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { emitSkillBuff } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { snapshotRevenantState } from '../../state.js';
-import { hasRevenantTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
   RevenantCastContext,
@@ -35,7 +35,7 @@ function elevatedCompassionIsActive(context: RevenantSchedulerContext): boolean 
     (total, active) => total + Math.max(0, Number(active.upkeepCost || 0)),
     0
   );
-  return hasRevenantTrait(context.config, TRAIT.ELEVATED_COMPASSION) && upkeep >= threshold;
+  return hasTrait(context.config, TRAIT.ELEVATED_COMPASSION) && upkeep >= threshold;
 }
 
 function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at: number): void {

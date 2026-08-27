@@ -29,7 +29,6 @@ import {
   syncConduitEnergyCostOverrides
 } from './conduit.js';
 import { effectiveRevenantEnergyCost } from '../../energy.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile } from '../../core/legend-traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../../core/skills.js';
@@ -285,7 +284,7 @@ function gainConduitAffinityFromCost(context: RevenantCastContext, skill: Revena
   } else if (
     // Conductive Armaments grants affinity on weapon skill casts; only legend skills grant it on cast otherwise.
     skill.type === 'Weapon' &&
-    hasRevenantTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
+    hasTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
   ) {
     gainConduitAffinity(context, 1, 'conductive-armaments');
   }
@@ -298,7 +297,7 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
   // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
   if (coreState.activeLegendId === LEGEND.ENTITY && revenantCombatActive(context, event.at)) {
     const pairedLegendId = coreState.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
-    if (pairedLegendId && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+    if (pairedLegendId && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
       emitLegendInvocationProfile(
         context,
         REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
@@ -308,7 +307,7 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
       );
     }
 
-    if (pairedLegendId && hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
+    if (pairedLegendId && hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
       emitLegendInvocationProfile(
         context,
         REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
@@ -323,13 +322,13 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
   const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
   // Legend swap always resets affinity to 0 regardless of traits.
   state.affinity = 0;
-  if (revenantCombatActive(context, event.at) && hasRevenantTrait(context.config, TRAIT.LINGERING_DETERMINATION)) {
+  if (revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.LINGERING_DETERMINATION)) {
     // Lingering Determination immediately restores 2 affinity after the reset; out-of-combat swaps do not proc it.
     const lingering = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
     gainConduitAffinity(context, Math.max(0, Number(lingering?.resourceGain || 0)), 'lingering-determination');
   }
 
-  if (cosmicWisdomActive && hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
+  if (cosmicWisdomActive && hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
     const enhanced = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
     const extension = enhanced?.effects?.find((effect) => effect.type === 'buff');
     state.cosmicWisdomUntil += Math.max(0, Number(extension?.duration || 0));
@@ -347,7 +346,7 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
 
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   // Found Purpose fires Numinous Gift to allies on every legend swap.
-  if (swapSkill && hasRevenantTrait(context.config, TRAIT.FOUND_PURPOSE)) {
+  if (swapSkill && hasTrait(context.config, TRAIT.FOUND_PURPOSE)) {
     emitNuminousGift(context, swapSkill, { allies: true });
   }
 }

@@ -17,12 +17,12 @@ import {
  * raw skill callbacks for composition by handlers.js.
  */
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../legend-rules.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../data/ids.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import { revenantConduitFormIsActive } from './state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile, SchedulerRecord, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
@@ -48,10 +48,6 @@ interface ConduitAffinityTaskPayload extends SchedulerRecord {
 
 function hasLegend(context: RevenantSchedulerContext, legendId: string): boolean {
   return professionCoreState(context).selectedLegendIds.includes(legendId);
-}
-
-function hasTrait(context: RevenantSchedulerContext, traitId: SkillId): boolean {
-  return hasRevenantTrait(context.config, traitId);
 }
 
 function balanceProfileById(context: RevenantSchedulerContext, profileId: SkillId): BalanceProfile | undefined {

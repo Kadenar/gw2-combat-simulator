@@ -5,7 +5,7 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { buildGuardianStrike } from '../../core/events.js';
-import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { emitGuardianProc, guardianTraitIcon } from '../../core/traits.js';
 import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianVirtue } from '../../types.js';
@@ -77,7 +77,7 @@ export function applyWillbenderVirtueActivationTraits(
   at: number
 ): number {
   const state = willbenderState.from(context);
-  const tyrantsMomentum = hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
+  const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
   const virtueWindows = guardianBalanceProfile(context, PROFILE.virtueWindows);
   const window = guardianBalanceProfileEffect(
     virtueWindows,
@@ -107,7 +107,7 @@ export function applyWillbenderVirtueActivationTraits(
     stacks: state.lethalTempoStacks,
     duration: state.lethalTempoUntil - at
   });
-  if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
+  if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
     const vigor = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.restorativeVirtues), 'boon');
     emitSkillBuff(context, {
       at,
@@ -123,7 +123,7 @@ export function applyWillbenderVirtueActivationTraits(
     });
   }
 
-  if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
+  if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
     const alacrity = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.phoenixProtocol), 'boon');
     emitSkillBuff(context, {
       at,
@@ -232,7 +232,7 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
 // a completed Willbender virtue trigger.
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
-  const tyrantsMomentum = hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
+  const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
   const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
   const tyrants = guardianBalanceProfile(context, PROFILE.tyrantsMomentum);
   gainLethalTempo(
@@ -314,7 +314,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       willbenderFlames: true
     })
   );
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
     const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.searingPact), 'condition');
     emitSkillCondition(context, {
       at,
@@ -349,7 +349,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     emitLethalTempo(context, at, sourceSkill);
 
     let cooldownReduction = 0;
-    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
       cooldownReduction = reduceActiveWeaponCooldowns(context, at);
       if (cooldownReduction > 0) {
         emitGuardianProc(context, {
@@ -394,7 +394,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
       }
     }
 
-    if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
+    if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
       const alacrity = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.phoenixProtocol),
         'boon',
@@ -422,7 +422,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
     // only for justice; resolve and courage always require 5 hits.
     const triggerHits =
-      virtue === 'justice' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+      virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
         ? Number(guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold || 3)
         : Number(guardianBalanceProfile(context, PROFILE.virtueWindows)?.threshold || 5);
     if (state.virtueHitCounts[virtue] < triggerHits) continue;

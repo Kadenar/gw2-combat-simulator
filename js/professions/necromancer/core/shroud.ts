@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
@@ -19,7 +20,7 @@ import {
   necromancerBalanceProfile
 } from './profiles.js';
 import { advanceNecromancerState, leaveShroud } from './life-force.js';
-import { addCarapace, gainNecromancerLifeForce, hasTrait } from './shared.js';
+import { addCarapace, gainNecromancerLifeForce } from './shared.js';
 import { runNecromancerShroudEnter } from './shroud-lifecycle.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 

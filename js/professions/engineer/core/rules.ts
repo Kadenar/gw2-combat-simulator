@@ -21,7 +21,6 @@ import {
   targetHealthFraction,
   vulnerability
 } from './rule-helpers.js';
-import { hasEngineerTrait } from './state.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE, engineerBalanceValue } from './profiles.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/combat/modifiers/types.js';
@@ -311,13 +310,13 @@ export function applyEngineerSharpshooterConditionDamage(
 
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
-  if (isEngineerToolbeltSkill(skill) && hasEngineerTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
+  if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
     return duration * 0.85;
   }
 
   if (
     skill?.categories?.some((category) => String(category).toLowerCase() === 'gadget') &&
-    hasEngineerTrait(context.config, TRAIT.GADGETEER)
+    hasTrait(context.config, TRAIT.GADGETEER)
   ) {
     return duration * 0.8;
   }

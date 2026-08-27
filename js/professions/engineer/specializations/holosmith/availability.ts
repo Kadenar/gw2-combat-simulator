@@ -1,6 +1,6 @@
 import { holosmithState } from './state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { EngineerPrecastContext } from '../../types.js';
@@ -23,7 +23,7 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
 
   const state = holosmithState.from(context);
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
-    const stormSelected = hasEngineerTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
+    const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
     const stormSkill = skill.name.endsWith('—Storm');
     if (stormSelected !== stormSkill) {
       return denyEngineerCast(

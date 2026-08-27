@@ -1,22 +1,18 @@
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '../data/ids.js';
-import type { SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerConfig, NecromancerCoreState } from '../types.js';
 
 export const NECROMANCER_BASE_HEALTH = 9212;
 
-export function hasNecromancerTrait(traits: ReadonlySet<string | number>, traitId: SkillId): boolean {
-  return traits.has(traitId) || traits.has(String(traitId));
-}
-
 function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet<string | number>): number {
   let vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
-    if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
+    if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       vitality += Number(config.stats?.power ?? config.attributes?.power ?? 1000) * 0.1;
     }
 
-    if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
+    if (hasTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
       vitality += 180;
     }
   }
@@ -51,7 +47,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const traits = new Set(
     (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
   );
-  const soulBattery = hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
+  const soulBattery = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
   const maximumLifeForce = soulBattery ? 120 : 100;
   const maximumHealth = necromancerMaximumHealth(config, traits);
   const lifeForcePoolCapacity = maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);

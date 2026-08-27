@@ -4,6 +4,8 @@ import test from 'node:test';
 import { hasTrait } from '../../../js/platform/gw2/combat/state/traits.js';
 
 test('trait lookup accepts stable and numeric-string IDs from a normalized trait set', () => {
+  assert.equal(hasTrait(new Set([123]), 123), true);
+  assert.equal(hasTrait(new Set([123]), '123'), true);
   assert.equal(hasTrait({ traits: new Set([123]) }, 123), true);
   assert.equal(hasTrait({ traits: new Set([123]) }, '123'), true);
   assert.equal(hasTrait({ traits: new Set(['123']) }, 123), true);
@@ -20,6 +22,8 @@ test('trait lookup resolves catalog names against raw build configuration', () =
   assert.equal(hasTrait(context, '123'), true);
   assert.equal(hasTrait(context, 'Fixture Trait'), true);
   assert.equal(hasTrait(context, 'Missing Trait'), false);
+  assert.equal(hasTrait(context.config, 123), true);
+  assert.equal(hasTrait(context.config, '123'), true);
 });
 
 test('trait lookup safely rejects absent and malformed contexts', () => {

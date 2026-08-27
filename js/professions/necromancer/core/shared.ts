@@ -1,5 +1,6 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -12,11 +13,9 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotNecromancerState } from '../state.js';
-import { hasNecromancerTrait, syncNecromancerResources } from './state.js';
-import type { SkillId } from '../../../platform/engine/types.js';
+import { syncNecromancerResources } from './state.js';
 import type {
   NecromancerCastContext,
-  NecromancerConfig,
   NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerResolverContext,
@@ -25,11 +24,6 @@ import type {
 } from '../types.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
-
-export function hasTrait(context: { readonly config: NecromancerConfig }, traitId: SkillId): boolean {
-  // Adapt the canonical config IDs to the set-based state helper at the lookup boundary.
-  return hasNecromancerTrait(new Set(context.config?.selectedTraitIds || []), traitId);
-}
 
 /** Returns stable identities for minions eligible to receive shared effects. */
 export function necromancerActiveMinionCompanionIds(

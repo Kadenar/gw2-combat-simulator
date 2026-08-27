@@ -4,7 +4,7 @@ import { amalgamState } from './state.js';
 import { snapshotEngineerState } from '../../state.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { AMALGAM_NEW_GENES_BOONS } from './mechanics.js';
@@ -173,14 +173,14 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     scheduleThornsRetaliation(context, skill, at);
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.WILLING_HOST)) {
+  if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
       at + engineerBalanceValue(context, PROFILE.willingHost, 'durationMultiplier', 10)
     );
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
+  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
     const sourceSkill =
       context.catalog.skillsById.get(TRAIT.HARDENED_CHROME) ||
       ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
@@ -198,11 +198,11 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     });
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (hasTrait(context.config, TRAIT.SILVER_LINING)) {
     applyAmalgamStrain(context, skill.name, at);
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.NEW_GENES)) {
+  if (hasTrait(context.config, TRAIT.NEW_GENES)) {
     const buffs: AmalgamBuff[] = [
       {
         kind: 'alacrity',
@@ -269,13 +269,13 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   const selected = selectedMorphNames(context);
   state.evolvedUntil = at + engineerBalanceValue(context, PROFILE.evolve, 'durationMultiplier', 8);
 
-  if (!hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
     for (const morphName of selected) {
       applyAmalgamStrain(context, morphName, at);
     }
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
+  if (hasTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
     // Evolve recharges its morph skills as part of its traited kit. This is not
     // a discrete trait proc, so the reset is applied silently. Emitting a proc
     // here misreported it as a single ~43s cooldown reduction (the summed
@@ -285,7 +285,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
     }
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
+  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
     const sourceSkill =
       context.catalog.skillsById.get(TRAIT.HARDENED_CHROME) ||
       ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
@@ -312,7 +312,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
 export function observeAmalgamScheduledEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
   if (
     context.config.specialization !== 'Amalgam' ||
-    !hasEngineerTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
+    !hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
     event.type !== 'control' ||
     event.actorType === 'summon'
   )

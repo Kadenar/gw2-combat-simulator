@@ -1,3 +1,4 @@
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
@@ -7,18 +8,15 @@ import {
   prepareGw2BuffCompanionCandidates
 } from '../../../platform/gw2/combat/state/allied-players.js';
 /**
- * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
- * trait reactions, cooldown feedback, and typed tasks into the shared
+ * @fileoverview Composes Necromancer cast validation, shroud and weapon state, * trait reactions, cooldown feedback, and typed tasks into the shared
  * scheduler contract.
  */
-
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { advanceNecromancerState, finalizeNecromancerCast } from './life-force.js';
 import { transferNecromancerSelfConditions } from './conditions.js';
 import {
   addCarapace,
   gainNecromancerLifeForce,
-  hasTrait,
   necromancerActiveBoonCompanionIds,
   necromancerActiveMinionCompanionIds
 } from './shared.js';

@@ -5,7 +5,7 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled } from '../../core/rules.js';
-import { emitGuardianProc, guardianTraitIcon, hasGuardianTrait } from '../../core/traits.js';
+import { emitGuardianProc, guardianTraitIcon } from '../../core/traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../../types.js';
 import { dragonhunterState } from './state.js';
@@ -63,7 +63,7 @@ export const dragonhunterAttributeRules = Object.freeze({
 export function advanceDragonhunterState(context: GuardianSchedulerContext, target: number): void {
   const state = dragonhunterState.from(context);
   // Indomitable Courage reduces passive Aegis interval: 40s → 30s.
-  const interval = hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
+  const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
     ? Number(guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)?.pulseInterval || 30)
     : Number(guardianBalanceProfile(context, PROFILE.passiveCourage)?.pulseInterval || 40);
   const aegis = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.passiveCourage), 'boon');
@@ -93,7 +93,7 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
 }
 
 export function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (skill.slot === 'Elite' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
+  if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
     const core = professionCoreState(context);
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
@@ -109,7 +109,7 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     });
   }
 
-  if (skill.categories?.includes('Trap') && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
+  if (skill.categories?.includes('Trap') && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
     const aegis = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.huntersPremonition), 'boon');

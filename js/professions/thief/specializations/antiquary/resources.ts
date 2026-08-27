@@ -2,7 +2,7 @@ import { antiquaryState } from './state.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from '../../core/shared.js';
 import { pilferArtifacts } from './artifacts.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
@@ -59,7 +59,7 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
       context.start + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
   if (
     inCombat &&
-    hasThiefTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
+    hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
     state.initiativeSpentSincePilfer >= Number(thiefBalanceProfile(context, PROFILE.prodigiousPincher)?.threshold || 15)
   ) {
     pilferArtifacts(context, context.start, 'prodigious-pincher', 'initiative');

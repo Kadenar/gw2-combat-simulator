@@ -605,27 +605,24 @@ export const rangerCoreCastRules = Object.freeze({
       skill?.type === 'Weapon' &&
       skill.slot !== 'Weapon_1' &&
       state.quickDrawUntil > context.state.time &&
-      hasTrait(context as unknown as Gw2ModifierContext, TRAIT.QUICK_DRAW)
+      hasTrait(context, TRAIT.QUICK_DRAW)
     ) {
       result *= rangerBalanceValue(context, PROFILE.quickDraw, 'rechargeMultiplier', 0.34);
     }
 
-    if (skill?.weapon === 'Axe' && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.HONED_AXES)) {
+    if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.HONED_AXES)) {
       result *= rangerBalanceValue(context, PROFILE.honedAxes, 'rechargeMultiplier', 0.8);
     }
 
-    if (skill?.weapon === 'Shortbow' && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.LIGHT_ON_YOUR_FEET)) {
+    if (skill?.weapon === 'Shortbow' && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
       result *= rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
     }
 
-    if (
-      ['Dagger', 'Torch'].includes(String(skill?.weapon || '')) &&
-      hasTrait(context as unknown as Gw2ModifierContext, TRAIT.AMBIDEXTERITY)
-    ) {
+    if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
       result *= rangerBalanceValue(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
     }
 
-    if (skill?.petSkill && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)) {
+    if (skill?.petSkill && hasTrait(context, TRAIT.PACK_ALPHA)) {
       result *= rangerBalanceValue(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
     }
 

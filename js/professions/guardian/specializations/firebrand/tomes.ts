@@ -17,7 +17,7 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
 import { selectedGuardianSpecialization } from '../../core/availability.js';
 import { emitGuardianEvent } from '../../core/events.js';
 import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
-import { hasGuardianTrait } from '../../core/traits.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { CAST_READY, denyCast, retryCast } from '../../../../platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
@@ -176,7 +176,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     });
   }
 
-  if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
     const boon = guardianBalanceProfileEffect(
       guardianBalanceProfile(context, PROFILE.legendaryLore),
       'boon',
@@ -407,7 +407,7 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
     // suppression window.
     if (
       at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - context.epsilon ||
-      hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
+      hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
     ) {
       emitSkillBuff(context, {
         at,

@@ -1,6 +1,6 @@
 import { flattenProfessionState } from '../../../platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import type { SkillId } from '../../../platform/engine/types.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import type { ThiefConfig, ThiefCoreState } from '../types.js';
 
 export const THIEF_BASE_HEALTH = 1645;
@@ -17,14 +17,6 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
   );
 }
 
-export function hasThiefTrait(configOrTraits: ThiefConfig | ReadonlySet<string | number>, traitId: SkillId): boolean {
-  const traits =
-    typeof (configOrTraits as ReadonlySet<string | number>).has === 'function'
-      ? (configOrTraits as ReadonlySet<string | number>)
-      : selectedThiefTraits(configOrTraits as ThiefConfig);
-  return traits.has(traitId) || traits.has(String(traitId));
-}
-
 export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
   const vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
   return THIEF_BASE_HEALTH + Math.max(0, vitality) * 10;
@@ -34,7 +26,7 @@ export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
 // weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
-  const maximumInitiative = hasThiefTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
+  const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
   return {
     initiative: Math.min(maximumInitiative, Math.max(0, Number(config.initialInitiative ?? 12))),
     maximumInitiative,

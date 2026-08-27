@@ -9,7 +9,6 @@ import {
   eventSkill
 } from '../../core/rule-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '../../core/rules.js';
-import { hasEngineerTrait } from '../../core/state.js';
 import { engineerBalanceValue } from '../../core/profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { amalgamCastAvailability } from './availability.js';
@@ -121,7 +120,7 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
 // Double Helix upgrades Evolve from a single-charge to a 2-ammo skill, which
 // lets it store a second use while on cooldown.
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill?.name === 'Evolve' && hasEngineerTrait(context.config, TRAIT.DOUBLE_HELIX)
+  return context.skill?.name === 'Evolve' && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(engineerBalanceValue(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
     : maximum;
 }

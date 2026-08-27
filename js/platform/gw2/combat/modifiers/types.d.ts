@@ -1,5 +1,5 @@
 /** Owns the combat/modifiers/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { CatalogEntity, SchedulerRecord, SimulationEvent } from '../../../engine/types.js';
+import type { SchedulerRecord, SimulationEvent } from '../../../engine/types.js';
 import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,
@@ -38,12 +38,6 @@ export interface Gw2ModifierContext extends SchedulerRecord {
   readonly runtime?: Gw2QueryRuntime | null;
   readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
-}
-
-export interface Gw2TraitContext extends SchedulerRecord {
-  readonly traits?: ReadonlySet<string | number>;
-  readonly config?: Gw2Config;
-  readonly catalog?: { readonly traits?: readonly CatalogEntity[] };
 }
 
 export type Gw2ModifierNumericResolver = (

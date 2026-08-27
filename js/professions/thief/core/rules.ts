@@ -10,7 +10,6 @@ import {
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { thiefCoreCastAvailability } from './availability.js';
 import { advanceThiefCoreResources, completeThiefCoreResources, spendThiefCoreResources } from './resources.js';
-import { hasThiefTrait } from './state.js';
 import { snapshotThiefState } from './state.js';
 import { updateThiefTraitCastState } from './traits.js';
 import { updateThiefWeaponState } from './weapon-state.js';
@@ -294,8 +293,8 @@ function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration:
 
   let result = duration;
   if (skill.stealTraitSkill) {
-    const leadAttacks = hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS);
-    const sleightOfHand = hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
+    const leadAttacks = hasTrait(context.config, TRAIT.LEAD_ATTACKS);
+    const sleightOfHand = hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
     const leadMultiplier = Number(thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
     const sleightMultiplier = Number(thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8);
     if (skill.stealRechargeMode === 'additive') {

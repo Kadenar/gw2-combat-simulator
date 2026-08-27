@@ -131,11 +131,7 @@ export const untamedCastRules = Object.freeze({
   },
   // Unleashed pet skills belong to Untamed's replacement bar, not the Core pet recharge contract.
   modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
-    if (
-      !context.skill?.petSkill ||
-      !context.skill.unleashedPetSkill ||
-      !hasTrait(context as unknown as Gw2ModifierContext, TRAIT.PACK_ALPHA)
-    ) {
+    if (!context.skill?.petSkill || !context.skill.unleashedPetSkill || !hasTrait(context, TRAIT.PACK_ALPHA)) {
       return duration;
     }
 

@@ -6,7 +6,7 @@ import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
 import { requiredShroud } from '../../core/availability.js';
-import { gainNecromancerLifeForce, hasTrait as hasNecromancerTrait } from '../../core/shared.js';
+import { gainNecromancerLifeForce } from '../../core/shared.js';
 import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
@@ -45,7 +45,7 @@ function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number)
 }
 
 function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (skill.id === ID.LIFE_REAP && hasNecromancerTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
+  if (skill.id === ID.LIFE_REAP && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
     // The hit lands at cast midpoint; skip reduction if the cast was cancelled before reaching that point.
     const hitAt = context.start + (context.fullEnd - context.start) / 2;
     if (context.effectiveEnd >= hitAt - context.epsilon) {
@@ -53,7 +53,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     }
   }
 
-  if (skill.categories?.includes('Shout') && hasNecromancerTrait(context, TRAIT.AUGURY_OF_DEATH)) {
+  if (skill.categories?.includes('Shout') && hasTrait(context, TRAIT.AUGURY_OF_DEATH)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.auguryOfDeath), 'strike');
     emitSkillDamage(context, skill, {
       at: context.effectiveEnd,
@@ -76,7 +76,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = reaperState.from(context);
   if (
-    hasNecromancerTrait(context, TRAIT.CHILLING_VICTORY) &&
+    hasTrait(context, TRAIT.CHILLING_VICTORY) &&
     requiredShroud(skill) === 'reaper' &&
     isInternalCooldownReady(context.effectiveEnd, Number(state.chillingVictoryReadyAt || 0)) &&
     // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
@@ -90,7 +90,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   ensurePermanentIceFieldAssumption(context, event);
-  if (event.type === 'buff' && event.actorType === 'player' && hasNecromancerTrait(context, TRAIT.BLIGHTERS_BOON)) {
+  if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
       Number(necromancerBalanceProfile(context, PROFILE.blightersBoon)?.lifeForceGain || 1),

@@ -9,7 +9,6 @@ import {
   eventSkill,
   selectedSkillNames
 } from '../../core/rule-helpers.js';
-import { hasEngineerTrait } from '../../core/state.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS,
   engineerBalanceProfile,
@@ -156,7 +155,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Sche
 
 function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
-  if (isEngineerMechCommand(skill) && hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
+  if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     return duration * engineerBalanceValue(context, PROFILE.jadeDynamo, 'rechargeMultiplier', 0.8);
   }
 
@@ -165,7 +164,7 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
     skill?.categories?.some((category) => String(category).toLowerCase() === 'signet')
   ) {
     const overclockReadyAt = Number(context.state?.cooldowns?.get(ID.OVERCLOCK_SIGNET) || 0);
-    const jDrive = hasEngineerTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
+    const jDrive = hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
     if (
       configuredSkillNames(context.config).has('Overclock Signet') &&
       (jDrive || overclockReadyAt <= Number(context.start || 0))

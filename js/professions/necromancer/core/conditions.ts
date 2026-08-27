@@ -16,7 +16,7 @@ import { createRelicTimelineRuntime } from '../../../platform/gw2/equipment/reli
 import { relicConditionDurationBonus } from '../../../platform/gw2/equipment/relics/query.js';
 import { projectCastRelativeEffectTimingMs } from '../../../platform/gw2/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasTrait } from './shared.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import type {
   NecromancerCastContext,
   NecromancerCoreState,

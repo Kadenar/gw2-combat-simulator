@@ -1,6 +1,6 @@
 import { emitSkillBuff, emitSkillControl } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasEngineerTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '../../types.js';
@@ -27,7 +27,7 @@ function category(skill: EngineerSkill, name: string): boolean {
 export function applyScrapperCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   // Speed of Synergy: healing toolbelt skills grant superspeed.
   // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 7s.
-  if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingToolbeltSkill(context, skill)) {
+  if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingToolbeltSkill(context, skill)) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -46,7 +46,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
-  if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.name !== 'Med Kit') {
+  if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.name !== 'Med Kit') {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -61,10 +61,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   }
 
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
-  if (
-    hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) &&
-    (category(skill, 'Well') || isFunctionGyro(skill))
-  ) {
+  if (hasTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) && (category(skill, 'Well') || isFunctionGyro(skill))) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -83,7 +80,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
   // The marker gives the shared combo materializer a trait-gated descriptor
   // while preserving Function Gyro as the source of the resulting combo.
-  if (hasEngineerTrait(context.config, TRAIT.KINETIC_ACCELERATORS)) {
+  if (hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS)) {
     context.emitDerived(context.action, {
       type: 'marker',
       at: context.effectiveEnd,
@@ -106,7 +103,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   }
 
   // System Shocker (master trait): Function Gyro dazes for 1s on cast.
-  if (hasEngineerTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
+  if (hasTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
     emitSkillControl(context, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -121,7 +118,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   }
 
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
-  if (hasEngineerTrait(context.config, TRAIT.MASS_MOMENTUM)) {
+  if (hasTrait(context.config, TRAIT.MASS_MOMENTUM)) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',

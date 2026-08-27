@@ -8,9 +8,9 @@ import {
   gw2AlliedPlayerProcTimeline
 } from '../../../../platform/gw2/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { snapshotRevenantState } from '../../state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import { renegadeState } from './state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID, RENEGADE_PROFILE_IDS } from './skills.js';
 import type {
@@ -31,10 +31,6 @@ import type {
 export interface BandTogetherState {
   readonly enhanced: boolean;
   readonly profileSkillId: SkillId;
-}
-
-function hasTrait(context: RevenantSchedulerContext, traitId: SkillId): boolean {
-  return hasRevenantTrait(context.config, traitId);
 }
 
 function skillById(context: RevenantSchedulerContext, skillId: SkillId): RevenantSkill | undefined {

@@ -5,6 +5,7 @@ import {
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
 } from '../../../platform/gw2/scheduler/policy.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type {
   ScheduledTask,
@@ -25,11 +26,6 @@ const QUICKNESS_ACTION_RATE = 1.5;
 export function rangerPetCompanionId(context: RangerSchedulerContext | RangerResolverContext): string {
   const state = professionCoreState(context);
   return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
-}
-
-function petHasTrait(context: RangerSchedulerContext, traitId: SkillId): boolean {
-  const key = String(traitId);
-  return Boolean(context.config.selectedTraitIds?.some((value) => value === traitId || String(value) === key));
 }
 
 function petHasSelectedSkill(context: RangerSchedulerContext, skillName: string): boolean {
@@ -69,7 +65,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
   }
 
   if (context) {
-    if (petHasTrait(context, TRAIT.PACK_ALPHA)) {
+    if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       const bonus = rangerBalanceValue(context, PROFILE.packAlpha, 'weaponAttributeBonus', 300);
       power += bonus;
       precision += bonus;
@@ -78,15 +74,15 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
       conditionDamage += bonus;
     }
 
-    if (petHasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
+    if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
       power += rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     }
 
-    if (petHasTrait(context, TRAIT.HONED_AXES)) {
+    if (hasTrait(context, TRAIT.HONED_AXES)) {
       ferocity += rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
     }
 
-    if (petHasTrait(context, TRAIT.PETS_PROWESS)) {
+    if (hasTrait(context, TRAIT.PETS_PROWESS)) {
       ferocity += rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300);
     }
 
@@ -383,7 +379,7 @@ export function handleRangerPetAutoTask(
     const cooldown =
       selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
         ? 12
-        : Number(selected.cooldown) * (petHasTrait(context, TRAIT.PACK_ALPHA) ? 0.8 : 1);
+        : Number(selected.cooldown) * (hasTrait(context, TRAIT.PACK_ALPHA) ? 0.8 : 1);
     state.petAutoCooldowns[String(selected.id)] = task.at + cooldown / Math.max(Number.EPSILON, rechargeRate);
     state.petAutoActivationUses[String(selected.id)] =
       Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;

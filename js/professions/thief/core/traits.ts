@@ -13,7 +13,7 @@ import { gw2ResolverBoonDuration } from '../../../platform/gw2/resolver/boon-dur
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from './shared.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ResolvedCriticalHitOptions } from '../../../platform/gw2/authoring/mechanics.js';
@@ -45,8 +45,8 @@ type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
 export function emitStealTraitEffects(context: ThiefCastContext): void {
   const at = context.effectiveEnd;
   const state = professionCoreState(context);
-  const potentPoison = hasThiefTrait(context.config, TRAIT.POTENT_POISON);
-  if (hasThiefTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
+  const potentPoison = hasTrait(context.config, TRAIT.POTENT_POISON);
+  if (hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
     const profile = thiefBalanceProfile(context, PROFILE.serpentsTouch);
     const poison = thiefBalanceProfileEffect(profile, 'condition');
     emitSkillCondition(context, {
@@ -63,7 +63,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     });
   }
 
-  if (hasThiefTrait(context.config, TRAIT.MUG)) {
+  if (hasTrait(context.config, TRAIT.MUG)) {
     const strike = traitEffect(context, PROFILE.mug, 'strike');
     emitSkillDamage(context, {
       at,
@@ -79,7 +79,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     });
   }
 
-  if (hasThiefTrait(context.config, TRAIT.EVEN_THE_ODDS)) {
+  if (hasTrait(context.config, TRAIT.EVEN_THE_ODDS)) {
     const vulnerability = traitEffect(context, PROFILE.evenTheOdds, 'condition');
     emitSkillCondition(context, {
       at,
@@ -95,7 +95,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     });
   }
 
-  if (hasThiefTrait(context.config, TRAIT.DEADLY_AMBUSH)) {
+  if (hasTrait(context.config, TRAIT.DEADLY_AMBUSH)) {
     const bleeding = traitEffect(context, PROFILE.deadlyAmbush, 'condition');
     emitSkillCondition(context, {
       at,
@@ -111,7 +111,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     });
   }
 
-  if (hasThiefTrait(context.config, TRAIT.THRILL_OF_THE_CRIME)) {
+  if (hasTrait(context.config, TRAIT.THRILL_OF_THE_CRIME)) {
     for (const effect of (thiefBalanceProfile(context, PROFILE.thrillOfTheCrime)?.effects || []).filter(
       (entry) => entry.type === 'boon'
     )) {
@@ -132,7 +132,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     }
   }
 
-  if (hasThiefTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) {
+  if (hasTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) {
     const vigor = traitEffect(context, PROFILE.bountifulTheft, 'boon', 0);
     const might = traitEffect(context, PROFILE.bountifulTheft, 'boon', 1);
     const vigorName = String(vigor?.boon || 'Vigor');
@@ -167,7 +167,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     }
   }
 
-  if (hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) {
+  if (hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) {
     const control = traitEffect(context, PROFILE.sleightOfHand, 'control');
     emitSkillControl(context, {
       at,
@@ -182,7 +182,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
     });
   }
 
-  if (hasThiefTrait(context.config, TRAIT.HIDDEN_THIEF)) {
+  if (hasTrait(context.config, TRAIT.HIDDEN_THIEF)) {
     const profile = thiefBalanceProfile(context, PROFILE.hiddenThief);
     const blindness = thiefBalanceProfileEffect(profile, 'condition', 0);
     const weakness = thiefBalanceProfileEffect(profile, 'condition', 1);
@@ -218,7 +218,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
 }
 
 export function applyStealCompletionTraits(context: ThiefCastContext, at: number): void {
-  if (hasThiefTrait(context.config, TRAIT.KLEPTOMANIAC)) {
+  if (hasTrait(context.config, TRAIT.KLEPTOMANIAC)) {
     gainThiefInitiative(
       context,
       Number(thiefBalanceProfile(context, PROFILE.kleptomaniac)?.resourceGain || 2),
@@ -227,7 +227,7 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
     );
   }
 
-  if (hasThiefTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
+  if (hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
     gainThiefEndurance(
       context,
       Number(thiefBalanceProfile(context, PROFILE.enduranceThief)?.resourceGain || 50),
@@ -243,7 +243,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const initiativeCost = Math.max(0, Number(skill.initiativeCost || 0));
-  if (initiativeCost > 0 && hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS)) {
+  if (initiativeCost > 0 && hasTrait(context.config, TRAIT.LEAD_ATTACKS)) {
     const profile = thiefBalanceProfile(context, PROFILE.leadAttacks);
     const expirations = state.leadAttackExpirations || [];
     for (
@@ -262,13 +262,13 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
 
   if (skill.movementSkill) {
     let movementStateChanged = false;
-    if (hasThiefTrait(context.config, TRAIT.FLUID_STRIKES)) {
+    if (hasTrait(context.config, TRAIT.FLUID_STRIKES)) {
       state.fluidStrikesUntil =
         at + Number(thiefBalanceProfile(context, PROFILE.fluidStrikes)?.durationMultiplier || 5);
       movementStateChanged = true;
     }
 
-    if (hasThiefTrait(context.config, TRAIT.HARD_TO_CATCH)) {
+    if (hasTrait(context.config, TRAIT.HARD_TO_CATCH)) {
       gainThiefEndurance(
         context,
         Number(thiefBalanceProfile(context, PROFILE.hardToCatch)?.resourceGain || 8),
@@ -283,8 +283,8 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-  if (isDualWieldAttack && hasThiefTrait(context.config, TRAIT.DEADLY_AMBITION)) {
-    const potentPoison = hasThiefTrait(context.config, TRAIT.POTENT_POISON);
+  if (isDualWieldAttack && hasTrait(context.config, TRAIT.DEADLY_AMBITION)) {
+    const potentPoison = hasTrait(context.config, TRAIT.POTENT_POISON);
     const profile = thiefBalanceProfile(context, PROFILE.deadlyAmbition);
     const poison = thiefBalanceProfileEffect(profile, 'condition');
     emitSkillCondition(context, {
@@ -391,7 +391,7 @@ export const thiefCoreCriticalReactions = Object.freeze({
     when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
       Boolean(details.hitContext?.critEligible) &&
       Number(event.coefficient) > 0 &&
-      hasThiefTrait(context.config, TRAIT.UNRELENTING_STRIKES),
+      hasTrait(context.config, TRAIT.UNRELENTING_STRIKES),
     expectedProgress: {
       get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES),
       set: (context: ThiefResolverContext, value: number) =>
@@ -433,7 +433,7 @@ export const thiefCoreCriticalReactions = Object.freeze({
     when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
       Boolean(details.hitContext?.critEligible) &&
       Number(event.coefficient) > 0 &&
-      hasThiefTrait(context.config, TRAIT.NO_QUARTER) &&
+      hasTrait(context.config, TRAIT.NO_QUARTER) &&
       context.query.furyActiveAt(event.at, context, event),
     expectedProgress: {
       get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.NO_QUARTER),
@@ -464,7 +464,7 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
   if (
     String(event.kind || '').toLowerCase() !== 'fury' ||
     event.affectsSelf === false ||
-    !hasThiefTrait(context.config, TRAIT.ASSASSINS_FURY)
+    !hasTrait(context.config, TRAIT.ASSASSINS_FURY)
   )
     return;
   const state = professionCoreState(context);
@@ -538,7 +538,7 @@ function applySpiderVenom(context: ThiefResolverContext, event: ThiefResolverEve
     activationId: event.activationId || `${event.skillId}:${event.at}`,
     triggeredBy: event.skillName
   });
-  if (hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+  if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const strike = traitEffect(context, PROFILE.leechingVenoms, 'strike');
     enqueueSiphon(context, event, {
       sourceId: TRAIT.LEECHING_VENOMS,
@@ -554,7 +554,7 @@ function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolve
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !hasThiefTrait(context.config, TRAIT.SHADOW_SIPHONING)
+    !hasTrait(context.config, TRAIT.SHADOW_SIPHONING)
   )
     return;
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
@@ -583,7 +583,7 @@ function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEve
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !hasThiefTrait(context.config, TRAIT.PANIC_STRIKE) ||
+    !hasTrait(context.config, TRAIT.PANIC_STRIKE) ||
     targetConditionCount(context, event.at) < Number(thiefBalanceProfile(context, PROFILE.panicStrike)?.threshold || 3)
   )
     return;
@@ -625,7 +625,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
     application.condition === 'Poisoned' &&
     application.skillId === ID.SPIDER_VENOM &&
     application.triggeredByAlly &&
-    hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)
+    hasTrait(context.config, TRAIT.LEECHING_VENOMS)
   ) {
     const strike = traitEffect(context, PROFILE.leechingVenoms, 'strike');
     enqueueSiphon(context, application, {
@@ -638,7 +638,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
   if (
     application.condition === 'Immobilized' &&
     application.actorType === 'player' &&
-    hasThiefTrait(context.config, TRAIT.PANIC_STRIKE)
+    hasTrait(context.config, TRAIT.PANIC_STRIKE)
   ) {
     const profile = thiefBalanceProfile(context, PROFILE.panicStrike);
     const poison = thiefBalanceProfileEffect(profile, 'condition', 1);
@@ -652,7 +652,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
       skillName: 'Panic Strike',
       name: 'Panic Strike - Poison',
       condition: String(poison?.condition || 'Poisoned'),
-      stacks: hasThiefTrait(context.config, TRAIT.POTENT_POISON)
+      stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
         ? Number(profile?.playerStacks || 2)
         : Number(poison?.stacks || 1),
       duration: Number(poison?.duration || 4),
@@ -661,7 +661,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
     });
   }
 
-  if (application.condition === 'Blindness' && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
+  if (application.condition === 'Blindness' && hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     const strike = traitEffect(context, PROFILE.cloakedInShadow, 'strike');
     enqueueSiphon(context, application, {
       sourceId: TRAIT.CLOAKED_IN_SHADOW,

@@ -2,7 +2,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotEngineerState } from '../state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasEngineerTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from './profiles.js';
 import type { EngineerSchedulerContext } from '../types.js';
 
@@ -22,7 +22,7 @@ export function engineerEnduranceRegenerationRate(
       ? engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'vigorRegenerationMultiplier', 1.5) -
         1
       : 0) +
-    (hasEngineerTrait(context.config, TRAIT.ADRENAL_IMPLANT)
+    (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)
       ? engineerBalanceValue(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'coefficientMultiplier', 1.25) - 1
       : 0);
   return (

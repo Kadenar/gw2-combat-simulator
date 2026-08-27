@@ -5,7 +5,6 @@ import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotEngineerState } from '../state.js';
-import { hasEngineerTrait } from './state.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   engineerBalanceEffectValue,
@@ -43,7 +42,7 @@ function isHealingSkill(skill: EngineerSkill | undefined): boolean {
 function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
-    !hasEngineerTrait(context.config, TRAIT.GRENADIER) ||
+    !hasTrait(context.config, TRAIT.GRENADIER) ||
     at + context.epsilon < Number(state.traitProcReadyAt.grenadier || 0)
   )
     return;
@@ -76,7 +75,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
   const state = professionCoreState(context);
   if (
     skill.handlerId !== 'engineer.kit-equip' ||
-    !hasEngineerTrait(context.config, TRAIT.STREAMLINED_KITS) ||
+    !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
     at + context.epsilon < Number(state.traitProcReadyAt.streamlinedKits || 0)
   )
     return;
@@ -117,7 +116,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
   if (!isEngineerToolbeltSkill(skill)) return;
   const state = professionCoreState(context);
 
-  if (hasEngineerTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) {
+  if (hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) {
     emitSkillBuff(context, skill, {
       at,
       source: 'Trait',
@@ -130,7 +129,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
     });
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.STATIC_DISCHARGE)) {
+  if (hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) {
     emitSkillDamage(context, {
       at,
       source: 'Trait',
@@ -150,7 +149,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
     });
   }
 
-  if (hasEngineerTrait(context.config, TRAIT.KINETIC_BATTERY)) {
+  if (hasTrait(context.config, TRAIT.KINETIC_BATTERY)) {
     const maximumCharges = engineerBalanceValue(context, PROFILE.kineticBattery, 'maximumStacks', 5);
     state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
     // proc quickness and reset charges every 5th toolbelt cast

@@ -21,7 +21,7 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { normalizedNecromancerLifeForceCost, syncNecromancerResources } from '../../core/state.js';
 import { removeNecromancerSelfCondition } from '../../core/conditions.js';
-import { hasTrait } from '../../core/shared.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
 import { balanceProfileEffect, necromancerBalanceProfile } from '../../core/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';

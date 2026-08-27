@@ -1,6 +1,6 @@
 import { SKILL_HANDLER_MODES } from '../../../../platform/engine/skills/handlers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../core/shared.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { NecromancerCastContext } from '../../types.js';
 
 // Determines whether the Doom Approaches variant fully replaces or merely augments the base Dark Barrage attack.

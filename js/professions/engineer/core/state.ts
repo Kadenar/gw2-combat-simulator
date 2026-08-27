@@ -23,16 +23,6 @@ export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId
   );
 }
 
-// accepts either a pre-built Set (for callers that cache it) or a config object (builds it on demand)
-export function hasEngineerTrait(configOrTraits: EngineerConfig | ReadonlySet<SkillId>, traitId: SkillId): boolean {
-  const traits =
-    typeof (configOrTraits as ReadonlySet<SkillId>).has === 'function'
-      ? (configOrTraits as ReadonlySet<SkillId>)
-      : selectedEngineerTraits(configOrTraits as EngineerConfig);
-  // check both numeric and string representations — the GW2 API can return IDs as either type
-  return traits.has(traitId) || traits.has(String(traitId));
-}
-
 export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerCoreState {
   return {
     endurance: 100,

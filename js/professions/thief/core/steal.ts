@@ -2,7 +2,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { applyStealCompletionTraits } from './traits.js';
 import type { SkillId } from '../../../platform/engine/types.js';
 import type { ThiefCastContext, ThiefCoreState, ThiefSkill } from '../types.js';
@@ -35,7 +35,7 @@ export function storeStolenSkillChoices(
   state.storedStolenSkillCount =
     choices.length === 0
       ? 0
-      : hasThiefTrait(context.config, TRAIT.IMPROVISATION)
+      : hasTrait(context.config, TRAIT.IMPROVISATION)
         ? Number(thiefBalanceProfile(context, PROFILE.improvisation)?.maximumStacks || 2)
         : 1;
   if (emitState) {

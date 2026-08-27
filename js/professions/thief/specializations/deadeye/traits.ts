@@ -1,6 +1,6 @@
 import { emitSkillBuff, emitSkillCondition } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from '../../core/shared.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import type { ThiefCastContext, ThiefEmissionContext, ThiefSkill } from '../../types.js';
@@ -10,7 +10,7 @@ import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 // Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
-  return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)
+  return hasTrait(context.config, TRAIT.MALICIOUS_INTENT)
     ? Number(thiefBalanceProfile(context, PROFILE.maliciousIntent)?.resourceGain || 2)
     : 0;
 }
@@ -45,7 +45,7 @@ export function applyMaliciousAshenAssaultCondition(
 }
 
 export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): void {
-  if (!hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
+  if (!hasTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
   const quickness = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled), 'boon');
   const boon = String(quickness?.boon || 'Quickness');
   const source = 'Be Quick or Be Killed';
@@ -69,7 +69,7 @@ export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): 
 // Apply Deadeye traits triggered by consuming a stolen skill at its committed
 // timestamp, including resource and boon effects.
 export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: number): void {
-  if (!hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
+  if (!hasTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
   const profile = thiefBalanceProfile(context, PROFILE.fireForEffect);
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
     const boon = String(effect.boon || effect.kind || '');
@@ -100,7 +100,7 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
     state.malice !== state.maximumMalice ||
     // maleficentSevenTriggered prevents the proc from firing again if malice stays at maximum across multiple hits
     state.maleficentSevenTriggered ||
-    !hasThiefTrait(context.config, TRAIT.MALEFICENT_SEVEN)
+    !hasTrait(context.config, TRAIT.MALEFICENT_SEVEN)
   ) {
     return;
   }

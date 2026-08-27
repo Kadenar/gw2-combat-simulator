@@ -10,7 +10,7 @@ import { snapshotRevenantState } from '../../state.js';
  * immutable profile in this specialization's mechanics module.
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasRevenantTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from './skills.js';
@@ -37,7 +37,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
-  const songOfArboreum = hasRevenantTrait(context.config, TRAIT.SONG_OF_ARBOREUM);
+  const songOfArboreum = hasTrait(context.config, TRAIT.SONG_OF_ARBOREUM);
   const enduranceProfile = songOfArboreum
     ? balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.songOfArboreum)
     : skill;
@@ -48,7 +48,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   );
   // enduranceUpdatedAt must be stamped after a manual grant so regen calculations start from here.
   coreState.enduranceUpdatedAt = at;
-  if (hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE)) {
+  if (hasTrait(context.config, TRAIT.REAVERS_CURSE)) {
     const reaversCurse = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     const effect = reaversCurse?.effects?.find((candidate) => candidate.type === 'buff');
     // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp.
@@ -56,7 +56,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   }
 
   if (
-    hasRevenantTrait(context.config, TRAIT.ANGSIYANS_TRUST) &&
+    hasTrait(context.config, TRAIT.ANGSIYANS_TRUST) &&
     // Angsiyah's Trust energy is gated by combat; pre-combat Energy Meld does not refund energy.
     revenantCombatActive(context, at)
   ) {
@@ -107,8 +107,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
   const at = start + Math.max(0, Number(effect.atMs || 0)) / 1000;
   // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
-    hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE) &&
-    Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
+    hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
   const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
@@ -131,7 +130,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
     forerunnerOfDeathActive: previousForerunnerUntil > at
   });
-  if (dodge === 'Death Drop' && hasRevenantTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
+  if (dodge === 'Death Drop' && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
     const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
     const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');
     const duration = Math.max(0, Number(forerunnerEffect?.duration));

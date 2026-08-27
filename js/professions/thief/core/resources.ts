@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { castRelativeEffectTimingScale } from '../../../platform/gw2/skills/timing.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotThiefState } from './state.js';
-import { hasThiefTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gainThiefInitiative } from './shared.js';
 import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type {
@@ -48,7 +48,7 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
-  state.maximumInitiative = hasThiefTrait(context.config, TRAIT.PREPAREDNESS)
+  state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
     ? Number(resources?.minimumStacks || 15)
     : Number(resources?.maximumStacks || 12);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
@@ -105,7 +105,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
 
   if (
     (skill.categories || []).some((category) => String(category).toLowerCase().includes('signet')) &&
-    hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)
+    hasTrait(context.config, TRAIT.SIGNETS_OF_POWER)
   ) {
     gainThiefInitiative(
       context,

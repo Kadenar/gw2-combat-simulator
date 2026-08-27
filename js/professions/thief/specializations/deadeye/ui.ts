@@ -1,7 +1,7 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { deadeyeCastAvailability } from './availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from './mechanics.js';
 import { deadeyeWeaponSkillMatchesSet } from './weapons.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
@@ -13,10 +13,10 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): number[] {
   const paletteTraits = context.traits;
   const fireForEffectSelected =
-    hasThiefTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ||
+    hasTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ||
     (paletteTraits != null &&
       typeof (paletteTraits as ReadonlySet<string | number>).has === 'function' &&
-      hasThiefTrait(paletteTraits as ReadonlySet<string | number>, TRAIT.FIRE_FOR_EFFECT));
+      hasTrait(paletteTraits as ReadonlySet<string | number>, TRAIT.FIRE_FOR_EFFECT));
   // Runtime configuration and the live palette expose traits through different contracts; honor either source.
   return fireForEffectSelected ? [ID.STEAL_TIME] : [...DEADEYE_STOLEN_SKILL_IDS];
 }

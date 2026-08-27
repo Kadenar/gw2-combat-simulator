@@ -6,8 +6,6 @@ import { denySkillCast as deny } from '../../lib/availability.js';
 import type { AvailabilityResult, SkillId } from '../../../platform/engine/types.js';
 import type { NecromancerPrecastContext, NecromancerCoreState, NecromancerSkill } from '../types.js';
 
-export { hasTrait };
-
 const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.DEATHLY_CLAWS,
   ID.LICHS_GAZE,

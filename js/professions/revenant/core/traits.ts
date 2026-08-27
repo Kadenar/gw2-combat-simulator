@@ -8,7 +8,7 @@ import { professionCoreState } from '../../../platform/engine/profession/state.j
  * their specialization slices.
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { hasRevenantTrait } from './state.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../platform/gw2/scheduler/policy.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../platform/gw2/scheduler/skill-events.js';
 import { revenantCombatActive } from './legend.js';
@@ -155,7 +155,7 @@ function grantBattleScars(
 // Catch Thrill of Combat up to the current event time, retaining only grants that
 // can still be active and respecting the shared Battle Scars stack cap.
 function materializeThrillOfCombat(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (!hasRevenantTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
+  if (!hasTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
   const state = professionCoreState(context);
   const battleScars = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
   const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat);
@@ -259,7 +259,7 @@ export function modifyRevenantRechargeDuration(context: RevenantRechargeContext,
 
 /** Commits trait effects that trigger once a cast's packet handling finishes. */
 export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  if (skill?.slot === 'Heal' && hasRevenantTrait(context.config, TRAIT.BATTLE_SCARRED)) {
+  if (skill?.slot === 'Heal' && hasTrait(context.config, TRAIT.BATTLE_SCARRED)) {
     const battleScarred = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred);
     const buff = effectByType(battleScarred, 'buff');
     grantBattleScars(context, {
@@ -274,7 +274,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
   if (
     isLegendaryStanceSkill(skill) &&
     revenantCombatActive(context, context.effectiveEnd) &&
-    hasRevenantTrait(context.config, TRAIT.NOTORIETY)
+    hasTrait(context.config, TRAIT.NOTORIETY)
   ) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety);
     const boon = effectByType(profile, 'boon');
@@ -334,7 +334,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   if (
     ['action', 'sigil_swap'].includes(event.type) &&
     event.skillId === ID.SWAP_WEAPONS &&
-    hasRevenantTrait(context.config, TRAIT.BRUTALITY) &&
+    hasTrait(context.config, TRAIT.BRUTALITY) &&
     Number(event.endsAt ?? event.at) + context.epsilon >=
       Number(professionCoreState(context).traitProcReadyAt.brutality || 0)
   ) {
@@ -366,7 +366,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     });
   }
 
-  if (event.type === 'control' && hasRevenantTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) {
+  if (event.type === 'control' && hasTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining);
     const condition = effectByType(profile, 'condition');
     const conditionName = String(condition.condition || 'Weakness');
@@ -386,7 +386,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   }
 
   if (event.type === 'condition') {
-    if (event.condition === 'Chilled' && hasRevenantTrait(context.config, TRAIT.ABYSSAL_CHILL)) {
+    if (event.condition === 'Chilled' && hasTrait(context.config, TRAIT.ABYSSAL_CHILL)) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill);
       const condition = effectByType(profile, 'condition');
       const conditionName = String(condition.condition || 'Torment');
@@ -405,7 +405,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       });
     }
 
-    if (event.condition === 'Vulnerability' && hasRevenantTrait(context.config, TRAIT.DANCE_OF_DEATH)) {
+    if (event.condition === 'Vulnerability' && hasTrait(context.config, TRAIT.DANCE_OF_DEATH)) {
       grantBattleScars(context, {
         at: event.at,
         stacks: event.stacks,
@@ -420,7 +420,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     materializeThrillOfCombat(context, event);
     consumeBattleScar(context, event);
     if (
-      hasRevenantTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
+      hasTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
       event.at + context.epsilon >= Number(state.traitProcReadyAt.assassinsPresence || 0)
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
@@ -451,7 +451,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     }
 
     if (
-      hasRevenantTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
+      hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
       context.hasBuff('resolution', event.at) &&
       event.at + context.epsilon >= Number(state.traitProcReadyAt.viciousReprisal || 0)
     ) {
@@ -484,7 +484,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
 
     if (
       !state.exposeDefensesUsed &&
-      hasRevenantTrait(context.config, TRAIT.EXPOSE_DEFENSES) &&
+      hasTrait(context.config, TRAIT.EXPOSE_DEFENSES) &&
       revenantCombatActive(context, event.at)
     ) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses);

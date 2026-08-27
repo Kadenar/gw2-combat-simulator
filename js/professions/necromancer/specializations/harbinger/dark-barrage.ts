@@ -1,6 +1,6 @@
 import { emitSkillCondition, emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../core/shared.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
 
 export function darkBarrage(context: NecromancerCastContext, skill: NecromancerSkill): boolean {

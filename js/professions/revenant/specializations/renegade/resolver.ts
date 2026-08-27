@@ -3,7 +3,7 @@ import { materializeSkillEffectApplications } from '../../../../platform/engine/
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { enqueueOrdered } from '../../../../platform/engine/events/queue.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasRevenantTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { activeKallasFervorStacks } from './renegade.js';
 import { RENEGADE_PROFILE_IDS } from './skills.js';
 import type { BalanceProfile, SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
@@ -26,7 +26,7 @@ function kallasFervorLifeSiphonMultiplier(context: RevenantResolverContext, at: 
   if (!stacks) return 1;
   const profile = balanceProfileById(
     context,
-    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+    hasTrait(context.config, TRAIT.LASTING_LEGACY)
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
       : RENEGADE_PROFILE_IDS.kallasFervor
   );

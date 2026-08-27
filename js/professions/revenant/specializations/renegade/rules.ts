@@ -17,7 +17,6 @@ import {
 } from '../../core/rules.js';
 import { revenantCombatActive } from '../../core/legend.js';
 import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../core/legend-traits.js';
-import { hasRevenantTrait } from '../../core/state.js';
 import { grantKallasFervor } from './renegade.js';
 import { renegadeState } from './state.js';
 import { RENEGADE_PROFILE_IDS, RENEGADE_SPIRIT_BOON_PROFILE_ID } from './skills.js';
@@ -204,11 +203,11 @@ function observeRenegadeEvent(context: RevenantSchedulerContext, event: Revenant
     return;
   }
 
-  if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
+  if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, RENEGADE_SPIRIT_BOON_PROFILE_ID, event.at, TRAIT.SPIRIT_BOON);
   }
 
-  if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
+  if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE);
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_RENEGADE, event.at, TRAIT.SONG_OF_THE_MISTS);

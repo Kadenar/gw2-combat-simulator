@@ -1,14 +1,7 @@
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { normalizeRevenantLegendIds } from '../legend-rules.js';
 import type { RevenantConfig, RevenantCoreState } from '../types.js';
-
-export function hasRevenantTrait(config: RevenantConfig = {}, traitId: string | number): boolean {
-  // Normalize canonical config IDs at the shared lookup boundary.
-  const traits = new Set(
-    (config.selectedTraitIds || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
-  );
-  return traits.has(traitId) || traits.has(String(traitId));
-}
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.
@@ -43,7 +36,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     combatBeganAt: null,
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,
-    selfConditionDurationMultiplier: hasRevenantTrait(config, TRAIT.PACT_OF_PAIN) ? 1.1 : 1,
+    selfConditionDurationMultiplier: hasTrait(config, TRAIT.PACT_OF_PAIN) ? 1.1 : 1,
     selfConditions: [],
     selfConditionCount: Math.max(0, Math.trunc(Number(config.selfConditionCount || 0))),
     activeLegendSummons: {},

@@ -5,7 +5,7 @@ import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/combat/stat
 import { gw2SchedulerBoonDuration } from '../../../../platform/gw2/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { snapshotThiefState } from '../../core/state.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { specterState } from './state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '../../types.js';
 import type {
@@ -33,7 +33,7 @@ interface DarkSentryTaskPayload extends Record<string, unknown> {
 export function completeShadowShroudSkill(context: ThiefCastContext, skill: ThiefSkill): void {
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  if (hasThiefTrait(context.config, TRAIT.SHADESTEP)) {
+  if (hasTrait(context.config, TRAIT.SHADESTEP)) {
     const profile = thiefBalanceProfile(context, PROFILE.shadeStep);
     const authoredBoon =
       skill.id === ID.GRASPING_SHADOWS
@@ -112,7 +112,7 @@ export function observeSpecterEvent(context: ThiefSchedulerContext, event: Thief
     event.type !== 'condition' ||
     event.condition !== 'Torment' ||
     event.actorType !== 'player' ||
-    !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
+    !hasTrait(context.config, TRAIT.LARCENOUS_TORMENT)
   )
     return;
   // __order makes the id unique per Torment application so concurrent bursts don't collide.
@@ -217,7 +217,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   if (
     application.condition !== 'Torment' ||
     application.actorType !== 'player' ||
-    !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
+    !hasTrait(context.config, TRAIT.LARCENOUS_TORMENT)
   )
     return;
   // One life-siphon event per stack so each stack shows as a separate hit in the log.

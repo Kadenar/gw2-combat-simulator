@@ -1,13 +1,14 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-import { hasThiefTrait, selectedThiefTraits } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { selectedThiefTraits } from '../../core/state.js';
 import type { DaredevilState, ThiefConfig, ThiefDodge } from '../../types.js';
 
 function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>): ThiefDodge {
   // Trait-based dodge replaces any explicit config choice; only one Daredevil minor trait can be active
-  if (hasThiefTrait(traits, TRAIT.LOTUS_TRAINING)) return 'Lotus Training';
-  if (hasThiefTrait(traits, TRAIT.BOUNDING_DODGER)) return 'Bounding Dodger';
-  if (hasThiefTrait(traits, TRAIT.UNHINDERED_COMBATANT)) {
+  if (hasTrait(traits, TRAIT.LOTUS_TRAINING)) return 'Lotus Training';
+  if (hasTrait(traits, TRAIT.BOUNDING_DODGER)) return 'Bounding Dodger';
+  if (hasTrait(traits, TRAIT.UNHINDERED_COMBATANT)) {
     return 'Unhindered Combatant';
   }
 

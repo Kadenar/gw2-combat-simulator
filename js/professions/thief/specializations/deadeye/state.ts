@@ -1,6 +1,7 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession/state.js';
-import { hasThiefTrait, selectedThiefTraits } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
+import { selectedThiefTraits } from '../../core/state.js';
 import type { DeadeyeState, ThiefConfig } from '../../types.js';
 
 export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
@@ -12,7 +13,7 @@ export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     markGeneration: 0,
     malice: 0,
     // Maleficent Seven raises the cap from 5 to 7 and must be known at construction time
-    maximumMalice: hasThiefTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 7 : 5,
+    maximumMalice: hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 7 : 5,
     // Fractional crit-chance accumulator; whole stacks are drained into malice when they cross 1
     maliceCriticalProgress: 0,
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting

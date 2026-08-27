@@ -1,6 +1,6 @@
 import { antiquaryState } from './state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasThiefTrait } from '../../core/state.js';
+import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '../../types.js';
 import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -45,7 +45,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
     event.actorType !== 'player' ||
     event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
     event.coefficient == null || // condition-only packets have no coefficient; burning fires on the strike hit
-    !hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
+    !hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;
   const burning = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.sunCrystalMeticulous), 'condition');
