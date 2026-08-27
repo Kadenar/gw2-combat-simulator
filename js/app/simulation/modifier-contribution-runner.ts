@@ -78,7 +78,8 @@ export class ModifierContributionRunner {
         for (const comparisons of batches) {
           if (!this.batch.isActive(requestId)) break;
           this.batch.spawn(
-            new URL('./modifier-contribution-worker.js', import.meta.url),
+            // Keep Worker construction beside its static URL so Vite emits an executable worker chunk.
+            () => new Worker(new URL('./modifier-contribution-worker.js', import.meta.url), { type: 'module' }),
             requestId,
             {
               requestId,

@@ -149,7 +149,8 @@ export class RandomDistributionRunner {
         batches.forEach((batch, batchIndex) => {
           if (!this.batch.isActive(requestId)) return;
           this.batch.spawn(
-            new URL('./random-distribution-worker.js', import.meta.url),
+            // Keep Worker construction beside its static URL so Vite emits an executable worker chunk.
+            () => new Worker(new URL('./random-distribution-worker.js', import.meta.url), { type: 'module' }),
             requestId,
             {
               requestId,

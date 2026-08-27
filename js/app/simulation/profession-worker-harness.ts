@@ -57,6 +57,7 @@ export function createProfessionWorkerEndpoint<
 }
 
 type ManagedWorkerMessageHandler<TMessage> = (message: TMessage, worker: Worker) => void;
+type ManagedWorkerFactory = () => Worker;
 
 /**
  * Owns one pooled request's workers so superseded responses are ignored and
@@ -84,7 +85,7 @@ export class ManagedWorkerBatch<TMessage extends ProfessionWorkerResponseEnvelop
   }
 
   spawn(
-    url: URL,
+    createWorker: ManagedWorkerFactory,
     requestId: number,
     request: unknown,
     onMessage: ManagedWorkerMessageHandler<TMessage>
@@ -93,7 +94,7 @@ export class ManagedWorkerBatch<TMessage extends ProfessionWorkerResponseEnvelop
 
     let worker: Worker;
     try {
-      worker = new Worker(url, { type: 'module' });
+      worker = createWorker();
     } catch (error) {
       this.fail(requestId, error);
       return null;

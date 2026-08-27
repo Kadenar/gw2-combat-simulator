@@ -100,13 +100,23 @@ test('managed worker batches terminate completed and failed workers and reject s
   const handled = [];
   const batch = new ManagedWorkerBatch();
   batch.begin(1, (error) => failures.push(error));
-  const completedWorker = batch.spawn(new URL('https://example.com/worker.js'), 1, {}, (message, worker) => {
-    handled.push(message.value);
-    batch.finish(worker);
-  });
-  const supersededWorker = batch.spawn(new URL('https://example.com/worker.js'), 1, {}, () => {
-    assert.fail('a superseded response must not run');
-  });
+  const completedWorker = batch.spawn(
+    () => new Worker(),
+    1,
+    {},
+    (message, worker) => {
+      handled.push(message.value);
+      batch.finish(worker);
+    }
+  );
+  const supersededWorker = batch.spawn(
+    () => new Worker(),
+    1,
+    {},
+    () => {
+      assert.fail('a superseded response must not run');
+    }
+  );
 
   completedWorker.respond({ requestId: 1, value: 'complete' });
   assert.equal(completedWorker.terminated, true);
@@ -116,8 +126,18 @@ test('managed worker batches terminate completed and failed workers and reject s
   assert.equal(supersededWorker.terminated, true);
   supersededWorker.respond({ requestId: 1, value: 'stale' });
 
-  const failedWorker = batch.spawn(new URL('https://example.com/worker.js'), 2, {}, () => {});
-  const peerWorker = batch.spawn(new URL('https://example.com/worker.js'), 2, {}, () => {});
+  const failedWorker = batch.spawn(
+    () => new Worker(),
+    2,
+    {},
+    () => {}
+  );
+  const peerWorker = batch.spawn(
+    () => new Worker(),
+    2,
+    {},
+    () => {}
+  );
   failedWorker.respond({ requestId: 2, error: 'Batch failed.' });
 
   assert.deepEqual(handled, ['complete']);
