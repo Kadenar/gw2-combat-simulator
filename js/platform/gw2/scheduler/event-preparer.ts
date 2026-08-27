@@ -31,6 +31,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
 
   const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
     event = prepareGw2ComboEvent(event);
+
     if (event.type === 'buff') {
       const boon = isStandardBoon(event.kind || event.boon);
       // Generic buffs use allied-effect targeting and remain independent from
@@ -50,6 +51,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
     }
 
     const coefficientBasedDamage = isCoefficientBasedDamage(event);
+
     if (!coefficientBasedDamage && event.type !== 'action') return event;
 
     const skill =
@@ -69,9 +71,11 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
       isGw2NonWeaponEffectEvent(event);
 
     let activationId = event.activationId;
+
     if (triggeredEffect) {
       const key = [activationId, event.sourceId, event.skillName || event.name, event.triggeredBy].join('|');
       activationId = triggeredActivationIds.get(key);
+
       if (!activationId) {
         activationId = context.createActivationId('effect');
         triggeredActivationIds.set(key, activationId);

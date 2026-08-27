@@ -58,6 +58,7 @@ function recordedDuration(
     )
     .map((action) => action.end - action.start)
     .sort((left, right) => left - right);
+
   if (durations.length) return durations[Math.floor(durations.length / 2)];
   const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
   return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
@@ -74,11 +75,13 @@ function initialManifestSandShadeActions(context: EvtcProfessionReconstructionCo
         event.buffDamage > event.value
     )
     .sort((left, right) => left.event.time - right.event.time)[0];
+
   if (!initial) return [];
 
   // BUFF_INITIAL stores the full and remaining shade lifetime. Their
   // difference is the age of the shade at the first EVTC snapshot.
   const start = initial.event.time - (initial.event.buffDamage - initial.event.value);
+
   if (
     hasRecordedAction(context, MANIFEST_SAND_SHADE.skillId, MANIFEST_SAND_SHADE.name, start, INSTANT_SIGNAL_WINDOW_MS)
   ) {
@@ -112,6 +115,7 @@ function truncatedBloodIsPowerActions(context: EvtcProfessionReconstructionConte
       )
       .map((event) => event.time)
   );
+
   if (!Number.isFinite(firstPlayerEventTime)) return [];
 
   return context.log.events.flatMap((event, eventIndex) => {
@@ -129,6 +133,7 @@ function truncatedBloodIsPowerActions(context: EvtcProfessionReconstructionConte
     const alreadyRecorded = context.recordedActions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= INSTANT_SIGNAL_WINDOW_MS
     );
+
     if (alreadyRecorded || start > firstPlayerEventTime) return [];
     return [
       {
@@ -144,6 +149,7 @@ function truncatedBloodIsPowerActions(context: EvtcProfessionReconstructionConte
 
 function hauntActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const shadowFiends = new Set(
     context.log.agents.filter((agent) => agent.profession === SHADOW_FIEND_SPECIES_ID).map((agent) => agent.address)
@@ -190,6 +196,7 @@ function desertShroudActions(context: EvtcProfessionReconstructionContext): Evtc
 
     const beginsActivation = previousPulse == null || event.time - previousPulse > DESERT_SHROUD_PULSE_WINDOW_MS;
     previousPulse = event.time;
+
     if (!beginsActivation) return;
     actions.push(effectAction(eventIndex, event.time, event.skillId, DESERT_SHROUD.name, DESERT_SHROUD));
   });

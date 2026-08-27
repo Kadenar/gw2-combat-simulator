@@ -87,6 +87,7 @@ function calcifyAction(
 
 function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const ownedEvents = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -98,7 +99,9 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
   const matchedStopIndexes = new Set<number>();
   const actions = starts.flatMap(({ event, eventIndex }) => {
     const stop = matchingCalcifyStop(event, stops, matchedStopIndexes);
+
     if (stop) matchedStopIndexes.add(stop.eventIndex);
+
     // Seismic Impact can cancel the familiar's visual animation after Calcify
     // committed; keep that input, but do not replay an uncommitted cancellation.
     if (
@@ -114,6 +117,7 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
   for (const { event, eventIndex } of stops) {
     if (matchedStopIndexes.has(eventIndex)) continue;
     const start = event.time - event.value;
+
     if (event.activation === EVTC_ACTIVATION.CANCEL_CANCEL && !calcifyEffectCommitted(context, start, event.time)) {
       continue;
     }
@@ -148,6 +152,7 @@ function chargeGrantForAction(
   const skill = skillForAction(context, action);
   const gain = skill ? weaponSkillChargeGain({ config: context.professionConfig || {} }, skill, { element }) : 0;
   const fillsCharges = name === 'Rejuvenate';
+
   if (gain <= 0 && !fillsCharges) return null;
   return {
     at: action.end,
@@ -181,8 +186,10 @@ function alignCalcifyWithResourceReadiness(
     }
 
     const name = actionName(action);
+
     if (BASIC_FAMILIARS.has(name)) {
       if (empowered >= 3) return action;
+
       if (charges >= 6) {
         charges = 0;
         empowered = Math.min(3, empowered + 1);
@@ -198,6 +205,7 @@ function alignCalcifyWithResourceReadiness(
         const grant = grants[prospectiveGrantIndex];
         prospectiveCharges = applyGrant(grant, prospectiveCharges);
         prospectiveGrantIndex += 1;
+
         if (prospectiveCharges >= 6) {
           readyAt = grant.at;
           break;
@@ -231,6 +239,7 @@ export function reconstructEvokerActions(
 ): EvtcRecordedRotationAction[] {
   const normalized = actions.map((action) => {
     const identity = EVOKER_SKILL_ALIASES.get(action.rawSkillId);
+
     if (!identity) return action;
     return {
       ...action,

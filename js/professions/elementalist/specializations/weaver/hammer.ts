@@ -16,6 +16,7 @@ import { weaverState } from './state.js';
 export function applyWeaverHammerState(context: ElementalistCastContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
   const elements = weaverDualAttunements(skill);
+
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -23,6 +24,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
     const expiresAt = state.hammerOrbs[element];
+
     if (expiresAt == null || expiresAt < at) continue;
     state.hammerOrbs[element] = at + orbDuration;
     for (const event of activeBuffEvents(context, `hammer ${element} orb`, at)) {
@@ -35,6 +37,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
     state.hammerOrbGrantedBy[element] = skill.name;
     state.hammerOrbActivationIds[element] = context.reservationId;
     state.hammerOrbBuffUntil[element] = at + orbDuration;
+
     if (!previouslyActive.has(element)) {
       emitSkillBuff(context, skill, {
         at,
@@ -59,10 +62,12 @@ export function weaverHammerAvailability(
 ): { ready: boolean; retryAt?: number | null; code?: string; reason?: string } | null {
   if (skillWeapon(skill) !== 'Hammer') return null;
   const elements = weaverDualAttunements(skill);
+
   if (!elements) return null;
   const state = professionCoreState(context);
   const retryAt =
     state.hammerOrbLastCastAt + elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
+
   if (retryAt > context.start + context.epsilon) {
     return {
       ready: false,

@@ -41,8 +41,10 @@ function summonSpiritsActions(context: EvtcProfessionReconstructionContext): Evt
   context.log.events.forEach((event, eventIndex) => {
     if (event.source !== context.playerAddress) return;
     const delay = SUMMON_SPIRITS_SIGNALS.get(event.skillId);
+
     if (delay == null || event.buff !== 0) return;
     const start = event.time - delay;
+
     if (
       hasRecordedAction(context, SUMMON_SPIRITS.skillId, SUMMON_SPIRITS.name, start, INSTANT_SIGNAL_WINDOW_MS) ||
       actions.some((action) => Math.abs(action.start - start) <= SUMMON_SPIRITS_SIGNAL_WINDOW_MS)

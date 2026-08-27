@@ -9,7 +9,9 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceVa
 function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> {
   const profession = context.runtime?.profession as
     { core?: Partial<ElementalistCoreState> } | Partial<ElementalistCoreState> | undefined;
+
   if (!profession) return {};
+
   if ('core' in profession) return profession.core || {};
   return profession as Partial<ElementalistCoreState>;
 }
@@ -193,6 +195,7 @@ export function modifyElementalistAttributes(
 ): SchedulerRecord {
   const modified = { ...attributes };
   const primary = primaryAttunement(context);
+
   if (hasTrait(context, 'Empowering Flame') && primary === 'Fire') {
     modified.power =
       Number(modified.power || 0) + elementalistBalanceValue(context, PROFILE.empoweringFlame, 'attributeBonus', 150);
@@ -236,6 +239,7 @@ export function modifyElementalistAttributes(
   }
 
   const weapon = eventWeapon(context);
+
   if (weapon === 'Fiery Greatsword') {
     modified.power =
       Number(modified.power || 0) +

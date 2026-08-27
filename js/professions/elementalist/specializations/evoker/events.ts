@@ -13,6 +13,7 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 export function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
+
   // ignitePassiveReadyAt gates the Fire familiar's Might proc to an ICD; without it every burning tick would trigger
   if (
     event.type === 'condition' &&
@@ -49,9 +50,11 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
 
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
+
   if (hasTrait(context, 'Elemental Balance')) {
     state.elementalBalanceProgress += 1;
     const threshold = elementalistBalanceValue(context, PROFILE.elementalBalance, 'threshold', 2);
+
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;

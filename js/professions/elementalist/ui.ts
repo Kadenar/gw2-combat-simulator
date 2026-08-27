@@ -65,6 +65,7 @@ function weaponSkillMatchesSet(
   context: SchedulerRecord
 ): boolean {
   if (state(context).conjureEquipped) return false;
+
   if (String(skill.attunement || '').includes('+') && specialization(context) !== 'Weaver') return false;
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
@@ -76,6 +77,7 @@ function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
   const primary = String(
     state(context).primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
   );
+
   if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
     const target = skill.name.replace(/ Attunement$/, '');
     return target === primary
@@ -87,6 +89,7 @@ function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
   const catalog = context.catalog as Readonly<CanonicalCatalog> | undefined;
   const position = catalog?.autoattackChainPositions.get(Number(skill.id));
   const carryover = state(context).autoattackCarryover as SchedulerRecord | undefined;
+
   if (position && carryover?.root === position.root && carryover.attunement === skill.attunement) {
     return { available: true, message: '' };
   }

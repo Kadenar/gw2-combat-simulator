@@ -130,9 +130,11 @@ function activationFromWikitext(wikitext, skillId) {
   const infobox = String(wikitext || '').match(/\{\{Skill infobox[\s\S]*?\n\}\}/i)?.[0] || '';
 
   if (!infobox) return 0;
+
   const ids = infobox.match(/^\|\s*id\s*=\s*([^\n]+)/im)?.[1] || '';
 
   if (ids && !ids.match(new RegExp(`(^|\\D)${skillId}(\\D|$)`))) return 0;
+
   const raw = infobox.match(/^\|\s*activation\s*=\s*([0-9.]+)/im)?.[1];
 
   return raw ? Math.round(Number(raw) * 1000) : 0;

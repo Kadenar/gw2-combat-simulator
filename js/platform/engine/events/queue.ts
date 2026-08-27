@@ -21,7 +21,9 @@ interface HeapEntry<T extends QueuedEvent> {
  */
 function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
   const eventOrder = compareQueuedEvents(left.event, right.event);
+
   if (eventOrder) return eventOrder;
+
   if (left.causalOrder != null && right.causalOrder != null && left.causalOrder !== right.causalOrder) {
     return left.causalOrder - right.causalOrder;
   }
@@ -38,8 +40,10 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
  */
 export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
   const time = eventTimestamp(left) - eventTimestamp(right);
+
   if (time) return time;
   const priority = Number(left.priority || 0) - Number(right.priority || 0);
+
   if (priority) return priority;
   const leftOrder = eventCausalOrder(left);
   const rightOrder = eventCausalOrder(right);
@@ -92,6 +96,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     let index = this.heap.length - 1;
     while (index > 0) {
       const parent = Math.floor((index - 1) / 2);
+
       if (compareHeapEntries(this.heap[index], this.heap[parent]) >= 0) break;
       [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
       index = parent;
@@ -107,6 +112,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     if (this.heap.length === 0) return undefined;
     const first = this.heap[0];
     const last = this.heap.pop();
+
     if (this.heap.length > 0 && last) {
       this.heap[0] = last;
       this.siftDown(0);
@@ -126,6 +132,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       const left = index * 2 + 1;
       const right = left + 1;
       let smallest = index;
+
       if (left < this.heap.length && compareHeapEntries(this.heap[left], this.heap[smallest]) < 0) {
         smallest = left;
       }

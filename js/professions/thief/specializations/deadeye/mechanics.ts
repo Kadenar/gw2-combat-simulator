@@ -76,6 +76,7 @@ export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, eve
   }
 
   const skill = skillForEvent(context, event);
+
   if (!skill || (!skill.malicious && !isInitiativeAttack(skill))) return;
   // Negative priority ensures the task runs after all damage events for this activation have been appended
   context.tasks.schedule({
@@ -105,6 +106,7 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
 
 function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
+
   if (hasTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
     // Malicious Intent grants 2 malice on consumption before zeroing it out, allowing Maleficent Seven to trigger one final time
     state.malice = Math.min(
@@ -126,16 +128,20 @@ export function resolveDeadeyeMaliceHit(
 ): void {
   const event = context.eventByOrder(Number(task.payload.eventOrder)) as ThiefSimulationEvent | undefined;
   const activationId = event?.activationId;
+
   if (!event || typeof activationId !== 'string' || !markedAt(context, task.at)) {
     return;
   }
 
   const skill = skillForEvent(context, event);
+
   if (!skill) return;
   const state = deadeyeState.from(context);
+
   // Guard against multi-hit skills scheduling multiple tasks for the same activation; only the first should update malice
   if (state.maliceResolvedActivations[activationId]) return;
   state.maliceResolvedActivations[activationId] = true;
+
   if (skill.malicious) {
     consumeMaliciousAttackMalice(context, event);
   } else if (isInitiativeAttack(skill)) {
@@ -145,6 +151,7 @@ export function resolveDeadeyeMaliceHit(
 
 function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = deadeyeState.from(context);
+
   if (
     skill.id !== ID.DODGE ||
     !hasTrait(context.config, TRAIT.SILENT_SCOPE) ||
@@ -170,6 +177,7 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
   if (!(skill.categories || []).includes('Cantrip')) return;
   const state = deadeyeState.from(context);
   const at = context.effectiveEnd;
+
   if (context.config.relic === 'Deadeye') {
     state.deadeyeRelicUntil = at + 8;
     context.emit({

@@ -21,6 +21,7 @@ import { purgeScourgeTimedState, scourgeState } from './state.js';
 
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.FELL_BEACON)) {
     // Fell Beacon converts 7% of condition damage into expertise; must use raw
     // gear stats (config.stats) not the merged attribute record because might
@@ -84,6 +85,7 @@ function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: Nec
 // after their canonical timestamps and ownership are known.
 function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   const state = scourgeState.from(context);
+
   if (
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||

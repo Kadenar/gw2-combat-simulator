@@ -39,6 +39,7 @@ function playerInstance(context: EvtcProfessionReconstructionContext): number | 
 
 function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const instance = playerInstance(context);
+
   if (instance == null) return [];
   const outstanding = new Map<string, number>();
   const actions: EvtcRecordedRotationAction[] = [];
@@ -48,11 +49,13 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
 
   context.log.events.forEach((event, eventIndex) => {
     const identity = COMMANDS.get(event.skillId);
+
     if (!identity || event.sourceMasterInstance !== instance || event.source === context.playerAddress) {
       return;
     }
 
     const key = `${event.source}:${event.skillId}`;
+
     if (
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
       (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
@@ -70,12 +73,14 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
     }
 
     const pending = outstanding.get(key) || 0;
+
     if (pending > 0) {
       outstanding.set(key, pending - 1);
       return;
     }
 
     const inferredStart = event.time - Math.max(0, event.value);
+
     if (event.value > 0 && combatStart != null && inferredStart < combatStart && event.time <= combatStart + 1200) {
       actions.push(canonicalAction(eventIndex, inferredStart, identity, event.skillId, 'resource-inference'));
     }
@@ -108,10 +113,12 @@ function openingActions(
   commands: EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const opening = findOpeningPrecast(context, OPENING_WEAPONS);
+
   if (!opening) return [];
   const openingCore = commands.find(
     (action) => action.rawName === 'Core Reactor Shot' && action.start === opening.start
   );
+
   if (openingCore) {
     const index = commands.indexOf(openingCore);
     commands[index] = { ...openingCore, eventIndex: opening.eventIndex - 1 };
@@ -121,6 +128,7 @@ function openingActions(
   const bombs = selectedSkill(context, 'Bomb Kit')
     ? PRECOMBAT_BOMBS.filter((identity) => initialNames.has(identity.name))
     : [];
+
   if (!bombs.length) return [opening];
 
   let cursor = opening.start;
@@ -140,6 +148,7 @@ function openingActions(
 
   const equip = kitIdentity(context, 'Bomb Kit', false);
   const stow = kitIdentity(context, 'Bomb Kit', true);
+
   if (equip) {
     scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, equip, equip.skillId, 'initial-state'));
   }

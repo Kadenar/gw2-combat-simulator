@@ -56,6 +56,7 @@ function addLightField(state: GuardianLuminaryState, startsAt: number, duration:
 
 function detonateLightAura(context: GuardianCastContext, skill: GuardianSkill, at: number): boolean {
   const state = luminaryState.from(context);
+
   if (!lightAuraActive(state, at, context.epsilon)) return false;
   const strike = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
@@ -119,6 +120,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
   const activationAt = context.start;
   const impactAt = context.effectiveEnd;
   const sovereign = hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT);
+
   if (sovereign && isLuminaryDetonator(skill)) {
     detonateLightAura(context, skill, activationAt);
   }
@@ -132,6 +134,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
     ) ||
     (enteringRadiantForge && sovereign) ||
     (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
+
   if (grantsImmediately) {
     if (enteringRadiantForge) {
       // Bypass grantLightAura to avoid a spurious Sovereign of Light detonation:
@@ -161,6 +164,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
   }
 
   if (isGuardianSymbolSkill(skill)) addLightField(state, impactAt, 4);
+
   if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
     addLightField(state, impactAt, 5);
   }
@@ -175,12 +179,14 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
 
 function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = luminaryState.from(context);
+
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const runtimeCastMs = Math.max(0, (context.fullEnd - context.start) * 1000);
     // Project the Quickness-authored buff timestamp through the same policy as
     // the stance packets so its damage bonus begins when the logged impact lands.
     const at =
       context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, PIERCING_STANCE_IMPACT_MS) / 1000;
+
     if (at > context.effectiveEnd + context.epsilon) return;
     const wasActive = Number(state.piercingStanceUntil || 0) > at + context.epsilon;
     // Stack duration additively when already active rather than resetting the
@@ -232,8 +238,10 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
 function reduceVirtueCooldowns(context: GuardianSchedulerContext, at: number, reduction: number): void {
   for (const skillId of RADIANT_VIRTUE_IDS) {
     const readyAt = Number(context.state.cooldowns.get(skillId) || 0);
+
     if (!(readyAt > at + context.epsilon)) continue;
     const reduced = Math.max(at, readyAt - reduction);
+
     if (reduced <= at + context.epsilon) {
       context.state.cooldowns.delete(skillId);
     } else {
@@ -250,6 +258,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
+
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
     const armaments = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.radiantArmaments), 'buff');
     emitSkillBuff(context, skill, {
@@ -336,9 +345,11 @@ function resetRadiantWeaponCooldowns(context: GuardianSchedulerContext, virtue: 
 // virtue-specific illumination effects.
 function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: GuardianSkill): void {
   const virtue = virtueFor(skill);
+
   if (!virtue) return;
   const at = context.effectiveEnd;
   const state = luminaryState.from(context);
+
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS) && resetRadiantWeaponCooldowns(context, virtue)) {
     emitGuardianProc(context, {
       name: 'Master-at-Arms',
@@ -434,6 +445,7 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
   const maximumStacks = Number(guardianBalanceProfile(context, PROFILE.effulgentStance)?.maximumStacks || 10);
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && event.actorType === 'effect');
+
   if (
     !guardianOwnedStrike ||
     // Only count strikes that deal damage (coefficient > 0), not utility hits.
@@ -478,6 +490,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       stackCount: stacks
     })
   );
+
   if (stacks === maximumStacks) {
     // Daze is only triggered at max stacks; priority 6 > 5 so it sorts after
     // the strike in the resolver queue at the same timestamp.

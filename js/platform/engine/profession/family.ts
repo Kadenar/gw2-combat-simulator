@@ -40,7 +40,9 @@ function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): S
   const result = composeHookContainer(modules, 'attributeRules', ATTRIBUTE_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
     const value = entry.module.attributeRules?.modifierRules;
+
     if (value == null) return [];
+
     if (!Array.isArray(value)) {
       throw new TypeError(`${entry.name} attributeRules.modifierRules must be an array.`);
     }
@@ -52,18 +54,22 @@ function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): S
     (module) => module.attributeRules?.compileModifierRules,
     'attributeRules.compileModifierRules'
   );
+
   if (!declarations.length) return result;
+
   if (typeof compiler !== 'function') {
     throw new TypeError('Attribute modifier-rule fragments require one compiler.');
   }
 
   const compiled = compiler(declarations);
+
   if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
     throw new TypeError('attributeRules.compileModifierRules must return a hook object.');
   }
 
   for (const name of ATTRIBUTE_HOOK_NAMES) {
     const hook = (compiled as SchedulerRecord)[name];
+
     if (hook == null) continue;
     result[name] = [...((result[name] as unknown[] | undefined) || []), hook];
   }
@@ -128,6 +134,7 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
 ): Readonly<ProfessionFamilyContract<TProfessionState>> {
   assertDefinition(definition);
   assertModuleDefinition(definition.core);
+
   if (definition.core.id !== 'Core') {
     throw new TypeError('The core profession module id must be "Core".');
   }
@@ -143,6 +150,7 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
   const specializationModules = new Map<string, Readonly<ProfessionModuleDefinition>>();
   for (const [name, module] of Object.entries(definition.specializations)) {
     assertModuleDefinition(module);
+
     if (name !== module.id) {
       throw new TypeError(`Specialization key ${name} does not match module id ${module.id}.`);
     }
@@ -184,6 +192,7 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
     config: Readonly<SchedulerConfig> = {}
   ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
     const specialization = String(config.specialization || 'Core').trim() || 'Core';
+
     if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
         `Unknown ${definition.name} elite specialization "${specialization}". ` +
@@ -192,9 +201,11 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
     }
 
     const cached = cache.get(specialization);
+
     if (cached) return cached;
     const modules: NamedModule[] = [{ name: 'Core', module: core }];
     const specializationModule = specializationModules.get(specialization);
+
     if (specializationModule) {
       modules.push({ name: specialization, module: specializationModule });
     }

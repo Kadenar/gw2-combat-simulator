@@ -34,6 +34,7 @@ const WEAPON_STRENGTH_ALIAS_MATCHERS = new WeakMap<
 
 function weaponStrengthAliasMatchers(aliases: Readonly<Record<string, string>>): readonly WeaponStrengthAliasMatcher[] {
   const cached = WEAPON_STRENGTH_ALIAS_MATCHERS.get(aliases);
+
   if (cached) return cached;
 
   const matchers = Object.freeze(

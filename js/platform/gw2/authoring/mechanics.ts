@@ -227,7 +227,9 @@ export function onResolvedCriticalHit<
       // Reject ineligible actors, sources, and profession predicates before
       // reading progress or consuming a secondary random stream.
       if (!actorTypes.has(event.actorType || 'unknown')) return;
+
       if (sourceIds && !sourceIds.has(String(event.sourceId ?? ''))) return;
+
       if (options.when?.(context, event, details) === false) return;
 
       // Resolve patched proc and ICD values at the hit timestamp so balance

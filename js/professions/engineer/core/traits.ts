@@ -42,6 +42,7 @@ function isHealingSkill(skill: EngineerSkill | undefined): boolean {
 // Grenadier procs on healing skill casts (Healing Turret Overcharge in-game); 20s ICD
 function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
+
   if (
     !hasTrait(context.config, TRAIT.GRENADIER) ||
     !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
@@ -74,6 +75,7 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
 // Streamlined Kits fires on kit-equip only; 20s ICD prevents rapid kit-swapping from stacking procs
 function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
+
   if (
     skill.handlerId !== 'engineer.kit-equip' ||
     !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
@@ -92,6 +94,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
     duration: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
     stacks: 1
   });
+
   if ((skill.kitName || skill.name) === 'Grenade Kit') {
     emitSkillDamage(context, {
       at,
@@ -153,6 +156,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
   if (hasTrait(context.config, TRAIT.KINETIC_BATTERY)) {
     const maximumCharges = engineerBalanceValue(context, PROFILE.kineticBattery, 'maximumStacks', 5);
     state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
+
     // proc quickness and reset charges every 5th toolbelt cast
     if (state.kineticCharges >= maximumCharges) {
       state.kineticCharges = 0;
@@ -185,6 +189,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
 
 export function applyEngineerCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
+
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
   applyToolbeltTraits(context, skill, at);
@@ -204,6 +209,7 @@ function isExplosion(context: EngineerResolverContext, event: EngineerResolverEv
 // mech attacks (summon actorType) don't trigger Aim-Assisted Rocket
 function isAimAssistedProjectile(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.actorType !== 'player') return false;
+
   if (event.projectile === true) return true;
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
@@ -328,6 +334,7 @@ export function reactToEngineerDamage(
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
+
   if (event.actorType === 'player' && hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) && !state.explosiveEntranceFired) {
     // fires once per attack sequence; dodge resets the flag for the next sequence
     state.explosiveEntranceFired = true;
@@ -342,6 +349,7 @@ export function reactToEngineerDamage(
   }
 
   const explosion = isExplosion(context, event);
+
   if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
     applyEngineerDerivedCondition(context, event, {
       name: 'Steel-Packed Powder',
@@ -404,6 +412,7 @@ export function reactToEngineerDamage(
 
   if (explosion && event.name !== 'Aim-Assisted Rocket' && hasTrait(context, TRAIT.SHRAPNEL)) {
     let triggered = false;
+
     if (usesRandomTraitProcs(context)) {
       triggered = context.random.roll(
         engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33),
@@ -516,6 +525,7 @@ export function reactToEngineerCondition(context: EngineerResolverContext, event
 
   if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.HEMATIC_FOCUS)) {
     const state = procState(context);
+
     if (isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) {
       state.hematicFocus = event.at + engineerBalanceValue(context, PROFILE.hematicFocus, 'internalCooldown', 8);
       queueBuff(context, event, {

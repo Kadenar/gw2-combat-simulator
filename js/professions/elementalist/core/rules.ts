@@ -89,6 +89,7 @@ function applySkillAura(context: ElementalistLifecycleContext, skill: Skill): vo
   if (!skill.aura) return;
   const [element, rawDuration] = String(skill.aura).split('|');
   const duration = Number(rawDuration || 0);
+
   if (!element || !(duration > 0)) return;
   applyElementalistAura(context, {
     at: context.effectiveEnd,
@@ -106,6 +107,7 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
   beginElementalistGlyphCast(context, skill);
   const state = professionCoreState(context);
   const chain = etchingChain(skill.name);
+
   if (chain && skill.name === chain.etching && skillWeapon(skill) === 'Spear') {
     state.etchings[chain.etching] = { stage: 'lesser', otherCasts: 0 };
   }
@@ -135,6 +137,7 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
       critical: state.spearNextGuaranteedCritical,
       control: state.spearNextControlHit
     };
+
     if (followup.damage || followup.critical || followup.control) {
       state.spearFollowups[context.reservationId] = followup;
       state.spearNextDamageBonus = false;
@@ -174,6 +177,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
   }
 
   const followup = state.spearFollowups[context.reservationId];
+
   if (!followup) return;
   for (const event of activationEvents) {
     context.replaceEvent(event, {
@@ -211,17 +215,21 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
   const at = context.effectiveEnd;
 
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+
   if (aura) {
     state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
   }
 
   const chain = etchingChain(skill.name);
+
   if (chain && skill.name !== chain.etching && skillWeapon(skill) === 'Spear') {
     state.etchings[chain.etching] = null;
   } else if (!chain || skill.name === chain.etching) {
     for (const candidate of ETCHING_CHAINS) {
       const progress = state.etchings[candidate.etching];
+
       if (!progress || progress.stage !== 'lesser') continue;
+
       if (skill.name === candidate.etching) continue;
       const otherCasts = progress.otherCasts + 1;
       state.etchings[candidate.etching] = {
@@ -269,6 +277,7 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
   }): void => {
     professionCoreState(context).rockBarrierExpiresAt = 0;
     const root = context.catalog.skillsByName.get('Rock Barrier');
+
     if (root) {
       context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, { rockBarrierRelease: true }));
     }
@@ -340,8 +349,10 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   completeElementalistGlyphCast(context, skill);
   completeElementalistElementalCommand(context, skill);
   const target = targetAttunement(skill);
+
   if (target) {
     const lifecycle = context as unknown as SchedulerRecord;
+
     if (lifecycle.elementalistAttunementHandled !== true) {
       onAttunementComplete(context, skill, target);
     }
@@ -357,6 +368,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   applyConjureState(context, skill);
   applySpecialSkillProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
+
   if (skill.name === 'Dodge') {
     updateEndurance(
       context as unknown as ElementalistSchedulerContext,
@@ -385,6 +397,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       context.effectiveEnd + elementalistBalanceValue(context, PROFILE.arcaneEcho, 'recharge', 1)
     );
     const arcaneEcho = context.catalog.skillsByName.get('Arcane Echo');
+
     if (arcaneEcho) {
       const currentReadyAt = Number(context.state.cooldowns.get(arcaneEcho.id) || context.effectiveEnd);
       context.state.cooldowns.set(arcaneEcho.id, currentReadyAt + context.rechargeDuration);
@@ -443,6 +456,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
   observeElementalistElementalEvent(context, event);
   extendPersistingFlamesField(context, event);
   const state = professionCoreState(context);
+
   if (
     event.type === 'damage' &&
     event.actorType !== 'summon' &&
@@ -451,6 +465,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
     event.at <= state.shatteringStoneUntil + context.epsilon
   ) {
     state.shatteringStoneHitsRemaining -= 1;
+
     if (state.shatteringStoneHitsRemaining === 0) {
       state.shatteringStoneUntil = 0;
     }
@@ -496,10 +511,12 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   }
 
   if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;
+
   if (state.rockBarrierExpiresAt > 0 && state.rockBarrierExpiresAt <= at) {
     const expiresAt = state.rockBarrierExpiresAt;
     state.rockBarrierExpiresAt = 0;
     const root = context.catalog.skillsByName.get('Rock Barrier');
+
     if (root) {
       context.state.cooldowns.set(
         root.id,
@@ -520,10 +537,13 @@ export function modifyElementalistRechargeDuration(
   duration: number
 ): number {
   const skill = context.skill;
+
   if (!skill) return duration;
+
   if (skill.name === 'Glyph of Elementals') return 0;
   const state = professionCoreState(context);
   const at = Number((context as unknown as SchedulerRecord).start ?? context.state.time ?? 0);
+
   if (skill.name === 'Rock Barrier' && !(context as unknown as SchedulerRecord).rockBarrierRelease) {
     return 0;
   }
@@ -534,6 +554,7 @@ export function modifyElementalistRechargeDuration(
 
   let adjustedDuration = duration;
   let weaponRechargeMultiplier = 1;
+
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear' && String(skill.slot || '') !== 'Weapon_1') {
     weaponRechargeMultiplier *= elementalistBalanceValue(
       context,
@@ -550,11 +571,13 @@ export function modifyElementalistRechargeDuration(
   }
 
   adjustedDuration *= Math.max(0, weaponRechargeMultiplier);
+
   if (skill.name === 'Ride the Lightning') {
     adjustedDuration *= elementalistBalanceValue(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
   }
 
   const attunement = String(skill.attunement || '');
+
   if (
     (attunement === 'Fire' && hasTrait(context, "Pyromancer's Training")) ||
     (attunement === 'Air' && hasTrait(context, "Aeromancer's Training")) ||

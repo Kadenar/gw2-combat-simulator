@@ -21,6 +21,7 @@ function inferredOpeningJurisdiction(
   signal: DpsReportRecordedAction
 ): DpsReportRecordedAction | null {
   const skill = catalogSkill(context, JURISDICTION_ID);
+
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   const start = context.phase.start - JURISDICTION_COMBAT_OFFSET_MS;
@@ -57,10 +58,12 @@ export function reconstructWillbenderDpsReportActions(
   );
   const recoveredOpening =
     openingFire && !recordedOpeningRoot ? inferredOpeningJurisdiction(context, openingFire) : null;
+
   if (recoveredOpening) normalized.push(recoveredOpening);
 
   for (const action of sorted) {
     if (consumed.has(action) || numericSkillId(action) === FIRE_JURISDICTION_ID) continue;
+
     if (numericSkillId(action) !== RUSHING_JUSTICE_ID) {
       normalized.push(action);
       continue;
@@ -73,6 +76,7 @@ export function reconstructWillbenderDpsReportActions(
         candidate.start >= action.start &&
         candidate.start - action.end <= COMPOSITE_SIGNAL_WINDOW_MS
     );
+
     if (!impact) {
       normalized.push(action);
       continue;

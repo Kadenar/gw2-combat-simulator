@@ -2711,6 +2711,7 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
 
   for (const skill of mesmerCatalog.skills) {
     if (!skill.handlerId) continue;
+
     const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
 
     assert.ok(strategy, `${skill.name} has an unresolved handler`);
@@ -2831,6 +2832,7 @@ async function relativeModuleGraph(entryFiles) {
     const file = await sourceModulePath(path.resolve(pending.pop()));
 
     if (visited.has(file)) continue;
+
     visited.add(file);
     const source = await readFile(file, 'utf8');
     const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -2871,6 +2873,7 @@ async function relativeModuleGraph(entryFiles) {
 
 async function sourceModulePath(file) {
   if (!file.endsWith('.js')) return file;
+
   const typeScript = file.replace(/\.js$/, '.ts');
 
   try {
@@ -2900,6 +2903,7 @@ test('native registry loaders do not pull another profession module graph', asyn
 
       for (const other of professionRegistry) {
         if (other.id === entry.id) continue;
+
         assert.equal(relative.startsWith(`professions/${other.id}/`), false, `${entry.id} imports ${relative}`);
       }
     }
@@ -3078,6 +3082,7 @@ test('profession family state composition has no flat runtime adapters', async (
 
     for (const file of await javascriptFiles(root)) {
       if (path.basename(file) !== 'module.ts') continue;
+
       const source = await readFile(file, 'utf8');
 
       assert.doesNotMatch(source, /defineProfessionModule<SchedulerRecord>/, path.relative(jsRoot, file));

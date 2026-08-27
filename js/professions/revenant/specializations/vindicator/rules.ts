@@ -61,6 +61,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze
 
 function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes };
+
   if (
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
     // Skip if the caller already baked static profession rules into the supplied attributes.
@@ -77,6 +78,7 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
   if (event.type === 'revenant.state' && event.reason === 'dodge') {
     // The dodge state event carries the animation-start timestamp; pass it through so completeVindicatorDodge can offset the strike by dodgeStrikeDelay from that origin.
     const skill = context.catalog.skillsById.get(ID.DODGE) as RevenantSkill | undefined;
+
     if (skill) completeVindicatorDodge(context, skill, event.at);
     return;
   }
@@ -84,6 +86,7 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
   if (event.type !== 'sigil_swap') return;
   const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
+
   // Reset alliance side to config default on every swap; mid-fight flips are relative to current state.
   if (coreState.activeLegendId === LEGEND.ALLIANCE) {
     state.allianceSide = context.config.allianceSide === 'kurzick' ? 'kurzick' : 'luxon';
@@ -95,13 +98,16 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
   }
 
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+
   if (!swapSkill) return;
+
   if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon, event.at, TRAIT.SPIRIT_BOON);
   }
 
   if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
+
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_ALLIANCE, event.at, TRAIT.SONG_OF_THE_MISTS);
   coreState.endurance = Math.min(

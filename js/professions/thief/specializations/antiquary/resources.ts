@@ -20,6 +20,7 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
     Number(combatHigh?.maximumStacks || 10),
     Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2))
   );
+
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
@@ -46,8 +47,10 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
 export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = antiquaryState.from(context);
   const cost = Number(skill.initiativeCost || 0);
+
   if (!(cost > 0)) return;
   state.initiativeSpentSincePilfer += cost;
+
   if (Number(state.chakInitiativeRefundUntil || 0) > context.start) {
     gainThiefInitiative(context, cost, context.start, 'chak-shield-refund');
   }
@@ -57,6 +60,7 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null &&
       context.start + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
+
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&

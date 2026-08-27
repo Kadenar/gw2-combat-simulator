@@ -18,6 +18,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     const extension = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'durationMultiplier', 5);
     const maximum = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'maximumStacks', 10);
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
+
     if (current) {
       refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (expiresAt) =>
         expiresAt === current.expiresAt ? Math.min(event.at + maximum, expiresAt + extension) : expiresAt

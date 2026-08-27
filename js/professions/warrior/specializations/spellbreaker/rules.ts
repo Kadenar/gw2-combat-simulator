@@ -39,6 +39,7 @@ function insightStacks(context: Gw2ModifierContext): number {
         }
       | undefined
   )?.profession;
+
   if (profession?.specialization?.kind !== 'Spellbreaker') return 0;
   return (profession.specialization.state?.attackerInsightExpiries || []).filter(
     (expiresAt) => expiresAt > context.time

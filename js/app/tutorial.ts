@@ -14,6 +14,7 @@ export const ANALYSIS_TUTORIAL_GIF_URL = new URL('../../docs/assets/gw2-combat-s
 /** Keeps the looping GIF unloaded while the tutorial is closed or motion is reduced. */
 export function setTutorialAnimationState(image: HTMLImageElement, shouldPlay: boolean): void {
   const source = image.dataset.tutorialSrc;
+
   if (shouldPlay && source) {
     if (!image.getAttribute('src')) image.setAttribute('src', source);
     return;
@@ -29,9 +30,11 @@ export function restartTutorialAnimation(
 ): void {
   const source = image.dataset.tutorialSrc;
   setTutorialAnimationState(image, false);
+
   if (!source) return;
 
   const restore = (): void => image.setAttribute('src', source);
+
   if (view?.requestAnimationFrame) {
     view.requestAnimationFrame(() => view.requestAnimationFrame(restore));
   } else {
@@ -55,9 +58,11 @@ export function activateTutorialPanel(
     const isActive = panel.dataset.tutorialPanel === tutorialId;
     panel.hidden = !isActive;
     const image = panel.querySelector<HTMLImageElement>('.tutorial-animation');
+
     if (!image) return;
 
     setTutorialAnimationState(image, isActive && shouldPlay);
+
     if (isActive) activeImage = image;
   });
 
@@ -175,6 +180,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
   const landingHeader = root.querySelector('.landing-header');
   const compactHost = root.querySelector('.community-actions');
   const host = landingHeader || compactHost;
+
   if (!host) return;
 
   const trigger = tutorialTrigger(root, Boolean(landingHeader));
@@ -189,6 +195,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
   const shouldPlay = (): boolean => !motionPreference?.matches;
   const closeDialog = (): void => {
     activateTutorialPanel(dialog, activeTutorialId, false);
+
     if (typeof dialog.close === 'function') dialog.close();
     else dialog.removeAttribute('open');
   };
@@ -209,6 +216,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
 
     const target = event.target as { closest?: (selector: string) => Element };
     const choice = target.closest?.('[data-tutorial-choice]') as HTMLElement | undefined;
+
     if (choice?.dataset.tutorialChoice) {
       activeTutorialId = choice.dataset.tutorialChoice;
       activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
@@ -218,6 +226,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
       const image = dialog.querySelector<HTMLImageElement>(
         `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`
       );
+
       if (image) restartTutorialAnimation(image, root.defaultView);
     }
   });

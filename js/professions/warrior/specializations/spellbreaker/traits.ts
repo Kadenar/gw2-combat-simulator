@@ -74,8 +74,10 @@ function triggerMagebaneTether(
 // Insight, No Escape, and Magebane Tether state without cross-event duplication.
 export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.actorType !== 'player') return;
+
   if (event.type === 'warrior.boon-removal') {
     const { applications } = attackerInsightFromBoonRemoval(context, event);
+
     if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(context, spellbreakerState.from(context), event.at, applications);
     }
@@ -123,6 +125,7 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
 
   if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+
   if (skill?.burst) {
     triggerMagebaneTether(context, spellbreakerState.from(context), event.at);
   }
@@ -147,6 +150,7 @@ export function reactToSpellbreakerDamage(context: WarriorResolverContext, event
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
+
   if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
     context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');
   }

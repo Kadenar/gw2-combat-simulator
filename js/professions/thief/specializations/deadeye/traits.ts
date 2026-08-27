@@ -96,6 +96,7 @@ export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: num
 
 export function applyMaleficentSeven(context: ThiefEmissionContext, at: number): void {
   const state = deadeyeState.from(context);
+
   if (
     state.malice !== state.maximumMalice ||
     // maleficentSevenTriggered prevents the proc from firing again if malice stays at maximum across multiple hits

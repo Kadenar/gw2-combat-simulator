@@ -9,6 +9,7 @@ export function expireDeadeyesMark(
   task: ThiefScheduledTask<{ readonly generation?: number }>
 ): void {
   const state = deadeyeState.from(context);
+
   // A re-mark increments markGeneration and schedules a new expiry; stale tasks from the previous mark are silently discarded
   if (Number(task.payload.generation || 0) !== state.markGeneration || task.at < state.markExpiresAt) {
     return;

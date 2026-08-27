@@ -18,6 +18,7 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
     actorType: 'player',
     rangerUnleashed
   });
+
   if (
     // Only Unleash Ranger opens an ambush window; Unleash Pet does not.
     !rangerUnleashed ||

@@ -82,6 +82,7 @@ function breakdownDisplayName(
   if (group !== 'Entities' || !parentSkill) return sourceSkill;
   let name = damageBreakdownName || String(entry.name || sourceSkill);
   const parentPrefix = `${parentSkill}${PARENT_SKILL_SEPARATOR}`;
+
   if (name.startsWith(parentPrefix)) name = name.slice(parentPrefix.length);
   return name.endsWith(CHRONOPHANTASMA_SUFFIX) ? name.slice(0, -CHRONOPHANTASMA_SUFFIX.length) : name;
 }
@@ -110,6 +111,7 @@ function buildResolvedLookup(result: Gw2ResolverResult): ResolvedLookup {
     if (!event.name) continue;
     for (const id of [event.skillId, event.sourceId]) {
       const identity = eventIdentity(id, event.name);
+
       if (identity && !resolvedByIdentity.has(identity)) {
         resolvedByIdentity.set(identity, event);
       }
@@ -198,6 +200,7 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
       parentSkill: entry.parentSkill,
       name: entry.name
     });
+
     if (keyByIdentity.has(identity)) continue;
     const { group, name } = attributeBreakdownEntry(entry, lookup);
     keyByIdentity.set(identity, skillBreakdownKey(group, name));
@@ -244,9 +247,13 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       critEligibleHits: 0,
       fallbackCasts: 0
     };
+
     if (!current.parentSkill && parentSkill) current.parentSkill = parentSkill;
+
     if (!current.icon && icon) current.icon = icon;
+
     if (current.skillId == null && skillId != null) current.skillId = skillId;
+
     if (current.sourceId == null && sourceId != null) {
       current.sourceId = sourceId;
     }

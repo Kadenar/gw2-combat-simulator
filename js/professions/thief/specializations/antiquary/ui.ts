@@ -15,6 +15,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const items: RotationStateSnapshotItem[] = [];
   const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
   const combatHighStacks = Math.max(0, Math.min(10, Math.trunc(Number(state.combatHighStacks || 0))));
+
   if (combatHighRemaining > 0 && combatHighStacks > 0) {
     items.push({
       id: 'antiquary-combat-high',
@@ -31,6 +32,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
+
     if (remaining <= 0) continue;
     items.push({ id, label, value: `${remaining.toFixed(1)}s`, title: `${label} artifact effect remaining` });
   }
@@ -41,6 +43,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   ] as const) {
     const remaining = Number(expiresAt || 0) - at;
     const charges = Math.max(0, Math.trunc(Number(chargesValue || 0)));
+
     if (remaining <= 0 || charges <= 0) continue;
     items.push({
       id,
@@ -53,6 +56,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const holoExpiries = (state.holoUtilityCooldownReductionExpirations || [])
     .map(Number)
     .filter((expiry) => expiry > at);
+
   if (holoExpiries.length) {
     items.push({
       id: 'antiquary-holo-dancer-decoy',
@@ -118,6 +122,7 @@ export const antiquaryUi = Object.freeze({
   // not a palette meter, so Antiquary contributes no artifact resource view.
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = stateFrom(context);
+
     if (skill.artifactKind) {
       const hasUse = Number(state.artifactUsesRemaining || 0) > 0;
       const inSlot = Boolean(state.artifactSlots?.some((slot) => slot.skillId === skill.id));

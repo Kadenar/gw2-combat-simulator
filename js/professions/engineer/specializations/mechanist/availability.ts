@@ -6,6 +6,7 @@ import type { EngineerPrecastContext, EngineerSkill } from '../../types.js';
 export function mechanistCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Mechanist') return { ready: true };
   const state = mechanistState.from(context);
+
   if (skill.toolbeltParentName) {
     return denyEngineerCast(skill, 'engineer.toolbelt-replaced', 'Mechanist mech commands replace tool-belt skills.');
   }
@@ -14,6 +15,7 @@ export function mechanistCastAvailability(context: EngineerPrecastContext, skill
     // Slots 1-3 are the three mech commands chosen by traits.
     // Slot 4 is Crash Down / Recall Mech (the mech toggle) — not a command.
     const slot = Number(skill.mechanicSlot);
+
     if (slot <= 3 && !state.mech.commandSkillIds.includes(skill.id)) {
       return denyEngineerCast(
         skill,

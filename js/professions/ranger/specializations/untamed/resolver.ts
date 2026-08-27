@@ -94,6 +94,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Ranger
   const maximumStacks = Number(profile?.maximumStacks ?? 5);
   const duration = Number(profile?.durationMultiplier ?? 5);
   const internalCooldown = Number(profile?.internalCooldown ?? 0.5);
+
   if (isPlayerStrike(event)) {
     if (!isInternalCooldownReady(event.at, state.ferociousSymbiosisPetReadyAt)) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
@@ -125,6 +126,7 @@ function triggerLetLoose(context: RangerResolverContext, event: RangerResolverEv
   }
 
   const activations = untamedState.from(context).letLooseActivations;
+
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
   if (activations[event.activationId]) return;
   activations[event.activationId] = true;
@@ -180,6 +182,7 @@ export function reactToUntamedDamage(context: RangerResolverContext, event: Rang
 
   triggerBlindingOutburst(context, event);
   triggerFerociousSymbiosis(context, event);
+
   // Let Loose is player-only; pet hits cannot trigger it.
   if (isPlayerStrike(event)) triggerLetLoose(context, event);
 }
@@ -187,12 +190,14 @@ export function reactToUntamedDamage(context: RangerResolverContext, event: Rang
 export function reactToUntamedControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event) && !isPetStrike(event)) return;
   const state = untamedState.from(context);
+
   if (
     hasTrait(context, TRAIT.DEBILITATING_BLOWS) &&
     isInternalCooldownReady(event.at, state.debilitatingBlowsReadyAt)
   ) {
     const profile = rangerBalanceProfile(context, PROFILE.debilitatingBlows);
     state.debilitatingBlowsReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
+
     // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
     if (state.rangerUnleashed) {
       const poison = rangerBalanceProfileEffect(profile, 'condition', 0);

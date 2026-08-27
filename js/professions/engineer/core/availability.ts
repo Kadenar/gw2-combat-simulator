@@ -18,6 +18,7 @@ export function engineerCoreCastAvailability(
 ): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
+
   if (skill.id === ID.DODGE) {
     const enduranceCost = engineerBalanceValue(
       context,

@@ -73,6 +73,7 @@ async function collectSlices() {
 
     for (const specialization of specializations) {
       if (!specialization.isDirectory()) continue;
+
       const modulePath = path.join(specializationsRoot, specialization.name, 'module.ts');
 
       if (await isFile(modulePath)) {
@@ -231,6 +232,7 @@ function professionImports(expression, imports, sliceRoot, ignoredProperties = n
     if (!resolvedImport.startsWith(PROFESSIONS_ROOT + path.sep)) continue;
 
     if (resolvedImport.includes(`${path.sep}data${path.sep}`)) continue;
+
     origins.add(path.basename(moduleSpecifier));
   }
 
@@ -391,6 +393,7 @@ test('native profession slices follow the canonical file contract', async () => 
     const report = `Slice alignment violations:\n${violations.map((violation) => `- ${violation}`).join('\n')}`;
 
     if (ENFORCE_SLICE_ALIGNMENT) assert.fail(report);
+
     console.warn(report);
   }
 });

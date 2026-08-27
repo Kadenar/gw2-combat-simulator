@@ -25,6 +25,7 @@ function activeAutoattack(context: SchedulerRecord): Skill | null {
 export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill | null {
   // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
   if (String(context.specialization || '') !== 'Vindicator') return null;
+
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
   return {
@@ -43,6 +44,7 @@ export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill
 
 export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, offsetMs = 0): RotationCommand[] {
   const autoattack = activeAutoattack(context);
+
   if (!autoattack) return [];
   return [
     {
@@ -62,6 +64,7 @@ function vindicatorPaletteActionSkills(context: SchedulerRecord, skills: readonl
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills.filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION);
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
+
   if (!dodgeAuto) return ordinarySkills;
   const dodgeIndex = ordinarySkills.findIndex((skill) => skill.name === 'Dodge');
   // Insert immediately after Dodge in the palette; if Dodge is absent, prepend at index 0.

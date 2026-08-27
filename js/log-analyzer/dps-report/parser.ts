@@ -90,6 +90,7 @@ function parseSkillMap(value: unknown): Readonly<Record<string, DpsReportSkillMe
 /** Validates raw Elite Insights JSON before rotation reconstruction consumes its timeline. */
 export function parseDpsReport(input: string | unknown): ParsedDpsReport {
   let value: unknown = input;
+
   if (typeof input === 'string') {
     try {
       value = JSON.parse(input) as unknown;

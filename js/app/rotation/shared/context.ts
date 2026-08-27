@@ -22,9 +22,11 @@ export const professionEndState = (result: ProfessionAppResult | null | undefine
 
 export function paletteEndState(app: ProfessionAppState): RotationEndState | null {
   const result = app.results;
+
   if (!result) return null;
   const rotation = Array.isArray(app.build?.rotation) ? app.build.rotation : [];
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length);
+
   if (
     insertionIndex === null ||
     insertionIndex === rotation.length ||
@@ -34,6 +36,7 @@ export function paletteEndState(app: ProfessionAppState): RotationEndState | nul
   }
 
   const cached = paletteStateCache.get(app);
+
   if (cached?.result === result && cached.insertionIndex === insertionIndex) {
     return cached.state;
   }

@@ -109,6 +109,7 @@ export function prepareGw2BuffCompanionCandidates(
     scope === 'allies' ||
     ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope) ||
     event.affectsSummons === true;
+
   if (!shared || Array.isArray(event.companionIds)) return event;
   return {
     ...event,
@@ -264,6 +265,7 @@ export function gw2AlliedPlayerProcTimeline(
 ): Gw2AlliedPlayerProc[] {
   const assumptions = gw2AlliedPlayerAssumptions(config);
   const allyCount = clamp(Math.trunc(Number(maximumAllies)), 0, assumptions.count);
+
   if (!allyCount || !assumptions.strikesPerSecond) return [];
   const interval = Math.max(Number(internalCooldown || 0), 1 / assumptions.strikesPerSecond);
   const end = Number(start) + Math.max(0, Number(duration || 0));

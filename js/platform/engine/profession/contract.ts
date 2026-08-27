@@ -117,6 +117,7 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
       }
 
       const candidate = entry as SchedulerRecord;
+
       if (typeof candidate.handler !== 'function') {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
@@ -148,13 +149,16 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
  */
 function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
   const hooks = orderedHooks(value, hookName);
+
   if (!hooks.length) return fallback;
+
   if (hookName === 'availability') {
     return (context: SchedulerRecord, skill: Skill) =>
       foldAvailability(
         (function* () {
           for (const hook of hooks) {
             const availability = assertAvailabilityResult(hook.handler(context, skill), `${hook.id} availability hook`);
+
             if (availability.ready !== false) continue;
             yield availability;
           }
@@ -193,6 +197,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
     let result: unknown;
     for (const hook of hooks) {
       const next = hook.handler(context, value);
+
       if (next !== undefined) result = next;
     }
 
@@ -213,6 +218,7 @@ export function createEventReactions(
       let result: unknown;
       for (const hook of hooks) {
         const next = hook.handler(context, event, details);
+
         if (next !== undefined) result = next;
       }
 
@@ -232,6 +238,7 @@ export function assertDefinition(definition: unknown): void {
   }
 
   const candidate = definition as SchedulerRecord;
+
   if (!/^[a-z][a-z0-9-]*$/.test(String(candidate.id || ''))) {
     throw new TypeError('Profession id must be a stable lowercase identifier.');
   }
@@ -243,6 +250,7 @@ export function assertDefinition(definition: unknown): void {
 
 function assertOptionalCallback(container: object, name: string, scope: string): void {
   const candidate = container as SchedulerRecord;
+
   if (candidate[name] != null && typeof candidate[name] !== 'function') {
     throw new TypeError(`${scope}.${name} must be a function.`);
   }
@@ -254,6 +262,7 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
 
 function assertUiDefinition(ui: SchedulerRecord): void {
   assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], 'ui');
+
   if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
     throw new TypeError('ui.assumptionControls must be an array.');
   }
@@ -269,6 +278,7 @@ function assertUiDefinition(ui: SchedulerRecord): void {
 
 function assertHandlerMap(value: unknown, scope: string): void {
   if (value == null) return;
+
   if (typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${scope} must be an object.`);
   }
@@ -326,6 +336,7 @@ function normalizePaletteAvailability(value: unknown, professionId: string): Pal
   }
 
   const result = value as SchedulerRecord;
+
   if (typeof result.available !== 'boolean') {
     throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
   }
@@ -344,6 +355,7 @@ function normalizePaletteAvailability(value: unknown, professionId: string): Pal
 function assertShallowUnchanged(value: SchedulerRecord, snapshot: SchedulerRecord, label: string): void {
   const keys = Object.keys(value);
   const priorKeys = Object.keys(snapshot);
+
   if (
     keys.length !== priorKeys.length ||
     keys.some((key) => !Object.hasOwn(snapshot, key)) ||
@@ -355,12 +367,14 @@ function assertShallowUnchanged(value: SchedulerRecord, snapshot: SchedulerRecor
 
 function normalizeSimulation(simulation: SchedulerRecord | null | undefined): SchedulerRecord | null {
   if (simulation == null) return null;
+
   if (typeof simulation !== 'object' || Array.isArray(simulation)) {
     throw new TypeError('simulation must be an object.');
   }
 
   assertOptionalCallback(simulation, 'refineSchedulerConfig', 'simulation');
   assertOptionalCallback(simulation, 'projectEndState', 'simulation');
+
   if (!simulation.refineSchedulerConfig) {
     return Object.freeze({ ...simulation });
   }
@@ -378,7 +392,9 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
       const refined = refine(config, result);
       assertShallowUnchanged(config, configSnapshot, 'config');
       assertShallowUnchanged(result, resultSnapshot, 'result');
+
       if (refined == null) return null;
+
       if (typeof refined !== 'object' || Array.isArray(refined)) {
         throw new TypeError('simulation.refineSchedulerConfig must return an object or null.');
       }

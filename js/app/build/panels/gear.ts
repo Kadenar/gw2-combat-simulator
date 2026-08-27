@@ -72,6 +72,7 @@ export function renderGear(app: ProfessionAppState): void {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
       const slot = select.dataset.slot;
+
       if (!slot) return;
       app.build.gear[slot] = select.value;
       // Keep the live selects in place so native type-ahead followed by
@@ -84,7 +85,9 @@ export function renderGear(app: ProfessionAppState): void {
     select.addEventListener('change', () => {
       const setNumber = Number(select.dataset.set);
       const slot = Number(select.dataset.slot);
+
       if (![1, 2].includes(setNumber) || ![0, 1].includes(slot)) return;
+
       if (setNumber === 1) {
         b.gear[`Weapon${slot + 1}`] = select.value;
       } else {
@@ -95,9 +98,11 @@ export function renderGear(app: ProfessionAppState): void {
     });
   });
   const setAllSelect = document.getElementById('sel-set-all');
+
   if (setAllSelect instanceof HTMLSelectElement) {
     setAllSelect.addEventListener('change', () => {
       const value = setAllSelect.value;
+
       if (!value) return;
       for (const slot of GEAR_SLOTS) {
         b.gear[slot] = value;
@@ -156,6 +161,7 @@ export function renderGear(app: ProfessionAppState): void {
     const mainHand = requiredSelect(`sel-mh${setNumber}`);
     mainHand.addEventListener('change', () => {
       weapons[0] = mainHand.value;
+
       if (!mainHand.value) {
         weapons[1] = '';
         b.startingWeaponSet = 1;
@@ -189,6 +195,7 @@ export function renderGear(app: ProfessionAppState): void {
   };
 
   bindWeaponSet(1, b.weapons);
+
   if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement('equipment-info').innerHTML = `
@@ -236,6 +243,7 @@ export function renderGear(app: ProfessionAppState): void {
     if (!(input instanceof HTMLInputElement)) return;
     input.addEventListener('change', () => {
       const index = Number(input.dataset.index);
+
       if (!Number.isInteger(index) || !b.infusions[index]) return;
       const other = b.infusions.reduce((sum, infusion, i) => (i === index ? sum : sum + infusion.count), 0);
       b.infusions[index].count = Math.max(0, Math.min(Number(input.value) || 0, 18 - other));
@@ -246,6 +254,7 @@ export function renderGear(app: ProfessionAppState): void {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
       const infusion = b.infusions[Number(select.dataset.index)];
+
       if (!infusion) return;
       infusion.stat = select.value;
       app.changed();

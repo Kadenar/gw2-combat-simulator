@@ -83,11 +83,13 @@ function catalogFlipFamilies(catalog) {
 
   for (const skill of catalog.skills) {
     if (skill.nextChainId == null) continue;
+
     const linked = catalog.skillsById.get(Number(skill.nextChainId));
 
     if (!linked || linked.nextChainId !== skill.id) continue;
 
     if ((order.get(Number(skill.id)) || 0) > (order.get(Number(linked.id)) || 0)) continue;
+
     register(skill, linked);
   }
 
@@ -97,12 +99,14 @@ function catalogFlipFamilies(catalog) {
     const startId = Number(skill.id);
 
     if (visited.has(startId) || !neighborsBySkillId.has(startId)) continue;
+
     const pending = [startId];
     const memberIds = [];
     while (pending.length) {
       const id = pending.pop();
 
       if (visited.has(id)) continue;
+
       visited.add(id);
       memberIds.push(id);
       for (const neighbor of neighborsBySkillId.get(id) || []) {

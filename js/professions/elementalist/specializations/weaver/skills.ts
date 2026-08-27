@@ -13,9 +13,11 @@ import { WEAVER_SWORD_SKILL_MECHANICS } from './skill-data/sword.js';
 /** Parses the canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
   const parts = String(skill.attunement || '').split('+');
+
   if (parts.length !== 2) return null;
 
   const [first, second] = parts;
+
   if (!isElementalistAttunement(first) || !isElementalistAttunement(second) || first === second) return null;
   return [first, second];
 }

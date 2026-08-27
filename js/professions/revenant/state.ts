@@ -72,6 +72,7 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
   }
 
   core.traitProcReadyAt = preservedCoreTraitProcReadyAt;
+
   if (context.profession.specialization.kind === 'Renegade') {
     (specialization as RenegadeState).soulcleaveReadyAt = Number(preservedSoulcleaveReadyAt || 0);
   }

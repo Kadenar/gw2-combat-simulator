@@ -17,6 +17,7 @@ export function registerNecromancerShroudLifecycle(
   lifecycle: NecromancerShroudLifecycle
 ): void {
   let registrations = shroudLifecycles.get(context.state);
+
   if (!registrations) {
     registrations = new Map();
     shroudLifecycles.set(context.state, registrations);
@@ -48,6 +49,7 @@ export function registerNecromancerResourceAdvance(
   handler: NecromancerResourceAdvance
 ): void {
   let handlers = resourceAdvanceHandlers.get(context.state);
+
   if (!handlers) {
     handlers = new Map();
     resourceAdvanceHandlers.set(context.state, handlers);

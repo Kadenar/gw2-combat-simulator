@@ -42,6 +42,7 @@ function emitEmbraceTheDarknessPulse(
       effect.type === 'condition' &&
       String(effect.metadata?.trigger || '') === (active.empoweredNextPulse ? 'empowered-upkeep-pulse' : '')
   );
+
   if (!strike || !torment) {
     throw new Error('Embrace the Darkness is missing its pulse effects.');
   }
@@ -66,6 +67,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const index = state.activeUpkeeps.findIndex((upkeep) => upkeep.skillId === skill.id);
+
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
@@ -80,9 +82,12 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   };
   state.activeUpkeeps.push(active);
   const release = skill.flipSkillId == null ? null : context.catalog.skillsById.get(skill.flipSkillId);
+
   if (release) state.availableFlips[release.id] = true;
+
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
+
     if (!strike) {
       throw new Error('Embrace the Darkness is missing its strike effect.');
     }
@@ -105,11 +110,13 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const parent = skill.flipParentId == null ? null : context.catalog.skillsById.get(skill.flipParentId);
+
   if (!parent) return;
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== parent.id);
   delete state.availableFlips[skill.id];
   context.tasks.cancelOwner(`revenant.upkeep:${parent.id}`);
   const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));
+
   if (cooldown > 0) {
     context.state.cooldowns.set(parent.id, at + cooldown);
   }
@@ -125,12 +132,15 @@ export function handleRevenantUpkeepPulse(
   if (!task.payload) return;
   const payload = task.payload;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === payload.skillId);
+
   if (!active) return;
   const skill = context.catalog.skillsById.get(payload.skillId);
+
   if (skill?.id === ID.EMBRACE_THE_DARKNESS) {
     emitEmbraceTheDarknessPulse(context, skill, active, task.at);
   } else if (skill && VENGEFUL_HAMMERS_IDS.has(skill.id)) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
+
     if (!strike) throw new Error('Vengeful Hammers is missing its strike effect.');
     const hammers = Math.max(0, Math.trunc(Number(strike.hits || 0)));
     const coefficient = Number(strike.coefficient || 0);

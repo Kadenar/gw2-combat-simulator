@@ -17,6 +17,7 @@ export function deadeyeCastAvailability(context: DeadeyeAvailabilityContext, ski
     // Context may carry a flat ThiefState (UI path) or a structured ThiefRuntimeState (scheduler path)
     const flips = profession?.core?.availableFlips || profession?.availableFlips;
     const expiresAt = Number(flips?.[String(ID.SHADOW_SWAP)] || 0);
+
     if (expiresAt <= Number(context.start || 0)) {
       return {
         ready: false,
@@ -28,6 +29,7 @@ export function deadeyeCastAvailability(context: DeadeyeAvailabilityContext, ski
   }
 
   if (!skill.stealthAttack) return { ready: true };
+
   // Non-malicious stealth attacks (Backstab, Death's Judgment) are replaced by their malicious versions on Deadeye
   if (skill.malicious) return { ready: true };
   return {

@@ -38,11 +38,13 @@ function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulat
 function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const ambush = hasTrait(context.config, TRAIT.AMBUSH_COMMANDER);
   const enmity = hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
+
   if (!ambush && !enmity) return;
   const criticals = criticalCount(context, event);
   // Ambush Commander procs on any positional advantage OR any crit; both paths share the same grant.
   // Defiant is the positional proxy (a defiant golem never rotates, so flanking/behind always apply).
   const positionalTrigger = Boolean(context.config.target?.defiant);
+
   if (ambush && (positionalTrigger || criticals > 0)) {
     grantKallasFervor(context, event, {
       sourceId: TRAIT.AMBUSH_COMMANDER,
@@ -51,12 +53,14 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
   }
 
   const state = renegadeState.from(context);
+
   if (!enmity || criticals <= 0 || !isInternalCooldownReady(event.at, Number(state.endlessEnmityReadyAt || 0))) {
     return;
   }
 
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.endlessEnmity);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
+
   if (!profile || !effect) return;
   const sourceSkill = { id: TRAIT.ENDLESS_ENMITY, name: 'Endless Enmity' } as RevenantSkill;
   state.endlessEnmityReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
@@ -94,6 +98,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
 
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.vindication);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
+
   if (!profile || !effect) return;
   const duration = Number(effect.duration || effect.metadata?.duration || 0);
   emitSkillControl(context, {
@@ -122,6 +127,7 @@ function applyKallasFervorLifeSiphon(context: RevenantSchedulerContext, event: R
   // Name-based guard distinguishes Soulcleave's life-siphon packet from other flat-strike effects
   if (!/siphon/i.test(`${event.name || ''} ${event.skillName || ''}`)) return;
   const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
+
   if (!stacks) return;
   const profile = context.catalog.balanceProfilesById.get(
     hasTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -141,6 +147,7 @@ export function initializeRenegadeTraits(context: RevenantSchedulerContext): voi
       : RENEGADE_PROFILE_IDS.kallasFervor
   );
   renegadeState.from(context).kallasFervorMaximumStacks = Math.max(1, Number(fervorProfile?.maximumStacks || 1));
+
   if (hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY)) {
     // Tells the materializer to sample and record didCrit on every damage event so that the deferred critical-traits task can read a concrete boolean in stochastic mode
     context.schedulerPolicy.requireCriticalFacts?.();
@@ -153,6 +160,7 @@ export function handleRenegadeCriticalTraitsTask(
 ): void {
   const eventOrder = Number(task.payload?.eventOrder);
   const event = context.eventByOrder(eventOrder) as RevenantSimulationEvent | undefined;
+
   if (!event) {
     throw new Error(`Missing Renegade critical event ${String(eventOrder)}.`);
   }
@@ -184,6 +192,7 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
 
 export function observeRenegadeTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const state = renegadeState.from(context);
+
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'fury' &&
@@ -209,6 +218,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
 
   const tracksCriticalTraits =
     hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
+
   if (tracksCriticalTraits) {
     if (context.config.randomness?.mode === 'stochastic') {
       // Shared critical materialization runs at priority -60. Resolve
@@ -226,6 +236,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   }
 
   const razorclaw = state.razorclawsRage;
+
   if (
     // Skip the Razorclaw's Rage hit itself to avoid infinite recursion
     event.skillId === ID.RAZORCLAWS_RAGE ||
@@ -239,6 +250,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
 
   const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
+
   if (!profile || !effect) return;
   razorclaw.charges -= 1;
   razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));

@@ -19,8 +19,10 @@ export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION
  */
 export function quicknessReferenceCastTimeMs(skill: Skill | null, fallbackBaseMs?: number): number {
   const baseMs = Math.max(0, Number(fallbackBaseMs ?? skill?.castTimeMs ?? 0));
+
   if (skill?.unaffectedByQuickness === true) return baseMs;
   const explicitMs = Math.max(0, Number(skill?.quicknessCastTimeMs ?? 0));
+
   if (explicitMs > 0) return explicitMs;
   return quantizeGw2ActionDurationUp(baseMs / GW2_QUICKNESS_ACTION_RATE);
 }
@@ -32,9 +34,11 @@ export function quicknessReferenceCastTimeMs(skill: Skill | null, fallbackBaseMs
 export function observedCommittedInterruptMs(skill: Skill | null, observedDurationMs: number): number | null {
   if (skill?.interruptCommitMs == null) return null;
   const commitMs = Number(skill.interruptCommitMs);
+
   if (!Number.isFinite(commitMs) || commitMs < 0) return null;
   const observedMs = Math.round(Math.max(0, Number(observedDurationMs)) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS;
   const runtimeMs = quicknessReferenceCastTimeMs(skill);
+
   // Interrupting exactly at the commit point is valid because the skill has committed on that action tick.
   if (!(observedMs > 0) || observedMs < commitMs || observedMs >= runtimeMs) return null;
   return observedMs;
@@ -44,6 +48,7 @@ export function observedCommittedInterruptMs(skill: Skill | null, observedDurati
 export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: number): number {
   if (skill.unaffectedByQuickness === true) return 1;
   const referenceMs = quicknessReferenceCastTimeMs(skill);
+
   if (!(referenceMs > 0)) return 1;
   const runtimeMs = Math.max(0, Number(runtimeCastMs));
   // Keep the measured runtime ratio even at nominal 1:1 Quickness. Its tiny
@@ -59,6 +64,7 @@ export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: n
   if (skill.unaffectedByQuickness === true) return Number(authoredMs);
   const baseMs = Math.max(0, Number(skill.castTimeMs || 0));
   const referenceMs = quicknessReferenceCastTimeMs(skill);
+
   if (!(baseMs > 0) || !(referenceMs > 0)) return Number(authoredMs);
   const baseTimelineMs = (Number(authoredMs) * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, Number(runtimeCastMs)) / baseMs);

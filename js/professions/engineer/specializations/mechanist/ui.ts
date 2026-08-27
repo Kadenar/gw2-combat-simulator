@@ -32,6 +32,7 @@ function mechanistPaletteAvailability(
   skill: { readonly id: SkillId }
 ): PaletteSkillAvailability {
   const active = engineerUiState(context).mech?.active !== false;
+
   if (skill.id === ID.CRASH_DOWN && active) {
     return { available: false, message: 'The jade mech is already active' };
   }

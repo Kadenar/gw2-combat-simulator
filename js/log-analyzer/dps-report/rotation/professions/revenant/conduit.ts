@@ -24,6 +24,7 @@ function inferredSkillAction(
   sameTimestampOrder: number
 ): DpsReportRecordedAction | null {
   const skill = namedSkill(context, name);
+
   if (!skill || typeof skill.id !== 'number') return null;
   return {
     start,
@@ -63,6 +64,7 @@ function openingAssassinEvidence(
   actions: readonly DpsReportRecordedAction[]
 ): { readonly entitySwap: DpsReportRecordedAction; readonly impossibleOddsRecorded: boolean } | null {
   const firstLegendSwap = actions.find((action) => normalized(action.rawName).startsWith('legendary '));
+
   if (!firstLegendSwap || normalized(firstLegendSwap.rawName) !== 'legendary entity stance') return null;
   const releaseProof = actions.some(
     (action) =>
@@ -94,6 +96,7 @@ export function reconstructConduitDpsReportActions(
   const sorted = [...actionable].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const anchor = sorted[0];
   const evidence = openingAssassinEvidence(context.recordedActions);
+
   if (!anchor || !evidence) return sorted;
 
   // Relinquish Power immediately before the first Entity invocation proves that

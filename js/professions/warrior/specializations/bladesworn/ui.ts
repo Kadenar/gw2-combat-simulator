@@ -56,8 +56,10 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Presents gunsaber and Dragon Trigger gates owned by the Bladesworn slice. */
 function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
   const state = warriorUiState(context);
+
   // Keep the stow action usable while authoring; the scheduler validates live state.
   if (skill.id === ID.SHEATHE_GUNSABER) return { available: true, message: '' };
+
   if (skill.gunsaberSkill) {
     if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
       return { available: false, message: 'Enter Dragon Trigger first' };
@@ -144,6 +146,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   ],
   timelineWeaponLineTransition: (context: WarriorUiContext) => {
     const skillId = Number((context.skill as { readonly id?: number } | undefined)?.id);
+
     if ((skillId === ID.UNSHEATHE_GUNSABER || skillId === ID.DRAGON_TRIGGER) && context.weaponLine !== 'Gunsaber') {
       return 'Gunsaber';
     }
@@ -164,6 +167,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
     const fierceAsFire = Math.min(10, timedBuffStacksAt(result, 'fierce-as-fire', at));
+
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',
@@ -174,6 +178,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     }
 
     const gunsAndGlory = timedBuffAt(result, 'guns-and-glory', at);
+
     if (gunsAndGlory) {
       items.push({
         id: 'bladesworn-guns-and-glory',
@@ -186,6 +191,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     const window = (state.overchargedCartridgeWindows || []).find(
       (candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at
     );
+
     if (window) {
       const name = window.supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges';
       items.push({
@@ -202,6 +208,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
         stacks: 2,
         expiresAt: Number(candidate.expiresAt)
       }));
+
     if (Number(state.traitPositiveFlowStartedAt || 0) <= at && Number(state.traitPositiveFlowUntil || 0) > at) {
       positiveFlowSources.push({
         stacks: 1,

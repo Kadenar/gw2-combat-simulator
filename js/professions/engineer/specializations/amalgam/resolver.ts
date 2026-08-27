@@ -13,6 +13,7 @@ import type { EngineerResolverContext, EngineerResolverEvent } from '../../types
 
 function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.actorType === 'summon') return false;
+
   // Rapacious Strain fires as an "effect" actor after player hits. Allow it
   // through so Carbolic Composition also procs on Rapacious damage.
   if (event.actorType === 'effect') {
@@ -30,6 +31,7 @@ function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerReso
 function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
+
   if (hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) && isAmalgamSkillHit(context, event)) {
     applyEngineerDerivedCondition(context, event, {
       name: 'Carbolic Composition',

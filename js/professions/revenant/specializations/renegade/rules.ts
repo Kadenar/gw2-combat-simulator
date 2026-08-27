@@ -131,6 +131,7 @@ export const renegadeCastRules = Object.freeze({
 function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): void {
   if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
+
   if (!active) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
   // The specialization-local timer is null when there are no allies, suppressing allied-proc advance logic.
@@ -143,6 +144,7 @@ function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): 
 function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number): void {
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT);
   const state = renegadeState.from(context);
+
   if (!active) {
     state.soulcleaveNextAlliedProcAt = null;
     return;
@@ -155,6 +157,7 @@ function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number
   const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
   const allies = gw2AlliedPlayerAssumptions(context.config);
+
   if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
   // Loop catches up all missed intervals when the scheduler jumps ahead (e.g., after a long cast)
   while (state.soulcleaveNextAlliedProcAt != null && target + context.epsilon >= state.soulcleaveNextAlliedProcAt) {
@@ -209,6 +212,7 @@ function observeRenegadeEvent(context: RevenantSchedulerContext, event: Revenant
 
   if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE);
+
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_RENEGADE, event.at, TRAIT.SONG_OF_THE_MISTS);
   // Song of the Mists grants 2 Kalla's Fervor stacks on each legend swap

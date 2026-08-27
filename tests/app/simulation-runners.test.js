@@ -39,6 +39,7 @@ test('profession worker endpoints echo request identity and serialize loading an
       if (professionId === 'missing') return null;
 
       if (professionId === 'load-failure') throw new Error('Adapter import failed.');
+
       return {};
     },
     calculate(_adapter, { request }, postUpdate) {

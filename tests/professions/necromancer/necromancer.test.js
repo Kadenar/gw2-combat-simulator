@@ -814,6 +814,7 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
 
   for (const skill of necromancerCatalog.skills) {
     if (skill.simulatorExcluded) continue;
+
     assert.equal(
       Boolean(
         skill.handlerId ||

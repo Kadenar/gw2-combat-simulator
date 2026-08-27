@@ -48,6 +48,7 @@ export function normalizeLuminaryWeaponTransitions(
 ): EvtcRecordedRotationAction[] {
   return actions.flatMap((action) => {
     if (action.rawName !== SWAP_WEAPONS.name) return [action];
+
     if (!context.log.events[action.eventIndex]) return [];
     return isPhysicalWeaponSwap(context, action) ? [action] : [];
   });
@@ -64,6 +65,7 @@ function inferInitialRadiantCourage(context: EvtcProfessionReconstructionContext
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
         event.buffDamage > event.value
     );
+
   if (!initial) return [];
   const start = initial.event.time - (initial.event.buffDamage - initial.event.value);
   return [
@@ -86,6 +88,7 @@ function alignInitialRadiantForge(
       event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
       event.buffDamage > event.value
   );
+
   if (!initial) return [...actions];
   const start = initial.time - (initial.buffDamage - initial.value);
   return actions.map((action) =>

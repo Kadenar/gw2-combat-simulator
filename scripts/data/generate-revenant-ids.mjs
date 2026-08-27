@@ -21,6 +21,7 @@ function stableEntries(entries) {
     const base = constantName(name);
 
     if (!base) continue;
+
     const key = keys.has(base) ? `${base}_ID_${id}` : base;
 
     keys.add(key);

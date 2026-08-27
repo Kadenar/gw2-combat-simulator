@@ -123,12 +123,14 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
 
   const restoreEndurance: SigilEffectHandler = ({ context, cause, name, proc }) => {
     const profession = state.profession;
+
     if (!profession) return;
     const resources = (
       profession.core && typeof profession.core === 'object' ? profession.core : profession
     ) as MaterializerProfessionState;
     const maximum = Number(resources.maximumEndurance);
     const current = Number(resources.endurance);
+
     if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;
     const amount = Math.max(0, Number(proc.amount || 0));
     resources.endurance = Math.min(maximum, current + amount);
@@ -170,6 +172,7 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
     },
     'strike-condition': (effect) => {
       emitStrike(effect);
+
       if (effect.proc.condition) emitCondition(effect);
       emitProc(effect);
     },
@@ -197,6 +200,7 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
 
       for (const name of activeSigilNames(config, weaponSet)) {
         const proc = SIGIL_PROC_LOOKUP[name];
+
         if (proc?.trigger !== trigger || !sigilReady(name, event.at)) continue;
         armSigil(name, event.at, proc.cooldown);
         const schedulerPrediction = trigger === 'crit' && isResolverCriticalSigil(name);

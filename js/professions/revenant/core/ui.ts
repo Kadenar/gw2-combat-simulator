@@ -39,6 +39,7 @@ function effectiveEnergyCost(context: RevenantUiContext, skill: RevenantSkill): 
 function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
   // Timeline icon projection resolves canonical skill IDs through the active catalog.
   if (!entry || typeof entry !== 'object' || !('type' in entry)) return '';
+
   if (entry.type !== 'cast' || !('skillId' in entry)) return String(entry.type || '');
   const skillId = entry.skillId;
   const catalog = context.catalog as SchedulerRecord | undefined;
@@ -50,8 +51,10 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 // when projected runtime state is incomplete.
 export function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill as RevenantSkill | undefined;
+
   if (skill?.name !== 'Swap Legends') return '';
   const selected = context.build?.selectedLegends || [];
+
   if (selected.length !== 2) return '';
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
   const priorSwaps = (context.rotation || [])
@@ -81,6 +84,7 @@ export function revenantCorePaletteSkillAvailability(
 ): PaletteSkillAvailability {
   const state = revenantUiState(context);
   const activeLegend = activeRevenantLegend(context);
+
   // Check if the skill's paletteLegendId matches the active legend
   if (skill.paletteLegendId === activeLegend) {
     return {
@@ -94,6 +98,7 @@ export function revenantCorePaletteSkillAvailability(
     // the combat-only legend-swap timer stored in profession state.
     const now = Number(context.time || 0);
     const readyAt = Number(state.legendSwapReadyAt || 0);
+
     if (readyAt > now) {
       return {
         available: false,
@@ -116,6 +121,7 @@ export function revenantCorePaletteSkillAvailability(
   // Check if the skill is an upkeep and if it is currently active
   const upkeepActive =
     skill.handlerId === 'revenant.upkeep' && (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
+
   if (upkeepActive) {
     return {
       available: false,
@@ -141,6 +147,7 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
   const items: RotationStateSnapshotItem[] = [];
   const upkeeps = state.activeUpkeeps || [];
   const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, Number(upkeep.upkeepCost || 0)), 0);
+
   if (drain > 0) {
     items.push({
       id: 'revenant-upkeep-drain',
@@ -151,6 +158,7 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
   }
 
   const abyssExpiries = (state.crushingAbyss || []).map(Number).filter((expiry) => expiry > at);
+
   if (abyssExpiries.length) {
     const nextExpiry = Math.min(...abyssExpiries) - at;
     items.push({

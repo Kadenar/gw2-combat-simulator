@@ -62,6 +62,7 @@ export function resultSummaryMetrics(
       className: 'condi'
     }
   );
+
   if (Number(result.environmentDamage || 0) > 0) {
     // Keep external damage visually separate while still exposing the combined damage that reduced target health.
     metrics.push(
@@ -86,6 +87,7 @@ export function resultSummaryMetrics(
       }
     );
   }
+
   return metrics;
 }
 
@@ -100,12 +102,14 @@ export function targetHealthBreakpointSnapshots(
   remainingHealthPercents: readonly number[] = [80, 60, 40, 20]
 ): TargetHealthBreakpointSnapshot[] {
   const health = Number(targetHealth || 0);
+
   if (!(health > 0)) return [];
 
   const damageByTime = new Map<number, { player: number; environment: number }>();
   const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {
     const time = Number(at);
     const amount = Number(damage);
+
     if (!Number.isFinite(time) || !(amount > 0)) return;
     const current = damageByTime.get(time) || { player: 0, environment: 0 };
     current[owner] += amount;
@@ -123,6 +127,7 @@ export function targetHealthBreakpointSnapshots(
       addDamage(event.at, event.damage, 'player');
     }
   }
+
   for (const condition of result?.environmentConditionBreakdown || []) {
     for (const tick of condition.damageTicks) {
       addDamage(tick.at, tick.damage, 'environment');

@@ -12,6 +12,7 @@ import type { RevenantPrecastContext, RevenantSkill } from '../types.js';
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
+
   if (skill.id === ID.ABYSSAL_FIRE) {
     return denyRevenantSkill(skill, 'revenant.abyssal-fire-hidden', 'use Abyssal Strike.');
   }
@@ -33,6 +34,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
   }
 
   const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
+
   if (
     skill.type === 'Weapon' &&
     skill.id !== ID.TRUE_STRIKE &&
@@ -101,6 +103,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
   }
 
   const cost = effectiveRevenantEnergyCost(context, skill);
+
   if (state.energy + context.epsilon < cost) {
     const cooldownReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
     return denyRevenantSkill(

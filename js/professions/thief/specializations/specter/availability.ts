@@ -6,6 +6,7 @@ import type { ThiefPrecastContext, ThiefSkill } from '../../types.js';
 
 export function specterCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(context);
+
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) {
       return deny(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');

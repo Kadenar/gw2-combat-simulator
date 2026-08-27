@@ -69,6 +69,7 @@ test('Thief modules own vertical source slices', () => {
 
     for (const entry of readdirSync(directoryUrl, { withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith('.ts')) continue;
+
       const source = readFileSync(new URL(entry.name, directoryUrl), 'utf8');
 
       if (directory === 'core') {

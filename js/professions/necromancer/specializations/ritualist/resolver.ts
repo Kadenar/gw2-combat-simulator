@@ -18,7 +18,9 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
   }
 
   if (event.summonOwner) return [event.summonOwner];
+
   if (event.actorType === 'player') return ['player'];
+
   if (event.actorType !== 'summon') return [];
 
   return [];
@@ -125,7 +127,9 @@ export function handleNecromancerWeaponSpellAllyTrigger(
     context,
     event.spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
   );
+
   if (!definition) return;
+
   if (event.spell === 'nightmare') {
     queueNightmareWeapon(context, event, definition);
   } else if (event.spell === 'splinter') {
@@ -137,18 +141,22 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   // Effect-sourced damage (e.g. prior spell proc) must not chain into another proc; coefficient > 0 guards against flat-damage-only strikes
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
   const keys = recipientKeys(event);
+
   if (!keys.length) return;
   for (const spell of ['nightmare', 'splinter']) {
     const active = ritualistState.from(context).weaponSpells?.[spell];
+
     if (!active || Number(active.expiresAt || 0) <= event.at) continue;
     const definition = necromancerBalanceProfile(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );
+
     if (!definition) continue;
     for (const key of keys) {
       const recipient = active.recipients?.[key];
       const internalCooldown = Number(definition.internalCooldown || 0);
+
       if (
         !recipient ||
         recipient.stacks <= 0 ||
@@ -160,6 +168,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
       recipient.stacks -= 1;
       // Positive weapon-spell ICDs use the strict shared boundary; zero preserves unrestricted charge consumption.
       recipient.nextAt = event.at + internalCooldown;
+
       if (spell === 'nightmare') {
         queueNightmareWeapon(context, event, definition);
       } else {
@@ -176,6 +185,7 @@ export const ritualistResolverEventReactions = Object.freeze({
 export const ritualistEventHandlers = Object.freeze({
   'necromancer.spirit-attack': (context: NecromancerResolverContext, event: NecromancerResolverEvent): void => {
     const state = ritualistState.from(context);
+
     if (
       !event.requiresSpirit ||
       !state.activeSpirits[event.requiresSpirit] ||

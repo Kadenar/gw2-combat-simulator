@@ -40,6 +40,7 @@ function adjustResourceSkillEffect(
     berserkersPowerGranted: boolean;
   };
   const spent = Number(state?.spent || 0);
+
   if (!state.berserkersPowerGranted && grantBerserkersPowerOnFirstHit(context, skill, event, spent)) {
     state.berserkersPowerGranted = true;
   }
@@ -103,6 +104,7 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
       skillWeapon: skill.weapon || 'Longbow',
       persistsAfterInterrupt: true
     })[0];
+
     if (
       !resource.berserkersPowerGranted &&
       grantBerserkersPowerOnFirstHit(context, skill, damage as WarriorSimulationEvent, resource.spent)

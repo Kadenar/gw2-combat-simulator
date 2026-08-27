@@ -25,6 +25,7 @@ function pairedDaredevilDodgeActions(context: EvtcProfessionReconstructionContex
 
     if (event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP) return;
     const start = starts.shift();
+
     if (!start || event.time < start.time) return;
     const duration = event.time - start.time;
     actions.push({
@@ -74,6 +75,7 @@ function daredevilStealActions(
         candidate.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY &&
         Math.abs(candidate.time - event.time) <= SIGNAL_WINDOW_MS
     ).length;
+
     if (mightPackets < 5) return [];
     return [canonicalAction(eventIndex, event.time, STEAL, event.skillId)];
   });

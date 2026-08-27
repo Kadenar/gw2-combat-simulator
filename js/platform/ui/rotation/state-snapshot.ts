@@ -18,6 +18,7 @@ export function criticalChanceTooltip(event: Gw2ResolverEvent, heading: string):
 
   const finalChance = Number(event.criticalChance || 0);
   const beforeCap = Number(event.criticalChanceBeforeCap ?? finalChance);
+
   if (Math.abs(beforeCap - finalChance) > 1e-12) {
     lines.push(`Before cap: ${percent(beforeCap)}`);
   }

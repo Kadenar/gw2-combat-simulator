@@ -50,10 +50,19 @@ export default [
     rules: {
       '@stylistic/padding-line-between-statements': [
         'error',
+        // Blank line after block-like statements
         {
           blankLine: 'always',
           prev: 'block-like',
           next: '*'
+        },
+
+        // ALWAYS require a blank line before an if statement.
+        // Keep this last so broader rules don't override it.
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: 'if'
         }
       ]
     }

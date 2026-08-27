@@ -21,11 +21,14 @@ export function grantThiefStealth(
     (skill.effects || [])
       .filter((effect) => effect.type === 'buff' && effect.kind === 'stealth')
       .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
+
   if (!(duration > 0)) return;
   const state = professionCoreState(context);
+
   if (state.revealedUntil > at) return;
   const entering = state.stealthUntil <= at;
   state.stealthUntil = Math.min(at + 15, Math.max(at, state.stealthUntil) + duration);
+
   if (entering && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, 'enter-stealth');
   }
@@ -58,6 +61,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
+
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }
@@ -80,11 +84,13 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   }
 
   updateSpearChainState(context, skill, at);
+
   // Weapon sequence skills share one state contract: completing the opener
   // arms its replacement for the declared window, and using the child restores
   // the opener. This covers dual attacks plus sword, shortbow, staff, and rifle.
   if (completed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
+
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] = at + Number(skill.flipDuration || (skill.dualWieldOpener ? 4 : 5));
       emitStateSnapshot(context, 'thief', at, 'weapon-flip', snapshotThiefState(context.state.profession));

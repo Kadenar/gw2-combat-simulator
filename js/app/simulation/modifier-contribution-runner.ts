@@ -28,6 +28,7 @@ export class ModifierContributionRunner {
   schedule(): void {
     const app = this.app;
     const requestId = ++this.requestId;
+
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     const failContributions = (): void => {
@@ -55,7 +56,9 @@ export class ModifierContributionRunner {
 
     const calculateContributions = (): void => {
       this.timer = null;
+
       if (requestId !== this.requestId) return;
+
       // Give RNG sampling uncontested CPU time. Contribution comparisons
       // start as soon as the distribution worker pool finishes.
       if (app.randomDistributionRunner.isRunning) {
@@ -69,6 +72,7 @@ export class ModifierContributionRunner {
           globalThis.navigator?.hardwareConcurrency
         );
         const batches = partitionModifierComparisons(request.comparisons, workerCount);
+
         if (!batches.length) {
           applyContributions([]);
           return;
@@ -87,6 +91,7 @@ export class ModifierContributionRunner {
             (data, worker) => {
               this.batch.finish(worker);
               completed.push(data.contributions || []);
+
               if (completed.length === batches.length) {
                 applyContributions(mergeModifierContributions(completed));
               }

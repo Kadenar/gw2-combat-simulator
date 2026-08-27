@@ -73,6 +73,7 @@ async function captureProfession(professionId) {
   for (const section of manifest) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
+
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
       const build = adapter.toApplicationBuild({
         ...savedBuild,

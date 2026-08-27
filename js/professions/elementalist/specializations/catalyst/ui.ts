@@ -27,6 +27,7 @@ function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   const primaryAttunement = String(
     (context.professionState as SchedulerRecord | undefined)?.primaryAttunement || build?.startAttunement || 'Fire'
   );
+
   if (skill.attunement !== primaryAttunement) {
     return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
   }
@@ -44,7 +45,9 @@ function empoweringAurasAt(context: SchedulerRecord, at: number): { stacks: numb
   const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
   for (const event of events) {
     const applicationAt = Number(event.at || 0);
+
     if (applicationAt > at) break;
+
     if (event.type !== 'buff' || event.kind !== 'empowering auras') continue;
     expiries = expiries.filter((expiry) => expiry > applicationAt);
     const expiresAt = applicationAt + Number(event.duration || 0);
@@ -66,6 +69,7 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = (state.elementalEmpowermentExpiries || []).filter((expiry) => Number(expiry) > at).length;
+
   if (empowerment > 0) {
     items.push({
       id: 'catalyst-elemental-empowerment',
@@ -76,6 +80,7 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   }
 
   const empoweringAuras = empoweringAurasAt(context, at);
+
   if (empoweringAuras) {
     items.push({
       id: 'catalyst-empowering-auras',
@@ -87,6 +92,7 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
 
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
     const remaining = Number(state.sphereExpiry?.[element] || 0) - at;
+
     if (remaining <= 0) continue;
     items.push({
       id: `catalyst-${element.toLowerCase()}-sphere`,

@@ -30,7 +30,9 @@ function ritualistAvailability(
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {
   const spirit = INNERVATE_SPIRIT.get(skill.id);
+
   if (!spirit) return CAST_READY;
+
   if (ritualistState.from(context).activeSpirits[spirit]) return CAST_READY;
   // Innervate availability follows the matching specialization-owned spirit lifetime.
   return {
@@ -43,6 +45,7 @@ function ritualistAvailability(
 
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     result.concentration += Number(necromancerBalanceProfile(context, PROFILE.boonOfCreation)?.attributeBonus || 180);
   }

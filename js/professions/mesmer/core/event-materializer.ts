@@ -24,6 +24,7 @@ interface MesmerEventMaterializerOptions {
 
 function conditionName(value: unknown): string {
   const normalized = String(value || '').toLowerCase();
+
   if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
@@ -31,7 +32,9 @@ function conditionName(value: unknown): string {
 /** Preserves clone/phantasm behavior as summon subtype metadata while source labels remain compatible. */
 function mesmerSummonKind(source: string, explicit?: unknown): MesmerSummonKind | undefined {
   if (explicit === 'clone' || explicit === 'phantasm') return explicit;
+
   if (source === 'Clone') return 'clone';
+
   if (source === 'Phantasm') return 'phantasm';
   return undefined;
 }
@@ -71,6 +74,7 @@ export function createMesmerEventMaterializer({
 
   const addCondition: MesmerAddCondition = (skillName, at, condition, source = 'Player', label = '', extra = {}) => {
     const name = conditionName(condition.name);
+
     if (!condition.duration) return [];
     const eventSource = String(extra.source || source);
     const sourceId = extra.sourceId ?? skillName;

@@ -130,12 +130,14 @@ function initializeRitualistRuntime(context: NecromancerSchedulerContext): void 
   registerNecromancerResourceAdvance(context, 'ritualist.lingering-spirits', (runtime, start, end) => {
     const core = professionCoreState(runtime);
     const state = ritualistState.from(runtime);
+
     if (core.activeShroud || !Object.keys(state.activeSpirits).length || !hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) {
       return;
     }
 
     const drainPercent = Number(necromancerBalanceProfile(runtime, PROFILE.resources)?.lifeForceDrain || 3);
     core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
+
     if (core.lifeForce <= runtime.epsilon) {
       core.lifeForce = 0;
       state.activeSpirits = {};
@@ -148,6 +150,7 @@ function initializeRitualistRuntime(context: NecromancerSchedulerContext): void 
 function refundSoulTwisting(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = ritualistState.from(context);
+
   if (state.pendingSoulTwistSkill !== skill.id) return;
   // Soul Twisting refunds exactly the first spirit summon after entering Ritualist Shroud.
   context.state.cooldowns.delete(skill.id);
@@ -179,6 +182,7 @@ function spiritDefinition(
 ): SpiritDefinition | undefined {
   const profileId = RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)];
   const profile = necromancerBalanceProfile(context, profileId);
+
   if (!profile) return undefined;
   const key =
     skillId === ID.ANGUISH
@@ -188,6 +192,7 @@ function spiritDefinition(
         : skillId === ID.PRESERVATION
           ? 'preservation'
           : '';
+
   if (!key) return undefined;
   const effects = profile.effects || [];
   const autoattack = effects[0];
@@ -253,6 +258,7 @@ function spiritMetadata(
 // the nearest future grid point so spirits never drift out of phase with each other.
 function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState, at: number): number {
   const resources = necromancerBalanceProfile(context, PROFILE.resources);
+
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
     // First summon in the rotation picks the delay (shorter after a re-summon due to in-game animation timing)
     const delay = state.resummonedSpiritAutoCycle
@@ -277,6 +283,7 @@ function queueSpiritAutoattacks(
   if (!(spirit.attackCoefficient > 0)) return;
   const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
+
   if (generation > 1) {
     // Cancel the previous generation's attack loop before starting the new one; generation 0 never had a loop
     context.tasks.schedule({
@@ -299,9 +306,11 @@ function handleSpiritAutoattack(
   task: ScheduledTask<SpiritAttackTaskPayload>
 ): void {
   const payload = task.payload;
+
   if (!payload) return;
   const skill = context.catalog.skillsById.get(payload.skillId);
   const spirit = skill ? spiritDefinition(context, skill.id) : undefined;
+
   // spirit.key vs payload.spiritKey cross-check guards against a skill ID mapping to the wrong spirit definition
   if (!skill || !spirit || spirit.key !== payload.spiritKey) return;
 
@@ -330,6 +339,7 @@ function handleSpiritAutoattack(
   });
 
   const nextAt = task.at + Number(necromancerBalanceProfile(context, PROFILE.resources)?.pulseInterval || 4);
+
   if (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon) {
     context.tasks.schedule({
       type: SPIRIT_ATTACK_TASK,
@@ -365,6 +375,7 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
   });
   const boonIndex = key === 'anguish' ? 1 : key === 'wanderlust' ? 2 : 3;
   const boon = balanceProfileEffect(profile, 'boon', boonIndex);
+
   if (key === 'anguish') {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
@@ -526,6 +537,7 @@ function summonSpirit(
   const initialDuration = spirit.key === 'anguish' ? 1.1 : 0;
   state.spiritInitialUntil[spirit.key] = at + initialDuration;
   state.spiritBusyUntil[spirit.key] = at + initialDuration;
+
   if (state.soulTwistingAvailable) {
     // Soul Twisting consumes availability on the first summon; the completion hook refunds that skill's committed cooldown.
     state.soulTwistingAvailable = false;
@@ -557,9 +569,12 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
   const state = ritualistState.from(context);
   for (const spiritId of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
     const spirit = spiritDefinition(context, spiritId);
+
     if (!spirit) continue;
+
     // Spirits still in their initial-attack window cannot participate in Summon Spirits
     if (!state.activeSpirits[spirit.key] || Number(state.spiritInitialUntil[spirit.key] || 0) > at) continue;
+
     if (spirit.activeCoefficient > 0 && spirit.activeHits > 0) {
       emitSkillDamage(context, skill, {
         at: at + spirit.activeDelay,
@@ -606,6 +621,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
 function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = ritualistState.from(context);
   const at = context.effectiveEnd;
+
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = skill.effects?.find((effect) => effect.type === 'strike');
@@ -629,6 +645,7 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
   }
 
   const spirit = spiritDefinition(context, skill.id);
+
   if (!spirit) return false;
   summonSpirit(context, skill, spirit, at);
   return true;
@@ -638,6 +655,7 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
 // life-force gain only after a recognized Innervate skill succeeds.
 function innervate(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
+
   if (skill.id === ID.INNERVATE_ANGUISH) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const boons = skill.effects?.filter((effect) => effect.type === 'boon') || [];

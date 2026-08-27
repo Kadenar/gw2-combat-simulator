@@ -22,6 +22,7 @@ function firebrandEventLogRow(
     order: 30,
     flags: []
   };
+
   if (event.type === 'guardian.tome-stowed') {
     return { ...base, description: 'TOME STOWED' };
   }
@@ -77,6 +78,7 @@ export const firebrandUi = Object.freeze({
   eventLogRow: firebrandEventLogRow,
   timelineWeaponLineTransition: (context: GuardianUiContext) => {
     const skill = context.skill as GuardianSkill | undefined;
+
     if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || '')) {
       // Returning undefined means "no transition" (already in this tome);
       // returning the skill name triggers the timeline lane switch.
@@ -115,6 +117,7 @@ export const firebrandUi = Object.freeze({
   ],
   paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
     const state = professionState(context);
+
     if (skill.type === 'Weapon' && state.activeTome) {
       return {
         available: false,
@@ -137,6 +140,7 @@ export const firebrandUi = Object.freeze({
     }
 
     const pageCost = Number(skill.pageCost || 1);
+
     if (skill.tome && Number(state.tomePages || 0) < pageCost) {
       return {
         available: false,

@@ -17,11 +17,13 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   const at = context.effectiveEnd;
   const conjuredWeapon = CONJURE_SKILLS[Number(skill.id)];
   let swapped = false;
+
   if (conjuredWeapon) {
     state.conjureEquipped = conjuredWeapon;
     state.conjurePickups[conjuredWeapon] =
       at + elementalistBalanceValue(context, PROFILE.conjurePickups, 'durationMultiplier', 35);
     swapped = true;
+
     if (hasTrait(context, 'Conjurer')) {
       applyElementalistAura(context, {
         at,
@@ -36,6 +38,7 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
     state.conjureEquipped = null;
   } else if (skill.name.startsWith('__pickup_')) {
     const weapon = skill.name.slice('__pickup_'.length);
+
     if (Number(state.conjurePickups[weapon] || 0) >= context.start) {
       state.conjureEquipped = weapon;
       delete state.conjurePickups[weapon];

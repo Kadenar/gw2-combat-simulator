@@ -23,6 +23,7 @@ export function ownedPetAddresses(
     }
 
     const skill = rangerSkill(context, event.skillId);
+
     if (skill?.petSkill === true || skill?.unleashedPetSkill === true) {
       addresses.add(event.source);
     }
@@ -53,8 +54,10 @@ function petCommandActions(
 
     const name = rawSkillName(context, event.skillId);
     const skill = rangerSkill(context, event.skillId, name);
+
     if (skill?.petSkill !== true || skill.petAutonomousSkill === true) return;
     const key = `${event.source}:${event.skillId}`;
+
     if (event.activation === EVTC_ACTIVATION.START || event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START) {
       starts.add(key);
       const stop = context.log.events
@@ -93,6 +96,7 @@ function petCommandActions(
       (event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP)
     ) {
       const start = event.time - event.value;
+
       if (start >= firstEventTime) return;
       starts.add(key);
       actions.push({
@@ -131,6 +135,7 @@ export function reconstructRangerPetActions(
   context: EvtcProfessionReconstructionContext
 ): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const pets = ownedPetAddresses(context, ownerInstance);
   return [...petCommandActions(context, ownerInstance, pets), ...petSwapActions(context, pets)];

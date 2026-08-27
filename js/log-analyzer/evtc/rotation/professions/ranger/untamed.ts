@@ -75,6 +75,7 @@ function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]
   const absorbed = new Set<EvtcRecordedRotationAction>();
   return sorted.flatMap((action) => {
     if (absorbed.has(action)) return [];
+
     if (action.rawSkillId !== UNLEASHED_OVERBEARING_SMASH.skillId) {
       return [action];
     }
@@ -86,6 +87,7 @@ function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]
         candidate.start >= action.end - 50 &&
         candidate.start - action.end <= 150
     );
+
     if (!followUp) return [action];
     absorbed.add(followUp);
     return [
@@ -120,12 +122,14 @@ function unleashedPetActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const pets = ownedPetAddresses(context, ownerInstance);
   const transitions = actions.filter((action) => isAction(action, UNLEASH_RANGER.skillId));
   const lastSignalBySkill = new Map<number, number>();
   return context.log.events.flatMap((event, eventIndex) => {
     const signal = signalsByRawId.get(event.skillId);
+
     if (
       !signal ||
       !pets.has(event.source) ||
@@ -139,6 +143,7 @@ function unleashedPetActions(
     }
 
     const previous = lastSignalBySkill.get(event.skillId);
+
     if (previous != null && event.time - previous <= PET_SIGNAL_CLUSTER_MS) {
       lastSignalBySkill.set(event.skillId, event.time);
       return [];
@@ -172,6 +177,7 @@ function initialExplodingSpores(
         event.value > 0 &&
         (firstRecorded == null || event.time < firstRecorded.start)
     );
+
   if (!signal) return [];
   const transition = actions
     .filter(

@@ -19,7 +19,9 @@ import type {
 /** Updates the Revenant-specific Abyssal Strike sequence after shared chain handling. */
 export function updateRevenantWeaponState(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
+
   if (context.action?.cancelled === true) return;
+
   if (skill.id === ID.ABYSSAL_STRIKE) {
     state.abyssalStrikeSecondCast = !state.abyssalStrikeSecondCast;
   } else if (skill.type === 'Weapon' || Number(skill.castTimeMs || 0) > 0) {
@@ -80,6 +82,7 @@ export function beginRevenantWeaponCast(context: RevenantCastContext, skill: Rev
 /** Commits or consumes the Imperial Guard/True Strike temporary flip. */
 export function completeRevenantWeaponCast(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
+
   // Scepter follow-ups share the normal availableFlips state so the scheduler
   // and palette agree on which identity currently occupies each weapon slot.
   if (
@@ -89,6 +92,7 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
     skill.flipSkillId !== skill.nextChainId
   ) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
+
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
         context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration || 5));

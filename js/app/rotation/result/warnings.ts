@@ -21,6 +21,7 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
   return (result?.warnings || []).map((rawWarning) => {
     const message = String(rawWarning);
     const step = invalidSteps.get(message)?.shift();
+
     if (step && Number.isFinite(Number(step.start))) {
       return {
         message,
@@ -31,6 +32,7 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
     // Resolver diagnostics carry their absolute simulation time in the
     // message instead of an invalid rotation step.
     const embeddedTime = message.match(/(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:.,\s]|$)/i);
+
     if (!embeddedTime) return { message, time: '' };
     const matchIndex = embeddedTime.index ?? 0;
     const cleanedMessage = `${message.slice(
@@ -46,6 +48,7 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
 
 export function renderWarnings(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-warnings');
+
   if (!element) return;
   const details = element.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
   const wasOpen = details?.open ?? false;

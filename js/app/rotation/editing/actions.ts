@@ -34,6 +34,7 @@ export function createRotationItem(
 ): RotationCommand {
   // Translate palette identities directly into the canonical discriminated command model.
   if (name === '__cooldown_reset') return { type: 'cooldown-reset' };
+
   if (name === '__combat_start') {
     return options.concurrentOffsetMs == null
       ? { type: 'combat-start' }
@@ -68,6 +69,7 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Rot
   // New authored actions invalidate index-based range selections from the previous timeline.
   clearRotationSelection(app);
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+
   if (insertionIndex === null) {
     app.rotationInsertionIndex = null;
     app.build.rotation.push(...items);

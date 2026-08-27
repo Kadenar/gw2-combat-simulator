@@ -43,9 +43,11 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   }
 
   const state = bladeswornState.from(context);
+
   if (!isInternalCooldownReady(at, state.gunsaberSwapTraitReadyAt)) return;
   let traitId = 0;
   let profile;
+
   if (hasTrait(context, TRAIT.UNSEEN_SWORD)) {
     traitId = TRAIT.UNSEEN_SWORD;
     profile = warriorBalanceProfile(context, PROFILE.unseenSword);
@@ -101,6 +103,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   state.gunsaberSwapTraitReadyAt = at + Number(profile?.internalCooldown ?? 4);
   const positiveFlow = warriorBalanceProfileEffect(profile, 'buff');
   const positiveFlowDuration = Number(positiveFlow?.duration ?? 5);
+
   if (state.traitPositiveFlowUntil <= at + context.epsilon) {
     state.traitPositiveFlowStartedAt = at;
   }
@@ -122,6 +125,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
 
 function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill): void {
   resetAutoattackChains(context);
+
   if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
     professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
   }
@@ -163,6 +167,7 @@ export function exitGunsaber(context: WarriorCastContext, skill: WarriorSkill): 
 
 export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = bladeswornState.from(context);
+
   if (!state.gunsaberActive) enterGunsaber(context, skill);
   gainPassiveFlow(context, state.flowUpdatedAt, context.effectiveEnd);
   state.flowUpdatedAt = context.effectiveEnd;
@@ -178,11 +183,13 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   // so it only applies to the single Dragon Trigger entry it was active for.
   state.dragonChargesPerInterval =
     state.tacticalReloadUntil > 0 && state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd ? 2 : 1;
+
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonTriggerRotationIndex = context.commandIndex;
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = context.reservationId;
   emitDragonTriggerEntry(context, skill);
+
   if (hasTrait(context, TRAIT.DRAGONSCALE_DEFENSE)) {
     const stability = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.dragonscaleDefense), 'boon');
     emitSkillBuff(context, {
@@ -254,6 +261,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     damageKind: 'explosion',
     dragonChargesSpent: charges
   });
+
   if (hasTrait(context, TRAIT.UNYIELDING_DRAGON)) {
     emitSkillControl(context, {
       at: impactAt,
@@ -295,6 +303,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   state.ammoRoundsSpentByActivation[context.reservationId] = charges;
   state.ammoStartedFullByActivation[context.reservationId] =
     charges >= Number(context.ammo?.maximum || skill.ammo || 0);
+
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
@@ -335,6 +344,7 @@ function dragonFlowRateSegments(
   if (!(to > from)) return [];
   const state = bladeswornState.from(context);
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : from;
+
   if (combatStart == null || combatStart >= to) return [];
   const activeFrom = Math.max(from, Number(combatStart));
   const boundaries = [
@@ -415,6 +425,7 @@ function furyActiveBeforeCurrentCast(
   castStart: number
 ): boolean {
   const configured = context.config.boons?.fury;
+
   if (configured === true || Number(configured || 0) > 0) return true;
   return context.events.some(
     (event) =>
@@ -429,8 +440,10 @@ function furyActiveBeforeCurrentCast(
 
 function refreshDragonTriggerEntryProjection(context: WarriorSchedulerContext): void {
   const state = bladeswornState.from(context);
+
   if (!state.dragonTriggerActive) return;
   const event = dragonTriggerEntryEvent(context);
+
   if (!event) return;
   context.replaceEvent(event, {
     flowRateSegments: dragonFlowRateSegments(context, state.dragonTriggerStartedAt, state.dragonTriggerChargeDeadline)
@@ -446,7 +459,9 @@ function gainPassiveFlow(context: WarriorSchedulerContext, from: number, to: num
 // emitting granted and stalled ticks before clearing an expired charge window.
 export function advanceBladesworn(context: WarriorSchedulerContext, target: number): void {
   const state = bladeswornState.from(context);
+
   if (target <= state.flowUpdatedAt) return;
+
   if (!state.dragonTriggerActive) {
     gainPassiveFlow(context, state.flowUpdatedAt, target);
     state.flowUpdatedAt = target;
@@ -477,6 +492,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     state.flow = tick.flowAfter;
     state.dragonCharges = tick.charges;
     state.flowUpdatedAt = tick.at;
+
     if (tick.granted) {
       state.dragonTriggerFlowSpent += flowPerInterval;
     }
@@ -504,6 +520,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
 
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
+
   if (target > state.dragonTriggerChargeDeadline + context.epsilon) {
     clearDragonTriggerState(state);
   }
@@ -511,8 +528,10 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
 
 function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
   const ammo = context.cooldownController.refreshAmmo(skill, at);
+
   if (!ammo) return 0;
   const restored = Math.min(Math.max(0, count), Math.max(0, ammo.maximum - ammo.charges));
+
   if (!restored) return 0;
 
   const mirroredRecharge = ammo.nextRechargeAt;
@@ -526,6 +545,7 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
     context.rechargeDurationFor(skill, lastActionEnd, {
       ammoCastLockout: true
     });
+
   if (ammo.charges === 0 && mirroredRecharge != null && readyAt <= mirroredRecharge + context.epsilon) {
     context.state.cooldowns.delete(skill.id);
   }
@@ -535,6 +555,7 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
   // progress. If the skill is temporarily full, the pending recharge can
   // still refill a charge spent before that timer completes.
   context.cooldownController.refreshAmmo(skill, at);
+
   if (lockoutReadyAt > at + context.epsilon) {
     context.state.cooldowns.set(skill.id, lockoutReadyAt);
   }
@@ -545,6 +566,7 @@ function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, coun
 function reloadBladeswornAmmo(context: WarriorSchedulerContext, at: number): void {
   for (const skillId of context.state.ammo.keys()) {
     const skill = context.catalog.skillsById.get(skillId);
+
     if (skill?.specialization === 'Bladesworn') {
       restoreAmmo(context, skill, 1, at);
     }
@@ -554,10 +576,12 @@ function reloadBladeswornAmmo(context: WarriorSchedulerContext, at: number): voi
 function activateOverchargedCartridges(context: WarriorCastContext, at: number): void {
   const state = bladeswornState.from(context);
   const active = activeCartridgeWindow(state, at);
+
   // Ammo is reserved before this handler runs. Casting again while the
   // cartridges are already supercharged therefore spends the charge without
   // refreshing or replacing the active window.
   if (active?.supercharged) return;
+
   if (active) active.expiresAt = at;
   const supercharged = Boolean(active);
   const profile = warriorBalanceProfile(context, PROFILE.overchargedCartridges);
@@ -593,6 +617,7 @@ export function useOverchargedCartridges(context: WarriorCastContext, _skill: Wa
 export function trackBladeswornAmmoCast(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!(Number(skill.ammo || 0) > 0)) return;
   const state = bladeswornState.from(context);
+
   if (state.ammoRoundsSpentByActivation[context.reservationId] == null) {
     state.ammoRoundsSpentByActivation[context.reservationId] = 1;
   }
@@ -633,6 +658,7 @@ function activeWeaponNames(context: WarriorCastContext): Set<string> {
 // set, and selected slot skills rather than catalog ownership alone.
 function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = bladeswornState.from(context);
+
   if (skill.gunsaberSkill) {
     return state.gunsaberActive || state.dragonTriggerActive;
   }
@@ -657,6 +683,7 @@ function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSki
   const skillIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of skillIds) {
     const skill = context.catalog.skillsById.get(skillId);
+
     if (!skill || LUSH_FOREST_EXCLUDED_SKILL_IDS.has(Number(skill.id)) || !skillIsOnActiveBar(context, skill)) {
       continue;
     }
@@ -685,6 +712,7 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   const at = context.effectiveEnd;
   const roundsSpent = Math.max(0, Number(state.ammoRoundsSpentByActivation[context.reservationId] || 0));
   const startedFull = Boolean(state.ammoStartedFullByActivation[context.reservationId]);
+
   if (Number(skill.flowGain || 0) > 0) {
     state.flow = Math.min(state.maximumFlow, state.flow + Number(skill.flowGain));
   }
@@ -718,6 +746,7 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
     0,
     Number(state.dragonAdrenalineSpentByActivation[context.reservationId] || 0)
   );
+
   if (dragonAdrenalineSpent > 0) {
     const stacks = dragonAdrenalineSpent >= 30 ? 4 : dragonAdrenalineSpent >= 20 ? 3 : 2;
     grantBerserkersPower(context, stacks, at + context.epsilon, skill);
@@ -726,6 +755,7 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   delete state.ammoRoundsSpentByActivation[context.reservationId];
   delete state.ammoStartedFullByActivation[context.reservationId];
   delete state.dragonAdrenalineSpentByActivation[context.reservationId];
+
   if (skill.gunsaberSkill && !context.catalog.autoattackChainPositions.has(Number(skill.id))) {
     resetAutoattackChains(context);
   }
@@ -745,6 +775,7 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
     activationId: string;
   }): void => {
     const state = bladeswornState.from(context);
+
     if (furyActiveBeforeCurrentCast(context, activationId, castStart)) {
       state.flow = Math.min(state.maximumFlow, state.flow + 15);
     }
@@ -785,6 +816,7 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
 function activeCartridgeWindow(state: ReturnType<typeof bladeswornState.from>, at: number) {
   for (let index = state.overchargedCartridgeWindows.length - 1; index >= 0; index -= 1) {
     const window = state.overchargedCartridgeWindows[index];
+
     if (window.startedAt <= at && window.expiresAt > at) return window;
   }
 
@@ -804,6 +836,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
   }
 
   const state = bladeswornState.from(context);
+
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY)) {
     const profile = warriorBalanceProfile(context, PROFILE.gunsAndGlory);
     const remaining = Math.max(0, state.gunsAndGloryUntil - event.at);
@@ -826,6 +859,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
   }
 
   const cartridges = activeCartridgeWindow(state, event.at);
+
   if (cartridges) {
     const burning = warriorBalanceProfileEffect(
       warriorBalanceProfile(context, PROFILE.overchargedCartridges),

@@ -47,6 +47,7 @@ function visibleBowSkills(context: RangerUiContext) {
 // in the palette without mutating scheduler state.
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
+
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
     return { available: false, message: 'Cyclone Bow is not active' };
   }
@@ -141,6 +142,7 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
   ],
   timelineWeaponLineTransition: (context: RangerUiContext) => {
     const skill = context.skill as RangerSkill | undefined;
+
     if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
       return 'Cyclone Bow';
     }

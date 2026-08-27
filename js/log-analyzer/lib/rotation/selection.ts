@@ -8,6 +8,7 @@ export function selectRotationPlayer<Player extends { readonly recordedActionCou
   explicitMatch?: (player: Player) => boolean
 ): RotationPlayerSelection<Player> {
   if (!players.length) return { status: 'no-player' };
+
   if (explicitMatch) {
     const player = players.find(explicitMatch);
     return player ? { status: 'selected', player } : { status: 'player-not-found' };

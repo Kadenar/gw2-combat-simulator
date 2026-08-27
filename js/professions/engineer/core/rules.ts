@@ -33,9 +33,11 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
   if (!hasTrait(context, TRAIT.CHEMICAL_ROUNDS)) return multiplier;
   const event = engineerEvent(context);
   const application = event?.application || event;
+
   // trait-sourced conditions (e.g. Incendiary Powder) don't get Chemical Rounds amplification
   if (application?.source === 'Trait') return multiplier;
   const skill = eventSkill(context);
+
   // condition events from different layers carry the weapon type at different paths — check all three
   if (event?.skillWeapon !== 'Pistol' && event?.application?.skillWeapon !== 'Pistol' && skill?.weapon !== 'Pistol') {
     return multiplier;
@@ -243,6 +245,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
   const modified = cloneEngineerAttributes(attributes);
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
+
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
@@ -310,6 +313,7 @@ export function applyEngineerSharpshooterConditionDamage(
 
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
+
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
     return duration * 0.85;
   }

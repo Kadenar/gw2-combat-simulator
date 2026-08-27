@@ -10,6 +10,7 @@ import type { GuardianAvailabilityContext, GuardianPrecastContext, GuardianSkill
 // and runtime contexts used by both UI and scheduler gates.
 export function selectedGuardianSpecialization(context: GuardianAvailabilityContext = {}): string {
   const config = context.config || context;
+
   if (typeof config.specialization === 'string') {
     return config.specialization;
   }
@@ -34,6 +35,7 @@ export function guardianBuildAvailability(
   if (!skill.implemented)
     return denySkillCast(skill, 'guardian.not-implemented', 'it is not implemented by the simulator.');
   const specialization = selectedGuardianSpecialization(context) || 'Core';
+
   if (skill.type !== 'Weapon' && skill.specialization && specialization !== skill.specialization) {
     return denySkillCast(skill, 'guardian.specialization', `requires the ${skill.specialization} specialization.`);
   }
@@ -62,6 +64,7 @@ export function guardianCastAvailability(
   skill: GuardianSkill
 ): Readonly<AvailabilityResult> {
   const state = professionCoreState(context);
+
   if (
     skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
     Number(state.availableFlips[GUARDIAN_SKILL_IDS.ZEALOTS_FIRE] || 0) > context.start + context.epsilon

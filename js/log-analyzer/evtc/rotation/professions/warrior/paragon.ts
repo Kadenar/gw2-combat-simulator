@@ -33,6 +33,7 @@ export const PARAGON_SKILL_ID_ALIASES = Object.freeze({
 function paragonPrecasts(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
   const bullsCharge = detectedWarriorCorePrecastIdentity(context, 'bullsCharge');
+
   if (atCombat == null || !bullsCharge) return [];
 
   const bullsDuration = recordedDuration(context, bullsCharge);
@@ -41,8 +42,11 @@ function paragonPrecasts(context: EvtcProfessionReconstructionContext): EvtcReco
   const healing = detectedWarriorCorePrecastIdentity(context, 'healingSignet');
   const rage = detectedWarriorCorePrecastIdentity(context, 'signetOfRage');
   const fury = detectedWarriorCorePrecastIdentity(context, 'signetOfFury');
+
   if (healing) identities.push(healing);
+
   if (rage) identities.push(rage);
+
   if (playerInitialBuff(context, CHANT_OF_ACTION_BUFF)) {
     identities.push(CHANT_OF_ACTION);
   }

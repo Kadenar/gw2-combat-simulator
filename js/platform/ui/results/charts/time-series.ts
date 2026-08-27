@@ -179,11 +179,13 @@ export function buildChartSeries(
   );
   const dps = times.map((time) => {
     const elapsed = time / 1000;
+
     if (elapsed <= 0) return { t: time, v: 0 };
     const absoluteTime = dpsStartMs + time;
     let damage = 0;
     for (const event of damageEvents) {
       const damageTicks = eventDamageTicks(event);
+
       if (damageTicks.length) {
         // Condition applications store aggregate damage plus individual ticks;
         // use ticks to avoid showing future condition damage too early.
@@ -210,6 +212,7 @@ export function buildChartSeries(
       ) *
         1000 -
       dpsStartMs;
+
     if (end > start) {
       applications.push({
         name: effectName(event.condition, event),
@@ -244,6 +247,7 @@ export function buildChartSeries(
       const effect = timedProcEffect(proc);
       const start = Number(proc.start) - dpsStartMs;
       const end = Number(proc.expiresAt) - dpsStartMs;
+
       if (!effect?.name || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) continue;
       applications.push({
         name: effect.name,
@@ -282,6 +286,7 @@ export function buildChartSeries(
       for (const entry of applications) {
         if (!entry.replacementGroup || entry.start > time) continue;
         const active = activeReplacements.get(entry.replacementGroup);
+
         if (!active || entry.start >= active.start) {
           activeReplacements.set(entry.replacementGroup, entry);
         }
@@ -312,24 +317,29 @@ export function buildChartSeries(
   }));
   const skillDamage: Record<string, SkillHit[]> = {};
   const skillNames: Record<string, string> = {};
+
   if (skillKey) {
     // Each strike is one hit at its time; conditions expand to a hit per
     // damaging tick. Times are relative to the DPS window, matching `dps`.
     for (const event of damageEvents) {
       const key = skillKey(event);
+
       if (!key) continue;
       const hits = skillDamage[key] || (skillDamage[key] = []);
+
       if (skillName && skillNames[key] == null) {
         skillNames[key] = skillName(key, event);
       }
 
       const crit = event.didCrit ?? null;
       const damageTicks = eventDamageTicks(event);
+
       if (damageTicks.length) {
         // Condition ticks are neither critical nor non-critical strikes.
         for (const tick of damageTicks) {
           const value = Number(tick.damage || 0);
           const time = Number(tick.at || 0) * 1000 - dpsStartMs;
+
           if (value > 0 && time >= 0 && time <= durationMs) {
             hits.push({ t: time, v: value, crit: null });
           }
@@ -337,6 +347,7 @@ export function buildChartSeries(
       } else {
         const value = Number(event.damage || 0);
         const time = Number(event.at || 0) * 1000 - dpsStartMs;
+
         if (value > 0 && time >= 0 && time <= durationMs) {
           hits.push({ t: time, v: value, crit });
         }
@@ -380,7 +391,9 @@ const ACTIVE_MOUNTS = new WeakMap<HTMLElement, ActiveChartMount>();
 
 const chartNumber = (value: unknown): string => {
   const number = Number(value || 0);
+
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(1)}m`;
+
   if (number >= 1000) {
     return `${(number / 1000).toFixed(number >= 10_000 ? 0 : 1)}k`;
   }
@@ -508,10 +521,12 @@ export function buildPhaseDpsSeries(
   endDamage: number
 ): ChartPoint[] {
   const durationMs = Math.max(0, endMs - startMs);
+
   if (!(durationMs > 0)) return [];
   const points: ChartPoint[] = [{ t: 0, v: 0 }];
   for (const point of cumulativeDamage) {
     const timeMs = Number(point.t);
+
     if (!(timeMs > startMs && timeMs < endMs)) continue;
     const elapsedMs = timeMs - startMs;
     points.push({
@@ -529,6 +544,7 @@ export function buildPhaseDpsSeries(
 
 export function buildPhaseEffectSeries(points: readonly ChartPoint[], startMs: number, endMs: number): ChartPoint[] {
   const durationMs = Math.max(0, endMs - startMs);
+
   if (!points.length || !(durationMs > 0)) return [];
   return [
     { t: 0, v: chartValueAt(points, startMs) },
@@ -614,6 +630,7 @@ function drawLineChart(
   canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
+
   if (!context) return null;
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, cssWidth, height);
@@ -690,6 +707,7 @@ function drawLineChart(
     line.points.forEach((point, index) => {
       const x = pad.left + (Number(point.t || 0) / durationMs) * plotWidth;
       const y = pad.top + (1 - Number(point.v || 0) / maxValue) * plotHeight;
+
       if (index === 0) context.moveTo(x, y);
       else context.lineTo(x, y);
     });
@@ -736,6 +754,7 @@ function chartHtml(
           const groupEffects = effects
             .filter((name) => (series.effectTypes?.[name] || 'buff') === type)
             .sort((left, right) => left.localeCompare(right));
+
           if (!groupEffects.length) return '';
           return `<div class="chart-toggle-group" data-role="chart-toggle-group" data-effect-type="${type}">
         <div class="chart-toggle-group-header">
@@ -895,12 +914,14 @@ export function mountTimeSeriesCharts(
     chartState.dpsView = dpsViewForPhase(resolvedSeries, healthMarkers, activePhase);
     chartState.effectsView = effectsViewForPhase(resolvedSeries, activePhase);
     const dpsTitle = container.querySelector<HTMLElement>('[data-role="dps-panel-title"]');
+
     if (dpsTitle) {
       dpsTitle.textContent =
         `${resolvedOptions.dpsLabel} Over Time` + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
     }
 
     const effectsTitle = container.querySelector<HTMLElement>('[data-role="effects-panel-title"]');
+
     if (effectsTitle) {
       effectsTitle.textContent = 'Effects Over Time' + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
     }
@@ -950,7 +971,9 @@ export function mountTimeSeriesCharts(
     chartState.hitStripLabel = selectedSkillKey
       ? `${resolvedSeries.skillNames?.[selectedSkillKey] || selectedSkillKey} hits`
       : '';
+
     if (hitStrip) hitStrip.hidden = !selectedSkillKey;
+
     if (hitCanvas && selectedSkillKey) {
       chartState.hitStripLayout = drawHitTimeline(hitCanvas, chartState.hitStripHits, chartState.hitStripDurationMs, {
         height: 48,
@@ -966,6 +989,7 @@ export function mountTimeSeriesCharts(
   const bindHover = (canvasRole: string, tooltipRole: string, kind: 'dps' | 'effects'): void => {
     const canvas = container.querySelector<HTMLCanvasElement>(`[data-role="${canvasRole}"]`);
     const tooltip = container.querySelector<HTMLElement>(`[data-role="${tooltipRole}"]`);
+
     if (!canvas || !tooltip) return;
 
     canvas.onmouseleave = () => {
@@ -974,6 +998,7 @@ export function mountTimeSeriesCharts(
 
     canvas.onmousemove = (event) => {
       const layout = kind === 'dps' ? chartState.dpsLayout : chartState.effectsLayout;
+
       if (!layout) return;
 
       const rect = canvas.getBoundingClientRect();
@@ -998,6 +1023,7 @@ export function mountTimeSeriesCharts(
       const time = Math.max(0, Math.min(durationMs, ((chartX - minX) / layout.plotWidth) * durationMs));
       const timeLabel = `${(time / 1000).toFixed(2)}s`;
       let body: string;
+
       if (kind === 'dps') {
         const dps = Math.round(chartValueAt(chartState.dpsView.dps, time));
         body =
@@ -1038,6 +1064,7 @@ export function mountTimeSeriesCharts(
   ) || []) {
     button.onclick = () => {
       const group = button.closest('[data-role="chart-toggle-group"]');
+
       if (!group) return;
       const checked = button.dataset.toggleAction === 'all';
       for (const input of group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')) {
@@ -1083,6 +1110,7 @@ export function mountTimeSeriesCharts(
     const requestFrame =
       container.ownerDocument?.defaultView?.requestAnimationFrame?.bind(container.ownerDocument.defaultView) ||
       globalThis.requestAnimationFrame;
+
     if (!requestFrame) {
       redraw();
       return;
@@ -1097,9 +1125,11 @@ export function mountTimeSeriesCharts(
   const observedCanvas = container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]');
   const observedContainer = observedCanvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;
+
   if (ResizeObserverConstructor && observedContainer) {
     activeMount.resizeObserver = new ResizeObserverConstructor(() => {
       const visibleWidth = Math.floor(observedContainer.clientWidth);
+
       if (visibleWidth > 0 && visibleWidth !== chartState.dpsLayout?.cssWidth) {
         requestRedraw();
       }
@@ -1110,6 +1140,7 @@ export function mountTimeSeriesCharts(
   requestRedraw();
   const setSelectedSkill = (key: string | null): void => {
     const next = key && resolvedSeries.skillDamage?.[key]?.length ? key : null;
+
     if (next === selectedSkillKey) return;
     selectedSkillKey = next;
     redraw();

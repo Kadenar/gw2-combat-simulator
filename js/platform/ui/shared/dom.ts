@@ -9,6 +9,7 @@
  */
 export function requiredElement(id: string): HTMLElement {
   const element = document.getElementById(id);
+
   if (!element) throw new Error(`Required element #${id} is missing.`);
   return element;
 }
@@ -24,6 +25,7 @@ export function requiredElement(id: string): HTMLElement {
  */
 export function requiredInput(id: string): HTMLInputElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLInputElement)) {
     throw new TypeError(`Element #${id} must be an <input>.`);
   }
@@ -42,6 +44,7 @@ export function requiredInput(id: string): HTMLInputElement {
  */
 export function requiredSelect(id: string): HTMLSelectElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must be a <select>.`);
   }
@@ -60,6 +63,7 @@ export function requiredSelect(id: string): HTMLSelectElement {
  */
 export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must expose a value.`);
   }

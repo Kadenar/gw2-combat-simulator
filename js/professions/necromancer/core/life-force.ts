@@ -36,6 +36,7 @@ function targetConditionCount(config: NecromancerConfig): number {
 
 function targetBoonCount(config: NecromancerConfig): number {
   if (config.target?.boonless) return 0;
+
   if (Array.isArray(config.target?.boons)) return config.target.boons.length;
   return Math.max(0, Number(config.target?.boonCount || 1));
 }
@@ -59,6 +60,7 @@ function setShroudRecharge(
 export function leaveShroud(context: NecromancerSchedulerContext, at: number, reason = 'shroud-exit'): void {
   const state = professionCoreState(context);
   const shroud = state.activeShroud;
+
   if (!shroud || shroud === 'lich') return;
   const entryId = state.activeShroudEntryId;
   const exitId = state.activeShroudExitId;
@@ -67,6 +69,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   state.activeShroudExitId = null;
   state.activeShroudProfileId = '';
   state.shroudEnteredAt = 0;
+
   if (exitId != null) {
     delete state.availableFlips[exitId];
     delete state.availableFlips[String(exitId)];
@@ -75,6 +78,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   runNecromancerShroudExit(context, at, reason);
   context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, entryId, at);
+
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitSkillBuff(context, {
       at,
@@ -119,8 +123,10 @@ function activeSignetOfVampirism(context: NecromancerSchedulerContext): boolean 
 function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, start: number, end: number): void {
   if (!hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
+
   if (!allies.count || !allies.strikesPerSecond) return;
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
+
   if (combatStart == null || end < combatStart - context.epsilon) return;
 
   const state = professionCoreState(context);
@@ -130,6 +136,7 @@ function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, st
   );
   const windowStart = Math.max(start, combatStart);
   let nextAt = Number(state.traitProcReadyAt.vampiricPresenceAlliedNextAt || 0);
+
   if (!(nextAt > windowStart + context.epsilon)) nextAt = windowStart + interval;
   while (nextAt <= end + context.epsilon) {
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
@@ -155,14 +162,17 @@ function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, st
 function emitAlliedTasteForBloodHits(context: NecromancerSchedulerContext, start: number, end: number): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
+
   if (!allies.count || !allies.strikesPerSecond) return;
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
+
   if (combatStart == null || end < combatStart - context.epsilon) return;
 
   const state = professionCoreState(context);
   const interval = 1 / allies.strikesPerSecond;
   const windowStart = Math.max(start, combatStart);
   let nextAt = Number(state.traitProcReadyAt.tasteForBloodAlliedNextAt || 0);
+
   if (!(nextAt > windowStart + context.epsilon)) nextAt = windowStart + interval;
   while (nextAt <= end + context.epsilon) {
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
@@ -218,6 +228,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
         (cooldownReadyAt <= state.vampirismNextAt + context.epsilon || passiveWhileRecharging)
       ) {
         const skill = context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
+
         if (skill)
           emitSkillDamage(context, skill, {
             at: state.vampirismNextAt,
@@ -254,6 +265,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
     state.lifeForce = Math.max(0, state.lifeForce - rate * (exitAt - start));
     syncNecromancerResources(state);
+
     if (state.lifeForce <= context.epsilon) {
       state.lifeForce = 0;
       leaveShroud(context, exitAt, 'life-force-depleted');
@@ -276,6 +288,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
 export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
   let amount = Number(skill.lifeForceGain || 0);
+
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
     amount += 3;
   }
@@ -296,9 +309,11 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
 
 export function finalizeNecromancerCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   advanceNecromancerState(context, context.effectiveEnd);
+
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   applySkillLifeForceGain(context, skill);
   const state = professionCoreState(context);
+
   if (state.pendingShroudEntryId === skill.id) {
     context.state.cooldowns.set(skill.id, Number.POSITIVE_INFINITY);
     delete state.pendingShroudEntryId;

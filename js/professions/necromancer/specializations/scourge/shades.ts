@@ -65,6 +65,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   const impactAt =
     skill.id === ID.MANIFEST_SAND_SHADE ? context.start + (context.fullEnd - context.start) * (11 / 12) : at;
   const shadeProfile = necromancerBalanceProfile(context, PROFILE.shade);
+
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const profile = hasTrait(context, TRAIT.SAND_SAVANT)
       ? necromancerBalanceProfile(context, PROFILE.sandSavant)
@@ -74,6 +75,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     // Sort ascending then take the last `maximum` entries so that when the cap
     // is exceeded the oldest (soonest-expiring) shade is evicted, not the newest
     state.shades = [...state.shades, at + duration].sort((left, right) => left - right).slice(-maximum);
+
     if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
       applyBarrierTraits(context, skill, at);
     }
@@ -83,6 +85,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       0,
       coreState.lifeForce - normalizedNecromancerLifeForceCost(coreState, Number(skill.lifeForceCost || 0))
     );
+
     if (
       // Plague Sending only triggers on F4/F5 shade skills, not on Manifest or the three minor F-skills
       new Set<string | number>([ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]).has(skill.id) &&
@@ -192,6 +195,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     const delay = Number(strike?.atMs || 3500) / 1000;
     const pulseCount = Number(pulseProtection?.applications || 3);
     const pulseInterval = Number(pulseProtection?.intervalMs || 1000) / 1000;
+
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
     }

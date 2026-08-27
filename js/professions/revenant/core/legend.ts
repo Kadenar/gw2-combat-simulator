@@ -32,6 +32,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
   state.activeLoadoutId = state.activeLegendId;
   state.legendSwapReadyAt = at + Math.max(0, Number(context.rechargeDuration ?? 10));
   const chargedMists = context.catalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
+
   if (!chargedMists) throw new Error('Missing Charged Mists balance profile.');
   state.energy =
     Math.floor(previousEnergy) <= Number(chargedMists.threshold || 0) && hasTrait(context.config, TRAIT.CHARGED_MISTS)
@@ -50,6 +51,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
     skillName: skill.name,
     weaponSet: context.state.activeWeaponSet
   });
+
   if (revenantCombatActive(context, at)) {
     applyLegendInvocationTraits(context, skill);
   }

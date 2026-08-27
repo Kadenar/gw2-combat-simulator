@@ -165,6 +165,7 @@ export const SKILL_COLS: readonly ResultColumn[] = [
     format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),
     title: (_value, row) => {
       const eligible = Number(row.critEligibleHits || 0);
+
       if (eligible <= 0) return '';
       const critHits = Number(row.critHits || 0);
       // Deterministic runs yield fractional expected crits; flag those with ~.
@@ -201,12 +202,14 @@ export function sortResultRows(
 ): ResultRow[] {
   // Never mutate the model supplied by the simulation/result transformer.
   const sorted = [...rows];
+
   if (!column || !direction) {
     // "Unsorted" means the useful default of highest total damage first.
     return sorted.sort((left, right) => Number(right.total || 0) - Number(left.total || 0));
   }
 
   const definition = columns.find((candidate) => candidate.key === column);
+
   if (definition?.numeric) {
     return sorted.sort((left, right) => {
       const leftValue = left[column] ?? -Infinity;
@@ -239,6 +242,7 @@ function signedFixed(value: unknown, digits = 2): string {
 
 function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'): string {
   const numeric = Number(value || 0);
+
   if (unit === 'value') return number(numeric);
   return numeric.toLocaleString(undefined, {
     minimumFractionDigits: Math.abs(numeric) < 10 ? 1 : 0,
@@ -248,6 +252,7 @@ function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'):
 
 function randomDistributionExplanationHtml(distribution: ResultRandomDistribution): string {
   const explanation = distribution.explanation;
+
   if (!explanation?.drivers?.length) return '';
   const cohort = Math.max(1, Math.round(explanation.cohortPercent || 10));
   const cohortSize = Math.max(1, Math.ceil(Number(distribution.trials || 0) * (cohort / 100)));
@@ -285,6 +290,7 @@ function randomDistributionExplanationHtml(distribution: ResultRandomDistributio
 
 function skillCellHtml(row: ResultRow, column: ResultColumn, options: RotationResultsOptions): string {
   const value = row[column.key];
+
   if (column.key === 'name') {
     const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
     return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
@@ -319,6 +325,7 @@ function skillRowsHtml(
   options: RotationResultsOptions
 ): string {
   const hasGroups = rows.some((row) => typeof row.group === 'string' && row.group.trim());
+
   if (!hasGroups) {
     return rows.map((row) => skillRowHtml(row, columns, options)).join('');
   }
@@ -378,6 +385,7 @@ function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSort
 /** Renders an accessible native disclosure beside a metric label when contributor details are available. */
 function resultMetricDetailsHtml(metric: ResultMetric): string {
   const details = metric.details || [];
+
   if (!details.length) return '';
   const title = `${metric.label} breakdown`;
   return `<details class="res-metric-info">
@@ -411,6 +419,7 @@ export function dismissResultMetricDetails(root: ParentNode, target: EventTarget
 /** Uses pointerdown before the native details click toggle so the opening interaction cannot dismiss itself. */
 function bindResultMetricDetailsDismissal(container: HTMLElement): void {
   const root = container.ownerDocument;
+
   if (!root || metricDetailsDismissalRoots.has(root)) return;
   metricDetailsDismissalRoots.add(root);
   root.addEventListener('pointerdown', (event) => dismissResultMetricDetails(root, event.target));
@@ -707,6 +716,7 @@ export function mountRotationResults(
   const renderSortedRows = (): void => {
     const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
     const rowsElement = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
+
     if (rowsElement) {
       rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options);
       // Re-rendering discards row handlers; rebind selection and reapply it.
@@ -714,6 +724,7 @@ export function mountRotationResults(
     }
 
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
+
     if (header) {
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
       // Replacing header markup discards its handlers, so bind the new cells.
@@ -748,10 +759,13 @@ export function mountRotationResults(
   // one marker per hit. Removed and re-inserted so it survives row re-sorts.
   const renderSkillTimeline = (): void => {
     const rowsRoot = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
+
     if (!rowsRoot) return;
     rowsRoot.querySelector('[data-role="skill-timeline"]')?.remove();
+
     if (!selectedSkillKey || !chartSeries) return;
     const hits = chartSeries.skillDamage?.[selectedSkillKey];
+
     if (!hits || !hits.length) return;
     let target: HTMLElement | null = null;
     for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>('.res-row-selectable')) {
@@ -762,6 +776,7 @@ export function mountRotationResults(
     }
 
     const doc = container.ownerDocument;
+
     if (!target || !doc || typeof target.after !== 'function') return;
     const timeline = doc.createElement('div');
     timeline.className = 'res-skill-timeline';
@@ -799,6 +814,7 @@ export function mountRotationResults(
 
   bindSort();
   const chartContainer = container.querySelector<HTMLElement>('[data-role="result-charts"]');
+
   if (chartContainer && chartSeries) {
     // Charts mount only when the transformed model supplies sampled series.
     chartHandle =
@@ -810,6 +826,7 @@ export function mountRotationResults(
 
   bindSkillSelection();
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
+
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {
       options.onRunRandomDistribution?.();
@@ -817,6 +834,7 @@ export function mountRotationResults(
   }
 
   const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
+
   if (runRelicComparison && typeof options.onRunRelicComparison === 'function') {
     runRelicComparison.onclick = () => {
       options.onRunRelicComparison?.();

@@ -18,6 +18,7 @@ function reduceMatchingCooldowns(
   let reducedBy = 0;
   for (const skillId of ids) {
     const skill = context.catalog.skillsById.get(skillId);
+
     if (skill && predicate(skill)) {
       reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
     }
@@ -51,6 +52,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
       3,
       at
     );
+
     // only emit proc when something actually changed — suppresses no-op entries in the event log
     if (reducedBy > 0) {
       context.emit({
@@ -69,6 +71,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
 
   if (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
     const reducedBy = reduceMatchingCooldowns(context, isEngineerToolbeltSkill, 1, at);
+
     if (reducedBy > 0) {
       context.emit({
         type: 'proc',

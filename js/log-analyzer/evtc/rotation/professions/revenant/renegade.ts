@@ -47,6 +47,7 @@ function ordersFromAboveActions(context: EvtcProfessionReconstructionContext): E
 
     const beginsActivation = previousPulse == null || event.time - previousPulse > 1500;
     previousPulse = event.time;
+
     if (!beginsActivation) return;
     actions.push(
       directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), ORDERS_FROM_ABOVE)
@@ -61,6 +62,7 @@ function initialWarbandActions(
 ): EvtcRecordedRotationAction[] {
   if (!Number.isFinite(anchor)) return [];
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const initialAddresses = new Set(
     context.log.events
@@ -100,10 +102,12 @@ function warbandActorActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const legendSwaps = legendSwapActions(context);
   return context.log.events.flatMap((event, eventIndex) => {
     const identity = WARBAND_ANIMATION_ACTIONS.get(event.skillId);
+
     if (
       !identity ||
       event.sourceMasterInstance !== ownerInstance ||

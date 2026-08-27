@@ -21,9 +21,12 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
+
   if (!element) return;
+
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {
     state.pistolBullets[element] = false;
+
     if (skill.name === 'Raging Ricochet') {
       emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
     } else if (skill.name === 'Searing Salvo') {

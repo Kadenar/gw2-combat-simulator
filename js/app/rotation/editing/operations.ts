@@ -23,10 +23,12 @@ export function moveRotationEntry(rotation: RotationCommand[], fromIndex: number
   const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
   // Removing an earlier entry shifts a forward insertion target left by one.
   const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
+
   if (insertAt === fromIndex) return false;
 
   // Pull the entry out, then re-insert at the adjusted slot.
   const [entry] = rotation.splice(fromIndex, 1);
+
   if (entry === undefined) return false;
   rotation.splice(insertAt, 0, entry);
   return true;

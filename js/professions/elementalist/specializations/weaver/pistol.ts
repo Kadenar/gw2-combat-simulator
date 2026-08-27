@@ -16,10 +16,12 @@ import { weaverDualAttunements } from './skills.js';
 export function applyWeaverPistolState(context: ElementalistCastContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Pistol') return;
   const elements = weaverDualAttunements(skill);
+
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const active = elements.filter((element) => state.pistolBullets[element]);
+
   if (!active.length) {
     state.pistolBullets[state.primaryAttunement] = true;
     return;
@@ -27,6 +29,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
 
   for (const element of active) {
     state.pistolBullets[element] = false;
+
     if (skill.name === 'Frostfire Flurry' && element === 'Fire') {
       const aura = profiledEffect(context, PROFILE.frostfireFlurry, 'buff', 'Fire');
       applyElementalistAura(context, {

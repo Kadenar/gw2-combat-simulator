@@ -30,6 +30,7 @@ function selectedSkillName(value: unknown): string {
 export function eventSkill<TSkill extends Skill>(context: Gw2ModifierContext): TSkill | undefined {
   const event = context.event as RuntimeSkillEvent | null | undefined;
   const skillId = event?.skillId ?? event?.application?.skillId ?? (context.skillId as SkillId | null | undefined);
+
   if (skillId == null) return undefined;
   const profession = context.profession as RuntimeSkillCatalog<TSkill> | undefined;
   return profession?.catalog?.skillsById?.get(skillId);
@@ -54,6 +55,7 @@ export function hasSelectedSkill(context: Gw2ModifierContext, name: string): boo
 /** Uses explicit target-health assumptions first, then derives health from resolved damage totals. */
 export function targetHealthFraction(context: Gw2ModifierContext): number {
   const configured = Number(context.config?.targetHealthFraction ?? context.config?.target?.healthFraction);
+
   if (Number.isFinite(configured)) return clamp(configured, 0, 1);
 
   return remainingTargetHealthFraction(context.config, context.runtime) ?? 1;
@@ -67,6 +69,7 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
 /** Checks permanent, scheduled, and live player boon sources in runtime-precedence order. */
 export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
+
   if (context.timeline?.timedActive(boon, context.time)) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>

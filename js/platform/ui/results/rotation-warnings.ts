@@ -26,6 +26,7 @@ export function mountRotationWarnings(
           }
         : { message: String(warning), time: '' }
     );
+
   if (!items.length) {
     container.innerHTML = '';
     return null;

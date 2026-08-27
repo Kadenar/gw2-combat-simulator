@@ -51,7 +51,9 @@ function defineProfile(rawId: unknown, rawMin: unknown, rawMax: unknown): Readon
   const id = String(rawId || '');
   const min = Number(rawMin);
   const max = Number(rawMax);
+
   if (!id) throw new TypeError('Weapon-strength profiles require an ID.');
+
   if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) {
     throw new TypeError(`Weapon-strength profile ${id} has invalid bounds.`);
   }
@@ -114,6 +116,7 @@ const NAME_TO_PROFILE_ID: Readonly<Record<string, string>> = Object.freeze({
 export function weaponStrengthProfile(id: unknown): Readonly<Gw2WeaponStrengthProfile> {
   const key = String(id || '');
   const profile = WEAPON_STRENGTH_PROFILES[key];
+
   if (!profile) throw new RangeError(`Unknown weapon-strength profile: ${key}.`);
   return profile;
 }
@@ -140,6 +143,7 @@ export function weaponStrengthHalfRange(profile: Gw2WeaponStrengthProfile): numb
 /** Maps a unit-interval sample onto a weapon-strength profile. */
 export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitIntervalValue: number): number {
   const sample = Number(unitIntervalValue);
+
   if (!(sample >= 0 && sample < 1)) {
     throw new RangeError('Weapon-strength samples must be in [0, 1).');
   }
@@ -177,8 +181,11 @@ export function weaponStrengthProfileIdForEvent(
   const professionValue = state?.profession || state || {};
   const profession =
     professionValue && typeof professionValue === 'object' ? (professionValue as Record<string, unknown>) : {};
+
   if (skill?.radiantForgeSkill) return 'transform.radiant-forge';
+
   if (skill?.cycloneBowSkill) return 'transform.cyclone-bow';
+
   if (skill?.forgeSkill) {
     return 'transform.photon-forge';
   }
@@ -188,6 +195,7 @@ export function weaponStrengthProfileIdForEvent(
   }
 
   const skillShroud = String(skill?.shroud || '').toLowerCase();
+
   if (skillShroud && SHROUD_PROFILE_IDS[skillShroud]) {
     return SHROUD_PROFILE_IDS[skillShroud];
   }
@@ -196,6 +204,7 @@ export function weaponStrengthProfileIdForEvent(
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);
+
     if (profile) return profile.id;
   }
 
@@ -203,6 +212,7 @@ export function weaponStrengthProfileIdForEvent(
     const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
     const configured = activeSet === 2 ? config.weaponSet2Primary || config.primaryWeapon : config.primaryWeapon;
     const profile = weaponStrengthProfileForName(configured);
+
     if (profile) return profile.id;
   }
 
@@ -211,11 +221,13 @@ export function weaponStrengthProfileIdForEvent(
   }
 
   const activeShroud = String(profession.activeShroud || '').toLowerCase();
+
   if (activeShroud && SHROUD_PROFILE_IDS[activeShroud]) {
     return SHROUD_PROFILE_IDS[activeShroud];
   }
 
   if (profession.radiantForge === true) return 'transform.radiant-forge';
+
   if (profession.photonForgeActive === true) {
     return 'transform.photon-forge';
   }
@@ -226,6 +238,7 @@ export function weaponStrengthProfileIdForEvent(
 
   for (const candidate of [skill?.weapon, skill?.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);
+
     if (profile) return profile.id;
   }
 

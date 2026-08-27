@@ -88,6 +88,7 @@ export function turretOwnerId(skillId: SkillId): string {
 export function deployEngineerTurret(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
+
   if (Number.isFinite(flipSkillId)) {
     professionCoreState(context).availableFlips[flipSkillId] = true;
   }
@@ -131,8 +132,10 @@ export function handleEngineerTurretAttack(
   const skillId = Number(task.payload.skillId);
   const attackSkillId = TURRET_ATTACK_SKILL_BY_DEPLOYMENT[skillId];
   const attackSkill = context.catalog.skillsById.get(attackSkillId);
+
   if (!attackSkill) return;
   const strike = attackEffect(attackSkill, 'strike');
+
   if (!strike) return;
   const attackIndex = Number(task.payload.attackIndex || 1);
   const maximumAttacks = Number(attackSkill.ammo || 1);
@@ -154,6 +157,7 @@ export function handleEngineerTurretAttack(
   });
   const condition = attackEffect(attackSkill, 'condition');
   const profile = { name: attackName, condition: condition?.condition };
+
   if (condition) {
     emitSkillCondition(context, {
       at: task.at,

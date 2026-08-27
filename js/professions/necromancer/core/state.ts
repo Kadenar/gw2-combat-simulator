@@ -7,6 +7,7 @@ export const NECROMANCER_BASE_HEALTH = 9212;
 
 function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet<string | number>): number {
   let vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
+
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       vitality += Number(config.stats?.power ?? config.attributes?.power ?? 1000) * 0.1;

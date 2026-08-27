@@ -108,6 +108,7 @@ let nextTimelineCommandKey = 1;
 function timelineCommandKey(command: RotationCommand): number {
   const object = command as object;
   const existing = timelineCommandKeys.get(object);
+
   if (existing) return existing;
   const key = nextTimelineCommandKey++;
   timelineCommandKeys.set(object, key);
@@ -118,6 +119,7 @@ function createTimelineRow(root: HTMLElement, html: string): HTMLElement {
   const template = root.ownerDocument.createElement('template');
   template.innerHTML = html.trim();
   const row = template.content.firstElementChild;
+
   if (!(row instanceof HTMLElement)) throw new Error('Timeline row rendering produced no element.');
   return row;
 }
@@ -142,6 +144,7 @@ export function reconcileTimelineRows(
 
   nodes.forEach((node, index) => {
     const current = root.children[index] || null;
+
     if (current !== node) root.insertBefore(node, current);
   });
   while (root.children.length > nodes.length) root.removeChild(root.lastElementChild!);
@@ -179,6 +182,7 @@ function timelineFullCastMs(
   skill: Pick<Skill, 'castTimeMs'> | undefined
 ): number {
   const simulatedDuration = Number(step?.fullCastMs);
+
   if (step?.fullCastMs != null && Number.isFinite(simulatedDuration)) {
     return Math.max(0, Math.round(simulatedDuration));
   }
@@ -210,6 +214,7 @@ function editRotationDuration(
   event?: Event
 ): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const eventTarget = event?.currentTarget;
@@ -218,6 +223,7 @@ function editRotationDuration(
     document.querySelector<HTMLElement>(
       `#rotation-timeline .${key === 'concurrentOffsetMs' ? 'rot-offset-badge' : 'rot-wait-badge'}[data-idx="${index}"]`
     );
+
   if (!anchor) return false;
 
   const skill = resolveEntrySkill(app, item.command);
@@ -233,6 +239,7 @@ function editRotationDuration(
     value: Number(item[key]) || 1,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         [key]: durationMs
@@ -249,14 +256,17 @@ function editRotationDuration(
 // the rotation this cast falls so it can show available charge counts in context.
 function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+
   if (!skill?.dragonSlash) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`);
+
   if (!anchor) return false;
   openDragonSlashReleaseEditor({
     app,
@@ -266,6 +276,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
     currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
     onApply(releaseAtCharges) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         releaseAtCharges
@@ -282,10 +293,12 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
 // the whole .rot-skill card so the popover positions correctly.
 function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   const isCombatStart = item.type === 'combat-start';
+
   if (!skill && !isCombatStart) return false;
 
   const step = currentTimelineResults(app)?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
@@ -299,6 +312,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const anchor =
     eventElement?.closest<HTMLElement>('.rot-skill') ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-skill[data-idx="${index}"]`);
+
   if (!anchor) return false;
 
   openActivationEditor({
@@ -317,6 +331,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     damageCommitMs: activationDamageCommitMs(skill),
     onApply(timingMs) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(
         currentEntry,
@@ -335,14 +350,17 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 // "success" for any value other than the explicit "backfire" string, including unset.
 function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+
   if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`);
+
   if (!anchor) return false;
   openDoubleEdgeEditor({
     anchor,
@@ -351,6 +369,7 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
     outcome: item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success',
     onApply(outcome) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         doubleEdgeOutcome: outcome
@@ -398,6 +417,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
 
       if (name === '__wait') {
         const anchor = paletteDragAnchor(name);
+
         if (!anchor) return null;
         openDurationEditor({
           anchor,
@@ -413,6 +433,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
 
       if (skill?.dragonSlash) {
         const anchor = paletteDragAnchor(name);
+
         if (!anchor) return null;
         openDragonSlashReleaseEditor({
           app,
@@ -430,6 +451,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
 
       if (hasConfigurableDoubleEdgeOutcome(skill)) {
         const anchor = paletteDragAnchor(name);
+
         if (!anchor) return null;
         openDoubleEdgeEditor({
           anchor,
@@ -466,6 +488,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   closeDurationEditor();
   const element = document.getElementById('rotation-timeline');
   const procElement = document.getElementById('rotation-procs');
+
   if (!element) return;
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
@@ -476,6 +499,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.ondragover = null;
   element.ondragleave = null;
   element.ondrop = null;
+
   if (!app.build.rotation.length) {
     app.rotationSkillHighlightKey = null;
     element.classList.add('is-empty');
@@ -484,6 +508,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span>Click or drag skills from the palette above</span>
         </div>`;
     timelineRowsByRoot.delete(element);
+
     if (procElement) procElement.innerHTML = '';
     app.rotationInsertionIndex = mountRotationInsertionCursor({
       root: element,
@@ -606,6 +631,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   const automaticPhotonForgeExitRowMarkers = new Set<(typeof automaticPhotonForgeExits)[number]>();
   for (const marker of automaticPhotonForgeExits) {
     const rowIndex = timelineWeaponLineExitMarkerRowIndex(rows, marker.insertionIndex, 'Photon Forge');
+
     if (rowIndex < 0) continue;
     const markers = automaticPhotonForgeExitsByRow.get(rowIndex) || [];
     markers.push(marker);
@@ -1013,6 +1039,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     const procs = groupConsecutiveProcSteps(procSteps)
       .map((group) => {
         const proc = group.steps[0];
+
         if (!proc) return '';
         const { key } = group;
         const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
@@ -1060,6 +1087,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             </div>`;
       })
       .join('');
+
     if (procElement)
       procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? ' open' : ''}>
             <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? '' : 's'})</summary>
@@ -1105,6 +1133,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
     const key = app.rotationSkillHighlightKey;
     const active = !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
+
     if (!active) app.rotationSkillHighlightKey = null;
     skills.forEach((skill) => {
       const match = active && skill.dataset.skillHighlightKey === key;
@@ -1119,8 +1148,10 @@ export function renderTimeline(app: ProfessionAppState): void {
     skill.addEventListener('click', (event) => {
       const index = Number(skill.dataset.idx);
       const selectionResult = Number.isInteger(index) ? handleRotationSelectionClick(app, index, event) : 'ignored';
+
       if (selectionResult !== 'ignored') {
         app.rotationSkillHighlightKey = null;
+
         if (selectionResult === 'copied') {
           // Completing a loop moves the inspection cursor, so refresh insertion-aware palette state.
           renderPalette(app);
@@ -1142,6 +1173,7 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
   const activeProcVisibility = app.procVisibility || new Set();
+
   if (procFilter && procElement) {
     procFilter.addEventListener('toggle', () => {
       app.procFilterOpen = procFilter.open;
@@ -1152,6 +1184,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       if (!(input instanceof HTMLInputElement)) return;
       input.addEventListener('change', () => {
         const key = input.dataset.procKey || '';
+
         if (input.checked) activeProcVisibility.add(key);
         else activeProcVisibility.delete(key);
 
@@ -1170,6 +1203,7 @@ export function renderTimeline(app: ProfessionAppState): void {
           procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
         });
         const count = procFilter.querySelector('.proc-filter-count');
+
         if (count) {
           const visible = procFilter.querySelectorAll('input[data-proc-key]:checked').length;
           const total = procFilter.querySelectorAll('input[data-proc-key]').length;
@@ -1180,11 +1214,13 @@ export function renderTimeline(app: ProfessionAppState): void {
   }
 
   const procIconsRow = procElement?.querySelector<HTMLElement>('.proc-icons-row') || null;
+
   if (procIconsRow) {
     const applyProcHighlight = (): void => {
       const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
       const key = app.procHighlightKey;
       const active = !!key && icons.some((icon) => icon instanceof HTMLElement && icon.dataset.procKey === key);
+
       if (!active) app.procHighlightKey = null;
       icons.forEach((icon) => {
         if (!(icon instanceof HTMLElement)) return;

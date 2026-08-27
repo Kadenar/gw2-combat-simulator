@@ -40,6 +40,7 @@ export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMec
   'mesmer.mirage.dodge': ({ context, at, skill }) => {
     const runtime = mesmerRuntimeFor(context);
     mirageControllerFor(runtime).grantMirageCloak(at, skill.name);
+
     if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
       runtime.resources.queueResources(at + EPSILON, 1, runtime.activePrimaryWeapon(), 'Deceptive Evasion', {
         traitId: TRAIT.DECEPTIVE_EVASION,
@@ -52,6 +53,7 @@ export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMec
 /** Applies Self-Deception to categorized Deception skills after their casts complete. */
 function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
+
   if (
     runtime.traits.has(TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
@@ -74,6 +76,7 @@ function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): vo
 function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
     const mirrors = mirageState.from(context).mirrors;
+
     if (
       mirrors.some(
         (mirror) => mirror.availableAt <= context.start + EPSILON && mirror.expiresAt > context.start + EPSILON
@@ -100,6 +103,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
   const runtime = mesmerRuntimeFor(context);
   const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
   const state = mirageState.from(context);
+
   if (
     activeAmbush &&
     activeAmbush.name === skill.name &&
@@ -144,8 +148,10 @@ function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEv
   const runtime = mesmerRuntimeFor(context);
   const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
   const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, event.at) : null;
+
   if (!dodge || !ammo || ammo.charges >= ammo.maximum) return;
   ammo.charges += 1;
+
   if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
   context.state.cooldowns.delete(dodge.id);
 }

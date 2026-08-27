@@ -14,6 +14,7 @@ import type {
 /** Selects the active specialization's public resource contract at the family boundary. */
 export function mesmerResourceDefinition(specialization: string): MesmerResourceDefinition {
   if (specialization === 'Virtuoso') return { singular: 'blade', plural: 'blades', maximum: 5 };
+
   if (specialization === 'Troubadour') return { singular: 'note', plural: 'notes', maximum: 3 };
   return { singular: 'clone', plural: 'clones', maximum: 3 };
 }
@@ -21,6 +22,7 @@ export function mesmerResourceDefinition(specialization: string): MesmerResource
 /** Selects the active resource balance profile without making Core own elite profile IDs. */
 export function mesmerResourceProfileId(specialization: string): string {
   if (specialization === 'Virtuoso') return 'mesmer.virtuoso.resources';
+
   if (specialization === 'Troubadour') return 'mesmer.troubadour.resources';
   return 'mesmer.core.resources';
 }
@@ -75,6 +77,7 @@ export function projectMesmerEndState({
   for (const [skillId, flip] of Object.entries(publicState.availableFlips)) {
     if (flip.expiresAt < endTime - EPSILON) continue;
     const name = context.catalog.skillsById.get(Number(skillId))?.name;
+
     if (!name) continue;
     const persistent = !Number.isFinite(flip.expiresAt);
     availableFlips[name] = {

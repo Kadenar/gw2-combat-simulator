@@ -44,6 +44,7 @@ export function legendSwapActions(context: EvtcProfessionReconstructionContext):
     // normal buff packet for the same stance-gain signal.
     const buffApplication =
       event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
+
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
@@ -64,6 +65,7 @@ function upkeepActions(context: EvtcProfessionReconstructionContext): EvtcRecord
     // Keep upkeep recovery compatible with both normal and explicit buff-apply packets.
     const buffApplication =
       event.stateChange === EVTC_STATE_CHANGE.NONE || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY;
+
     if (
       event.source !== context.playerAddress ||
       event.target !== context.playerAddress ||
@@ -81,9 +83,11 @@ function upkeepActions(context: EvtcProfessionReconstructionContext): EvtcRecord
 
 function truncatedPrecastActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
+
   if (atCombat == null) return [];
   return context.log.events.flatMap((event, eventIndex) => {
     const identity = TRUNCATED_PRECASTS.get(event.skillId);
+
     if (
       !identity ||
       event.source !== context.playerAddress ||
@@ -95,6 +99,7 @@ function truncatedPrecastActions(context: EvtcProfessionReconstructionContext): 
     }
 
     const start = event.time - event.value;
+
     if (
       start >= atCombat ||
       hasRecordedAction(context.recordedActions, identity, event.time, SIGNAL_DEDUPLICATION_WINDOW_MS)
@@ -125,6 +130,7 @@ function truncatedSpiritcrushActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
+
   if (atCombat == null) return [];
   const firstSignal = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -138,10 +144,12 @@ function truncatedSpiritcrushActions(
         event.value > 0 &&
         event.time <= atCombat + 2000
     );
+
   if (!firstSignal) return [];
   const duration = runtimeDuration(context, SPIRITCRUSH);
   const end = firstSignal.event.time - SPIRITCRUSH_FIRST_HIT_DELAY_MS;
   const start = end - duration;
+
   if (start >= atCombat || hasRecordedAction(actions, SPIRITCRUSH, start, SIGNAL_DEDUPLICATION_WINDOW_MS)) {
     return [];
   }
@@ -219,6 +227,7 @@ export function initialEnchantedDaggersActions(
       event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
       LEGEND_STANCE_NAME.test(rawSkillName(context, event.skillId))
   );
+
   if (initialStance && rawSkillName(context, initialStance.skillId) !== 'Legendary Assassin Stance') {
     actions.push({
       ...directAction(-6001, anchor, 0, SWAP_LEGENDS.name, SWAP_LEGENDS, 'initial-state'),

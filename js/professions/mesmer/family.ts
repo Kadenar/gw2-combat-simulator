@@ -26,8 +26,10 @@ function projectMesmerSimulationEndState({
   const ammo = Object.fromEntries(
     applicationCatalog.skills.flatMap((skill) => {
       const maximum = schedulerContext.maximumAmmoFor(skill);
+
       if (!(maximum > 0)) return [];
       const existing = schedulerState.ammo.get(skill.id);
+
       if (!existing && runtimeSkillIds.has(String(skill.id))) return [];
       const value = existing
         ? structuredClone(existing)

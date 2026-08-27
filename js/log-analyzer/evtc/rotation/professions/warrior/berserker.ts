@@ -31,10 +31,12 @@ function alignOpeningHeadButtCombatStart(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
+
   if (atCombat == null) return [...actions];
   const runtimeDuration = recordedDuration(context, HEAD_BUTT);
   const skill = skillFor(context, HEAD_BUTT);
   const strikeOffset = firstStrikePacketOffsetMs(skill, runtimeDuration, { explicitOnly: true });
+
   if (strikeOffset == null) return [...actions];
 
   const opening = actions
@@ -48,6 +50,7 @@ function alignOpeningHeadButtCombatStart(
         atCombat <= Math.max(action.end, action.start + runtimeDuration) + SIGNAL_WINDOW_MS
     )
     .sort((left, right) => right.start - left.start)[0];
+
   if (!opening) return [...actions];
   const combatStartOverride = openingStrikeCombatStartMs(opening.start, strikeOffset, atCombat);
   return actions.map((action) => (action === opening ? { ...action, combatStartOverride } : action));
@@ -130,6 +133,7 @@ function outrageActions(
             Number(Math.max(right.event.value, right.event.buffDamage) === OUTRAGE_EXTENSION_MS) ||
           left.eventIndex - right.eventIndex
       )[0];
+
     if (matchingChange) claimedDurationChanges.add(matchingChange.eventIndex);
   }
 
@@ -170,6 +174,7 @@ function openingPrecasts(
   const headButtEquipped =
     actions.some((action) => action.rawSkillId === HEAD_BUTT.skillId || action.rawName === HEAD_BUTT.name) ||
     context.selectedSkillNames?.includes(HEAD_BUTT.name);
+
   if (
     atCombat == null ||
     !firstEntry ||
@@ -193,6 +198,7 @@ function openingPrecasts(
     .sort((left, right) => Math.abs(left.end - atCombat) - Math.abs(right.end - atCombat))[0];
   const headButtStart = recordedHeadButt?.start ?? atCombat - headButtDuration;
   const inferred: EvtcRecordedRotationAction[] = [];
+
   // Flames of War's initial buff proves the weapon skill was cast before Head
   // Butt; the intervening weapon swap returns to the combat weapon set.
   if (
@@ -205,6 +211,7 @@ function openingPrecasts(
   ) {
     const flamesDuration = recordedDuration(context, FLAMES_OF_WAR);
     inferred.push(initialAction(context, FLAMES_OF_WAR, headButtStart - flamesDuration, firstEntry.eventIndex - 4));
+
     if (!hasActionNear(actions, SWAP_WEAPONS, headButtStart)) {
       inferred.push({
         ...instantAction(

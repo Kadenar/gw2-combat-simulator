@@ -35,6 +35,7 @@ const HANDLER_FIELDS = new Set(['mode', 'resolveMode', ...HANDLER_PHASES]);
 
 function assertFields(value: object, handlerId: string): void {
   const unknownFields = Object.keys(value).filter((field) => !HANDLER_FIELDS.has(field));
+
   if (unknownFields.length) {
     throw new TypeError(
       `Skill handler ${handlerId} has unsupported field` +
@@ -65,13 +66,16 @@ export function skillHandler<TContext extends object = SchedulerRecord>(
   assertFields(options, '<unregistered>');
   const { mode, resolveMode = null, beforeEffects = null, afterEffect = null, afterEffects = null } = options;
   assertMode(mode, '<unregistered>');
+
   if (resolveMode != null && typeof resolveMode !== 'function') {
     throw new TypeError('Skill handler resolveMode must be a function.');
   }
 
   for (const phase of HANDLER_PHASES) {
     const handler = { beforeEffects, afterEffect, afterEffects }[phase];
+
     if (handler == null) continue;
+
     if (typeof handler !== 'function') {
       throw new TypeError(`Skill handler ${phase} must be a function.`);
     }
@@ -138,12 +142,14 @@ export function normalizeSkillHandler<TContext extends object = SchedulerRecord>
   assertFields(value, handlerId);
   const candidate = value as Partial<SkillHandlerStrategy<TContext>> & SchedulerRecord;
   const mode = assertMode(candidate.mode, handlerId);
+
   if (candidate.resolveMode != null && typeof candidate.resolveMode !== 'function') {
     throw new TypeError(`Skill handler ${handlerId} resolveMode must be a function.`);
   }
 
   for (const phase of HANDLER_PHASES) {
     if (candidate[phase] == null) continue;
+
     if (typeof candidate[phase] !== 'function') {
       throw new TypeError(`Skill handler ${handlerId} ${phase} must be a function.`);
     }

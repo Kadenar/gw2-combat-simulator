@@ -13,6 +13,7 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
   const damageByTime = new Map<number, number>();
   const addDamage = (at: number, damage: number): void => {
     const amount = Number(damage);
+
     if (!(amount > 0)) return;
     damageByTime.set(Number(at), (damageByTime.get(Number(at)) || 0) + amount);
   };
@@ -39,6 +40,7 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
   let damage = 0;
   for (const [at, amount] of [...damageByTime].sort((left, right) => left[0] - right[0])) {
     damage += amount;
+
     if (damage > targetHealth * 0.5) return at;
   }
 
@@ -50,16 +52,20 @@ function refineNecromancerSchedulerConfig(
   result: Gw2SimulationResult
 ): NecromancerConfig | null {
   const targetHealth = Number(config.target?.health || 0);
+
   if (!(targetHealth > 0)) return null;
   // Only Gravedigger changes future scheduling at the 50% threshold; other health-based effects resolve in one pass.
   const hasGravediggerCast = result.events.some(
     (event) => event.type === 'action' && Number(event.skillId) === ID.GRAVEDIGGER
   );
+
   if (!hasGravediggerCast) return null;
   const belowHalfAt = targetBelowHalfAt(result, targetHealth);
+
   if (belowHalfAt == null) return null;
   const schedulerFeedback = config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
   const previous = Number(schedulerFeedback?.targetBelowHalfAt);
+
   if (Number.isFinite(previous) && previous === belowHalfAt) return null;
   return {
     ...config,

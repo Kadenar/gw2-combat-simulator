@@ -174,6 +174,7 @@ function stableEntries(entries) {
     const base = constantName(entry.name);
 
     if (!base) continue;
+
     const key = used.has(base) ? `${base}_ID_${entry.id}` : base;
 
     used.add(base);
@@ -197,9 +198,11 @@ function activationFromWikitext(wikitext, skillId) {
   const infobox = skillInfobox(wikitext);
 
   if (!infobox) return 0;
+
   const ids = infobox.match(/^\|\s*id\s*=\s*([^\n]+)/im)?.[1] || '';
 
   if (ids && !ids.match(new RegExp(`(^|\\D)${skillId}(\\D|$)`))) return 0;
+
   const raw = infobox.match(/^\|\s*activation\s*=\s*([0-9.]+)/im)?.[1];
 
   return raw ? Math.round(Number(raw) * 1000) : 0;
@@ -311,12 +314,14 @@ function effectsFor(raw) {
     const factKey = [current.type, current.text, current.status || ''].join('|');
 
     if (seenFacts.has(factKey)) continue;
+
     seenFacts.add(factKey);
 
     if (current.type === 'Damage' && Number(current.dmg_multiplier) > 0) {
       const burstLevel = Number(String(current.text || '').match(/^Level (\d+) Damage$/i)?.[1] || 0);
 
       if (burstLevel > 1) continue;
+
       const hits = Math.max(1, Number(current.hit_count || 1));
       const healthThreshold = Number(String(current.text || '').match(/under (\d+)% health/i)?.[1] || 0);
       const baseStrike = [...effects].reverse().find((effect) => effect.type === 'strike');

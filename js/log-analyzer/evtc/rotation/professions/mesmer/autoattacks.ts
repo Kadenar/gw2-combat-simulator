@@ -35,6 +35,7 @@ function addMissingWindsOfChaosActions(
       }))
       .filter(({ distance }) => distance <= MAX_AUTOATTACK_IMPACT_MS)
       .sort((left, right) => left.distance - right.distance || left.index - right.index)[0];
+
     if (match) unused.delete(match.index);
   }
 
@@ -73,6 +74,7 @@ export function removeUncommittedMesmerAutoattacks(
   });
   const filtered = actions.filter((action) => {
     if (!isAutoattack(context, action)) return true;
+
     if (
       action.status === 'interrupted' &&
       String(action.canonicalName || action.rawName).toLowerCase() === 'winds of chaos'

@@ -21,6 +21,7 @@ import { soulbeastState } from './state.js';
 // Config/timeline are checked first because runtime may not be populated during attribute pre-computation.
 function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
   if (context.config?.boons?.[kind]) return true;
+
   if (context.timeline?.timedActive(kind, context.time)) return true;
   return (context.runtime?.boons?.get(kind) || []).some(
     (application: { at: number; expiresAt: number; stacks: number }) =>
@@ -173,6 +174,7 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
 export function soulbeastCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
+
   // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
   // but still invalid if it belongs to a different pet than the one currently selected.
   if (skill.beastmodeSkill && !toggle && !selectedRangerPet(context.config)?.beastmodeSkillIds.includes(skill.id)) {
@@ -315,12 +317,14 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
 /** Completes Soulbeast-only pet substitution and merged Beast-skill behavior. */
 function completeSoulbeastCast(context: RangerCastContext, skill: RangerSkill): void {
   const state = soulbeastState.from(context);
+
   if (skill.id === ID.PET_SWAP) {
     state.archetype = rangerPetByName(professionCoreState(context).activePet).archetype;
   }
 
   if (!state.beastmodeActive) return;
   emitMergedCommandEffects(context, skill);
+
   if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE) {
     applyRangerBeastSkillTraits(context, skill, false);
   }

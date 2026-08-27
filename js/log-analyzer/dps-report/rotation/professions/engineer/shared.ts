@@ -30,6 +30,7 @@ function kitName(skill: Skill | null): string | null {
 /** Rejects inaccurate EI toolbelt rows whose parent skill is absent from the active build. */
 function unavailableToolbeltAction(skill: Skill | null, context: DpsReportProfessionReconstructionContext): boolean {
   const parentName = normalized(skill?.toolbeltParentName);
+
   if (!parentName || !context.selectedSkillNames?.length) return false;
   return !context.selectedSkillNames.some((name) => normalized(name) === parentName);
 }
@@ -44,6 +45,7 @@ function kitEquip(
       candidate.handlerId === 'engineer.kit-equip' &&
       normalized(candidate.kitName || candidate.name) === normalized(kit)
   );
+
   if (!skill || typeof skill.id !== 'number') return null;
   return {
     start: action.start,
@@ -68,6 +70,7 @@ function kitStow(
   const skill = context.catalog?.skills.find(
     (candidate) => candidate.handlerId === 'engineer.kit-stow' && normalized(candidate.kit) === normalized(kit)
   );
+
   if (!skill || typeof skill.id !== 'number') return null;
   return {
     ...action,
@@ -84,6 +87,7 @@ function inferredMineSetup(
   firstActionStart: number
 ): DpsReportRecordedAction | null {
   const skill = context.catalog?.skills.find((candidate) => normalized(candidate.name) === 'throw mine');
+
   if (!skill || typeof skill.id !== 'number') return null;
   const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
   return {
@@ -119,8 +123,10 @@ export function reconstructEngineerDependencies(
     // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
     if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
     const skill = actionSkill(action, context);
+
     if (unavailableToolbeltAction(skill, context)) continue;
     const equippedKit = kitName(skill);
+
     if (equippedKit) {
       result.push(action);
       activeKit = equippedKit;
@@ -129,8 +135,10 @@ export function reconstructEngineerDependencies(
     }
 
     const requiredKit = String(skill?.kit || '').trim();
+
     if (requiredKit && normalized(activeKit) !== normalized(requiredKit)) {
       const equip = kitEquip(context, requiredKit, action);
+
       if (equip) {
         result.push(equip);
         activeKit = requiredKit;
@@ -146,6 +154,7 @@ export function reconstructEngineerDependencies(
         metadataAccurate: false,
         inference: 'initial-kit'
       });
+
       if (stow) result.push(stow);
       activeKit = null;
       lastKitEquip = null;
@@ -159,6 +168,7 @@ export function reconstructEngineerDependencies(
 
       if (activeKit) {
         const stow = kitStow(context, activeKit, action);
+
         if (stow) result.push(stow);
         activeKit = null;
         lastKitEquip = null;
@@ -170,9 +180,11 @@ export function reconstructEngineerDependencies(
     const isMineDetonation =
       actionName === 'detonate' ||
       (action.rawSkillId < 0 && normalized(action.rawName).startsWith('detonate (throw mine'));
+
     if (isMineDetonation) {
       if (!mineArmed && !inferredOpeningMine) {
         const setup = inferredMineSetup(context, action, sorted[0]?.start ?? action.start);
+
         if (setup) {
           result.push(setup);
           inferredOpeningMine = true;
@@ -185,6 +197,7 @@ export function reconstructEngineerDependencies(
     }
 
     result.push(action);
+
     if (actionName === 'throw mine') mineArmed = true;
     lastKitEquip = null;
   }

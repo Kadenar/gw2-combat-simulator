@@ -22,6 +22,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
     // first player/summon combat event starts combat implicitly.
     if (beforeExplicitCombatStart(context, event)) return;
     const actorType = gw2EventActorType(event);
+
     if (actorType === GW2_EVENT_ACTOR_TYPES.PLAYER || actorType === GW2_EVENT_ACTOR_TYPES.SUMMON) {
       activateCombat(event.at);
     }
@@ -58,6 +59,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
       : (query.conditionBaseDurationMultiplier?.(name, event.at, event, state) ?? 1);
     const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
     const stacks = Math.max(0, Number(event.stacks || 0));
+
     if (!(duration > 0) || !(stacks > 0)) return;
     const entry = state.conditionState.get(name) || { stacks: [] };
     entry.stacks.push({
@@ -79,6 +81,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           break;
         case 'condition':
           markCombatActive(context, event);
+
           if (state.combatActive) recordCondition(event);
           break;
         case 'damage':

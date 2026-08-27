@@ -278,6 +278,7 @@ function assertEventDescriptors(entry, profession) {
       assert.notEqual(descriptor, undefined, `${entry.id}/${specialization} must present or suppress ${type}`);
 
       if (descriptor === null) continue;
+
       assert.deepEqual(Object.keys(descriptor).sort(), ['className', 'description', 'flags', 'order', 'type'].sort());
       assert.ok(String(descriptor.type).trim());
       assert.ok(String(descriptor.description).trim());
@@ -335,10 +336,12 @@ test('profession registry entries conform to the shared contracts', async () => 
 
       for (const effect of skill.effects) {
         if (effect.type !== 'custom') continue;
+
         // Custom effects may materialize a shared engine event directly; only
         // profession-owned event types require a namespaced runtime handler.
         const usesSharedEvent = COMMON_EVENT_TYPES.includes(effect.eventType);
         assert.equal(usesSharedEvent || effect.eventType.startsWith(`${entry.id}.`), true, effect.eventType);
+
         if (usesSharedEvent) continue;
 
         const owner =

@@ -83,6 +83,7 @@ export function createProfessionRuntime({
   function selectedSkills(app: ProfessionAppState): Skill[] {
     const catalog = app.activeCatalog || profession.catalog;
     const loadout = profession.ui.slotLoadout ? (profession.ui.slotLoadout as ProfessionSlotLoadout) : null;
+
     if (loadout) {
       return loadout
         .selectedSkillIds({
@@ -125,6 +126,7 @@ export function createProfessionRuntime({
 
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
     const targetWeaponSet = weaponSet ?? displayedWeaponSet;
+
     if (
       targetWeaponSet === displayedWeaponSet &&
       (!disabled || (disabled.type !== 'Trait' && disabled.type !== 'Boon'))
@@ -133,6 +135,7 @@ export function createProfessionRuntime({
     }
 
     let build: ProfessionApplicationBuild = app.build;
+
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
       build = {
@@ -189,6 +192,7 @@ export function createProfessionRuntime({
   function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     const candidates: ProfessionModifier[] = [];
     const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
+
     if (Number(assumptions.might) > 0) {
       candidates.push({
         id: 'Boon:Might',
@@ -281,6 +285,7 @@ export function createProfessionRuntime({
           }
         : config;
     let baseConfig = deterministicConfig(simulationConfig(app));
+
     if (app.build.relic !== 'Eagle') {
       baseConfig = {
         ...baseConfig,
@@ -290,6 +295,7 @@ export function createProfessionRuntime({
 
     const comparisons = modifierCandidates(app).map((modifier) => {
       let config = deterministicConfig(simulationConfig(app, modifier));
+
       if (app.build.relic !== 'Eagle') {
         config = {
           ...config,
@@ -343,6 +349,7 @@ export function createProfessionRuntime({
    */
   function relicComparisonRequest(app: ProfessionAppState): RelicComparisonJobRequest | null {
     const opponentRelic = String(app.build.relic || '');
+
     if (!relicComparisonAvailable(opponentRelic)) return null;
     return {
       professionId: profession.id,
@@ -383,6 +390,7 @@ export function createProfessionRuntime({
   function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
     const rotation = app.build.rotation;
     const index = Math.max(0, Math.min(Math.floor(Number(insertionIndex) || 0), rotation.length));
+
     if (index === rotation.length && app.results?.endState) {
       return app.results.endState;
     }
@@ -406,6 +414,7 @@ export function createProfessionRuntime({
   /** Runs a serialized baseline job without depending on browser application state. */
   function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
     const { rotation, baseConfig, selectedPatchId, previewPatchId } = request;
+
     if (!previewPatchId) {
       return {
         result: simulateBuild(rotation, baseConfig),

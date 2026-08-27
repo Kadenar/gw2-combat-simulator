@@ -55,6 +55,7 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
 // start so interruptions cannot duplicate the mechanic.
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
+
   if (hasTrait(context, 'Hardy Conduit')) {
     const protection = elementalistBalanceEffect(context, PROFILE.hardyConduit, 'boon', 'Protection');
     emitSkillBuff(context, skill, {
@@ -109,6 +110,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
+
   if (skill.attunement !== state.primaryAttunement) {
     return {
       ready: false,
@@ -187,6 +189,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   const state = professionCoreState(context);
   const attunement = String(skill.attunement);
+
   if (attunement in state.attunementReadyAt) {
     const typedAttunement = attunement as keyof typeof state.attunementReadyAt;
     setElementalistAttunementReadyAt(
@@ -291,6 +294,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
 
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
     const state = tempestState.from(context);
+
     if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
       state.latentStaminaReadyAt =
         event.at + elementalistBalanceValue(context, PROFILE.latentStamina, 'internalCooldown', 10);
@@ -314,6 +318,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   if (event.type !== 'elementalist.aura') return;
   const source = String(event.skillName || event.source || 'Aura');
   const sourceId = event.skillId ?? event.sourceId;
+
   if (hasTrait(context, 'Invigorating Torrents')) {
     for (const name of ['Vigor', 'Regeneration'] as const) {
       const boon = elementalistBalanceEffect(context, PROFILE.invigoratingTorrents, 'boon', name);

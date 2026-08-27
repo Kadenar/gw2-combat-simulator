@@ -37,6 +37,7 @@ export function engineerEnduranceReadyAt(
 ): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
   const missing = Math.max(0, Number(cost || 0) - current);
+
   // already within epsilon of the cost — return start so the scheduler retries immediately
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = engineerEnduranceRegenerationRate(context, context.start);
@@ -46,6 +47,7 @@ export function engineerEnduranceReadyAt(
 export function advanceEngineerResources(context: EngineerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
+
   if (target <= from) return;
   // rate is evaluated at the midpoint of the window — accurate when vigor doesn't toggle mid-advance
   state.endurance = Math.min(

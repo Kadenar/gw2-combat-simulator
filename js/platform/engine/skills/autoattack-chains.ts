@@ -66,6 +66,7 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
   const positions = new Map<number, AutoattackChainPosition>();
   for (const source of chains) {
     const chain = freezeChain(source);
+
     if (chain.length < 2) {
       throw new TypeError('Autoattack chains require at least two skills.');
     }
@@ -102,6 +103,7 @@ export function resolveAutoattackChainStep(
 ): ResolvedAutoattackChainStep | null {
   const normalizedSkillId = Number(skillId);
   const position = positions.get(normalizedSkillId);
+
   if (!position) return null;
 
   const expectedSkillId = Number(chainState[position.root]) || position.root;

@@ -125,6 +125,7 @@ function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): Mini
 function minionDefinitionForSkill(context: NecromancerCastContext, skillId: SkillId): MinionDefinition | undefined {
   const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
   const profile = necromancerBalanceProfile(context, profileId);
+
   if (!profile) return undefined;
   const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
   const ordinary = strikes.filter((effect) => effect.packetLabel !== 'alternate');
@@ -166,6 +167,7 @@ function minionDefinitionForSkill(context: NecromancerCastContext, skillId: Skil
 function minionDefinitionFor(context: NecromancerCastContext, key: string): MinionDefinition | undefined {
   for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
     const definition = minionDefinitionForSkill(context, Number(skillId));
+
     if (definition?.key === key) return definition;
   }
 
@@ -281,9 +283,11 @@ function queueSummonAttacks(
 // keep its cadence alive only while the observation window can include another cycle.
 function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask<MinionAttackTaskPayload>): void {
   const payload = task.payload;
+
   if (!payload) return;
   const skill = context.catalog.skillsById.get(payload.skillId);
   const definition = skill ? minionDefinitionForSkill(context, skill.id) : undefined;
+
   if (!skill || !definition || definition.key !== payload.minionKey) return;
 
   const defaultAttacks = definition.attacks || [
@@ -339,6 +343,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
   }
 
   const nextAt = task.at + definition.interval;
+
   if (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon) {
     context.tasks.schedule({
       type: MINION_ATTACK_TASK,
@@ -367,6 +372,7 @@ function queueMinionCommandAttacks(
   definition: MinionCommandDefinition
 ): void {
   const minion = minionDefinitionFor(context, definition.minion);
+
   if (!minion || !definition.attacks?.length) return;
   const state = professionCoreState(context);
   const generation = Number(state.minionGenerations[minion.key] || 0);
@@ -411,6 +417,7 @@ function queueMinionCommandAttacks(
 
 function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const definition = minionDefinitionForSkill(context, skill.id);
+
   if (!definition) return false;
   const state = professionCoreState(context);
   state.activeMinions[definition.key] = definition.count;
@@ -419,6 +426,7 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   state.minionAttackAnchors[definition.key] =
     context.effectiveEnd + Number(definition.initialDelay ?? definition.interval);
   state.minionAttackCycleOffsets[definition.key] = 0;
+
   if (definition.commandId) {
     state.availableFlips[definition.commandId] = Number.POSITIVE_INFINITY;
   }
@@ -449,6 +457,7 @@ function emitMinionCommandEffects(
   at: number
 ): void {
   const minion = minionDefinitionFor(context, definition.minion);
+
   if (Number(definition.coefficient || 0) > 0) {
     emitSkillDamage(context, skill, {
       at,
@@ -513,6 +522,7 @@ function restartMinionAttacks(
   definition: MinionCommandDefinition
 ): void {
   const minion = minionDefinitionFor(context, definition.minion);
+
   if (!minion || !Number.isFinite(Number(minion.commandRecoveryDelay))) return;
   const state = professionCoreState(context);
   const previousAnchor = Number(state.minionAttackAnchors[minion.key] || context.effectiveEnd);
@@ -523,8 +533,10 @@ function restartMinionAttacks(
       : 0;
   const nextCycleIndex = previousOffset + completedSinceAnchor;
   state.minionAttackGenerations[minion.key] = Number(state.minionAttackGenerations[minion.key] || 0) + 1;
+
   if (skill.flipParentId == null) return;
   const summonSkill = context.catalog.skillsById.get(skill.flipParentId);
+
   if (!summonSkill) return;
   state.minionAttackAnchors[minion.key] = context.effectiveEnd + Number(minion.commandRecoveryDelay);
   state.minionAttackCycleOffsets[minion.key] = nextCycleIndex;
@@ -541,9 +553,11 @@ function restartMinionAttacks(
 // flip availability, autonomous attacks, and death-triggered summon recharge.
 function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const definition = commandDefinitionFor(skill);
+
   if (!definition.minion) return false;
   restartMinionAttacks(context, skill, definition);
   const impactDelay = Math.max(0, Number(definition.impactDelay || 0));
+
   if (definition.attacks?.length) {
     queueMinionCommandAttacks(context, skill, definition);
   } else if (impactDelay > 0) {
@@ -563,6 +577,7 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
       0,
       Number(professionCoreState(context).activeMinions[definition.minion] || 0) - definition.consumes
     );
+
     if (remaining) {
       professionCoreState(context).activeMinions[definition.minion] = remaining;
       professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
@@ -576,8 +591,10 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
         context.effectiveEnd
       );
       const summon = skill.flipParentId == null ? undefined : context.catalog.skillsById.get(skill.flipParentId);
+
       if (summon?.rechargeOnMinionDeath) {
         const recharge = context.rechargeDurationFor(summon, context.effectiveEnd, { minionDeathRecharge: true });
+
         if (recharge > 0) {
           context.state.cooldowns.set(summon.id, context.effectiveEnd + recharge);
         }
@@ -607,6 +624,7 @@ function handleMinionCommandImpact(
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(task.payload.skillId);
   const definition = skill ? commandDefinitionFor(skill) : undefined;
+
   if (!skill || !definition || !(Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0))
     return;
   emitMinionCommandEffects(context, skill, definition, task.at);

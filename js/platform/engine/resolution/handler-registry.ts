@@ -25,6 +25,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
    */
   register(type: string, handler: EventHandler<TContext, TEvent>): this {
     const eventType = String(type || '');
+
     if (!eventType || typeof handler !== 'function') {
       throw new TypeError('Event handler registration requires a type and function.');
     }
@@ -82,6 +83,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
    */
   dispatch(event: TEvent, context: TContext): unknown {
     const handler = this.#handlers.get(event.type);
+
     if (!handler) {
       throw new Error(`No event handler registered for required type: ${event.type}`);
     }

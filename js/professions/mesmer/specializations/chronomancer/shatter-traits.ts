@@ -15,6 +15,7 @@ const triggerShatterBoon = (
   fallbackBoon: 'alacrity' | 'quickness'
 ): void => {
   const runtime = mesmerRuntimeFor(context);
+
   if (!runtime.traits.has(traitId)) return;
 
   const effect: SkillEffect = runtime.balanceProfile(traitId)?.effects?.find(({ type }) => type === 'boon') ?? {
@@ -52,6 +53,7 @@ export function resolveChronomancerShatterBoons(context: MesmerCastContext, reso
 /** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */
 export function resolveIllusionaryReversion(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
   const runtime = mesmerRuntimeFor(context);
+
   if (
     !runtime.traits.has(TRAIT.ILLUSIONARY_REVERSION) ||
     resolution.spent !== mesmerBalanceValue(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold', 3)

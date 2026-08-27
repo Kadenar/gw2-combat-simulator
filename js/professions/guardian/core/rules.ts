@@ -35,6 +35,7 @@ export function guardianRuntimeState(context: Gw2ModifierContext): Partial<Guard
 /** @param {Gw2ModifierContext} context */
 function activeWeapon(context: Gw2ModifierContext): string | undefined {
   const eventWeapon = context.event?.skillWeapon;
+
   if (typeof eventWeapon === 'string') return eventWeapon;
   const weaponSet = context.timeline?.activeWeaponSetAt(context.time) || 1;
   return weaponSet === 2 ? context.config?.weaponSet2Primary : context.config?.primaryWeapon;
@@ -65,7 +66,9 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
  */
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
+
   if (context.timeline?.timedActive(boon, context.time)) return true;
+
   if (boon === 'resolution' && Number(guardianRuntimeState(context).resolutionUntil || 0) > context.time) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) => application.at <= context.time && application.expiresAt > context.time
@@ -89,6 +92,7 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   let latest: SimulationEvent | null = null;
   for (const event of context.events || []) {
     if (event.at > context.time) break;
+
     if (event.type === 'buff' && event.kind === kind) latest = event;
   }
 
@@ -327,6 +331,7 @@ export function compileGuardianModifierRules(rules: readonly Gw2ModifierRule[]) 
 function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext, duration: number): number {
   const skill = context.skill;
   let result = duration;
+
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
     result *= Number(guardianBalanceProfile(context, PROFILE.zealousBlade)?.rechargeMultiplier || 0.8);
   }
@@ -356,6 +361,7 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
  */
 function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum: number): number {
   let result = maximum;
+
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
     result = Math.max(result, Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.maximumStacks || 2));
   }
@@ -372,6 +378,7 @@ function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum
 function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   if (context.condition !== 'Burning') return duration;
   let result = duration;
+
   if (
     (context.sourceId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME ||
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&

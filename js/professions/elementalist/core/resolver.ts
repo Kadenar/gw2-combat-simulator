@@ -39,10 +39,12 @@ export function applyElementalistResolverAttunement(
   event: ElementalistResolverEvent
 ): void {
   const core = coreState(context);
+
   if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
   core.attunementEnteredAt = event.at;
 
   const specialization = context.profession.specialization.state as SchedulerRecord;
+
   if (Object.hasOwn(specialization, 'secondaryAttunement')) {
     specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
       ? event.secondaryAttunement
@@ -183,6 +185,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
     skillName
   };
   coreState(context).activeAuras.push(auraState);
+
   if (event.elementalistResolverGeneratedAura === true) {
     context.resolved.push(event);
   }
@@ -421,6 +424,7 @@ export function applyElementalistResolvedCondition(context: Gw2ResolverRuntime, 
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   ) {
     const state = coreState(context);
+
     if (isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) {
       state.procReadyAt.strengthOfStone =
         event.at + elementalistBalanceValue(context, PROFILE.strengthOfStone, 'internalCooldown', 3);

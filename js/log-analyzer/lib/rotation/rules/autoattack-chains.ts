@@ -34,8 +34,10 @@ export function normalizeAutoattackChains<Action extends ChainAction>(
       String(skill?.slot || '')
         .trim()
         .toLowerCase() === 'weapon_1';
+
     if (autoattack && action.status === 'interrupted') continue;
     const chainRoot = Number(skill?.chainRoot);
+
     if (autoattack && Number.isFinite(chainRoot)) {
       const rawSkillId = Number(skill?.id);
       const continuesChain = activeChainRoot === chainRoot && expectedSkillId != null;

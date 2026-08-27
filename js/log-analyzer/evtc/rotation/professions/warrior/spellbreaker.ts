@@ -20,6 +20,7 @@ function spellbreakerPrecasts(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
+
   if (atCombat == null) return [];
   const unmatchedBreachingStop = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -34,6 +35,7 @@ function spellbreakerPrecasts(
           (action) => BREACHING_STRIKE_IDS.has(action.rawSkillId) && Math.abs(action.end - event.time) <= 50
         )
     );
+
   if (!unmatchedBreachingStop) return [];
 
   // Retain the observed variant ID so logs/catalogs from either ArcDPS ID

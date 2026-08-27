@@ -223,6 +223,7 @@ function contractProfession() {
     schedulerHooks: {
       onCastStart(context, skill) {
         if (skill.id !== 990005) return;
+
         context.emit({
           type: 'damage',
           at: context.start + 2,
@@ -234,6 +235,7 @@ function contractProfession() {
       },
       onCastComplete(context, skill) {
         if (skill.id !== 990006) return;
+
         context.state.profession.actorActiveUntil = context.effectiveEnd + 4;
         context.tasks.schedule({
           type: 'fixture.persistent-actor',

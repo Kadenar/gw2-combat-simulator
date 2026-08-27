@@ -32,9 +32,12 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
 /** Presents Berserker's primal replacement and active-mode palette gates. */
 function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
   const burst = warriorBurstPaletteAvailability(context, skill, PRIMAL_BURSTS_BY_WEAPON);
+
   if (!burst.available) return burst;
   const state = warriorUiState(context);
+
   if (skill.primalBurst && !state.berserkActive) return { available: false, message: 'Enter berserk mode first' };
+
   if (skill.handlerId === 'warrior.berserk' && state.berserkActive) {
     return { available: false, message: 'Already in berserk mode' };
   }
@@ -50,6 +53,7 @@ export const berserkerUi: Partial<ProfessionUiContract> = Object.freeze({
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const remaining = Number(state.berserkUntil || 0) - warriorSnapshotAt(context);
+
     if (!state.berserkActive || remaining <= 0) return [];
     const items: RotationStateSnapshotItem[] = [
       {

@@ -105,6 +105,7 @@ export function handleContinuumExpiryTask(
   task: MesmerSchedulerTask<'continuumExpire'>
 ): void {
   const active = chronomancerState.from(context).continuum;
+
   if (!active || Math.abs(active.expiresAt - task.payload.expiresAt) > EPSILON) return;
   chronomancerControllerFor(mesmerRuntimeFor(context)).restoreContinuum(task.at, 'split expired');
 }
@@ -114,6 +115,7 @@ function observeChronomancerEvent(context: MesmerSchedulerContext, event: Simula
   if (event.type !== 'control') return;
   const runtime = mesmerRuntimeFor(context);
   const skillId = Number(event.skillId);
+
   if (
     !runtime.traits.has(TRAIT.DANGER_TIME) ||
     (skillId !== ID.TIME_SINK && !runtime.traits.has(TRAIT.DELAYED_REACTIONS))

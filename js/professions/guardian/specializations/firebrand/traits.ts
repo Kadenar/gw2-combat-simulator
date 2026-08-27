@@ -48,9 +48,11 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
   const state = firebrandState.from(context);
   const coreState = professionCoreState(context);
   const virtue = virtueFor(skill);
+
   if (virtue) {
     const passiveWasReady = state.tomeDormantReadyAt[virtue] <= at + context.epsilon;
     state.activeTome = virtue;
+
     // Switching to a different tome resets the Swift Scholar page-refund streak
     // because it requires three consecutive pages in the same tome.
     if (state.swiftScholarTome !== virtue) {
@@ -80,6 +82,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       mechanicSwap: true,
       weaponLine: skill.name
     });
+
     if (passiveWasReady) {
       const quickness = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.swiftScholar), 'boon');
       emitSkillBuff(context, skill, {
@@ -133,6 +136,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     const slow = guardianBalanceProfileEffect(profile, 'condition');
     const pageGain = Number(profile?.resourceGain || 2);
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
+
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
@@ -162,6 +166,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
 export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   const state = firebrandState.from(context);
+
   if (
     event.type === 'buff' &&
     ['aegis', 'stability'].includes(kind) &&
@@ -201,6 +206,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   const qualifyingStoicCondition =
     event.type === 'condition' &&
     ['immobilized', 'slow', 'slowed'].includes(String(event.condition || '').toLowerCase());
+
   if ((event.type === 'control' || qualifyingStoicCondition) && hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)) {
     const profile = guardianBalanceProfile(context, PROFILE.stoicDemeanor);
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
@@ -231,6 +237,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
 
   if (event.type !== 'damage') return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+
   if (
     skill?.weapon === 'Axe' &&
     event.actorType === 'player' &&
@@ -259,6 +266,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
 
 export function handleFirebrandVirtueActivation(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const virtue = event.virtue;
+
   if (!virtue) return;
   firebrandState.from(context).activeTome = virtue;
   firebrandState.from(context).tomeDormantReadyAt[virtue] = Number(event.passiveReadyAt);
@@ -281,6 +289,7 @@ export function reactToFirebrandJusticeHit(
 
 export function reactToFirebrandBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = firebrandState.from(context);
+
   if (
     String(event.kind || '').toLowerCase() !== 'quickness' ||
     // Skip if the event goes to allies only AND no allies are configured —
@@ -298,6 +307,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   const burn = guardianBalanceProfileEffect(ashes, 'condition');
   const duration = Number(ashesBuff?.duration || 10);
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown || 7);
+
   if (event.affectsSelf !== false) {
     const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
     state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
@@ -325,6 +335,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
       maximumPerAlly: 1,
       internalCooldown: Number(ashes?.internalCooldown || 1)
     });
+
     if (proc) {
       enqueueOrdered(context.queue, {
         type: 'condition',

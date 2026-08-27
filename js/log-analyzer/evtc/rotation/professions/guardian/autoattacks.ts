@@ -64,6 +64,7 @@ function normalizeAutoattackChains(
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)
     .map((action) => {
       const position = positions.get(action.rawSkillId);
+
       if (!position) {
         if (resetsAutoattackChain(context, action)) {
           activeChainIndex = null;
@@ -76,6 +77,7 @@ function normalizeAutoattackChains(
       const actionIndex = activeChainIndex === position.chainIndex ? expectedActionIndex : 0;
       const chain = AUTOATTACK_CHAINS[position.chainIndex];
       const identity = chain[actionIndex];
+
       if (action.status === 'completed' && actionIndex < chain.length - 1) {
         activeChainIndex = position.chainIndex;
         expectedActionIndex = actionIndex + 1;

@@ -99,6 +99,7 @@ function mirageCloakActions(
     .flatMap((signal) => {
       const mirror = mirrorSignals.some((candidate) => Math.abs(candidate.event.time - signal.event.time) <= 50);
       const identity = mirror ? PICK_UP_MIRAGE_MIRROR : DODGE;
+
       if (hasNearbyAction(actions, identity, signal.event.time, 100)) return [];
       return [
         canonicalAction(

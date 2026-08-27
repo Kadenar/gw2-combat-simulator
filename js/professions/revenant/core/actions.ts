@@ -22,6 +22,7 @@ export function performRevenantDodge(context: RevenantCastContext, skill: Revena
 /** Arms or consumes the Call to Anguish / Unyielding Impact flip. */
 export function completeRevenantFollowup(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
+
   if (skill.id === ID.CALL_TO_ANGUISH) {
     state.availableFlips[ID.UNYIELDING_IMPACT] = true;
     emitStateSnapshot(

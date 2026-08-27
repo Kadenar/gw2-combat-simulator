@@ -172,6 +172,7 @@ const sources: readonly RotationProfileSource[] = [
 
 function aliasesFor(source: RotationProfileSource, specializationId: string): Readonly<Record<string, string>> {
   const aliases = { ...(source.aliases || {}) };
+
   if (specializationId !== 'mirage') delete aliases.dodge;
   return Object.freeze(aliases);
 }

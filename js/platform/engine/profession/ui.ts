@@ -29,6 +29,7 @@ export function singleOwnerValue(
   label: string
 ): unknown {
   const owners = modules.filter((entry) => select(entry.module) != null);
+
   if (owners.length > 1) {
     throw new TypeError(`${label} has multiple owners: ${owners.map((entry) => entry.name).join(', ')}.`);
   }
@@ -123,16 +124,19 @@ export function composeModuleUi(
   for (const name of UI_SINGLE_CALLBACK_NAMES) {
     const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
     const callback = familyCallback ?? singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
+
     if (callback != null) ui[name] = callback;
   }
 
   const slotLoadout = singleOwnerValue(modules, (module) => module.ui?.slotLoadout, 'ui.slotLoadout');
+
   if (slotLoadout != null) ui.slotLoadout = slotLoadout;
   const weaponSwapChangesSet = singleOwnerValue(
     modules,
     (module) => module.ui?.weaponSwapChangesSet,
     'ui.weaponSwapChangesSet'
   );
+
   if (weaponSwapChangesSet != null) {
     ui.weaponSwapChangesSet = weaponSwapChangesSet;
   }
@@ -163,6 +167,7 @@ function explicitUiSpecialization(context: unknown): string | null {
   const config = candidate.config as SchedulerRecord | undefined;
   const build = candidate.build as SchedulerRecord | undefined;
   const value = candidate.specialization ?? config?.specialization ?? build?.specialization;
+
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
@@ -189,7 +194,9 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
     if (!value || typeof value !== 'object') return true;
     const candidate = value as SchedulerRecord;
     const key = candidate.id == null ? '' : String(candidate.id);
+
     if (!key) return true;
+
     if (keys.has(key)) {
       throw new TypeError(`ui.${callbackName} returned duplicate id ${key} at index ${index}.`);
     }
@@ -212,6 +219,7 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
         })
         .map(({ value }) => value)
     : [...values];
+
   if (callbackName !== 'paletteGroups') {
     return deduplicateUiEntries(orderedValues, callbackName);
   }
@@ -220,6 +228,7 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
   const anchorIndexes = groups.flatMap((value, index) =>
     value && typeof value === 'object' && (value as SchedulerRecord).resourceAnchor ? [index] : []
   );
+
   if (anchorIndexes.length > 1) {
     const firstIndex = anchorIndexes[0];
     const lastIndex = anchorIndexes.at(-1) as number;
@@ -257,6 +266,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   const active = (context: unknown): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
     const requested = uiSpecialization(context);
     const specialization = definition.specializations[requested];
+
     if (specialization && eliteNames.has(requested)) {
       return {
         context: context as SchedulerRecord,
@@ -285,6 +295,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
 
     const skillSpecialization = String(skill?.specialization || '').trim();
     const specialization = definition.specializations[skillSpecialization];
+
     if (specialization && eliteNames.has(skillSpecialization)) {
       return {
         context: context as SchedulerRecord,
@@ -441,6 +452,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
 
   for (const name of ['slotLoadout', 'weaponSwapChangesSet'] as const) {
     const owners = [family, ...allSlices].filter((slice) => slice[name] != null);
+
     if (owners.length > 1) {
       throw new TypeError(`ui.${name} has multiple application owners.`);
     }
@@ -458,6 +470,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       (module) => module.ui?.weaponSkillMatchesSet,
       'ui.weaponSkillMatchesSet'
     );
+
   if (weaponMatcher != null) ui.weaponSkillMatchesSet = weaponMatcher;
   return Object.freeze(ui) as UiSlice;
 }

@@ -64,8 +64,10 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
   const selections = [2, 3, 4].flatMap((slot) => {
     const options = amalgamProtocolOptions(slot);
     const selected = Number(selectedMorphIds(context)[slot - 2]);
+
     if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
     const skillId = skillIds[slot - 1];
+
     if (skillId == null || !options.length) return [];
     return [
       {
@@ -112,6 +114,7 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
   const index = Number(selection.index);
   const slot = index + 2;
   const nextSkill = engineerSkillsById.get(Number(selection.skillId));
+
   if (
     !context.build ||
     ![0, 1, 2].includes(index) ||
@@ -132,8 +135,10 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
   const conflictIndex = current.findIndex(
     (skillId, candidateIndex) => candidateIndex !== index && engineerSkillsById.get(skillId)?.name === nextSkill.name
   );
+
   if (conflictIndex >= 0 && previousSkill) {
     const replacement = amalgamProtocolOptions(conflictIndex + 2).find((skill) => skill.name === previousSkill.name);
+
     if (!replacement) return false;
     current[conflictIndex] = Number(replacement.id);
   }
@@ -147,6 +152,7 @@ function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: n
   let remaining = 0;
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
     if (Number(event.at || 0) > at) break;
+
     if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
     remaining = Math.max(remaining, Number(event.at || 0) + Number(event.duration || 0) - at);
   }
@@ -160,6 +166,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
   const evolveRemaining = Number(state.evolvedUntil || 0) - at;
+
   if (evolveRemaining > 0) {
     items.push({
       id: 'amalgam-evolve',
@@ -178,6 +185,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
     ['Berserker', Number(state.berserkerUntil || 0) - at]
   ];
   const activeStrains = strains.filter(([, remaining]) => remaining > 0);
+
   if (activeStrains.length) {
     items.push({
       id: 'amalgam-active-strains',

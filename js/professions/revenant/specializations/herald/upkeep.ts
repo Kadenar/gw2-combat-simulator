@@ -25,6 +25,7 @@ const ELEVATED_COMPASSION_TASK_OWNER = 'revenant.herald-elevated-compassion';
 
 function elevatedCompassionProfile(context: RevenantSchedulerContext) {
   const profile = context.catalog.balanceProfilesById.get(HERALD_ELEVATED_COMPASSION_PROFILE_ID);
+
   if (!profile) throw new Error('Missing Elevated Compassion balance profile.');
   return profile;
 }
@@ -41,6 +42,7 @@ function elevatedCompassionIsActive(context: RevenantSchedulerContext): boolean 
 function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at: number): void {
   const profile = elevatedCompassionProfile(context);
   const effect = profile.effects?.find((candidate) => candidate.type === 'boon');
+
   if (!effect) throw new Error('Elevated Compassion is missing its quickness effect.');
   const baseDuration = Math.max(0, Number(effect.duration || 0));
   const skill = { id: TRAIT.ELEVATED_COMPASSION, name: 'Elevated Compassion' } as RevenantSkill;
@@ -73,6 +75,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
 /** Starts or stops Elevated Compassion's one-second pulse loop after upkeep-changing casts. */
 export function syncElevatedCompassion(context: RevenantCastContext): void {
   const at = context.effectiveEnd;
+
   if (!elevatedCompassionIsActive(context)) {
     context.tasks.cancelOwner(ELEVATED_COMPASSION_TASK_OWNER);
     return;
@@ -80,6 +83,7 @@ export function syncElevatedCompassion(context: RevenantCastContext): void {
 
   if (Number.isFinite(context.tasks.nextAt(HERALD_ELEVATED_COMPASSION_TASK))) return;
   const readyAt = Math.max(at, Number(heraldState.from(context).elevatedCompassionReadyAt || 0));
+
   if (readyAt <= at + context.epsilon) {
     grantElevatedCompassionQuickness(context, at);
     return;
@@ -109,9 +113,11 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== facet?.id);
   // Remove the consume flip itself from availableFlips so it can't be cast a second time.
   delete state.availableFlips[skill.id];
+
   if (facet) {
     // Parent ownership also makes Facet of Nature's 20-second cooldown shared by every legend-specific True Nature ID.
     const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
+
     if (cooldown > 0) {
       context.state.cooldowns.set(facet.id, at + cooldown);
     }
@@ -136,10 +142,13 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   if (!skill.facet) return;
   const state = professionCoreState(context);
   const active = state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id);
+
   if (!active) return;
   const consumeId = heraldFacetConsumeId(skill, state.activeLegendId);
+
   if (consumeId != null) state.availableFlips[consumeId] = true;
   context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
+
   if (!skill.upkeepPulse) return;
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',
@@ -155,6 +164,7 @@ export function handleHeraldFacetPulse(
   task: RevenantScheduledTask<HeraldFacetPulsePayload>
 ): void {
   const skillId = task.payload?.skillId;
+
   if (skillId == null || !professionCoreState(context).activeUpkeeps.some((upkeep) => upkeep.skillId === skillId)) {
     return;
   }
@@ -162,6 +172,7 @@ export function handleHeraldFacetPulse(
   const skill = context.catalog.skillsById.get(skillId);
   const pulse = skill?.upkeepPulse as
     { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
+
   if (!skill || !pulse) return;
   emitSkillBuff(context, skill, {
     at: task.at,

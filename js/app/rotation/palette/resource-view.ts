@@ -72,6 +72,7 @@ export function resourceDisplayViews(
   context: SchedulerRecord
 ): ProfessionResourceView[] {
   const views = profession.ui.resourceViews(context);
+
   if (!Array.isArray(views)) {
     throw new TypeError('Profession resourceViews must return an array.');
   }
@@ -82,6 +83,7 @@ export function resourceDisplayViews(
 /** Formats a finite resource value with at most three decimal places. */
 export function formatResourceValue(value: unknown): string {
   const numeric = Number(value || 0);
+
   if (!Number.isFinite(numeric)) return '0';
   return String(Math.round((numeric + Number.EPSILON) * 1000) / 1000);
 }
@@ -110,6 +112,7 @@ export function paletteSkillResourceView(app: ProfessionAppState, skillId: Skill
   const definition = activeResourceDefinitions(app).find(
     (candidate) => candidate.paletteSkillId != null && String(candidate.paletteSkillId) === String(skillId)
   );
+
   if (!definition) return null;
   return {
     id: definition.id,
@@ -138,6 +141,7 @@ function resourcePipRows(maximum: number, rowCount: number): number[] {
  */
 function offsetPipRows(rowCount: number): ReadonlySet<number> {
   if (rowCount === 2) return new Set([0]);
+
   if (rowCount === 3) return new Set([1]);
   return new Set();
 }
@@ -181,6 +185,7 @@ function resourcePipsHtml(
         const rank = fillRank[row][col];
         const stateClass = rank < value ? ' active' : '';
         const label = rank + 1;
+
         if (!interactive) {
           return `<span class="active-resource-pip${stateClass}"></span>`;
         }
@@ -220,6 +225,7 @@ function resourceCounterHtml(definition: ProfessionResourceView, value: number):
 
 function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   const items = definition.statusItems || [];
+
   if (!items.length) return '';
   const label = definition.statusItemsLabel || 'Active';
   return `<div class="active-resource-statuses"
@@ -302,6 +308,7 @@ export function activeResourceGroup(
  */
 export function renderStartResource(app: ProfessionAppState): void {
   const element = document.getElementById('start-att-selector');
+
   if (!element) return;
   const professionState = professionEndState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
@@ -392,6 +399,7 @@ export function renderStartResource(app: ProfessionAppState): void {
       button.addEventListener('click', () => {
         const key = button.dataset.startControlKey;
         const value = button.dataset.startControlValue;
+
         if (!key || value == null) return;
         app.build[key] = value;
         app.changed();
@@ -418,6 +426,7 @@ export function renderStartResource(app: ProfessionAppState): void {
       const key = definition.buildKey || 'initialResource';
       const startMaximum = Number(definition.startMaximum ?? definition.maximum);
       const value = Math.max(0, Math.min(startMaximum, Number(app.build[key] || 0)));
+
       if (definition.displayMode === 'bar' || definition.displayMode === 'counter') {
         return `<div class="start-resource-control start-resource-number">
                 <label class="start-att-label">

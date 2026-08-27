@@ -29,6 +29,7 @@ export const rangerAppAdapter = defineProfessionApp({
   },
   isSkillAvailable(skill, context = {}) {
     if (!defaultIsSkillAvailable(skill, context)) return false;
+
     if (skill.unleashedAmbushSkill && context.specialization !== 'Untamed') {
       return false;
     }

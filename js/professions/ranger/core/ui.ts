@@ -47,6 +47,7 @@ export function rangerNamedSkillIds(names: readonly string[]): SkillId[] {
 
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
   const state = rangerUiState(context);
+
   if (Array.isArray(state.activePetSkillIds)) {
     return [...(state.activePetSkillIds as SkillId[])];
   }
@@ -116,7 +117,9 @@ export function activeRangerUiPet(context: RangerUiContext) {
 function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
   if (!['selectedPet', 'selectedPet2'].includes(String(selection.key)) || !context.build) return false;
   const pet = RANGER_PETS.find((candidate) => candidate.name === selection.value);
+
   if (!pet) return false;
+
   if (selection.key === 'selectedPet2') context.build.selectedPet2 = pet.name;
   else context.build.selectedPet = pet.name;
   return true;
@@ -146,6 +149,7 @@ function updateHammerSelection(context: RangerUiContext, selection: RangerUiSele
 
   const index = Number(selection.index);
   const skillId = Number(selection.skillId);
+
   if (
     !Number.isInteger(index) ||
     index < 0 ||
@@ -188,6 +192,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
@@ -280,6 +285,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
         layout
       }
     ];
+
     if (hasHammerEquipped(context)) {
       const selected = selectedHammerSkillIds(context);
       groups.push({

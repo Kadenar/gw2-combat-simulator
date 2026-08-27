@@ -48,6 +48,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   );
   // enduranceUpdatedAt must be stamped after a manual grant so regen calculations start from here.
   coreState.enduranceUpdatedAt = at;
+
   if (hasTrait(context.config, TRAIT.REAVERS_CURSE)) {
     const reaversCurse = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     const effect = reaversCurse?.effects?.find((candidate) => candidate.type === 'buff');
@@ -69,6 +70,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
 
   if (songOfArboreum) {
     const vigor = enduranceProfile?.effects?.find((candidate) => candidate.type === 'boon');
+
     if (vigor) {
       const kind = String(vigor.boon || 'vigor');
       emitSkillBuff(context, skill, {
@@ -101,6 +103,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
   const dodge = state.selectedDodge;
   const profile = selectedDodgeSkill(context);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike');
+
   // Guard against a missing or zero-damage entry so a misconfigured dodge produces no event.
   if (!effect || !(Number(effect.coefficient) > 0)) return;
   // Strike timestamp is relative to the start of the dodge animation, not the end of the cast window.
@@ -108,6 +111,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
   // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
     hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
+
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
   const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
@@ -130,6 +134,7 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
     forerunnerOfDeathActive: previousForerunnerUntil > at
   });
+
   if (dodge === 'Death Drop' && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
     const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
     const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');

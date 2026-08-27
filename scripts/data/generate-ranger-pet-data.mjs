@@ -198,6 +198,7 @@ async function fetchWikiPetMetadata(pet) {
   });
 
   if (!response.ok) throw new Error(`${response.status} ${pet.name}`);
+
   const result = await response.json();
   const source = String(result.parse?.wikitext || '');
 

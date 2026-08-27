@@ -33,8 +33,10 @@ function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number)
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== 'reaper') continue;
     const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
+
     if (!(readyAt > at + context.epsilon)) continue;
     const reduced = Math.max(at, readyAt - reduction);
+
     // Delete rather than set to 0 so the cooldown map stays clean and future lookups default correctly.
     if (reduced <= at + context.epsilon) {
       context.state.cooldowns.delete(candidate.id);
@@ -48,6 +50,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (skill.id === ID.LIFE_REAP && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
     // The hit lands at cast midpoint; skip reduction if the cast was cancelled before reaching that point.
     const hitAt = context.start + (context.fullEnd - context.start) / 2;
+
     if (context.effectiveEnd >= hitAt - context.epsilon) {
       reduceShroudCooldowns(context, hitAt);
     }
@@ -75,6 +78,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = reaperState.from(context);
+
   if (
     hasTrait(context, TRAIT.CHILLING_VICTORY) &&
     requiredShroud(skill) === 'reaper' &&
@@ -90,6 +94,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
 
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   ensurePermanentIceFieldAssumption(context, event);
+
   if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
@@ -107,6 +112,7 @@ export const reaperSchedulerHooks = Object.freeze({
 
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
     result.ferocity += Number(necromancerBalanceProfile(context, PROFILE.reapersOnslaught)?.attributeBonus || 300);
   }

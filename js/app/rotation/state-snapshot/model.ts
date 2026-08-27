@@ -18,6 +18,7 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
 
   const items: RotationStateSnapshotItem[] = [];
   const criticalEvent = criticalChanceEventAt(result, timeMs);
+
   if (criticalEvent) {
     const critical = Number(criticalEvent.criticalChance);
     const heading = atInsertion

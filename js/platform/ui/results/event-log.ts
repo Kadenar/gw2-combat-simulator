@@ -56,10 +56,12 @@ export const EVENT_LOG_ORDER: Readonly<Record<string, number>> = Object.freeze({
  */
 export function normalizeEventLogDescriptor(descriptor: unknown): NormalizedEventLogDescriptor | null | undefined {
   if (descriptor === null) return null;
+
   if (!descriptor || typeof descriptor !== 'object') return undefined;
   const value = descriptor as Record<string, unknown>;
   const type = String(value.type || '').trim();
   const description = String(value.description || '').trim();
+
   if (!type || !description) return undefined;
   const flags = Array.isArray(value.flags) ? value.flags.map(String) : [];
   return {
@@ -99,6 +101,7 @@ export function eventLogRows(
                 }
               : presented
           );
+
     if (!descriptor) continue;
     rows.push({
       at: Number(event.at || 0),
@@ -236,6 +239,7 @@ export function mountEventLog(
   };
 
   if (details?.open) renderLogLines();
+
   if (details) {
     details.ontoggle = () => {
       if (details.open) renderLogLines();
@@ -245,18 +249,23 @@ export function mountEventLog(
   for (const checkbox of container.querySelectorAll<HTMLInputElement>('[data-role="event-log-filter"]')) {
     checkbox.onchange = () => {
       const id = checkbox.dataset.filterId;
+
       if (!id) return;
+
       if (checkbox.checked) activeFilters.add(id);
       else activeFilters.delete(id);
+
       if (details?.open) renderLogLines(true);
     };
   }
 
   const search = container.querySelector<HTMLInputElement>('[data-role="event-log-search"]');
+
   if (search) {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     search.oninput = () => {
       searchQuery = search.value;
+
       if (debounceTimer !== null) clearTimeout(debounceTimer);
       // Debounce so large logs aren't re-rendered on every keystroke.
       debounceTimer = setTimeout(() => {
@@ -266,6 +275,7 @@ export function mountEventLog(
   }
 
   const download = container.querySelector<HTMLElement>('[data-role="event-log-download"]');
+
   // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);
   return { activeFilters, render: () => renderLogLines(true) };

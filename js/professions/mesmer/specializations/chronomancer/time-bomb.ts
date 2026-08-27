@@ -10,6 +10,7 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
   const runtime = mesmerRuntimeFor(context);
   const state = chronomancerState.from(context);
   const at = context.fullEnd;
+
   if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil - context.epsilon) return;
 
   const timeBomb = runtime.traitDamage['Time Bomb'];

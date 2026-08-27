@@ -121,6 +121,7 @@ function cancelledBeforeEffectCommit<TProfessionState extends object>(
 ): boolean {
   if (effectiveEnd >= fullEnd - context.epsilon) return false;
   const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
+
   if (cutoff == null) return true;
   const elapsedMs = (effectiveEnd - start) * 1000;
   return elapsedMs + context.epsilon * 1000 < Number(cutoff);
@@ -162,8 +163,10 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
     const perPacket = skill.interruptMode === 'per-packet';
     const cancelledCommitEffect =
       interrupted && !perPacket && cancelledBeforeEffectCommit(context, skill, effect, start, fullEnd, effectiveEnd);
+
     if (cancelledCommitEffect) continue;
     const cancelPendingEffects = interrupted && (perPacket || effect.persistsAfterInterrupt !== true);
+
     // Per-packet channels keep only applications that occurred by the interrupt;
     // committed effects may retain future packets only through explicit persistence.
     if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon) continue;
@@ -284,18 +287,22 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   const indexEvent = (event: SimulationEvent): void => {
     const type = String(event.type || '');
     const bucket = eventTypeIndex.get(type);
+
     if (bucket) bucket.push(event);
     else eventTypeIndex.set(type, [event]);
     const order = Number(event.__order);
+
     if (Number.isFinite(order)) eventOrderIndex.set(order, event);
   };
 
   const replaceIndexedEvent = (event: SimulationEvent, replacement: SimulationEvent): void => {
     const previousType = String(event.type || '');
     const nextType = String(replacement.type || '');
+
     if (previousType === nextType) {
       const bucket = eventTypeIndex.get(previousType);
       const index = bucket?.indexOf(event) ?? -1;
+
       if (bucket && index >= 0) bucket[index] = replacement;
     } else {
       // Type-changing replacements are rare; rebuilding the two affected
@@ -311,6 +318,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     }
 
     const order = Number(event.__order);
+
     if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
   };
 
@@ -321,17 +329,21 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     event.type === 'buff' && event.affectsSelf !== false ? String(event.kind || '').toLowerCase() : null;
   const indexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
+
     if (key == null) return;
     const bucket = buffIndex.get(key);
+
     if (bucket) bucket.push(event);
     else buffIndex.set(key, [event]);
   };
 
   const deindexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
+
     if (key == null) return;
     const bucket = buffIndex.get(key);
     const at = bucket?.indexOf(event) ?? -1;
+
     if (bucket && at >= 0) bucket.splice(at, 1);
   };
 
@@ -402,6 +414,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       indexBuffEvent(normalized);
       state.pendingEvents.push(normalized);
       observationQueue.push(normalized);
+
       if (!observingEvents) {
         let observationCount = 0;
         observingEvents = true;
@@ -412,6 +425,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
             }
 
             const observed = observationQueue.shift();
+
             if (observed) {
               schedulerPolicy.onEventScheduled?.(context, observed);
               activeProfession.onEventScheduled(context, observed);
@@ -428,6 +442,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const replacement = createEvent({ ...event, ...updates });
       const replaceReference = (collection: SimulationEvent[]): void => {
         const index = collection.indexOf(event);
+
         if (index >= 0) collection[index] = replacement;
       };
 
@@ -441,6 +456,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     },
     emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {
       const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.__order));
+
       if (!Number.isFinite(rootOrder)) {
         throw new TypeError('Derived events require a scheduled cause.');
       }
@@ -549,8 +565,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     task
   ) => {
     const reservationId = task.payload?.reservationId;
+
     if (typeof reservationId !== 'string') return;
     const reservation = reservations.get(reservationId);
+
     if (!reservation) return;
     const {
       skill,
@@ -565,9 +583,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     } = reservation;
     const active = inFlight.get(skill.id);
     active?.delete(reservation.id);
+
     if (active?.size === 0) inFlight.delete(skill.id);
+
     if (reservation.ammo) {
       cooldownController.spendAmmo(skill, rechargeStart);
+
       if (ammoLockoutDuration > 0) {
         cooldownController.setAmmoLockout(skill, rechargeStart + ammoLockoutDuration, rechargeStart);
       }
@@ -620,6 +641,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           : authoredOffsetMs;
       const anchor = trigger.timingAnchor === 'castStart' ? castContext.start : fullEnd;
       const triggerAt = anchor + offsetMs / 1000;
+
       if (triggerAt < effectiveEnd - epsilon) {
         throw new RangeError(
           `${skill.name} mechanic trigger ${trigger.type} resolves before the cast-completion dispatch phase.`
@@ -649,9 +671,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   ) => {
     const trigger = task.payload?.trigger as SkillMechanicTrigger | undefined;
     const skillId = task.payload?.skillId as SkillId | undefined;
+
     if (!trigger || skillId == null) return;
     const skill = taskContext.catalog.skillsById.get(skillId);
     const handler = activeProfession.skillMechanicHandlers[trigger.type];
+
     if (!skill || !handler) return;
     handler({
       context: taskContext,
@@ -740,6 +764,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   function refreshSharedState(at: number): void {
     for (const skillId of state.ammo.keys()) {
       const skill = skillFor(skillId);
+
       if (skill) cooldownController.refreshAmmo(skill, at);
     }
   }
@@ -747,6 +772,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   /** @param {number} time */
   function advanceTo(time: number): void {
     const target = Math.max(state.time, Number(time));
+
     if (!Number.isFinite(target)) {
       throw new TypeError('Scheduler time must be finite.');
     }
@@ -794,6 +820,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
+
     if ((readyAt > at + epsilon && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
       result.push(
         unavailable(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`, 'platform.cooldown', readyAt)
@@ -812,6 +839,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
     for (const lockout of skill.lockouts || []) {
       const lockoutReadyAt = Number(state.lockouts.get(lockout.group) || 0);
+
       if (lockoutReadyAt > at + epsilon) {
         result.push(
           unavailable(
@@ -850,6 +878,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ammo: state.ammo.get(skill.id) || null
     };
     const professionAvailability = activeProfession.availability(preliminaryContext, skill);
+
     // A command-scoped profession denial cannot become valid after shared state
     // is refreshed, so return it before running shared and policy availability.
     if (professionAvailability?.ready === false && professionAvailability.retryAt == null) {
@@ -897,6 +926,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
    */
   function cast(command: CastCommand, commandIndex = steps.length): boolean {
     const skill = skillFor(command.skillId);
+
     if (!skill) {
       const reason = `Unknown skill id ${command.skillId}.`;
       warnings.push(reason);
@@ -912,6 +942,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     }
 
     const concurrent = command.concurrentOffsetMs != null;
+
     if (concurrent && skill.canCastConcurrently === false) {
       recordInvalid(commandIndex, skill, state.time, `${skill.name} cannot be cast concurrently.`);
       return false;
@@ -938,12 +969,14 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           : bypassesSelfStun
             ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
             : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
+
     // A marker or explicit wait can move the clock past an instant skill's
     // requested overlap. Queue that instant at the earliest reachable time so
     // command ordering is preserved and stunbreaks still execute.
     if (concurrent && instant && start < state.time - epsilon) {
       start = state.time;
     }
+
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;
@@ -963,6 +996,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const retryAt = Math.max(state.time, Number(checked.result.retryAt));
       const nextTaskAt = taskQueue.nextAt();
       const next = Math.min(retryAt, nextTaskAt);
+
       if (!Number.isFinite(next) || next <= state.time) {
         throw new Error(`Cast availability for ${skill.name} did not make progress.`);
       }
@@ -1057,6 +1091,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       action: null
     };
     reservations.set(reservationId, reservation);
+
     if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());
     inFlight.get(skill.id)?.add(reservationId);
 
@@ -1114,6 +1149,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // The profession-level hook remains for schedulers that still own their
     // complete event materialization; catalog handlers use explicit strategies.
     const professionHandled = activeProfession.scheduleSkill(lifecycleContext, skill) === true;
+
     if (handlerMode !== SKILL_HANDLER_MODES.REPLACE && !professionHandled) {
       scheduleDeclarativeEffects(
         context,
@@ -1159,6 +1195,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       ...(missingInterruptCommit ? { missingInterruptCommit: true } : {})
     });
     latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);
+
     if (independent) {
       if (!overlappingIndependent) {
         independentReadyAt = Math.max(independentReadyAt, castLockoutEnd);
@@ -1168,11 +1205,14 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       hasPreviousCast = true;
       latestInstantReadyAt = Math.max(latestInstantReadyAt, effectiveEnd);
       latestBlockingEnd = Math.max(latestBlockingEnd, castLockoutEnd);
+
       if (!concurrent) serialReadyAt = castLockoutEnd;
+
       // A stunbreak clears any pending self-stun; a self-stunning skill sets a
       // fresh one, unless stability is up when the cast ends.
       if (stunbreak) selfStunUntil = state.time;
       const selfStunMs = Number(skill.selfStunMs || 0);
+
       if (selfStunMs > 0 && !context.hasBuff('stability', effectiveEnd)) {
         selfStunUntil = Math.max(selfStunUntil, effectiveEnd + selfStunMs / 1000);
       }
@@ -1193,12 +1233,14 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     });
     context.hasExplicitCombatStart = commands.some((command) => command.type === 'combat-start');
     context.combatStartTime = null;
+
     if (commands.length > ACTION_SAFETY_LIMIT) {
       throw new Error('Rotation action safety limit exceeded.');
     }
 
     for (let index = 0; index < commands.length; index += 1) {
       const command = commands[index];
+
       if (command.type === 'wait') {
         // Wait is serial: it starts only after all outstanding casts finish.
         const start = Math.max(state.time, serialReadyAt, latestReservedEnd);

@@ -75,6 +75,7 @@ export function reconstructDpsReportRotation(
   const player = selection.player;
 
   const parser = getDpsReportProfessionRotationParser(player.professionId, player.specializationId);
+
   if (!parser) {
     throw new DpsReportError(
       'UNSUPPORTED_PROFESSION',

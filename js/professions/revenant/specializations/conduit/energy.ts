@@ -5,6 +5,7 @@ import type { ConduitState, RevenantEnergyContext, RevenantRuntimeState, Revenan
 function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitState> {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
+
   if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
     return (candidate as RevenantRuntimeState).specialization.state as Partial<ConduitState>;
   }
@@ -25,6 +26,7 @@ export function applyConduitEnergyCostRules(
 ): number {
   if (baseCost <= 0) return 0;
   const state = conduitEnergyState(context);
+
   if (isBeguilingHazeFollowUp(state, skill)) return 0;
 
   const override = state.energyCostOverrides?.[String(skill.id)];

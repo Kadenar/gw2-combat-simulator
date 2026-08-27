@@ -28,7 +28,9 @@ const FLOATING_DPS_PLACEHOLDER = '\u2014';
 /** Mounts the current rotation DPS as a viewport-pinned status that survives page scrolling and view changes. */
 export function mountFloatingDps(root: Document = document): HTMLOutputElement | null {
   const existing = root.getElementById('floating-dps');
+
   if (existing) return existing as HTMLOutputElement;
+
   if (!root.body?.dataset.profession) return null;
 
   const indicator = root.createElement('output');
@@ -50,6 +52,7 @@ export function mountFloatingDps(root: Document = document): HTMLOutputElement |
   const footer = root.documentElement?.classList.contains('embed')
     ? null
     : root.querySelector<HTMLElement>('.landing-footer');
+
   if (!footer) indicator.className += ' floating-dps-viewport';
   const host = footer || root.body;
   host.append(indicator);
@@ -60,6 +63,7 @@ export function mountFloatingDps(root: Document = document): HTMLOutputElement |
 export function updateFloatingDps(value: string | null | undefined, root: Document = document): void {
   const indicator = root.getElementById('floating-dps');
   const valueElement = indicator?.querySelector<HTMLElement>('.floating-dps-value');
+
   if (!indicator || !valueElement) return;
 
   const displayValue = value?.trim() || FLOATING_DPS_PLACEHOLDER;
@@ -75,6 +79,7 @@ export function updateFloatingDps(value: string | null | undefined, root: Docume
 /** Closes transient rotation UI before leaving the workspace view. */
 export function resetRotationWorkspace(root: Document = document): void {
   const controller = controllers.get(root);
+
   if (!controller) return;
   applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
 }
@@ -122,6 +127,7 @@ export function isSimulationConfigVisible(state: RotationWorkspaceState): boolea
 function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
   const previous = controller.state;
   const view = controller.document.defaultView;
+
   if (!previous.focus && state.focus) {
     const scrollingElement = controller.document.scrollingElement;
     controller.focusScrollPosition = {
@@ -166,6 +172,7 @@ function dispatchWorkspaceAction(
 ): void {
   const previous = controller.state;
   const next = reduceRotationWorkspaceState(previous, action);
+
   if (next === previous) return;
   applyWorkspaceState(controller, next);
 
@@ -241,6 +248,7 @@ function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonEle
 export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLElement): void {
   if (root.getElementById('rotation-dps-summary')) return;
   const timeline = rotationPanel.querySelector<HTMLElement>('#rotation-timeline');
+
   if (!timeline) return;
 
   const summary = root.createElement('div');
@@ -259,6 +267,7 @@ export function mountRotationWorkspace(root: Document = document): void {
   const rotationSection = rotationPanel?.closest<HTMLElement>('.rotation-section');
   const configPanel = workspace?.querySelector<HTMLElement>('.perma-section');
   const configHeading = configPanel?.querySelector<HTMLElement>('.perma-panel > h3');
+
   if (
     !root.body ||
     !workspace ||
@@ -302,12 +311,15 @@ export function mountRotationWorkspace(root: Document = document): void {
   focusButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-focus'));
   root.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
+
     if (root.querySelector('dialog[open]')) return;
     const next = reduceRotationWorkspaceState(controller.state, 'escape');
+
     if (next === controller.state) return;
     event.preventDefault();
     const restoreConfigFocus = controller.state.configOpen;
     applyWorkspaceState(controller, next);
+
     if (restoreConfigFocus) controller.configButton.focus();
   });
 }

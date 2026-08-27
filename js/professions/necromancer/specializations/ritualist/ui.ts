@@ -41,6 +41,7 @@ function ritualistPaletteAvailability(
 ): PaletteSkillAvailability {
   // Innervate skills are only castable while the corresponding spirit is alive; gate them in the palette
   const spirit = Object.entries(INNERVATE_BY_SPIRIT).find(([, id]) => id === skill.id)?.[0];
+
   if (!spirit) return { available: true, message: '' };
   const available = Boolean(necromancerUiState(context).activeSpirits?.[spirit]);
   return {

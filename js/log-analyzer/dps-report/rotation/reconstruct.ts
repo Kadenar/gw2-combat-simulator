@@ -60,6 +60,7 @@ export function detectDpsReportRotationPlayers(report: ParsedDpsReport): readonl
   return report.players
     .flatMap((player, index) => {
       const profile = dpsReportRotationProfile(player.profession);
+
       if (!profile) return [];
       return [
         {
@@ -79,6 +80,7 @@ export function detectDpsReportRotationPlayers(report: ParsedDpsReport): readonl
 
 function phaseFor(report: ParsedDpsReport, phaseIndex: number | undefined): { phase: DpsReportPhase; index: number } {
   const index = phaseIndex ?? 0;
+
   if (!Number.isInteger(index) || index < 0 || index >= report.phases.length) {
     throw new DpsReportError('PHASE_NOT_FOUND', 'The requested phase is not present in the Elite Insights report.', {
       phaseIndex: index
@@ -109,7 +111,9 @@ function duplicateDetectionSignal(
 
 function castStatus(cast: DpsReportCast): RotationActionStatus {
   if (cast.duration <= 0) return 'instant';
+
   if (Number(cast.timeGained || 0) < 0) return 'interrupted';
+
   if (Number(cast.timeGained || 0) > 0) return 'reduced';
   return 'completed';
 }
@@ -125,6 +129,7 @@ function recordedActions(
   let eventIndex = 0;
   for (const group of player.rotation) {
     const metadata = skillMetadata(report, group.id);
+
     if (automaticProc(metadata)) {
       ignoredAutomaticProcs += group.skills.length;
       continue;
@@ -132,6 +137,7 @@ function recordedActions(
 
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
+
       if (duplicateDetectionSignal(cast, group.skills, metadata)) {
         ignoredDuplicateSignals += 1;
         continue;
@@ -220,6 +226,7 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
     interruptMs?: number;
   } = { name: action.name, skillId: action.skillId };
   const interruptMs = observedInterruptMs(action);
+
   // EI's observed cast duration is authoritative only when catalog metadata
   // proves that replaying it will not cancel the skill before it commits.
   if (interruptMs != null) command.interruptMs = interruptMs;
@@ -230,10 +237,12 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
 /** Replaces shortened report timing when a skill's aftercast cannot release the simulator cast lane early. */
 function applyRetainedCastLockout(action: DpsReportResolvedAction): DpsReportResolvedAction {
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action;
+
   // Safe observed durations are replayed as interruptions; the scheduler then
   // retains the ordinary cast lane while still allowing instant actions.
   if (observedInterruptMs(action) != null) return action;
   const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+
   if (!(runtimeDuration > 0) || action.end - action.start >= runtimeDuration) return action;
   return {
     ...action,
@@ -248,8 +257,10 @@ function replayActionEnd(action: DpsReportResolvedAction): number {
   // simulator's cast lane, not EI's slightly shorter animation observation.
   if (action.combatStartOverride != null) {
     const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+
     if (runtimeDuration > 0) return Math.max(action.end, action.start + runtimeDuration);
   }
+
   if (action.skill?.retainsCastLockoutAfterInterrupt !== true) return action.end;
   const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
@@ -273,6 +284,7 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
   if (skillMetadata(report, action.rawSkillId)?.autoAttack !== true) return true;
   const actualDurationMs = action.end - action.start;
   const expectedDurationMs = Number(action.expectedDurationMs || 0);
+
   if (expectedDurationMs <= 0) return true;
   // Prefer an explicit simulator cast time when EI's nominal duration includes
   // a long aftercast; the modeled cast lane is the tighter commitment bound.
@@ -285,12 +297,14 @@ function autoattackCommitted(report: ParsedDpsReport, action: DpsReportResolvedA
     // Zero-value legacy metadata is not evidence that an autoattack packet committed immediately.
     .filter((value) => Number.isFinite(value) && value > 0);
   const explicitCommitOffsetMs = explicitCommitOffsets.length ? Math.min(...explicitCommitOffsets) : null;
+
   if (explicitCommitOffsetMs != null) {
     return actualDurationMs + TIMING_TOLERANCE_MS >= explicitCommitOffsetMs;
   }
   // Explicit packet timing is the precise commitment contract for attacks such as Guardian pistol's early projectile.
 
   const firstStrikeOffsetMs = firstStrikePacketOffsetMs(action.skill, runtimeDurationMs, { explicitOnly: true });
+
   if (firstStrikeOffsetMs != null) return actualDurationMs + TIMING_TOLERANCE_MS >= firstStrikeOffsetMs;
   const commitmentDurationMs =
     action.status === 'interrupted' && runtimeDurationMs > 0
@@ -338,6 +352,7 @@ function warningList(
         .map((action) => action.name)
     )
   ];
+
   if (recoveredSetup.length) {
     const setup =
       recoveredSetup.length === 1
@@ -355,6 +370,7 @@ function warningList(
         .map((action) => action.name)
     )
   ];
+
   if (recoveredReportEvidence.length) {
     warnings.push(
       `Recovered report evidence: added missing ${recoveredReportEvidence.join(', ')} casts from buff and condition transitions.`
@@ -383,11 +399,13 @@ function warningList(
     }
 
     const requiredKit = normalized(action.skill?.kit);
+
     if (requiredKit && !equippedKits.has(requiredKit) && !missingInitialKit) {
       missingInitialKit = String(action.skill?.kit || '').trim();
     }
 
     if (normalized(action.name) === 'throw mine') mineArmed = true;
+
     if (normalized(action.name) === 'detonate') {
       if (!mineArmed) missingMineSetup = true;
       mineArmed = false;
@@ -413,11 +431,13 @@ export function reconstructDpsReportWithProfile(
 ): DpsReportRotationReconstruction {
   const playerIndex = options.playerIndex ?? detectDpsReportRotationPlayers(report)[0]?.index;
   const player = playerIndex == null ? null : report.players[playerIndex];
+
   if (!player) {
     throw new DpsReportError('PLAYER_NOT_FOUND', 'The requested player is not present in the Elite Insights report.');
   }
 
   const detectedProfile = dpsReportRotationProfile(player.profession);
+
   if (
     detectedProfile?.professionId !== profile.professionId ||
     detectedProfile.specializationId !== profile.specializationId
@@ -446,6 +466,7 @@ export function reconstructDpsReportWithProfile(
     .map(applyRetainedCastLockout)
     .sort(compareResolvedActions)
     .filter((action) => autoattackCommitted(report, action));
+
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }

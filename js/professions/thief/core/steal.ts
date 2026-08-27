@@ -38,6 +38,7 @@ export function storeStolenSkillChoices(
       : hasTrait(context.config, TRAIT.IMPROVISATION)
         ? Number(thiefBalanceProfile(context, PROFILE.improvisation)?.maximumStacks || 2)
         : 1;
+
   if (emitState) {
     emitStateSnapshot(
       context,
@@ -66,6 +67,7 @@ export function completeSteal(context: ThiefCastContext): void {
 export function consumeStoredStolenSkill(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   state.storedStolenSkillCount = Math.max(0, Number(state.storedStolenSkillCount || 0) - 1);
+
   if (state.storedStolenSkillCount > 0) {
     state.storedStolenSkillId = skill.id;
     state.storedStolenSkillIds = [skill.id];

@@ -35,6 +35,7 @@ function recoverHarbingerOpening(
       normalized(action.canonicalName || action.rawName) === 'exit harbinger shroud'
     );
   });
+
   if (!openingEvidence) return sorted;
 
   const recordedEntry = sorted.find(
@@ -42,6 +43,7 @@ function recoverHarbingerOpening(
       (action.canonicalSkillId ?? action.rawSkillId) === HARBINGER_SHROUD.skillId ||
       normalized(action.canonicalName || action.rawName) === normalized(HARBINGER_SHROUD.name)
   );
+
   if (recordedEntry && recordedEntry.start <= openingEvidence.start) return sorted;
 
   const at = Math.min(openingEvidence.start, context.phase.start);

@@ -16,6 +16,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   });
   document.addEventListener('click', (event) => {
     const target = event.target;
+
     if (target instanceof Element && !target.closest('.skill-bar-slot, .skill-bar-inspection-slot')) {
       document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => drop.classList.remove('open'));
     }
@@ -29,6 +30,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   document.addEventListener('keydown', (event) => {
     if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
     const target = event.target;
+
     if (
       target instanceof HTMLInputElement ||
       target instanceof HTMLTextAreaElement ||
@@ -39,6 +41,7 @@ export function bindPageControls(app: ProfessionAppState): void {
     }
 
     const key = event.key.toLowerCase();
+
     if (key === 'z' && !event.shiftKey) {
       event.preventDefault();
       undoRotation(app);
@@ -60,6 +63,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   // Build codes change weapons, traits, and selected skills, so their action
   // belongs on the combined combat-loadout card instead of the gear toolbar.
   const combatLoadoutTitle = document.querySelector<HTMLElement>('.combat-loadout-title');
+
   if (!combatLoadoutTitle) {
     throw new Error('Combat loadout header is missing.');
   }
@@ -68,6 +72,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   bindBuildTemplateImportDialog(app, importCodeButton);
   importFileInput.addEventListener('change', async () => {
     const file = importFileInput.files?.[0];
+
     if (!file) return;
     try {
       app.build = replaceBuildConfiguration(await readJsonFile(file), app.build, app.adapter);

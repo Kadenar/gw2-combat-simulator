@@ -87,6 +87,7 @@ export function leaveAvatar(
   // Fallback to catalog lookup when the exit is triggered by the timer (no skill in context)
   const skill =
     transitionSkill || (context.catalog.skillsById.get(ID.RELEASE_CELESTIAL_AVATAR) as RangerSkill | undefined);
+
   if (skill) emitAvatarWeaponSwap(context, skill, at);
 }
 
@@ -98,6 +99,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   const naturalMenderForce = rangerBalanceValue(context, PROFILE.naturalMender, 'resourceGain', 8);
   state.maximumAstralForce = maximum;
   state.astralForce = Math.min(maximum, state.astralForce);
+
   if (state.astralForceUpdatedAt === 0 && state.naturalMenderReadyAt === 3) {
     state.naturalMenderReadyAt = naturalMenderInterval;
   }
@@ -107,6 +109,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
     // Force drains linearly over the full 15s duration regardless of how much was held going in
     state.astralForce = Math.max(0, state.astralForce - elapsed * (state.maximumAstralForce / avatarDuration));
     state.astralForceUpdatedAt = target;
+
     // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
     if (target >= state.naturalMenderReadyAt - context.epsilon) {
       const skippedApplications =
@@ -123,6 +126,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   }
 
   state.astralForceUpdatedAt = target;
+
   if (
     !hasTrait(context, TRAIT.NATURAL_MENDER) ||
     state.astralForce >= state.maximumAstralForce ||
@@ -145,7 +149,9 @@ export function astralForceReadyAt(context: RangerCastContext): number | null {
   const naturalMenderForce = rangerBalanceValue(context, PROFILE.naturalMender, 'resourceGain', 8);
   const naturalMenderInterval = rangerBalanceValue(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
+
   if (state.astralForce >= maximum - context.epsilon) return context.start;
+
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
   if (!naturalMender) return null;
   const applications = Math.ceil((maximum - state.astralForce) / naturalMenderForce);
@@ -176,6 +182,7 @@ export function observeDruidAstralForceEvent(context: RangerSchedulerContext, ev
 
 export function handleDruidAstralForceDamageTask(context: RangerSchedulerContext): void {
   const state = druidState.from(context);
+
   // Force doesn't accumulate while CA is active (it's draining instead)
   if (state.celestialAvatarActive) return;
   // Eclipse doubles the astral force gained per hit

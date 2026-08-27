@@ -33,6 +33,7 @@ export const CRITICAL_PROC_PROGRESS_TOLERANCE = 1e-9;
 
 function finiteNonNegative(value: unknown, label: string): number {
   const number = Number(value);
+
   if (!Number.isFinite(number) || number < 0) {
     throw new TypeError(`${label} must be a finite non-negative number.`);
   }
@@ -42,6 +43,7 @@ function finiteNonNegative(value: unknown, label: string): number {
 
 function procChance(value: unknown, id: string): number {
   const chance = Number(value ?? 1);
+
   if (!Number.isFinite(chance) || chance < 0 || chance > 1) {
     throw new TypeError(`${id} critical proc chance must be 0..1.`);
   }
@@ -51,9 +53,11 @@ function procChance(value: unknown, id: string): number {
 
 function validateState(state: CriticalProcState | undefined, id: string): CriticalProcState {
   if (!state) throw new TypeError(`${id} threshold critical proc requires state.`);
+
   if (!Number.isFinite(state.progress) || state.progress < 0) {
     throw new TypeError(`${id} critical proc progress must be a finite non-negative number.`);
   }
+
   if (Number.isNaN(Number(state.readyAt))) {
     throw new TypeError(`${id} critical proc readyAt must be numeric.`);
   }
@@ -105,6 +109,7 @@ export function advanceCriticalProc(
   if (!(chanceOnCriticalHit > 0) || !(expectedCriticals > 0)) return null;
 
   const onCooldown = hasInternalCooldown && !isInternalCooldownReady(request.at, state?.readyAt);
+
   if (onCooldown) {
     // Most mechanics discard opportunities while unavailable. The explicit
     // accumulate mode preserves legacy deterministic traits that bank progress.
@@ -121,18 +126,22 @@ export function advanceCriticalProc(
     if (opportunity.sampledCriticals == null) {
       throw new TypeError(`${request.id} stochastic critical proc requires sampled criticals.`);
     }
+
     const sampledCriticals = finiteNonNegative(opportunity.sampledCriticals, `${request.id} sampled criticals`);
+
     if (!Number.isInteger(sampledCriticals)) {
       throw new TypeError(`${request.id} sampled criticals must be an integer.`);
     }
 
     let quantity = sampledCriticals;
+
     if (chanceOnCriticalHit < 1 && quantity > 0) {
       // A trait-specific chance is a second roll for each confirmed critical,
       // isolated on the declaration's stable random stream.
       if (typeof request.roll !== 'function') {
         throw new TypeError(`${request.id} stochastic secondary chance requires a roll function.`);
       }
+
       quantity = 0;
       for (let critical = 0; critical < sampledCriticals; critical += 1) {
         if (request.roll(chanceOnCriticalHit, request.randomStream || request.id)) quantity += 1;
@@ -140,6 +149,7 @@ export function advanceCriticalProc(
     }
 
     if (!(quantity > 0)) return null;
+
     if (hasInternalCooldown) {
       // One event can win an ICD only once even when it represents multiple
       // critical hits; subsequent hits are unavailable at the same timestamp.
@@ -151,6 +161,7 @@ export function advanceCriticalProc(
   }
 
   const expectedQuantity = expectedCriticals * chanceOnCriticalHit;
+
   if (materialization === 'weighted') {
     // Weighted consumers apply the fractional expectation directly and do not
     // retain cross-event progress.
@@ -161,6 +172,7 @@ export function advanceCriticalProc(
   // earned. The tolerance prevents floating-point drift from missing a proc.
   const progress = state!.progress + expectedQuantity;
   let quantity = Math.floor(progress + CRITICAL_PROC_PROGRESS_TOLERANCE);
+
   if (!(quantity > 0)) {
     state!.progress = progress;
     return null;

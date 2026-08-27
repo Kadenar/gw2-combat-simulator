@@ -35,6 +35,7 @@ export function thiefPlayerEvent(context: Gw2ModifierContext): boolean {
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
   const state = (context.runtime as ThiefQueryRuntime | undefined)?.profession;
+
   if (!state) return {};
   return 'core' in state && state.core ? state.core : (state as Partial<ThiefCoreState>);
 }
@@ -46,6 +47,7 @@ export function thiefRuntimeSpecializationState<TState extends object = Schedule
   expectedKind: string
 ): Partial<TState> {
   const state = (context.runtime as ThiefQueryRuntime | undefined)?.profession || {};
+
   if (
     'specialization' in state &&
     state.specialization &&
@@ -241,12 +243,16 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const result = { ...attributes };
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
+
   if (hasSelectedSkill(context, "Assassin's Signet")) {
     const profile = thiefBalanceProfile(context, PROFILE.assassinsSignet);
     const passive = Number(profile?.attributeBonus || 180);
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
+
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
+
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
+
     if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
       result.power += Number(profile?.attributePerStack || 540);
     }
@@ -254,6 +260,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
 
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
     const profile = thiefBalanceProfile(context, PROFILE.revealedTraining);
+
     if (!staticRulesApplied) {
       result.power += Number(profile?.attributeBonus || 80);
     }
@@ -287,21 +294,25 @@ export const thiefCoreAttributeRules = Object.freeze({
 function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration: number): number {
   const skill = context.skill;
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+
   if (skill.usableWhileRecharging === true && readyAt > context.start + Number(context.epsilon || 0.0001)) {
     return 0;
   }
 
   let result = duration;
+
   if (skill.stealTraitSkill) {
     const leadAttacks = hasTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
     const leadMultiplier = Number(thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
     const sleightMultiplier = Number(thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8);
+
     if (skill.stealRechargeMode === 'additive') {
       // Skills can own an additive exception while the base traits remain shared.
       result *= 1 - Number(leadAttacks) * (1 - leadMultiplier) - Number(sleightOfHand) * (1 - sleightMultiplier);
     } else {
       if (leadAttacks) result *= leadMultiplier;
+
       if (sleightOfHand) result *= sleightMultiplier;
     }
   }

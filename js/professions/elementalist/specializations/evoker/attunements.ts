@@ -45,6 +45,7 @@ function consumeEvokerAttunementTraitCooldown(
   profileId: Skill['id']
 ): boolean {
   const key = String(profileId);
+
   if (!isInternalCooldownReady(at, Number(state.attunementTraitProcReadyAt[key] || 0))) return false;
 
   // Evoker owns the shared per-trait timer used by both real and familiar-triggered attunement entries.
@@ -55,6 +56,7 @@ function consumeEvokerAttunementTraitCooldown(
 
 export function completeEvokerAttunement(context: ElementalistCastContext, skill: Skill): boolean {
   const target = targetAttunement(skill);
+
   if (!target) return false;
 
   const state = evokerState.from(context);
@@ -148,12 +150,14 @@ export function triggerSpecializedElementEntry(
     skillName: skill.name,
     to: element
   });
+
   if (element === 'Fire') {
     if (hasTrait(context, 'Sunspot') && procReady(CORE_PROFILE.sunspot)) {
       triggerSunspot(context as never, at, skill.id);
     }
   } else if (element === 'Air') {
     triggerElectricDischarge(context as never, at, skill.id);
+
     if (hasTrait(context, 'One with Air')) {
       const superspeed = elementalistBalanceEffect(context, CORE_PROFILE.oneWithAir, 'buff', 'Superspeed');
       emitSkillBuff(context, skill, {

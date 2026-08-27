@@ -74,6 +74,7 @@ function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[
   let previousTime = Number.NEGATIVE_INFINITY;
   for (const signal of sorted) {
     const current = groups[groups.length - 1];
+
     if (
       !current ||
       signal.event.time - previousTime > gapMs ||
@@ -98,6 +99,7 @@ function effectsWithoutCloneLifecycleEnds(
   signals: readonly MesmerSignal[]
 ): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [...signals];
   const cloneAddresses = new Set(
     context.log.agents.filter((agent) => agent.character.trim().toLowerCase() === 'clone').map((agent) => agent.address)
@@ -132,6 +134,7 @@ function effectsWithoutCloneLifecycleEnds(
           Math.abs(left.signal.event.time - lifecycleEnd.time) -
             Math.abs(right.signal.event.time - lifecycleEnd.time) || right.index - left.index
       )[0];
+
     if (match) removed.add(match.index);
   }
 
@@ -157,6 +160,7 @@ function lifecycleOnlyShatterCastSignals(
     const previous = [...knownCasts, ...recovered]
       .filter((candidate) => candidate.event.time <= signal.event.time)
       .sort((left, right) => right.event.time - left.event.time || right.eventIndex - left.eventIndex)[0];
+
     if (previous && signal.event.time - previous.event.time <= MAXIMUM_SHATTER_SOURCE_TAIL_MS) continue;
     recovered.push(signal);
   }
@@ -178,6 +182,7 @@ function shatterCastSignals(
   }
 
   const primarySignals = effectsWithoutCloneLifecycleEnds(context, signalSet.signals);
+
   if (primarySignals.length) {
     const lifecycleOnlyCasts = lifecycleOnlyShatterCastSignals(signalSet.signals, primarySignals);
     return clusterSignals([...primarySignals, ...lifecycleOnlyCasts], PRIMARY_EFFECT_DUPLICATE_WINDOW_MS);
@@ -249,6 +254,7 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
     .slice(1)
     .map((mirror, index) => mirror.start - mirrors[index].start)
     .filter((interval) => interval >= 10_000 && interval <= 35_000);
+
   if (!ordinaryIntervals.length) return [];
 
   const observedRecharge = Math.min(...ordinaryIntervals);
@@ -260,6 +266,7 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
   for (let index = 1; index < mirrors.length; index += 1) {
     const previousMirror = mirrors[index - 1];
     const nextMirror = mirrors[index];
+
     if (nextMirror.start - previousMirror.start < observedRecharge * 1.75) {
       continue;
     }
@@ -287,6 +294,7 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
             Math.abs((right.earlier.start + right.later.start) / 2 - expected)
         );
       const candidate = candidates[0];
+
       if (!candidate) continue;
       inferred.push(
         canonicalAction(

@@ -94,6 +94,7 @@ export function formatTimelineCastDetails(
 ): string {
   const start = Number(step?.start);
   const end = Number(step?.end);
+
   if (!Number.isFinite(start) || !Number.isFinite(end)) return '';
   const castSeconds = Math.max(0, end - start) / 1000;
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
@@ -173,14 +174,17 @@ export function timelineDeadTimeMarkers(
 
   for (const step of steps) {
     const isSkill = isTimelineSkillStep(step);
+
     if (!isSkill && !isTimelineWaitStep(step)) continue;
     const start = Math.round(Number(step.start));
     // A retained post-interrupt cast lockout is forced busy time, even though
     // the visible cast itself ends at the earlier interrupt timestamp.
     const end = Math.max(Math.round(Number(step.end)), Math.round(Number(step.castLockoutEnd ?? step.end)));
     const insertionIndex = Number(step.ri);
+
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
       intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
+
       // Wait commands are known idle intervals. Keep them in the occupancy
       // union to suppress duplicate gap markers, but report their full shape.
       if (includeExplicitWaits && !isSkill && end > start) {
@@ -197,6 +201,7 @@ export function timelineDeadTimeMarkers(
     if (!isSkill) continue;
     const partialFillStart = Math.round(Number(step.partialFill?.startMs));
     const partialFillDuration = Math.round(Number(step.partialFill?.durationMs));
+
     if (Number.isFinite(partialFillStart) && Number.isFinite(partialFillDuration) && partialFillDuration > 0) {
       intervals.push({
         start: partialFillStart,
@@ -213,6 +218,7 @@ export function timelineDeadTimeMarkers(
   const busy: typeof intervals = [];
   for (const interval of intervals) {
     const previous = busy.at(-1);
+
     if (previous && interval.start <= previous.end) {
       previous.end = Math.max(previous.end, interval.end);
       previous.containsSkill ||= interval.containsSkill;
@@ -233,8 +239,10 @@ export function timelineDeadTimeMarkers(
   for (let index = 1; index < busy.length; index += 1) {
     const previous = busy[index - 1];
     const next = busy[index];
+
     if (!previous || !next) continue;
     const durationMs = next.start - previous.end;
+
     if (durationMs > 0 && previousContainsSkill && futureContainsSkill[index]) {
       markers.push({
         insertionIndex: next.insertionIndex,
@@ -256,13 +264,16 @@ export function timelineDeadTimeMarkers(
     if (!isTimelineSkillStep(step) || !step.activationId) continue;
     const missingCommitMetadata = step.missingInterruptCommit === true;
     const cancelledBeforeKnownCommit = step.cancelledBeforeCommit === true && !missingCommitMetadata;
+
     if (!missingCommitMetadata && !cancelledBeforeKnownCommit) continue;
+
     // A declared cutoff proves the cast failed even if an incidental proc dealt damage;
     // missing metadata remains dead time only when the activation produced no damage at all.
     if (missingCommitMetadata && damagingActivations.has(step.activationId)) continue;
     const start = Math.round(Number(step.start));
     const end = Math.round(Number(step.end));
     const durationMs = end - start;
+
     if (!Number.isFinite(start) || !Number.isFinite(end) || durationMs <= 0) continue;
     markers.push({
       insertionIndex: Number(step.ri),
@@ -279,6 +290,7 @@ export function timelineDeadTimeMarkers(
 
 export function formatTimelineDuration(durationMs: unknown): string {
   const milliseconds = Math.max(0, Math.round(Number(durationMs) || 0));
+
   if (milliseconds < 1000) return `${milliseconds}ms`;
   const seconds = milliseconds / 1000;
   const precision = seconds < 10 ? 2 : seconds < 100 ? 1 : 0;
@@ -315,8 +327,10 @@ export function formatInterruptTimelineBadge(interruptMs: unknown, timestamp: un
 
 export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: number): number | null {
   const rawIndex = skillElement?.dataset?.idx;
+
   if (rawIndex == null || String(rawIndex).trim() === '') return null;
   const index = Number(rawIndex);
+
   if (!Number.isInteger(index)) return null;
   const rect = skillElement.getBoundingClientRect();
   // Dropping on the left/right half inserts before/after the hovered entry.
@@ -332,7 +346,9 @@ export function updateSkillDropIndicator(skillElement: HTMLElement, clientX: num
 export function rotationEntryName(entry: TimelineRotationEntry): string {
   // Preserve the established UI action keys while deriving them from canonical command discriminants.
   if (entry.type === 'cast') return String(entry.skillId);
+
   if (entry.type === 'wait') return '__wait';
+
   if (entry.type === 'combat-start') return '__combat_start';
   return '__cooldown_reset';
 }
@@ -380,11 +396,15 @@ export function timelineRows(
       index
     );
     const changesWeaponLine = nextWeaponLine !== undefined;
+
     if (!swapsWeaponSet && !isWeaponSetRefresh(entry) && !changesWeaponLine) return;
+
     // A real swap changes the next row's set. Transform transitions start a
     // fresh row for the same equipped set.
     if (swapsWeaponSet) weaponSet = weaponSet === 1 ? 2 : 1;
+
     if (changesWeaponLine) weaponLine = nextWeaponLine;
+
     if (index < rotation.length - 1) {
       rows.push({ weaponSet, weaponLine, skills: [] });
     }
@@ -441,10 +461,13 @@ export function bindTimelineInteractions(
 
   const applyDrop = (insertAt: number): boolean => {
     const drag = getDragState();
+
     if (!drag) return false;
     setDragState(null);
+
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index ?? drag.idx);
+
       if (!options.moveEntry(fromIndex, insertAt)) return false;
       changed();
       return true;
@@ -455,6 +478,7 @@ export function bindTimelineInteractions(
       const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
       // Palette macros may resolve to multiple adjacent entries.
       const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
+
       if (!options.insertEntries(entries, insertAt)) return false;
       changed();
       return true;
@@ -472,6 +496,7 @@ export function bindTimelineInteractions(
   for (const item of root.querySelectorAll<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)')) {
     const index = Number(item.dataset.idx);
     const remove = item.querySelector<HTMLElement>('.rot-x');
+
     if (remove) {
       remove.setAttribute('draggable', 'false');
       remove.onmousedown = (event) => {
@@ -487,7 +512,9 @@ export function bindTimelineInteractions(
       remove.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
+
         if (!Number.isInteger(index)) return;
+
         if (event.shiftKey) {
           // Shift-remove is the fast "truncate rotation here" gesture.
           if (!options.onTruncate) return;
@@ -503,6 +530,7 @@ export function bindTimelineInteractions(
 
     // Editor pencils must behave as controls instead of starting a timeline drag.
     const editControl = item.querySelector<HTMLElement>('.rot-edit-activation, .rot-edit-wait');
+
     if (editControl) {
       editControl.setAttribute('draggable', 'false');
       editControl.onmousedown = (event) => {
@@ -524,6 +552,7 @@ export function bindTimelineInteractions(
       setDragState({ source: 'timeline', index });
       item.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', String(index));
+
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
     };
 
@@ -545,6 +574,7 @@ export function bindTimelineInteractions(
       event.stopPropagation();
       const insertAt = getSkillDropInsertionIndex(item, event.clientX);
       clearTimelineDropIndicators(root);
+
       if (insertAt != null) applyDrop(insertAt);
     };
   }
@@ -554,6 +584,7 @@ export function bindTimelineInteractions(
       // Skill elements own midpoint insertion. Row background drops use the
       // row's precomputed insertion boundary.
       const target = event.target instanceof Element ? event.target : null;
+
       if (!getDragState() || target?.closest('.rot-skill')) return;
       event.preventDefault();
       clearTimelineDropIndicators(root);
@@ -566,11 +597,13 @@ export function bindTimelineInteractions(
 
     row.ondrop = (event) => {
       const target = event.target instanceof Element ? event.target : null;
+
       if (!getDragState() || target?.closest('.rot-skill')) return;
       event.preventDefault();
       event.stopPropagation();
       const insertAt = Number(row.dataset.insertIdx);
       clearTimelineDropIndicators(root);
+
       if (Number.isInteger(insertAt)) applyDrop(insertAt);
     };
   }
@@ -578,6 +611,7 @@ export function bindTimelineInteractions(
   root.ondragover = (event) => {
     // The root is the empty-space fallback and always appends.
     const target = event.target instanceof Element ? event.target : null;
+
     if (!getDragState() || target?.closest('.rot-row-skills')) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
@@ -590,6 +624,7 @@ export function bindTimelineInteractions(
 
   root.ondrop = (event) => {
     const target = event.target instanceof Element ? event.target : null;
+
     if (!getDragState() || target?.closest('.rot-row-skills')) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
@@ -602,7 +637,9 @@ export function bindTimelineInteractions(
       badge.onclick = (event) => {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
+
         if (!Number.isInteger(index)) return;
+
         // Returning false means the editor cancelled and no rerender is needed.
         if (callback(index, event) !== false) changed();
       };

@@ -57,6 +57,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
   const continuumRemaining = Number(state.continuumRemaining || 0) / 1000;
+
   if (state.continuumActive && continuumRemaining > 0) {
     items.push({
       id: 'chronomancer-continuum-split',
@@ -67,6 +68,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   }
 
   const dangerTime = timedBuffAt(context.result as Gw2SimulationResult | null | undefined, 'danger-time', at);
+
   if (dangerTime) {
     items.push({
       id: 'chronomancer-danger-time',

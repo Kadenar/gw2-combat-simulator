@@ -511,6 +511,7 @@ test('scheduler policies own chronological tasks and causal derivatives', () => 
     },
     onEventScheduled(context, event) {
       if (event.type !== 'action') return;
+
       context.tasks.schedule({
         type: 'fixture.policy-observation',
         at: event.at,

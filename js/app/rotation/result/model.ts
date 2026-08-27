@@ -96,9 +96,11 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   }
 
   const details: ResultSummaryMetricDetail[] = [];
+
   if (legitimateMs > 0) {
     details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
   }
+
   if (explicitWaitMs > 0) {
     details.push({ label: 'Explicit waits', value: formatTimelineDuration(explicitWaitMs) });
   }
@@ -145,6 +147,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
 
 export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {
   const marker = result?.events?.find((event) => event.type === 'combat_start');
+
   if (!marker) return 0;
   return Number(marker.at || 0) * 1000;
 }
@@ -171,6 +174,7 @@ export function skillBreakdownRows(result: Gw2SimulationResult) {
 export function effectName(kind: unknown, event: Readonly<Record<string, unknown>> = {}): string {
   const key = String(kind || '');
   const name = EFFECT_NAMES[key];
+
   if (key === 'guardian-radiant-armaments') {
     const weapon = RADIANT_ARMAMENT_NAMES[String(event.radiantWeapon || '')];
     return weapon ? `${name} (${weapon})` : name;

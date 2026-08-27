@@ -21,6 +21,7 @@ export const EXPECTED_CRITICAL_PROGRESS_TOLERANCE = 1e-9;
  */
 export function consumeExpectedCriticalProgress(state: ExpectedCriticalProgressState, chance: number): boolean {
   const progress = state.criticalProgress + chance;
+
   if (progress < 1 - EXPECTED_CRITICAL_PROGRESS_TOLERANCE) {
     state.criticalProgress = progress;
     return false;

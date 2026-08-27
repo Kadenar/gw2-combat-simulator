@@ -29,6 +29,7 @@ function activeDragonTriggerEntry(events: readonly SimulationEvent[], insertionI
     })
     .sort((left, right) => Number(eventRotationIndex(left)) - Number(eventRotationIndex(right)));
   const entry = entries.at(-1) || null;
+
   if (!entry) return null;
   const entryIndex = Number(eventRotationIndex(entry));
   const released = events.some((event) => {
@@ -72,6 +73,7 @@ export function dragonChargeReleaseProjection(context: {
   const insertionIndex = Number(context.insertionIndex);
   const skill = context.skill;
   const entry = activeDragonTriggerEntry(events, insertionIndex);
+
   if (!entry || !skill) {
     return { rows: [], unavailableMessage: ENTER_DRAGON_TRIGGER_REASON };
   }

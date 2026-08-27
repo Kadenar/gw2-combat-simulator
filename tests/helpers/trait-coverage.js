@@ -30,6 +30,7 @@ function concreteReason(value) {
   const reason = normalizedText(value);
 
   if (reason.length < 12) return false;
+
   return !['out of model', 'not supported', 'unsupported', 'not applicable'].includes(reason.toLowerCase());
 }
 

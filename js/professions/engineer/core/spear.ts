@@ -137,12 +137,14 @@ export function handleLightningRodCharge(
   task: EngineerScheduledTask<LightningRodTaskPayload>
 ): void {
   const state = professionCoreState(context);
+
   // activationId mismatch means this is a stale task from a previous LR cast — discard it
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   // prune expired charges before adding the new one
   state.lightningRodChargeExpiries = state.lightningRodChargeExpiries.filter(
     (expiresAt) => Number(expiresAt) > task.at
   );
+
   // 12-charge cap matches EA's maximum charge input; each charge lasts 14s
   if (state.lightningRodChargeExpiries.length < 12) {
     state.lightningRodChargeExpiries.push(task.at + 14);
@@ -154,6 +156,7 @@ export function handleElectricArtilleryReady(
   task: EngineerScheduledTask<LightningRodTaskPayload>
 ): void {
   const state = professionCoreState(context);
+
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   state.electricArtilleryAvailable = true;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
@@ -172,6 +175,7 @@ export function handleElectricArtilleryExpire(
   task: EngineerScheduledTask<LightningRodTaskPayload>
 ): void {
   const state = professionCoreState(context);
+
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   state.lightningRodActivationId = '';
   state.lightningRodChargeExpiries = [];
@@ -207,6 +211,7 @@ export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill:
 export function scheduleDevastatorFollowup(context: EngineerCastContext, skill: EngineerSkill): void {
   // fullEnd (not effectiveEnd) — follow-up fires at animation end, not the interrupt-commit point
   const impactAt = context.fullEnd;
+
   if (professionCoreState(context).focusedUntil <= impactAt) return;
   const activationId = `${context.reservationId}:focused-devastation`;
   for (let index = 0; index < 6; index += 1) {

@@ -73,6 +73,7 @@ export function normalizeRevenantCastPackets(
       context.catalog,
       context.profile
     );
+
     if (
       action.status === 'interrupted' &&
       String(skill?.slot || '').toLowerCase() === 'weapon_1' &&
@@ -88,6 +89,7 @@ export function normalizeRevenantCastPackets(
     const strikeCommit = firstStrikePacketOffsetMs(skill, undefined, {
       explicitOnly: true
     });
+
     if (
       autoattack &&
       !committed.has(action) &&

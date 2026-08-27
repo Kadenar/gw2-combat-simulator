@@ -57,9 +57,12 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     const owner = ownerFor(generationField);
     const incomingGeneration = Number(incoming[generationField] || 0);
     const currentGeneration = Number(owner[generationField] || 0);
+
     if (generationField === 'spiderVenomGeneration' && incomingGeneration < currentGeneration) {
       preserved[generationField] = owner[generationField] || 0;
+
       if (Object.hasOwn(owner, chargesField)) preserved[chargesField] = owner[chargesField] || 0;
+
       if (Object.hasOwn(owner, expiresAtField)) preserved[expiresAtField] = owner[expiresAtField] || 0;
       continue;
     }

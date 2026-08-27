@@ -57,6 +57,7 @@ const SYMBOL_OF_LUMINANCE_ICON =
  */
 function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearEffect): number {
   if (effect.atMs != null) return context.start + Number(effect.atMs) / 1000;
+
   if (effect.at != null) return context.start + Number(effect.at);
   return context.fullEnd;
 }
@@ -75,6 +76,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
+
   if (skill.id === ID.SOLAR_STORM) {
     const profile = guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id]);
     const extraProjectiles = (profile?.effects || [])
@@ -83,6 +85,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     for (const projectile of extraProjectiles) {
       const at = context.start + Number(projectile.atMs || 0) / 1000;
       const hitIndex = projectile.hitIndex;
+
       if (interrupted && at > context.effectiveEnd + context.epsilon) continue;
       context.emit(
         buildGuardianStrike({
@@ -97,6 +100,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           skillWeapon: 'Spear'
         })
       );
+
       if (emittedAt == null) emittedAt = context.start + 0.56;
     }
 
@@ -110,11 +114,13 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     const perHit = totalBonus / hits;
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
     const firstAt = strikeStartSeconds(context, effect);
+
     if (skill.id === ID.HELIO_RUSH && hits === 1) {
       const baseHit = context.events.find(
         (event) =>
           event.type === 'damage' && event.skillId === skill.id && Math.abs(event.at - firstAt) <= context.epsilon
       );
+
       if (baseHit) {
         context.replaceEvent(baseHit, {
           coefficient: Number(baseHit.coefficient) + totalBonus
@@ -127,6 +133,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
 
     if (skill.id === ID.GLEAMING_DISC && hits === 2) {
       const shockWaveAt = firstAt + interval;
+
       if (interrupted && shockWaveAt > context.effectiveEnd + context.epsilon) {
         continue;
       }
@@ -138,6 +145,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           event.hitIndex === 2 &&
           Math.abs(event.at - shockWaveAt) <= context.epsilon
       );
+
       if (shockWave) {
         context.replaceEvent(shockWave, {
           coefficient: Number(shockWave.coefficient) + totalBonus
@@ -150,6 +158,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
 
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const at = firstAt + (hitIndex - 1) * interval;
+
       if (interrupted && at > context.effectiveEnd + context.epsilon) break;
       context.emit(
         buildGuardianStrike({
@@ -164,6 +173,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           skillWeapon: 'Spear'
         })
       );
+
       if (emittedAt == null) emittedAt = at;
     }
   }
@@ -214,6 +224,7 @@ function emitProc(
  */
 export function updateSpearIlluminationState(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = professionCoreState(context);
+
   if (skill.id === ID.DAYBREAKING_SLASH) {
     state.daybreakingSlashChainStep = Number(state.daybreakingSlashChainStep || 0) === 0 ? 1 : 0;
   } else {
@@ -231,6 +242,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);
+
     if (at != null) {
       emitProc(context, at, 'Illuminated', skill.name, ILLUMINATED_ICON, `${skill.name} illuminated (×${multiplier})`);
     }
@@ -280,6 +292,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
  */
 export function advanceSpearIlluminationState(context: GuardianSchedulerContext, target: number): void {
   const state = professionCoreState(context);
+
   if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;

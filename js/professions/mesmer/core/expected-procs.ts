@@ -70,6 +70,7 @@ export function createExpectedProcTracker({
     core.masterFencerProgress = tracker.progress;
 
     const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
+
     // Master Fencer historically consumes expected threshold crossings during
     // its ICD, so cooldown gating remains after the shared progress advance.
     if (!application || !isInternalCooldownReady(event.at, readyAt)) return;
@@ -111,6 +112,7 @@ export function createExpectedProcTracker({
   const materializeCriticalTraits = (event: SimulationEvent): void => {
     const chance = Number(criticalChance(event) || 0);
     materializeMasterFencer(event, chance);
+
     if (!traits.has(TRAIT.SHARPER_IMAGES) || (event.source !== 'Clone' && event.source !== 'Phantasm')) return;
 
     const core = professionCoreState(state);
@@ -125,6 +127,7 @@ export function createExpectedProcTracker({
       tracker
     );
     core.sharperImagesProgress = tracker.progress;
+
     if (!application) return;
     const procCount = application.quantity;
 

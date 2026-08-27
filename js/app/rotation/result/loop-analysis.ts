@@ -175,6 +175,7 @@ function actionSkillIcon(
   rotationIndex: number | null
 ): string {
   const defaultIcon = String(event.icon || skill?.icon || '');
+
   if (!skill || rotationIndex == null) return defaultIcon;
   // Profession projections can resolve stateful variants such as the destination portrait for a Revenant legend swap.
   return String(
@@ -196,6 +197,7 @@ function attunementDestination(name: string): string {
 
 function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
   const result = app.results;
+
   if (!result) return [];
   const stepByActivationId = new Map<string, SchedulerStep>();
   for (const step of result.steps || []) {
@@ -226,8 +228,10 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
   for (const event of events) {
     const activationId = String(event.activationId || '');
     const step = activationId ? stepByActivationId.get(activationId) : undefined;
+
     if (step?.invalid) continue;
     const skillId = event.skillId ?? event.sourceId;
+
     if (skillId == null || skillId === '') continue;
     const eventStartMs = Math.round(Number(event.at || 0) * 1000);
     const eventEndMs = Math.round(Number(event.endsAt ?? event.at ?? 0) * 1000);
@@ -263,7 +267,9 @@ function normalizedPlayerActions(app: ProfessionAppState): NormalizedAction[] {
       cancelled
     });
     const destination = attunementDestination(name);
+
     if (destination && !cancelled) activeAttunement = destination;
+
     if (weaponLineDestination !== undefined) activeWeaponLine = weaponLineDestination || '';
   }
 
@@ -308,6 +314,7 @@ function combineConsecutiveTokens(tokens: readonly LoopToken[]): LoopToken[] {
   const combined: LoopToken[] = [];
   for (const token of tokens) {
     const previous = combined.at(-1);
+
     if (previous?.key === token.key && previous.kind === token.kind) {
       combined[combined.length - 1] = {
         ...previous,
@@ -339,6 +346,7 @@ function tokenizeActions(
   for (let start = 0; start < actions.length; start += 1) {
     if (claimedChainIndexes.has(start)) continue;
     const chain = autoattackChains.get(String(actions[start].skillId));
+
     if (!chain) continue;
     const matchedIndexes = [start];
     let cursor = start + 1;
@@ -348,6 +356,7 @@ function tokenizeActions(
       const scanEnd = Math.min(actions.length, cursor + 6);
       for (let candidateIndex = cursor; candidateIndex < scanEnd; candidateIndex += 1) {
         const candidate = actions[candidateIndex];
+
         if (matchingSkillId(candidate.skillId, expectedSkillId)) {
           matchedIndex = candidateIndex;
           break;
@@ -383,6 +392,7 @@ function tokenizeActions(
   for (let index = 0; index < actions.length; index += 1) {
     const action = actions[index];
     const chainToken = chainTokenByStart.get(index);
+
     if (chainToken) {
       tokens.push(chainToken);
       continue;
@@ -390,6 +400,7 @@ function tokenizeActions(
 
     if (claimedChainIndexes.has(index)) continue;
     const incompleteChainRoot = autoattackRootBySkill.get(String(action.skillId));
+
     if (incompleteChainRoot != null) {
       tokens.push({
         ...baseSkillToken(action),
@@ -422,12 +433,16 @@ function structuralTransitionToken(app: ProfessionAppState, token: LoopToken): b
 function meaningfulLoopToken(app: ProfessionAppState, token: LoopToken): boolean {
   if (token.kind === 'auto-chain' || structuralTransitionToken(app, token)) return true;
   const skill = actionSkill(app, token.primarySkillId);
+
   if (!skill) return true;
   const metadata = skill as Skill & Record<string, unknown>;
   const rechargeValues = [skill.cooldown, skill.recharge, skill.ammoRecharge];
+
   if (rechargeValues.some((value) => Number(value || 0) > 0) || Number(skill.ammo || 0) > 1) return true;
   const stateMachine = Object.keys(metadata).some((field) => field.endsWith('StateMachine') && metadata[field] != null);
+
   if (metadata.resource != null || skill.handlerId || skill.flipParentId != null || stateMachine) return true;
+
   if (
     ['initiativeCost', 'energyCost', 'adrenalineCost', 'resourceCost'].some((field) => Number(metadata[field] || 0) > 0)
   ) {
@@ -466,6 +481,7 @@ function physicalWeaponSwapEnabled(app: ProfessionAppState): boolean {
 
 function necromancerShroudLabel(app: ProfessionAppState, shroud: string): string {
   const entry = app.activeCatalog.skills.find((skill) => String(skill.shroudEntry || '') === shroud);
+
   if (entry) return `${entry.name} Loop`;
   const title = shroud.replace(/[-_]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
   return `${title} Shroud Loop`;
@@ -516,6 +532,7 @@ function necromancerStructuralSegments(
 
     if (shroudEntry) {
       appendWeapon(true);
+
       if (pendingShroud.length) appendShroud(true);
       activeShroud = shroudEntry;
       pendingShroud.push(action);
@@ -524,6 +541,7 @@ function necromancerStructuralSegments(
 
     if (activeShroud && (shroudSkill === activeShroud || shroudExit === activeShroud)) {
       pendingShroud.push(action);
+
       if (shroudExit) {
         appendShroud(true);
         activeShroud = '';
@@ -546,6 +564,7 @@ function necromancerStructuralSegments(
     }
 
     pendingWeapon.push(action);
+
     if (action.name === 'Swap Weapons') appendWeapon(true);
   }
 
@@ -579,6 +598,7 @@ function structuralSegments(
 
     for (const action of actions) {
       if (pending.length && action.attunement !== pendingAttunement) append(true);
+
       if (!pending.length) pendingAttunement = action.attunement;
       pending.push(action);
     }
@@ -588,7 +608,9 @@ function structuralSegments(
   }
 
   if (app.build.profession === 'engineer') return engineerMacroSegments(app, actions, autoattackChains);
+
   if (app.build.profession === 'necromancer') return necromancerStructuralSegments(app, actions, autoattackChains);
+
   if (!physicalWeaponSwapEnabled(app)) return [];
   const segments: RotationSegment[] = [];
   let pending: NormalizedAction[] = [];
@@ -608,6 +630,7 @@ function structuralSegments(
 
   for (const action of actions) {
     pending.push(action);
+
     if (action.name === 'Swap Weapons') append(true);
   }
 
@@ -617,6 +640,7 @@ function structuralSegments(
 
 function sequenceEditDistance(left: readonly LoopToken[], right: readonly LoopToken[]): number {
   if (!left.length) return right.length;
+
   if (!right.length) return left.length;
   let previous = Array.from({ length: right.length + 1 }, (_value, index) => index);
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
@@ -671,6 +695,7 @@ function meanLagPrefixSimilarity(segments: readonly RotationSegment[], lag: numb
 function engineerPhaseDiscrimination(segments: readonly RotationSegment[], phaseCount: number): number {
   const phaseSegments = Array.from({ length: phaseCount }, () => [] as RotationSegment[]);
   segments.forEach((segment, index) => phaseSegments[index % phaseCount].push(segment));
+
   if (phaseSegments.some((phase) => phase.length < 2)) return 0;
   const keys = new Set(segments.flatMap((segment) => segment.tokens.map((token) => token.key)));
   let strongestDifference = 0;
@@ -680,6 +705,7 @@ function engineerPhaseDiscrimination(segments: readonly RotationSegment[], phase
     );
     const difference = Math.max(...supports) - Math.min(...supports);
     const stable = supports.every((support) => support <= 0.25 || support >= 0.75);
+
     if (stable) strongestDifference = Math.max(strongestDifference, difference);
   }
 
@@ -705,6 +731,7 @@ function engineerMacroPhaseCount(segments: readonly RotationSegment[]): number {
       prefixSimilarity >= baselinePrefix + MIN_ENGINEER_PHASE_PREFIX_GAIN ||
       discrimination >= MIN_ENGINEER_PHASE_DISCRIMINATION;
     const quality = similarity + prefixSimilarity * 0.25 + discrimination * 0.25;
+
     if (similarity >= MIN_ENGINEER_PHASE_SIMILARITY && separatesPhases && quality > bestQuality) {
       bestPhaseCount = phaseCount;
       bestQuality = quality;
@@ -726,6 +753,7 @@ function engineerMacroSegments(
   const positionsByAnchor = new Map<string, number[]>();
   for (const [index, action] of actions.entries()) {
     const skill = actionSkill(app, action.skillId);
+
     if (
       action.weaponLine ||
       action.weaponLineDestination !== undefined ||
@@ -753,6 +781,7 @@ function engineerMacroSegments(
       const end = positions[intervalIndex + 1] ?? actions.length;
       const intervalActions = actions.slice(start, end);
       const tokens = meaningfulTokens(app, intervalActions, autoattackChains);
+
       if (tokens.length < MIN_STRUCTURAL_LOOP_TOKENS) continue;
       intervals.push({
         sourceIndex: intervals.length,
@@ -765,8 +794,10 @@ function engineerMacroSegments(
     }
 
     const completeIntervals = intervals.filter((segment) => segment.complete);
+
     if (completeIntervals.length < 2) continue;
     const typicalLength = median(completeIntervals.map((segment) => segment.tokens.length));
+
     if (typicalLength < MIN_ENGINEER_MACRO_TOKENS || typicalLength > MAX_ENGINEER_MACRO_TOKENS) continue;
     const lengthDeviation =
       completeIntervals.reduce((total, segment) => total + Math.abs(segment.tokens.length - typicalLength), 0) /
@@ -774,6 +805,7 @@ function engineerMacroSegments(
     const lengthRegularity = clamp01(1 - lengthDeviation / Math.max(1, typicalLength));
     const phaseCount = engineerMacroPhaseCount(intervals);
     const patternSimilarity = meanLagSimilarity(intervals, phaseCount);
+
     if (patternSimilarity < MIN_BOUNDARY_COHORT_SIMILARITY) continue;
     const score =
       Math.pow(typicalLength, 1.4) * completeIntervals.length * lengthRegularity * (0.5 + patternSimilarity);
@@ -782,6 +814,7 @@ function engineerMacroSegments(
       laneKey: `engineer-macro:${index % phaseCount}`,
       label: phaseCount > 1 ? `Loop ${(index % phaseCount) + 1}` : 'Core Loop'
     }));
+
     if (!best || score > best.score) best = { score, segments: phasedSegments };
   }
 
@@ -819,16 +852,19 @@ function bestSimilarCluster(
     const neighbors = segments.filter(
       (candidate) => sequenceSimilarity(seed.tokens, candidate.tokens) >= minimumSimilarity
     );
+
     if (neighbors.length < 2) continue;
     const initialMedoid = medoidOf(neighbors);
     const members = neighbors.filter(
       (candidate) => sequenceSimilarity(initialMedoid.tokens, candidate.tokens) >= minimumSimilarity
     );
+
     if (members.length < 2) continue;
     const medoid = medoidOf(members);
     const meanSimilarity = clusterMeanSimilarity(members, medoid);
     const averageLength = members.reduce((total, member) => total + member.tokens.length, 0) / members.length;
     const score = members.length * averageLength * meanSimilarity;
+
     if (score > bestScore) {
       bestScore = score;
       best = { segments: members, medoid, meanSimilarity };
@@ -881,6 +917,7 @@ function boundaryGuideClusters(segments: readonly RotationSegment[]): SegmentClu
   for (const laneSegments of byLane.values()) {
     const completeSegments = laneSegments.filter((segment) => segment.complete);
     const candidates = completeSegments.length >= 2 ? completeSegments : laneSegments;
+
     if (candidates.length < 2) continue;
     const typicalLength = median(candidates.map((segment) => segment.tokens.length));
     // A short first pass or a full-length burst with a distinct sequence is
@@ -889,6 +926,7 @@ function boundaryGuideClusters(segments: readonly RotationSegment[]): SegmentClu
       (segment) =>
         segment.tokens.length >= Math.max(1, typicalLength * 0.55) && segment.tokens.length <= typicalLength * 1.8
     );
+
     if (representativeSegments.length < 2) continue;
     const cohort = bestSimilarCluster(representativeSegments, MIN_BOUNDARY_COHORT_SIMILARITY);
     const guideSegments = cohort?.segments || representativeSegments;
@@ -911,6 +949,7 @@ function segmentFromTokens(
   laneKey = 'fallback'
 ): RotationSegment | null {
   const actions = tokens.flatMap((token) => token.actions);
+
   if (tokens.length < MIN_LOOP_TOKENS || !actions.length) return null;
   return {
     sourceIndex,
@@ -928,6 +967,7 @@ function fallbackAnchorClusters(
   autoattackChains: ReadonlyMap<string, readonly SkillId[]>
 ): SegmentCluster[] {
   const tokens = meaningfulTokens(app, actions, autoattackChains);
+
   if (tokens.length < MIN_LOOP_TOKENS * 2) return [];
   const positionsByAnchor = new Map<string, number[]>();
   for (let index = 0; index <= tokens.length - FALLBACK_ANCHOR_SIZE; index += 1) {
@@ -949,10 +989,12 @@ function fallbackAnchorClusters(
       const start = positions[index];
       const end = positions[index + 1];
       const segment = segmentFromTokens(tokens.slice(start, end), sourceIndex++);
+
       if (segment) intervals.push(segment);
     }
 
     const best = bestSimilarCluster(intervals);
+
     if (!best) continue;
     candidates.push({ ...best, boundaryDriven: false, label: 'Core Loop' });
   }
@@ -977,11 +1019,14 @@ function fallbackTandemClusters(
         (count, token, index) => count + (token.key === rightTokens[index].key ? 1 : 0),
         0
       );
+
       if (positionalMatches / period < 0.75) continue;
       const left = segmentFromTokens(leftTokens, sourceIndex++);
       const right = segmentFromTokens(rightTokens, sourceIndex++);
+
       if (!left || !right) continue;
       const meanSimilarity = sequenceSimilarity(left.tokens, right.tokens);
+
       if (meanSimilarity < MIN_CLUSTER_SIMILARITY) continue;
       candidates.push({
         segments: [left, right],
@@ -1014,6 +1059,7 @@ function occurrenceOverlap(left: SegmentCluster, right: SegmentCluster): number 
   const rightActions = new Set(
     right.segments.flatMap((segment) => segment.actions.map((action) => action.sequenceIndex))
   );
+
   if (!leftActions.size || !rightActions.size) return 0;
   let intersection = 0;
   for (const action of leftActions) {
@@ -1028,6 +1074,7 @@ function selectFallbackClusters(candidates: readonly SegmentCluster[]): SegmentC
   for (const candidate of candidates) {
     const signature = occurrenceSignature(candidate);
     const existing = bySignature.get(signature);
+
     if (!existing || candidate.meanSimilarity > existing.meanSimilarity) bySignature.set(signature, candidate);
   }
 
@@ -1040,6 +1087,7 @@ function selectFallbackClusters(candidates: readonly SegmentCluster[]): SegmentC
   for (const candidate of ranked) {
     if (selected.some((existing) => occurrenceOverlap(existing, candidate) >= 0.7)) continue;
     selected.push(candidate);
+
     if (selected.length >= MAX_DETECTED_LOOPS) break;
   }
 
@@ -1135,6 +1183,7 @@ function stepRecurrence(cluster: SegmentCluster, key: string): StepRecurrence {
     .map((segment, index) => (segment.tokens.some((token) => token.key === key) ? index : -1))
     .filter((index) => index >= 0);
   const support = presentIndexes.length / Math.max(1, segments.length);
+
   if (presentIndexes.length < MIN_PERIODIC_STEP_OCCURRENCES || support >= 0.75) {
     return { support, repeatInterval: null, repeatRegularity: support };
   }
@@ -1148,7 +1197,9 @@ function stepRecurrence(cluster: SegmentCluster, key: string): StepRecurrence {
       const purity = aligned / presentIndexes.length;
       const adherence = aligned / Math.max(1, expected);
       const regularity = (2 * purity * adherence) / Math.max(Number.EPSILON, purity + adherence);
+
       if (purity < 0.8 || adherence < 0.6 || regularity < 0.72) continue;
+
       if (
         regularity > best.repeatRegularity ||
         (regularity === best.repeatRegularity && (best.repeatInterval == null || interval < best.repeatInterval))
@@ -1163,13 +1214,16 @@ function stepRecurrence(cluster: SegmentCluster, key: string): StepRecurrence {
 
 function tokenBelongsToLane(app: ProfessionAppState, cluster: SegmentCluster, token: LoopToken): boolean {
   const skill = actionSkill(app, token.primarySkillId);
+
   if (!skill) return true;
   const laneKey = cluster.medoid.laneKey;
+
   if (laneKey.startsWith('attunement:')) {
     return String(skill.attunement || '') === laneKey.slice('attunement:'.length);
   }
 
   if (laneKey.startsWith('weapon-set:')) return skill.type === 'Weapon';
+
   if (laneKey.startsWith('necromancer-shroud:')) {
     return (
       String(skill.shroud || skill.shroudEntry || skill.shroudExit || '') ===
@@ -1203,15 +1257,18 @@ function stepsUsuallyFollowImmediately(
   for (const segment of cluster.segments) {
     const hasPrevious = segment.tokens.some((token) => token.key === previous.key);
     const hasCurrent = segment.tokens.some((token) => token.key === current.key);
+
     if (!hasPrevious || !hasCurrent) continue;
     eligible += 1;
     const adjacent = segment.tokens.some((token, index) => {
       const next = segment.tokens[index + 1];
+
       if (token.key !== previous.key || next?.key !== current.key) return false;
       const previousEnd = Math.max(...token.actions.map((action) => action.endMs));
       const currentStart = Math.min(...next.actions.map((action) => action.startMs));
       return currentStart - previousEnd <= 250;
     });
+
     if (adjacent) linked += 1;
   }
 
@@ -1245,6 +1302,7 @@ function consensusSteps(app: ProfessionAppState, cluster: SegmentCluster): Rotat
     const matching = samples.filter((token): token is LoopToken => Boolean(token && token.key === referenceToken.key));
     const support = matching.length / cluster.segments.length;
     const recurrence = stepRecurrence(cluster, referenceToken.key);
+
     if (!includeConsensusToken(app, cluster, referenceToken, { ...recurrence, support })) return;
     const range = countRange(samples);
     ordered.push({
@@ -1286,6 +1344,7 @@ function consensusSteps(app: ProfessionAppState, cluster: SegmentCluster): Rotat
   for (const [key, group] of insertionsByKey) {
     const token = group.samples[0].token;
     const recurrence = stepRecurrence(cluster, key);
+
     if (!includeConsensusToken(app, cluster, token, recurrence)) continue;
     const counts = cluster.segments.flatMap((segment) => {
       const matching = segment.tokens.filter((candidate) => candidate.key === key);
@@ -1437,6 +1496,7 @@ function boundaryGuideSteps(app: ProfessionAppState, cluster: SegmentCluster): R
     .slice(0, 2)
     .map(({ index }) => index);
   let selectedIndexes = [...new Set([...head, ...middle, ...tail])].sort((left, right) => left - right);
+
   if (selectedIndexes.length < MIN_LOOP_TOKENS) {
     // Highly variable priority rotations rarely have a fully stable prefix.
     // Sample reliable skills across the whole lane and make omitted regions explicit.
@@ -1454,6 +1514,7 @@ function boundaryGuideSteps(app: ProfessionAppState, cluster: SegmentCluster): R
   const steps: RotationLoopStep[] = [];
   selectedIndexes.forEach((sourceIndex, selectedIndex) => {
     const previousSourceIndex = selectedIndexes[selectedIndex - 1];
+
     if (selectedIndex > 0 && sourceIndex - previousSourceIndex > 1) {
       steps.push({
         key: `boundary-gap:${previousSourceIndex}:${sourceIndex}`,
@@ -1529,8 +1590,10 @@ function clusterToDetectedLoop(
 ): DetectedRotationLoop | null {
   const steps = consensusSteps(app, cluster);
   const minimumSteps = cluster.boundaryDriven ? MIN_STRUCTURAL_LOOP_TOKENS : MIN_LOOP_TOKENS;
+
   if (steps.length < minimumSteps) return null;
   const confidence = loopConfidence(cluster, steps);
+
   if (confidence.score < 0.55) return null;
   return detectedLoopFromSteps(cluster, index, steps, confidence, 'consensus');
 }
@@ -1541,6 +1604,7 @@ function clusterToBoundaryGuide(
   index: number
 ): DetectedRotationLoop | null {
   const steps = boundaryGuideSteps(app, cluster);
+
   if (steps.filter((step) => step.kind !== 'gap').length < MIN_LOOP_TOKENS) return null;
   const confidence = loopConfidence(
     cluster,
@@ -1595,10 +1659,12 @@ function precombatStructuralOpenerStartMs(
     (entry) =>
       typeof entry === 'object' && entry != null && (entry as { readonly type?: string }).type === 'combat-start'
   );
+
   if (combatStartIndex < 0) return null;
   const hasPrecombatActions = actions.some(
     (action) => action.rotationIndex != null && action.rotationIndex < combatStartIndex
   );
+
   if (!hasPrecombatActions) return null;
 
   // Precasts are opener evidence, not the first steady-state occurrence. Start the body only once
@@ -1626,6 +1692,7 @@ function anomalousStructuralOpenerStartMs(
       firstEditCount / Math.max(1, instructionCount) >= MIN_OPENER_EDIT_RATIO
     );
   });
+
   if (!hasAnomalousFirstVisit) return null;
 
   return Math.max(...loops.map((loop) => loop.occurrences[0]?.endMs ?? 0));
@@ -1645,6 +1712,7 @@ function structuralOpenerStartMs(
 
 function trimLoopOccurrencesBefore(loop: DetectedRotationLoop, startMs: number): DetectedRotationLoop {
   const occurrences = loop.occurrences.filter((occurrence) => occurrence.startMs >= startMs);
+
   if (!occurrences.length) return loop;
   return {
     ...loop,
@@ -1660,14 +1728,17 @@ function trimLoopOccurrencesBefore(loop: DetectedRotationLoop, startMs: number):
 export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnalysis {
   const result = app.results;
   const buildSignature = loopAnalysisBuildSignature(app);
+
   if (result) {
     const cached = analysisCache.get(result);
+
     if (cached?.catalog === app.activeCatalog && cached.buildSignature === buildSignature) {
       return cached.analysis;
     }
   }
 
   const actions = normalizedPlayerActions(app);
+
   if (actions.length < MIN_LOOP_TOKENS * 2) {
     const analysis = {
       loops: [],
@@ -1677,6 +1748,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
       openerActionCount: 0,
       trailingActionCount: 0
     };
+
     if (result) analysisCache.set(result, { catalog: app.activeCatalog, buildSignature, analysis });
     return analysis;
   }
@@ -1685,11 +1757,13 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
   const segments = structuralSegments(app, actions, autoattackChains);
   let detectedLoops: DetectedRotationLoop[] = [];
   let structuralConsensus = false;
+
   if (segments.length) {
     const normalClusters = boundaryClusters(segments);
     const normalMatches: Array<{ readonly cluster: SegmentCluster; readonly loop: DetectedRotationLoop }> = [];
     normalClusters.forEach((cluster, index) => {
       const loop = clusterToDetectedLoop(app, cluster, index);
+
       if (loop) normalMatches.push({ cluster, loop });
     });
     const guideLoops = boundaryGuideClusters(segments)
@@ -1746,6 +1820,7 @@ export function analyzeRotationLoops(app: ProfessionAppState): RotationLoopAnaly
     openerActionCount: openerActions.length,
     trailingActionCount: loops.length ? Math.max(0, actions.length - lastCovered - 1) : 0
   };
+
   if (result) analysisCache.set(result, { catalog: app.activeCatalog, buildSignature, analysis });
   return analysis;
 }

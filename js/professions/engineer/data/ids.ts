@@ -14,6 +14,7 @@ function stableNameIndex(entries: readonly (readonly [string, string | number])[
   const result: Record<string, number> = {};
   for (const [name, id] of entries) {
     const base = constantName(name);
+
     if (!base) continue;
     const key = Object.hasOwn(result, base) ? `${base}_ID_${id}` : base;
     result[key] = Number(id);

@@ -28,18 +28,22 @@ export function assertAvailabilityResult(result: unknown, owner: string): Availa
   }
 
   const candidate = result as Partial<AvailabilityResult> & Record<string, unknown>;
+
   if (candidate.ready === true) return CAST_READY;
+
   if (candidate.ready !== false) {
     throw new TypeError(`${owner} must return an AvailabilityResult with a boolean ready field.`);
   }
 
   const code = typeof candidate.code === 'string' ? candidate.code.trim() : '';
   const reason = typeof candidate.reason === 'string' ? candidate.reason.trim() : '';
+
   if (!code || !reason) {
     throw new TypeError(`${owner} denial must include a non-empty code and reason.`);
   }
 
   if (candidate.retryAt === null) return denyCast(code, reason);
+
   if (typeof candidate.retryAt !== 'number' || !Number.isFinite(candidate.retryAt)) {
     throw new TypeError(`${owner} denial retryAt must be a finite number or null.`);
   }
@@ -58,8 +62,10 @@ export function foldAvailability(results: Iterable<AvailabilityResult>): Availab
   let combined: AvailabilityResult = CAST_READY;
   for (const result of results) {
     if (result.ready !== false) continue;
+
     if (result.retryAt == null) return result;
     const retryAt = Number(result.retryAt);
+
     if (!Number.isFinite(retryAt)) {
       throw new TypeError('Cast availability retryAt must be finite or null.');
     }

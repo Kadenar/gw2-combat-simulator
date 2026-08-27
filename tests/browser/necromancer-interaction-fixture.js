@@ -16,6 +16,7 @@ const waitFor = async (predicate, timeoutMs = 5000) => {
     const value = predicate();
 
     if (value) return value;
+
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
 

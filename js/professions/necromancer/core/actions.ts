@@ -12,6 +12,7 @@ import type { NecromancerCastContext, NecromancerSkill } from '../types.js';
 
 function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = professionCoreState(context);
+
   if (skill.flipSkillId != null) {
     const duration =
       (

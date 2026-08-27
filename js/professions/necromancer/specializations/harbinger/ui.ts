@@ -29,6 +29,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
       title: 'Current Harbinger Blight stacks'
     }
   ];
+
   // Only show Cascading Corruption if the player has the trait or already has stacks (e.g. from a saved initial state).
   if (hasTrait || stacks > 0) {
     items.push({
@@ -41,6 +42,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
 
   // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
   const meltdownRemaining = Number(state.meltdownUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+
   if (meltdownRemaining > 0) {
     items.push({
       id: 'harbinger-meltdown',

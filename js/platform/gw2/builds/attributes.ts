@@ -100,6 +100,7 @@ export function resolveAttributeEffects(
   for (const effect of activeEffects) {
     if (effect.kind !== 'flat') continue;
     addAttribute(traitStats, effect.to, effect.amount);
+
     if (effect.feedsConversions) {
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     }
@@ -215,6 +216,7 @@ function recomputeDerivedAttributes(
   for (const key of specificKeys) {
     const value =
       (runeDurations[key] || 0) + (traitDurations[key] || 0) + (foodDurations[key] || 0) + (sigilDurations[key] || 0);
+
     if (!value) {
       // Finalize prunes zero-valued provisional entries to keep the public
       // result sparse; the common pass simply never adds them.
@@ -327,7 +329,9 @@ export function calculateCommonAttributes(
   const effectiveSigils = dedupeSigils ? new Set(selectedSigils) : selectedSigils;
   for (const name of effectiveSigils) {
     const sigil = sigilData[name];
+
     if (!sigil) continue;
+
     if (sigil.conditionDuration) {
       addAttribute(sigilDurations, 'Condition Duration', sigil.conditionDuration);
     }

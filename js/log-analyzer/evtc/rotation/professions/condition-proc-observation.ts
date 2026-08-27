@@ -122,6 +122,7 @@ export function countPairedApplications(
   let matches = 0;
   for (const event of left) {
     while (rightIndex < right.length && right[rightIndex].time < event.time - toleranceMs) rightIndex += 1;
+
     if (rightIndex >= right.length || Math.abs(right[rightIndex].time - event.time) > toleranceMs) continue;
     matches += 1;
     rightIndex += 1;

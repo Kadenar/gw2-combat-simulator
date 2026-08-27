@@ -68,6 +68,7 @@ export function handleNecromancerStateEvent(
   for (const key of specializationKeys) delete specializationState[key];
   for (const [key, value] of Object.entries(event.state || {})) {
     if (coreKeys.has(key)) mutableCore[key] = structuredClone(value);
+
     if (specializationKeys.has(key)) {
       specializationState[key] = structuredClone(value);
     }
@@ -163,6 +164,7 @@ export function materializeNecromancerSummonAttack(
     spiritAttackType: event.spiritAttackType,
     anguishConditionalDamage: event.anguishConditionalDamage
   });
+
   if (Array.isArray(event.onHitCondition)) {
     const [condition, stacks, duration] = event.onHitCondition;
     enqueueOrdered(context.queue, {

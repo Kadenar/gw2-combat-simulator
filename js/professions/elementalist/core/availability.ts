@@ -34,8 +34,10 @@ function selectedSkillNames(context: ElementalistCastContext): Set<string> {
 
 export function elementalistCoreAvailability(context: ElementalistCastContext, skill: Skill): AvailabilityResult {
   const elementalAvailability = elementalistElementalAvailability(context, skill);
+
   if (elementalAvailability) return elementalAvailability;
   const state = professionCoreState(context);
+
   if (
     skill.name === 'Elemental Explosion' &&
     !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
@@ -44,8 +46,10 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   }
 
   const target = targetAttunement(skill);
+
   if (target) {
     const secondaryAttunement = activeSecondaryAttunement(context);
+
     if (target === state.primaryAttunement && (!secondaryAttunement || target === secondaryAttunement)) {
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
@@ -104,12 +108,14 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
     const selectedChainSkill = [...selected].some(
       (selectedName) => context.catalog.skillsByName.get(selectedName)?.nextChainId === skill.id
     );
+
     if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
       return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
     }
   }
 
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+
   if (aura && !activeAura(state, aura, context.start)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
   }
@@ -128,9 +134,11 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   }
 
   const chain = etchingChain(skill.name);
+
   if (chain && skill.name !== chain.etching) {
     const progress = state.etchings[chain.etching];
     const requiredStage = skill.name === chain.lesser ? 'lesser' : 'full';
+
     if (progress?.stage !== requiredStage) {
       return unavailable(
         skill,
@@ -144,9 +152,11 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   const skillId = Number(skill.id);
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
+
   if (hammerElements) {
     const retryAt =
       state.hammerOrbLastCastAt + elementalistBalanceValue(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);
+
     if (retryAt > context.start + context.epsilon) {
       return unavailable(
         skill,
@@ -174,6 +184,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
     const compatible = activeHammerOrbElements(state, context.start).some((element) =>
       hammerOrbMatchesAttunement(context, state, element)
     );
+
     if (!compatible) {
       return unavailable(
         skill,
@@ -185,6 +196,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   if (skill.type === 'Weapon') {
     const weapon = skillWeapon(skill);
+
     if (CONJURED_WEAPONS.has(weapon)) {
       if (state.conjureEquipped !== weapon) {
         return unavailable(skill, 'elementalist.conjure-required', `requires the ${weapon} bundle.`);

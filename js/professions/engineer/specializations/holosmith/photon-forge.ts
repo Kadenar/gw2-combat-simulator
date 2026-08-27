@@ -71,10 +71,13 @@ function passiveHeatPerTick(context: EngineerSchedulerContext): number {
 
 function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): number {
   const state = holosmithState.from(context);
+
   if (state.photonForgeActive || state.forgeExitedAt == null) return 0;
+
   if (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
 
   const elapsedSinceExit = at - state.forgeExitedAt;
+
   if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + context.epsilon) return 0;
   const coolingPerSecond =
     elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt + context.epsilon
@@ -102,6 +105,7 @@ function appendHeatSegment(
   if (!(end > start)) return;
   const startHeat = Number(state.heat || 0);
   let segmentEnd = end;
+
   if (rate < 0 && startHeat + (end - start) * rate < 0) {
     segmentEnd = start + startHeat / -rate;
   }
@@ -118,6 +122,7 @@ function appendHeatSegment(
 function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
   const heatThreshold = HOLOSMITH_HEAT.enhancedCapacityThreshold;
   const endHeat = segment.startHeat + (segment.end - segment.start) * segment.rate;
+
   if (segment.rate > 0) {
     if (endHeat <= heatThreshold) return null;
     return {
@@ -178,6 +183,7 @@ function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, seg
   let readyAt = state.enhancedCapacityMightReadyAt;
   for (const segment of segments) {
     const interval = highHeatInterval(segment);
+
     if (!interval) {
       readyAt = null;
       continue;
@@ -204,6 +210,7 @@ function triggerInstantEnhancedCapacityMight(
   previousHeat: number
 ): void {
   const state = holosmithState.from(context);
+
   if (
     !hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
     previousHeat > HOLOSMITH_HEAT.enhancedCapacityThreshold ||
@@ -318,12 +325,14 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
     photonicBlastingModule ? effectAt : at,
     engineerBalanceValue(context, PROFILE.solarFocusingLens, 'maximumStacks', 6)
   );
+
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
 
 export function advancePhotonForgeState(context: EngineerSchedulerContext, target: number): void {
   const state = holosmithState.from(context);
   const from = Number(state.heatUpdatedAt || 0);
+
   if (target <= from) return;
   const previousHeat = state.heat;
   const previousForgeActive = state.photonForgeActive;
@@ -336,6 +345,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
 
   materializeEnhancedCapacityMight(context, segments);
   state.heatUpdatedAt = target;
+
   if (
     state.heat !== previousHeat ||
     state.photonForgeActive !== previousForgeActive ||
@@ -363,6 +373,7 @@ function startPassiveHeatCadence(context: EngineerSchedulerContext, at: number):
 
 export function initializePhotonForgeHeat(context: EngineerSchedulerContext): void {
   const state = holosmithState.from(context);
+
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
   if (state.heat > context.epsilon && state.forgeExitedAt != null) {
     startPassiveHeatCadence(context, Math.max(context.state.time, state.forgeExitedAt));
@@ -374,9 +385,11 @@ export function handlePhotonForgePassiveHeat(
   task: EngineerScheduledTask<PhotonForgePassiveHeatPayload>
 ): void {
   const state = holosmithState.from(context);
+
   if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;
 
   const previousHeat = state.heat;
+
   if (state.photonForgeActive) {
     // The Forge-relative tick ejects only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
@@ -389,6 +402,7 @@ export function handlePhotonForgePassiveHeat(
     triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
   } else {
     state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, task.at)) * 1e9) / 1e9);
+
     if (state.heat <= context.epsilon) {
       state.heat = 0;
       state.overheated = false;
@@ -403,6 +417,7 @@ export function handlePhotonForgePassiveHeat(
     !state.photonForgeActive &&
     state.forgeExitedAt != null &&
     task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + context.epsilon;
+
   if (state.photonForgeActive || state.heat > context.epsilon || coolingGraceActive) {
     startPassiveHeatCadence(context, task.at);
   } else {
@@ -471,10 +486,13 @@ function scheduleHeatPulse(
 // Most skills only grant heat on full completion (effectiveEnd === fullEnd).
 function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   const state = holosmithState.from(context);
+
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
+
   if (skill.name === 'Corona Burst') {
     const offsets = CORONA_QUICKNESS_PULSE_OFFSETS_MS;
+
     if (elapsedMs + context.epsilon * 1000 < offsets[0]) return;
     for (const offsetMs of offsets) {
       scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2, true);
@@ -494,6 +512,7 @@ function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
 
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     const commitMs = Number(skill.interruptCommitMs);
+
     if (!Number.isFinite(commitMs) || elapsedMs + context.epsilon * 1000 < commitMs) return;
   }
 
@@ -507,6 +526,7 @@ export function handlePhotonForgeHeat(
   task: EngineerScheduledTask<PhotonForgeHeatPayload>
 ): void {
   const state = holosmithState.from(context);
+
   if (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true) return;
   const previousHeat = state.heat;
   state.heat = Math.min(state.maximumHeat, state.heat + Math.max(0, Number(task.payload?.amount || 0)));
@@ -518,6 +538,7 @@ export function handlePhotonForgeHeat(
 // damage, conditions, and heat loss all have one owner.
 function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: EngineerSkill, at: number): void {
   const ventExhaust: HolosmithSkill | undefined = context.catalog.skillsById.get(ID.VENT_EXHAUST);
+
   if (!ventExhaust) return;
   context.emit({
     type: 'proc',
@@ -554,6 +575,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
   const state = holosmithState.from(context);
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
   state.heatUpdatedAt = at;
+
   if (state.heat === 0) state.overheated = false;
   emitStateSnapshot(context, 'engineer', at, 'vent-exhaust', snapshotEngineerState(context.state.profession));
 }
@@ -581,6 +603,7 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
     ),
     stacks: engineerBalanceEffectValue(context, PROFILE.thermalReleaseValve, 'boon', 'stacks', 1)
   });
+
   if (state.heat <= 0 || (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated)) return;
   triggerVentExhaust(context, skill, at);
 }
@@ -617,6 +640,7 @@ export function observeHolosmithScheduledEvent(
   )
     return;
   const state = holosmithState.from(context);
+
   if (
     Number(state.solarFocusingLensStacks || 0) <= 0 ||
     event.at < Number(state.solarFocusingLensReadyAt || 0) - context.epsilon ||

@@ -45,11 +45,13 @@ function assertStage(value: string): asserts value is Gw2ResolverStage {
 
 function assertAuthoringHook(value: unknown, label: string): void {
   if (typeof value === 'function') return;
+
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${label} must be a function or ordered hook.`);
   }
 
   const hook = value as Partial<AuthoringHook>;
+
   if (!String(hook.id || '').trim() || typeof hook.handler !== 'function') {
     throw new TypeError(`${label} must have an id and handler.`);
   }
@@ -105,6 +107,7 @@ export function createGw2ResolverReactionRegistry({
     GW2_RESOLVER_STAGES.flatMap((stage) => {
       const hooks = [...(contributions[stage] || [])];
       const profession = professionReactions[stage];
+
       if (profession) {
         hooks.push({
           id: `profession.${stage}`,

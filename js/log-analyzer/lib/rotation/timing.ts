@@ -12,6 +12,7 @@ export function strikePacketOffsets(
 ): number[] {
   const origin = effect.timingAnchor === 'castEnd' ? runtimeDurationMs : 0;
   const castScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, runtimeDurationMs) : 1;
+
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }
@@ -31,6 +32,7 @@ export function firstStrikePacketOffsetMs(
 ): number | null {
   const offsets = (skill?.effects || []).flatMap((effect) => {
     if (effect.type !== 'strike') return [];
+
     if (options.explicitOnly === true && effect.atMs == null && !(Array.isArray(effect.ticks) && effect.ticks.length)) {
       return [];
     }

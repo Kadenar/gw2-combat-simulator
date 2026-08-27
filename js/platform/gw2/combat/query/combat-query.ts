@@ -79,6 +79,7 @@ export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCat
 
   for (const value of [...values]) {
     const trait = byId.get(Number(value));
+
     if (trait) {
       values.add(Number(trait.id));
       values.add(trait.name);
@@ -156,6 +157,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   const staticAttributesAt = (weaponSet: number, mightStacks: number): Gw2ResolvedStats => {
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     let base = staticAttributesByWeaponSet.get(normalizedWeaponSet);
+
     if (!base) {
       base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), 0, normalizedWeaponSet);
       staticAttributesByWeaponSet.set(normalizedWeaponSet, base);
@@ -175,6 +177,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if (!config.weaponSetStats?.length) return staticConfig;
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     const cached = activeConfigsByWeaponSet.get(normalizedWeaponSet);
+
     if (cached) return cached;
     const activeConfig = configWithBaselineStats(normalizedWeaponSet);
     const calculatedPrimaryWeapon = (normalizedWeaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || '';
@@ -211,6 +214,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   ): number | null => {
     if (!runtime) return null;
     const applications = runtime.boons?.get(kind) || [];
+
     if (isDurationStackingBoon(kind)) {
       const remaining = remainingDurationStackSeconds(applications, time, {
         includes: (application) => buffMatchesAudience(application, audience, companionId),
@@ -256,6 +260,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && event?.source !== 'Phantasm';
   const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
     if (!event || gw2EventActorType(event) !== 'summon') return null;
+
     if (event.summonOwner) return String(event.summonOwner);
     return null;
   };
@@ -278,6 +283,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     // Isolated summons don't inherit the player's configured permanent boons —
     // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
+
     if (isolatedSummon) {
       return dynamicBoonStacksAt(kind, time, maximum, runtime, 'summon', 0, summonCompanionId(event));
     }
@@ -314,6 +320,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     // player-configured permanent Fury. They gain Fury only when a skill
     // applies it dynamically (handled by the runtime/timeline branch below).
     const illusionEvent = event?.source === 'Clone' || event?.source === 'Phantasm';
+
     if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
       return true;
     }
@@ -356,6 +363,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
    */
   const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number => {
     const name = canonicalTargetConditionName(condition);
+
     if (name === 'Vulnerability') {
       return vulnerabilityStacksAt(time, runtime);
     }
@@ -431,6 +439,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: Number(modifiedStats.conditionDamage ?? 0) + relicConditionDamage }
         : modifiedStats;
+
     // Independent summons use their own base stats instead of the player's.
     // summonInheritsCriticalAttributes=true lets them share precision/ferocity
     // (e.g., for illusions that scale with the player's crit chance).
@@ -493,6 +502,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
       const illusionEvent = event?.source === 'Clone' || event?.source === 'Phantasm';
+
       if (!illusionEvent) {
         const configuredBonus = Number(activeConfigAt(time, runtime).stats?.criticalChanceBonus || 0) / 100;
         chance += configuredBonus;
@@ -538,7 +548,9 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       contributors.push(...sigilCritical.chanceContributors);
       damage += sigilCritical.damage;
       let chanceBeforeCap = chance;
+
       if (event.canCrit === false || event.noCrit) chance = 0;
+
       // forceCrit (e.g. Wild Blow) overrides everything including canCrit=false.
       if (event.forceCrit) {
         chance = 1;
@@ -565,6 +577,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
         event?.summonUsesEquipmentModifiers === false
           ? 0
           : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
+
       if (event?.independentSummonStrike === true) {
         const base =
           (1 + vulnerabilityStacksAt(time, runtime) / 100) *

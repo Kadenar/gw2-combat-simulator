@@ -73,6 +73,7 @@ export function createProfessionActionController({
   // Typed accessors — throw if the active specialization doesn't own this state shape.
   const numericResourceState = () => {
     const active = state.profession.specialization.state as Partial<{ numericResource: number }>;
+
     if (typeof active.numericResource !== 'number') {
       throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
     }
@@ -110,6 +111,7 @@ export function createProfessionActionController({
     { sourceSkill = '', rotationIndex = null }: MesmerResourceSpendDetails = {}
   ): number => {
     const spent = currentResource();
+
     if (resourceDefinition.singular === 'clone') {
       for (const clone of professionCoreState(state).clones) {
         destroyClone(clone, at);
@@ -127,6 +129,7 @@ export function createProfessionActionController({
   // (e.g. a Virtuoso skill whose coefficient scales with blades but costs all blades on hit, not on cast).
   const reserveResources = (): number => {
     const spent = currentResource();
+
     if (resourceDefinition.singular === 'clone') {
       throw new Error('Clone resources cannot be reserved.');
     }
@@ -164,6 +167,7 @@ export function createProfessionActionController({
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = ({ skill, at, spent, traitHits }: MesmerShatterResolution): void => {
     const shatter = shatters[skill.id];
+
     if (traitHits.length && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
       const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
         name: 'Torment',
@@ -209,17 +213,20 @@ export function createProfessionActionController({
     castStart = at
   ): MesmerShatterResolution | null => {
     const shatter = shatters[skill.id];
+
     if (!shatter) {
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
 
     const minimumResource = Number(shatter.minimumResource || 0);
+
     if (resourcesSpent == null && currentResource() < minimumResource) {
       warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no ${resourceDefinition.plural}.`);
       return null;
     }
 
     const resolver = shatterResolvers[shatter.resolver];
+
     if (!resolver) {
       throw new Error(`Missing Mesmer shatter resolver ${shatter.resolver} for ${skill.name}.`);
     }

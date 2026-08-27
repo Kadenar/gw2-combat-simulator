@@ -65,9 +65,11 @@ function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: Schedul
     runtime?.specialization.kind === 'Weaver'
       ? runtime.specialization.state.secondaryAttunement
       : context.config?.secondaryAttunement;
+
   if (typeof secondary === 'string') active.add(secondary);
 
   const attributeBonus = elementalistBalanceValue(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);
+
   if (active.has('Fire')) {
     modified.power = Number(modified.power || 0) + attributeBonus;
   }

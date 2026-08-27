@@ -77,6 +77,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Remaining traits only proc on Function Gyro.
   if (!isFunctionGyro(skill)) return;
+
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
   // The marker gives the shared combo materializer a trait-gated descriptor
   // while preserving Function Gyro as the source of the resulting combo.

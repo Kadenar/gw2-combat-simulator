@@ -32,6 +32,7 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
       )
       .map((event) => event.time)
   );
+
   if (!Number.isFinite(firstPlayerEventTime)) return [];
 
   const nightfallStop = context.log.events
@@ -45,6 +46,7 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
         event.value > 0
     )
     .sort((left, right) => left.event.time - right.event.time)[0];
+
   if (!nightfallStop) return [];
   const nightfallStart = nightfallStop.event.time - nightfallStop.event.value;
   const nightfallRecorded = context.recordedActions.some(
@@ -52,6 +54,7 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
       action.rawSkillId === NIGHTFALL.skillId &&
       Math.abs(action.end - nightfallStop.event.time) <= INSTANT_SIGNAL_WINDOW_MS
   );
+
   if (nightfallRecorded || nightfallStart > firstPlayerEventTime) return [];
 
   const actions: EvtcRecordedRotationAction[] = [
@@ -82,8 +85,10 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
         event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP
     )
     .sort((left, right) => left.event.time - right.event.time)[0];
+
   if (!graspingSignal) return actions;
   const graspingStart = nightfallStart - GRASPING_DARKNESS_PRECAST_COMMIT_MS;
+
   if (
     hasRecordedAction(
       context,
@@ -142,6 +147,7 @@ function removePostEncounterReaperExit(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const encounterEnd = encounterEndTime(context);
+
   if (encounterEnd == null) return [...actions];
   return actions.filter(
     (action) =>

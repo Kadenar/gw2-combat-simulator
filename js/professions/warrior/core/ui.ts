@@ -155,6 +155,7 @@ export function warriorBurstPaletteAvailability(
   const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
     weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
   );
+
   if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
     const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;
     return {
@@ -205,6 +206,7 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
   const at = warriorSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const peakPerformance = timedBuffAt(result, 'peak-performance', at);
+
   if (peakPerformance) {
     items.push({
       id: 'peak-performance',
@@ -216,6 +218,7 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
 
   if (hasSignetMasteryTrait(context)) {
     const stacks = Math.min(SIGNET_MASTERY_MAX_STACKS, timedBuffStacksAt(result, 'signet-mastery', at));
+
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
@@ -233,6 +236,7 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
     ['berserkers-power', "Berserker's Power", 'berserkers-power', 4]
   ] as const) {
     const stacks = Math.min(maximum, timedBuffStacksAt(result, kind, at));
+
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 

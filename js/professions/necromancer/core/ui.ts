@@ -52,8 +52,11 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
     })
     .sort((left, right) => {
       const slotOrder = Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
+
       if (slotOrder) return slotOrder;
+
       if (left.flipParentId === right.id) return 1;
+
       if (right.flipParentId === left.id) return -1;
       return Number(left.id) - Number(right.id);
     })
@@ -90,6 +93,7 @@ export function necromancerTransformSkillBarGroups(
   ];
   const shroudName = String(shroud || '');
   const shroudSkills = shroudName ? shroudSkillIds(shroudName, false) : [];
+
   if (shroudSkills.length) {
     groups.push({
       id: `necromancer-${shroudName}-shroud`,
@@ -136,6 +140,7 @@ export function necromancerTransformPaletteGroups(
     }
   ];
   const shroudSkills = shroud ? shroudSkillIds(shroud) : [];
+
   if (shroudSkills.length) {
     groups.push({
       id: 'shroud',
@@ -173,6 +178,7 @@ function necromancerCorePaletteAvailability(
   const state = necromancerUiState(context);
   const active = String(state.activeShroud || '');
   const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
+
   if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {
     return { available: false, message: 'Requires Lingering Curse' };
   }
@@ -276,7 +282,9 @@ export function necromancerEventLogRow(
   if (event?.type !== 'necromancer.state') return undefined;
   const state = event.state || {};
   const details = [`Life force ${Number(state.lifeForce || 0).toFixed(1)}`];
+
   if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
+
   if (Number(state.blight || 0) > 0) {
     details.push(`Blight ${Number(state.blight)}`);
   }
@@ -360,6 +368,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       statusLabel: 'Current'
     }
   ];
+
   if (necromancerUiSpecialization(context) === 'Core') views.push(...necromancerSoulShardResourceViews(context));
   return views;
 }

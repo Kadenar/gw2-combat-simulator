@@ -42,6 +42,7 @@ export interface MaterializeSkillEffectOptions {
 /** Resolves the first timestamp at which an effect should fire. */
 export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
   const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
+
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }

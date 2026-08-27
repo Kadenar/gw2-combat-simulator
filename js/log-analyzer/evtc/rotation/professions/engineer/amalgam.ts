@@ -134,6 +134,7 @@ function initialEvolveAction(context: EvtcProfessionReconstructionContext): Evtc
         event.value > 0 &&
         event.buffDamage >= event.value
     );
+
   if (!initial) return null;
 
   const identity = selectedIdentity(context, EVOLVE.name, EVOLVE.skillId);
@@ -163,6 +164,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
       [GALVANIC_BOMB.name, GALVANIC_BOMB]
     ])
   );
+
   if (!opening) return initialEvolve ? [initialEvolve] : [];
   const openingIsBomb = PRECOMBAT_BOMBS.some((identity) => identity.name === opening.rawName);
   const initialBombNames = openingDamageSkillNames(context);
@@ -206,6 +208,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
   if (bombs.length) {
     const equip = kitIdentity(context, 'Bomb Kit', false);
     const stow = kitIdentity(context, 'Bomb Kit', true);
+
     if (equip) {
       scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, equip, equip.skillId, 'initial-state'));
     }

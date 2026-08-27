@@ -77,6 +77,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
   let previousTime = Number(matching[0]?.at ?? time);
   for (const application of matching) {
     const appliedAt = Number(application.at);
+
     if (appliedAt > time) break;
     remaining = Math.max(0, remaining - Math.max(0, appliedAt - previousTime));
     const applicationDuration = duration
@@ -99,7 +100,9 @@ export function buffMatchesAudience(
   companionId?: string | null
 ): boolean {
   if (audience === 'all') return application.affectsSelf !== false;
+
   if (application.affectsSummons !== true) return false;
+
   if (audience === 'summon-trait' && application.source !== 'Trait') {
     return false;
   }
@@ -128,6 +131,7 @@ export function sumActiveStacks<T>(
   let stacks = 0;
   for (const item of items) {
     if (shouldStop?.(item)) break;
+
     if (isActive(item)) stacks += weight(item);
   }
 

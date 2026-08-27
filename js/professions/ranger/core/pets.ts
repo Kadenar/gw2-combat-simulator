@@ -59,6 +59,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
   let conditionDamage = petName === 'Pig' ? 700 : 1000;
   let expertise = 0;
   const healingPower = petName === 'Pig' ? 600 : 0;
+
   if (petName === 'Jacaranda') {
     power = 1868;
     conditionDamage = 400;
@@ -207,6 +208,7 @@ function activeProfile(context: RangerSchedulerContext): PetAutoProfile | null {
 function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
   const state = professionCoreState(context);
   const profile = activeProfile(context);
+
   if (!profile) {
     state.petAutoNextAt = 0;
     return;
@@ -231,9 +233,12 @@ function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = fa
 
 function startPetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
   const state = professionCoreState(context);
+
   if (!state.petActive) return;
   const profile = activeProfile(context);
+
   if (!profile) return;
+
   if (!reset && state.petAutoNextAt > context.state.time + context.epsilon) {
     return;
   }
@@ -250,6 +255,7 @@ function autonomousSkill(
   quickness: boolean
 ): PetAutoSkill {
   const state = professionCoreState(context);
+
   if (state.petAutoOpeningBasic) {
     state.petAutoOpeningBasic = false;
     return profile.opening || profile.basic;
@@ -275,6 +281,7 @@ function effectDuration(effect: SkillEffect): number | undefined {
 // pet generation so a later swap can invalidate stale packets.
 function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, at: number, recovery: number): void {
   const skill = context.catalog.skillsById.get(skillId) as RangerSkill | undefined;
+
   if (!skill) return;
   const activationId = context.createActivationId('summon-attack');
   const fullEnd = at + recovery;
@@ -354,12 +361,16 @@ export function handleRangerPetAutoTask(
   task: ScheduledTask<PetAutoTaskPayload>
 ): void {
   const state = professionCoreState(context);
+
   if (Number(task.payload?.generation) !== state.petAutoGeneration) return;
   state.petAutoTaskId = '';
   state.petAutoNextAt = 0;
+
   if (!state.petActive) return;
   const profile = activeProfile(context);
+
   if (!profile) return;
+
   if (task.at < state.petAutoBusyUntil - context.epsilon) {
     schedulePetAuto(context, state.petAutoBusyUntil);
     return;
@@ -371,6 +382,7 @@ export function handleRangerPetAutoTask(
   const recovery = selected.recovery / (quickness ? QUICKNESS_ACTION_RATE : 1);
   emitAutonomousSkill(context, selected.id, task.at, recovery);
   state.petAutoBusyUntil = task.at + recovery;
+
   if (selected.cooldown) {
     const rechargeRate =
       !profile.ignoresAlacrity && gw2BuffActiveForAudience(context, 'alacrity', task.at, 'summon')
@@ -417,10 +429,12 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
 
   if (event.source === 'ranger-pet' && !event.icon) {
     const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
+
     if (skill?.icon) updates.icon = skill.icon;
   }
 
   if (Object.keys(updates).length) context.replaceEvent(event, updates);
+
   if (event.type === 'ranger.pet-swapped') {
     const slot = state.activePetSlot - 1;
     state.petAutoActivationCounts[slot] += 1;
@@ -448,8 +462,10 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
 export function beginRangerPetCommand(context: RangerCastContext, skill: RangerSkill): void {
   if (!skill.petSkill || skill.petAutonomousSkill) return;
   const state = professionCoreState(context);
+
   if (!state.petActive) return;
   const profile = activeProfile(context);
+
   if (!profile) return;
   const scheduledOpeningEnd =
     state.petAutoOpeningBasic && state.petAutoNextAt > context.start + context.epsilon
@@ -497,6 +513,7 @@ export function beginRangerPetCommand(context: RangerCastContext, skill: RangerS
 /** Activates or suspends the generic pet runtime when a specialization changes pet ownership. */
 export function setRangerPetActive(context: RangerSchedulerContext, active: boolean, at: number): void {
   const state = professionCoreState(context);
+
   if (state.petActive === active) return;
   state.petActive = active;
   context.tasks.cancelOwner(PET_AUTO_OWNER);
@@ -506,6 +523,7 @@ export function setRangerPetActive(context: RangerSchedulerContext, active: bool
   state.petAutoBusyUntil = at;
   state.petCommandReadyAt = at;
   state.petCommandDelays = {};
+
   if (active) startPetAuto(context, at);
 }
 
@@ -517,11 +535,14 @@ export function handleRangerPetCommandStartTask(
 ): void {
   const state = professionCoreState(context);
   const payload = task.payload;
+
   if (!payload || Number(payload.generation) !== state.petAutoGeneration) return;
   const skill = context.catalog.skillsById.get(payload.skillId) as RangerSkill | undefined;
+
   if (skill) {
     const key = String(skill.id);
     const provisional = Number(payload.provisionalCooldownReadyAt || 0);
+
     if (Number(state.petCommandCooldowns[key] || 0) <= provisional) {
       const readyAt = task.at + context.rechargeDurationFor(skill, task.at, { skill });
       state.petCommandCooldowns[key] = readyAt;

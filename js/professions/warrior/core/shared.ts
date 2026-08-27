@@ -11,7 +11,9 @@ import type {
  */
 function configuredTargetBoonCount(context: WarriorSchedulerContext | WarriorResolverContext): number {
   const target = context.config.target;
+
   if (target?.boonless === true) return 0;
+
   if (Array.isArray(target?.boons)) {
     return new Set(target.boons.map(String)).size;
   }

@@ -56,6 +56,7 @@ export function createSkillSpecialEffectController({
 }: SkillSpecialEffectControllerOptions): MesmerSkillSpecialEffectController {
   const consumeClarity = (skill: MesmerSkill, castStart: number): boolean => {
     const consumed = CLARITY_CONSUMERS.has(skill.id) && professionCoreState(state).clarityUntil > castStart;
+
     if (CLARITY_CONSUMERS.has(skill.id)) {
       professionCoreState(state).clarityUntil = 0;
     }
@@ -137,8 +138,10 @@ export function createSkillSpecialEffectController({
           Boolean(shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
       )) {
         const ammo = state.ammo.get(target.id);
+
         if (ammo) {
           ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
+
           if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
           state.cooldowns.delete(target.id);
         } else {
@@ -156,6 +159,7 @@ export function createSkillSpecialEffectController({
 
     if (skill.id === ID.MENTAL_COLLAPSE) {
       const mindTheGap = allSkills.find((candidate) => candidate.id === ID.MIND_THE_GAP);
+
       if (mindTheGap) {
         state.cooldowns.delete(mindTheGap.id);
         addEvent({
@@ -170,6 +174,7 @@ export function createSkillSpecialEffectController({
     if (skill.type !== 'Heal' || !traits.has(TRAIT.METHOD_OF_MADNESS)) return;
     const storm = traitDamage['Lesser Chaos Storm'];
     const readyAt = professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+
     if (!isInternalCooldownReady(at, readyAt)) return;
     const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
     addDamage(

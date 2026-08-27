@@ -14,6 +14,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   const state = (context.professionState as SchedulerRecord | undefined) || {};
   const build = context.build as SchedulerRecord | undefined;
   const primaryAttunement = String(state.primaryAttunement || build?.startAttunement || 'Fire');
+
   if (skill.attunement !== primaryAttunement) {
     return {
       available: false,
@@ -22,6 +23,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   }
 
   const enteredAt = Number(state.attunementEnteredAt ?? -1);
+
   if (enteredAt < 0) return { available: true, message: '' };
 
   // Mirror scheduler dwell rules so the palette exposes singularity as a

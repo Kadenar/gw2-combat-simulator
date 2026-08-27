@@ -103,7 +103,9 @@ function selectedSkillNames(context: ElementalistSchedulerContext): ReadonlySet<
 // Elementals" is treated as the Fire variant.
 function selectedElemental(context: ElementalistSchedulerContext): ElementalKind | null {
   const selected = selectedSkillNames(context);
+
   if (selected.has('Glyph of Elementals (Earth)')) return 'Earth';
+
   if (selected.has('Glyph of Elementals') || selected.has('Glyph of Elementals (Fire)')) {
     return 'Fire';
   }
@@ -190,10 +192,12 @@ function scheduleTask(
 // command or expiry mid-swing) so the timeline shows the interruption at `at`.
 function interruptCurrentAction(context: ElementalistSchedulerContext, at: number): void {
   const elemental = professionCoreState(context).summonedElemental;
+
   if (!elemental.currentActivationId) return;
   const action = context.events.find(
     (event) => event.type === 'action' && event.activationId === elemental.currentActivationId
   );
+
   if (action && Number(action.fullEndsAt || action.endsAt || 0) > at) {
     context.replaceEvent(action, {
       endsAt: at,
@@ -408,6 +412,7 @@ function emitStrike(
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
   const pendingLightningJolt = elemental.pendingLightningJolt;
+
   if (pendingLightningJolt) {
     // Lightning Jolt is an allied one-shot charge, so the elemental consumes its copy on its next strike.
     elemental.pendingLightningJolt = null;
@@ -489,6 +494,7 @@ function emitPlayerOwnedCondition(
 function emitFlameBurstMight(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals');
+
   if (!sourceSkill) return;
   emitSkillBuff(context, {
     activationId: task.payload?.activationId,
@@ -511,6 +517,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
 function emitStompProtection(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const sourceSkill = context.catalog.skillsByName.get('Glyph of Elementals (Earth)');
+
   if (!sourceSkill) return;
   emitSkillBuff(context, {
     activationId: task.payload?.activationId,
@@ -536,8 +543,10 @@ function handleElementalImpactTask(
   task: ScheduledTask<ElementalTaskPayload>
 ): void {
   const payload = task.payload;
+
   if (!payload) return;
   const elemental = professionCoreState(context).summonedElemental;
+
   if (
     !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
@@ -578,6 +587,7 @@ function handleElementalImpactTask(
       profile.projectileCoefficient,
       fixedStrikeMetadata
     );
+
     if (Number(payload.hitIndex || 1) === 1) {
       emitPlayerOwnedCondition(
         context,
@@ -640,8 +650,10 @@ function handleElementalImpactTask(
 // Player commands (Flame Barrage / Stomp) are driven by the rotation, not here.
 function handleElementalAiTask(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const payload = task.payload;
+
   if (!payload) return;
   const elemental = professionCoreState(context).summonedElemental;
+
   if (
     !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
@@ -650,6 +662,7 @@ function handleElementalAiTask(context: ElementalistSchedulerContext, task: Sche
   }
 
   elemental.nextActionAt = 0;
+
   if (elemental.element === 'Earth') {
     if (elemental.secondaryAttackReadyAt <= task.at + context.epsilon) {
       startEnervatingPunch(context, task.at);
@@ -671,11 +684,14 @@ function handleElementalExpireTask(
   task: ScheduledTask<ElementalTaskPayload>
 ): void {
   const payload = task.payload;
+
   if (!payload) return;
   const state = professionCoreState(context);
   const elemental = state.summonedElemental;
+
   if (payload.summonGeneration !== elemental.summonGeneration) return;
   const element = elemental.element;
+
   if (element !== 'Fire' && element !== 'Earth') return;
   interruptCurrentAction(context, task.at);
   elemental.actionGeneration += 1;
@@ -689,6 +705,7 @@ function handleElementalExpireTask(
   elemental.started = false;
   delete state.availableFlips[commandName(element)];
   const glyph = glyphSkillForElement(context, element);
+
   if (glyph) {
     context.state.cooldowns.set(
       glyph.id,
@@ -709,6 +726,7 @@ function handleElementalExpireTask(
 // via the `started` flag so combat-start and cast paths don't double-start it.
 function startElemental(context: ElementalistSchedulerContext, at: number): void {
   const elemental = professionCoreState(context).summonedElemental;
+
   if (
     (elemental.element !== 'Fire' && elemental.element !== 'Earth') ||
     elemental.started ||
@@ -718,6 +736,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   }
 
   elemental.started = true;
+
   if (elemental.element === 'Earth' && elemental.nextActionAt > at + context.epsilon) {
     return;
   }
@@ -736,6 +755,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
 // Cast-start hook: tags the glyph's action event with which element it summons.
 export function beginElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
+
   if (!element) return;
   context.replaceEvent(context.action, { summonedElement: element });
 }
@@ -779,6 +799,7 @@ function summonElemental(
   });
   scheduleTask(context, ELEMENTAL_EXPIRE_TASK, expiresAt, { summonGeneration }, 50);
   state.availableFlips[commandName(element)] = Number.POSITIVE_INFINITY;
+
   if (startImmediately) startElemental(context, at);
 }
 
@@ -786,6 +807,7 @@ function summonElemental(
 // are pre-combat waiting on an explicit combat-start event.
 export function completeElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
+
   if (!element) return;
   summonElemental(
     context,
@@ -813,6 +835,7 @@ export function armElementalistElementalLightningJolt(
   coefficient: number
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
+
   if (
     (elemental.element === 'Fire' || elemental.element === 'Earth') &&
     elemental.activeUntil > context.effectiveEnd + context.epsilon
@@ -831,6 +854,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
   const state = professionCoreState(context);
   const selected = selectedElemental(context);
   const autoSummon = automaticSummoningEnabled(context) && selected != null;
+
   if (
     autoSummon &&
     state.summonedElemental.activeUntil <= event.at + context.epsilon &&
@@ -842,6 +866,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
     } as Skill) == null
   ) {
     const glyph = glyphSkillForElement(context, selected);
+
     if (glyph) summonElemental(context, glyph, event.at, false, selected);
   }
 
@@ -850,9 +875,12 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
     (!context.hasExplicitCombatStart &&
       ['damage', 'condition', 'control', 'blind'].includes(event.type) &&
       ['player', 'summon'].includes(String(event.actorType)));
+
   if (!combatStarted) return;
+
   if (state.summonedElemental.activeUntil <= event.at + context.epsilon && autoSummon) {
     const glyph = glyphSkillForElement(context, selected);
+
     if (glyph) summonElemental(context, glyph, event.at, true, selected);
     return;
   }
@@ -868,6 +896,7 @@ export function elementalistElementalAvailability(
   skill: Skill
 ): AvailabilityResult | null {
   const elemental = professionCoreState(context).summonedElemental;
+
   if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.start + context.epsilon;
     return active ||

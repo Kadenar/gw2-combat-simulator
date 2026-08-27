@@ -52,6 +52,7 @@ function markedTarget(context: Gw2ModifierContext): boolean {
 
 function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const result = { ...attributes };
+
   // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) {

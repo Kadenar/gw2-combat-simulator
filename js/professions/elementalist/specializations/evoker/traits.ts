@@ -9,6 +9,7 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 export function applyAltruisticAspect(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Altruistic Aspect')) return;
   const boon = ALTRUISTIC_ASPECT_BOONS.get(skill.id);
+
   if (!boon) return;
   const effect = elementalistBalanceEffect(context, PROFILE.altruisticAspect, 'boon', skill.name);
   emitSkillBuff(context, skill, {

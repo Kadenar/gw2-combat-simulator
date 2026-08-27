@@ -211,10 +211,12 @@ export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions)
   let config = options.config || {};
   let result = simulateDeclarativeGw2Pass({ ...options, config });
   const refineConfig = options.profession?.simulation?.refineSchedulerConfig;
+
   if (typeof refineConfig !== 'function') return result;
 
   for (let pass = 0; pass < MAX_SCHEDULER_REFINEMENT_PASSES; pass += 1) {
     const refined = refineConfig(config, result);
+
     if (!refined) break;
     config = refined;
     result = simulateDeclarativeGw2Pass({ ...options, config });

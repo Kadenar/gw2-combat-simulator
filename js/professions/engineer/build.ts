@@ -82,11 +82,13 @@ function normalizeMorphs(value: unknown): number[] {
     const id = Number(rawId);
     const skill = engineerCatalog.skillsById.get(id);
     const slot = Number(skill?.mechanicSlot);
+
     if (!AMALGAM_MORPHS.has(id) || ![2, 3, 4].includes(slot)) {
       continue;
     }
 
     if (selectedNames.has(skill!.name)) continue;
+
     if (selected.has(slot)) continue;
     selected.set(slot, id);
     selectedNames.add(skill!.name);
@@ -100,6 +102,7 @@ function normalizeMorphs(value: unknown): number[] {
       ...engineerCatalog.skills.filter((skill) => AMALGAM_MORPHS.has(skill.id) && Number(skill.mechanicSlot) === slot)
     ].filter(Boolean) as Skill[];
     const replacement = candidates.find((skill) => !selectedNames.has(skill.name));
+
     if (!replacement) continue;
     selected.set(slot, replacement.id as number);
     selectedNames.add(replacement.name);
@@ -162,6 +165,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
     const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot));
     const names = morphs.map((id) => engineerCatalog.skillsById.get(Number(id))?.name);
+
     if (
       morphs.length !== 3 ||
       morphs.some((id) => !AMALGAM_MORPHS.has(Number(id))) ||

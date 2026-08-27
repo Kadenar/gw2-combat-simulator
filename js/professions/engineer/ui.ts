@@ -20,6 +20,7 @@ function engineerWeaponSkillMatchesSet(
   const specialization = String(
     context.specialization || context.config?.specialization || context.build?.specialization || 'Core'
   );
+
   if (specialization === 'Holosmith' && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id)) return false;
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

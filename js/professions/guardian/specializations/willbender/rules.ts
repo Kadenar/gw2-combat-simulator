@@ -107,6 +107,7 @@ export function applyWillbenderVirtueActivationTraits(
     stacks: state.lethalTempoStacks,
     duration: state.lethalTempoUntil - at
   });
+
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
     const vigor = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.restorativeVirtues), 'boon');
     emitSkillBuff(context, {
@@ -179,8 +180,10 @@ function queueInFlightWeaponCooldownReduction(
 
     if (event.skillId == null) continue;
     const skill = context.catalog.skillsById.get(event.skillId) as GuardianSkill | undefined;
+
     if (!isActiveWeaponSkill(skill, weaponNames)) continue;
     const activationId = String(event.activationId || '');
+
     if (!activationId) continue;
     const pending = Number(state.pendingWeaponCooldownReduction[activationId] || 0);
     // Already-accumulated pending reductions are subtracted from the remaining
@@ -190,6 +193,7 @@ function queueInFlightWeaponCooldownReduction(
       Number(guardianBalanceProfile(context, PROFILE.restorativeVirtues)?.rechargeReduction || 0.25),
       available
     );
+
     if (reduction <= context.epsilon) continue;
     state.pendingWeaponCooldownReduction[activationId] = pending + reduction;
     reducedBy += reduction;
@@ -207,6 +211,7 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
   let reducedBy = 0;
   for (const skillId of activeIds) {
     const skill = context.catalog.skillsById.get(skillId) as GuardianSkill | undefined;
+
     if (isActiveWeaponSkill(skill, weaponNames)) {
       reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
     }
@@ -218,12 +223,14 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
 
 function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill: GuardianSkill): void {
   const activationId = String(context.reservationId || '');
+
   if (!activationId) return;
   const state = willbenderState.from(context);
   const pending = Number(state.pendingWeaponCooldownReduction[activationId] || 0);
   // Always delete regardless of whether we apply it; stale entries would corrupt
   // future casts if the skill's own recharge changed between the queue and cast-complete.
   delete state.pendingWeaponCooldownReduction[activationId];
+
   if (pending <= context.epsilon || skill.type !== 'Weapon') return;
   context.cooldownController.reduceSkillRecharge(skill, pending, context.effectiveEnd);
 }
@@ -263,8 +270,10 @@ function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSk
 function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task: SchedulerRecord): void {
   const payload = task.payload as SchedulerRecord | undefined;
   const virtue = payload?.virtue as GuardianVirtue | undefined;
+
   if (!payload || !virtue) return;
   const state = willbenderState.from(context);
+
   if (state.flameVirtue !== virtue) state.flameGeneration += 1;
   state.flameVirtue = virtue;
   const flameGeneration = state.flameGeneration;
@@ -288,6 +297,7 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
 function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: SchedulerRecord): void {
   const payload = task.payload as SchedulerRecord | undefined;
   const state = willbenderState.from(context);
+
   // Stale pulses from a previous virtue activation (different flameGeneration) are
   // silently discarded; only the most recent virtue's pulses should fire.
   if (!payload || Number(payload.flameGeneration) !== state.flameGeneration) {
@@ -314,6 +324,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       willbenderFlames: true
     })
   );
+
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
     const burning = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.searingPact), 'condition');
     emitSkillCondition(context, {
@@ -334,6 +345,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
 
 function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: SchedulerRecord): void {
   const payload = task.payload as SchedulerRecord | undefined;
+
   if (!payload) return;
   const at = Number(task.at);
   const state = willbenderState.from(context);
@@ -349,8 +361,10 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
     emitLethalTempo(context, at, sourceSkill);
 
     let cooldownReduction = 0;
+
     if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
       cooldownReduction = reduceActiveWeaponCooldowns(context, at);
+
       if (cooldownReduction > 0) {
         emitGuardianProc(context, {
           name: 'Restorative Virtues',
@@ -374,6 +388,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
       ...(burningDuration == null ? {} : { burningDuration }),
       ...(justiceActive == null ? {} : { justiceActive })
     });
+
     if (virtue === 'courage') {
       const courage = guardianBalanceProfile(context, PROFILE.courageTrigger);
       for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
@@ -425,6 +440,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
       virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
         ? Number(guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold || 3)
         : Number(guardianBalanceProfile(context, PROFILE.virtueWindows)?.threshold || 5);
+
     if (state.virtueHitCounts[virtue] < triggerHits) continue;
     state.virtueHitCounts[virtue] = 0;
     triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);

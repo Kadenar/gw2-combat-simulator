@@ -175,6 +175,7 @@ export function resolveScheduledStream<TProfessionState extends object>({
 }: ResolveScheduledStreamOptions<TProfessionState>): ResolveScheduledStreamResult<TProfessionState> {
   const scheduled = assertScheduledEventStream(stream);
   const activeProfession = resolveProfessionRuntime(profession, config);
+
   if (!handlerRegistry) throw new TypeError('Resolver requires a handler registry.');
   handlerRegistry.require(scheduled.events.map((event) => event.type));
   const state = createResolverState({
@@ -193,6 +194,7 @@ export function resolveScheduledStream<TProfessionState extends object>({
   };
   while (queue.length > 0) {
     const event = takeNextEvent(queue);
+
     if (!event) break;
     state.time = event.at;
     handlerRegistry.dispatch(event, context);

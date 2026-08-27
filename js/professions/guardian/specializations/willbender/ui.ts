@@ -32,12 +32,14 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     ['willbender-crashing-courage', 'Crashing Courage', Number(state.courageUntil || 0)]
   ] as const) {
     const remaining = expiresAt - at;
+
     if (remaining <= 0) continue;
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
   const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
   const lethalStacks = Math.max(0, Math.min(5, Math.trunc(Number(state.lethalTempoStacks || 0))));
+
   if (lethalRemaining > 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',

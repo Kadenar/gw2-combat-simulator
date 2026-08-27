@@ -39,12 +39,15 @@ function meticulousArtifactStrikeFactor(
   parameters: Readonly<Record<string, number>>
 ): number {
   const event = context.event;
+
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
     return event.name === 'Final Smash' ? parameters.guitarFinalFactor : parameters.guitarFactor;
   }
 
   if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;
+
   if (event?.skillId === ID.CHAK_SHIELD) return parameters.chakFactor;
+
   if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
     return parameters.kryptisFactor;
   }
@@ -166,6 +169,7 @@ function modifyAntiquaryRechargeDuration(context: ThiefPrecastContext, duration:
     (expiresAt) => Number(expiresAt) > context.start
   );
   state.holoUtilityCooldownReductionExpirations = expirations;
+
   if (context.skill.type !== 'Utility' || expirations.length === 0) {
     return duration;
   }

@@ -61,12 +61,14 @@ function assertNativeModuleDefinition(definition: object): void {
       readonly reactions?: readonly { readonly phase?: string }[];
     };
   };
+
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
   }
 
   assertObject(candidate.data, `${candidate.id}.data`);
   assertObject(candidate.state, `${candidate.id}.state`);
+
   if (typeof candidate.state?.scheduler !== 'function') {
     throw new TypeError(`${candidate.id}.state.scheduler must be a function.`);
   }
@@ -175,13 +177,16 @@ function appendOrderedHook(target: SchedulerRecord, name: string, declaration: N
 
 function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2ModifierRule[] {
   const modifiers = module.mechanics?.modifiers;
+
   if (Array.isArray(modifiers)) {
     return modifiers as readonly Gw2ModifierRule[];
   }
 
   if (!modifiers || typeof modifiers !== 'object') return [];
   const rules = (modifiers as { readonly modifierRules?: unknown }).modifierRules;
+
   if (rules == null) return [];
+
   if (!Array.isArray(rules)) {
     throw new TypeError(`${module.id} modifierRules must be an array.`);
   }
@@ -302,6 +307,7 @@ function preparePreviewModifierRules(
   readonly targets: readonly NativePreviewModifierRuleTarget[];
 } {
   const entries = Object.entries(patch || {});
+
   if (!entries.length) {
     return { byModule: new Map(), targets: Object.freeze([]) };
   }
@@ -313,6 +319,7 @@ function preparePreviewModifierRules(
   const byModule = new Map<string, readonly Gw2ModifierRule[]>();
   for (const module of modules) {
     const rules = nativeModuleModifierRules(module);
+
     if (!rules.length) continue;
     for (const rule of rules) ownerById.set(rule.id, module.id);
     byModule.set(module.id, Object.freeze(rules.map((rule) => patchedById.get(rule.id) || rule)));
@@ -515,6 +522,7 @@ export function defineNativeProfession<
   const runtimeOverlays = new WeakMap<object, object>();
   const assertPatchId = (patchId = CURRENT_PATCH_ID): string => {
     if (patchId === CURRENT_PATCH_ID) return patchId;
+
     if (preview && patchId === preview.id) return patchId;
     throw new TypeError(
       `Unknown ${definition.name} patch ${patchId}. Expected ${CURRENT_PATCH_ID}` +
@@ -542,9 +550,11 @@ export function defineNativeProfession<
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     const runtime =
       patchId === CURRENT_PATCH_ID ? family.resolveRuntime(config) : familyForPreview().resolveRuntime(config);
+
     if (patchId === CURRENT_PATCH_ID) return runtime;
     validatedPreviewCatalog();
     const cachedRuntime = runtimeOverlays.get(runtime);
+
     if (cachedRuntime) return cachedRuntime as typeof runtime;
     const cached = runtimeCatalogs.get(runtime.catalog);
     const catalog =
@@ -556,7 +566,9 @@ export function defineNativeProfession<
         professionPatch,
         { unknownProfiles: 'ignore' }
       );
+
     if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
+
     if (catalog === runtime.catalog) return runtime;
     const overlay = Object.freeze({ ...runtime, catalog });
     runtimeOverlays.set(runtime, overlay);

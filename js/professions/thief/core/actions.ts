@@ -29,6 +29,7 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const profile = skill.summonAttack;
+
   if (!profile) return;
   const specializationSummon = thiefSpecializationGuildSummon(context.state.profession.specialization.kind);
   const coreSummon = profile.summons.find((summon) => summon.variant === 'Core Thief');
@@ -54,6 +55,7 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
     const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
     for (const attack of attacks) {
       const attackAt = at + Number(attack.initialDelay || 0);
+
       if (attackAt >= expiresAt) continue;
       context.tasks.schedule({
         type: 'thief.thieves-guild-attack',
@@ -127,6 +129,7 @@ export function handleThievesGuildAttack(
 
   const interval = Number(attack.interval || 0);
   const nextAt = task.at + interval;
+
   if (interval > 0 && nextAt < Number(task.payload.expiresAt || 0)) {
     context.tasks.schedule({ ...task, at: nextAt });
   }
@@ -137,6 +140,7 @@ export function expireThievesGuild(
   task: ThiefScheduledTask<Record<string, unknown>>
 ): void {
   const state = professionCoreState(context);
+
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
     state.activeThievesGuild = null;
     emitStateSnapshot(context, 'thief', task.at, 'thieves-guild-expired', snapshotThiefState(context.state.profession));
@@ -152,6 +156,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   const inCombat =
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
+
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.QUICK_POCKETS) &&

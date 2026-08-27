@@ -34,7 +34,9 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
   });
   for (const action of sorted) {
     if (action.rawSkillId === MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION) continue;
+
     if (action.rawSkillId === DAREDEVIL_DODGE_ANIMATION) continue;
+
     if (action.status === 'interrupted' && isAutoattack(context, action)) {
       if (committed.has(action)) {
         normalized.push(action);
@@ -44,6 +46,7 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
     }
 
     const previous = normalized.at(-1);
+
     if (
       action.rawSkillId === CRIPPLING_STRIKE.skillId &&
       previous?.rawSkillId === CRIPPLING_STRIKE.skillId &&
@@ -71,6 +74,7 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
       let merged = false;
       while (previousIndex >= 0 && action.start - normalized[previousIndex].end <= SIGNAL_WINDOW_MS) {
         const previousAction = normalized[previousIndex];
+
         if (
           previousAction.rawSkillId === TWILIGHT_COMBO_ANIMATION &&
           Math.abs(action.start - previousAction.end) <= SIGNAL_WINDOW_MS

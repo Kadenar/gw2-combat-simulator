@@ -13,6 +13,7 @@ import type { EngineerResolverContext, EngineerResolverEvent } from '../../types
 function scheduleMassMomentumPulse(context: EngineerResolverContext, at: number): void {
   const state = procState(context);
   const scheduledAt = Number(state.massMomentumPulseAt || 0);
+
   if (scheduledAt > 0 && scheduledAt <= at + 1e-9) return;
   state.massMomentumPulseAt = at;
   enqueueOrdered(context.queue, {
@@ -28,6 +29,7 @@ function scheduleMassMomentumPulse(context: EngineerResolverContext, at: number)
 function triggerMassMomentum(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0) return;
   const state = procState(context);
+
   if (Number(state.massMomentum || 0) <= event.at) {
     state.massMomentum = event.at + engineerBalanceValue(context, PROFILE.massMomentum, 'pulseInterval', 1);
     queueBuff(context, event, {
@@ -53,6 +55,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
 // Clears the stale pulse sentinel, then re-checks stability to keep the loop alive.
 function handleMassMomentumPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const state = procState(context);
+
   if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= 1e-9) {
     state.massMomentumPulseAt = 0;
   }
@@ -67,6 +70,7 @@ function reactToScrapperDamage(context: EngineerResolverContext, event: Engineer
 
 function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
+
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
     kind === 'might' &&
@@ -79,6 +83,7 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
     ) >= engineerBalanceValue(context, PROFILE.appliedForce, 'threshold', 10)
   ) {
     const state = procState(context);
+
     if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
       state.appliedForce = event.at + engineerBalanceValue(context, PROFILE.appliedForce, 'internalCooldown', 10);
       queueBuff(context, event, {
@@ -106,6 +111,7 @@ function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerR
   }
 
   const state = scrapperState.from(context);
+
   if (event.finisherType === 'Whirl') {
     if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return;
     state.kineticAcceleratorsWhirlReadyAt =

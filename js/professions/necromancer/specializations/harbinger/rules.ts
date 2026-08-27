@@ -29,6 +29,7 @@ import { registerNecromancerShroudLifecycle } from '../../core/shroud-lifecycle.
 
 function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void {
   const core = professionCoreState(context);
+
   if (!professionStaticRulesApplied(context.config)) {
     // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
     const vitality = Number(necromancerBalanceProfile(context, PROFILE.alchemicVigor)?.attributeBonus || 240);
@@ -48,9 +49,11 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   const at = context.effectiveEnd;
   // Advance blight ticks that elapsed during the cast before checking entrance bonuses.
   advanceHarbingerBlight(context, at);
+
   if (skill.id === ID.HARBINGER_SHROUD && professionCoreState(context).activeShroud === 'harbinger') {
     // Reset the per-second cursor to the next whole second so blight ticks don't accumulate a fractional offset over time.
     state.nextBlightAt = Math.floor(at) + 1;
+
     if (hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(
         context,
@@ -147,6 +150,7 @@ export const harbingerSchedulerHooks = Object.freeze({
 
 function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+
   if (!professionStaticRulesApplied(context.config)) {
     // Alchemic Vigor is the minor adept trait; the specialization check lets it apply even when only the
     // spec is selected without the trait being explicitly listed (e.g. from the specialization line bonus).

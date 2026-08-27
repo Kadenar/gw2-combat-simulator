@@ -29,6 +29,7 @@ export function handleSoulbeastModeEvent(context: RangerResolverContext, event: 
 export function handleRangerBoonExtension(context: RangerResolverContext, event: RangerResolverEvent): void {
   const extension = Math.max(0, Number(event.duration || 0));
   const excluded = String(event.excludedKind || '');
+
   if (!(extension > 0)) return;
   for (const [kind, applications] of context.boons) {
     if (!isStandardBoon(kind) || kind === excluded) continue;
@@ -83,8 +84,10 @@ export function queueSoulbeastBuff(
 function firstBeastAbilityHit(context: RangerResolverContext, event: RangerResolverEvent): boolean {
   const activePet = rangerPetByName(professionCoreState(context).activePet);
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
+
   if (event.skillId !== beastSkillId || !event.activationId) return false;
   const activations = soulbeastState.from(context).beastAbilityActivations;
+
   if (activations[event.activationId]) return false;
   activations[event.activationId] = true;
   return true;
@@ -117,7 +120,9 @@ function queueCondition(
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
 function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const core = professionCoreState(context);
+
   if (event.at > core.poisonousStrikesExpiresAt) core.poisonousStrikesCharges = 0;
+
   if (
     !soulbeastState.from(context).beastmodeActive ||
     core.poisonousStrikesCharges <= 0 ||
@@ -211,6 +216,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
+
   if (hasTrait(context, TRAIT.LIVE_FAST)) {
     const fury = profileEffect(context, PROFILE.liveFast, 'boon', 0);
     const quickness = profileEffect(context, PROFILE.liveFast, 'boon', 1);
@@ -292,6 +298,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
 // window has been accepted by the core resolver.
 export function reactToSoulbeastControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = soulbeastState.from(context);
+
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
     const buff = profileEffect(context, PROFILE.twiceAsVicious, 'buff');
     queueSoulbeastBuff(
@@ -361,6 +368,7 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
 // Quickness itself is excluded from the extension to prevent runaway stacking.
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = soulbeastState.from(context);
+
   if (
     event.kind !== 'quickness' ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
@@ -388,6 +396,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Rang
 // and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
 export function reactToRangerWinterBite(context: RangerResolverContext, event: RangerResolverEvent): void {
   const core = professionCoreState(context);
+
   if (
     !core.winterBiteReady ||
     // Guard against the Winter's Bite proc re-triggering itself.

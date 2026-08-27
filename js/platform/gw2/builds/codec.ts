@@ -164,6 +164,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       targetArmor: Math.max(1, finiteNumber(saved.targetArmor ?? defaults.targetArmor, defaults.targetArmor)),
       rotation: normalizeRotation(saved.rotation, catalog)
     } as unknown as TBuild;
+
     // relic validation happens after the spread because it is not part of the
     // normalizeGear flow and may have been overwritten by the saved spread above.
     if (!RELIC_NAMES.includes(migrated.relic)) {
@@ -174,6 +175,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     // by validation before profession-specific migration or repair hooks run.
     migrated = normalizeExtraBuildFields(migrated, saved, defaults, extraFields);
     migrated = normalizeExtra(migrated, { saved, defaults });
+
     if (!migrated || typeof migrated !== 'object' || Array.isArray(migrated)) {
       throw new TypeError('normalizeExtra must return a build object.');
     }
@@ -181,6 +183,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     // Re-stamp after normalizeExtra so a buggy hook can't change the identity fields.
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+
     // Can't start on set 2 if no second weapon set was saved.
     if (!migrated.alternateWeapons[0]) {
       migrated.startingWeaponSet = 1;
@@ -214,6 +217,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function validateBuild(build: unknown): Gw2BuildValidationResult {
     const common = validateCommonBuild(build, options);
+
     if (!build || typeof build !== 'object' || Array.isArray(build)) {
       return common;
     }
@@ -282,6 +286,7 @@ function normalizeExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
     const configuredDefault = descriptor.defaultValue ?? defaults[field];
     const value = saved[field] ?? configuredDefault;
+
     if (descriptor.type === 'number') {
       normalized[field] = boundedNumber(value, Number(configuredDefault), descriptor.minimum, descriptor.maximum);
     } else if (descriptor.type === 'integer') {
@@ -307,6 +312,7 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
     const value = build[field];
     let valid = false;
+
     if (descriptor.type === 'enum') {
       valid = typeof value === 'string' && descriptor.values.includes(value);
     } else {
@@ -390,6 +396,7 @@ function normalizeGear(
   for (const slot of GEAR_SLOTS) {
     // Resolve abbreviated names ("Berserker" → "Berserker's") before lookup.
     gear[slot] = aliases[gear[slot]] || gear[slot];
+
     // If the resolved prefix still isn't a known stat, fall back to the default.
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
   }
@@ -429,6 +436,7 @@ function normalizeWeaponPair(
   allowEmpty = false
 ): string[] {
   if (!Array.isArray(value)) return [...fallback];
+
   // allowEmpty=true means "no second weapon set" is a valid state.
   if (allowEmpty && !value[0]) return ['', ''];
   // "mh+oh" weapons (e.g. torch) can fill either slot; only "oh"-only weapons
@@ -437,6 +445,7 @@ function normalizeWeaponPair(
   const mainHand = ['mh', 'mh+oh', '2h'].includes(catalog.weaponHands.get(requestedMain) || '')
     ? requestedMain
     : fallback[0];
+
   // Two-handed weapons have no off-hand slot.
   if (catalog.weaponHands.get(mainHand) === '2h') return [mainHand, ''];
 
@@ -564,6 +573,7 @@ function normalizeSelectedSkills(
         (type !== 'Utility' || !selectedUtilityIds.has(candidate.id))
     );
     normalized[slot] = skill?.name || '';
+
     if (type === 'Utility' && skill) selectedUtilityIds.add(skill.id);
   }
 
@@ -589,6 +599,7 @@ function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[
       remaining -= count;
       return { stat: infusion.stat as string, count };
     });
+
   // If no valid entries survived filtering, the whole list is unreadable;
   // fall back to defaults rather than returning an empty array.
   if (!infusions.length) return clone([...fallback]);
@@ -632,6 +643,7 @@ function migrateVersionedBuild(
   }
 
   const candidateBuild = candidate as SchedulerRecord;
+
   // A missing profession field is treated as matching (e.g. very old saves);
   // a present but wrong profession is a hard error to prevent silent data corruption.
   if (candidateBuild.profession && candidateBuild.profession !== professionId) {
@@ -641,6 +653,7 @@ function migrateVersionedBuild(
   // Clone before mutating so the original candidate object is never modified.
   let saved = clone(candidateBuild);
   let version = Number(saved.schemaVersion ?? 0);
+
   // A version newer than this codec would need transforms we don't have yet.
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
@@ -678,9 +691,11 @@ function validateWeaponPair(
   }
 
   const [mainHand, offHand] = pair;
+
   if (allowEmpty && !mainHand && !offHand) return;
   const mainWielding = catalog.weaponHands.get(mainHand);
   const offWielding = offHand ? catalog.weaponHands.get(offHand) : null;
+
   if (!catalog.weapons.has(mainHand) || !['mh', 'mh+oh', '2h'].includes(mainWielding || '')) {
     errors.push(`${label} has an invalid main-hand weapon.`);
   }
@@ -715,6 +730,7 @@ function validateSpecializations(
   const selected = build.specializations
     .map((specialization) => known.get(specialization?.name))
     .filter((specialization) => specialization != null);
+
   if (selected.length !== build.specializations.length) {
     errors.push(`specializations contain an unknown ${professionName(professionId)} line.`);
   }
@@ -773,6 +789,7 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
   }
 
   const candidate = command as SchedulerRecord;
+
   if (!['cast', 'wait', 'combat-start'].includes(String(candidate.type))) {
     errors.push('rotation contains an invalid canonical command.');
     return;
@@ -840,11 +857,13 @@ function validateCommonBuild(
   { professionId, schemaVersion, catalog, slotLoadout = null }: Gw2BuildValidationOptions
 ): Gw2BuildValidationResult {
   const errors: string[] = [];
+
   if (!build || typeof build !== 'object' || Array.isArray(build)) {
     return { valid: false, errors: ['Build must be an object.'] };
   }
 
   const candidate = build as Gw2CanonicalBuild;
+
   if (candidate.profession !== professionId) {
     errors.push(`profession must be ${professionId}.`);
   }
@@ -856,6 +875,7 @@ function validateCommonBuild(
   validateWeaponPair(candidate.weapons, 'weapons', catalog, errors);
   // Alternate weapons are optional; allowEmpty=true lets both slots be absent.
   validateWeaponPair(candidate.alternateWeapons, 'alternateWeapons', catalog, errors, true);
+
   if (![1, 2].includes(candidate.startingWeaponSet)) {
     errors.push('startingWeaponSet must be 1 or 2.');
   } else if (candidate.startingWeaponSet === 2 && !candidate.alternateWeapons?.[0]) {
@@ -871,6 +891,7 @@ function validateCommonBuild(
   }
 
   validateSpecializations(candidate, catalog, professionId, errors);
+
   if (slotLoadout) {
     // Slot-loadout professions manage skill slots through their own palette
     // system; delegate validation to that system.
@@ -900,6 +921,7 @@ function validateCommonBuild(
     const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {
       const skill = catalog.skillsByName.get(candidate.selectedSkills[slot]);
+
       if (
         !selectableSlotSkill(skill, type, selectedSpecializations) ||
         (type === 'Utility' && selectedUtilityIds.has(skill?.id))
@@ -972,6 +994,7 @@ function validateCommonBuild(
     let total = 0;
     for (const infusion of candidate.infusions) {
       const count = Number(infusion?.count);
+
       if (!listedName(INFUSION_STATS, infusion?.stat) || !Number.isInteger(count) || count < 0 || count > 18) {
         errors.push('infusions contain an invalid stat or count.');
         break;

@@ -69,6 +69,7 @@ export function applyRangerDodgeTraits(context: RangerCastContext): void {
 function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
   const profile = rangerBalanceProfile(context, PROFILE.childOfEarth);
+
   if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
     return;
   }
@@ -97,6 +98,7 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
       rangerBalanceProfileEffect(profile, 'condition', 2)
     ]) {
       const condition = String(effect?.condition || '');
+
       if (!condition) continue;
       emitSkillCondition(context, {
         at: at + application * interval,
@@ -119,7 +121,9 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
 // transient Quick Draw state only on the next qualifying weapon skill.
 export function completeRangerTraits(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
+
   if (skill.evades) applyRangerDodgeTraits(context);
+
   if (
     skill.type === 'Weapon' &&
     skill.slot !== 'Weapon_1' &&
@@ -192,6 +196,7 @@ export function applyRangerBeastSkillTraits(
   triggerPoisonMaster: boolean
 ): void {
   const state = professionCoreState(context);
+
   if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.start, state.rejuvenationReadyAt)) {
     const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
@@ -218,6 +223,7 @@ export function applyRangerBeastSkillTraits(
 
   const notBeforeCombat =
     !context.hasExplicitCombatStart || (context.combatStartTime != null && context.start >= context.combatStartTime);
+
   if (triggerPoisonMaster && hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
     context.emit({
       type: 'ranger.beast-skill-used',
@@ -260,6 +266,7 @@ export function applyRangerWeaponSwapTraits(
 ): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+
   if (
     inCombat &&
     hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
@@ -348,6 +355,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
     stacks: number;
   }> = [];
   const inCombat = context.combatStartTime != null && context.start >= context.combatStartTime;
+
   if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
     const profile = rangerBalanceProfile(context, PROFILE.spiritedArrival);
     const might = rangerBalanceProfileEffect(profile, 'boon', 0);
@@ -471,12 +479,14 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
   for (const kind of GW2_STANDARD_BOONS) {
     const configured = context.config.boons?.[kind];
     const stacks = kind === 'might' ? Math.min(25, Math.max(0, Number(configured || 0))) : configured ? 1 : 0;
+
     if (stacks > 0) active.set(kind, { duration: 3600, stacks });
   }
 
   for (const event of context.events) {
     const kind = String(event.kind || '').toLowerCase();
     const remaining = Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
+
     if (
       event.type !== 'buff' ||
       event.affectsSelf === false ||
@@ -525,9 +535,12 @@ function consumeOpeningStrike(context: RangerResolverContext, event: RangerResol
   const state = professionCoreState(context);
   const player = isPlayerStrike(event);
   const pet = isPetStrike(event);
+
   if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
   const ready = player ? state.playerOpeningStrikeReady : state.petOpeningStrikeReady;
+
   if (!ready) return;
+
   if (player) state.playerOpeningStrikeReady = false;
   else state.petOpeningStrikeReady = false;
   const openingStrike = profileEffect(context, PROFILE.openingStrike, 'condition');
@@ -545,6 +558,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: RangerResol
     stacks: Number(openingStrike?.stacks ?? 5),
     triggeredBy: event.skillName
   });
+
   if (hasTrait(context, TRAIT.ALPHA_FOCUS)) {
     const alphaFocus = profileEffect(context, PROFILE.alphaFocus, 'condition');
     queueCondition(
@@ -564,6 +578,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: RangerResol
 function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
   const state = professionCoreState(context);
+
   if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
   const health = targetHealthFraction(context);
   const profile = rangerBalanceProfile(context, PROFILE.huntersGaze);
@@ -576,6 +591,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolve
         : health < 0.75
           ? Math.max(0, maximumStacks - 2)
           : 0;
+
   if (!stacks) return;
   state.huntersGazeReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
   const might = rangerBalanceProfileEffect(profile, 'boon');
@@ -605,6 +621,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolve
 
 function triggerPoisonMaster(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
+
   if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
@@ -629,6 +646,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: RangerResolv
 
 function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
+
   if (event.at > state.poisonousStrikesExpiresAt) {
     state.poisonousStrikesCharges = 0;
   }
@@ -658,6 +676,7 @@ function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerRe
 
 function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
+
   if (event.at > state.sharpeningStoneExpiresAt) {
     state.sharpeningStoneCharges = 0;
   }
@@ -712,6 +731,7 @@ function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerR
   const active = (context.boons.get('strength-of-the-pack') || []).some(
     (application) => application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at
   );
+
   if (!active) return;
   const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
   enqueueOrdered(context.queue, {
@@ -740,6 +760,7 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: RangerReso
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
   const beastSkillId = state.activePetSkillIds.at(-1);
+
   if (
     event.skillId !== beastSkillId ||
     !skill?.petSkill ||
@@ -839,6 +860,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   triggerSharpeningStone(context, event);
   triggerArachnophobia(context, event);
   triggerStrengthOfThePack(context, event);
+
   if (
     skill?.categories?.includes('Trap') &&
     event.activationId &&
@@ -907,6 +929,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
 // canonical control events without replaying the source effect.
 export function reactToRangerCoreControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
+
   if (
     !hasTrait(context, TRAIT.CARNIVORE) ||
     (!isPlayerStrike(event) && !isPetStrike(event)) ||
@@ -941,6 +964,7 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
 export function reactToRangerCoreBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   const affectsSelf = event.affectsSelf !== false;
+
   if (kind === 'fury' && affectsSelf && hasTrait(context, TRAIT.REMORSELESS)) {
     const state = professionCoreState(context);
     state.playerOpeningStrikeReady = true;

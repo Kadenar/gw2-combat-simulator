@@ -7,6 +7,7 @@ export function rechargeOtherSwordSkills(context: EngineerCastContext, gleamSabe
   let reducedBy = 0;
   for (const skillId of activeIds) {
     const skill = context.catalog.skillsById.get(skillId);
+
     if (skill?.type === 'Weapon' && skill.weapon === 'Sword' && skill.id !== gleamSaber.id) {
       reducedBy += context.cooldownController.reduceSkillRecharge(skill, 1, at);
     }

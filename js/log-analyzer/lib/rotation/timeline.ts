@@ -37,6 +37,7 @@ export function replayCombatStart(
   const overrides = actions
     .map((action) => Number(action.combatStartOverride))
     .filter((value) => Number.isFinite(value));
+
   if (!overrides.length) return sourceCombatStart;
   const earliestOverride = Math.min(...overrides);
   return sourceCombatStart == null ? earliestOverride : Math.min(sourceCombatStart, earliestOverride);
@@ -58,6 +59,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     | { readonly type: 'action'; readonly action: Action }
     | { readonly type: 'combat-start'; readonly at: number; readonly index: number }
   > = actions.map((action) => ({ type: 'action', action }));
+
   if (effectiveCombatStart != null) entries.push({ type: 'combat-start', at: effectiveCombatStart, index: -1 });
   entries.sort((left, right) => {
     const leftTime = left.type === 'action' ? left.action.start : left.at;
@@ -65,13 +67,17 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const leftIndex = left.type === 'action' ? left.action.eventIndex : left.index;
     const rightIndex = right.type === 'action' ? right.action.eventIndex : right.index;
     const timeOrder = leftTime - rightTime;
+
     if (timeOrder !== 0) return timeOrder;
+
     // Source-specific replay semantics may need a deterministic priority for
     // simultaneous actions while retaining the original event order otherwise.
     if (left.type === 'action' && right.type === 'action') {
       const actionOrder = policy.compareSimultaneousActions?.(left.action, right.action) ?? 0;
+
       if (actionOrder !== 0) return actionOrder;
     }
+
     return leftIndex - rightIndex;
   });
 
@@ -80,6 +86,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let previousCastStart: number | null = null;
   const appendObservedIdle = (nextActionAt: number): void => {
     const waitMs = quantizeMs(nextActionAt - activeCastEnd);
+
     if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
     activeCastEnd = nextActionAt;
   };
@@ -87,6 +94,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   for (const entry of entries) {
     const at = entry.type === 'action' ? entry.action.start : entry.at;
     const overlapping = at < activeCastEnd - timingToleranceMs;
+
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         rotation.push({ name: '__combat_start', offset: quantizeMs(at - previousCastStart) });
@@ -99,6 +107,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const action = entry.action;
+
     if (action.control === 'cooldown-reset') {
       if (!overlapping) appendObservedIdle(at);
       rotation.push({ name: '__cooldown_reset' });
@@ -106,9 +115,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const actionReplayEnd = Math.max(at, replayEnd(action));
+
     if (!canEmit(action)) {
       if (!overlapping) appendObservedIdle(at);
       const waitMs = quantizeMs(actionReplayEnd - at);
+
       if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;
@@ -120,6 +131,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
     const concurrent = independent || (instant && action.skill?.canCastConcurrently !== false);
     const boundaryTransition = policy.isBoundaryTransition?.(action, activeCastEnd, previousCastStart) === true;
+
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
@@ -129,6 +141,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     rotation.push(command);
+
     if (action.followingWaitMs && action.followingWaitMs > 0) {
       rotation.push({ name: '__wait', waitMs: quantizeMs(action.followingWaitMs) });
     }

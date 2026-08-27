@@ -31,10 +31,12 @@ function alignOpeningHeadButtCombatStart(
         context.phase.start <= action.end + COMPOSITE_SIGNAL_WINDOW_MS
     )
     .sort((left, right) => right.start - left.start)[0];
+
   if (!opening) return [...actions];
   const skill = findRotationSkill(opening.rawSkillId, opening.rawName, context.catalog, context.profile);
   const runtimeDuration = quicknessRuntimeDurationMs(skill);
   const strikeOffset = firstStrikePacketOffsetMs(skill, runtimeDuration, { explicitOnly: true });
+
   if (strikeOffset == null) return [...actions];
   const combatStartOverride = openingStrikeCombatStartMs(opening.start, strikeOffset, context.phase.start);
   return actions.map((action) => (action === opening ? { ...action, combatStartOverride } : action));

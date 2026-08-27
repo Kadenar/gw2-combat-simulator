@@ -47,6 +47,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
   const state = amalgamState.from(context);
   const strainDuration = engineerBalanceValue(context, PROFILE.strains, 'durationMultiplier', 8);
   const buffs: AmalgamBuff[] = [];
+
   if (morphName === 'Defensive Protocol: Protect') {
     buffs.push({
       kind: 'resistance',
@@ -166,6 +167,7 @@ function scheduleThornsRetaliation(context: EngineerCastContext, skill: Engineer
 export function activateAmalgamMorph(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const state = amalgamState.from(context);
+
   if (skill.name === 'Defensive Protocol: Thorns') {
     state.thornsUntil = Math.max(
       state.thornsUntil,
@@ -220,6 +222,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
       }
     ];
     const extra = AMALGAM_NEW_GENES_BOONS[skill.name];
+
     if (extra) {
       buffs.push({
         ...extra,
@@ -337,6 +340,7 @@ export function handleMercurialTendencies(
   const at = task.at;
   const coreState = professionCoreState(context);
   const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
+
   if (!isInternalCooldownReady(at, readyAt)) return;
 
   let reducedBy = 0;
@@ -344,6 +348,7 @@ export function handleMercurialTendencies(
   const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of trackedIds) {
     const skill = context.catalog.skillsById.get(skillId);
+
     if (skill?.name !== 'Evolve') continue;
     reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
   }

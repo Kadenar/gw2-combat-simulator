@@ -36,6 +36,7 @@ function instrumentAttack(
   actorType: 'player' | 'summon' = 'player'
 ): void {
   const runtime = mesmerRuntimeFor(context);
+
   if (data.coefficient) {
     const shredding = profileEffect(runtime, TRAIT.SHREDDING, 'strike');
     const shreddingCoefficient = Number(shredding?.coefficient || 1);
@@ -218,6 +219,7 @@ function resolveInstrument(context: MesmerCastContext, skill: MesmerSkill, data:
   if (runtime.traits.has(TRAIT.ALTERED_CHORD) && spent > 0) {
     const crescendo = runtime.skillsById.get(ID.CRESCENDO);
     const ready = crescendo ? context.state.cooldowns.get(crescendo.id) : undefined;
+
     if (crescendo && ready) {
       context.state.cooldowns.set(
         crescendo.id,
@@ -334,6 +336,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
 export function completeTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const instrument = runtime.instruments[skill.id];
+
   if (!instrument && skill.id !== ID.CRESCENDO) return;
 
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;

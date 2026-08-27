@@ -15,7 +15,9 @@ export function isMesmerBuildSkillAvailable(
   }
 
   if (skill.environment !== 'Terrestrial') return false;
+
   if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== config.specialization) return false;
+
   if (
     skill.specialization &&
     skill.type === 'Weapon' &&
@@ -37,6 +39,7 @@ export function mesmerAvailability(
   const runtime = mesmerRuntimeFor(context);
   const { state } = context;
   const at = context.start;
+
   if (!isMesmerBuildSkillAvailable(skill, context.config)) {
     return {
       ready: false,
@@ -48,8 +51,10 @@ export function mesmerAvailability(
 
   if (skill.mesmerMechanic?.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
+
     if (!flip || flip.expiresAt < at - EPSILON) {
       const parent = runtime.skillsById.get(skill.mesmerMechanic?.flipParentId);
+
       if (parent && context.inFlight.get(parent.id)?.size) {
         return {
           ready: false,

@@ -42,6 +42,7 @@ export function createCloneAttackScheduler({
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
     clone.nextAttackAt = clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
+
     if (scheduleTask) scheduleTask(clone, clone.nextAttackAt);
     return clone;
   };
@@ -115,10 +116,12 @@ export function createCloneAttackScheduler({
 
   const handleTask = (cloneId: number, at: number): void => {
     const clone = profession.clones.find((candidate) => candidate.id === Number(cloneId));
+
     if (!clone) return;
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
     clone.nextAttackAt = at + Number(sequenceStep(clone, attack).interval);
+
     if (scheduleTask) scheduleTask(clone, clone.nextAttackAt);
   };
 

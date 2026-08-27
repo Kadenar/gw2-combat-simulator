@@ -34,6 +34,7 @@ import type {
 
 function balanceProfileById(context: RevenantSchedulerContext, id: SkillId): BalanceProfile {
   const profile = context.catalog.balanceProfilesById.get(id);
+
   if (!profile) throw new Error(`Missing Revenant balance profile ${String(id)}.`);
   return profile;
 }
@@ -42,6 +43,7 @@ function effectByType(profile: BalanceProfile | RevenantSkill, type: SkillEffect
   const effect = profile.effects?.find(
     (candidate) => candidate.type === type && String(candidate.metadata?.trigger || '') === trigger
   );
+
   if (!effect) {
     throw new Error(`${profile.name} is missing its ${type} effect.`);
   }
@@ -82,6 +84,7 @@ export function handleImpossibleOddsStrike(
   const cause = task.payload.event;
   const state = professionCoreState(context);
   const impossible = context.catalog.skillsById.get(ID.IMPOSSIBLE_ODDS);
+
   if (
     !impossible ||
     !(state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === impossible.id) ||
@@ -128,6 +131,7 @@ function grantBattleScars(
     Math.max(0, Math.trunc(Number(stacks || 0))),
     Math.max(0, Number(profile.maximumStacks || 0) - state.battleScars.length)
   );
+
   if (!count) return;
   for (let index = 0; index < count; index += 1) {
     state.battleScars.push({
@@ -149,6 +153,7 @@ function grantBattleScars(
     duration,
     stacks: count
   };
+
   if (cause) context.emitDerived(cause, event);
   else context.emit(event);
 }
@@ -163,11 +168,13 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
   const buff = effectByType(profile, 'buff');
   const interval = Math.max(context.epsilon, Number(profile.cooldown || 0));
   const duration = Math.max(0, Number(buff.duration || 0));
+
   if (state.nextThrillOfCombatAt == null) {
     state.nextThrillOfCombatAt = Number(state.combatBeganAt ?? event.at) + interval;
   }
 
   const next = Number(state.nextThrillOfCombatAt);
+
   if (!Number.isFinite(next) || next > event.at + context.epsilon) return;
   const elapsedGrants = Math.floor((event.at - next + context.epsilon) / interval) + 1;
   const maximumActiveGrants = Math.ceil(duration / interval);
@@ -176,6 +183,7 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
   for (let index = firstActiveIndex; index < elapsedGrants; index += 1) {
     const grantedAt = next + index * interval;
     pruneBattleScars(state, grantedAt);
+
     if (state.battleScars.length >= Number(battleScars.maximumStacks || 0)) continue;
     state.battleScars.push({
       at: grantedAt,
@@ -185,6 +193,7 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
   }
 
   state.nextThrillOfCombatAt = next + elapsedGrants * interval;
+
   if (activeGrants) {
     emitSkillBuff(context, {
       cause: event,
@@ -208,6 +217,7 @@ function consumeBattleScar(context: RevenantSchedulerContext, event: RevenantSim
   const strike = effectByType(profile, 'strike');
   const state = professionCoreState(context);
   pruneBattleScars(state, event.at);
+
   if (!state.battleScars.length) return;
   state.battleScars.pop();
   emitSkillDamage(context, {
@@ -250,6 +260,7 @@ export function modifyRevenantCastDuration(_context: RevenantPrecastContext, dur
 /** Applies trait-specific recharge multipliers after shared Alacrity policy. */
 export function modifyRevenantRechargeDuration(context: RevenantRechargeContext, duration: number): number {
   const skill = context.skill;
+
   if (skill && ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS] as readonly number[]).includes(Number(skill.id))) {
     if (duration === 0) return 0;
     return Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration));
@@ -293,6 +304,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS
     );
+
     if (embrace) embrace.empoweredNextPulse = true;
   }
 }
@@ -303,6 +315,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
  */
 export function observeRevenantEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const state = professionCoreState(context);
+
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
       id: `${IMPOSSIBLE_ODDS_TASK}:${event.__order}`,
@@ -422,6 +435,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient || 0) > 0) {
     materializeThrillOfCombat(context, event);
     consumeBattleScar(context, event);
+
     if (
       hasTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
       isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.assassinsPresence || 0))
@@ -510,6 +524,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
     }
 
     const daggers = state.enchantedDaggers;
+
     if (
       event.skillId !== ID.ENCHANTED_DAGGERS &&
       Number(daggers?.charges || 0) > 0 &&
@@ -517,6 +532,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       isInternalCooldownReady(event.at, Number(daggers.readyAt || 0))
     ) {
       const enchantedDaggers = context.catalog.skillsById.get(ID.ENCHANTED_DAGGERS);
+
       if (!enchantedDaggers) {
         throw new Error('Missing Enchanted Daggers skill declaration.');
       }

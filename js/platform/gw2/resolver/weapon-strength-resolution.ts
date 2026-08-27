@@ -15,6 +15,7 @@ function streamActor(event: Gw2ResolverEvent): string {
   }
 
   if (event.actorType === 'effect') return 'effect';
+
   if (event.actorType === 'environment') return 'environment';
   return 'player';
 }
@@ -33,6 +34,7 @@ export function resolvedWeaponStrength(
   event: Gw2ResolverEvent
 ): Gw2ResolvedWeaponStrength {
   const explicit = Number(event.weaponStrength);
+
   if (event.weaponStrength != null && Number.isFinite(explicit)) {
     return {
       activationId: typeof event.activationId === 'string' ? event.activationId : null,
@@ -44,6 +46,7 @@ export function resolvedWeaponStrength(
 
   const skill = skillForEvent(context.helpers, event) ?? null;
   const profileId = weaponStrengthProfileIdForEvent(event, { skill });
+
   if (!profileId) {
     const fallback = Number(context.helpers.weaponStrength(event, context.config));
     return {
@@ -55,6 +58,7 @@ export function resolvedWeaponStrength(
   }
 
   const profile = weaponStrengthProfile(profileId);
+
   if (!context.random.stochastic) {
     return {
       activationId: typeof event.activationId === 'string' ? event.activationId : null,
@@ -67,6 +71,7 @@ export function resolvedWeaponStrength(
   const activationId =
     typeof event.activationId === 'string' && event.activationId ? event.activationId : generatedActivationId(context);
   const existing = context.weaponStrengthRolls.get(activationId);
+
   if (existing) {
     if (existing.profileId !== profile.id) {
       throw new Error(

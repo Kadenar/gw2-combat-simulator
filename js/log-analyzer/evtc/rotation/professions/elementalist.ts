@@ -85,6 +85,7 @@ function ownedElementalCommandActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
+
   if (ownerInstance == null) return [];
   const firstPlayerEvent = firstPlayerEventTime(context);
   return ELEMENTAL_COMMANDS.flatMap(({ speciesId, character, action }) => {
@@ -119,6 +120,7 @@ function ownedElementalCommandActions(
             start.time < event.time &&
             Math.abs(event.time - start.time - event.value) <= 150
         );
+
       if (!directStart && !unmatchedStop) return [];
       const inferredStart = directStart ? event.time : event.time - event.value;
       // A clipped legacy command can retain effect packets but lose its activation start;
@@ -175,9 +177,11 @@ function openingTempestScepterPrecast(
   const hasHurlEvidence = context.log.events.some(
     (event) => event.time > 0 && event.source === context.playerAddress && event.skillId === ID.HURL
   );
+
   if (!hasHurlEvidence || actions.some((action) => isAction(action, ID.ROCK_BARRIER))) return [...actions];
 
   const firstPlayerEvent = firstPlayerEventTime(context);
+
   if (firstPlayerEvent == null) return [...actions];
   const clippedOverload = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -188,6 +192,7 @@ function openingTempestScepterPrecast(
         isCompletedAnimationStop(event) &&
         event.time - event.value < firstPlayerEvent
     );
+
   if (!clippedOverload) return [...actions];
 
   const overloadStart = clippedOverload.event.time - clippedOverload.event.value;
@@ -237,6 +242,7 @@ function openingTempestScepterPrecast(
     eventIndex: -2001,
     precast: true
   });
+
   if (!hasOpeningAirAttunement) {
     adjusted.push({
       start: airAttunementAt,
@@ -345,9 +351,11 @@ function inferArcLightningChannelDurations(
     const packets = validatePackets(action);
     const actualDuration = Math.max(0, action.end - action.start);
     const runtimeDuration = quicknessRuntimeDurationMs(skillForAction(context, action));
+
     if (action.status === 'unknown' && !packets.anyObserved) {
       const targetEnd = targetEndTimes.find((time) => time >= action.start);
       const targetEndDuration = targetEnd == null ? null : targetEnd - action.start;
+
       if (targetEndDuration != null && targetEndDuration >= 0 && targetEndDuration + 10 < runtimeDuration) {
         // A log-edge channel has no stop packet after the target dies; use that target-state
         // packet as the channel boundary so replay cannot invent post-fight Arc Lightning ticks.
@@ -370,6 +378,7 @@ function inferArcLightningChannelDurations(
       actualDuration + 80 >= packets.lastObservedOffsetMs &&
       actualDuration < packets.firstMissingOffsetMs &&
       actualDuration + 10 < runtimeDuration;
+
     if (!packetBoundaryProvesInterruption) return action;
     // ArcDPS reports a fired channel as completed even when it ends between damage packets;
     // replay only through the observed packet boundary so omitted ticks are not regenerated.
@@ -402,6 +411,7 @@ function openingSpearEtchingPrecasts(
   const recovered = SPEAR_ETCHING_INITIAL_BUFFS.flatMap<EvtcRecordedRotationAction>(
     ({ buffSkillId, skillId, name }) => {
       const skill = findRotationSkill(skillId, name, context.catalog, context.profile);
+
       if (!skill) return [];
       const initial = context.log.events
         .map((event, eventIndex) => ({ event, eventIndex }))
@@ -412,7 +422,9 @@ function openingSpearEtchingPrecasts(
             event.buff !== 0 &&
             event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
         );
+
       if (!initial) return [];
+
       if (actions.some((action) => isAction(action, skillId) && action.start <= initial.event.time)) return [];
 
       const totalDuration = Math.max(initial.event.value, initial.event.buffDamage);
@@ -438,6 +450,7 @@ function openingSpearEtchingPrecasts(
       ];
     }
   );
+
   if (!recovered.length) return [...actions];
 
   const combined = [...actions, ...recovered];
@@ -466,6 +479,7 @@ function orderSimultaneousAttunementTransitions(
       const attunements = String(skill?.attunement || '').split('+');
       return skill?.type === 'Weapon' && attunements.some(Boolean) && !attunements.includes(enteredElement);
     });
+
     if (!precedingWeapon) return action;
     // Same-millisecond animation and buff packets are unordered; a weapon from the
     // outgoing element must replay before the transition that would disable it.

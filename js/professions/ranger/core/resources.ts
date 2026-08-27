@@ -19,6 +19,7 @@ function rangerEnduranceRegenerationRate(context: RangerSchedulerContext, at: nu
 export function advanceRangerResources(context: RangerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
+
   if (target <= from) return;
   state.endurance = Math.min(
     state.maximumEndurance,
@@ -29,6 +30,7 @@ export function advanceRangerResources(context: RangerSchedulerContext, target: 
 
 export function rangerEnduranceReadyAt(context: RangerCastContext, cost: number): number | null {
   const missing = Math.max(0, cost - professionCoreState(context).endurance);
+
   if (missing <= context.epsilon) return context.start;
   const rate = rangerEnduranceRegenerationRate(context, context.start);
   return rate > 0 ? context.start + missing / rate : null;

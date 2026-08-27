@@ -75,6 +75,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     : 'custom';
   app.build.targetArmor = targetArmorValue;
   const container = document.getElementById('perma-boons');
+
   if (!container) throw new Error('Required assumptions panel is missing.');
   const expandedSections = new Map<string, boolean>(
     Array.from(
@@ -135,14 +136,17 @@ export function renderAssumptions(app: ProfessionAppState): void {
     option.icon || app.skillById.get(Number(option.skillId))?.icon || '';
   const professionAssumptionItem = (control: ProfessionAssumptionControl): string => {
     const value = a[control.key] ?? control.defaultValue;
+
     if (control.type === 'boolean') {
       return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
     }
 
     if (control.type === 'select') {
       const hasIcons = control.options.some(assumptionOptionIcon);
+
       if (hasIcons) {
         const selected = control.options.find((option) => option.value === String(value)) || control.options[0];
+
         if (!selected) return '';
         return `<div class="boon-control assumption-icon-control">
                         <span>${esc(control.label)}</span>
@@ -201,6 +205,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     .filter((control) => !!control.section && !['target', 'simulation'].includes(control.section))
     .forEach((control) => {
       const section = control.section;
+
       if (!section) return;
       const controls = customAssumptionSections.get(section) || [];
       controls.push(control);
@@ -267,18 +272,22 @@ export function renderAssumptions(app: ProfessionAppState): void {
     if (!(check instanceof HTMLInputElement)) return;
     check.addEventListener('change', () => {
       const { effectType, effectKey } = check.dataset;
+
       if (!effectType || !effectKey) return;
       const stackInput = container.querySelector<HTMLInputElement>(
         `input[type="number"][data-effect-type="${effectType}"][data-effect-key="${effectKey}"]`
       );
+
       if (stackInput) {
         stackInput.disabled = !check.checked;
+
         if (check.checked && Number(stackInput.value) < 1) {
           stackInput.value = '1';
         }
       }
 
       const value = stackInput ? (check.checked ? Math.max(1, Number(stackInput.value) || 1) : 0) : check.checked;
+
       if (effectType === 'boon') {
         a[effectKey] = value;
       } else if (value) {
@@ -295,8 +304,10 @@ export function renderAssumptions(app: ProfessionAppState): void {
     input.addEventListener('change', () => {
       const value = Math.max(0, Math.min(25, Number(input.value) || 0));
       const { effectType, effectKey } = input.dataset;
+
       if (!effectType || !effectKey) return;
       input.value = String(value);
+
       if (effectType === 'boon') {
         a[effectKey] = value;
       } else if (value) {
@@ -340,7 +351,9 @@ export function renderAssumptions(app: ProfessionAppState): void {
 
     control.addEventListener('change', () => {
       const definition = assumptionControls.find((candidate) => candidate.key === control.dataset.assumptionKey);
+
       if (!definition) return;
+
       if (definition.type === 'boolean') {
         if (!(control instanceof HTMLInputElement)) return;
         a[definition.key] = control.checked;
@@ -358,6 +371,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     option.addEventListener('click', () => {
       const definition = assumptionControls.find((candidate) => candidate.key === option.dataset.assumptionOptionKey);
       const value = option.dataset.assumptionOptionValue;
+
       if (
         !definition ||
         definition.type !== 'select' ||
@@ -380,6 +394,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   targetArmorPresetSelect.addEventListener('change', () => {
     const customSelected = targetArmorPresetSelect.value === 'custom';
     targetArmor.hidden = !customSelected;
+
     if (customSelected) {
       targetArmor.focus();
       return;

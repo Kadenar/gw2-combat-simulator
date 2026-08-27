@@ -12,6 +12,7 @@ import type { ResolvedCriticalHitOptions } from '../../../../platform/gw2/author
 
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.engineerMech === true || event.application?.engineerMech === true) return true;
+
   if (event.actorType !== 'summon') return false;
   const skill = resolverSkill(context, event.skillId ?? event.application?.skillId);
   const slot = Number(skill?.mechanicSlot || 0);
@@ -69,6 +70,7 @@ function reactToMechanistDamage(
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
+
   if (!isEngineerMechEvent(context, event)) return;
 
   if (

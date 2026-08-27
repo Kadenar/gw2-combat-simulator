@@ -17,6 +17,7 @@ export { createDefaultTargetConditions };
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number]): boolean {
   if (command.type !== 'cast') return true;
+
   if (command.skillId === ID.OVERBEARING_SMASH_SECOND_STRIKE || command.skillId === 'Overbearing Smash (Follow-Up)') {
     return false;
   }
@@ -131,6 +132,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
   },
   validateExtra(build) {
     const errors: string[] = [];
+
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet)) {
       errors.push('selectedPet must name an available Ranger pet.');
     }
@@ -142,6 +144,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     const selectedHammerSkillIds = Array.isArray(build.selectedHammerSkillIds)
       ? build.selectedHammerSkillIds.map(Number)
       : [];
+
     if (
       selectedHammerSkillIds.length !== RANGER_HAMMER_VARIANT_PAIRS.length ||
       RANGER_HAMMER_VARIANT_PAIRS.some((pair, index) => !pair.includes(selectedHammerSkillIds[index]))

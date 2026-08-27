@@ -10,6 +10,7 @@ function finiteMilliseconds(
   { allowNegative = false }: { readonly allowNegative?: boolean } = {}
 ): number {
   const number = Number(value);
+
   if (!Number.isFinite(number) || (!allowNegative && number < 0)) {
     throw new TypeError(`${field} must be ${allowNegative ? 'a finite' : 'a non-negative'} number.`);
   }
@@ -19,6 +20,7 @@ function finiteMilliseconds(
 
 function positiveInteger(value: unknown, field: string): number {
   const number = Number(value);
+
   if (!Number.isInteger(number) || number < 1) {
     throw new TypeError(`${field} must be a positive whole number.`);
   }
@@ -35,9 +37,12 @@ function positiveInteger(value: unknown, field: string): number {
  */
 export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
   if (typeof entry === 'number') return { type: 'cast', skillId: entry };
+
   if (typeof entry === 'string') {
     if (entry === '__combat_start') return { type: 'combat-start' };
+
     if (entry === '__cooldown_reset') return { type: 'cooldown-reset' };
+
     if (entry === '__wait') return { type: 'wait', durationMs: 0 };
     const skill = catalog?.skillsByName?.get(entry);
     return skill ? { type: 'cast', skillId: skill.id } : { type: 'cast', skillId: entry };
@@ -75,6 +80,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
     candidate.id ??
     (typeof candidate.name === 'string' ? catalog?.skillsByName?.get(candidate.name)?.id : undefined) ??
     candidate.name;
+
   if (skillId === undefined || skillId === null || skillId === '') {
     throw new TypeError('Cast command requires skillId.');
   }
@@ -87,9 +93,11 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
+
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
     throw new TypeError('Double Edge outcome must be either success or backfire.');
   }
+
   return {
     type: 'cast',
     skillId,

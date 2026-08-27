@@ -44,7 +44,9 @@ export const WEAPON_DATA: Readonly<Record<string, Readonly<Gw2WeaponDataEntry>>>
 
 function derivedProfessionWielding(catalog: CanonicalCatalog, weapon: string, fallback: string): string {
   const explicit = catalog?.weaponHands?.get?.(weapon);
+
   if (explicit) return explicit;
+
   if (fallback === '2h' || fallback === '-') return fallback;
 
   const slots = (catalog?.skills || [])
@@ -52,8 +54,11 @@ function derivedProfessionWielding(catalog: CanonicalCatalog, weapon: string, fa
     .map((skill) => String(skill.slot || ''));
   const mainHand = slots.some((slot) => /^Weapon_[1-3]$/.test(slot));
   const offHand = slots.some((slot) => /^Weapon_[4-5]$/.test(slot));
+
   if (mainHand && offHand) return 'mh+oh';
+
   if (mainHand) return 'mh';
+
   if (offHand) return 'oh';
   return fallback;
 }

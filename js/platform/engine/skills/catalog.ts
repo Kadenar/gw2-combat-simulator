@@ -177,6 +177,7 @@ function normalizeAutoattackChains(
 
   const additional = options.additional ?? [];
   const excluded = options.excludeSkillIds ?? [];
+
   if (!Array.isArray(additional) || !Array.isArray(excluded)) {
     throw new TypeError('Autoattack-chain additions and exclusions must be arrays.');
   }
@@ -227,6 +228,7 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
     ticks.map((tick, index) => {
       const atMs = Number(tick?.atMs);
       const coefficient = Number(tick?.coefficient);
+
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
       }
@@ -264,6 +266,7 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
       const condition = String(tick?.condition || '');
       const stacks = Number(tick?.stacks);
       const duration = Number(tick?.duration);
+
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
       }
@@ -304,12 +307,14 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
  */
 function normalizeEffect(effect: unknown): SkillEffect {
   const candidate = effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as SchedulerRecord) : null;
+
   if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
     throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
   }
 
   const normalizedEffect = candidate as unknown as SkillEffect;
   const unknownFields = Object.keys(candidate).filter((field) => !EFFECT_FIELDS.has(field));
+
   if (unknownFields.length) {
     throw new TypeError(
       `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
@@ -334,6 +339,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
   const interruptCommitMs =
     normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
+
   if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
     throw new TypeError('Effect interruptCommitMs must be a non-negative finite number.');
   }
@@ -352,6 +358,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
   const unknownMetadata = Object.keys(normalizedEffect.metadata || {}).filter(
     (field) => !EFFECT_METADATA_FIELDS.has(field)
   );
+
   if (unknownMetadata.length) {
     throw new TypeError(
       'Skill effect metadata has unsupported field' +
@@ -401,6 +408,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
   // `applications` drives repeated non-strike pulses (e.g. multi-application boons).
   // Mutually exclusive with tick timelines because ticks already encode per-packet timing.
   let applications = null;
+
   if (normalizedEffect.applications != null) {
     if (
       normalizedEffect.type !== 'condition' &&
@@ -414,6 +422,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
     }
 
     applications = Number(normalizedEffect.applications);
+
     if (!Number.isInteger(applications) || !(applications > 0)) {
       throw new TypeError('Repeated effects require a positive integer application count.');
     }
@@ -430,6 +439,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
   // `coefficientModifiers` scale strike damage based on target health thresholds
   // (e.g. execute-style bonuses). Only the "target-health-below" kind is supported.
   let coefficientModifiers = null;
+
   if (normalizedEffect.coefficientModifiers != null) {
     if (normalizedEffect.type !== 'strike' || !Array.isArray(normalizedEffect.coefficientModifiers)) {
       throw new TypeError('Coefficient modifiers are only valid on strike effects.');
@@ -482,6 +492,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
     if (hasAtMs) {
       const atMs = Number(normalizedEffect.atMs);
       const castEndOffset = normalizedEffect.timingAnchor === 'castEnd';
+
       if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
         throw new TypeError('Effect atMs must be finite and may only be negative when anchored to castEnd.');
       }
@@ -489,6 +500,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
     if (hasInterval) {
       const intervalMs = Number(normalizedEffect.intervalMs);
+
       if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
         throw new TypeError('Effect intervalMs must be a non-negative finite number.');
       }
@@ -583,6 +595,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
  */
 function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillLockout[] {
   if (lockouts == null) return Object.freeze([]);
+
   if (!Array.isArray(lockouts)) {
     throw new TypeError(`Skill ${skillId} lockouts must be an array.`);
   }
@@ -598,6 +611,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
       const candidate = lockout as SchedulerRecord;
       const group = String(candidate.group || '').trim();
       const durationMs = Number(candidate.durationMs);
+
       if (!group) {
         throw new TypeError(`Skill ${skillId} lockout ${index + 1} requires a group.`);
       }
@@ -669,11 +683,13 @@ export function createCanonicalCatalog({
       ...(extraSkills.find((candidate) => candidate.id === id) || {})
     };
     const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
+
     if (merged.activation != null || merged.castTime != null) {
       throw new TypeError(`Skill ${id} uses legacy cast timing; use castTimeMs.`);
     }
 
     const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);
+
     if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
       throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
     }
@@ -683,6 +699,7 @@ export function createCanonicalCatalog({
     const castTimeMs = Number(
       merged.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
     );
+
     if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
       throw new TypeError(`Skill ${id} requires a non-negative finite castTimeMs.`);
     }
@@ -696,17 +713,20 @@ export function createCanonicalCatalog({
     }
 
     const interruptCommitMs = merged.interruptCommitMs == null ? null : Number(merged.interruptCommitMs);
+
     if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
       throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
 
     // Commit is the safe default; only explicitly classified channels retain packets individually.
     const interruptMode = merged.interruptMode == null ? 'commit' : String(merged.interruptMode);
+
     if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
       throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
     }
 
     const effects = Object.freeze((merged.effects || []).map(normalizeEffect));
+
     // Every persistent effect needs an explicit launch cutoff, either on itself
     // or inherited from the skill, before future packets may survive an interrupt.
     if (
@@ -730,6 +750,7 @@ export function createCanonicalCatalog({
     }
 
     const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
+
     if (!(rechargeOffsetMs >= 0) || !Number.isFinite(rechargeOffsetMs)) {
       throw new TypeError(`Skill ${id} requires a non-negative finite rechargeOffsetMs.`);
     }
@@ -782,6 +803,7 @@ export function createCanonicalCatalog({
     }
 
     profileIds.add(profile.id);
+
     if (!String(profile.name || '')) {
       throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
     }
@@ -835,12 +857,15 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): CanonicalCa
     }
 
     ids.add(skill.id);
+
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
+
     if (skill.handlerId && !catalog.skillHandlers?.has(String(skill.handlerId))) {
       throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
     }
 
     const handler = catalog.skillHandlers?.get(String(skill.handlerId || ''));
+
     // REPLACE handlers own the entire skill execution; declarative effects would be
     // silently ignored at runtime. Require an empty list to surface authoring mistakes.
     // Exception: handlers with resolveMode still process effects in the resolve phase.

@@ -36,6 +36,7 @@ function initialPrecastActions(
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
+
   if (firstEventTime == null) return [];
   const initialOneWolfPack = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -69,6 +70,7 @@ function initialPrecastActions(
       ? [initialFrostTrap]
       : [])
   ];
+
   if (!identities.length) return [];
   const anchor = actions.length ? Math.min(...actions.map((action) => action.start)) : firstEventTime;
   return identities.map(({ event, eventIndex }, index) => {

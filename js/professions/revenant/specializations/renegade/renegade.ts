@@ -91,6 +91,7 @@ function emitProfileEffects(
     });
     for (const application of applications) {
       const emitted = context.emit(application.event);
+
       if (eventSkill.id === ID.RAZORCLAWS_RAGE && emitted.type === 'buff' && emitted.kind === 'razorclaws-rage') {
         context.replaceEvent(emitted, {
           recipientCount: gw2AlliedPlayerAssumptions(context.config).count + 1
@@ -149,10 +150,12 @@ export function grantKallasFervor(
   const state = renegadeState.from(context);
   const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, 'buff');
+
   if (!profile || !effect) return false;
   const maximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
   state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
+
   if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
     return false;
   }
@@ -183,6 +186,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
   const state = renegadeState.from(context);
   const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, 'buff');
+
   if (!profile || !effect) return 0;
   state.kallasFervorMaximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
   pruneKallasFervor(state, at);
@@ -210,11 +214,13 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
 export function castHeroicCommand(context: RevenantCastContext, skill: RevenantSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const stacks = refreshKallasFervor(context, context.effectiveEnd);
+
   if (!stacks) return;
   const profile = hasTrait(context, TRAIT.LASTING_LEGACY)
     ? balanceProfileById(context, RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy)
     : skill;
   const effect = effectByType(profile, 'boon');
+
   if (!profile || !effect) return;
   emitProfileEffects(context, skill, profile, [
     { ...effect, stacks: Math.max(1, Number(effect.stacks || 1)) * stacks }
@@ -226,6 +232,7 @@ export function castOrdersFromAbove(context: RevenantCastContext, skill: Revenan
   const profile = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
     ? balanceProfileById(context, RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel)
     : skill;
+
   if (profile) emitProfileEffects(context, skill, profile);
 }
 
@@ -236,6 +243,7 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
   const profile = enhanced ? enhancedSkill(context, skill) : undefined;
   state.bandTogetherReady = false;
   state.bandTogetherExpiresAt = 0;
+
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
     const allForOne = balanceProfileById(context, RENEGADE_PROFILE_IDS.allForOne);
     const core = professionCoreState(context);
@@ -272,6 +280,7 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
   const buff = profile.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'razorclaws-rage');
   const proc = skillById(context, RENEGADE_PROFILE_IDS.razorclawsRageProc);
   const bleed = effectByType(proc, 'condition');
+
   if (!buff || !proc || !bleed) return;
   const at = context.effectiveEnd;
   const duration = Math.max(0, Number(buff.duration || 0));
@@ -311,6 +320,7 @@ export function completeBandTogether(
   state: BandTogetherState
 ): void {
   const profile = skillById(context, state.profileSkillId) || skill;
+
   if (skill.id === ID.RAZORCLAWS_RAGE) {
     grantRazorclawsRage(context, skill, profile);
   }
@@ -318,6 +328,7 @@ export function completeBandTogether(
   if (state.enhanced) return;
   const bandTogether = balanceProfileById(context, RENEGADE_PROFILE_IDS.bandTogether);
   const effect = effectByType(bandTogether, 'buff');
+
   if (!bandTogether || !effect) return;
   const profession = renegadeState.from(context);
   profession.bandTogetherReady = true;

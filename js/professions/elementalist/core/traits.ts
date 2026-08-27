@@ -58,6 +58,7 @@ export function triggerSunspot(context: ElementalistSchedulerContext, at: number
     skillWeapon: 'Unequipped',
     noCrit: true
   });
+
   if (hasTrait(context, 'Burning Rage')) {
     emitProfiledCondition(context, at, PROFILE.burningRage, 'Sunspot Burning', 'Burning', 2, 4, 'Sunspot', sourceId);
   }
@@ -289,6 +290,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   const at = context.effectiveEnd;
   const attunement = state.primaryAttunement;
   const key = `evasiveArcana${attunement}`;
+
   if (!isInternalCooldownReady(at, Number(state.procReadyAt[key] || 0))) return;
   state.procReadyAt[key] = at + elementalistBalanceValue(context, PROFILE.evasiveArcana, 'internalCooldown', 10);
   const source =
@@ -299,6 +301,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
         : attunement === 'Air'
           ? 'Blinding Flash (trait)'
           : 'Shock Wave (trait)';
+
   if (attunement === 'Fire') {
     emitSkillDamage(context, {
       at,
@@ -364,6 +367,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
 export function applyGenericPostCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+
   if (hasTrait(context, "Pyromancer's Puissance") && state.primaryAttunement === 'Fire' && combatStarted(context, at)) {
     emitProfiledBuff(
       context,
@@ -431,6 +435,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
           : skill.name === 'Signet of Earth'
             ? (['Earth', 'Magnetic Aura', 3] as const)
             : null;
+
     if (aura) {
       const effect = profiledEffect(context, PROFILE.writtenInStone, 'buff', aura[0]);
       applyElementalistAura(context, {
@@ -467,6 +472,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       duration: Number(arcaneWindow?.duration ?? 15),
       skillName: skill.name
     });
+
     if (skill.name === 'Arcane Brilliance') {
       emitProfiledBuff(
         context,
@@ -520,11 +526,14 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
         event.activationId === context.reservationId && event.type === 'damage' && event.damageKind === 'field-tick'
     )
     .sort((left, right) => left.at - right.at);
+
   if (fieldPackets.length < 2) return;
   const template = fieldPackets.at(-1);
   const previous = fieldPackets.at(-2);
+
   if (!template || !previous) return;
   const interval = template.at - previous.at;
+
   if (!(interval > context.epsilon)) return;
   const attachedConditions = context.events.filter(
     (event) =>
@@ -570,6 +579,7 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
       candidate.activationId === event.activationId &&
       candidate.fieldType === 'Fire'
   );
+
   if (!field) return;
   context.replaceEvent(field, {
     expiresAt:
@@ -613,6 +623,7 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
 // the first successful sampled or expected critical proc.
 export function processFreshAirCandidates(context: ElementalistSchedulerContext, through: number): void {
   const state = professionCoreState(context);
+
   if (!state.freshAirCandidates.length) return;
   const pending = [];
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
@@ -625,6 +636,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     if (state.primaryAttunement === 'Air') continue;
 
     const event = context.eventByOrder(candidate.eventOrder);
+
     if (!event) {
       throw new Error(`Missing Fresh Air critical event ${String(candidate.eventOrder)}.`);
     }
@@ -632,7 +644,9 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     const tracker = { progress: state.freshAirProgress, readyAt: 0 };
     const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
     state.freshAirProgress = tracker.progress;
+
     if (!application) continue;
+
     if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
@@ -658,6 +672,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
 function observeLightningRod(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player') return;
   const sourceId = event.skillId ?? event.sourceId;
+
   if (hasTrait(context, 'Lightning Rod')) {
     emitSkillDamage(context, {
       cause: event,
@@ -691,6 +706,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
   }
 
   const state = professionCoreState(context);
+
   if (
     !hasTrait(context, 'Elemental Lockdown') ||
     !isInternalCooldownReady(event.at, Number(state.procReadyAt.elementalLockdown || 0))

@@ -50,15 +50,18 @@ function expireSwordAutoattackChain(context: NecromancerSchedulerContext, task: 
   const root = Number(task.payload?.root);
   const next = Number(task.payload?.next);
   const state = professionCoreState(context);
+
   if (Number(state.autoattackChains[root]) === next) resetAutoattackChains(context, [root]);
 }
 
 /** Keeps the Necromancer sword's three-second continuation window aligned with shared transitions. */
 export function observeNecromancerAutoattackTransition(transition: AutoattackChainTransitionContext): void {
   const sword = transition.result.transitions.find((change) => Number(change.chainRootId) === ID.ENERVATION_BLADE);
+
   if (!transition.result.committed || !sword || sword.decision === 'preserve') return;
   const context = transition.cast as unknown as NecromancerCastContext;
   context.tasks.cancelOwner(SWORD_AUTOATTACK_EXPIRY_OWNER);
+
   if (sword.decision !== 'advance' || sword.nextSkillId == null) return;
   context.tasks.schedule({
     type: SWORD_AUTOATTACK_EXPIRY_TASK,
@@ -79,6 +82,7 @@ export function observeNecromancerAutoattackTransition(transition: AutoattackCha
 function updateNecromancerCastState(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
   const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
+
   if (!completed) return;
 
   const chainNext = context.catalog.autoattackChainPositions.get(Number(skill.id))?.next;
@@ -90,6 +94,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
     skill.handlerId !== 'necromancer.minion'
   ) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
+
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
         context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5));
@@ -101,6 +106,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
   }
 
   const control = (skill.effects || []).find((effect) => effect.type === 'control');
+
   if (
     control?.metadata?.controlKind === 'fear' &&
     hasTrait(context, TRAIT.FEAR_OF_DEATH) &&
@@ -126,6 +132,7 @@ const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
 function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
+
   if (!stacks) return;
 
   const buff = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'buff');
@@ -177,6 +184,7 @@ function onCastStart(context: NecromancerCastContext, skill: NecromancerSkill): 
 function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   updateNecromancerCastState(context, skill);
   const state = professionCoreState(context);
+
   if (
     skill.type === 'Heal' &&
     hasTrait(context, TRAIT.DARK_DEFENSE) &&
@@ -282,6 +290,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
  */
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
   const state = professionCoreState(context);
+
   if (
     !state.plagueSendingArmed ||
     event.type !== 'damage' ||
@@ -290,9 +299,12 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
   )
     return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+
   if (!skill) return;
+
   if (Number(state.plagueSendingEntrySkillId) === Number(event.skillId)) return;
   const transferred = transferNecromancerSelfConditions(context, skill, 2, event.at, { latestApplications: true });
+
   if (!transferred) return;
   state.plagueSendingArmed = false;
   state.plagueSendingEntrySkillId = null;
@@ -310,6 +322,7 @@ export const necromancerCoreSkillMechanicHandlers = Object.freeze({
     // Weaponmaster Training exposes this Core greatsword contract to every specialization.
     const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
     const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
+
     if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + context.epsilon) {
       context.state.cooldowns.delete(ID.GRAVEDIGGER);
     }

@@ -27,6 +27,7 @@ export function insertSorted<T>(values: T[], value: T, compare: (left: T, right:
   let high = values.length;
   while (low < high) {
     const middle = (low + high) >>> 1;
+
     if (compare(values[middle], value) <= 0) {
       low = middle + 1;
     } else {

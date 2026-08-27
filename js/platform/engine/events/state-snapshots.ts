@@ -12,18 +12,22 @@ type StateSnapshotEmissionContext = Pick<SchedulerContext, 'events' | 'emit'>;
 
 function sameSnapshotObject(left: object, right: object, seen: WeakMap<object, WeakSet<object>>): boolean {
   if (Array.isArray(left) !== Array.isArray(right)) return false;
+
   if (Array.isArray(left) && Array.isArray(right)) {
     if (left.length !== right.length) return false;
   } else {
     const leftPrototype = Object.getPrototypeOf(left);
     const rightPrototype = Object.getPrototypeOf(right);
+
     if (leftPrototype !== rightPrototype || (leftPrototype !== Object.prototype && leftPrototype !== null)) {
       return false;
     }
   }
 
   const matched = seen.get(left);
+
   if (matched?.has(right)) return true;
+
   if (matched) matched.add(right);
   else seen.set(left, new WeakSet([right]));
 
@@ -46,6 +50,7 @@ export function sameSnapshotValue(
   seen = new WeakMap<object, WeakSet<object>>()
 ): boolean {
   if (Object.is(left, right)) return true;
+
   if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
   return sameSnapshotObject(left, right, seen);
 }
@@ -90,6 +95,7 @@ export function emitStateSnapshot(
   const { dedupeAcrossSourceIds = false } = options;
   const previous = context.events.at(-1);
   const sameSourceId = dedupeAcrossSourceIds || previous?.sourceId === event.sourceId;
+
   if (
     previous?.type === event.type &&
     previous.at === event.at &&

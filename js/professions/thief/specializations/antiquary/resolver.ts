@@ -15,6 +15,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   )
     return;
   const state = antiquaryState.from(context);
+
   if (
     Number(state.mistburnCharges || 0) <= 0 ||
     Number(state.mistburnExpiresAt || 0) <= event.at // charges expire together; window is independent of charge count

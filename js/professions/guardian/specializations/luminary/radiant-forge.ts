@@ -81,6 +81,7 @@ function emitForgeTransition(
  */
 export function radiantForgeAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
   const forgeActive = luminaryState.from(context).radiantForge;
+
   if (skill.type === 'Weapon' && luminaryState.from(context).radiantForge) {
     return denyCast(
       'guardian.radiant-forge-weapon-lockout',
@@ -134,6 +135,7 @@ export function radiantForgeAvailability(context: GuardianPrecastContext, skill:
 function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boolean {
   const entering = skill.name === 'Enter Radiant Forge';
   const state = luminaryState.from(context);
+
   if (!entering) {
     // Cooldown is finalized on manual exit; automatic expiry calls this
     // separately via advanceRadiantForgeState, so it must not be called twice.
@@ -150,6 +152,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   state.radiantWeapon = '';
   // Autoattack chains must be wiped because the weapon bar changes entirely.
   resetAutoattackChains(context);
+
   if (entering) {
     state.radiantWeaponsUsed = {};
   }
@@ -178,6 +181,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   // Return true (interrupted) so the engine discards declared effects; the
   // handler owns all output and must suppress on interrupt.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
+
   if (skill.radiantWeapon && skill.flipParentId == null) {
     luminaryState.from(context).radiantWeapon = skill.radiantWeapon;
     handleRadiantWeaponEquipped(context, skill);
@@ -259,6 +263,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
     guardianBalanceProfileEffect(profileId ? guardianBalanceProfile(context, profileId) : undefined, 'strike')
       ?.coefficient || 0
   );
+
   if (coefficient <= 0) return;
   context.emit(
     buildGuardianStrike({
@@ -284,6 +289,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
 function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: number): void {
   const state = luminaryState.from(context);
   const enter = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE);
+
   if (!enter || !state.radiantForge) return;
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
@@ -327,6 +333,7 @@ function handleRadiantForgeTransition(context: GuardianResolverContext, event: G
   luminaryState.from(context).radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
   luminaryState.from(context).radiantForgeEnteredAt = Number(event.radiantForgeEnteredAt || 0);
   luminaryState.from(context).radiantWeapon = String(event.radiantWeapon || '');
+
   if (!luminaryState.from(context).radiantForge) {
     // Clear flips so the resolver doesn't offer Exit Radiant Forge after expiry.
     professionCoreState(context).availableFlips = {};
@@ -351,10 +358,12 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
  */
 export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);
+
   if (state.radiantForge && state.radiantForgeEndsAt <= target + context.epsilon) {
     const expiredAt = state.radiantForgeEndsAt;
     finalizeRadiantForgeCooldown(context, expiredAt);
     const exit = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE);
+
     if (exit) {
       emitGuardianEvent(context, exit, 'guardian.radiant-forge-exited', {
         at: expiredAt,

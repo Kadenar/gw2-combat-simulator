@@ -36,15 +36,19 @@ function inferInitialSwordOfJustice(context: EvtcProfessionReconstructionContext
         event.activation === EVTC_ACTIVATION.NONE &&
         event.value > 0
     );
+
   if (!signal) return [];
   const skill = skillFor(context, SWORD_OF_JUSTICE);
   const firstStrikeOffset = firstStrikePacketOffsetMs(skill, undefined, {
     explicitOnly: true
   });
+
   if (firstStrikeOffset == null) return [];
   const start = signal.event.time - firstStrikeOffset;
   const firstEvent = firstPlayerEventTime(context);
+
   if (!Number.isFinite(firstEvent) || start >= firstEvent) return [];
+
   if (
     context.recordedActions.some(
       (action) =>
@@ -79,6 +83,7 @@ function inferInitialFlowingResolve(context: EvtcProfessionReconstructionContext
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
         event.buffDamage > event.value
     );
+
   if (!initial) return [];
   const duration = recordedDuration(context, FLOWING_RESOLVE);
   const start = initial.event.time - (initial.event.buffDamage - initial.event.value) - duration;
@@ -98,6 +103,7 @@ function inferInitialJurisdiction(context: EvtcProfessionReconstructionContext):
   const firstOffset = firstStrikePacketOffsetMs(skill, undefined, {
     explicitOnly: true
   });
+
   if (firstOffset == null) return [];
   const signal = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -110,9 +116,11 @@ function inferInitialJurisdiction(context: EvtcProfessionReconstructionContext):
         event.activation === EVTC_ACTIVATION.NONE &&
         event.value > 0
     );
+
   if (!signal) return [];
   const start = signal.event.time - firstOffset;
   const firstEvent = firstPlayerEventTime(context);
+
   if (!Number.isFinite(firstEvent) || start >= firstEvent) return [];
   const duration = recordedDuration(context, JURISDICTION);
   return [
@@ -128,6 +136,7 @@ function inferInitialJurisdiction(context: EvtcProfessionReconstructionContext):
 
 function inferTruncatedRushingJustice(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const firstEvent = firstPlayerEventTime(context);
+
   if (!Number.isFinite(firstEvent)) return [];
   return context.log.events.flatMap((event, eventIndex) => {
     if (
@@ -165,13 +174,16 @@ export function normalizeGuardianCompositeAnimations(
   const normalized: EvtcRecordedRotationAction[] = [];
   for (let index = 0; index < sorted.length; index += 1) {
     const action = sorted[index];
+
     if (action.rawSkillId === JURISDICTION_FOLLOW_UP_ANIMATION) continue;
+
     if (action.rawSkillId !== RUSHING_JUSTICE_START_ANIMATION) {
       normalized.push(action);
       continue;
     }
 
     const followUp = sorted[index + 1];
+
     if (followUp?.rawSkillId !== RUSHING_JUSTICE_IMPACT_ANIMATION || followUp.start - action.end > SIGNAL_WINDOW_MS) {
       normalized.push(action);
       continue;

@@ -20,6 +20,7 @@ import type { EngineerCastContext, EngineerSkill } from '../../types.js';
 // skill.id === -5 is the synthetic dodge skill; TRV fires at dodge start (context.start), not end.
 function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerSkill): void {
   handleHolosmithKitEquip(context, skill);
+
   if (skill.id === -5) {
     triggerThermalReleaseValve(context, skill, context.start);
   }

@@ -29,6 +29,7 @@ const INITIAL_FACETS: readonly RevenantActionIdentity[] = Object.freeze([
 function facetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   return context.log.events.flatMap((event, eventIndex) => {
     const identity = FACET_BUFF_ACTIONS.get(event.skillId);
+
     if (
       !identity ||
       event.source !== context.playerAddress ||

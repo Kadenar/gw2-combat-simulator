@@ -83,6 +83,7 @@ export function createStrikePacketMatcher(
 
   return (action) => {
     const cached = cache.get(action);
+
     if (cached) return cached;
     const skill = skillForAction(context, action);
     const runtimeDurationMs = skill
@@ -141,6 +142,7 @@ export function createStrikePacketMatcher(
             Math.abs(left.event.time - expectedTime) - Math.abs(right.event.time - expectedTime) ||
             left.eventIndex - right.eventIndex
         )[0];
+
       if (!match) {
         missingOffsets.push(packet.offsetMs);
         continue;
@@ -151,6 +153,7 @@ export function createStrikePacketMatcher(
       observedOffsets.push(observedOffset);
       observedExpectedOffsets.push(packet.offsetMs);
       observedExplicitTimings.push(packet.timingExplicit);
+
       if (
         (action.status === 'interrupted' || action.status === 'reduced') &&
         observedOffset >= Math.max(0, action.end - action.start) &&
@@ -194,6 +197,7 @@ export function missingInterruptCommitWarnings(
   for (const action of actions) {
     // Profession evidence can prove that a boundary (such as an Engineer kit transition) completed rather than interrupted the cast.
     if (action.forceCompleteReplay) continue;
+
     if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
     const skill = skillForAction(context, action);
     const name = skill?.name || action.canonicalName || action.rawName;
@@ -215,12 +219,14 @@ export function committedActionsFromStrikePackets(
   const committed = new Set<EvtcRecordedRotationAction>();
   for (const action of actions) {
     const packets = validatePackets(action);
+
     if (packets.expectedCount > 0 && packets.anyObserved) {
       committed.add(action);
     }
   }
 
   const maxFallbackImpactMs = Math.max(0, Number(options.maxFallbackImpactMs ?? 0));
+
   if (maxFallbackImpactMs === 0) return committed;
   for (const event of context.log.events) {
     if (
@@ -241,6 +247,7 @@ export function committedActionsFromStrikePackets(
           event.time - action.start <= maxFallbackImpactMs
       )
       .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
+
     if (candidate) committed.add(candidate);
   }
 
@@ -271,6 +278,7 @@ export function reconcileCastEffectPackets(
       action.expectedDuration == null ? 0 : (Math.max(0, Number(action.expectedDuration)) * 2) / 3;
     const runtimeDuration = Math.max(0, quicknessRuntimeDurationMs(skill) || evtcQuicknessDuration);
     let phantasmCommitted = false;
+
     if (skill?.phantasm === true) {
       const phantasmIdentity = normalized(action.canonicalName || action.rawName).replace(/^phantasmal\s+/, '');
       const matchingPhantasmAddresses = new Set(
@@ -302,6 +310,7 @@ export function reconcileCastEffectPackets(
     }
 
     if (!packets.anyObserved && !phantasmCommitted) return action;
+
     if (wasInterrupted && phantasmCommitted && runtimeDuration > 0) {
       return {
         ...action,
@@ -313,6 +322,7 @@ export function reconcileCastEffectPackets(
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     const replayCastEnd = action.replayCastEnd;
     const suppressFollowingWait = action.suppressFollowingWait;
+
     if (packets.allObserved) {
       if (
         runtimeDuration > 0 &&
@@ -344,6 +354,7 @@ export function reconcileCastEffectPackets(
     }
 
     if (actualDuration === 0) return action;
+
     if (replayDuration > actualDuration) {
       return {
         ...action,

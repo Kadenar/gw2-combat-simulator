@@ -7,6 +7,7 @@ import type { RevenantCastContext, RevenantSkill } from '../types.js';
 /** Arms the finite Enchanted Daggers charge/expiry state. */
 export function activateEnchantedDaggers(context: RevenantCastContext, skill: RevenantSkill): void {
   const buff = skill.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'enchanted-daggers');
+
   if (!buff) throw new Error('Enchanted Daggers is missing its buff effect.');
   const charges = Math.max(0, Number(buff.stacks || 0));
   const duration = Math.max(0, Number(buff.duration || 0));

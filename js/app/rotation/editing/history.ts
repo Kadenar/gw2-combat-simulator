@@ -45,8 +45,10 @@ function ensureHistory(app: ProfessionAppState): RotationHistory {
 /** Snapshot the current rotation if it changed since the last record. */
 export function recordRotationHistory(app: ProfessionAppState): void {
   const history = ensureHistory(app);
+
   if (sameRotation(app.build.rotation, history.current)) return;
   history.undo.push(history.current);
+
   if (history.undo.length > HISTORY_LIMIT) history.undo.shift();
   history.redo = [];
   history.current = cloneRotation(app.build.rotation);
@@ -63,6 +65,7 @@ export function canRedoRotation(app: ProfessionAppState): boolean {
 export function undoRotation(app: ProfessionAppState): void {
   const history = ensureHistory(app);
   const previous = history.undo.pop();
+
   if (!previous) return;
   history.redo.push(history.current);
   history.current = previous;
@@ -74,6 +77,7 @@ export function undoRotation(app: ProfessionAppState): void {
 export function redoRotation(app: ProfessionAppState): void {
   const history = ensureHistory(app);
   const next = history.redo.pop();
+
   if (!next) return;
   history.undo.push(history.current);
   history.current = next;
@@ -86,6 +90,7 @@ export function redoRotation(app: ProfessionAppState): void {
 export function renderRotationHistoryControls(app: ProfessionAppState): void {
   const undoButton = document.getElementById('btn-sim-undo');
   const redoButton = document.getElementById('btn-sim-redo');
+
   if (undoButton instanceof HTMLButtonElement) {
     undoButton.disabled = !canUndoRotation(app);
   }

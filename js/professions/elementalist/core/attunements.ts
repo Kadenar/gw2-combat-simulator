@@ -35,12 +35,14 @@ export interface ElementalistAttunementTransition {
 export function projectedFreshAirReadyAt(context: ElementalistCastContext, upTo: number): number | null {
   if (!hasTrait(context, 'Fresh Air')) return null;
   const state = professionCoreState(context);
+
   if (state.primaryAttunement === 'Air') return null;
   let progress = state.freshAirProgress;
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
   for (const candidate of candidates) {
     if (candidate.at > upTo + context.epsilon) break;
     progress += candidate.criticalChance;
+
     if (progress + context.epsilon >= 1) return candidate.at;
   }
 
@@ -60,6 +62,7 @@ export function elementalistAlacrityAdjustedDuration(context: ElementalistLifecy
 
 export function elementalistAttunementRechargeDuration(context: ElementalistLifecycleContext, seconds: number): number {
   let adjusted = seconds;
+
   if (hasTrait(context, 'Elemental Enchantment')) {
     adjusted *= elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
   }
@@ -81,6 +84,7 @@ export function onAttunementComplete(
   state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
   // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
   const dualAttunement = transition.rechargeDuration != null;
+
   if (dualAttunement) {
     state.primaryAttunement = target;
     const recharge = Number(transition.rechargeDuration);
@@ -111,8 +115,10 @@ export function onAttunementComplete(
           elementalistBalanceValue(context, PROFILE.resources, 'initialDelay', OFF_ATTUNEMENT_RECHARGE_SECONDS)
         );
       let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
+
       if (attunement === 'Air' && hasTrait(context, 'Fresh Air')) {
         const freshAirReadyAt = projectedFreshAirReadyAt(context as unknown as ElementalistCastContext, nextReadyAt);
+
         if (freshAirReadyAt != null) {
           nextReadyAt = Math.min(nextReadyAt, freshAirReadyAt);
         }
@@ -147,6 +153,7 @@ export function onAttunementComplete(
     skillId: skill.id,
     skillName: skill.name
   });
+
   if (!combatStarted(context, at)) return;
 
   // Specializations can gate shared attunement-trait effects without Core inspecting specialization state or policy.
