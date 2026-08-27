@@ -1,4 +1,5 @@
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import {
   activeBoonStacks,
   eventSkill as gw2EventSkill,
@@ -45,9 +46,9 @@ export function vulnerability(context: Gw2ModifierContext): number {
   return vulnerabilityStacks(context);
 }
 
-// summon actorType (turrets, mech) must not trigger player-only damage procs
+// Player-only modifiers follow outgoing ownership; turrets, mechs, and unowned effects remain excluded.
 export function playerStrike(context: Gw2ModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 export function eventSkill(context: Gw2ModifierContext): EngineerSkill | undefined {

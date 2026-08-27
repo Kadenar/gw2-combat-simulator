@@ -1,5 +1,6 @@
 import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/combat/modifiers/types.js';
 import { elementalistAttunements, elementalistTimedBuffStacks } from '../../core/modifiers.js';
@@ -8,7 +9,8 @@ import { elementalistBalanceValue } from '../../core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 function playerEvent(context: Gw2ModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  // Weaver player modifiers include explicitly player-owned effects but reject unowned actors.
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

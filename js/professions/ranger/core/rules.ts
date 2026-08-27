@@ -4,6 +4,7 @@ import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attri
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { prepareGw2BuffCompanionCandidates } from '../../../platform/gw2/combat/state/allied-players.js';
 import { GW2_STANDARD_BOONS } from '../../../platform/gw2/combat/state/boons.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { eventSkill as gw2EventSkill, hasSelectedSkill } from '../../../platform/gw2/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { snapshotRangerState } from '../state.js';
@@ -80,7 +81,8 @@ export const rangerCoreSkillMechanicHandlers = Object.freeze({
 });
 
 function playerEvent(context: Gw2ModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  // Player modifiers use outgoing ownership while pet rules continue to identify the summon actor explicitly.
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 function petEvent(context: Gw2ModifierContext): boolean {

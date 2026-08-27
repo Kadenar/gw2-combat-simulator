@@ -296,14 +296,11 @@ export function applyEngineerSharpshooterConditionDamage(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord
 ): void {
-  if (
-    !hasTrait(context, TRAIT.SHARPSHOOTER) ||
-    context.event?.condition !== 'Bleeding' ||
-    context.event?.actorType === 'summon'
-  ) {
+  if (!hasTrait(context, TRAIT.SHARPSHOOTER) || context.event?.condition !== 'Bleeding' || !playerStrike(context)) {
     return;
   }
 
+  // Sharpshooter replaces the attribute only for bleeding that inherits the player's outgoing modifiers.
   attributes.conditionDamage =
     Number(attributes.power || 0) * engineerBalanceValue(context, PROFILE.sharpshooter, 'coefficientMultiplier', 2 / 3);
 }

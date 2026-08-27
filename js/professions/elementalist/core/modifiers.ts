@@ -1,4 +1,5 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import { targetHealthFraction } from '../../../platform/gw2/combat/query/runtime-query.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
@@ -24,7 +25,8 @@ function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement 
 }
 
 function playerEvent(context: Gw2ModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  // Player-only modifiers follow outgoing ownership so explicitly owned effects inherit them safely.
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 function eventWeapon(context: Gw2ModifierContext): string {

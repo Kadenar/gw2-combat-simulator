@@ -2,6 +2,7 @@ import { emitSkillDamage } from '../../../../platform/gw2/scheduler/skill-events
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '../../../../platform/gw2/combat/state/targets.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/combat/modifiers/rules.js';
+import { isGw2PlayerActorEvent } from '../../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/gw2/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { isInternalCooldownReady } from '../../../../platform/engine/core/clock.js';
@@ -134,7 +135,8 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) =>
       Boolean(
-        context.event?.actorType === 'player' &&
+        // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
+        isGw2PlayerActorEvent(context.event) &&
         necromancerEventSkill(context)?.categories?.includes('Shout') &&
         context.config?.target?.nearby !== false
       )

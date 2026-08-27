@@ -6,7 +6,8 @@ import {
   activeBoonStacks,
   activeEngineerSpecializationState,
   cloneEngineerAttributes,
-  eventSkill
+  eventSkill,
+  playerStrike
 } from '../../core/rule-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '../../core/rules.js';
 import { engineerBalanceValue } from '../../core/profiles.js';
@@ -43,7 +44,7 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 ] as const);
 
 function morphStrike(context: Gw2ModifierContext): boolean {
-  return Boolean(context.event?.actorType !== 'summon' && eventSkill(context)?.categories?.includes('Morph'));
+  return Boolean(playerStrike(context) && eventSkill(context)?.categories?.includes('Morph'));
 }
 
 export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -53,7 +54,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      context.event?.actorType !== 'summon' &&
+      playerStrike(context) &&
       hasTrait(context, TRAIT.WILLING_HOST) &&
       activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
   },
@@ -70,8 +71,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.07,
     when: (context) =>
-      context.event?.actorType !== 'summon' &&
-      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
+      playerStrike(context) && activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
   },
   {
     id: 'engineer.carbolic-composition-duration',

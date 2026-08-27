@@ -1,5 +1,6 @@
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
@@ -30,7 +31,8 @@ export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined 
 }
 
 export function thiefPlayerEvent(context: Gw2ModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  // Thief player modifiers use outgoing ownership so unknown and environment actors cannot inherit them.
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {

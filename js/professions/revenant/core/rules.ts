@@ -139,6 +139,7 @@ export const revenantSchedulerHooks = Object.freeze({
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
 import { isStandardBoon } from '../../../platform/gw2/combat/state/boons.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { isDamagingCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
@@ -161,7 +162,8 @@ export interface RevenantModifierContext extends Gw2ModifierContext {
 }
 
 export function revenantPlayer(context: RevenantModifierContext): boolean {
-  return context.event?.actorType !== 'summon';
+  // Revenant player modifiers follow outgoing ownership, including explicitly player-owned effects.
+  return isGw2PlayerModifierOwnedEvent(context.event);
 }
 
 function revenantRuntimeState(context: RevenantModifierContext): Partial<RevenantState> | RevenantRuntimeState {

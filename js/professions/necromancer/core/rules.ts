@@ -1,6 +1,7 @@
 import { targetHasCondition as targetHasConfiguredCondition } from '../../../platform/gw2/combat/state/targets.js';
 import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '../../../platform/gw2/builds/attribute-provenance.js';
+import { isGw2PlayerModifierOwnedEvent } from '../../../platform/gw2/combat/state/event-ownership.js';
 import { hasTrait } from '../../../platform/gw2/combat/state/traits.js';
 import {
   eventSkill,
@@ -115,6 +116,13 @@ function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   );
 }
 
+function playerModifierContext(context: Gw2ModifierContext): boolean {
+  // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
+  return context.event
+    ? isGw2PlayerModifierOwnedEvent(context.event)
+    : context.actorType == null || context.actorType === 'player';
+}
+
 export function modifyNecromancerCoreAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord
@@ -127,7 +135,7 @@ export function modifyNecromancerCoreAttributes(
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Spite')) {
     const signetPower = Number(necromancerBalanceProfile(context, PROFILE.signetOfSpite)?.attributeBonus || 180);
-    const passiveActive = context.actorType !== 'summon' && signetOfSpitePassiveActive(context);
+    const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= signetPower;
     } else if (passiveActive) {
