@@ -64,7 +64,7 @@ import type {
 import type { PaletteSkillView } from '../../presentation/rotation/palette.js';
 import type { ProfessionAppState } from '../../types.js';
 
-const CONCURRENT_OFFSET_MS = 100;
+const CONCURRENT_OFFSET_MS = 120;
 
 type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
 

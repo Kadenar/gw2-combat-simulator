@@ -195,45 +195,29 @@ export function syncProcVisibility(app: ProfessionAppState, procSteps: readonly 
   return app.procVisibility as Set<string>;
 }
 
-// Shared editor for two distinct duration fields:
-//   concurrentOffsetMs — ms from start of preceding cast to start this cast
-//   durationMs         — explicit idle gap inserted between skills
-// Anchor falls back to a DOM query so the editor can be opened programmatically (e.g. keyboard).
-// onApply re-reads the rotation entry rather than closing over `entry` to guard against
-// rotation mutations between the editor opening and the user confirming.
-function editRotationDuration(
-  app: ProfessionAppState,
-  index: number,
-  key: 'concurrentOffsetMs' | 'durationMs',
-  event?: Event
-): boolean {
+// Waits keep free millisecond durations; concurrent offsets use the activation editor's GW2 action-tick validation.
+function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(
-      `#rotation-timeline .${key === 'concurrentOffsetMs' ? 'rot-offset-badge' : 'rot-wait-badge'}[data-idx="${index}"]`
-    );
+    document.querySelector<HTMLElement>(`#rotation-timeline .rot-wait-badge[data-idx="${index}"]`);
   if (!anchor) return false;
 
-  const skill = resolveEntrySkill(app, item.command);
-  const isWait = key === 'durationMs';
   openDurationEditor({
     anchor,
-    heading: isWait ? 'Edit wait' : 'Edit offset',
-    name: isWait ? 'Wait' : String(skill?.displayName || skill?.name || item.name),
-    icon:
-      anchor.closest('.rot-skill')?.querySelector<HTMLImageElement>('img')?.src ||
-      (isWait ? WAIT_ICON : skill?.icon || undefined),
-    label: isWait ? 'Duration' : 'From start of preceding cast',
-    value: Number(item[key]) || 1,
+    heading: 'Edit wait',
+    name: 'Wait',
+    icon: anchor.closest('.rot-skill')?.querySelector<HTMLImageElement>('img')?.src || WAIT_ICON,
+    label: 'Duration',
+    value: Number(item.durationMs) || 1,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        [key]: durationMs
+        durationMs
       });
       app.changed(false);
     }
@@ -448,11 +432,11 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
-    onEditOffset: (index, event) => editRotationDuration(app, index, 'concurrentOffsetMs', event),
+    onEditOffset: (index, event) => editRotationActivation(app, index, event),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),
     onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
-    onEditWait: (index, event) => editRotationDuration(app, index, 'durationMs', event)
+    onEditWait: (index, event) => editRotationDuration(app, index, event)
   };
 }
 

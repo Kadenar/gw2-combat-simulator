@@ -111,7 +111,7 @@ export function validateActivationInterruptMs(
   return { valid: true, value };
 }
 
-/** Accepts a whole-millisecond offset from the previous cast start, optionally including signed marker offsets. */
+/** Accepts a 40 ms action-tick offset from the previous cast start, optionally including signed marker offsets. */
 export function validateActivationConcurrentOffsetMs(
   rawValue: string | number,
   minimumMs: number | null = 0
@@ -132,7 +132,14 @@ export function validateActivationConcurrentOffsetMs(
     };
   }
 
-  return { valid: true, value: Math.round(parsed) };
+  if (!Number.isInteger(parsed) || parsed % GW2_ACTION_TICK_MS !== 0) {
+    return {
+      valid: false,
+      error: `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
+    };
+  }
+
+  return { valid: true, value: parsed };
 }
 
 export function openActivationEditor(options: ActivationEditorOptions): ActivationEditorHandle {
@@ -153,14 +160,14 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     ? Math.max(
         suggestedFloor,
         isConcurrentBehavior
-          ? Math.round(rawSuggestedMs)
+          ? Math.round(rawSuggestedMs / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
           : Math.floor(rawSuggestedMs / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
       )
     : isConcurrentBehavior
-      ? Math.max(suggestedFloor, 100)
+      ? Math.max(suggestedFloor, 120)
       : GW2_ACTION_TICK_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
-  const inputStep = isConcurrentBehavior ? 1 : GW2_ACTION_TICK_MS;
+  const inputStep = GW2_ACTION_TICK_MS;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
   editor.setAttribute('role', 'dialog');
