@@ -1,6 +1,6 @@
 import { escapeHtml as esc, gw2ApiText } from '../../presentation/shared/html.js';
 
-import type { ProfessionAppState, ProfessionSpecialization } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState, ProfessionSpecialization } from '../../types.js';
 
 const SPEC_BG = (name: string): string =>
   `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(name)}_specialization.png`;

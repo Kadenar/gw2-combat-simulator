@@ -7,7 +7,7 @@
  * shared profession app adapter.
  */
 
-import type { Gw2AppAdapter, ProfessionAppContract } from '../../../../app/profession/types.js';
+import type { Gw2AppAdapter, ProfessionAppContract } from '../types.js';
 
 /** Armor classes, ordered as navigation surfaces group professions. */
 export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;

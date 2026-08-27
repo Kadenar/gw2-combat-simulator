@@ -1,7 +1,7 @@
 import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
 
 import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState, RotationSelectionRange } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState, RotationSelectionRange } from '../../types.js';
 
 /**
  * Range-selection clipboard for the rotation timeline. Users arm "copy loop"

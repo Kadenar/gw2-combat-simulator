@@ -7,7 +7,7 @@ import type { MesmerSharperImagesObservation } from '../../../integrations/logs/
 import type { NecromancerBarbedPrecisionObservation } from '../../../integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import type { WarriorBloodlustObservation } from '../../../integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
 import type { RotationImportObservation } from './rotation-import-model.js';
 

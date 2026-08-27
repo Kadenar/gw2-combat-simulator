@@ -5,7 +5,7 @@ import {
   normalizeSimulationRandomness
 } from '../../../../kernel/core/simulation-random.js';
 import { createProfessionAssumptionControls } from '../profession/assumptions.js';
-import type { ProfessionAssumptionControl } from '../../../../app/profession/types.js';
+import type { ProfessionAssumptionControl } from '../types.js';
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 

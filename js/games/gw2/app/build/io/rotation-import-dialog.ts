@@ -6,7 +6,7 @@ import { normalizeRotation } from '../../../platform/engine/execution/rotation.j
 import { errorMessage } from '../../../../../ui/shared/dom.js';
 
 import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import type { RotationImportObservation } from './rotation-import-model.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';

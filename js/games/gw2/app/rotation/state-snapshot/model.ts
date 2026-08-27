@@ -2,7 +2,7 @@
 import type { RotationStateSnapshotItem } from '../../../platform/engine/types.js';
 import { criticalChanceEventAt } from '../../../platform/results/query.js';
 import { criticalChanceTooltip } from '../../presentation/rotation/state-snapshot.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { activeSpecialization, paletteEndState } from '../shared/context.js';
 
 export function rotationStateSnapshot(app: ProfessionAppState): {

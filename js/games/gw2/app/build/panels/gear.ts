@@ -8,7 +8,7 @@ import { setWeaponSigil } from '../../../platform/equipment/sigils/loadout.js';
 import { groupedOptions, option } from '../../presentation/shared/html.js';
 import { requiredElement, requiredInput, requiredSelect } from '../../../../../ui/shared/dom.js';
 
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 function selectRow(label: string, id: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>

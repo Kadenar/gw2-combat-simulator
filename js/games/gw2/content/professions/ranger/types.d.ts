@@ -10,7 +10,7 @@ import type {
 import type { Gw2Build, Gw2CanonicalBuild } from '../../../platform/builds/types.js';
 import type { Gw2Config } from '../../../platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/resolver/types.js';
-import type { ProfessionApplicationBuild } from '../../../../../app/profession/types.js';
+import type { ProfessionApplicationBuild } from '../../../app/types.js';
 
 export interface RangerSpecializationSelection {
   readonly name?: string;

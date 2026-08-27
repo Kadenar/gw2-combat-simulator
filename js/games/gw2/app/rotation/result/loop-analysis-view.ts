@@ -1,5 +1,5 @@
 import { escapeHtml } from '../../presentation/shared/html.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { resultSkillIcon } from '../shared/icons.js';
 import type {
   DetectedRotationLoop,

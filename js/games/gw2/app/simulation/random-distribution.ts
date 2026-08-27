@@ -9,7 +9,7 @@ import type {
   RandomDistributionOutcome,
   RandomDistributionRequest,
   RandomDistributionSummary
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;

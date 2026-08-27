@@ -1,6 +1,6 @@
 import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from './size.js';
 import { storeRotationProcOverlayVisibility } from './proc-overlays.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { renderTimeline } from './view.js';
 
 const sectionOpenByApp = new WeakMap<ProfessionAppState, boolean>();

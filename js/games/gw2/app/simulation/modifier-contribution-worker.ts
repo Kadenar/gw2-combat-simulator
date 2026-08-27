@@ -1,5 +1,5 @@
 import { createGameWorkerEndpoint } from '../../../../app/simulation/game-worker-harness.js';
-import type { Gw2AppAdapter, ModifierContributionRequest } from '../../../../app/profession/types.js';
+import type { Gw2AppAdapter, ModifierContributionRequest } from '../types.js';
 
 /**
  * The single request message this worker accepts. The application shell owns

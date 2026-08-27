@@ -7,7 +7,7 @@ import type {
   BuildTemplateSection,
   ProfessionAppState,
   ProfessionApplicationBuild
-} from '../../../../../app/profession/types.js';
+} from '../../types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template';
 type TemplateCategory = 'power' | 'condi' | 'other';

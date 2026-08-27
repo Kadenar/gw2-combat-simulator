@@ -2,7 +2,7 @@ import type {
   ModifierContribution,
   ModifierContributionRequest,
   ProfessionModifierComparison
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 import type { Gw2Config } from '../../platform/simulation/config.js';
 import type { RotationCommand } from '../../platform/engine/types.js';
 

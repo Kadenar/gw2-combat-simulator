@@ -1,4 +1,4 @@
-import { defineProfessionApp, preferOffhand } from '../../../../../../app/profession/define-app.js';
+import { defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
 import { applyWarriorBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { warriorProfession } from '../definition.js';

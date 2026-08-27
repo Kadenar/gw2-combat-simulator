@@ -1,6 +1,6 @@
 import type { SchedulerStep } from '../../../platform/engine/types.js';
 import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { mountRotationWarnings } from '../../../../../ui/results/rotation-warnings.js';
 import { formatResultTimelineTime } from './model.js';
 

@@ -1,6 +1,6 @@
 // File I/O utilities for import/export of builds and rotations.
 
-import type { BuildTemplatePreset, ProfessionApplicationBuild } from '../../../../../app/profession/types.js';
+import type { BuildTemplatePreset, ProfessionApplicationBuild } from '../../types.js';
 
 interface FetchJsonAssetOptions {
   readonly optional?: boolean;

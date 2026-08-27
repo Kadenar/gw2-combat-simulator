@@ -4,7 +4,7 @@ import { createDefaultBuild, replaceBuildConfiguration } from './state/persisten
 import { redoRotation, undoRotation } from '../rotation/editing/history.js';
 import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../../../ui/shared/dom.js';
 
-import type { ProfessionAppState } from '../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../types.js';
 
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');

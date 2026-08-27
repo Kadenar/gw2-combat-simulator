@@ -14,7 +14,7 @@ import type {
   ProfessionAssumptionControl,
   ProfessionAssumptionOption,
   ProfessionBuildAssumptions
-} from '../../../../../app/profession/types.js';
+} from '../../types.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],

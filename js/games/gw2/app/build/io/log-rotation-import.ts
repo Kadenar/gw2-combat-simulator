@@ -1,5 +1,5 @@
 import { selectRotationPlayer } from '../../../integrations/logs/lib/rotation/selection.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 interface AppRotationPlayer {
   readonly character: string;

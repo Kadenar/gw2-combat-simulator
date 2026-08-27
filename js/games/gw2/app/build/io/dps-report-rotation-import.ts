@@ -3,7 +3,7 @@ import { fetchDpsReport } from '../../../integrations/logs/dps-report/url.js';
 import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
 import type { ParsedDpsReport } from '../../../integrations/logs/dps-report/types.js';
 import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
 
 export interface ImportedDpsReportRotation {

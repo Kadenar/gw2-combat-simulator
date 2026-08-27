@@ -6,7 +6,7 @@ import {
 import { errorMessage } from '../../../../../ui/shared/dom.js';
 
 import type { BuildTemplateImportPreview } from './build-template-import.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 interface BuildTemplateDialogElements {
   readonly dialog: HTMLDialogElement;

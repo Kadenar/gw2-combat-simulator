@@ -12,7 +12,7 @@
  * Mesmer notes and Revenant affinity emblems.
  */
 import type { ProfessionResourceView, SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { ProfessionAppContract, ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppContract, ProfessionAppState } from '../../types.js';
 import type { PaletteResourceView } from '../../presentation/rotation/palette.js';
 import { escapeHtml as esc } from '../../presentation/shared/html.js';
 import { activeSpecialization, paletteProfessionState, professionEndState } from '../shared/context.js';

@@ -9,7 +9,7 @@ import type {
   Gw2SimulationConfigOptions,
   ProfessionAttributeData,
   ProfessionBuildAssumptions
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 import { isSimulationRandomnessControl, simulationRandomnessFromAssumptions } from './randomness.js';
 
 /**

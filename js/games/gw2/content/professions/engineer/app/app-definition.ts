@@ -2,11 +2,7 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import {
-  defaultIsSkillAvailable,
-  defineProfessionApp,
-  preferOffhand
-} from '../../../../../../app/profession/define-app.js';
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
 import { applyEngineerBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { engineerProfession } from '../definition.js';

@@ -1,8 +1,4 @@
-import {
-  defaultIsSkillAvailable,
-  defineProfessionApp,
-  preferOffhand
-} from '../../../../../../app/profession/define-app.js';
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { applyRangerBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';

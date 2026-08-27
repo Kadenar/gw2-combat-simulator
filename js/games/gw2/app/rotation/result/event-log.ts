@@ -6,7 +6,7 @@ import type {
   ProfessionAppContract,
   ProfessionApplicationBuild,
   ProfessionAppState
-} from '../../../../../app/profession/types.js';
+} from '../../types.js';
 import { professionEndState } from '../shared/context.js';
 import { effectName, resultCombatReferenceMs } from './model.js';
 

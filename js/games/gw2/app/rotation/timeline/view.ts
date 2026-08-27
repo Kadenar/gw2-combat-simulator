@@ -75,7 +75,7 @@ import type {
 } from '../../../platform/engine/types.js';
 import type { Gw2ProcStep } from '../../../platform/resolver/types.js';
 import type { TimelineInteractionOptions } from '../../presentation/rotation/timeline.js';
-import type { ProfessionAppState, RotationActionOptions } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState, RotationActionOptions } from '../../types.js';
 
 type TimelineItem = SchedulerRecord & {
   command: RotationCommand;

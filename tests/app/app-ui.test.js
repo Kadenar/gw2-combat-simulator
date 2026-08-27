@@ -792,7 +792,7 @@ test('current rotation DPS stays above the footer and hides in the professions v
 test('gear panel leaves current rotation DPS to the floating metric', async () => {
   const [gearPanel, professionApp, css] = await Promise.all([
     readFile(new URL('../../js/games/gw2/app/build/panels/gear.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../js/app/profession-app.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../js/games/gw2/app/profession-app.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../css/style.css', import.meta.url), 'utf8')
   ]);
 

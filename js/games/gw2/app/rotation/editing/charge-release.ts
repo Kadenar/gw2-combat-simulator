@@ -4,7 +4,7 @@ import {
   type ChargeReleaseEditorRow
 } from '../../../../../ui/rotation/editors/charge-release-editor.js';
 import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 /**
  * Coerces an untyped projection payload into validated editor rows. Each

@@ -6,6 +6,7 @@ import ts from 'typescript';
 
 const APP_ROOT = path.resolve(import.meta.dirname, '../../js/app');
 const GAMES_ROOT = path.resolve(import.meta.dirname, '../../js/games');
+const JS_ROOT = path.resolve(import.meta.dirname, '../../js');
 const KERNEL_ROOT = path.resolve(import.meta.dirname, '../../js/kernel');
 const SHELL_ROOT = path.join(APP_ROOT, 'shell');
 const UI_ROOT = path.resolve(import.meta.dirname, '../../js/ui');
@@ -145,52 +146,29 @@ test('shared app declarations do not import the GW2 platform', async () => {
   assert.deepEqual(violations, []);
 });
 
-test('GW2 assembly lives behind compatibility exports and workers use game-content addresses', async () => {
-  const compatibilityFiles = ['profession/create-runtime.ts', 'profession/define-app.ts'];
-  for (const relative of compatibilityFiles) {
-    const source = await readFile(path.join(APP_ROOT, relative), 'utf8');
-    assert.match(source, /games\/gw2\/app/);
-    assert.doesNotMatch(source, /platform\/gw2/);
-  }
-
-  for (const relative of [
-    'simulation/game-worker-harness.ts',
-    'simulation/baseline-simulation-worker.ts',
-    'simulation/modifier-contribution-worker.ts',
-    'simulation/random-distribution-worker.ts'
+test('GW2 workers use game-content addresses', async () => {
+  for (const file of [
+    path.join(APP_ROOT, 'simulation/game-worker-harness.ts'),
+    path.join(GAMES_ROOT, 'gw2/app/simulation/baseline-simulation-worker.ts'),
+    path.join(GAMES_ROOT, 'gw2/app/simulation/modifier-contribution-worker.ts'),
+    path.join(GAMES_ROOT, 'gw2/app/simulation/random-distribution-worker.ts')
   ]) {
-    const source = await readFile(path.join(APP_ROOT, relative), 'utf8');
+    const source = await readFile(file, 'utf8');
     assert.doesNotMatch(source, /professionId/);
   }
 });
 
-test('legacy source namespaces contain compatibility exports instead of GW2 implementations', async () => {
-  const legacyRoots = ['platform/engine', 'platform/gw2', 'platform/ui', 'professions', 'log-analyzer', 'patches'];
+test('source modules do not retain compatibility export barrels', async () => {
   const violations = [];
 
-  for (const relativeRoot of legacyRoots) {
-    const legacyRoot = path.resolve(import.meta.dirname, '../../js', relativeRoot);
-    for (const file of await sourceFiles(legacyRoot)) {
-      const source = await readFile(file, 'utf8');
-      if (!source.startsWith('// Compatibility export for the namespaced Phase 3-5 implementation.')) {
-        violations.push(path.relative(path.resolve(import.meta.dirname, '../../js'), file));
-      }
+  for (const file of await sourceFiles(JS_ROOT)) {
+    const source = await readFile(file, 'utf8');
+    if (source.startsWith('// Compatibility export') || source.startsWith('// Compatibility barrel')) {
+      violations.push(path.relative(JS_ROOT, file));
     }
   }
 
   assert.deepEqual(violations, []);
-});
-
-test('legacy module imports expose canonical implementations', async () => {
-  const [legacyClock, canonicalClock, legacyGw2, canonicalGw2] = await Promise.all([
-    import('../../js/platform/engine/core/clock.js'),
-    import('../../js/kernel/core/clock.js'),
-    import('../../js/platform/gw2/index.js'),
-    import('../../js/games/gw2/platform/index.js')
-  ]);
-
-  assert.equal(legacyClock.isInternalCooldownReady, canonicalClock.isInternalCooldownReady);
-  assert.equal(legacyGw2.simulateGw2, canonicalGw2.simulateGw2);
 });
 
 test('runtime data is game namespaced and declares legacy public aliases', async () => {

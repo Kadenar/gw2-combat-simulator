@@ -10,7 +10,7 @@ import type {
   RandomDistributionOutcome,
   RandomDistributionProgress,
   RandomDistributionSummary
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 
 interface RandomDistributionWorkerMessage extends GameWorkerResponseEnvelope {
   readonly progress?: { readonly completed?: number };

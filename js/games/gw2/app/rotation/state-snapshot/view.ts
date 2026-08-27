@@ -4,7 +4,7 @@
  * that the user can inspect.
  */
 import { escapeHtml as esc } from '../../presentation/shared/html.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 import { formatResultTimelineTime } from '../result/model.js';
 import { rotationStateSnapshot } from './model.js';
 

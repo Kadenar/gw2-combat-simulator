@@ -5,7 +5,7 @@ import type {
   ProfessionAppContract,
   ProfessionAppState,
   ProfessionSlotLoadoutContext
-} from '../../../../../app/profession/types.js';
+} from '../../types.js';
 import { groupWeaponSkillsByAttunement } from '../../profession/weapon-attunement-groups.js';
 import { activeSpecialization, paletteEndState, paletteProfessionState } from '../shared/context.js';
 

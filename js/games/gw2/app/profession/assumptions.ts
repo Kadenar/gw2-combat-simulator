@@ -2,7 +2,7 @@ import type {
   ProfessionAssumptionControl,
   ProfessionAssumptionControlInput,
   ProfessionAssumptionOption
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 
 /**
  * Standard positioning and health assumptions available to professions.

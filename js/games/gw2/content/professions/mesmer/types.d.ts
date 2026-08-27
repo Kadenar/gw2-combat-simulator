@@ -25,7 +25,7 @@ import type { Gw2SelectedSkillValue } from '../../../platform/builds/selected-sk
 import type { Gw2Config } from '../../../platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/resolver/types.js';
 import type { Gw2CriticalResult } from '../../../platform/combat/query/types.js';
-import type { ProfessionApplicationBuild } from '../../../../../app/profession/types.js';
+import type { ProfessionApplicationBuild } from '../../../app/types.js';
 
 export interface MesmerSpecializationSelection {
   readonly name: string;

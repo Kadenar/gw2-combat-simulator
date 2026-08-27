@@ -1,6 +1,6 @@
 import { skillBreakdownRows } from '../../app/rotation/result/model.js';
 import { escapeHtml } from '../../app/presentation/shared/html.js';
-import type { PatchComparison, ProfessionAppState } from '../../../../app/profession/types.js';
+import type { PatchComparison, ProfessionAppState } from '../../app/types.js';
 import type { PatchOverviewEntry } from './authoring/patches.js';
 
 function httpUrl(value: string | undefined): string | null {

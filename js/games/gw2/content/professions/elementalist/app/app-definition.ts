@@ -1,17 +1,10 @@
-import {
-  defaultIsSkillAvailable,
-  defineProfessionApp,
-  preferOffhand
-} from '../../../../../../app/profession/define-app.js';
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
 import { applyElementalistBuildAttributeRules } from '../build-attributes.js';
 import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
 import { elementalistProfession } from '../definition.js';
 import type { CatalystEmpowermentPool, ElementalistApplicationBuild } from '../types.js';
 import type { Skill } from '../../../../platform/engine/types.js';
-import type {
-  ProfessionAttributeData,
-  ProfessionSkillAvailabilityContext
-} from '../../../../../../app/profession/types.js';
+import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '../../../../app/types.js';
 
 const CATALYST_EMPOWERMENT_ATTRIBUTES = Object.freeze({
   power: 'Power',

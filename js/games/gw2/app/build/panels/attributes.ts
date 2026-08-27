@@ -6,7 +6,7 @@ import {
   SPECIFIC_CONDITION_DURATION_ATTRIBUTES
 } from './options.js';
 
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 export function renderAttributes(app: ProfessionAppState): void {
   const weaponSet = document.getElementById('attribute-weapon-set');

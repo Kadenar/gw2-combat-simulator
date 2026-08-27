@@ -62,7 +62,7 @@ import type {
   Skill
 } from '../../../platform/engine/types.js';
 import type { PaletteSkillView } from '../../presentation/rotation/palette.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 

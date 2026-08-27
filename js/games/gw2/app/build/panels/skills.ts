@@ -6,7 +6,7 @@ import type {
   ProfessionAppState,
   ProfessionSlotLoadoutBar,
   ProfessionSlotLoadoutSelector
-} from '../../../../../app/profession/types.js';
+} from '../../types.js';
 import { groupWeaponSkillsByAttunement, weaponBarSkillStacks } from '../../profession/weapon-attunement-groups.js';
 import { requiredElement } from '../../../../../ui/shared/dom.js';
 

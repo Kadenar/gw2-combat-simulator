@@ -19,7 +19,7 @@ import type {
 } from '../../../platform/resolver/types.js';
 import type { Gw2QueryRuntime } from '../../../platform/combat/query/types.js';
 import type { Gw2WeaponMatcherContext } from '../../../platform/equipment/weapons/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../../../app/profession/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../app/types.js';
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 

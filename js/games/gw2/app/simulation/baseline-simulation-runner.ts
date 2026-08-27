@@ -2,7 +2,7 @@ import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
   ProfessionAppState
-} from '../../../../app/profession/types.js';
+} from '../types.js';
 
 interface BaselineJob {
   readonly requestId: number;

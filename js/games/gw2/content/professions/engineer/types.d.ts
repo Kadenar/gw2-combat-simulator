@@ -19,7 +19,7 @@ import type {
   Gw2ResolverRuntime
 } from '../../../platform/resolver/types.js';
 import type { Gw2Stats } from '../../../platform/equipment/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../../../app/profession/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../app/types.js';
 
 export interface EngineerSpecializationSelection {
   readonly name?: string;

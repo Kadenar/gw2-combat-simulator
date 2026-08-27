@@ -1,5 +1,5 @@
 import type { RotationCommand, Skill, SkillId } from '../../../platform/engine/types.js';
-import type { ProfessionAppState, RotationActionOptions } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState, RotationActionOptions } from '../../types.js';
 import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
 import { clearRotationSelection } from './clipboard.js';
 

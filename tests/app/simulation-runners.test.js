@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ProfessionApp } from '../../js/app/profession-app.js';
+import { ProfessionApp } from '../../js/games/gw2/app/profession-app.js';
 import { ModifierContributionRunner } from '../../js/games/gw2/app/simulation/modifier-contribution-runner.js';
 import { BaselineSimulationRunner } from '../../js/games/gw2/app/simulation/baseline-simulation-runner.js';
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '../../js/app/simulation/game-worker-harness.js';

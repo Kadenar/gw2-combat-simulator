@@ -1,4 +1,4 @@
-import type { ProfessionAppState } from '../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../types.js';
 import { renderRotationClipboardControls } from './editing/clipboard.js';
 import { renderRotationHistoryControls } from './editing/history.js';
 import { mountRotationHotkeys } from './input/hotkeys.js';

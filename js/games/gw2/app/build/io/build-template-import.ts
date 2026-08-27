@@ -5,7 +5,7 @@ import type {
   Gw2BuildTemplateWeaponSet,
   ResolvedGw2BuildTemplate
 } from '../../../platform/builds/templates/codec.js';
-import type { ProfessionAppState } from '../../../../../app/profession/types.js';
+import type { ProfessionAppState } from '../../types.js';
 
 interface BuildTemplateProfession {
   readonly code: number;
