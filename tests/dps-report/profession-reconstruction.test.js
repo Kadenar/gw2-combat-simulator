@@ -167,6 +167,55 @@ test('expands shortened Blood Is Power report casts through their uncancellable 
   assert.doesNotMatch(result.warnings.join('\n'), /Interrupted cast/);
 });
 
+test('recovers Dragonhunter opening precasts from packet evidence and removes failed autos', () => {
+  const report = parseDpsReport({
+    durationMS: 10_000,
+    targets: [{}],
+    players: [
+      {
+        name: 'Fixture Dragonhunter',
+        account: 'Fixture.1234',
+        profession: 'Dragonhunter',
+        targetDamageDist: [
+          [
+            [
+              { id: 46_469, connectedHits: 8 },
+              { id: 30_364, connectedHits: 20 }
+            ]
+          ]
+        ],
+        rotation: [
+          { id: 29_887, skills: [{ castTime: -267, duration: 533, timeGained: 0 }] },
+          { id: 30_364, skills: [{ castTime: 1_000, duration: 440, timeGained: 0 }] },
+          { id: 9_168, skills: [{ castTime: 2_000, duration: 600, timeGained: 0 }] },
+          { id: 9_137, skills: [{ castTime: 3_000, duration: 33, timeGained: -567 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 10_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: {
+      s29887: { name: 'Spear of Justice' },
+      s30364: { name: 'Procession of Blades' },
+      s9168: { name: 'Sword of Justice' },
+      s9137: { name: 'Strike', autoAttack: true }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, guardianCatalog, {
+    selectedSkillNames: ['Procession of Blades', 'Sword of Justice']
+  });
+
+  assert.deepEqual(
+    result.rotation.slice(0, 4).map((command) => command.name),
+    ['Sword of Justice', 'Procession of Blades', 'Spear of Justice', '__combat_start']
+  );
+  assert.equal(result.actions.filter((action) => action.inferred).length, 2);
+  assert.equal(
+    result.actions.some((action) => action.name === 'Strike'),
+    false
+  );
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Sword of Justice.*Procession of Blades/);
+});
+
 test('collapses Rend animation rows into one Warrior cast', () => {
   const report = reportFixture(
     'Berserker',

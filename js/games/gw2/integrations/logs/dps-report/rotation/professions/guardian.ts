@@ -1,5 +1,6 @@
 import type { Skill } from '../../../../../platform/engine/types.js';
 import { normalizeAutoattackChains } from '../../../lib/rotation/rules/autoattack-chains.js';
+import { reconstructDragonhunterDpsReportActions } from './guardian/dragonhunter.js';
 import { reconstructLuminaryDpsReportActions } from './guardian/luminary.js';
 import { reconstructWillbenderDpsReportActions } from './guardian/willbender.js';
 import type {
@@ -9,6 +10,7 @@ import type {
 } from '../types.js';
 
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
+  ['dragonhunter', reconstructDragonhunterDpsReportActions],
   ['luminary', reconstructLuminaryDpsReportActions],
   ['willbender', reconstructWillbenderDpsReportActions]
 ]);

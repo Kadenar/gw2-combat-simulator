@@ -35,6 +35,12 @@ export interface DpsReportBuffTimeline {
   readonly states?: readonly (readonly [number, number])[];
 }
 
+export interface DpsReportDamageDistribution {
+  readonly id: number;
+  readonly hits?: number;
+  readonly connectedHits?: number;
+}
+
 export interface DpsReportPlayer {
   readonly name: string;
   readonly account?: string;
@@ -44,6 +50,7 @@ export interface DpsReportPlayer {
   readonly lastAware?: number;
   readonly activeTimes?: readonly number[];
   readonly buffUptimes?: readonly DpsReportBuffTimeline[];
+  readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
   readonly rotation: readonly DpsReportRotationGroup[];
 }
 

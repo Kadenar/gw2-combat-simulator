@@ -32,6 +32,7 @@ export interface DpsReportRecordedAction {
     | 'initial-kit'
     | 'mine-setup'
     | 'luminary-opening'
+    | 'dragonhunter-opening'
     | 'renegade-warband'
     | 'herald-opening'
     | 'conduit-opening'
