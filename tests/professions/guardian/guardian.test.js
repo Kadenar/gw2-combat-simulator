@@ -178,6 +178,10 @@ test('Justice active burning resolves through simulateGw2', () => {
   assert.equal(withJustice.endState.profession.justiceBurns, 1);
   assert.equal(withJustice.endState.profession.justiceActiveBurns, 1);
   assert.equal(withJustice.endState.profession.justiceArmed, false);
+  assert.equal(
+    withJustice.procSteps.find((step) => step.skill === 'Justice Active')?.icon,
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE).icon
+  );
 });
 
 test('Justice passive counts individual hits and respects its active cooldown', () => {

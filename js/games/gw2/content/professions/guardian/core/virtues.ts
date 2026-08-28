@@ -163,7 +163,15 @@ function applyJusticeBurn(
   professionCoreState(context).justiceBurns += 1;
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
-  context.recordProc('profession', active ? 'Justice Active' : 'Justice Passive', event.at, event.skillName);
+  // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.
+  context.recordProc(
+    'profession',
+    active ? 'Justice Active' : 'Justice Passive',
+    event.at,
+    event.skillName,
+    '',
+    context.helpers.skillsById?.get(skillId)?.icon || ''
+  );
 }
 
 /** Applies the shared Justice hit contract with specialization-selected options. */
