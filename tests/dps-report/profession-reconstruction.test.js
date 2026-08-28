@@ -545,6 +545,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       { id: -39, skills: [{ castTime: 440, duration: 0, timeGained: 0 }] },
       { id: 73149, skills: [{ castTime: 960, duration: 0, timeGained: 0 }] },
       { id: 72366, skills: [{ castTime: 800, duration: 0, timeGained: 0 }] },
+      { id: 73139, skills: [{ castTime: 1000, duration: 480, timeGained: 0 }] },
       { id: 26693, skills: [{ castTime: 1500, duration: 0, timeGained: 0 }] },
       { id: 41858, skills: [{ castTime: 1600, duration: 0, timeGained: 0 }] }
     ],
@@ -554,6 +555,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       's-39': { name: 'Blitz Mines (Drop)', isInstantCast: true, isNotAccurate: true },
       s73149: { name: 'Blitz Mines (Detonation)', isInstantCast: true, isNotAccurate: true },
       s72366: { name: "Darkrazor's Daring", isInstantCast: true, isNotAccurate: true },
+      s73139: { name: 'Abyssal Strike', autoAttack: true },
       s26693: { name: 'Resist the Darkness', isInstantCast: true },
       s41858: { name: 'Legendary Renegade Stance', isInstantCast: true }
     }
@@ -562,6 +564,12 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
     skills: [
       skill(28287, 'Embrace the Darkness', { castTimeMs: 440 }),
       skill(72938, 'Abyssal Blitz', { type: 'weapon', weapon: 'Spear', castTimeMs: 520 }),
+      skill(73015, 'Abyssal Strike', {
+        type: 'weapon',
+        weapon: 'Spear',
+        slot: 'weapon_1',
+        castTimeMs: 480
+      }),
       skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
       skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
       skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
@@ -580,6 +588,8 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       ['Embrace the Darkness', 28287],
       ['Abyssal Blitz', 72938],
       ["Darkrazor's Daring", 41220],
+      ['__wait', undefined],
+      ['Abyssal Strike', 73015],
       ['__wait', undefined],
       ['Swap Legends', -4]
     ]

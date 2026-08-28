@@ -1159,7 +1159,11 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Mace/Axe - Spear)');
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const [saved, replay] = await Promise.all(
+    [preset.build, preset.rotation].map((path) =>
+      readFile(new URL(`../../${path}`, import.meta.url), 'utf8').then(JSON.parse)
+    )
+  );
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json');
@@ -1179,6 +1183,8 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
   assert.deepEqual(build.selectedLegends, ['LegendaryRenegade', 'LegendaryDemon']);
   assert.equal(build.startingLegend, 'LegendaryRenegade');
   assert.equal(build.startingWeaponSet, 1);
+  // Keep the report-backed rotation attached to this existing preset instead of creating a duplicate build entry.
+  assert.equal(replay.metadata.log, preset.dpsReportUrl);
 });
 
 test('Revenant Condition Quickness Herald default build resolves', async () => {

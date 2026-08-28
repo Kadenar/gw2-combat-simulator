@@ -32,7 +32,10 @@
         "label": "Condition (Mace/Axe - Spear)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 41295
+        "benchmarkDps": 40954,
+        "referenceDps": 40839,
+        "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
+        "upToDate": true
       }
     ]
   },

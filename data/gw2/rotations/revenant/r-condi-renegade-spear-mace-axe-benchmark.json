@@ -1,4 +1,13 @@
 {
+  "metadata": {
+    "log": "https://dps.report/dH9G-20260717-231446_golem",
+    "benchmarkDurationSeconds": 96.683,
+    "benchmarkDamage": 3948441,
+    "benchmarkDps": 40839.040989625886,
+    "simulatedDps": 40954.35344675049,
+    "timingSource": "Elite Insights cast summaries from dps.report",
+    "note": "Opening warband casts are recovered from repeated Renegade cycles; enhanced summons and generated Blitz Mine signals are normalized to simulator actions."
+  },
   "rotation": [
     {
       "name": "Icerazor's Ire",
