@@ -162,13 +162,13 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
       duration: conditionalEffect.duration
     } as Gw2ResolverEvent;
   } else {
+    // Nourishment is a flat life-siphon strike, so it bypasses coefficient and critical scaling but stays strike damage.
     foodEvent = {
       ...commonEvent,
       type: 'damage',
       name: proc.name,
       coefficient: 0,
       flatDamage: proc.flatDamage,
-      damageKind: 'condition',
       lifeSiphon: true,
       hits: 1,
       hitIndex: 1,

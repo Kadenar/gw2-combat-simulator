@@ -1838,11 +1838,10 @@ test('critical-strike food procs remain unmodified without profession effects', 
 
   assert.equal(nourishment.length, 1);
   assert.equal(nourishment[0].damage, 325);
-  assert.equal(nourishment[0].damageKind, 'condition');
   const nourishmentBreakdown = result.breakdown.find((entry) => entry.name === 'Nourishment');
 
-  assert.equal(nourishmentBreakdown.strikeDamage, 0);
-  assert.equal(nourishmentBreakdown.conditionDamage, 325);
+  assert.equal(nourishmentBreakdown.strikeDamage, 325);
+  assert.equal(nourishmentBreakdown.conditionDamage, 0);
   const withoutVulnerability = simulateMesmer(
     ['Flying Cutter', { name: '__wait', waitMs: 2000 }, 'Flying Cutter'],
     defaultSimulationConfig({
