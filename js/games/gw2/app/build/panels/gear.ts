@@ -10,6 +10,11 @@ import { requiredElement, requiredInput, requiredSelect } from '../../../../../u
 
 import type { ProfessionAppState } from '../../types.js';
 
+// Column headers make the dense gear controls read as one data editor instead of a stack of cards.
+function tableHeader(category: string, selection: string): string {
+  return `<div class="gear-table-header"><span>${category}</span><span>${selection}</span></div>`;
+}
+
 function selectRow(label: string, id: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>
             <select class="gear-select" id="${id}">${optionsHtml}</select></div>`;
@@ -58,7 +63,8 @@ export function renderGear(app: ProfessionAppState): void {
           .join('')}`;
   };
 
-  requiredElement('gear-slots').innerHTML = `<div class="gear-row gear-set-all-row">
+  requiredElement('gear-slots').innerHTML = `${tableHeader('Equipment', 'Prefix')}
+      <div class="gear-row gear-set-all-row">
         <span class="gear-label">Set all</span>
         <select class="gear-select" id="sel-set-all">
           <option value="">— choose prefix —</option>
@@ -150,6 +156,7 @@ export function renderGear(app: ProfessionAppState): void {
   };
 
   requiredElement('weapon-select').innerHTML = `
+            ${tableHeader('Weapons', 'Selection')}
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
             ${hasSecondWeaponSet ? weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true) : ''}`;
   const bindWeaponSet = (setNumber: number, weapons: string[]): void => {
@@ -192,6 +199,7 @@ export function renderGear(app: ProfessionAppState): void {
   if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement('equipment-info').innerHTML = `
+            ${tableHeader('Upgrades', 'Selection')}
             ${selectRow('Rune', 'sel-rune', groupedOptions(RUNE_GROUPS, b.rune))}
             ${selectRow('Relic', 'sel-relic', groupedOptions(RELIC_GROUPS, b.relic))}
             ${selectRow('Food', 'sel-food', groupedOptions(FOOD_GROUPS, b.food))}

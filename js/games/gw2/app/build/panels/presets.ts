@@ -283,7 +283,6 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         <div class="build-templates-header">
           <div>
             <h3 id="build-templates-title">Build templates</h3>
-            <span>Load a complete build and its matching rotation</span>
           </div>
           <span class="template-actions-hint">••• for partial loading</span>
         </div>

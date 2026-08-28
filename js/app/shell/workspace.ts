@@ -137,7 +137,7 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   body.toggleAttribute('data-rotation-focus', state.focus);
 
   controller.configButton.setAttribute('aria-expanded', String(state.configOpen));
-  const configButtonLabel = state.configOpen ? 'Hide Simulation Config' : 'Open Simulation Config';
+  const configButtonLabel = state.configOpen ? 'Hide simulation config' : 'Open simulation config';
   controller.configButton.textContent = '';
   controller.configButton.setAttribute('aria-label', configButtonLabel);
   controller.configButton.title = configButtonLabel;
@@ -185,7 +185,7 @@ function mountRotationHeading(
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
 } {
-  const titleText = heading.textContent?.trim() || 'Rotation Builder';
+  const titleText = heading.textContent?.trim() || 'Rotation builder';
   const title = root.createElement('span');
   title.className = 'rotation-builder-title';
   title.textContent = titleText;
@@ -207,12 +207,12 @@ function mountRotationHeading(
   configButton.className = 'btn btn-io simulation-config-open-button';
   configButton.setAttribute('aria-controls', configPanelId);
   configButton.setAttribute('aria-haspopup', 'dialog');
-  configButton.title = 'Open Simulation Config';
+  configButton.title = 'Open simulation config';
 
   const focusButton = root.createElement('button');
   focusButton.type = 'button';
   focusButton.className = 'btn btn-io rotation-focus-toggle';
-  focusButton.title = 'Maximize the Rotation Builder';
+  focusButton.title = 'Maximize the rotation builder';
 
   controls.append(configButton, focusButton);
   heading.replaceChildren(headingTitle, controls);
@@ -224,13 +224,13 @@ function mountRotationHeading(
 function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonElement {
   const title = root.createElement('span');
   title.className = 'simulation-config-title';
-  title.textContent = heading.textContent?.trim() || 'Simulation Config';
+  title.textContent = heading.textContent?.trim() || 'Simulation config';
 
   const button = root.createElement('button');
   button.type = 'button';
   button.className = 'simulation-config-close-button';
-  button.setAttribute('aria-label', 'Close Simulation Config');
-  button.title = 'Close Simulation Config';
+  button.setAttribute('aria-label', 'Close simulation config');
+  button.title = 'Close simulation config';
   button.textContent = '\u00d7';
 
   heading.replaceChildren(title, button);

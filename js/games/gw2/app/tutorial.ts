@@ -90,7 +90,6 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         <div>
           <p class="tutorial-dialog-eyebrow">Tutorials</p>
           <h2 id="simulator-tutorial-title">How to use the simulator</h2>
-          <p id="simulator-tutorial-description">Choose a walkthrough, then follow the animation and written steps.</p>
         </div>
         <button type="button" class="tutorial-dialog-close" data-tutorial-close aria-label="Close tutorial">&times;</button>
       </div>

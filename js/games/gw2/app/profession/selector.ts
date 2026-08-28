@@ -73,27 +73,13 @@ function mountLegalFooter(root: Document): void {
   app.after(footer);
 }
 
-/**
- * Keeps the simulator snapshot badge with the sticky header and publishes the
- * rendered header height for other sticky page controls.
- */
+/** Publishes the rendered header height for other sticky page controls. */
 function mountStickyProfessionHeader(root: Document): void {
   if (!root.body?.dataset.profession) return;
 
   const header = root.querySelector<HTMLElement>('#app > header');
   const appRoot = header?.parentElement;
   if (!header || !appRoot) return;
-
-  const existingSnapshot = header.querySelector<HTMLElement>('.update-info');
-  const adjacentSnapshot = header.nextElementSibling;
-  const snapshot =
-    existingSnapshot ||
-    (adjacentSnapshot instanceof HTMLElement && adjacentSnapshot.classList.contains('update-info')
-      ? adjacentSnapshot
-      : null);
-  // The snapshot may already live nested inside the header (e.g. in the
-  // top-left brand block); only pull it in when it sits outside the header.
-  if (snapshot && !header.contains(snapshot)) header.append(snapshot);
 
   const updateHeaderHeight = () => {
     appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);

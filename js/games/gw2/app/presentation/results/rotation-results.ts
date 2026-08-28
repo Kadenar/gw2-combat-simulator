@@ -536,7 +536,7 @@ export function mountRotationResults(
     <div class="rng-distribution-heading">
       <div>
         <h4>Simulation RNG distribution</h4>
-        <p>Always available for the current rotation. Expected is the planning baseline; the low and high estimates show rare outcomes at either end.</p>
+        <p>Expected is the planning baseline; the low and high estimates show rare outcomes at either end.</p>
       </div>
       <div class="rng-distribution-heading-actions">
         ${randomDistributionTrials ? `<span>${number(randomDistributionTrials)} outcomes per run</span>` : ''}

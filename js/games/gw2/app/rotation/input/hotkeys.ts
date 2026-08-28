@@ -522,7 +522,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.setAttribute('aria-labelledby', 'rotation-hotkey-title');
   dialog.innerHTML = `<form class="rotation-hotkey-form" method="dialog">
     <h3 id="rotation-hotkey-title">Rotation hotkeys</h3>
-    <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Press a key or Mouse 4/5 in a field to bind it. Bindings apply to every profession.</p>
+    <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Bindings apply to every profession.</p>
     <label class="rotation-hotkey-enable">
       <input type="checkbox" data-hotkey-enabled />
       <span>Enable rotation hotkeys</span>

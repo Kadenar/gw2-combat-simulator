@@ -103,7 +103,6 @@ function renderProfessionPages() {
         return professionPageTemplate
           .replaceAll('{{profession-id}}', professionId)
           .replaceAll('{{profession-name}}', name)
-          .replaceAll('{{snapshot}}', page.snapshot)
           .replaceAll('{{attribute-note}}', page.attributeNote)
           .replaceAll('{{weapon-set-hidden}}', page.singleWeaponSet ? ' hidden' : '')
           .replaceAll('{{weapon-set-two}}', page.singleWeaponSet ? '' : '<option value="2">2</option>')

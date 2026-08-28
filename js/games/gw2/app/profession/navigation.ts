@@ -57,7 +57,6 @@ function mountAnalysisHeading(root: Document): void {
   heading.innerHTML = `
     <p>Simulation output</p>
     <h2 id="analysis-view-title">Combat analysis</h2>
-    <span>Damage breakdown, DPS over time, and modifier contributions for the current workspace.</span>
   `;
   results.before(heading);
 
@@ -69,7 +68,7 @@ function mountAnalysisHeading(root: Document): void {
   results.setAttribute('aria-labelledby', 'analysis-view-title');
 }
 
-/** Groups the title and API-snapshot pill into a top-left brand block. */
+/** Groups the profession title into the top-left brand block. */
 function mountHeaderBrand(root: Document, header: HTMLElement): void {
   if (header.querySelector('.header-brand')) return;
   const title = header.querySelector('h1');
@@ -78,13 +77,9 @@ function mountHeaderBrand(root: Document, header: HTMLElement): void {
   brand.className = 'header-brand';
   title.before(brand);
   brand.append(title);
-  const snapshot = header.nextElementSibling?.classList.contains('update-info')
-    ? header.nextElementSibling
-    : header.querySelector(':scope > .update-info');
-  if (snapshot) brand.append(snapshot);
 }
 
-/** Inserts the profession-browser section (card grid host) after the header/snapshot (idempotent). */
+/** Inserts the profession-browser section (card grid host) after the header (idempotent). */
 function mountProfessionBrowser(root: Document, header: HTMLElement): void {
   if (root.querySelector('.profession-browser-view')) return;
 
@@ -99,9 +94,7 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
     <div class="profession-grid" data-profession-grid></div>
   `;
 
-  const snapshot = header.nextElementSibling;
-  if (snapshot?.classList.contains('update-info')) snapshot.after(section);
-  else header.after(section);
+  header.after(section);
 }
 
 /**
