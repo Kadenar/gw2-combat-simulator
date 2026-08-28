@@ -82,14 +82,8 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
 
   const section = root.createElement('section');
   section.className = 'profession-browser-view';
-  section.setAttribute('aria-labelledby', 'profession-browser-title');
-  section.innerHTML = `
-    <div class="profession-browser-heading">
-      <p class="landing-eyebrow">Profession simulators</p>
-      <h2 id="profession-browser-title">Choose a profession</h2>
-    </div>
-    <div class="profession-grid" data-profession-grid></div>
-  `;
+  section.setAttribute('aria-label', 'Profession simulators');
+  section.innerHTML = '<div class="profession-grid" data-profession-grid></div>';
 
   header.after(section);
 }

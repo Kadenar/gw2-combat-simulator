@@ -838,6 +838,36 @@ test('Guardian is exposed by the profession selector and app composition', async
   assert.match(guardianPage, /data-profession="guardian"/);
 });
 
+test('the landing selector records supplied specialization artwork for every profession', () => {
+  const artwork = Object.fromEntries(
+    professionRegistry
+      .filter((entry) => entry.specializationArtwork)
+      .map((entry) => [entry.id, entry.specializationArtwork.map(({ name }) => name)])
+  );
+
+  assert.deepEqual(artwork, {
+    elementalist: ['Tempest', 'Weaver', 'Catalyst', 'Evoker'],
+    mesmer: ['Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
+    necromancer: ['Reaper', 'Scourge', 'Harbinger', 'Ritualist'],
+    ranger: ['Druid', 'Soulbeast', 'Untamed', 'Galeshot'],
+    thief: ['Daredevil', 'Deadeye', 'Specter', 'Antiquary'],
+    engineer: ['Scrapper', 'Holosmith', 'Mechanist', 'Amalgam'],
+    guardian: ['Dragonhunter', 'Firebrand', 'Willbender', 'Luminary'],
+    warrior: ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon'],
+    revenant: ['Herald', 'Renegade', 'Vindicator', 'Conduit']
+  });
+  assert.equal(
+    professionRegistry
+      .flatMap((entry) => entry.specializationArtwork || [])
+      .every(({ image }) => image.startsWith('https://assets.snowcrows.com/')),
+    true
+  );
+  assert.equal(
+    professionRegistry.every((entry) => entry.specializationArtwork?.length === 4),
+    true
+  );
+});
+
 test('the generic landing page and profession simulators have separate entries', async () => {
   const landingPage = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');

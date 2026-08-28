@@ -99,65 +99,99 @@ function mountStickyHeader(root: Document): void {
   }
 }
 
+/** Renders three armor columns with three always-visible profession artwork stacks each. */
 function renderProfessionCards(root: Document): void {
   const grid = root.querySelector('[data-profession-grid]');
   if (!grid) return;
+  grid.classList.add('profession-showcase-grid');
   grid.replaceChildren();
   for (const group of professionGroups) {
+    const column = root.createElement('section');
+    column.className = 'profession-showcase-group';
     const heading = root.createElement('h3');
+    heading.id = `profession-group-${group.weight}`;
     heading.className = 'profession-group-heading';
     heading.textContent = group.label;
-    grid.append(heading);
-    renderProfessionGroupCards(root, grid, group.entries);
+    column.setAttribute('aria-labelledby', heading.id);
+    column.append(heading);
+    renderProfessionShowcases(root, column, group.entries);
+    grid.append(column);
   }
 }
 
-function renderProfessionGroupCards(root: Document, grid: Element, entries: readonly ProfessionRegistryEntry[]): void {
-  for (const entry of entries) {
-    const card = root.createElement('a');
-    card.className = `profession-card profession-card-${entry.id}`;
-    const isCurrentProfession = root.body?.dataset.profession === entry.id;
-    card.href = isCurrentProfession ? '#workspace' : isEmbedded() ? embedRoute(entry.route) : entry.route;
-    card.classList.toggle('profession-card-current', isCurrentProfession);
+function professionLink(entry: ProfessionRegistryEntry): string {
+  return isEmbedded() ? embedRoute(entry.route) : entry.route;
+}
 
-    const mark = root.createElement('span');
-    mark.className = 'profession-mark';
-    mark.ariaHidden = 'true';
-    const fallback = root.createElement('span');
-    fallback.className = 'profession-mark-fallback';
-    fallback.textContent = entry.name.charAt(0);
-    mark.append(fallback);
-    if (entry.icon) {
-      const icon = root.createElement('img');
-      icon.className = 'profession-mark-icon';
-      icon.src = entry.icon;
-      icon.alt = '';
-      icon.loading = 'lazy';
-      icon.decoding = 'async';
-      icon.addEventListener(
-        'load',
-        () => {
-          fallback.hidden = true;
-        },
-        { once: true }
-      );
-      icon.addEventListener('error', () => icon.remove(), { once: true });
-      mark.append(icon);
+/**
+ * Keeps all specialization artwork visible so each profession remains a
+ * compact, direct path into its shared simulator page.
+ */
+function renderProfessionShowcases(root: Document, grid: Element, entries: readonly ProfessionRegistryEntry[]): void {
+  for (const entry of entries) {
+    const showcase = root.createElement('article');
+    showcase.className = `profession-showcase profession-card-${entry.id}`;
+
+    const header = root.createElement('header');
+    header.className = 'profession-showcase-header';
+    const name = root.createElement('strong');
+    name.className = 'profession-showcase-name';
+    name.textContent = entry.name;
+    const simulatorLink = root.createElement('a');
+    simulatorLink.className = 'profession-showcase-link';
+    simulatorLink.href = professionLink(entry);
+    simulatorLink.textContent = 'Open simulator →';
+    header.append(name, simulatorLink);
+
+    const gallery = root.createElement('div');
+    gallery.className = 'specialization-showcase-grid';
+    const artwork = entry.specializationArtwork;
+    if (artwork?.length) {
+      for (const specialization of artwork) {
+        const card = root.createElement('a');
+        card.className = 'specialization-showcase-card';
+        card.href = professionLink(entry);
+        card.setAttribute('aria-label', `${specialization.name}: open the ${entry.name} simulator`);
+
+        const image = root.createElement('img');
+        image.src = specialization.image;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.addEventListener(
+          'error',
+          () => {
+            image.remove();
+            card.classList.add('specialization-showcase-card-placeholder');
+          },
+          { once: true }
+        );
+
+        const copy = root.createElement('span');
+        copy.className = 'specialization-showcase-copy';
+        const name = root.createElement('strong');
+        name.textContent = specialization.name;
+        copy.append(name);
+        card.append(image, copy);
+        gallery.append(card);
+      }
+    } else {
+      const placeholder = root.createElement('a');
+      placeholder.className = 'specialization-showcase-card specialization-showcase-card-placeholder';
+      placeholder.href = professionLink(entry);
+      const copy = root.createElement('span');
+      copy.className = 'specialization-showcase-copy';
+      const label = root.createElement('strong');
+      label.textContent = 'Artwork coming soon';
+      const cardAction = root.createElement('small');
+      cardAction.textContent = `Open ${entry.name} simulator →`;
+      copy.append(label, cardAction);
+      placeholder.append(copy);
+      gallery.append(placeholder);
     }
 
-    const copy = root.createElement('span');
-    copy.className = 'profession-card-copy';
-    const name = root.createElement('strong');
-    name.textContent = entry.name;
-    const summary = root.createElement('small');
-    summary.textContent = entry.specializationSummary;
-    copy.append(name, summary);
-
-    const action = root.createElement('span');
-    action.className = 'profession-card-action';
-    action.textContent = isCurrentProfession ? 'Return to workspace →' : 'Open simulator →';
-    card.append(mark, copy, action);
-    grid.append(card);
+    showcase.append(header, gallery);
+    grid.append(showcase);
   }
 }
 
