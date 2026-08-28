@@ -7546,6 +7546,26 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   .skills-section {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* Keep gear controls readable by stacking weapon configuration below upgrades on narrow editor surfaces. */
+  .gear-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+  }
+
+  #gear-slots {
+    grid-row: 1 / span 2;
+  }
+
+  #equipment-info {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .weapon-select {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }
 
 @media (max-width: 900px) {
@@ -7557,9 +7577,19 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     border-top: 1px solid var(--border);
     border-left: 0;
   }
+}
 
+@media (max-width: 620px) {
   .gear-columns {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  #gear-slots,
+  #equipment-info,
+  .weapon-select {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .gear-columns > .gear-col + .gear-col {
@@ -10130,6 +10160,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 .landing-section-heading {
   margin-bottom: 18px;
+  text-align: center;
 }
 
 .landing-section-heading h2 {
@@ -10137,6 +10168,24 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   color: var(--text-bright);
   font-size: 23px;
   font-weight: 600;
+}
+
+.landing-tutorial-link {
+  margin-top: 6px;
+  padding: 0;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-tutorial-link:hover,
+.landing-tutorial-link:focus-visible {
+  color: var(--accent);
 }
 
 .profession-grid {
@@ -10265,18 +10314,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   background: color-mix(in srgb, var(--profession-accent) 12%, var(--bg-panel-alt));
 }
 
-.specialization-showcase-card::after {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--profession-accent) 24%, #09090f) 0%,
-    color-mix(in srgb, var(--profession-accent) 15%, rgba(9, 9, 15, 0.68)) 43%,
-    transparent 78%
-  );
-  content: '';
-}
-
 .specialization-showcase-card img {
   position: absolute;
   inset: 0;
@@ -10322,10 +10359,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     radial-gradient(circle at 82% 40%, color-mix(in srgb, var(--profession-accent) 18%, transparent), transparent 34%),
     linear-gradient(125deg, color-mix(in srgb, var(--profession-accent) 9%, transparent), transparent 55%),
     var(--bg-panel-alt);
-}
-
-.specialization-showcase-card-placeholder::after {
-  background: none;
 }
 
 .landing-footer {

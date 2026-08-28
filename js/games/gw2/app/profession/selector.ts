@@ -159,12 +159,7 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
         { once: true }
       );
 
-      const copy = root.createElement('span');
-      copy.className = 'specialization-showcase-copy';
-      const name = root.createElement('strong');
-      name.textContent = specialization.name;
-      copy.append(name);
-      card.append(image, copy);
+      card.append(image);
       gallery.append(card);
     } else {
       const placeholder = root.createElement('a');

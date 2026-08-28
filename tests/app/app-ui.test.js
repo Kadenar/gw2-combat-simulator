@@ -918,6 +918,11 @@ test('the generic landing page and profession simulators have separate entries',
   assert.match(landingPage, /<body class="landing-page">/);
   assert.match(landingPage, /<header class="landing-header">\s*<div class="header-brand">/);
   assert.doesNotMatch(landingPage, /Available simulators/);
+  assert.match(landingPage, /Pick a profession to get started!/);
+  assert.match(
+    landingPage,
+    /Pick a profession to get started![\s\S]*data-tutorial-trigger[^>]*>[\s\S]*How do I use this tool\?[\s\S]*data-profession-grid/
+  );
   assert.match(landingPage, /data-profession-grid/);
   assert.doesNotMatch(landingPage, /simulator-view-tabs/);
   assert.doesNotMatch(landingPage, /profession-card-mesmer/);

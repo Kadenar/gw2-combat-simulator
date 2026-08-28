@@ -18,7 +18,19 @@
         </div>
       </header>
 
-      <section class="landing-section" aria-label="Profession simulators">
+      <section class="landing-section" aria-labelledby="profession-picker-heading">
+        <div class="landing-section-heading">
+          <h2 id="profession-picker-heading">Pick a profession to get started!</h2>
+          <button
+            type="button"
+            class="landing-tutorial-link"
+            data-tutorial-trigger
+            aria-haspopup="dialog"
+            aria-controls="simulator-tutorial-dialog"
+          >
+            How do I use this tool?
+          </button>
+        </div>
         <div class="profession-grid" data-profession-grid></div>
       </section>
 

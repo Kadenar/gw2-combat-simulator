@@ -74,6 +74,7 @@ function tutorialTrigger(root: Document, prominent: boolean): HTMLButtonElement 
     : 'community-link tutorial-trigger tutorial-trigger-compact';
   trigger.setAttribute('aria-haspopup', 'dialog');
   trigger.setAttribute('aria-controls', TUTORIAL_DIALOG_ID);
+  trigger.setAttribute('data-tutorial-trigger', '');
   trigger.innerHTML = '<span class="tutorial-trigger-icon" aria-hidden="true">&#9654;</span><span>How to use</span>';
   return trigger;
 }
@@ -195,13 +196,17 @@ export function mountSimulatorTutorial(root: Document = document): void {
     else dialog.removeAttribute('open');
   };
 
-  trigger.addEventListener('click', () => {
+  // Route every launcher through one opener so the header and landing page share tutorial state.
+  const openDialog = (): void => {
     if (!dialog.open) {
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
     }
 
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
+  };
+  root.querySelectorAll<HTMLButtonElement>('[data-tutorial-trigger]').forEach((tutorialTrigger) => {
+    tutorialTrigger.addEventListener('click', openDialog);
   });
   dialog.addEventListener('click', (event) => {
     if (event.target === dialog) {
