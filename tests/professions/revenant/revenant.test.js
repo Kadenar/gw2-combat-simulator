@@ -2514,6 +2514,24 @@ test('upkeep drains net energy and cancels exactly on starvation', () => {
   assert.equal(starved.endState.profession.energy, 25);
 });
 
+test('upkeep Energy drain begins when its cast completes', () => {
+  const result = simulate('Core', ['Embrace the Darkness'], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DEMON
+  });
+
+  const completion = result.steps[0].end / 1000;
+
+  // The activation spends 5 Energy immediately, then receives normal regeneration until the upkeep completes.
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy' && event.at < completion)
+      .map((event) => event.state.energy),
+    [45.5, 46, 46.5, 47, 47.5, 48]
+  );
+  assert.equal(result.endState.profession.activeUpkeeps[0].startsAt, completion);
+});
+
 test('Revenant palette exposes upkeep releases and enforces Energy costs', () => {
   const active = simulate('Core', ['Impossible Odds']);
   const context = {

@@ -148,17 +148,19 @@ function warbandActorActions(
     const start = nextAutoattack
       ? nextAutoattack.start + TERMINAL_RAZORCLAW_INPUT_DELAY_MS
       : event.time - (swapsImmediatelyAfter ? 200 : 0);
-    // Actor-only evidence identifies Band Together's instant summon. It overlaps the active cast, then becomes the
-    // scheduler's offset anchor like every other concurrent command.
     return [
-      directAction(
-        nextAutoattack ? nextAutoattack.eventIndex + 0.25 : eventIndex,
-        start,
-        event.skillId,
-        rawSkillName(context, event.skillId),
-        identity,
-        'animation'
-      )
+      {
+        ...directAction(
+          nextAutoattack ? nextAutoattack.eventIndex + 0.25 : eventIndex,
+          start,
+          event.skillId,
+          rawSkillName(context, event.skillId),
+          identity,
+          'animation'
+        ),
+        // Band Together's enhanced summon overlaps the active cast, then anchors the next scheduler offset.
+        concurrentTimeline: true
+      }
     ];
   });
 }

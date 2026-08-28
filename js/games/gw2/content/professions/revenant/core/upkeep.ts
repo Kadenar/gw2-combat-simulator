@@ -76,6 +76,8 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   const active: RevenantUpkeepState = {
     skillId: skill.id,
     upkeepCost: Number(skill.upkeepCost || 0),
+    // The cast may emit packets earlier, but its sustained Energy drain begins only when activation completes.
+    startsAt: at,
     empoweredNextPulse: false
   };
   state.activeUpkeeps.push(active);

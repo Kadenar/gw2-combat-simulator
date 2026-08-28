@@ -74,7 +74,9 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
 export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const state = professionCoreState(context);
   const regeneration = Number(resourceProfile(context).energyRegenerationPerSecond || 0);
-  const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
+  const upkeep = state.activeUpkeeps
+    .filter((active) => Number(active.startsAt || 0) <= context.start + context.epsilon)
+    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const gainPerTick = (regeneration - upkeep) * REVENANT_ENERGY_TICK_INTERVAL;
   if (state.combatBeganAt == null || gainPerTick <= 0 || cost > state.maximumEnergy + context.epsilon) return null;
 
@@ -90,7 +92,10 @@ function advanceRevenantEnergyTick(
   target: number,
   regeneration: number
 ): void {
-  const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
+  // A cast-time upkeep affects the first resource tick on or after its completion, never its activation windup.
+  const upkeep = state.activeUpkeeps
+    .filter((active) => Number(active.startsAt || 0) <= target + context.epsilon)
+    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const rate = regeneration - upkeep;
   const elapsed = target - from;
   const previousEnergy = state.energy;

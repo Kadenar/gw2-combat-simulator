@@ -10,6 +10,8 @@ export interface ReplayTimelineAction {
   readonly skillId: string | number;
   readonly control?: 'cooldown-reset';
   readonly independentTimeline?: boolean;
+  /** Replays observed overlap while retaining this action as the scheduler's next relative-offset anchor. */
+  readonly concurrentTimeline?: boolean;
   readonly followingWaitMs?: number;
   /** Profession evidence may place combat before a source phase/EVTC boundary so an opening hit remains observable. */
   readonly combatStartOverride?: number;
@@ -121,7 +123,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
     // Weapon swaps cancel an active cast in game, so log imports must always replay them serially.
     const concurrent =
-      action.name !== 'Swap Weapons' && (independent || (instant && action.skill?.canCastConcurrently !== false));
+      action.name !== 'Swap Weapons' &&
+      (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, activeCastEnd, previousCastStart) === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = quantizeMs(at - previousCastStart);

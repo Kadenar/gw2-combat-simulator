@@ -99,6 +99,7 @@ export interface RevenantChargeState extends SchedulerRecord {
 export interface RevenantUpkeepState extends SchedulerRecord {
   skillId: SkillId;
   upkeepCost: number;
+  startsAt?: number;
   empoweredNextPulse: boolean;
 }
 
