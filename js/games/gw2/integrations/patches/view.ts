@@ -63,7 +63,8 @@ function overviewRows(entries: readonly PatchOverviewEntry[]): string {
 export function mountPatchPreviewControls(app: ProfessionAppState): void {
   const preview = app.profession.preview;
   const header = document.querySelector('body[data-profession] #app > header');
-  if (!preview || !header || header.querySelector('.patch-preview-picker')) {
+  const brand = header?.querySelector('.header-brand');
+  if (!preview || !header || !brand || header.querySelector('.patch-preview-picker')) {
     return;
   }
 
@@ -103,7 +104,8 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   }
 
   control.append(options);
-  header.prepend(control);
+  // Keep the version picker in the brand flow so the sticky header reserves space for it.
+  brand.append(control);
 }
 
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {

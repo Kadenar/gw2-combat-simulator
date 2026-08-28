@@ -609,10 +609,6 @@ header .community-actions {
 
 /* Patch preview */
 .patch-preview-picker {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  z-index: 210;
   display: flex;
   align-items: flex-start;
   flex-direction: column;
@@ -817,14 +813,6 @@ header .community-actions {
 .patch-preview-empty {
   margin-top: 8px;
   color: var(--text-dim);
-}
-
-@media (max-width: 900px) {
-  .patch-preview-picker {
-    position: static;
-    width: fit-content;
-    margin: 0 0 10px;
-  }
 }
 
 @media (max-width: 620px) {
