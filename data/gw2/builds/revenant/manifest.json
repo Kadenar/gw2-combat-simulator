@@ -6,7 +6,7 @@
         "label": "Power (Greatsword - Sword/Sword)",
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-benchmark.json",
-        "benchmarkDps": 43423,
+        "benchmarkDps": 43308,
         "referenceDps": 43752,
         "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
         "upToDate": true
@@ -20,19 +20,19 @@
         "label": "Power Alacrity (Sword/Sword)",
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
-        "benchmarkDps": 34298
+        "benchmarkDps": 34295
       },
       {
         "label": "Condition (Shortbow - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 41440
+        "benchmarkDps": 40912
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 40954,
+        "benchmarkDps": 41003,
         "referenceDps": 40839,
         "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
@@ -54,7 +54,7 @@
         "label": "Condition Quickness (Shortbow - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 32427
+        "benchmarkDps": 32016
       }
     ]
   },
@@ -89,7 +89,7 @@
         "label": "Condition (Spear - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
-        "benchmarkDps": 39785,
+        "benchmarkDps": 39793,
         "upToDate": true
       }
     ]

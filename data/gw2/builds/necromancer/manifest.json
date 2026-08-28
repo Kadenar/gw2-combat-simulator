@@ -24,7 +24,7 @@
         "label": "Condition (Dagger / Sword + Spear)",
         "build": "data/gw2/builds/necromancer/b-condi-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-reaper-bench.json",
-        "benchmarkDps": 43869,
+        "benchmarkDps": 43873,
         "upToDate": true
       },
       {
@@ -61,7 +61,7 @@
         "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-quick-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-quick-harbinger-bench.json",
-        "benchmarkDps": 36340,
+        "benchmarkDps": 36348,
         "upToDate": true
       },
       {

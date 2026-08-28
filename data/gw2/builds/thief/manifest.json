@@ -32,14 +32,14 @@
         "label": "Condition (Spear)",
         "build": "data/gw2/builds/thief/b-condi-antiquary-spear.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-spear-bench.json",
-        "benchmarkDps": 41401,
+        "benchmarkDps": 41593,
         "upToDate": true
       },
       {
         "label": "Condition (Dagger / Dagger)",
         "build": "data/gw2/builds/thief/b-condi-antiquary-dagger-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
-        "benchmarkDps": 42716,
+        "benchmarkDps": 42679,
         "upToDate": true
       }
     ]

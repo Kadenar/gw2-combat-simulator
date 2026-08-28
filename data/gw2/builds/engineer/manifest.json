@@ -28,7 +28,7 @@
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37541,
+        "benchmarkDps": 37552,
         "dpsReportUrl": "https://dps.report/h0tB-20260504-203415_golem",
         "upToDate": true
       },
@@ -48,21 +48,21 @@
         "label": "Condition (Pistol / Pistol)",
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
-        "benchmarkDps": 43307,
+        "benchmarkDps": 43341,
         "upToDate": true
       },
       {
         "label": "Condition (Pistol / Pistol - Tools TRV)",
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol-tools-trv.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
-        "benchmarkDps": 36528,
+        "benchmarkDps": 36556,
         "upToDate": true
       },
       {
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
-        "benchmarkDps": 41661,
+        "benchmarkDps": 41664,
         "upToDate": true
       }
     ]
@@ -93,7 +93,7 @@
         "label": "Condition Quickness (Spear)",
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
-        "benchmarkDps": 33142,
+        "benchmarkDps": 33167,
         "upToDate": true
       },
       {

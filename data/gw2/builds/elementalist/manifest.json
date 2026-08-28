@@ -23,7 +23,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
         "dpsReportUrl": "https://dps.report/Yt2F-20260805-122746_golem",
-        "benchmarkDps": 45603,
+        "benchmarkDps": 45644,
         "upToDate": true
       },
       {
@@ -31,7 +31,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/yH46-20260729-145625_golem",
-        "benchmarkDps": 43788,
+        "benchmarkDps": 43826,
         "upToDate": true
       },
       {
@@ -39,7 +39,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
         "dpsReportUrl": "https://dps.report/qcqm-20260813-042826_golem",
-        "benchmarkDps": 42801,
+        "benchmarkDps": 42804,
         "upToDate": true
       }
     ]
@@ -121,7 +121,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40601,
+        "benchmarkDps": 40651,
         "upToDate": false
       },
       {
@@ -136,7 +136,7 @@
         "label": "Condition Alacrity (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 34056,
+        "benchmarkDps": 34152,
         "upToDate": false
       },
       {
@@ -211,7 +211,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-catalyst-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-catalyst-pistol.json",
         "dpsReportUrl": "https://dps.report/Q2mp-20260416-234551_golem",
-        "benchmarkDps": 37258,
+        "benchmarkDps": 37295,
         "upToDate": true
       },
       {
@@ -293,7 +293,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
         "dpsReportUrl": "https://dps.report/zPEa-20260421-193615_golem",
-        "benchmarkDps": 44201,
+        "benchmarkDps": 44180,
         "upToDate": true
       },
       {
@@ -301,7 +301,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
         "dpsReportUrl": "https://dps.report/2aDW-20260421-233936_golem",
-        "benchmarkDps": 40221,
+        "benchmarkDps": 40382,
         "upToDate": true
       },
       {
