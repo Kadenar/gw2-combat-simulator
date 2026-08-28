@@ -230,6 +230,7 @@ export function bindPaletteInteractions(
     } catch {
       // Browser storage may be unavailable in private or embedded contexts.
     }
+
     disclosure.ontoggle = () => {
       try {
         root.ownerDocument.defaultView?.localStorage.setItem(storageKey, String(disclosure.open));

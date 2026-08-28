@@ -80,6 +80,7 @@ function mountStickyHeader(root: Document): void {
   const updateHeaderHeight = () => {
     appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);
   };
+
   const updateHeaderSurface = () => {
     const scrollTop = root.defaultView?.scrollY ?? root.scrollingElement?.scrollTop ?? 0;
     header.classList.toggle('simulator-header-scrolled', scrollTop > 0);
