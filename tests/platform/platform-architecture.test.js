@@ -2228,7 +2228,7 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
   );
 });
 
-test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => {
+test('Relic of Bloodstone records three Volatility stacks before the fourth blast grants Fervor', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -2284,11 +2284,14 @@ test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => 
     stats: { power: 2000, precision: 1000, ferocity: 0 },
     target: { armor: 2597, conditions: {} }
   };
-  const twoBlasts = simulateGw2({
+  const threeBlasts = simulateGw2({
     profession,
     rotation: [
       'Bloodstone Fixture Field',
       'Bloodstone Fixture Blast',
+      { type: 'wait', durationMs: 1 },
+      'Bloodstone Fixture Blast',
+      { type: 'wait', durationMs: 1 },
       'Bloodstone Fixture Blast',
       { type: 'wait', durationMs: 1000 }
     ],
@@ -2300,8 +2303,11 @@ test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => 
       'Bloodstone Fixture Field',
       'Bloodstone Fixture Strike',
       'Bloodstone Fixture Blast',
+      { type: 'wait', durationMs: 1 },
       'Bloodstone Fixture Blast',
+      { type: 'wait', durationMs: 1 },
       'Bloodstone Fixture Blast',
+      { type: 'wait', durationMs: 1 },
       'Bloodstone Fixture Blast',
       { type: 'wait', durationMs: 1 },
       'Bloodstone Fixture Strike',
@@ -2319,19 +2325,18 @@ test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => 
     (event) => event.type === 'condition' && event.skillName === 'Bloodstone Explosion'
   );
 
-  // Consecutive identical proc rows are intentionally grouped for display.
   assert.deepEqual(
     volatility.map((step) => step.detail),
-    ['1/3 stacks']
+    ['1/3 stacks', '2/3 stacks', '3/3 stacks']
   );
   assert.equal(
-    twoBlasts.procSteps.some((step) => step.skill === 'Relic of Bloodstone'),
+    threeBlasts.procSteps.some((step) => step.skill === 'Relic of Bloodstone'),
     false
   );
   assert.equal(fervor.length, 1);
   assert.ok(Math.abs(strikes[1].damage / strikes[0].damage - 1.07) < 1e-12);
   assert.equal(explosion.coefficient, 3);
-  assert.equal(explosion.at, 0.68);
+  assert.equal(explosion.at, 0.683);
   assert.equal(bleeding.stacks, 6);
   assert.equal(bleeding.duration, 6);
 });

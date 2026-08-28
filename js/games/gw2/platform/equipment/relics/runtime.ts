@@ -356,14 +356,14 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
 
       const currentStacks = Number(state.stacks || 0);
-      if (currentStacks < 2) {
+      if (currentStacks < 3) {
         state.stacks = currentStacks + 1;
         state.expiresAt = event.at + 10;
         ctx.recordProc('relic', 'Bloodstone Volatility', event.at, event.skillName, `${state.stacks}/3 stacks`);
         return;
       }
 
-      // The third qualifying blast consumes Volatility and activates Fervor.
+      // The fourth qualifying blast consumes three Volatility stacks and activates Fervor.
       state.stacks = 0;
       state.expiresAt = 0;
       state.buffUntil = event.at + 8;
