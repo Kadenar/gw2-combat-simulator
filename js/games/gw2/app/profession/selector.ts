@@ -118,10 +118,7 @@ function professionLink(entry: ProfessionRegistryEntry): string {
   return isEmbedded() ? embedRoute(entry.route) : entry.route;
 }
 
-/**
- * Keeps all specialization artwork visible so each profession remains a
- * compact, direct path into its shared simulator page.
- */
+/** Shows one random specialization image per profession so each compact card varies between page visits. */
 function renderProfessionShowcases(root: Document, grid: Element, entries: readonly ProfessionRegistryEntry[]): void {
   for (const entry of entries) {
     const showcase = root.createElement('article');
@@ -141,35 +138,34 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
     const gallery = root.createElement('div');
     gallery.className = 'specialization-showcase-grid';
     const artwork = entry.specializationArtwork;
-    if (artwork?.length) {
-      for (const specialization of artwork) {
-        const card = root.createElement('a');
-        card.className = 'specialization-showcase-card';
-        card.href = professionLink(entry);
-        card.setAttribute('aria-label', `${specialization.name}: open the ${entry.name} simulator`);
+    const specialization = artwork?.length ? artwork[Math.floor(Math.random() * artwork.length)] : undefined;
+    if (specialization) {
+      const card = root.createElement('a');
+      card.className = 'specialization-showcase-card';
+      card.href = professionLink(entry);
+      card.setAttribute('aria-label', `${specialization.name}: open the ${entry.name} simulator`);
 
-        const image = root.createElement('img');
-        image.src = specialization.image;
-        image.alt = '';
-        image.loading = 'lazy';
-        image.decoding = 'async';
-        image.addEventListener(
-          'error',
-          () => {
-            image.remove();
-            card.classList.add('specialization-showcase-card-placeholder');
-          },
-          { once: true }
-        );
+      const image = root.createElement('img');
+      image.src = specialization.image;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.addEventListener(
+        'error',
+        () => {
+          image.remove();
+          card.classList.add('specialization-showcase-card-placeholder');
+        },
+        { once: true }
+      );
 
-        const copy = root.createElement('span');
-        copy.className = 'specialization-showcase-copy';
-        const name = root.createElement('strong');
-        name.textContent = specialization.name;
-        copy.append(name);
-        card.append(image, copy);
-        gallery.append(card);
-      }
+      const copy = root.createElement('span');
+      copy.className = 'specialization-showcase-copy';
+      const name = root.createElement('strong');
+      name.textContent = specialization.name;
+      copy.append(name);
+      card.append(image, copy);
+      gallery.append(card);
     } else {
       const placeholder = root.createElement('a');
       placeholder.className = 'specialization-showcase-card specialization-showcase-card-placeholder';

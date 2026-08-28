@@ -10139,24 +10139,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   font-weight: 600;
 }
 
-/* Keep the simulator explanation readable without turning it into a separate interface. */
-.landing-explanation {
-  max-width: 760px;
-  color: var(--text-dim);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.landing-explanation h2 {
-  margin-bottom: 10px;
-  color: var(--text-bright);
-  font-size: 20px;
-}
-
-.landing-explanation p + p {
-  margin-top: 8px;
-}
-
 .profession-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -10199,8 +10181,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   --profession-accent: #c65d68;
 }
 
-/* Landing and profession-browser views share three compact armor columns with
-   every profession's specialization artwork visible. */
+/* Landing and profession-browser views share three compact armor columns. */
 .profession-showcase-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;

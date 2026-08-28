@@ -27,7 +27,7 @@ export interface ProfessionRegistryEntry {
   readonly route: string;
   /** Optional class applied to the document body. */
   readonly themeClass: string;
-  /** Specialization artwork used by the landing-page drill-down. */
+  /** Core and specialization artwork used by the landing-page cards. */
   readonly specializationArtwork?: readonly Readonly<{ name: string; image: string }>[];
   /** Lazy profession loader. */
   readonly loadProfession: () => Promise<ProfessionAppContract>;
@@ -48,6 +48,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     route: 'elementalist.html',
     themeClass: 'elementalist-theme',
     specializationArtwork: [
+      {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/2FEEkQBNxzaWIIx21vmnpc7dccL6om02MDNmNuZ1.webp'
+      },
       {
         name: 'Tempest',
         image:
@@ -87,6 +92,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     themeClass: 'mesmer-theme',
     specializationArtwork: [
       {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/AdKbIsuTW9tQQRRRSqOGFiU46rjSyHylChEyUq1D.jpg'
+      },
+      {
         name: 'Chronomancer',
         image:
           'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/wYMly4iJbZEwdZPG2oWwqnCb7ly4VTvI58oBnW5K.jpg'
@@ -124,6 +134,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     route: 'necromancer.html',
     themeClass: 'necromancer-theme',
     specializationArtwork: [
+      {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/DDW5i9E5dyuhaXywvO2Wiqn0nQYOwjxZg9GQn6ni.webp'
+      },
       {
         name: 'Reaper',
         image:
@@ -164,6 +179,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     themeClass: 'ranger-theme',
     specializationArtwork: [
       {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/yl95i2EFNwe4qI4F8Vo0a81LhvSnVFZ9w2evSsig.jpg'
+      },
+      {
         name: 'Druid',
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/YIwgxjG1E7FiKqSAaXrCiuQfh7w5eTEOYXK0Id8x.webp'
@@ -202,6 +222,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     themeClass: 'thief-theme',
     specializationArtwork: [
       {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/mLAhlUPnakYgM3FwEni1Mfr16Oi8VMVZ4TpSMgZE.jpg'
+      },
+      {
         name: 'Daredevil',
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/Z324ofTh0ZEVH1ix916jvmBa8gy0LmBsxwBJ5MMY.webp'
@@ -239,6 +264,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     route: 'engineer.html',
     themeClass: 'engineer-theme',
     specializationArtwork: [
+      {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/emJ476M3DgTpLt6Bn19FwqRn6lOslq571PD6XUU6.jpg'
+      },
       {
         name: 'Scrapper',
         image:
@@ -279,6 +309,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     themeClass: 'guardian-theme',
     specializationArtwork: [
       {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/OaGAg9GNDYCgR4oUSafRsSP2MpciqXbYQysSCRFO.webp'
+      },
+      {
         name: 'Dragonhunter',
         image:
           'https://assets.snowcrows.com/uploads/28054721-a151-11ec-8fcf-ca7a943c517e/y9EFXtfsvw5Zu4G79YOK5l44t1ApVxouqCl0X3sc.webp'
@@ -316,6 +351,11 @@ const entries: readonly ProfessionRegistryEntry[] = [
     route: 'warrior.html',
     themeClass: 'warrior-theme',
     specializationArtwork: [
+      {
+        name: 'Core',
+        image:
+          'https://assets.snowcrows.com/uploads/0154d14c-1026-4ff3-951c-bc5454ca4f4e/BwqIcVAqPfQMWCIfONQAnADqQaZ9SCxqhE1TwbqP.jpg'
+      },
       {
         name: 'Berserker',
         image:

@@ -887,24 +887,20 @@ test('the landing selector records supplied specialization artwork for every pro
   );
 
   assert.deepEqual(artwork, {
-    elementalist: ['Tempest', 'Weaver', 'Catalyst', 'Evoker'],
-    mesmer: ['Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
-    necromancer: ['Reaper', 'Scourge', 'Harbinger', 'Ritualist'],
-    ranger: ['Druid', 'Soulbeast', 'Untamed', 'Galeshot'],
-    thief: ['Daredevil', 'Deadeye', 'Specter', 'Antiquary'],
-    engineer: ['Scrapper', 'Holosmith', 'Mechanist', 'Amalgam'],
-    guardian: ['Dragonhunter', 'Firebrand', 'Willbender', 'Luminary'],
-    warrior: ['Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon'],
+    elementalist: ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker'],
+    mesmer: ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
+    necromancer: ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist'],
+    ranger: ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot'],
+    thief: ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary'],
+    engineer: ['Core', 'Scrapper', 'Holosmith', 'Mechanist', 'Amalgam'],
+    guardian: ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary'],
+    warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon'],
     revenant: ['Herald', 'Renegade', 'Vindicator', 'Conduit']
   });
   assert.equal(
     professionRegistry
       .flatMap((entry) => entry.specializationArtwork || [])
       .every(({ image }) => image.startsWith('https://assets.snowcrows.com/')),
-    true
-  );
-  assert.equal(
-    professionRegistry.every((entry) => entry.specializationArtwork?.length === 4),
     true
   );
 });
