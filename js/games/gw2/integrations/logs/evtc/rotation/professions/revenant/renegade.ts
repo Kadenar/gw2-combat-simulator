@@ -85,10 +85,9 @@ function initialWarbandActions(
     const identity = WARBAND_SPECIES_ACTIONS.get(agent.profession);
     return identity ? [identity] : [];
   });
-  // The initial actor snapshot proves the summon completed before the first
-  // retained cast. Preserve the short setup gap used by Revenant precasts so
-  // energy regeneration and the following weapon cast remain executable.
-  let cursor = anchor - 500;
+  // The initial actor snapshot proves the summon completed before the first retained cast, so pack its runtime
+  // immediately before that evidence instead of inventing an unobserved setup gap.
+  let cursor = anchor;
   const reversed: EvtcRecordedRotationAction[] = [];
   for (let index = identities.length - 1; index >= 0; index -= 1) {
     const identity = identities[index];
@@ -149,19 +148,17 @@ function warbandActorActions(
     const start = nextAutoattack
       ? nextAutoattack.start + TERMINAL_RAZORCLAW_INPUT_DELAY_MS
       : event.time - (swapsImmediatelyAfter ? 200 : 0);
+    // Actor-only evidence identifies Band Together's instant summon. It overlaps the active cast, then becomes the
+    // scheduler's offset anchor like every other concurrent command.
     return [
-      {
-        ...directAction(
-          nextAutoattack ? nextAutoattack.eventIndex + 0.25 : eventIndex,
-          start,
-          event.skillId,
-          rawSkillName(context, event.skillId),
-          identity,
-          'animation'
-        ),
-        // Actor-only evidence identifies Band Together's instant summon, which can overlap the active weapon cast.
-        independentTimeline: true
-      }
+      directAction(
+        nextAutoattack ? nextAutoattack.eventIndex + 0.25 : eventIndex,
+        start,
+        event.skillId,
+        rawSkillName(context, event.skillId),
+        identity,
+        'animation'
+      )
     ];
   });
 }

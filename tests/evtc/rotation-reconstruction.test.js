@@ -2675,6 +2675,98 @@ test('reconstructs Revenant legend, warband, and split animation mechanics', () 
   assert.equal(result.rotation.find((action) => action.name === "Razorclaw's Rage")?.offset, 120);
 });
 
+test('packs initial Renegade summons against the first cast and chains later concurrent offsets', () => {
+  const icerazor = 0x3000n;
+  const razorclaw = 0x3001n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 63,
+        character: 'Fixture Renegade'
+      },
+      {
+        ...log().agents[0],
+        address: icerazor,
+        profession: 18_524,
+        elite: 0xffffffff,
+        character: 'Visk Icerazor'
+      },
+      {
+        ...log().agents[0],
+        address: razorclaw,
+        profession: 18_791,
+        elite: 0xffffffff,
+        character: 'Jas Razorclaw'
+      }
+    ],
+    skills: [
+      { id: 28_357, name: 'Searing Fissure' },
+      { id: 44_272, name: 'Legendary Renegade Stance' },
+      { id: 72_370, name: "Razorclaw's Rage" }
+    ],
+    events: [
+      event({
+        time: 1_000,
+        source: icerazor,
+        sourceInstance: 24,
+        sourceMasterInstance: 1,
+        stateChange: 18
+      }),
+      event({ time: 2_000, skillId: 28_357, value: 600, stateChange: 67 }),
+      event({
+        time: 2_200,
+        source: razorclaw,
+        sourceInstance: 25,
+        sourceMasterInstance: 1,
+        skillId: 72_370,
+        stateChange: 67
+      }),
+      event({ time: 2_280, stateChange: 1 }),
+      event({
+        time: 2_520,
+        target: PLAYER,
+        skillId: 44_272,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69
+      }),
+      event({ time: 2_600, skillId: 28_357, value: 600, activation: 3, stateChange: 68 })
+    ]
+  });
+  const rotationCatalog = {
+    skills: [
+      [-4, 'Swap Legends', 'Profession', 'Profession_1', 0],
+      [28_357, 'Searing Fissure', 'Weapon', 'Weapon_2', 600],
+      [40_485, "Icerazor's Ire", 'Utility', 'Utility', 520],
+      [42_949, "Razorclaw's Rage", 'Utility', 'Utility', 500]
+    ].map(([id, name, type, slot, quicknessCastTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects: [],
+      implemented: true
+    }))
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog);
+
+  assert.deepEqual(
+    result.rotation.map(({ name, offset, waitMs }) => ({ name, offset, waitMs })),
+    [
+      { name: "Icerazor's Ire", offset: undefined, waitMs: undefined },
+      { name: 'Searing Fissure', offset: undefined, waitMs: undefined },
+      { name: "Razorclaw's Rage", offset: 200, waitMs: undefined },
+      { name: '__combat_start', offset: 80, waitMs: undefined },
+      { name: 'Swap Legends', offset: 320, waitMs: undefined }
+    ]
+  );
+});
+
 test('does not duplicate a truncated Revenant weapon precast recovered by the generic parser', () => {
   const fixture = log({
     agents: [

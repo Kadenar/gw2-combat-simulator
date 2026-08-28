@@ -111,7 +111,7 @@ export function validateActivationInterruptMs(
   return { valid: true, value };
 }
 
-/** Accepts a 40 ms action-tick offset from the previous cast start, optionally including signed marker offsets. */
+/** Accepts action-tick offsets for skills and arbitrary whole milliseconds for signed combat-start offsets. */
 export function validateActivationConcurrentOffsetMs(
   rawValue: string | number,
   minimumMs: number | null = 0
@@ -132,10 +132,13 @@ export function validateActivationConcurrentOffsetMs(
     };
   }
 
-  if (!Number.isInteger(parsed) || parsed % GW2_ACTION_TICK_MS !== 0) {
+  if (!Number.isInteger(parsed) || (normalizedMinimum != null && parsed % GW2_ACTION_TICK_MS !== 0)) {
     return {
       valid: false,
-      error: `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
+      error:
+        normalizedMinimum == null
+          ? 'Enter a whole-millisecond offset.'
+          : `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
     };
   }
 
@@ -155,19 +158,19 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       ? null
       : Math.round(Number(options.minimumConcurrentOffsetMs) || 0)
     : GW2_ACTION_TICK_MS;
+  const inputStep = isConcurrentBehavior && minimumMs == null ? 1 : GW2_ACTION_TICK_MS;
   const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
   const suggestedMs = Number.isFinite(rawSuggestedMs)
     ? Math.max(
         suggestedFloor,
         isConcurrentBehavior
-          ? Math.round(rawSuggestedMs / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
+          ? Math.round(rawSuggestedMs / inputStep) * inputStep
           : Math.floor(rawSuggestedMs / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
       )
     : isConcurrentBehavior
       ? Math.max(suggestedFloor, 120)
       : GW2_ACTION_TICK_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
-  const inputStep = GW2_ACTION_TICK_MS;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';
   editor.setAttribute('role', 'dialog');

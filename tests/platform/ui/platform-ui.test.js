@@ -131,6 +131,8 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.match(validateActivationConcurrentOffsetMs('100.4').error, /divisible by 40 ms/);
   assert.match(validateActivationConcurrentOffsetMs(100).error, /divisible by 40 ms/);
   assert.deepEqual(validateActivationConcurrentOffsetMs(-440, null), { valid: true, value: -440 });
+  assert.deepEqual(validateActivationConcurrentOffsetMs(681, null), { valid: true, value: 681 });
+  assert.match(validateActivationConcurrentOffsetMs('681.5', null).error, /whole-millisecond/);
   assert.equal(validateActivationConcurrentOffsetMs('').valid, false);
   assert.equal(validateActivationConcurrentOffsetMs(-1).valid, false);
   assert.equal(
