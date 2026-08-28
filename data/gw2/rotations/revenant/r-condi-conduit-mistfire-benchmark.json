@@ -1,14 +1,213 @@
 {
+  "metadata": {
+    "log": "condi conduit misfire bench.zevtc",
+    "arcdpsBuild": "20260317",
+    "player": {
+      "address": "0x7d0",
+      "character": "Bams Beater",
+      "account": ":Kadenar.8419",
+      "professionId": "revenant",
+      "professionName": "Revenant",
+      "specializationId": "conduit",
+      "specializationName": "Conduit",
+      "recordedActionCount": 188
+    },
+    "parser": "revenant:conduit",
+    "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
+    "combatStartTimestampMs": 996,
+    "warnings": []
+  },
   "rotation": [
     {
-      "name": "Temporal Rift"
+      "name": "Temporal Rift",
+      "skillId": 28409
     },
     {
-      "name": "Hex-Eater Vortex"
+      "name": "Hex-Eater Vortex",
+      "skillId": 77243
     },
     {
       "name": "__combat_start",
-      "offset": 300
+      "offset": 440
+    },
+    {
+      "name": "Cosmic Wisdom",
+      "skillId": 77371
+    },
+    {
+      "name": "Twin Moon Sweep",
+      "skillId": 76968
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 240
+    },
+    {
+      "name": "Embrace the Darkness",
+      "skillId": 28287
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
+    },
+    {
+      "name": "Banish Enchantment",
+      "skillId": 27505
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Call to Anguish",
+      "skillId": 27917,
+      "interruptMs": 800
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Blot",
+      "skillId": 72954
+    },
+    {
+      "name": "Unyielding Impact",
+      "skillId": 76503
+    },
+    {
+      "name": "Banish Enchantment",
+      "skillId": 27505
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Blitz",
+      "skillId": 72938
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 480
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 280
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 40
+    },
+    {
+      "name": "Release Potential: Dervish",
+      "skillId": 78661
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066,
+      "interruptMs": 240
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Twin Moon Sweep",
+      "skillId": 76968
+    },
+    {
+      "name": "Hex-Eater Vortex",
+      "skillId": 77243
+    },
+    {
+      "name": "Temporal Rift",
+      "skillId": 28409
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Twin Moon Sweep",
+      "skillId": 76968
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066,
+      "interruptMs": 400
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Hex-Eater Vortex",
+      "skillId": 77243
+    },
+    {
+      "name": "Release Potential: Dervish",
+      "skillId": 78661
     },
     {
       "name": "Twin Moon Sweep",
@@ -16,117 +215,181 @@
     },
     {
       "name": "Cosmic Wisdom",
-      "offset": 100
+      "skillId": 77371,
+      "offset": 40
     },
     {
       "name": "Swap Legends",
-      "offset": 100
+      "skillId": -4,
+      "offset": 200
     },
     {
-      "name": "Embrace the Darkness"
+      "name": "Embrace the Darkness",
+      "skillId": 28287
     },
     {
-      "name": "Swap Weapons"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Release Potential: Mesmer"
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
+    },
+    {
+      "name": "Banish Enchantment",
+      "skillId": 27505,
+      "interruptMs": 400
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Force",
+      "skillId": 72972
+    },
+    {
+      "name": "Call to Anguish",
+      "skillId": 27917,
+      "interruptMs": 800
+    },
+    {
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Blot",
+      "skillId": 72954
+    },
+    {
+      "name": "Unyielding Impact",
+      "skillId": 76503
     },
     {
       "name": "Banish Enchantment",
       "skillId": 27505
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 440
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Blitz",
+      "skillId": 72938
     },
     {
-      "name": "Call to Anguish"
+      "name": "Abyssal Strike",
+      "skillId": 73015
     },
     {
-      "name": "Abyssal Raze"
+      "name": "__wait",
+      "waitMs": 40
     },
     {
-      "name": "Abyssal Blot"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Unyielding Impact"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Banish Enchantment",
-      "skillId": 27505
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 400
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
     },
     {
-      "name": "Abyssal Blitz"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 360
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 40
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Release Potential: Dervish",
+      "skillId": 78661
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Swap Weapons",
+      "skillId": -3
     },
     {
-      "name": "Release Potential: Mesmer"
+      "name": "__wait",
+      "waitMs": 40
     },
     {
-      "name": "Swap Legends"
+      "name": "Misery Swipe",
+      "skillId": 27066,
+      "interruptMs": 280
     },
     {
-      "name": "Release Potential: Dervish"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Twin Moon Sweep",
-      "skillId": 76968
-    },
-    {
-      "name": "Hex-Eater Vortex"
-    },
-    {
-      "name": "Temporal Rift"
-    },
-    {
-      "name": "Echoing Eruption"
-    },
-    {
-      "name": "Searing Fissure"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
       "name": "Twin Moon Sweep",
       "skillId": 76968
     },
     {
-      "name": "Misery Swipe"
+      "name": "Hex-Eater Vortex",
+      "skillId": 77243
     },
     {
-      "name": "Anguish Swipe"
+      "name": "Temporal Rift",
+      "skillId": 28409
     },
     {
-      "name": "Manifest Toxin"
+      "name": "Echoing Eruption",
+      "skillId": 27964
     },
     {
-      "name": "Misery Swipe"
+      "name": "Searing Fissure",
+      "skillId": 28357
     },
     {
-      "name": "Searing Fissure"
+      "name": "Twin Moon Sweep",
+      "skillId": 76968
     },
     {
-      "name": "Hex-Eater Vortex"
+      "name": "Misery Swipe",
+      "skillId": 27066
     },
     {
-      "name": "Release Potential: Dervish"
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066,
+      "interruptMs": 360
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Hex-Eater Vortex",
+      "skillId": 77243
+    },
+    {
+      "name": "Release Potential: Dervish",
+      "skillId": 78661
     },
     {
       "name": "Twin Moon Sweep",
@@ -134,206 +397,115 @@
     },
     {
       "name": "Cosmic Wisdom",
-      "offset": 100
+      "skillId": 77371,
+      "offset": 40
     },
     {
       "name": "Swap Legends",
-      "offset": 100
+      "skillId": -4,
+      "offset": 160
     },
     {
-      "name": "Embrace the Darkness"
+      "name": "Embrace the Darkness",
+      "skillId": 28287
     },
     {
-      "name": "Swap Weapons"
+      "name": "Misery Swipe",
+      "skillId": 27066,
+      "interruptMs": 40
     },
     {
-      "name": "Release Potential: Mesmer"
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
     },
     {
       "name": "Banish Enchantment",
       "skillId": 27505
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Call to Anguish"
+      "name": "Call to Anguish",
+      "skillId": 27917
     },
     {
-      "name": "Abyssal Raze"
+      "name": "Abyssal Raze",
+      "skillId": 73059
     },
     {
-      "name": "Abyssal Blot"
+      "name": "Abyssal Blot",
+      "skillId": 72954
     },
     {
-      "name": "Unyielding Impact"
+      "name": "Unyielding Impact",
+      "skillId": 76503
     },
     {
       "name": "Banish Enchantment",
       "skillId": 27505
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 440
     },
     {
-      "name": "Abyssal Blitz"
+      "name": "__wait",
+      "waitMs": 80
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Blitz",
+      "skillId": 72938
     },
     {
-      "name": "Abyssal Force"
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 440
     },
     {
-      "name": "Abyssal Raze"
+      "name": "__wait",
+      "waitMs": 80
     },
     {
-      "name": "Abyssal Strike"
+      "name": "Abyssal Force",
+      "skillId": 72972
     },
     {
-      "name": "Release Potential: Mesmer"
+      "name": "Abyssal Raze",
+      "skillId": 73059
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 480
+    },
+    {
+      "name": "Release Potential: Mesmer",
+      "skillId": 78615
     },
     {
       "name": "Swap Legends",
+      "skillId": -4,
       "offset": 400
     },
     {
-      "name": "Release Potential: Dervish"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Twin Moon Sweep",
-      "skillId": 76968
-    },
-    {
-      "name": "Hex-Eater Vortex"
-    },
-    {
-      "name": "Temporal Rift"
-    },
-    {
-      "name": "Echoing Eruption"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Twin Moon Sweep",
-      "skillId": 76968
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Anguish Swipe"
-    },
-    {
-      "name": "Manifest Toxin"
-    },
-    {
-      "name": "Misery Swipe"
-    },
-    {
-      "name": "Searing Fissure"
-    },
-    {
-      "name": "Hex-Eater Vortex"
-    },
-    {
-      "name": "Release Potential: Dervish"
-    },
-    {
-      "name": "Twin Moon Sweep",
-      "skillId": 76968
-    },
-    {
-      "name": "Cosmic Wisdom",
-      "offset": 100
-    },
-    {
-      "name": "Swap Legends",
-      "offset": 100
-    },
-    {
-      "name": "Embrace the Darkness"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Banish Enchantment",
-      "skillId": 27505
-    },
-    {
-      "name": "Release Potential: Mesmer"
-    },
-    {
-      "name": "Abyssal Raze"
-    },
-    {
-      "name": "Abyssal Force",
-      "skillId": 72972
-    },
-    {
-      "name": "Call to Anguish",
-      "skillId": 27917
-    },
-    {
-      "name": "Abyssal Raze",
-      "skillId": 73059
-    },
-    {
-      "name": "Abyssal Blot",
-      "skillId": 72954
-    },
-    {
-      "name": "Unyielding Impact",
-      "skillId": 76503
-    },
-    {
-      "name": "Banish Enchantment",
-      "skillId": 27505
-    },
-    {
       "name": "Abyssal Strike",
-      "skillId": 73015
-    },
-    {
-      "name": "Abyssal Blitz",
-      "skillId": 72938
-    },
-    {
-      "name": "Abyssal Strike",
-      "skillId": 73015
-    },
-    {
-      "name": "Abyssal Force",
-      "skillId": 72972
-    },
-    {
-      "name": "Abyssal Raze",
-      "skillId": 73059
-    },
-    {
-      "name": "Abyssal Strike",
-      "skillId": 73015
-    },
-    {
-      "name": "Release Potential: Mesmer",
-      "skillId": 78615
-    },
-    {
-      "name": "Swap Legends",
-      "skillId": -4,
-      "offset": 100
+      "skillId": 73015,
+      "interruptMs": 120
     },
     {
       "name": "Release Potential: Dervish",
@@ -342,6 +514,10 @@
     {
       "name": "Swap Weapons",
       "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 280
     },
     {
       "name": "Searing Fissure",
@@ -385,7 +561,8 @@
     },
     {
       "name": "Misery Swipe",
-      "skillId": 27066
+      "skillId": 27066,
+      "interruptMs": 360
     },
     {
       "name": "Searing Fissure",
@@ -406,12 +583,12 @@
     {
       "name": "Cosmic Wisdom",
       "skillId": 77371,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Swap Legends",
       "skillId": -4,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Embrace the Darkness",
@@ -420,6 +597,15 @@
     {
       "name": "Swap Weapons",
       "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 120
     },
     {
       "name": "Release Potential: Mesmer",
@@ -439,7 +625,8 @@
     },
     {
       "name": "Call to Anguish",
-      "skillId": 27917
+      "skillId": 27917,
+      "interruptMs": 800
     },
     {
       "name": "Abyssal Raze",
@@ -447,7 +634,8 @@
     },
     {
       "name": "Abyssal Blot",
-      "skillId": 72954
+      "skillId": 72954,
+      "interruptMs": 760
     },
     {
       "name": "Unyielding Impact",
@@ -462,8 +650,21 @@
       "skillId": 73015
     },
     {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
       "name": "Abyssal Blitz",
       "skillId": 72938
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
     },
     {
       "name": "Abyssal Force",
@@ -475,7 +676,12 @@
     },
     {
       "name": "Abyssal Strike",
-      "skillId": 73015
+      "skillId": 73015,
+      "interruptMs": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
     },
     {
       "name": "Release Potential: Mesmer",
@@ -483,7 +689,8 @@
     },
     {
       "name": "Swap Legends",
-      "skillId": -4
+      "skillId": -4,
+      "offset": 240
     },
     {
       "name": "Release Potential: Dervish",
@@ -491,11 +698,16 @@
     },
     {
       "name": "Abyssal Strike",
-      "skillId": 73015
+      "skillId": 73015,
+      "interruptMs": 120
     },
     {
       "name": "Swap Weapons",
       "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
     },
     {
       "name": "Searing Fissure",
@@ -539,7 +751,8 @@
     },
     {
       "name": "Misery Swipe",
-      "skillId": 27066
+      "skillId": 27066,
+      "interruptMs": 320
     },
     {
       "name": "Searing Fissure",
@@ -560,12 +773,12 @@
     {
       "name": "Cosmic Wisdom",
       "skillId": 77371,
-      "offset": 100
+      "offset": 40
     },
     {
       "name": "Swap Legends",
       "skillId": -4,
-      "offset": 100
+      "offset": 200
     },
     {
       "name": "Embrace the Darkness",
@@ -574,6 +787,15 @@
     {
       "name": "Swap Weapons",
       "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 80
     },
     {
       "name": "Release Potential: Mesmer",
@@ -593,7 +815,8 @@
     },
     {
       "name": "Call to Anguish",
-      "skillId": 27917
+      "skillId": 27917,
+      "interruptMs": 800
     },
     {
       "name": "Abyssal Raze",
@@ -613,11 +836,17 @@
     },
     {
       "name": "Abyssal Strike",
-      "skillId": 73015
+      "skillId": 73015,
+      "interruptMs": 480
     },
     {
       "name": "Abyssal Blitz",
       "skillId": 72938
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 480
     },
     {
       "name": "Abyssal Force",
@@ -629,27 +858,38 @@
     },
     {
       "name": "Abyssal Strike",
-      "skillId": 73015
+      "skillId": 73015,
+      "interruptMs": 440
     },
     {
       "name": "Release Potential: Mesmer",
       "skillId": 78615
     },
     {
-      "name": "Abyssal Strike",
-      "skillId": 73015
-    },
-    {
       "name": "Swap Legends",
-      "skillId": -4
+      "skillId": -4,
+      "offset": 320
     },
     {
       "name": "Release Potential: Dervish",
       "skillId": 78661
     },
     {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
+      "name": "Abyssal Strike",
+      "skillId": 73015,
+      "interruptMs": 120
+    },
+    {
       "name": "Swap Weapons",
       "skillId": -3
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
     },
     {
       "name": "Searing Fissure",
@@ -674,6 +914,11 @@
     {
       "name": "Searing Fissure",
       "skillId": 28357
+    },
+    {
+      "name": "Cosmic Wisdom",
+      "skillId": 77371,
+      "offset": 520
     },
     {
       "name": "Twin Moon Sweep",

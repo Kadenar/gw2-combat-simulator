@@ -3019,10 +3019,12 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
       { id: 27928, name: 'Legendary Demon Stance' },
       { id: 76559, name: 'Cosmic Wisdom' },
       { id: 77243, name: 'Hex-Eater Vortex' },
+      { id: 28409, name: 'Temporal Rift' },
       { id: 76968, name: 'Twin Moon Sweep' },
       { id: 78191, name: 'Embrace the Darkness' },
       { id: 76818, name: 'Form of the Dervish' },
       { id: 77116, name: 'Form of the Dervish' },
+      { id: 73149, name: 'Blitz Mines' },
       { id: 28029, name: 'Frigid Blitz' },
       { id: 26923, name: 'Frigid Blitz' }
     ],
@@ -3039,6 +3041,7 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
       event({ time: 1076, skillId: 77243, value: 518, activation: 3 }),
       event({ time: 1076, skillId: 76968, value: 921, activation: 1 }),
       event({ time: 1156, target: PLAYER, skillId: 76559, value: 7000, buff: 1 }),
+      event({ time: 1200, target: 0x2000n, skillId: 28409, value: 1000 }),
       event({
         time: 1318,
         target: PLAYER,
@@ -3050,6 +3053,7 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
       event({ time: 1997, skillId: 78191, value: 440, activation: 1 }),
       event({ time: 2100, target: 0x2000n, skillId: 76818, value: 1000 }),
       event({ time: 2200, target: 0x2000n, skillId: 77116, value: 1000 }),
+      event({ time: 2250, target: 0x2000n, skillId: 73149, value: 1000 }),
       event({ time: 2437, skillId: 78191, value: 440, activation: 3 }),
       event({ time: 3000, skillId: 28029, value: 320, activation: 1 }),
       event({ time: 3320, skillId: 28029, value: 320, activation: 3 }),
@@ -3066,11 +3070,13 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
     skills: [
       [-4, 'Swap Legends', 'Profession', 'Profession_1', 0],
       [77371, 'Cosmic Wisdom', 'Profession', 'Profession_2', 0],
+      [28409, 'Temporal Rift', 'Weapon', 'Weapon_5', 560],
       [77243, 'Hex-Eater Vortex', 'Utility', 'Utility', 518],
       [76968, 'Twin Moon Sweep', 'Elite', 'Elite', 921],
       [28287, 'Embrace the Darkness', 'Elite', 'Elite', 440],
       [76818, 'Form of the Dervish', 'Action', 'Action', 0],
       [77116, 'Form of the Dervish (Elite)', 'Action', 'Action', 0],
+      [73149, 'Blitz Mines', 'Action', 'Action', 0],
       [28029, 'Frigid Blitz', 'Weapon', 'Weapon_3', 961],
       [27066, 'Misery Swipe', 'Weapon', 'Weapon_1', 440]
     ].map(([id, name, type, slot, quicknessCastTimeMs]) => ({
@@ -3080,17 +3086,24 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
       slot,
       castTimeMs: quicknessCastTimeMs,
       quicknessCastTimeMs,
-      effects: id === 27066 ? [{ type: 'strike', atMs: 280 }] : [],
+      effects:
+        id === 27066
+          ? [{ type: 'strike', atMs: 280 }]
+          : id === 28409
+            ? [{ type: 'strike', atMs: 640, timingAnchor: 'castEnd' }]
+            : [],
       implemented: true
     }))
   };
 
   const result = reconstructEvtcRotation(fixture, rotationCatalog);
 
-  assert.equal(result.combatStartTimestampMs, 442);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.combatStartTimestampMs, 1000);
   assert.deepEqual(
     result.rotation.filter((command) => command.name !== '__wait').map((command) => command.name),
     [
+      'Temporal Rift',
       'Hex-Eater Vortex',
       '__combat_start',
       'Twin Moon Sweep',
@@ -3104,6 +3117,10 @@ test('reconstructs Conduit state packets and Cosmic Wisdom skill variants', () =
   assert.equal(result.actions.filter((action) => action.name === 'Frigid Blitz').length, 1);
   assert.equal(
     result.actions.some((action) => action.name.startsWith('Form of the Dervish')),
+    false
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Blitz Mines'),
     false
   );
   assert.equal(result.actions.find((action) => action.name === 'Misery Swipe')?.durationMs, 157);

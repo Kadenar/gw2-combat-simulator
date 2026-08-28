@@ -1,11 +1,7 @@
 import type { ProfessionPaletteGroup, SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import { defaultWeaponSkillMatchesSet } from '../../../platform/equipment/weapons/skill-matcher.js';
 import type { NormalizedPaletteGroup } from '../../presentation/rotation/palette.js';
-import type {
-  ProfessionAppContract,
-  ProfessionAppState,
-  ProfessionSlotLoadoutContext
-} from '../../types.js';
+import type { ProfessionAppContract, ProfessionAppState, ProfessionSlotLoadoutContext } from '../../types.js';
 import { groupWeaponSkillsByAttunement } from '../../profession/weapon-attunement-groups.js';
 import { activeSpecialization, paletteEndState, paletteProfessionState } from '../shared/context.js';
 

@@ -744,14 +744,15 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: CONDUIT_BALANCE_PROFILE_IDS.mesmerUnyieldingImpact,
     name: 'Unyielding Impact (Form of the Mesmer)',
     profileKind: 'skill-variant',
-    energyCost: 0,
+    // Mesmer-form skills retain their one-Energy activation cost; Embrace's upkeep drain starts separately on completion.
+    energyCost: 1,
     effects: []
   },
   {
     id: CONDUIT_BALANCE_PROFILE_IDS.mesmerEmbraceTheDarkness,
     name: 'Embrace the Darkness (Form of the Mesmer)',
     profileKind: 'skill-variant',
-    energyCost: 0,
+    energyCost: 1,
     effects: []
   }
 ]);

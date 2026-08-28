@@ -1,8 +1,4 @@
-import type {
-  BaselineSimulationOutput,
-  BaselineSimulationRequest,
-  ProfessionAppState
-} from '../types.js';
+import type { BaselineSimulationOutput, BaselineSimulationRequest, ProfessionAppState } from '../types.js';
 
 interface BaselineJob {
   readonly requestId: number;

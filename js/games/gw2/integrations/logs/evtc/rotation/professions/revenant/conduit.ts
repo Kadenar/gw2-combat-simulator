@@ -1,7 +1,7 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import { reconstructCommonRevenantActions } from './common.js';
-import { directAction, hasRecordedAction, SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
+import { directAction, hasRecordedAction, runtimeDuration, SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
 
 const COSMIC_WISDOM_BUFF_ID = 76559;
 const COSMIC_WISDOM = Object.freeze({
@@ -12,6 +12,19 @@ const HEX_EATER_VORTEX = Object.freeze({
   name: 'Hex-Eater Vortex',
   skillId: 77243
 });
+const TEMPORAL_RIFT = Object.freeze({
+  name: 'Temporal Rift',
+  skillId: 28409
+});
+const TEMPORAL_RIFT_IMPACT_DELAY_MS = 640;
+
+function initialStateTime(context: EvtcProfessionReconstructionContext): number | null {
+  return (
+    context.log.events.find(
+      (event) => event.target === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+    )?.time ?? null
+  );
+}
 
 function primaryTargetObservationEnd(context: EvtcProfessionReconstructionContext): number | null {
   const damagePacketsByTarget = new Map<bigint, number>();
@@ -46,9 +59,7 @@ function primaryTargetObservationEnd(context: EvtcProfessionReconstructionContex
 }
 
 function truncatedHexEaterVortexActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  const combatStart = context.log.events.find(
-    (event) => event.target === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
-  )?.time;
+  const combatStart = initialStateTime(context);
   if (combatStart == null) return [];
   const stop = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -93,6 +104,48 @@ function truncatedHexEaterVortexActions(context: EvtcProfessionReconstructionCon
   ];
 }
 
+function temporalRiftPrecastActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const combatStart = initialStateTime(context);
+  if (combatStart == null) return [];
+  const firstImpact = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .find(
+      ({ event }) =>
+        event.source === context.playerAddress &&
+        event.skillId === TEMPORAL_RIFT.skillId &&
+        event.stateChange === EVTC_STATE_CHANGE.NONE &&
+        event.activation === EVTC_ACTIVATION.NONE &&
+        event.buff === 0 &&
+        event.value > 0 &&
+        event.time <= combatStart + TEMPORAL_RIFT_IMPACT_DELAY_MS
+    );
+  if (!firstImpact) return [];
+  const duration = runtimeDuration(context, TEMPORAL_RIFT);
+  const start = firstImpact.event.time - TEMPORAL_RIFT_IMPACT_DELAY_MS - duration;
+  if (
+    start >= combatStart ||
+    hasRecordedAction(context.recordedActions, TEMPORAL_RIFT, start, SIGNAL_DEDUPLICATION_WINDOW_MS)
+  ) {
+    return [];
+  }
+
+  // Temporal Rift can begin before Arc's initial-state boundary, so recover its input from the first delayed hit.
+  return [
+    {
+      ...directAction(
+        firstImpact.eventIndex,
+        start,
+        firstImpact.event.skillId,
+        TEMPORAL_RIFT.name,
+        TEMPORAL_RIFT,
+        'initial-state',
+        duration
+      ),
+      precast: true
+    }
+  ];
+}
+
 function cosmicWisdomActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   // Arc records the player input as a seven-second buff application (76559),
   // while legend swaps extend that buff from source 0 and must not create casts.
@@ -119,6 +172,7 @@ export function reconstructConduitActions(
   const observationEnd = primaryTargetObservationEnd(context);
   return [
     ...reconstructCommonRevenantActions(context),
+    ...temporalRiftPrecastActions(context),
     ...truncatedHexEaterVortexActions(context),
     ...cosmicWisdomActions(context)
   ].filter((action) => observationEnd == null || action.start < observationEnd);

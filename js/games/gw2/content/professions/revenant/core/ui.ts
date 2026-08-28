@@ -22,6 +22,12 @@ export function activeRevenantLegend(context: RevenantUiContext = {}): string {
   return revenantUiState(context).activeLegendId || context.build?.startingLegend || '';
 }
 
+/** Shows the whole Energy unit used by Charged Mists while retaining fractional Energy internally. */
+function displayedRevenantEnergy(value: unknown): number {
+  const energy = Number(value || 0);
+  return Number.isFinite(energy) ? Math.max(0, Math.floor(energy)) : 0;
+}
+
 function effectiveEnergyCost(context: RevenantUiContext, skill: RevenantSkill): number {
   return effectiveRevenantEnergyCost(
     {
@@ -64,7 +70,7 @@ export function revenantEventLogRow(
   if (event?.type !== 'revenant.state') return undefined;
   return {
     type: event.type,
-    description: `${event.reason || 'State'} - ` + `Energy ${Number(event.state?.energy || 0).toFixed(1)}`,
+    description: `${event.reason || 'State'} - ` + `Energy ${displayedRevenantEnergy(event.state?.energy)}`,
     className: 'resource',
     order: 30,
     flags: []
@@ -126,7 +132,7 @@ export function revenantCorePaletteSkillAvailability(
   const available = !Number.isFinite(energy) || energy >= cost || onCooldown;
   return {
     available,
-    message: !available && energy < cost ? `Requires ${cost} Energy; currently ${energy}` : ''
+    message: !available && energy < cost ? `Requires ${cost} Energy; currently ${displayedRevenantEnergy(energy)}` : ''
   };
 }
 
@@ -207,7 +213,7 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
         singular: 'energy',
         plural: 'energy',
         maximum: 100,
-        value: Number(state.energy ?? context.initialEnergy ?? 50),
+        value: displayedRevenantEnergy(state.energy ?? context.initialEnergy ?? 50),
         startMaximum: 100,
         startValue: Number(context.initialEnergy ?? 50),
         canStart: true,

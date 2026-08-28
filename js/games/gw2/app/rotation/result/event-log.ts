@@ -2,11 +2,7 @@ import type { SchedulerRecord, SimulationEvent } from '../../../platform/engine/
 import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '../../presentation/results/event-log.js';
 import type { EventLogRow } from '../../presentation/results/event-log.js';
-import type {
-  ProfessionAppContract,
-  ProfessionApplicationBuild,
-  ProfessionAppState
-} from '../../types.js';
+import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../../types.js';
 import { professionEndState } from '../shared/context.js';
 import { effectName, resultCombatReferenceMs } from './model.js';
 

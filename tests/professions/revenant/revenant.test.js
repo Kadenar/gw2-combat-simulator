@@ -1287,10 +1287,12 @@ test('Condition Quickness Herald weapon packets use their measured interrupt com
 
     assert.equal(skill.quicknessCastTimeMs ?? skill.castTimeMs, castTimeMs, `${skill.name} cast`);
     assert.equal(skill.interruptCommitMs, commitMs, `${skill.name} commit`);
+
     if (skillId === SKILL.MANIFEST_TOXIN) {
       // Both launched packets outlive a later animation cancel in EVTC replay.
       assert.ok(skill.effects.every((effect) => effect.persistsAfterInterrupt === true));
     }
+
     assert.equal(damageCount(commitMs - 1), 0, `${skill.name} before commit`);
     assert.equal(damageCount(commitMs), packetCount, `${skill.name} at commit`);
   }
@@ -2557,7 +2559,7 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     ...context,
     professionState: {
       ...context.professionState,
-      energy: 4,
+      energy: 4.9,
       activeUpkeeps: [],
       availableFlips: {}
     }
@@ -2579,9 +2581,9 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     ),
     true
   );
-  assert.match(
+  assert.equal(
     revenantProfession.ui.paletteSkillUnavailableMessage(lowEnergyContext, phase),
-    /Requires 30 Energy; currently 4/
+    'Requires 30 Energy; currently 4'
   );
   assert.match(paletteSkillView({ results: null }, phase).title, /Energy cost: 30/);
   assert.match(paletteSkillView({ results: null }, relinquish).title, /Energy cost: 0/);
@@ -4303,7 +4305,7 @@ test('Vindicator Dodge waits for the exact endurance recharge time', () => {
 test('Vindicator resource display includes live endurance', () => {
   const core = revenantProfession.ui.resourceViews({
     specialization: 'Core',
-    professionState: { energy: 40, endurance: 25, maximumEndurance: 100 }
+    professionState: { energy: 40.9, endurance: 25, maximumEndurance: 100 }
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
@@ -4318,6 +4320,7 @@ test('Vindicator resource display includes live endurance', () => {
     core.map((view) => view.id),
     ['energy']
   );
+  assert.equal(core.find((view) => view.id === 'energy').value, 40);
   assert.deepEqual(
     conduit.map((view) => view.id),
     ['energy', 'affinity']
@@ -5138,6 +5141,12 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
       .map((step) => step.start),
     [0, 820]
   );
+  assert.deepEqual(
+    anguish.events
+      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
+      .map((event) => event.state.energy),
+    [0, 3]
+  );
 
   const normalEmbrace = simulate('Core', ['Embrace the Darkness'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
@@ -5153,8 +5162,16 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     initialEnergy: 0
   });
 
-  assert.equal(cosmicEmbrace.warnings.length, 0);
-  assert.equal(cosmicEmbrace.steps.at(-1).skill, 'Embrace the Darkness');
+  assert.match(cosmicEmbrace.warnings[0], /requires 1 energy/);
+
+  const affordableEmbrace = simulate('Conduit', ['Cosmic Wisdom', 'Embrace the Darkness'], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 1
+  });
+
+  assert.equal(affordableEmbrace.warnings.length, 0);
+  assert.equal(affordableEmbrace.endState.profession.activeUpkeeps[0].startsAt, 0.44);
 });
 
 test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', () => {
@@ -5853,7 +5870,7 @@ test('Revenant state events use the shared event-log row contract', () => {
           type: 'revenant.state',
           at: 1.02,
           reason: 'kallas-fervor',
-          state: { energy: 30 }
+          state: { energy: 30.9 }
         }
       ],
       resolvedEvents: [],
@@ -5867,7 +5884,7 @@ test('Revenant state events use the shared event-log row contract', () => {
     {
       at: 1.02,
       type: 'revenant.state',
-      description: 'kallas-fervor - Energy 30.0',
+      description: 'kallas-fervor - Energy 30',
       className: 'resource',
       phantasmClone: false
     }

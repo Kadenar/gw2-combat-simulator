@@ -5,11 +5,7 @@ import type { Gw2Stats } from '../../platform/equipment/types.js';
 import { createAttributeProvenance } from '../../platform/builds/attribute-provenance.js';
 import { aggregateSigilSet, weaponSigilsForSet } from '../../platform/equipment/sigils/loadout.js';
 import { assumptionControlsForSpecialization } from '../profession/assumptions.js';
-import type {
-  Gw2SimulationConfigOptions,
-  ProfessionAttributeData,
-  ProfessionBuildAssumptions
-} from '../types.js';
+import type { Gw2SimulationConfigOptions, ProfessionAttributeData, ProfessionBuildAssumptions } from '../types.js';
 import { isSimulationRandomnessControl, simulationRandomnessFromAssumptions } from './randomness.js';
 
 /**
