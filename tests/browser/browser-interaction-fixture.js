@@ -361,11 +361,18 @@ frame.addEventListener('load', async () => {
       'concurrent skill badge does not show both delay and cast timestamp'
     );
     concurrentBadge.click();
-    let activationEditor = document.querySelector('.rotation-activation-editor');
+    assert(
+      !document.querySelector('.rotation-activation-editor'),
+      'concurrent skill badge still duplicates the pencil editor control'
+    );
+    let instantActivation = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
 
+    assert(instantActivation, 'instant cast does not expose the activation editor');
+    instantActivation.click();
+    let activationEditor = document.querySelector('.rotation-activation-editor');
     assert(
       activationEditor?.querySelector('.activation-editor-input')?.value === '120',
-      'offset activation editor did not open with the current value'
+      'instant cast activation editor did not open with the current value'
     );
     activationEditor.querySelector('.activation-editor-input').value = '240';
     activationEditor.querySelector('.activation-editor-apply').click();
@@ -373,11 +380,7 @@ frame.addEventListener('load', async () => {
       app.build.rotation[1].concurrentOffsetMs === 240,
       'offset activation editor did not update the concurrent command'
     );
-    const instantActivation = document.querySelector(
-      '#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation'
-    );
-
-    assert(instantActivation, 'instant cast does not expose the activation editor');
+    instantActivation = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
     instantActivation.click();
     activationEditor = document.querySelector('.rotation-activation-editor');
     assert(

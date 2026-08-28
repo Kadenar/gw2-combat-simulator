@@ -37,10 +37,12 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         type: 'strike',
         coefficient: 1.2,
         hits: 4,
+        atMs: 440,
         intervalMs: 1000,
         name: 'Luminous Staff — Symbol Damage',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        intervalTimingScale: 'fixed'
       }
     ]
   },
@@ -72,7 +74,10 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1
+        hits: 1,
+        atMs: 760,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
@@ -92,6 +97,10 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     implemented: true,
     quicknessCastTimeMs: 600,
     handlerId: 'guardian.glaring-burst',
+    // The replacement strike lands at 480 ms and remains committed when the
+    // action lane is released at the observed 520 ms cancel point.
+    paletteInterruptMs: 520,
+    interruptCommitMs: 520,
     effects: []
   },
   [ID.ENTER_RADIANT_FORGE]: {
@@ -168,10 +177,16 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       {
         type: 'strike',
         coefficient: 1.2,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'control',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
           controlKind: 'daze',
           duration: 2
@@ -187,23 +202,30 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: 'Lucent Thrust — Projectile Damage'
+        atMs: 480,
+        name: 'Lucent Thrust — Projectile Damage',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'control',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
           controlKind: 'control'
         }
       },
-      {
-        type: 'blind'
-      }
+      { type: 'blind', atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }
     ]
   },
   [ID.RADIANT_COURAGE]: {

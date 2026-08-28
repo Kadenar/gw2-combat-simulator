@@ -861,7 +861,9 @@ test('shared results render summaries, totals, contributions, and icons', () => 
 
   assert.match(container.innerHTML, /res-summary/);
   assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
+  assert.match(container.innerHTML, /<details class="res-dps-snapshots">/);
   assert.match(container.innerHTML, /DPS snapshots/);
+  assert.doesNotMatch(container.innerHTML, /res-breakpoints/);
   assert.match(container.innerHTML, /80%<\/b> target health/);
   assert.match(container.innerHTML, />1,234</);
   assert.match(container.innerHTML, /at 3\.25s/);
@@ -882,7 +884,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
   assert.match(container.innerHTML, /Simulation RNG distribution/);
-  assert.match(container.innerHTML, /Always available for the current rotation/);
   assert.match(container.innerHTML, /Run again/);
   assert.match(container.innerHTML, /500 outcomes per run/);
   assert.match(container.innerHTML, /Rare low outcome/);

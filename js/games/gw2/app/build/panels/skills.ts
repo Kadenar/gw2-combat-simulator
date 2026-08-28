@@ -2,11 +2,7 @@ import { escapeHtml as esc, gw2ApiText } from '../../presentation/shared/html.js
 import { isSlotSkillSelectable } from '../state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup, SchedulerRecord, Skill, SkillId } from '../../../platform/engine/types.js';
-import type {
-  ProfessionAppState,
-  ProfessionSlotLoadoutBar,
-  ProfessionSlotLoadoutSelector
-} from '../../types.js';
+import type { ProfessionAppState, ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '../../types.js';
 import { groupWeaponSkillsByAttunement, weaponBarSkillStacks } from '../../profession/weapon-attunement-groups.js';
 import { requiredElement } from '../../../../../ui/shared/dom.js';
 
@@ -559,14 +555,13 @@ export function renderSkills(app: ProfessionAppState): void {
     ['Elite', 'Elite']
   ];
 
-  // Render the standard heal, utility, and elite selection slots.
+  // Render selectable skills with type labels only; slot numbers add no useful context in this editor.
   const selectedSkillBarHtml = slots
-    .map(([key, type], index) => {
+    .map(([key, type]) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Heal' ? 'heal-border' : type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
                 <div class="sbar-icon" title="${esc(display?.displayName || display?.name || 'Choose skill')}"><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></div>
-                <span class="skill-bar-key">${index + 1}</span>
                 <span class="skill-bar-type">${esc(type)}</span>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)

@@ -376,10 +376,7 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
   return result;
 }
 
-/**
- * @param {GuardianCastContext} context
- * @param {number} duration
- */
+/** Alternates Daybreaking Slash's measured Quickness animation variants. */
 function modifyGuardianCastDuration(context: GuardianCastContext, duration: number): number {
   if (context.skill?.id !== GUARDIAN_SKILL_IDS.DAYBREAKING_SLASH || !context.hasBuff?.('quickness', context.start)) {
     return duration;

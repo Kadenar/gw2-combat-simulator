@@ -1,5 +1,5 @@
 import { mountSimulationView } from '../../ui/simulation-view.js';
-import { syncRotationFocusResults, updateFloatingDps } from './workspace.js';
+import { updateFloatingDps } from './workspace.js';
 import type { SimulationViewModel } from './types.js';
 
 export interface SimulationRenderState {
@@ -56,11 +56,8 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   if (mirror) {
     mirror.innerHTML = '';
     const summaryContent = summary?.querySelector('.res-summary');
-    const breakpoints = element.querySelector('.res-breakpoints');
     if (summaryContent) mirror.appendChild(summaryContent.cloneNode(true));
-    if (breakpoints) mirror.appendChild(breakpoints.cloneNode(true));
   }
 
   viewModel.afterAnalysisRender?.(element);
-  syncRotationFocusResults(document);
 }

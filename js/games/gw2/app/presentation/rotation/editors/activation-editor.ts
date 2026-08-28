@@ -176,24 +176,29 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   editor.setAttribute('role', 'dialog');
   editor.setAttribute('aria-label', `Edit ${options.skillName} activation`);
   editor.tabIndex = -1;
+  // Pair context and controls on shared rows so the compact editor scans left-to-right.
   editor.innerHTML = `
-    <div class="activation-editor-heading">Edit activation</div>
-    <div class="activation-editor-skill">
-      <img class="activation-editor-icon" alt="" />
-      <span class="activation-editor-name"></span>
+    <div class="activation-editor-header">
+      <div class="activation-editor-heading">Edit activation</div>
+      <div class="activation-editor-skill">
+        <img class="activation-editor-icon" alt="" />
+        <span class="activation-editor-name"></span>
+      </div>
     </div>
     <div class="activation-editor-label">Cast behavior</div>
     <label class="activation-editor-choice">
       <input type="radio" name="activation-editor-mode" value="normal" />
       <span>Normal cast</span>
     </label>
-    <label class="activation-editor-choice">
-      <input type="radio" name="activation-editor-mode" value="${behavior}" />
-      <span>${isConcurrentBehavior ? 'During previous cast' : 'Interrupt after'}</span>
-    </label>
-    <div class="activation-editor-input-row">
-      <input class="activation-editor-input" type="number"${inputMinimum} step="${inputStep}" inputmode="numeric" />
-      <span>ms</span>
+    <div class="activation-editor-configured-row">
+      <label class="activation-editor-choice">
+        <input type="radio" name="activation-editor-mode" value="${behavior}" />
+        <span>${isConcurrentBehavior ? 'During previous cast' : 'Interrupt after'}</span>
+      </label>
+      <div class="activation-editor-input-row">
+        <input class="activation-editor-input" type="number"${inputMinimum} step="${inputStep}" inputmode="numeric" />
+        <span>ms</span>
+      </div>
     </div>
     <div class="activation-editor-full-cast"></div>
     <div class="activation-editor-damage-commit"></div>

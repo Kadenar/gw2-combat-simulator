@@ -20,7 +20,6 @@ import {
   mountFloatingDps,
   mountRotationDpsSummary,
   reduceRotationWorkspaceState,
-  syncRotationFocusResults,
   updateFloatingDps
 } from '../../js/app/shell/workspace.js';
 import { currentTimelineResults, reconcileTimelineRows } from '../../js/games/gw2/app/rotation/timeline/view.js';
@@ -208,24 +207,6 @@ test('rotation workspace keeps simulation config in a drawer in normal and focus
     focus: false
   });
   assert.equal(reduceRotationWorkspaceState(focused, 'escape'), focused);
-});
-
-test('focus mode expands DPS snapshots only for the focused workspace', () => {
-  let focused = true;
-  const details = { dataset: {}, open: false };
-  const root = {
-    body: { hasAttribute: () => focused },
-    querySelectorAll: () => [details]
-  };
-
-  syncRotationFocusResults(root);
-  assert.equal(details.open, true);
-  assert.equal(details.dataset.focusExpanded, 'true');
-
-  focused = false;
-  syncRotationFocusResults(root);
-  assert.equal(details.open, false);
-  assert.equal(details.dataset.focusExpanded, undefined);
 });
 
 test('rotation DPS summary mounts directly after the timeline', () => {

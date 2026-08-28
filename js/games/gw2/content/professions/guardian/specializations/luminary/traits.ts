@@ -426,7 +426,12 @@ export function reactToLuminaryJusticeHit(
     readonly hitContext?: object;
   } = {}
 ): void {
-  reactToJusticeHitWithOptions(context, event, dependencies);
+  // Radiant Justice uses the two-second passive packet measured in the Luminary log.
+  reactToJusticeHitWithOptions(context, event, dependencies, {
+    skillId: GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,
+    skillName: 'Radiant Justice',
+    passiveBurnDuration: 2
+  });
 }
 
 export function reactToEffulgentStrike(context: GuardianResolverContext, event: GuardianResolverEvent): void {

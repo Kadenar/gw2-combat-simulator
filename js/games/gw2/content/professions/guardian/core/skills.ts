@@ -467,34 +467,53 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.GREAT_SWORD_STRIKE]: {
     implemented: true,
     castTimeMs: 600,
+    // Strike has no cancellable tail: its packet commits on the 400 ms
+    // Quickness action boundary.
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.GREAT_SWORD_VENGEFUL_STRIKE]: {
     implemented: true,
     quicknessCastTimeMs: 600,
+    // The packet commits at 400 ms, but cancelling there retains the full
+    // 600 ms action lockout observed in the combat log.
+    paletteInterruptMs: 400,
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
         coefficient: 1.1,
-        hits: 1
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.GREAT_SWORD_WRATHFUL_STRIKE]: {
     implemented: true,
     castTimeMs: 1000,
+    // Damage lands at 440 ms; the 520 ms safe cancel still keeps the full
+    // 680 ms Quickness action lane occupied.
+    paletteInterruptMs: 520,
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 680,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -1612,22 +1631,26 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     quicknessCastTimeMs: 320,
     cooldown: 6.4,
     ammo: 2,
+    // Helio commits its packet at 240 ms and can release the action lane at
+    // the observed 280 ms cancel point.
+    paletteInterruptMs: 280,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        atMs: 160,
+        atMs: 240,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       },
       {
         type: 'boon',
         boon: 'Resolution',
         duration: 4,
-        atMs: 160,
+        atMs: 240,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'cast'
       }
     ]
   },
@@ -1651,11 +1674,19 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.DAYBREAKING_SLASH]: {
     implemented: true,
     castTimeMs: 520,
+    // Damage arrives around 400 ms; a committed cancel preserves the
+    // remainder of the current animation variant's action lane.
+    paletteInterruptMs: 400,
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
         coefficient: 0.7,
-        hits: 1
+        hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

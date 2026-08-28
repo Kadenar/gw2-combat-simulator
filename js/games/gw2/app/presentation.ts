@@ -106,12 +106,11 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   app._skillBreakdownState = { skillRows };
 
   return {
-    summary: gw2ResultView({ metrics }),
+    summary: gw2ResultView({ metrics, breakpoints }),
     floatingDps: metrics.find((metric) => metric.className === 'dps')?.value,
     workspace: gw2ResultView(
       {
         showSummary: false,
-        breakpoints,
         ...randomDistributionModel(result)
       },
       {

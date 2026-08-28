@@ -2,6 +2,7 @@ import { emitSkillBuff, emitSkillCondition } from '../../../../../platform/sched
 import { luminaryState } from './state.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
 import { resetAutoattackChains } from '../../../../../platform/skills/autoattack-chains.js';
+import { projectCastRelativeEffectTimingMs } from '../../../../../platform/skills/timing.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
@@ -69,6 +70,18 @@ function emitForgeTransition(
     mechanicSwap: true,
     ...event
   });
+}
+
+/** Returns the primary strike timestamp so linked bonuses follow its packet instead of cast completion. */
+function radiantWeaponImpactAt(context: GuardianCastContext, skill: GuardianSkill): number {
+  const strike = skill.effects?.find((effect) => effect.type === 'strike' && Number(effect.coefficient) > 0);
+  if (strike?.atMs == null) return context.effectiveEnd;
+  const runtimeCastMs = (context.fullEnd - context.start) * 1000;
+  const impactMs =
+    strike.timingScale === 'cast'
+      ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(strike.atMs))
+      : Number(strike.atMs);
+  return context.start + impactMs / 1000;
 }
 
 /**
@@ -189,10 +202,11 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     const strike = guardianBalanceProfileEffect(profile, 'strike');
     const vulnerability = guardianBalanceProfileEffect(profile, 'condition');
     const delay = Number(strike?.atMs || 750) / 1000;
+    const impactAt = radiantWeaponImpactAt(context, skill) + delay;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
       buildGuardianStrike({
-        at: context.effectiveEnd + delay,
+        at: impactAt,
         sourceId: skill.id,
         skillId: skill.id,
         skillName: skill.name,
@@ -201,7 +215,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       })
     );
     emitSkillCondition(context, {
-      at: context.effectiveEnd + delay,
+      at: impactAt,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'effect',
@@ -216,7 +230,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
   if (skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE && luminaryState.from(context).radiantCourageSwordArmed) {
     luminaryState.from(context).radiantCourageSwordArmed = false;
     emitSkillBuff(context, {
-      at: context.effectiveEnd,
+      at: radiantWeaponImpactAt(context, skill),
       source: 'guardian',
       sourceId: GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
       actorType: 'player',
@@ -225,9 +239,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       kind: 'guardian-radiant-courage-sword',
       stacks: 1,
       // Minimal duration: this buff is checked by the gleaming-blade modifier
-      // rule at the exact cast end timestamp, so it only needs to exist for
-      // that instant — a longer duration could incorrectly carry over to the
-      // next cast.
+      // at the exact impact timestamp and must not carry into the next cast.
       duration: 0.001
     });
   }
@@ -247,7 +259,10 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
  * @returns {void}
  */
 function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const elapsedMs = (context.effectiveEnd - context.start) * 1000;
+  // A committed cancel keeps the earlier replacement packet; only a cancel
+  // before the measured safe point suppresses it.
+  if (elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs || 0)) return;
   const radiantWeapon = luminaryState.from(context).radiantWeapon;
   const profileId =
     radiantWeapon === 'hammer'
@@ -260,9 +275,11 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
       ?.coefficient || 0
   );
   if (coefficient <= 0) return;
+  const runtimeCastMs = (context.fullEnd - context.start) * 1000;
+  const impactAt = context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, 480) / 1000;
   context.emit(
     buildGuardianStrike({
-      at: context.effectiveEnd,
+      at: impactAt,
       sourceId: skill.id,
       skillId: skill.id,
       skillName: skill.name,

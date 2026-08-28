@@ -79,19 +79,6 @@ export function resetRotationWorkspace(root: Document = document): void {
   applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
 }
 
-export function syncRotationFocusResults(root: Document = document): void {
-  const focused = root.body?.hasAttribute('data-rotation-focus') === true;
-  for (const details of root.querySelectorAll<HTMLDetailsElement>('.rotation-results .res-breakpoints')) {
-    if (focused && !details.open) {
-      details.dataset.focusExpanded = 'true';
-      details.open = true;
-    } else if (!focused && details.dataset.focusExpanded === 'true') {
-      details.open = false;
-      delete details.dataset.focusExpanded;
-    }
-  }
-}
-
 export function reduceRotationWorkspaceState(
   state: RotationWorkspaceState,
   action: RotationWorkspaceAction
@@ -150,7 +137,6 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
   controller.focusIndicator.hidden = !state.focus;
-  syncRotationFocusResults(controller.document);
 
   if (previous.focus && !state.focus && controller.focusScrollPosition) {
     const { left, top } = controller.focusScrollPosition;

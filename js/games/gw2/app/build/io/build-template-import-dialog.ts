@@ -104,7 +104,6 @@ function createDialog(document: Document): BuildTemplateDialogElements {
       <div>
         <p class="build-template-import-eyebrow">In-game build import</p>
         <h3 id="build-template-import-title">Preview Guild Wars 2 build</h3>
-        <p>Paste a build chat code, review the decoded choices, then apply them to the simulator.</p>
       </div>
       <button type="button" class="build-template-import-close" data-build-template-close aria-label="Close">&times;</button>
     </header>

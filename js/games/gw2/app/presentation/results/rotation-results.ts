@@ -8,6 +8,7 @@ import { escapeHtml } from '../shared/html.js';
 // Trusted static section-header glyphs (Lucide swords / flame).
 const DAMAGE_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`;
 const CONDITIONS_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
 
 const metricDetailsDismissalRoots = new WeakSet<Document>();
 
@@ -400,9 +401,37 @@ function resultMetricDetailsHtml(metric: ResultMetric): string {
   </details>`;
 }
 
+/** Anchors target-health DPS snapshots to the DPS metric so they do not consume a separate result row. */
+function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly ResultBreakpoint[]): string {
+  return `<div class="res-label-row">
+    <details class="res-dps-snapshots">
+      <summary aria-label="Show DPS snapshots" title="Show DPS snapshots">
+        <span class="res-label">${escapeHtml(metric.label)}</span>
+        <svg class="res-dps-snapshots-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" x2="12" y1="11" y2="17"/><line x1="12" x2="12.01" y1="7" y2="7"/></svg>
+        <span class="res-dps-snapshots-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="res-dps-snapshots-panel">
+        <div class="res-dps-snapshots-heading">${DPS_SNAPSHOTS_ICON}<strong>DPS snapshots</strong></div>
+        <div class="res-dps-snapshots-list">
+          ${breakpoints
+            .map(
+              (breakpoint) => `<div class="res-dps-snapshot">
+            <span class="res-dps-snapshot-health"><b>${number(breakpoint.healthPercent)}%</b> target health</span>
+            <strong>${number(breakpoint.dps)} <small>DPS</small></strong>
+            <span class="res-dps-snapshot-time">at ${Number(breakpoint.elapsed || 0).toFixed(2)}s</span>
+          </div>`
+            )
+            .join('')}
+        </div>
+      </div>
+    </details>
+    ${resultMetricDetailsHtml(metric)}
+  </div>`;
+}
+
 /** Closes open metric disclosures unless the click occurred inside that same disclosure. */
 export function dismissResultMetricDetails(root: ParentNode, target: EventTarget | null): void {
-  for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open]')) {
+  for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open], .res-dps-snapshots[open]')) {
     if (target && details.contains(target as Node)) continue;
     details.open = false;
   }
@@ -491,43 +520,12 @@ export function mountRotationResults(
         // The first target-owned metric creates a right-anchored group distinct from player attribution.
         const startsTargetGroup = metric.group === 'target' && metrics[index - 1]?.group !== 'target';
         return `<div class="res-stat${metric.group === 'target' ? ' res-stat-target' : ''}${startsTargetGroup ? ' res-stat-target-start' : ''}">
-      <div class="res-label-row">
-        <span class="res-label">${escapeHtml(metric.label)}</span>
-        ${resultMetricDetailsHtml(metric)}
-      </div>
+      ${breakpoints.length && metric.className === 'dps' ? resultDpsSnapshotsHtml(metric, breakpoints) : `<div class="res-label-row"><span class="res-label">${escapeHtml(metric.label)}</span>${resultMetricDetailsHtml(metric)}</div>`}
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}">${escapeHtml(metric.value)}</span>
     </div>`;
       })
       .join('')}
   </div>`
-      : ''
-  }
-  ${
-    breakpoints.length
-      ? `<details class="res-breakpoints">
-    <summary>
-      <span class="res-breakpoints-heading">DPS snapshots</span>
-      <span class="res-breakpoints-description">Average DPS at 20% target-health intervals</span>
-    </summary>
-    <div class="res-breakpoint-grid">
-      ${breakpoints
-        .map(
-          (breakpoint) => `<div class="res-breakpoint">
-        <div class="res-breakpoint-meta">
-          <span class="res-breakpoint-label">
-            <b>${number(breakpoint.healthPercent)}%</b> target health
-          </span>
-          <span class="res-breakpoint-time">at ${Number(breakpoint.elapsed || 0).toFixed(2)}s</span>
-        </div>
-        <div class="res-breakpoint-value">
-          <strong>${number(breakpoint.dps)}</strong>
-          <span>DPS</span>
-        </div>
-      </div>`
-        )
-        .join('')}
-    </div>
-  </details>`
       : ''
   }
   ${

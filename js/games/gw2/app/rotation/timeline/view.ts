@@ -432,7 +432,6 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
-    onEditOffset: (index, event) => editRotationActivation(app, index, event),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),
     onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
@@ -902,7 +901,8 @@ export function renderTimeline(app: ProfessionAppState): void {
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${
-                      resourceSpend
+                      // Dragon Slash's release badge already shows its charges and timestamp without covering the pencil.
+                      resourceSpend && !skill?.dragonSlash
                         ? `<span class="rot-resource-spend-badge"
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
                         : ''
@@ -910,7 +910,7 @@ export function renderTimeline(app: ProfessionAppState): void {
                     ${time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
                     ${
                       item.concurrentOffsetMs != null
-                        ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${index}"
+                        ? `<span class="rot-offset-badge rot-timed-action-badge"
                         title="Delay ${item.concurrentOffsetMs}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>`
                         : ''
                     }

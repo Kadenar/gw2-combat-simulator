@@ -4,7 +4,10 @@ import { professionCoreState } from '../../../../platform/engine/profession/stat
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
-import { isGw2PlayerActorEvent } from '../../../../platform/combat/state/event-ownership.js';
+import {
+  isGw2PlayerActorEvent,
+  isGw2PlayerModifierOwnedEvent
+} from '../../../../platform/combat/state/event-ownership.js';
 import { hasTrait } from '../../../../platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import { emitGuardianEvent } from './events.js';
@@ -43,7 +46,10 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): boo
   const passiveReadyAt = context.rechargeReadyAt ?? context.effectiveEnd;
   emitGuardianEvent(context, skill, 'guardian.virtue-activated', {
     virtue,
-    passiveReadyAt
+    passiveReadyAt,
+    // Radiant Justice's activation-generated Sovereign and symbol packets hit
+    // before its passive is disabled, matching their EVTC ordering.
+    ...(skill.id === GUARDIAN_SKILL_IDS.RADIANT_JUSTICE ? { priority: 10 } : {})
   });
   state.virtueReadyAt[virtue] = passiveReadyAt;
   return false;
@@ -123,11 +129,13 @@ function applyJusticeBurn(
   {
     active,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,
-    skillName = 'Virtue of Justice'
+    skillName = 'Virtue of Justice',
+    passiveBurnDuration
   }: {
     readonly active: boolean;
     readonly skillId?: SkillId;
     readonly skillName?: string;
+    readonly passiveBurnDuration?: number;
   }
 ): void {
   const justice = guardianBalanceProfile(context, PROFILE.justice);
@@ -148,7 +156,9 @@ function applyJusticeBurn(
     name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
     condition: String(burn?.condition || 'Burning'),
     stacks: Number(burn?.stacks || 1),
-    duration: Number(burn?.duration || (active ? 2 : 1.2))
+    duration: Number(
+      !active && passiveBurnDuration != null ? passiveBurnDuration : burn?.duration || (active ? 2 : 1.2)
+    )
   });
   professionCoreState(context).justiceBurns += 1;
   if (active) professionCoreState(context).justiceActiveBurns += 1;
@@ -164,14 +174,20 @@ export function reactToJusticeHitWithOptions(
   {
     retainsPassive = false,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,
-    skillName = 'Virtue of Justice'
+    skillName = 'Virtue of Justice',
+    passiveBurnDuration
   }: {
     readonly retainsPassive?: boolean;
     readonly skillId?: SkillId;
     readonly skillName?: string;
+    readonly passiveBurnDuration?: number;
   } = {}
 ): void {
-  if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
+  // Justice counts direct and symbol packets plus Guardian effects owned by
+  // the player, such as Sovereign of Light, without admitting gear procs.
+  const isGuardianOwnedHit =
+    isGw2PlayerActorEvent(event) || (event.source === 'guardian' && isGw2PlayerModifierOwnedEvent(event));
+  if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return;
 
   const state = professionCoreState(context);
   if (state.justiceActiveArmed) {
@@ -180,7 +196,8 @@ export function reactToJusticeHitWithOptions(
     applyJusticeBurn(context, event, {
       active: true,
       skillId,
-      skillName
+      skillName,
+      passiveBurnDuration
     });
     return;
   }
@@ -198,6 +215,7 @@ export function reactToJusticeHitWithOptions(
   applyJusticeBurn(context, event, {
     active: false,
     skillId,
-    skillName
+    skillName,
+    passiveBurnDuration
   });
 }

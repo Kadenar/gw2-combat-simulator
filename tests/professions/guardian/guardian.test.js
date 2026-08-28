@@ -243,6 +243,22 @@ test('Justice passive counts individual hits and respects its active cooldown', 
   assert.equal(radiantActivated.endState.profession.justicePassiveBurns, 0);
 });
 
+test('Justice counts symbol packets and applies the measured two-second passive burn', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }],
+    config: { ...config, specialization: 'Luminary', primaryWeapon: 'Greatsword' }
+  });
+  const burn = result.resolvedEvents.find(
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive'
+  );
+  const proc = result.procSteps.find((step) => step.skill === 'Justice Passive');
+
+  assert.equal(result.endState.profession.justicePassiveBurns, 1);
+  assert.equal(burn.duration, 2);
+  assert.equal(proc.sourceSkill, 'Symbol of Resolution');
+});
+
 test('Guardian greatsword uses the reference cast and strike profiles', () => {
   const simulate = (quickness) =>
     simulateGw2({
@@ -325,6 +341,52 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     true
   );
   assert.equal(quick.conditionDamage > 0, true);
+});
+
+test('Guardian greatsword autos separate packet, safe-cancel, and retained-lockout timing', () => {
+  const earlyStrike = simulateGw2({
+    profession: guardianProfession,
+    rotation: [{ name: 'Strike', interruptMs: 399 }],
+    config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' }
+  });
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Strike',
+      { name: 'Vengeful Strike', interruptMs: 400 },
+      { name: 'Wrathful Strike', interruptMs: 520 },
+      'Strike'
+    ],
+    config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' }
+  });
+  const actions = result.events.filter((event) => event.type === 'action');
+  const action = (index) => actions[index];
+  const packetOffset = (index) => {
+    const packet = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.activationId === action(index).activationId
+    );
+
+    return Math.round((packet.at - action(index).at) * 1000);
+  };
+
+  assert.equal(
+    earlyStrike.resolvedEvents.some((event) => event.type === 'damage'),
+    false
+  );
+  assert.deepEqual([packetOffset(0), packetOffset(1), packetOffset(2)], [400, 400, 440]);
+  assert.deepEqual(
+    [action(1), action(2)].map((event) => ({
+      duration: Math.round((event.endsAt - event.at) * 1000),
+      fullDuration: Math.round((event.fullEndsAt - event.at) * 1000),
+      lockoutDuration: Math.round((event.castLockoutEndsAt - event.at) * 1000)
+    })),
+    [
+      { duration: 400, fullDuration: 600, lockoutDuration: 600 },
+      { duration: 520, fullDuration: 680, lockoutDuration: 680 }
+    ]
+  );
+  assert.equal(Math.round((action(3).at - action(2).at) * 1000), 680);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('Guardian longbow uses measured Quickness cast times', () => {
@@ -1074,6 +1136,39 @@ test('Guardian measured Quickness cast times remain exact', () => {
       .map((event) => Math.round((event.endsAt - event.at) * 1000)),
     [520, 440, 520]
   );
+});
+
+test('Guardian spear packets use measured safe-cancel and lockout timing', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      { name: 'Helio Rush', interruptMs: 280 },
+      { name: 'Daybreaking Slash', interruptMs: 400 },
+      'Daybreaking Slash'
+    ],
+    config: {
+      ...config,
+      boons: { quickness: true },
+      specialization: 'Luminary',
+      primaryWeapon: 'Spear'
+    }
+  });
+  const actions = result.events.filter((event) => event.type === 'action');
+  const damageOffset = (action) => {
+    const packet = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.activationId === action.activationId
+    );
+
+    return Math.round((packet.at - action.at) * 1000);
+  };
+
+  assert.deepEqual(actions.map(damageOffset), [240, 400, 400]);
+  assert.equal(Math.round((actions[0].endsAt - actions[0].at) * 1000), 280);
+  assert.equal(actions[0].castLockoutEndsAt, undefined);
+  assert.equal(Math.round((actions[1].endsAt - actions[1].at) * 1000), 400);
+  assert.equal(Math.round((actions[1].castLockoutEndsAt - actions[1].at) * 1000), 520);
+  assert.equal(Math.round((actions[2].at - actions[1].at) * 1000), 520);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('Willbender utilities use the supplied physical skill profiles', () => {
@@ -3190,6 +3285,39 @@ test('Shining Spin strikes 400 ms into its quickened cast', () => {
   assert.equal(Math.round((strike.at - action.at) * 1000), 400);
 });
 
+test('Radiant Forge damage packets use measured cast-start offsets', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      'Shining Spin',
+      { name: 'Glaring Burst', interruptMs: 520 },
+      'Luminous Staff',
+      'Gleaming Blade',
+      'Lucent Thrust',
+      { type: 'wait', durationMs: 4000 }
+    ],
+    config: { ...config, specialization: 'Luminary', boons: { quickness: true } }
+  });
+  const action = (skillName) => result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+  const offsets = (skillName) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillName === skillName)
+      .map((event) => Math.round((event.at - action(skillName).at) * 1000));
+
+  assert.deepEqual(offsets('Dazzling Hammer'), [440]);
+  assert.deepEqual(offsets('Shining Spin'), [400]);
+  assert.deepEqual(offsets('Glaring Burst'), [480]);
+  assert.deepEqual(offsets('Luminous Staff'), [440, 1440, 2440, 3440]);
+  assert.deepEqual(offsets('Gleaming Blade'), [760]);
+  assert.deepEqual(offsets('Lucent Thrust'), [440, 480]);
+  assert.equal(Math.round((action('Glaring Burst').endsAt - action('Glaring Burst').at) * 1000), 520);
+  assert.equal(action('Glaring Burst').castLockoutEndsAt, undefined);
+  assert.equal(Math.round((action('Luminous Staff').at - action('Glaring Burst').at) * 1000), 520);
+  assert.deepEqual(result.warnings, []);
+});
+
 test('Luminary Radiant Forge transitions reset weapon autoattack chains', () => {
   const result = simulateGw2({
     profession: guardianProfession,
@@ -3812,6 +3940,24 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
 });
 
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
+  const sovereignJustice = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer'],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
+  });
+  const activationJustice = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Effulgent Stance', 'Radiant Justice'],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
+  });
   const combo = simulateGw2({
     profession: guardianProfession,
     rotation: ['Symbol of Resolution', 'Leap of Faith', 'Enter Radiant Forge', 'Dazzling Hammer'],
@@ -3864,9 +4010,11 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   );
   assert.ok(justice.events.some((event) => event.type === 'blind' && event.skillName === 'Justice is Blind'));
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
+  assert.equal(activationJustice.endState.profession.justiceHitCount, 1);
   const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
 
+  assert.equal(sovereignJustice.endState.profession.justiceHitCount, 2);
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,

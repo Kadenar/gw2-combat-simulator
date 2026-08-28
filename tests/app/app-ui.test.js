@@ -606,16 +606,9 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   );
   assert.match(
     css,
-    /body\[data-rotation-focus\] \.rotation-results\s*\{\s*grid-template-columns: 1fr;\s*max-height: none;\s*margin-top: 8px;\s*overflow-x: hidden;/
-  );
-  assert.match(
-    css,
     /body\[data-rotation-focus\] \.rotation-dps-summary \.res-summary\s*\{\s*display: grid;\s*width: 100%;\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
   );
-  assert.match(
-    css,
-    /body\[data-rotation-focus\] \.rotation-results \.res-breakpoint-grid\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
-  );
+  assert.match(css, /body\[data-rotation-focus\] \.rotation-results\s*\{\s*display: none;/);
 });
 
 test('damage breakdown keeps its skill identity column visible on narrow screens', async () => {

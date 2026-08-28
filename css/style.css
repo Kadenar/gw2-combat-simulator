@@ -2670,14 +2670,11 @@ body[data-profession][data-simulator-view='workspace'] .analysis-view-heading {
   display: none;
 }
 
-body[data-profession][data-simulator-view='workspace']
-  #rotation-results
-  > :not(.res-summary):not(.res-breakpoints):not(.rng-distribution) {
+body[data-profession][data-simulator-view='workspace'] #rotation-results > :not(.rng-distribution) {
   display: none;
 }
 
-body[data-profession][data-simulator-view='workspace']
-  #rotation-results:not(:has(> .res-breakpoints, > .rng-distribution)) {
+body[data-profession][data-simulator-view='workspace'] #rotation-results:not(:has(> .rng-distribution)) {
   display: none;
 }
 
@@ -2716,9 +2713,7 @@ body[data-profession][data-simulator-view='analysis'] .rotation-section > .rotat
   background: transparent;
 }
 
-body[data-profession][data-simulator-view='analysis']
-  #rotation-results
-  > :is(.res-summary, .res-breakpoints, .rng-distribution) {
+body[data-profession][data-simulator-view='analysis'] #rotation-results > :is(.res-summary, .rng-distribution) {
   display: none;
 }
 
@@ -2928,53 +2923,13 @@ body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
 }
 
 body[data-rotation-focus] .rotation-results {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  min-height: 0;
-  max-height: 32vh;
-  margin: 0;
-  overflow-y: auto;
-}
-
-body[data-rotation-focus] .rotation-results:empty {
   display: none;
-}
-
-body[data-rotation-focus] .rotation-results > :not(.res-breakpoints) {
-  display: none;
-}
-
-body[data-rotation-focus] .rotation-dps-summary .res-summary,
-body[data-rotation-focus] .rotation-results .res-breakpoints {
-  margin: 0;
 }
 
 body[data-rotation-focus] .rotation-dps-summary .res-summary {
+  margin: 0;
   align-items: center;
   flex-wrap: nowrap;
-}
-
-body[data-rotation-focus] .rotation-results .res-breakpoints summary {
-  padding-block: 7px;
-}
-
-body[data-rotation-focus] .rotation-results .res-breakpoint-grid {
-  grid-template-columns: repeat(5, minmax(105px, 1fr));
-  gap: 5px;
-  padding: 6px;
-}
-
-body[data-rotation-focus] .rotation-results .res-breakpoint {
-  padding: 6px 7px;
-}
-
-body[data-rotation-focus] .rotation-results .res-breakpoint-value {
-  margin: 5px 0 2px;
-}
-
-body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
-  font-size: 17px;
 }
 
 @media (min-width: 1200px) and (min-height: 760px) {
@@ -4750,9 +4705,9 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 }
 
 .rotation-procs-wrap {
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .rotation-procs-wrap > summary {
@@ -4766,7 +4721,7 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 }
 
 .rotation-procs-wrap > summary:hover {
-  background: var(--bg-panel-alt);
+  background: transparent;
 }
 
 .rotation-procs-content {
@@ -4942,14 +4897,7 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   padding: 0 3px;
   border-radius: 3px;
   white-space: nowrap;
-  cursor: pointer;
   z-index: 3;
-  pointer-events: all;
-}
-
-.rot-offset-badge:hover {
-  background: var(--accent);
-  color: #fff;
 }
 
 .rot-skill .rot-timed-action-badge {
@@ -5501,9 +5449,9 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   gap: 16px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   margin-bottom: 10px;
 }
 
@@ -5643,8 +5591,161 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   bottom: calc(100% + 7px);
 }
 
+/* DPS snapshots live behind the DPS label so the summary stays one compact row. */
+.res-dps-snapshots {
+  position: relative;
+}
+
+.res-dps-snapshots > summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  list-style: none;
+}
+
+.res-dps-snapshots > summary::-webkit-details-marker {
+  display: none;
+}
+
+.res-dps-snapshots > summary:hover,
+.res-dps-snapshots > summary:focus-visible,
+.res-dps-snapshots[open] > summary {
+  border-bottom-color: color-mix(in srgb, var(--health) 55%, transparent);
+  outline: none;
+}
+
+.res-dps-snapshots > summary .res-label,
+.res-dps-snapshots[open] > summary .res-label {
+  color: var(--health);
+}
+
+.res-dps-snapshots-info {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.res-dps-snapshots-chevron {
+  width: 6px;
+  height: 6px;
+  margin: -3px 1px 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.res-dps-snapshots[open] .res-dps-snapshots-chevron {
+  margin-top: 3px;
+  transform: rotate(225deg);
+}
+
+.res-dps-snapshots-panel {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  z-index: 30;
+  width: min(440px, calc(100vw - 24px));
+  padding: 10px 12px;
+  color: var(--text);
+  text-align: left;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+  transform: translateX(-50%);
+}
+
+.rotation-dps-summary .res-dps-snapshots-panel {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+.res-dps-snapshots-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-bright);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.res-dps-snapshots-heading svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--health);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.res-dps-snapshots-list {
+  display: grid;
+  gap: 7px;
+  padding-top: 8px;
+}
+
+.res-dps-snapshot {
+  display: grid;
+  grid-template-columns: 7px minmax(140px, 1fr) max-content max-content;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.res-dps-snapshot::before {
+  width: 7px;
+  height: 7px;
+  align-self: center;
+  background: var(--health);
+  border-radius: 50%;
+  content: '';
+}
+
+.res-dps-snapshot-health,
+.res-dps-snapshot-time {
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.res-dps-snapshot-health b {
+  color: var(--text-bright);
+  font-size: 11px;
+}
+
+.res-dps-snapshot > strong {
+  color: var(--health);
+  font-size: 12px;
+}
+
+.res-dps-snapshot > strong small {
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.res-dps-snapshot-time {
+  text-transform: none;
+}
+
 @media (max-width: 700px) {
   .res-stat:nth-child(even) .res-metric-info-panel {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  .res-stat:nth-child(even) .res-dps-snapshots-panel {
     right: 0;
     left: auto;
     transform: none;
@@ -6137,133 +6238,6 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
   }
 }
 
-.res-breakpoints {
-  margin: -1px 0 10px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.res-breakpoints summary {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
-  align-items: baseline;
-  gap: 8px;
-  padding: 9px 12px;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-  transition: background 0.15s ease;
-}
-
-.res-breakpoints summary::-webkit-details-marker {
-  display: none;
-}
-
-.res-breakpoints summary::before {
-  content: '›';
-  color: var(--health);
-  font-size: 16px;
-  line-height: 10px;
-  transform-origin: center;
-  transition: transform 0.15s ease;
-}
-
-.res-breakpoints summary:hover {
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.res-breakpoints[open] summary {
-  border-bottom: 1px solid var(--border);
-}
-
-.res-breakpoints[open] summary::before {
-  transform: rotate(90deg);
-}
-
-.res-breakpoints-heading {
-  color: var(--text-bright);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.res-breakpoints-description {
-  color: var(--text-dim);
-  font-size: 10px;
-}
-
-.res-breakpoint-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
-  padding: 12px;
-}
-
-.res-breakpoint {
-  min-width: 0;
-  padding: 10px 11px 9px;
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--health) 6%, transparent), transparent 58%), var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-variant-numeric: tabular-nums;
-  transition:
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.res-breakpoint:hover {
-  border-color: color-mix(in srgb, var(--health) 40%, var(--border));
-  transform: translateY(-1px);
-}
-
-.res-breakpoint-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.res-breakpoint-label {
-  color: var(--text-dim);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.45px;
-}
-
-.res-breakpoint-label b {
-  color: var(--text-bright);
-  font-size: 11px;
-}
-
-.res-breakpoint-time {
-  font-size: 9px;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-.res-breakpoint-value {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  margin: 8px 0 9px;
-}
-
-.res-breakpoint-value strong {
-  color: var(--health);
-  font-size: 20px;
-  line-height: 1;
-}
-
-.res-breakpoint-value span {
-  color: color-mix(in srgb, var(--health) 70%, var(--text-dim));
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.55px;
-}
-
 .res-breakdown {
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -6438,9 +6412,9 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 }
 
 .res-log-wrap {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   padding: 8px 12px;
 }
 
@@ -7349,8 +7323,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 9px 10px 10px;
   overflow: hidden;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--attunement-color) 38%, var(--border));
-  border-bottom: 1px solid color-mix(in srgb, var(--attunement-color) 38%, var(--border));
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -7392,7 +7364,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   letter-spacing: 0.8px;
   line-height: 20px;
   writing-mode: horizontal-tb;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-bottom: 0;
   transform: none;
 }
 
@@ -7443,8 +7415,8 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   justify-items: center;
   gap: 2px;
   margin-top: 5px;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--attunement-color) 32%, var(--border));
+  padding-top: 0;
+  border-top: 0;
 }
 
 .elementalist-theme .weapon-followups .weapon-chain-step {
@@ -7706,8 +7678,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 39px 12px 11px;
   overflow: visible;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -7728,7 +7698,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   line-height: 1;
   text-align: left;
   writing-mode: horizontal-tb;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0;
   transform: none;
 }
 
@@ -7780,8 +7750,8 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   justify-items: center;
   gap: 2px;
   margin-top: 5px;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+  padding-top: 0;
+  border-top: 0;
 }
 
 .profession-loadout-theme .weapon-set-preview .weapon-chain-step {
@@ -8014,14 +7984,14 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 .combat-loadout-column-label {
   margin-bottom: 9px;
-  padding-bottom: 6px;
+  padding-bottom: 0;
   color: var(--text-dim);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1px;
   line-height: 1;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0;
 }
 
 .combat-loadout .combat-loadout-weapons .weapon-bar {
@@ -10329,13 +10299,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     inset: 6px 6px 6px auto;
   }
 
-  body[data-rotation-focus] .rotation-results {
-    grid-template-columns: 1fr;
-    max-height: none;
-    margin-top: 8px;
-    overflow-x: hidden;
-  }
-
   body[data-rotation-focus] .rotation-dps-summary .res-summary {
     display: grid;
     width: 100%;
@@ -10351,10 +10314,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     padding-left: 0;
     margin-left: 0;
     border-left: 0;
-  }
-
-  body[data-rotation-focus] .rotation-results .res-breakpoint-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rotation-builder-heading {

@@ -123,6 +123,24 @@
   font-weight: 650;
 }
 
+.activation-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.activation-editor-header .activation-editor-heading,
+.activation-editor-header .activation-editor-skill {
+  margin-bottom: 0;
+}
+
+.activation-editor-header .activation-editor-skill {
+  justify-content: flex-end;
+  min-width: 0;
+}
+
 .activation-editor-skill {
   display: flex;
   align-items: center;
@@ -139,6 +157,7 @@
 }
 
 .activation-editor-name {
+  min-width: 0;
   overflow: hidden;
   color: var(--text, #d8d8e0);
   font-size: 13px;
@@ -168,6 +187,26 @@
   height: 15px;
   margin: 0;
   accent-color: var(--activation-editor-accent);
+}
+
+.activation-editor-configured-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activation-editor-configured-row .activation-editor-choice {
+  flex: 1;
+  min-width: 0;
+}
+
+.activation-editor-configured-row .activation-editor-input-row {
+  flex: none;
+  margin: 0;
+}
+
+.activation-editor-configured-row .activation-editor-input {
+  width: 82px;
 }
 
 .activation-editor-input-row {

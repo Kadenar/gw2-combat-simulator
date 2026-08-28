@@ -30,7 +30,6 @@ export interface TimelineInteractionOptions {
   readonly onChanged?: () => void;
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;
-  readonly onEditOffset?: (index: number, event?: Event) => unknown;
   readonly onEditActivation?: (index: number, event?: Event) => unknown;
   readonly onEditInterrupt?: (index: number, event?: Event) => unknown;
   readonly onEditReleaseAtCharges?: (index: number, event?: Event) => unknown;
@@ -615,7 +614,7 @@ export function bindTimelineInteractions(
     }
   };
 
-  bindEdit('.rot-offset-badge', options.onEditOffset);
+  // Concurrent timing badges remain status-only; pencils are their single cast-behavior editor control.
   bindEdit('.rot-edit-activation, .rot-interrupt-badge', options.onEditActivation || options.onEditInterrupt);
   bindEdit('.rot-charge-release-badge', options.onEditReleaseAtCharges);
   bindEdit('.rot-double-edge-badge', options.onEditDoubleEdgeOutcome);
