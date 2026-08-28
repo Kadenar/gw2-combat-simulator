@@ -23,6 +23,9 @@ export interface DpsReportRecordedAction {
   readonly metadataAccurate: boolean;
   /** Elite Insights' nominal cast length for this cast (observed duration plus any time gained). */
   readonly expectedDurationMs?: number;
+  /** Replays a report-proven generated activation without occupying its modeled cast lane. */
+  readonly replayInterruptMs?: number;
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;
   readonly independentTimeline?: boolean;
@@ -39,7 +42,14 @@ export interface DpsReportRecordedAction {
     | 'harbinger-shroud'
     | 'willbender-jurisdiction'
     | 'elementalist-aura'
-    | 'elementalist-blinding-flash';
+    | 'elementalist-blinding-flash'
+    | 'virtuoso-opening'
+    | 'troubadour-opening'
+    | 'ranger-opening'
+    | 'ranger-damage-evidence'
+    | 'thief-opening'
+    | 'thief-damage-evidence'
+    | 'thief-double-edge';
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
 }

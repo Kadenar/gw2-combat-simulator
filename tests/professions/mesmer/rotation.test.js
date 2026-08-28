@@ -3428,7 +3428,6 @@ test('an interrupted Troubadour instrument still resets the spear autoattack cha
     })
   );
 
-  assert.equal(result.steps[1].cancelledBeforeCommit, true);
   assert.deepEqual(
     result.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Psycut', 'Harmonious Harp', 'Psycut']
@@ -5386,7 +5385,7 @@ test('Troubadour skills use measured Quickness cast times', () => {
   );
 });
 
-test('Harmonious Harp has a two-second Quickness channel that commits when interrupted', () => {
+test('Harmonious Harp replays at 480ms after its Harp Playing packet commits without dealing damage', () => {
   const config = defaultSimulationConfig({
     specialization: 'Troubadour',
     initialResource: 3,
@@ -5405,6 +5404,10 @@ test('Harmonious Harp has a two-second Quickness channel that commits when inter
   );
   assert.ok(Math.abs(instrument.at - 0.4801) < 1e-12);
   assert.equal(instrument.expiresAt, 20.48);
+  assert.equal(
+    interrupted.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Harmonious Harp'),
+    false
+  );
 });
 
 test('Shatter Storm gives Lively Lute a second charge without a full cooldown', () => {

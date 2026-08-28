@@ -14,6 +14,7 @@ const DISMISS_CYCLONE_BOW = Object.freeze({
 
 const CYCLONE_BOW_WEAPON_SET = 2;
 const TRUNCATED_CAST_WINDOW_MS = 150;
+const WINTERS_BITE_ID = 12490;
 const CYCLONE_BOW_SKILL_IDS = new Set([
   76664, // Hawkeye
   76722, // Pelt
@@ -68,24 +69,28 @@ function normalizeFalseInterruptions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  return actions.map((action) => {
+  return actions.flatMap((action) => {
+    // ArcDPS emits same-timestamp Winter's Bite resets that are state signals, not extra player casts.
+    if (action.rawSkillId === WINTERS_BITE_ID && action.end === action.start) return [];
     if (
       action.status !== 'interrupted' ||
       action.end !== action.start ||
       !GALESHOT_FALSE_INTERRUPTION_IDS.has(action.rawSkillId)
     ) {
-      return action;
+      return [action];
     }
 
     const skill = rangerSkill(context, action.rawSkillId, action.rawName);
     const duration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
-    if (duration <= 0) return action;
-    return {
-      ...action,
-      end: action.start + duration,
-      expectedDuration: duration,
-      status: 'completed'
-    };
+    if (duration <= 0) return [action];
+    return [
+      {
+        ...action,
+        end: action.start + duration,
+        expectedDuration: duration,
+        status: 'completed'
+      }
+    ];
   });
 }
 
@@ -125,17 +130,14 @@ function cycloneBowActions(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   )[0];
   if (!firstAction) return mapped;
+  // A bow skill proves the bow was already active; an opening weapon cast instead proves the summon happened beside it.
+  const summonEventIndex = firstAction.eventIndex + (CYCLONE_BOW_SKILL_IDS.has(firstAction.rawSkillId) ? -0.5 : 0.5);
   return [
     ...mapped,
-    directAction(
-      firstAction.eventIndex + 0.5,
-      firstAction.start,
-      0,
-      SUMMON_CYCLONE_BOW.name,
-      SUMMON_CYCLONE_BOW,
-      'initial-state',
-      { weaponSet: CYCLONE_BOW_WEAPON_SET, precast: true }
-    )
+    directAction(summonEventIndex, firstAction.start, 0, SUMMON_CYCLONE_BOW.name, SUMMON_CYCLONE_BOW, 'initial-state', {
+      weaponSet: CYCLONE_BOW_WEAPON_SET,
+      precast: true
+    })
   ];
 }
 

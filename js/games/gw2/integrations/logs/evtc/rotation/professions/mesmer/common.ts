@@ -1,4 +1,5 @@
 import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { firstStrikePacketOffsetMs } from '../../effect-packets.js';
 import { findRotationSkill } from '../../catalog.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
@@ -100,8 +101,8 @@ function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, sp
 }
 
 /**
- * Reconstructs Unstable Bladestorm casts whose animations are absent by clustering player-owned missile events and
- * treating each unmatched missile cluster as the cast's completion evidence.
+ * Reconstructs Unstable Bladestorm casts whose animations are absent by retiming each unmatched missile cluster from
+ * its catalog packet offset, preserving casts that began before combat.
  */
 function missingUnstableBladestormActions(
   context: EvtcProfessionReconstructionContext,
@@ -112,11 +113,27 @@ function missingUnstableBladestormActions(
       ? [{ event, eventIndex }]
       : []
   );
-  return clusterSignals(missiles, 1500).flatMap((signal) =>
-    hasNearbyAction(actions, UNSTABLE_BLADESTORM, signal.event.time, 2500)
-      ? []
-      : [canonicalCast(context, signal, UNSTABLE_BLADESTORM, signal.event.time, 'effect')]
+  const skill = findRotationSkill(
+    UNSTABLE_BLADESTORM.skillId,
+    UNSTABLE_BLADESTORM.name,
+    context.catalog,
+    context.profile
   );
+  const duration = castDuration(context, UNSTABLE_BLADESTORM);
+  const firstPacketOffset = firstStrikePacketOffsetMs(skill, duration, { explicitOnly: true }) ?? duration;
+  const combatStart = combatStartTime(context);
+  return clusterSignals(missiles, 1500).flatMap((signal) => {
+    if (hasNearbyAction(actions, UNSTABLE_BLADESTORM, signal.event.time, 2500)) return [];
+    const start = signal.event.time - firstPacketOffset;
+    return [
+      canonicalAction(signal.eventIndex, start, UNSTABLE_BLADESTORM, signal.event.skillId, 'effect', {
+        end: start + duration,
+        expectedDuration: duration,
+        status: 'completed',
+        precast: combatStart != null && start < combatStart
+      })
+    ];
+  });
 }
 
 /** Reconstructs missing Chaos Storm casts from their effect GUID when no nearby recorded action already represents it. */
@@ -373,9 +390,14 @@ function inferredOpeningMimic(
   }
 
   const duration = castDuration(context, MIMIC);
+  // Place the recovered utility before any reconstructed precast instead of overlapping the visible opening cast.
+  const end = Math.min(
+    combatStart,
+    ...actions.filter((action) => action.start < combatStart).map((action) => action.start)
+  );
   return [
-    canonicalAction(recorded[0].eventIndex - 1, combatStart - duration, MIMIC, MIMIC.skillId, 'initial-state', {
-      end: combatStart,
+    canonicalAction(recorded[0].eventIndex - 1, end - duration, MIMIC, MIMIC.skillId, 'initial-state', {
+      end,
       expectedDuration: duration,
       status: 'completed',
       precast: true

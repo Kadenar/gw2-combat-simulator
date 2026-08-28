@@ -4,6 +4,7 @@ import type { Skill } from '../../../../../platform/engine/types.js';
 import { reconstructConduitDpsReportActions } from './revenant/conduit.js';
 import { reconstructHeraldDpsReportActions } from './revenant/herald.js';
 import { reconstructRenegadeDpsReportActions } from './revenant/renegade.js';
+import { reconstructVindicatorDpsReportActions } from './revenant/vindicator.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
@@ -13,9 +14,10 @@ import type {
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
   ['conduit', reconstructConduitDpsReportActions],
   ['herald', reconstructHeraldDpsReportActions],
-  ['renegade', reconstructRenegadeDpsReportActions]
+  ['renegade', reconstructRenegadeDpsReportActions],
+  ['vindicator', reconstructVindicatorDpsReportActions]
 ]);
-const LEGEND_STANCE_NAME = /^legendary .+ stance$/;
+const LEGEND_STANCE_NAME = /^legendary .+(?: stance)?$/;
 const SONG_OF_THE_MISTS_SIGNAL = /^call of the (alliance|assassin|centaur|demon|dragon|dwarf|renegade)$/;
 const ABYSSAL_BLITZ_CHILD_SIGNAL = /^blitz mines \((drop|detonation)\)$/;
 const COMPOSITE_CASTS = [

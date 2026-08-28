@@ -185,8 +185,11 @@ export function initialEnchantedDaggersActions(
   context: EvtcProfessionReconstructionContext,
   anchor: number
 ): EvtcRecordedRotationAction[] {
+  const configuredLegend = String(context.professionConfig?.startingLegend || '');
   if (
     !Number.isFinite(anchor) ||
+    // An inherited Enchanted Daggers buff is not a replayable input when the active build explicitly starts elsewhere.
+    (configuredLegend && configuredLegend !== 'LegendaryAssassin') ||
     !context.log.events.some(
       (event) =>
         event.source === context.playerAddress &&

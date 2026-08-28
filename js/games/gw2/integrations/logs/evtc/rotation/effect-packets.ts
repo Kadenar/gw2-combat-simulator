@@ -313,14 +313,17 @@ export function reconcileCastEffectPackets(
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     const replayCastEnd = action.replayCastEnd;
     const suppressFollowingWait = action.suppressFollowingWait;
+    const paletteInterruptMs = Number(skill?.paletteInterruptMs);
+    const observedPaletteInterrupt =
+      paletteInterruptMs > 0 && Math.abs(actualDuration - paletteInterruptMs) <= EFFECT_PACKET_TOLERANCE_MS;
     if (packets.allObserved) {
       if (
         runtimeDuration > 0 &&
         packets.allObservedTimingExplicit &&
-        packets.lastObservedCancelableExpectedOffsetMs != null
+        packets.lastObservedCancelableExpectedOffsetMs != null &&
+        !observedPaletteInterrupt
       ) {
-        // Every cancelable timed packet proves a shortened EVTC animation omitted modeled aftercast.
-        // Persisting packets alone cannot prove completion because they may land after a real interruption.
+        // Every cancelable timed packet proves completion unless the animation ended at the skill's known cancel point.
         replayDuration = runtimeDuration;
       }
     }

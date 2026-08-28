@@ -744,3 +744,52 @@ test('reconstructs Soulbeast precasts, commands, composite Smash, and shared Pat
   assert.equal(names.filter((name) => name === 'Leave Beastmode').length, 1);
   assert.equal(names.filter((name) => name === 'Beastmode').length, 1);
 });
+
+test('orders an initial Cyclone Bow before its first skill and drops Winter reset signals', () => {
+  const skills = [
+    skill(77319, 'Bluster', {
+      type: 'Bundle',
+      slot: 'Weapon_2',
+      specialization: 'Galeshot',
+      castTimeMs: 680,
+      quicknessCastTimeMs: 680,
+      cycloneBowSkill: true
+    }),
+    skill(12490, "Winter's Bite", {
+      type: 'Weapon',
+      slot: 'Weapon_4',
+      castTimeMs: 520,
+      quicknessCastTimeMs: 520
+    }),
+    skill(76787, 'Summon Cyclone Bow'),
+    skill(77213, 'Dismiss Cyclone Bow'),
+    skill(-3, 'Swap Weapons', { type: 'Action', slot: 'Action' })
+  ];
+  const fixture = log(
+    78,
+    [
+      { id: 77319, name: 'Bluster' },
+      { id: 12490, name: "Winter's Bite" }
+    ],
+    [
+      event({ time: 1000, skillId: 77319, value: 680, activation: 1 }),
+      event({ time: 1200, target: 1n, stateChange: 1 }),
+      event({ time: 1680, skillId: 77319, value: 680, activation: 3 }),
+      event({ time: 2500, skillId: 12490, value: 520, activation: 1 }),
+      event({ time: 2500, skillId: 12490, activation: 4 }),
+      event({ time: 3000, target: 4n, value: 2, stateChange: 11 }),
+      event({ time: 4000, source: TARGET, stateChange: 4 })
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills }, { inferInstantCasts: false });
+
+  assert.deepEqual(
+    result.rotation.slice(0, 2).map((command) => command.name),
+    ['Summon Cyclone Bow', 'Bluster']
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === "Winter's Bite"),
+    false
+  );
+});

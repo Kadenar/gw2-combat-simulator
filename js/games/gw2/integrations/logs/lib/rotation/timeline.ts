@@ -19,6 +19,8 @@ export interface ReplayTimelineAction {
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly timingToleranceMs?: number;
+  /** Positive source gaps at or below this threshold are timing jitter, not intentional simulator idle time. */
+  readonly minimumWaitMs?: number;
   readonly quantizeMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
@@ -52,6 +54,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   policy: ReplayTimelinePolicy<Action>
 ): ReconstructedCommand[] {
   const timingToleranceMs = policy.timingToleranceMs ?? 50;
+  const minimumWaitMs = Math.max(0, Number(policy.minimumWaitMs || 0));
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
@@ -83,7 +86,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let previousCastStart: number | null = null;
   const appendObservedIdle = (nextActionAt: number): void => {
     const waitMs = quantizeMs(nextActionAt - activeCastEnd);
-    if (waitMs > 0) rotation.push({ name: '__wait', waitMs });
+    if (waitMs > minimumWaitMs) rotation.push({ name: '__wait', waitMs });
     activeCastEnd = nextActionAt;
   };
 

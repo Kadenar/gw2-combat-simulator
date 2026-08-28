@@ -149,8 +149,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     environment: 'Terrestrial',
-    // Harp's measured two-second Quickness channel derives its three-second base cast.
+    // Harp Playing commits by 480ms; keep the measured 480ms replay point for its remaining animation.
     quicknessCastTimeMs: 2000,
+    interruptCommitMs: 480,
     paletteInterruptMs: 480,
     cooldown: 25,
     effects: []
@@ -233,8 +234,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     environment: 'Terrestrial',
-    // Keep the duplicate Harp profile aligned with the same interruptible channel contract.
+    // Keep the duplicate Harp profile aligned with the same packet-backed interrupt contract.
     quicknessCastTimeMs: 2000,
+    interruptCommitMs: 400,
     paletteInterruptMs: 480,
     cooldown: 25,
     effects: []

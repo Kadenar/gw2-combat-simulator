@@ -463,7 +463,7 @@ test('recovers a Mesmer phantasm precast whose animation start predates combat',
   assert.equal(names(result, 'Phantasmal Swordsman')[0].timestampMs, 0);
 });
 
-test('does not duplicate a clipped phantasm precast already represented by initial summon state', () => {
+test('prefers clipped phantasm timing over duplicate initial summon state', () => {
   const phantasm = 0x3000n;
   const swordsman = skill(10174, 'Phantasmal Swordsman', {
     type: 'Weapon',
@@ -509,7 +509,7 @@ test('does not duplicate a clipped phantasm precast already represented by initi
   const result = reconstructEvtcRotation(fixture, { skills: [swordsman, powerSpike] });
 
   assert.equal(names(result, 'Phantasmal Swordsman').length, 1);
-  assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'initial-state');
+  assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'animation');
 });
 
 test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across Continuum Split', () => {
@@ -1104,13 +1104,41 @@ test('resolves the historical Virtuoso Bladecall ID', () => {
   assert.equal(bladecalls[0].supportedByCatalog, true);
 });
 
-test('recovers Troubadour opening Mimic and removes Weapon Stow', () => {
+test('recovers the ordered Troubadour precast chain and committed short Harp cast', () => {
+  const phantasm = 0x3000n;
   const skills = [
     skill(29578, 'Mimic', {
       type: 'Utility',
       slot: 'Utility_1',
       castTimeMs: 600,
       quicknessCastTimeMs: 600
+    }),
+    skill(62607, 'Unstable Bladestorm', {
+      type: 'Weapon',
+      slot: 'Weapon_3',
+      castTimeMs: 660,
+      quicknessCastTimeMs: 440,
+      effects: [
+        {
+          type: 'strike',
+          ticks: [{ atMs: 1160, coefficient: 0.25 }],
+          actorType: 'player',
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        }
+      ]
+    }),
+    skill(10174, 'Phantasmal Swordsman', {
+      type: 'Weapon',
+      slot: 'Weapon_5',
+      castTimeMs: 1300,
+      quicknessCastTimeMs: 884,
+      phantasm: true
+    }),
+    skill(76960, 'Harmonious Harp', {
+      quicknessCastTimeMs: 2000,
+      interruptCommitMs: 400,
+      paletteInterruptMs: 480
     }),
     skill(23285, 'Weapon Stow', { type: 'Action', slot: 'Action' })
   ];
@@ -1128,17 +1156,49 @@ test('recovers Troubadour opening Mimic and removes Weapon Stow', () => {
       stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
     })
   ];
-  const fixture = mesmerLog(73, skills, [
-    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
-    ...animation(29578, 30_000, 600),
-    ...animation(23285, 40_000, 0),
-    ...animation(29578, 65_000, 600)
-  ]);
+  const fixture = mesmerLog(
+    73,
+    skills,
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ source: phantasm, sourceMasterInstance: 7, stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL }),
+      event({ skillId: 62607, stateChange: 57 }),
+      direct(10174, 10_033),
+      event({
+        time: 10_150,
+        value: 884,
+        skillId: 10174,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      event({ time: 11_000, value: 3000, skillId: 76960, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 11_434,
+        value: 434,
+        skillId: 76960,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE
+      }),
+      ...animation(29578, 30_000, 600),
+      ...animation(23285, 40_000, 0),
+      ...animation(29578, 65_000, 600)
+    ],
+    [agent(phantasm, 6487, 'Illusionary Swordsman')]
+  );
 
   const result = reconstructEvtcRotation(fixture, { skills });
+  const opening = result.actions.filter((action) =>
+    ['Mimic', 'Unstable Bladestorm', 'Phantasmal Swordsman'].includes(action.name)
+  );
 
   assert.equal(result.parserId, 'mesmer:troubadour');
+  assert.deepEqual(
+    opening.slice(0, 3).map((action) => action.name),
+    ['Mimic', 'Unstable Bladestorm', 'Phantasmal Swordsman']
+  );
   assert.equal(names(result, 'Mimic').length, 3);
   assert.equal(names(result, 'Mimic')[0].evidence, 'initial-state');
+  assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'animation');
+  assert.equal(result.rotation.find((command) => command.name === 'Harmonious Harp')?.interruptMs, 480);
   assert.equal(names(result, 'Weapon Stow').length, 0);
 });

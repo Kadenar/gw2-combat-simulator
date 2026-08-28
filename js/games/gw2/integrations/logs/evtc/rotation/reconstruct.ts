@@ -97,7 +97,18 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   // the engine separately decides which packets committed before that boundary.
   if ((interruptedAutoattack || perPacketPartialCast) && observedMs < runtimeMs) return observedMs;
 
-  return observedCommittedInterruptMs(skill, action.replayInterruptMs ?? action.end - action.start);
+  const sourceDurationMs = action.replayInterruptMs ?? action.end - action.start;
+  const paletteInterruptMs = Number(skill?.paletteInterruptMs);
+  // ArcDPS may stop a completed animation near a measured replay point; snap only within two action ticks.
+  if (
+    action.status !== 'interrupted' &&
+    paletteInterruptMs > 0 &&
+    Math.abs(sourceDurationMs - paletteInterruptMs) <= 2 * EVTC_TIMING_QUANTUM_MS
+  ) {
+    return observedCommittedInterruptMs(skill, paletteInterruptMs);
+  }
+
+  return observedCommittedInterruptMs(skill, sourceDurationMs);
 }
 
 /** Expands casts whose uncancellable aftercast keeps the simulator lane occupied through full completion. */
@@ -1039,18 +1050,16 @@ export function reconstructWithProfile(
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   );
-  const replayActions = [...professionActions];
-  // A clipped precast and BUFF_INITIAL can describe the same already-active summon; keep the initial-state action once.
-  for (const initialSummon of initialSummons) {
-    const duplicateIndex = replayActions.findIndex(
-      (action) =>
-        action.precast === true &&
-        Number(action.canonicalSkillId ?? action.rawSkillId) === Number(initialSummon.rawSkillId)
-    );
-    if (duplicateIndex >= 0) replayActions.splice(duplicateIndex, 1);
-  }
-
-  const recorded = [...initialSummons, ...replayActions];
+  // Prefer a clipped activation over BUFF_INITIAL when both describe the same summon because it preserves observed timing.
+  const uniqueInitialSummons = initialSummons.filter(
+    (initialSummon) =>
+      !professionActions.some(
+        (action) =>
+          action.precast === true &&
+          Number(action.canonicalSkillId ?? action.rawSkillId) === Number(initialSummon.rawSkillId)
+      )
+  );
+  const recorded = [...uniqueInitialSummons, ...professionActions];
   let resolved = recorded.map((action) => resolveAction(action, catalog, profile));
   if (options.inferInstantCasts !== false) {
     resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));

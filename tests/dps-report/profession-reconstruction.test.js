@@ -5,6 +5,7 @@ import { parseDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/
 import { reconstructDpsReportRotation } from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
 import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
 import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
+import { thiefCatalog } from '../../js/games/gw2/content/professions/thief/catalog.js';
 import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
 import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
@@ -85,6 +86,96 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
     true
   );
   assert.deepEqual(simulation.warnings, []);
+});
+
+test('recovers omitted Virtuoso opener casts from single-target packet totals', () => {
+  const report = parseDpsReport({
+    targets: [{}],
+    players: [
+      {
+        name: 'Fixture Virtuoso',
+        profession: 'Virtuoso',
+        targetDamageDist: [
+          [
+            [
+              { id: 62_607, connectedHits: 8 },
+              { id: 24_755, connectedHits: 10 },
+              { id: 62_597, connectedHits: 5 }
+            ]
+          ]
+        ],
+        rotation: [
+          { id: 10_174, skills: [{ castTime: 0, duration: 850, timeGained: 0 }] },
+          { id: 62_510, skills: [{ castTime: 884, duration: 400, timeGained: 34 }] },
+          { id: 62_560, skills: [{ castTime: 1284, duration: 450, timeGained: 0 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 5000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: {
+      s10174: { name: 'Phantasmal Swordsman' },
+      s62510: { name: 'Flying Cutter', autoAttack: true },
+      s62560: { name: 'Bladecall' },
+      s62607: { name: 'Unstable Bladestorm' },
+      s24755: { name: 'Thousand Cuts', isInstantCast: true },
+      s62597: { name: 'Bladeturn Requiem', isInstantCast: true }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, mesmerCatalog);
+  const recovered = result.actions.filter((action) => action.inferred).map((action) => action.name);
+
+  assert.deepEqual(recovered, ['Unstable Bladestorm', 'Thousand Cuts', 'Bladeturn Requiem']);
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Unstable Bladestorm.*Thousand Cuts.*Bladeturn Requiem/);
+});
+
+test('recovers a Troubadour opener and replays a committed short Harp cast', () => {
+  const report = parseDpsReport({
+    targets: [{}],
+    players: [
+      {
+        name: 'Fixture Troubadour',
+        profession: 'Troubadour',
+        targetDamageDist: [[[{ id: 62_607, connectedHits: 8 }]]],
+        rotation: [
+          { id: 10_174, skills: [{ castTime: 0, duration: 800, timeGained: 0 }] },
+          { id: 76_960, skills: [{ castTime: 880, duration: 434, timeGained: 883 }] },
+          { id: 62_560, skills: [{ castTime: 1393, duration: 440, timeGained: 0 }] },
+          {
+            id: 29_578,
+            skills: [
+              { castTime: 20_000, duration: 640, timeGained: 0 },
+              { castTime: 50_000, duration: 640, timeGained: 0 }
+            ]
+          },
+          { id: 23_285, skills: [{ castTime: 60_000, duration: 0, timeGained: 0 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 70_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: {
+      s10174: { name: 'Phantasmal Swordsman' },
+      s76960: { name: 'Harmonious Harp' },
+      s62560: { name: 'Bladecall' },
+      s29578: { name: 'Mimic' },
+      s23285: { name: 'Weapon Stow' },
+      s62607: { name: 'Unstable Bladestorm' }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, mesmerCatalog, { selectedSkillNames: ['Mimic'] });
+
+  assert.deepEqual(
+    result.actions.filter((action) => action.inferred).map((action) => action.name),
+    ['Mimic', 'Unstable Bladestorm']
+  );
+  assert.equal(result.rotation.find((command) => command.name === 'Harmonious Harp')?.interruptMs, 480);
+  const swordsmanIndex = result.rotation.findIndex((command) => command.name === 'Phantasmal Swordsman');
+  assert.equal(result.rotation[swordsmanIndex + 1]?.name, 'Harmonious Harp');
+  assert.equal(result.rotation[swordsmanIndex + 2]?.name, 'Bladecall');
+  assert.equal(
+    result.actions.some((action) => action.name === 'Weapon Stow'),
+    false
+  );
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Mimic.*Unstable Bladestorm/);
 });
 
 test('recovers an opening Harbinger Shroud and removes canceled autoattacks', () => {
@@ -240,6 +331,133 @@ test('collapses Rend animation rows into one Warrior cast', () => {
     [[80_247, 'Rend', 960]]
   );
   assert.equal(result.rotation.filter((command) => command.name === 'Rend').length, 1);
+});
+
+test('reconstructs Antiquary artifact setup, Guitar, and packet-proven Cannon outcomes', () => {
+  const report = parseDpsReport({
+    targets: [{}],
+    players: [
+      {
+        name: 'Fixture Antiquary',
+        profession: 'Antiquary',
+        firstAware: -100,
+        targetDamageDist: [
+          [
+            [
+              {
+                id: 76_725,
+                connectedHits: 8
+              }
+            ]
+          ]
+        ],
+        rotation: [
+          {
+            id: 76_725,
+            skills: [
+              { castTime: 0, duration: 520, timeGained: 0 },
+              { castTime: 3_000, duration: 520, timeGained: 0 },
+              { castTime: 15_000, duration: 520, timeGained: 0 }
+            ]
+          },
+          { id: 77_277, skills: [{ castTime: 600, duration: 600, timeGained: 0 }] },
+          { id: 76_582, skills: [{ castTime: 5_000, duration: 1_400, timeGained: 600 }] },
+          { id: 76_596, skills: [{ castTime: 6_400, duration: 500, timeGained: 0 }] },
+          { id: 77_397, skills: [{ castTime: 10_000, duration: 200, timeGained: 0 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 20_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: {
+      s76582: { name: 'Metal Legion Guitar (Rockout)' },
+      s76596: { name: 'Metal Legion Guitar (Smash)' },
+      s76725: { name: 'Stone Summit Cannon' },
+      s77277: { name: 'Mistburn Mortar' },
+      s77397: { name: 'Skritt Swipe' }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, thiefCatalog);
+
+  assert.deepEqual(
+    result.rotation
+      .filter((command) => command.name === 'Stone Summit Cannon')
+      .map((command) => command.doubleEdgeOutcome),
+    ['success', 'backfire', 'backfire', 'success']
+  );
+  assert.equal(result.actions.filter((action) => action.name === 'Metal Legion Guitar').length, 1);
+  assert.equal(
+    result.actions.some((action) => action.rawSkillId === 76_596),
+    false
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === 'Skritt Swipe' && action.inferred),
+    true
+  );
+  assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
+});
+
+test('recovers report-omitted Antiquary Caltrops, Needles, and Chak Shield from minimal evidence', () => {
+  const phases = [
+    { start: 0, end: 40_000, name: 'Full Fight', phaseType: 'Encounter' },
+    { start: 0, end: 10_000, name: '100% - 75%', phaseType: 'SubPhase', encounterPhase: 0 },
+    { start: 10_000, end: 20_000, name: '75% - 50%', phaseType: 'SubPhase', encounterPhase: 0 },
+    { start: 20_000, end: 30_000, name: '50% - 25%', phaseType: 'SubPhase', encounterPhase: 0 },
+    { start: 30_000, end: 40_000, name: '25% - 0%', phaseType: 'SubPhase', encounterPhase: 0 }
+  ];
+  const phaseDamage = [
+    [
+      { id: 56_897, connectedHits: 15 },
+      { id: 76_816, connectedHits: 12 }
+    ],
+    [{ id: 76_816, connectedHits: 2 }],
+    [{ id: 76_816, connectedHits: 4 }],
+    [{ id: 76_816, connectedHits: 1 }],
+    [{ id: 76_816, connectedHits: 5 }]
+  ];
+  const report = parseDpsReport({
+    targets: [{}],
+    players: [
+      {
+        name: 'Fixture Antiquary',
+        profession: 'Antiquary',
+        firstAware: -500,
+        targetDamageDist: [phaseDamage],
+        rotation: [
+          { id: 72_927, skills: [{ castTime: 0, duration: 360, timeGained: 0 }] },
+          { id: 77_277, skills: [{ castTime: 500, duration: 600, timeGained: 0 }] },
+          { id: 13_026, skills: [{ castTime: 1_000, duration: 600, timeGained: 0 }] },
+          { id: 56_898, skills: [{ castTime: 5_000, duration: 0, timeGained: 0 }] },
+          { id: 77_397, skills: [{ castTime: 18_000, duration: 200, timeGained: 0 }] },
+          { id: 13_028, skills: [{ castTime: 20_000, duration: 920, timeGained: 0 }] },
+          { id: 13_026, skills: [{ castTime: 25_000, duration: 600, timeGained: 0 }] }
+        ]
+      }
+    ],
+    phases,
+    skillMap: {
+      s13026: { name: 'Prepare Thousand Needles' },
+      s13028: { name: 'Caltrops' },
+      s56898: { name: 'Thousand Needles', isInstantCast: true },
+      s72927: { name: 'Distracting Throw' },
+      s76816: { name: 'Chak Shield', isInstantCast: true },
+      s77277: { name: 'Mistburn Mortar' },
+      s77397: { name: 'Skritt Swipe' }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, thiefCatalog, {
+    selectedSkillNames: ['Caltrops', 'Prepare Thousand Needles'],
+    professionConfig: { boons: { alacrity: true }, selectedTraitIds: [2_431] }
+  });
+  const inferred = result.actions.filter((action) => action.inferred);
+
+  assert.equal(inferred.filter((action) => action.name === 'Caltrops').length, 1);
+  assert.equal(inferred.filter((action) => action.name === 'Prepare Thousand Needles').length, 1);
+  assert.equal(inferred.filter((action) => action.name === 'Thousand Needles').length, 2);
+  assert.deepEqual(
+    inferred.filter((action) => action.name === 'Chak Shield').map((action) => action.timestampMs),
+    [39_750, 60_750]
+  );
+  assert.match(result.warnings.join('\n'), /Recovered setup:.*Caltrops.*Thousand Needles.*Chak Shield/);
 });
 
 test('orders simultaneous dps.report instant casts before cast-time skills', () => {

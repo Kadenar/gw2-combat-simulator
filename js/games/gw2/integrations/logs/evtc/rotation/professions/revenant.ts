@@ -3,6 +3,7 @@ import { reconstructConduitActions } from './revenant/conduit.js';
 import { reconstructHeraldActions } from './revenant/herald.js';
 import { normalizeRevenantCastPackets } from './revenant/normalization.js';
 import { reconstructRenegadeActions } from './revenant/renegade.js';
+import { reconstructVindicatorActions } from './revenant/vindicator.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
@@ -12,7 +13,8 @@ import type {
 const specializationReconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> = new Map([
   ['conduit', reconstructConduitActions],
   ['herald', reconstructHeraldActions],
-  ['renegade', reconstructRenegadeActions]
+  ['renegade', reconstructRenegadeActions],
+  ['vindicator', reconstructVindicatorActions]
 ]);
 
 export function reconstructRevenantProfessionActions(

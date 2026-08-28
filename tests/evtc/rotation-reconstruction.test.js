@@ -3642,6 +3642,69 @@ test('infers resource-only Canach tosses from sustained Antiquary bursts', () =>
   );
 });
 
+test('assigns every Antiquary Cannon outcome from its own EVTC packet signature', () => {
+  const target = 0x2000n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 5,
+        elite: 77,
+        character: 'Fixture Antiquary'
+      }
+    ],
+    skills: [{ id: 76_725, name: 'Stone Summit Cannon' }],
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      ...[
+        [2_000, 2_500],
+        [12_000, 12_500],
+        [14_000, 14_500]
+      ].flatMap(([start, end]) => [
+        event({ time: start, skillId: 76_725, value: end - start, stateChange: 67 }),
+        event({
+          time: end,
+          skillId: 76_725,
+          value: end - start,
+          activation: 3,
+          stateChange: 68
+        })
+      ]),
+      ...[
+        [3_000, 100],
+        [3_100, 110],
+        [3_200, 120],
+        [3_300, 1_000],
+        [13_000, 105],
+        [13_100, 115],
+        [13_200, 110],
+        [16_000, 950]
+      ].map(([time, value]) => event({ time, target, skillId: 76_725, value }))
+    ]
+  });
+  const rotationCatalog = {
+    skills: [
+      {
+        id: 76_725,
+        name: 'Stone Summit Cannon',
+        type: 'Utility',
+        slot: 'Utility',
+        castTimeMs: 500,
+        quicknessCastTimeMs: 500,
+        effects: [],
+        implemented: true
+      }
+    ]
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, { inferInstantCasts: false });
+
+  assert.deepEqual(
+    result.actions.filter((action) => action.name === 'Stone Summit Cannon').map((action) => action.doubleEdgeOutcome),
+    ['success', 'backfire', 'success', 'backfire']
+  );
+});
+
 test('reconstructs Daredevil dodge, steal, shared utilities, and truncated casts', () => {
   const fixture = log({
     agents: [

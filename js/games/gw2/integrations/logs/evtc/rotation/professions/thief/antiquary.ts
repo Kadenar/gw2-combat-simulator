@@ -22,15 +22,19 @@ const CANACH_FOLLOW_UP_DELAY_MS = 14_000;
 const CANACH_LATE_RECAST_MIN_MS = 9_000;
 const CANACH_LATE_RECAST_MAX_MS = 13_000;
 const CANACH_FLAWLESS_THRESHOLD = 30;
+const CANNON_SUCCESS_PACKET_COUNT = 3;
+const CANNON_SUCCESS_PACKET_WINDOW_MS = 750;
+const CANNON_BACKFIRE_VALUE_RATIO = 2;
 
-function normalizeStoneSummitCannon(
-  context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[]
-): EvtcRecordedRotationAction[] {
-  const cannons = actions.filter((action) => action.rawSkillId === STONE_SUMMIT_CANNON.skillId);
-  if (!cannons.length) return [...actions];
-  const first = cannons[0];
-  const directHitsBeforeNextCast = context.log.events
+interface CannonOutcomeSignal {
+  readonly outcome: 'success' | 'backfire';
+  readonly time: number;
+  readonly eventIndex: number;
+}
+
+/** Reads each Cannon outcome from its three-hit success or single high-damage backfire packet signature. */
+function cannonOutcomeSignals(context: EvtcProfessionReconstructionContext): CannonOutcomeSignal[] {
+  const packets = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
     .filter(
       ({ event }) =>
@@ -38,27 +42,69 @@ function normalizeStoneSummitCannon(
         event.skillId === STONE_SUMMIT_CANNON.skillId &&
         event.buff === 0 &&
         event.stateChange === EVTC_STATE_CHANGE.NONE &&
-        event.value > 0 &&
-        event.time > first.end &&
-        event.time < (cannons[1]?.start ?? Number.POSITIVE_INFINITY)
+        event.value > 0
     );
-  const firstThree = directHitsBeforeNextCast.slice(0, 3);
-  const unanimatedBackfire = directHitsBeforeNextCast[3];
-  const hasSuccessPackets =
-    firstThree.length === 3 &&
-    Math.max(...firstThree.map(({ event }) => event.value)) < unanimatedBackfire?.event.value / 2;
-  const normalized = actions.map((action) =>
-    action === first
-      ? { ...action, doubleEdgeOutcome: 'success' as const }
-      : action.rawSkillId === STONE_SUMMIT_CANNON.skillId
-        ? { ...action, doubleEdgeOutcome: 'backfire' as const }
-        : action
-  );
-  if (!hasSuccessPackets || !unanimatedBackfire) return normalized;
-  normalized.push({
-    ...canonicalAction(unanimatedBackfire.eventIndex, first.end, STONE_SUMMIT_CANNON, unanimatedBackfire.event.skillId),
-    doubleEdgeOutcome: 'backfire'
+  const signals: Array<CannonOutcomeSignal | null> = [];
+  const successValues: number[] = [];
+  for (let index = 0; index < packets.length;) {
+    const group = packets.slice(index, index + CANNON_SUCCESS_PACKET_COUNT);
+    const values = group.map(({ event }) => event.value);
+    const success =
+      group.length === CANNON_SUCCESS_PACKET_COUNT &&
+      group.at(-1)!.event.time - group[0].event.time <= CANNON_SUCCESS_PACKET_WINDOW_MS &&
+      Math.max(...values) <= Math.min(...values) * CANNON_BACKFIRE_VALUE_RATIO;
+    if (success) {
+      signals.push({ outcome: 'success', time: group[0].event.time, eventIndex: group[0].eventIndex });
+      successValues.push(...values);
+      index += CANNON_SUCCESS_PACKET_COUNT;
+    } else {
+      signals.push(null);
+      index += 1;
+    }
+  }
+
+  const largestSuccessPacket = successValues.length ? Math.max(...successValues) : Number.POSITIVE_INFINITY;
+  let packetIndex = 0;
+  return signals.flatMap((signal) => {
+    if (signal) {
+      packetIndex += CANNON_SUCCESS_PACKET_COUNT;
+      return [signal];
+    }
+
+    const packet = packets[packetIndex++];
+    return packet.event.value > largestSuccessPacket * CANNON_BACKFIRE_VALUE_RATIO
+      ? [{ outcome: 'backfire' as const, time: packet.event.time, eventIndex: packet.eventIndex }]
+      : [];
   });
+}
+
+function normalizeStoneSummitCannon(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const cannons = actions
+    .filter((action) => action.rawSkillId === STONE_SUMMIT_CANNON.skillId)
+    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  if (!cannons.length) return [...actions];
+  const outcomes = new Map<EvtcRecordedRotationAction, CannonOutcomeSignal[]>();
+  for (const signal of cannonOutcomeSignals(context)) {
+    const cannon = cannons.filter((action) => action.end <= signal.time).at(-1);
+    if (cannon) outcomes.set(cannon, [...(outcomes.get(cannon) || []), signal]);
+  }
+
+  const normalized = actions.map((action) => {
+    const outcome = outcomes.get(action)?.[0]?.outcome;
+    return outcome ? { ...action, doubleEdgeOutcome: outcome } : action;
+  });
+  for (const cannon of cannons) {
+    for (const signal of outcomes.get(cannon)?.slice(1) || []) {
+      normalized.push({
+        ...canonicalAction(signal.eventIndex, cannon.end, STONE_SUMMIT_CANNON, STONE_SUMMIT_CANNON.skillId),
+        doubleEdgeOutcome: signal.outcome
+      });
+    }
+  }
+
   return normalized;
 }
 
