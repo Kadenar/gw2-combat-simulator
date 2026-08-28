@@ -40,6 +40,9 @@ jobs:
         run: npm ci
       - name: Build and validate static assets
         run: npm run check
+      # Rebuild in the GitHub Pages mode so only the uploaded artifact contains the hosted-site redirect.
+      - name: Build GitHub Pages static assets
+        run: npm run build:github-pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build revision-consistent static site

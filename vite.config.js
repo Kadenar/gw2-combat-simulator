@@ -191,7 +191,13 @@ function injectGithubPagesRedirect() {
 export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,
-  plugins: [renderProfessionPages(), copyRuntimeData(), serveRuntimeData(), injectGithubPagesRedirect()],
+  plugins: [
+    renderProfessionPages(),
+    copyRuntimeData(),
+    serveRuntimeData(),
+    // Only the GitHub Pages artifact should redirect visitors; other production builds stay self-hostable.
+    ...(mode === 'github-pages' ? [injectGithubPagesRedirect()] : [])
+  ],
   worker: {
     format: 'es'
   },

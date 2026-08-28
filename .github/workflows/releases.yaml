@@ -1,0 +1,42 @@
+name: Publish release artifact
+
+on:
+  # Stable published releases provide the default no-redirect site artifact.
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build and validate static assets
+        run: npm run check
+      - name: Verify redirect is absent
+        shell: bash
+        run: |
+          if grep -R --include='*.html' -q 'GITHUB_PAGES_HOST' dist/site; then
+            echo 'Release artifact contains the GitHub Pages redirect.' >&2
+            exit 1
+          fi
+      - name: Package static site
+        working-directory: dist/site
+        run: zip -r ../../gw2-combat-simulator-site.zip .
+      - name: Upload release artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" gw2-combat-simulator-site.zip --clobber

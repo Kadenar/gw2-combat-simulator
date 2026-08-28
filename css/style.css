@@ -4637,6 +4637,11 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   margin-bottom: 0;
 }
 
+/* Offset both DPS summaries from surrounding content so each strip stays easy to scan. */
+:is(.rotation-dps-summary, .analysis-dps-summary) .res-summary {
+  background: var(--bg-panel-alt);
+}
+
 /* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
 .floating-dps {
   position: absolute;
@@ -10371,6 +10376,16 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
   .traits-panel-inline {
     width: 100%;
+  }
+
+  /* Hide the decorative specialization emblem so trait choices can use the full narrow-screen width. */
+  .spec-selected-icon {
+    display: none;
+  }
+
+  /* Remove the floating badge when it would cover narrow-screen controls and content. */
+  .floating-dps {
+    display: none;
   }
 
   .rotation-mid {

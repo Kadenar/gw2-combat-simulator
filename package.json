@@ -7,6 +7,7 @@
     "dev": "vite",
     "clean": "node scripts/build/clean-dist.mjs",
     "build": "npm run clean && npm run build:modules && npm run build:site",
+    "build:github-pages": "npm run clean && npm run build:modules && npm run build:site -- --mode github-pages",
     "build:dev": "npm run clean && npm run build:modules && npm run build:site -- --mode development",
     "build:modules": "tsc -p tsconfig.build.json",
     "build:site": "vite build",
