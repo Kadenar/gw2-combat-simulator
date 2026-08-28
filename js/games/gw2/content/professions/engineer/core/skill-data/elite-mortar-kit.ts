@@ -78,7 +78,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   },
   [ID.ORBITAL_STRIKE]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 880,
     cooldown: 40,
     comboFinishers: [
       {
@@ -92,6 +92,10 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         type: 'strike',
         coefficient: 1.33,
         hits: 1,
+        // EVTC samples land about 1.7 seconds after the cast completes, independent of cast-speed scaling.
+        atMs: 1700,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         name: 'Orbital Strike',
         actorType: 'player'
       }

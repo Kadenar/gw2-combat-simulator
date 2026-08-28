@@ -976,6 +976,61 @@ test('recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
   ]);
 });
 
+test('reconstructs the Core Engineer mine opening from post-combat effect evidence', () => {
+  const skills = [
+    skill(30337, 'Throw Mine'),
+    skill(6164, 'Mine Field'),
+    skill(5813, "Big Ol' Bomb"),
+    skill(5823, 'Fire Bomb'),
+    skill(5822, 'Galvanic Bomb'),
+    skill(76530, 'Magnetic Bomb'),
+    skill(13552, 'Static Discharge')
+  ];
+  const fixture = engineerLog(
+    skills,
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ target: TARGET, value: 1000, skillId: 5823 }),
+      event({
+        time: 10_437,
+        value: 595,
+        buffDamage: 884,
+        skillId: 76530,
+        activation: EVTC_ACTIVATION.CANCEL_FIRE,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      }),
+      event({ time: 10_278, target: 5n, stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP }),
+      event({ time: 10_602, target: TARGET, value: 1000, skillId: 5822 }),
+      event({ time: 11_041, target: TARGET, value: 1000, skillId: 30337 }),
+      event({ time: 11_041, target: TARGET, value: 1000, skillId: 30337 }),
+      event({ time: 11_398, target: TARGET, value: 1000, skillId: 5813 }),
+      event({ time: 12_198, target: TARGET, value: 1000, skillId: 76530 }),
+      event({ time: 12_716, target: TARGET, value: 1000, skillId: 6164 }),
+      event({ time: 12_717, target: TARGET, value: 1000, skillId: 13552 }),
+      ...animation(30337, 15_000, 500),
+      event({ time: 15_500, target: TARGET, value: 1000, skillId: 30337 }),
+      event({ time: 15_500, target: TARGET, value: 1000, skillId: 30337 })
+    ],
+    { elite: 0 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, engineerCatalog, {
+    selectedSkillNames: ['A.E.D.', 'Grenade Kit', 'Throw Mine', 'Bomb Kit', 'Elite Mortar Kit']
+  });
+  const precasts = result.actions.filter((action) => action.evidence === 'initial-state');
+  const first = (name) => precasts.find((action) => action.name === name)?.timestampMs;
+
+  // The importer rebuilds only setup proven by the opening packets and keeps passive trait damage out of the rotation.
+  assert.ok(first('Throw Mine') < first('Dodge'));
+  assert.equal(precasts.filter((action) => action.name === 'Dodge').length, 2);
+  assert.ok(first('Dodge') < first('Mine Field'));
+  assert.ok(first('Mine Field') < first('Bomb Kit'));
+  assert.ok(result.actions.every((action) => action.name !== 'Static Discharge'));
+  assert.ok(result.actions.filter((action) => action.name === 'Throw Mine').every((action) => action.skillId === 6161));
+  assert.equal(result.actions.filter((action) => action.name === 'Detonate').length, 2);
+  assert.deepEqual(result.warnings, []);
+});
+
 test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
   const skills = [
     skill(6161, 'Throw Mine', {

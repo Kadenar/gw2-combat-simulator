@@ -1048,6 +1048,16 @@ test('Engineer mine and turret detonations are armed by their parent skills', ()
     throwStarts(['Throw Mine', 'Detonate', { type: 'wait', durationMs: 11500 }, 'Throw Mine']),
     [0, 12000]
   );
+
+  // Gadgeteer's added mine shares the original Detonate input instead of requiring another flip.
+  const gadgeteer = simulate('Core', ['Throw Mine', 'Detonate'], {
+    selectedTraitIds: [TRAIT.GADGETEER]
+  });
+  assert.equal(
+    gadgeteer.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Detonate (engineer skill)')
+      .length,
+    2
+  );
 });
 
 test('detonating a turret cancels its remaining summoned attacks', () => {
@@ -4026,6 +4036,8 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   );
 
   assert.equal(rockets.length, 4);
+  assert.equal(result.procSteps.filter((step) => step.skill === 'Aim-Assisted Rocket').length, 4);
+  assert.equal(result.procSteps.filter((step) => step.skill === 'Orbital Command Strike').length, 1);
   assert.ok(
     rockets.every(
       (event) =>
@@ -4311,27 +4323,40 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     }
   );
 
-  assert.equal(toolbelt.events.filter((event) => event.type === 'buff' && event.kind === 'vigor').length, 5);
+  assert.equal(toolbelt.events.filter((event) => event.type === 'buff' && event.kind === 'vigor').length, 6);
   assert.equal(
     toolbelt.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge').length,
-    5
+    6
   );
+  const dischargeProcs = toolbelt.procSteps.filter((step) => step.skill === 'Static Discharge');
+
+  assert.equal(dischargeProcs.length, 6);
+  assert.equal(dischargeProcs[0].sourceSkill, 'Regenerating Mist');
   const discharge = toolbelt.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Static Discharge'
   );
+  const dischargeSkill = engineerCatalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL);
+  const dischargeRow = skillBreakdownRows(toolbelt).find((row) => row.name === 'Static Discharge');
 
   assert.equal(discharge.coefficient, 0.33);
+  assert.equal(discharge.skillId, ID.STATIC_DISCHARGE_TRAIT_SKILL);
   assert.equal(discharge.weaponStrengthProfileId, 'nonweapon.unequipped');
   assert.equal(discharge.resolvedWeaponStrength, 690.5);
   assert.equal(discharge.weaponStrengthSampled, false);
-  assert.equal(discharge.criticalDamage, 2.5);
+  assert.equal(discharge.criticalDamage, 3);
+  assert.equal(
+    dischargeSkill.icon,
+    'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png'
+  );
+  assert.equal(dischargeRow.icon, dischargeSkill.icon);
+  assert.ok(dischargeProcs.every((proc) => proc.icon === dischargeSkill.icon));
   assert.ok(
     toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'kinetic-battery' && event.duration === 5)
   );
   assert.ok(
     toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 5)
   );
-  assert.equal(toolbelt.endState.profession.kineticCharges, 0);
+  assert.equal(toolbelt.endState.profession.kineticCharges, 1);
 
   const wrench = simulate('Core', ['Supply Crate', 'Dodge'], {
     selectedTraitIds: [TRAIT.POWER_WRENCH]
@@ -4663,14 +4688,59 @@ test('Mine Field materializes five mines plus detonation with cripple', () => {
 
   assert.equal(cripple.length, 6);
   assert.ok(cripple.every((event) => event.duration === 2.5));
+
+  // A precast field waits for combat; fields cast after the marker still trigger at cast completion.
+  const precast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start']);
+  const active = simulate('Core', ['__combat_start', 'Mine Field']);
+  const mineTimes = (simulation) =>
+    simulation.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.name === 'Damage per Mine')
+      .map((event) => event.at);
+
+  assert.deepEqual(mineTimes(precast), Array(5).fill(2.38));
+  assert.deepEqual(mineTimes(active), Array(5).fill(1.38));
+
+  const staticPrecast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start'], {
+    selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
+  });
+  const staticActive = simulate('Core', ['__combat_start', 'Mine Field'], {
+    selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
+  });
+  const discharges = (simulation) =>
+    simulation.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge');
+
+  assert.equal(discharges(staticPrecast).length, 1);
+  assert.equal(discharges(staticActive).length, 2);
+  assert.ok(discharges(staticActive).some((event) => event.parentSkillName === 'Detonate Mine Field'));
+});
+
+test('Takedown Round adds strike damage only after endurance is spent', () => {
+  // The focused ratio protects the trait condition without depending on a saved benchmark rotation.
+  const full = simulate('Core', ['Positive Strike'], { selectedTraitIds: [TRAIT.TAKEDOWN_ROUND] });
+  const spent = simulate('Core', ['Dodge', 'Positive Strike'], { selectedTraitIds: [TRAIT.TAKEDOWN_ROUND] });
+
+  assert.ok(Math.abs(spent.strikeDamage / full.strikeDamage - 1.1) < 1e-12);
 });
 
 test('power Scrapper toolbelt skills use their per-hit and control facts', () => {
   const orbitalStrike = mechanic('Orbital Strike');
 
   assert.equal(orbitalStrike.cooldown, 40);
+  assert.equal(orbitalStrike.quicknessCastTimeMs, 880);
   assert.equal(orbitalStrike.effects[0].coefficient, 1.33);
+  assert.equal(orbitalStrike.effects[0].atMs, 1700);
+  assert.equal(orbitalStrike.effects[0].timingAnchor, 'castEnd');
   assert.equal(orbitalStrike.comboFinishers[0].finisherType, 'Blast');
+
+  const orbital = simulate('Core', ['Orbital Strike', { type: 'wait', durationMs: 3000 }], {
+    boons: { quickness: true },
+    selectedSkills: ['A.E.D.', 'Grenade Kit', 'Throw Mine', 'Bomb Kit', 'Elite Mortar Kit']
+  });
+  const orbitalCast = orbital.steps.find((step) => step.skill === 'Orbital Strike');
+  const orbitalHit = orbital.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Orbital Strike');
+
+  assert.equal(orbitalCast.end - orbitalCast.start, 880);
+  assert.equal(orbitalHit.at * 1000 - orbitalCast.end, 1700);
 
   const grenadeBarrage = mechanic('Grenade Barrage');
 

@@ -1391,6 +1391,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
   },
   [ID.MINE_FIELD]: {
     implemented: true,
+    handlerId: 'engineer.mine-field',
     quicknessCastTimeMs: 920,
     cooldown: 17,
     effects: [

@@ -38,6 +38,7 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     electricArtilleryExpiresAt: 0,
     focusedUntil: 0,
     kineticCharges: 0,
+    pendingMineFieldActivationIds: [],
     traitProcReadyAt: {}
   };
 }

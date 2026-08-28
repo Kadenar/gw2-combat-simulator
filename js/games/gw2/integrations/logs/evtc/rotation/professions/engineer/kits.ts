@@ -3,7 +3,7 @@ import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } 
 import { canonicalAction, type EngineerActionIdentity, normalized, selectedSkill, skillForAction } from './shared.js';
 
 const DETONATE = Object.freeze({ name: 'Detonate', skillId: 6162 });
-const MINE_DAMAGE_SIGNAL = 6161;
+const MINE_DAMAGE_SIGNALS = new Set([6161, 30337]);
 const SWAP_GROUP_WINDOW_MS = 250;
 const KIT_WEAPON_SET = 2;
 
@@ -32,18 +32,22 @@ export function inferDetonateActions(context: EvtcProfessionReconstructionContex
     return [];
   }
 
+  let previous = Number.NEGATIVE_INFINITY;
   return context.log.events.flatMap((event, eventIndex) => {
     if (
       event.source !== context.playerAddress ||
-      event.skillId !== MINE_DAMAGE_SIGNAL ||
+      !MINE_DAMAGE_SIGNALS.has(event.skillId) ||
       event.buff !== 0 ||
       event.activation !== EVTC_ACTIVATION.NONE ||
       event.stateChange !== EVTC_STATE_CHANGE.NONE ||
-      event.value <= 0
+      event.value <= 0 ||
+      event.time - previous < 50
     ) {
       return [];
     }
 
+    // Gadgeteer's two same-time strike packets still represent one Detonate input.
+    previous = event.time;
     return [canonicalAction(eventIndex, event.time, DETONATE, event.skillId)];
   });
 }

@@ -9,6 +9,7 @@ import { advanceEngineerResources } from './resources.js';
 import { handleElectricArtilleryExpire, handleElectricArtilleryReady, handleLightningRodCharge } from './spear.js';
 import { applyEngineerCastTraits, isEngineerToolbeltSkill } from './traits.js';
 import { handleEngineerTurretAttack } from './turrets.js';
+import { observeEngineerMineFieldEvent } from './handlers.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,
@@ -181,11 +182,11 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) => isGw2PlayerModifierEligibleEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
   },
   {
-    // staticDischarge flag is set by the trait handler — prevents the rule from applying to non-SD hits
+    // Static Discharge doubles its completed critical multiplier without affecting other strikes.
     id: 'engineer.static-discharge-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: 'add',
-    amount: 1,
+    operation: 'multiply',
+    factor: 2,
     when: (context) => context.event?.staticDischarge === true
   },
   {
@@ -359,6 +360,11 @@ export const engineerCoreSchedulerHooks = Object.freeze({
       handler: applyEngineerCastTraits
     }
   ]),
+  onEventScheduled: {
+    id: 'engineer.mine-field',
+    order: 10,
+    handler: observeEngineerMineFieldEvent
+  },
   taskHandlers: Object.freeze({
     'engineer.turret-attack': handleEngineerTurretAttack,
     'engineer.lightning-rod-charge': handleLightningRodCharge,

@@ -17,7 +17,7 @@ import {
 
 const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
 const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;
-const SERRATED_STEEL_BLEEDING_BASE_SECONDS = 6;
+const SERRATED_STEEL_BLEEDING_BASE_SECONDS = 3;
 const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
   'drop mine',
   'electric artillery',
@@ -150,7 +150,7 @@ export function analyzeEngineerShrapnelObservation(
   };
 }
 
-/** Compares critical packets with the requested expertise-scaled 6-second Serrated Steel Bleeding signature. */
+/** Matches critical packets to Serrated Steel's 3-second Bleeding after active-build duration bonuses. */
 export function analyzeEngineerSerratedSteelObservation(
   log: ParsedEvtc,
   playerAddress: bigint,

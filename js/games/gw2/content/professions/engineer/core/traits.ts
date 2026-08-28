@@ -26,6 +26,7 @@ import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerResolverReactionDetails,
+  EngineerSchedulerContext,
   EngineerSkill
 } from '../types.js';
 
@@ -113,7 +114,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
   }
 }
 
-function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
+export function applyEngineerToolbeltTraits(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!isEngineerToolbeltSkill(skill)) return;
   const state = professionCoreState(context);
 
@@ -136,14 +137,16 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
       source: 'Trait',
       sourceId: TRAIT.STATIC_DISCHARGE,
       actorType: 'effect',
-      skillId: skill.id,
+      skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
       skillName: 'Static Discharge',
       parentSkillName: skill.name,
+      icon: context.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
       name: 'Static Discharge',
       coefficient: engineerBalanceEffectValue(context, PROFILE.staticDischarge, 'strike', 'coefficient', 0.33),
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
+      // Static Discharge's actual strike uses the unequipped 690.5 weapon-strength profile, not its tooltip weapon.
       skillWeapon: 'Unequipped',
       staticDischarge: true,
       triggeredBy: skill.name
@@ -187,7 +190,7 @@ export function applyEngineerCastTraits(context: EngineerCastContext, skill: Eng
   const at = context.effectiveEnd;
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
-  applyToolbeltTraits(context, skill, at);
+  applyEngineerToolbeltTraits(context, skill, at);
 }
 
 // checks both the event flag and skill category — some skills lack the explosion category in the API
@@ -327,6 +330,18 @@ export function reactToEngineerDamage(
   _details: EngineerResolverReactionDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
+  if (event.staticDischarge === true) {
+    // Scheduled trait damage is not a rotation step, so expose each discharge with its tool-belt trigger in Procs.
+    context.recordProc?.(
+      'trait',
+      'Static Discharge',
+      event.at,
+      event.parentSkillName || event.triggeredBy || event.skillName,
+      '',
+      resolverSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
+    );
+  }
+
   const state = procState(context);
   if (event.actorType === 'player' && hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) && !state.explosiveEntranceFired) {
     // fires once per attack sequence; dodge resets the flag for the next sequence

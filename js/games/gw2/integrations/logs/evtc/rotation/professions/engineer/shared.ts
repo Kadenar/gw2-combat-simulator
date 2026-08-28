@@ -135,8 +135,18 @@ export function finalizeEngineerActions(
 ): EvtcRecordedRotationAction[] {
   const encounterEnd = encounterEndTime(context);
   const inEncounter = encounterEnd == null ? [...actions] : actions.filter((action) => action.start < encounterEnd);
-  return inEncounter.map((action) => ({
-    ...action,
-    suppressFollowingWait: action.suppressFollowingWait ?? !(action.precast === true && action.rawName === 'Throw Mine')
-  }));
+  const throwMine = selectedIdentity(context, 'Throw Mine', 6161);
+  return inEncounter.map((action) => {
+    // Modern logs use 30337 for Throw Mine casts and damage; replay through the equipped 6161 palette skill.
+    const canonical =
+      normalized(action.canonicalName || action.rawName) === normalized(throwMine.name)
+        ? { canonicalName: throwMine.name, canonicalSkillId: throwMine.skillId }
+        : {};
+    return {
+      ...action,
+      ...canonical,
+      suppressFollowingWait:
+        action.suppressFollowingWait ?? !(action.precast === true && action.rawName === 'Throw Mine')
+    };
+  });
 }

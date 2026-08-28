@@ -92,6 +92,7 @@ export interface EngineerCoreState {
   electricArtilleryReadyAt: number;
   electricArtilleryExpiresAt: number;
   kineticCharges: number;
+  pendingMineFieldActivationIds: string[];
   traitProcReadyAt: Record<string, number | boolean>;
 }
 

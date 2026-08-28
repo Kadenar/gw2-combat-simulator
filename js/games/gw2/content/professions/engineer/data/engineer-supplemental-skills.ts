@@ -1239,7 +1239,8 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Static Discharge (trait skill)',
     description:
       'Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Static_Discharge_(trait_skill).png',
+    // Use the canonical skill render so proc and damage-breakdown images resolve to the same asset.
+    icon: 'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png',
     type: 'Action',
     slot: 'Action',
     specialization: '',

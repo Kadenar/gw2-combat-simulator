@@ -1,5 +1,17 @@
 [
   {
+    "section": "Core",
+    "presets": [
+      {
+        "label": "Power (Hammer)",
+        "build": "data/gw2/builds/engineer/b-power-core-hammer.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
+        "benchmarkDps": 36204,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Amalgam",
     "presets": [
       {
