@@ -84,7 +84,6 @@ interface RotationHotkeyController {
   enabled: boolean;
   active: boolean;
   button: HTMLButtonElement | null;
-  status: HTMLElement | null;
   dialog: HTMLDialogElement | null;
   keybindImport?: RotationHotkeyImport;
 }
@@ -102,6 +101,11 @@ function browserStorage(): HotkeyStorage | null {
 
 export function defaultRotationHotkeyBindings(): RotationHotkeyBindings {
   return Object.fromEntries(ROTATION_HOTKEY_ACTIONS.map(({ id, code }) => [id, code])) as RotationHotkeyBindings;
+}
+
+/** Keeps the current hotkey state inside its toolbar action instead of a detached status label. */
+export function rotationHotkeyStatusLabel(enabled: boolean, active: boolean): string {
+  return !enabled ? 'Hotkeys: Disabled' : active ? 'Hotkeys: On' : 'Hotkeys: Off';
 }
 
 function validKeyboardCode(value: unknown): value is string {
@@ -425,12 +429,6 @@ function ensureStyles(document: Document): void {
   const style = document.createElement('style');
   style.id = 'rotation-hotkey-styles';
   style.textContent = `
-    .rotation-builder-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-    .rotation-hotkey-controls { display:flex; align-items:center; gap:6px; }
-    .rotation-hotkey-status { color:var(--text-dim); font-size:9px; font-weight:600;
-      letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
-    .rotation-hotkeys-active .rotation-hotkey-status { color:var(--health); }
-    .rotation-hotkey-button { padding:2px 8px; font-size:10px; text-transform:none; letter-spacing:0; }
     .pal-hotkey { position:absolute; z-index:4; top:1px; right:1px; box-sizing:border-box;
       min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
@@ -679,12 +677,13 @@ function ensureDialog(controller: RotationHotkeyController): void {
 function setRotationHotkeysActive(controller: RotationHotkeyController, active: boolean): void {
   controller.active = controller.enabled && active;
   controller.scope.classList.toggle('rotation-hotkeys-active', controller.active);
-  if (controller.status) {
-    controller.status.textContent = !controller.enabled
-      ? 'Hotkeys disabled'
+  if (controller.button) {
+    controller.button.textContent = rotationHotkeyStatusLabel(controller.enabled, controller.active);
+    controller.button.title = !controller.enabled
+      ? 'Configure rotation hotkeys (disabled)'
       : controller.active
-        ? 'Hotkeys on · Esc to release'
-        : 'Hotkeys off · click panel';
+        ? 'Configure rotation hotkeys (press Escape to release)'
+        : 'Configure rotation hotkeys (click the rotation panel to activate)';
   }
 }
 
@@ -696,34 +695,27 @@ function ensureControls(controller: RotationHotkeyController): void {
       : controller.root.closest('.rotation-panel')?.querySelector('h3');
   if (!(heading instanceof HTMLElement)) return;
   heading.classList.add('rotation-builder-heading');
-  const controls = heading.ownerDocument.createElement('span');
-  controls.className = 'rotation-hotkey-controls';
-  const status = heading.ownerDocument.createElement('span');
-  status.className = 'rotation-hotkey-status';
-  status.setAttribute('role', 'status');
   const button = heading.ownerDocument.createElement('button');
   button.type = 'button';
   button.className = 'btn btn-io rotation-hotkey-button';
-  button.textContent = '⌨ Hotkeys';
+  button.setAttribute('aria-live', 'polite');
   button.title = 'Configure global rotation hotkeys';
   button.addEventListener('click', () => {
     ensureDialog(controller);
     populateDialog(controller);
     controller.dialog?.showModal();
   });
-  controls.append(status, button);
   const sharedControls = heading.querySelector('.rotation-builder-controls');
   const focusButton = sharedControls?.querySelector('.rotation-focus-toggle');
   if (sharedControls && focusButton) {
-    sharedControls.insertBefore(controls, focusButton);
+    sharedControls.insertBefore(button, focusButton);
   } else if (sharedControls) {
-    sharedControls.append(controls);
+    sharedControls.prepend(button);
   } else {
-    heading.append(controls);
+    heading.append(button);
   }
 
   controller.button = button;
-  controller.status = status;
   setRotationHotkeysActive(controller, controller.active);
 }
 
@@ -741,7 +733,6 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
       enabled: loadRotationHotkeysEnabled(),
       active: false,
       button: null,
-      status: null,
       dialog: null,
       keybindImport
     };

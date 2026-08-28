@@ -54,10 +54,7 @@ function mountAnalysisHeading(root: Document): void {
 
   const heading = root.createElement('div');
   heading.className = 'analysis-view-heading';
-  heading.innerHTML = `
-    <p>Simulation output</p>
-    <h2 id="analysis-view-title">Combat analysis</h2>
-  `;
+  heading.innerHTML = `<h2 id="analysis-view-title">Combat analysis</h2>`;
   results.before(heading);
 
   const summaryMirror = root.createElement('div');

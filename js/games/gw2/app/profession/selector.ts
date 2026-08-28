@@ -26,13 +26,11 @@ const LEGAL_TEXT =
   'Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild Wars, Guild Wars 2, GW2, Heart of Thorns, Path of Fire, End of Dragons, Secrets of the Obscure, Janthir Wilds, Visions of Eternity, and all associated logos, designs, and composite marks are trademarks or registered trademarks of NCSOFT Corporation. All other trademarks are the property of their respective owners.';
 
 /**
- * Adds the community submission actions to the simulator header.
- * Only runs on profession pages; skipped on the landing page.
- * Idempotent so repeat binds don't stack.
+ * Adds the shared build-submission and issue-reporting actions to the main
+ * simulator header. Idempotent so repeat binds don't stack.
  */
 function mountCommunityActions(root: Document): void {
-  if (!root.body?.dataset.profession) return;
-  const host = root.querySelector('header');
+  const host = root.querySelector('#app > header');
   if (!host || host.querySelector('.community-actions')) {
     return;
   }
@@ -73,10 +71,8 @@ function mountLegalFooter(root: Document): void {
   app.after(footer);
 }
 
-/** Publishes the rendered header height for other sticky page controls. */
-function mountStickyProfessionHeader(root: Document): void {
-  if (!root.body?.dataset.profession) return;
-
+/** Publishes the header height and adds its surface only after the page scrolls. */
+function mountStickyHeader(root: Document): void {
   const header = root.querySelector<HTMLElement>('#app > header');
   const appRoot = header?.parentElement;
   if (!header || !appRoot) return;
@@ -84,11 +80,17 @@ function mountStickyProfessionHeader(root: Document): void {
   const updateHeaderHeight = () => {
     appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);
   };
+  const updateHeaderSurface = () => {
+    const scrollTop = root.defaultView?.scrollY ?? root.scrollingElement?.scrollTop ?? 0;
+    header.classList.toggle('simulator-header-scrolled', scrollTop > 0);
+  };
 
   updateHeaderHeight();
+  updateHeaderSurface();
   if (header.dataset.stickyHeaderMounted === 'true') return;
   header.dataset.stickyHeaderMounted = 'true';
 
+  root.defaultView?.addEventListener('scroll', updateHeaderSurface, { passive: true });
   const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
   if (ResizeObserverConstructor) {
     new ResizeObserverConstructor(updateHeaderHeight).observe(header);
@@ -174,7 +176,7 @@ export function bindProfessionSelector(root: Document = document): void {
   mountCommunityActions(root);
   mountSimulatorTutorial(root);
   mountSimulatorNavigation(root);
-  mountStickyProfessionHeader(root);
+  mountStickyHeader(root);
   renderProfessionCards(root);
 }
 

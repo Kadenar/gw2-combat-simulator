@@ -41,10 +41,32 @@ export const RESULT_PROC_NAMES: Readonly<Record<string, string>> = {
   'Cascading Corruption': 'Meltdown'
 };
 
+/** Supplies one canonical icon set for build controls and effect result rows. */
 export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Might: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Might.png',
   Fury: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fury.png',
-  Vulnerability: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vulnerability.png'
+  Quickness: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Quickness.png',
+  Alacrity: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Alacrity.png',
+  Protection: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Protection.png',
+  Resolution: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Resolution.png',
+  Regeneration: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Regeneration.png',
+  Swiftness: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Swiftness.png',
+  Vigor: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vigor.png',
+  Aegis: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Aegis.png',
+  Burning: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Burning.png',
+  Bleeding: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bleeding.png',
+  Torment: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Torment.png',
+  Confusion: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Confusion.png',
+  Poisoned: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poisoned.png',
+  Vulnerability: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vulnerability.png',
+  Weakness: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Weakness.png',
+  Blindness: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blinded.png',
+  Slow: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slow.png',
+  Chilled: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chilled.png',
+  Cripple: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Crippled.png',
+  Immobilize: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Immobile.png',
+  Fear: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fear.png',
+  Taunt: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Taunt.png'
 };
 
 function resolveRelicIcon(label: unknown): string {

@@ -1,5 +1,4 @@
 import type { ProfessionAppState } from '../types.js';
-import { renderRotationClipboardControls } from './editing/clipboard.js';
 import { renderRotationHistoryControls } from './editing/history.js';
 import { mountRotationHotkeys } from './input/hotkeys.js';
 import { renderPalette } from './palette/view.js';
@@ -18,7 +17,6 @@ export function renderRotationBuilder(app: ProfessionAppState): void {
 export function renderRotationEditor(app: ProfessionAppState): void {
   renderStartResource(app);
   renderPalette(app);
-  renderRotationClipboardControls(app);
   mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
   renderTimeline(app);
   renderRotationStateSnapshot(app);

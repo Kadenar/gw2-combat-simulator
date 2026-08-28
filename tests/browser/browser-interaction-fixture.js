@@ -76,10 +76,16 @@ frame.addEventListener('load', async () => {
     const analysisTab = document.querySelector('[data-simulator-view="analysis"]');
 
     assert(workspaceTab && analysisTab, 'simulator view tabs are missing');
+    const simulatorHeader = document.querySelector('#app > header');
     const workspaceScrollTop = Math.min(600, document.documentElement.scrollHeight - window.innerHeight);
 
+    assert(
+      !simulatorHeader.classList.contains('simulator-header-scrolled'),
+      'header has a background before scrolling'
+    );
     window.scrollTo(0, workspaceScrollTop);
     assert(window.scrollY > 0, 'workspace is not scrollable');
+    await waitFor(() => simulatorHeader.classList.contains('simulator-header-scrolled'));
     analysisTab.click();
     workspaceTab.click();
     assert(window.scrollY === workspaceScrollTop, 'returning to the workspace reset its scroll position');
@@ -121,7 +127,7 @@ frame.addEventListener('load', async () => {
     );
     assert(
       document.querySelector(
-        '#perma-boons [data-effect-type="condition"][data-effect-key="Vulnerability"] + .perma-name'
+        '#perma-boons .perma-item[title="Vulnerability"]:has([data-effect-type="condition"][data-effect-key="Vulnerability"]) .perma-icon'
       ),
       'stacking target condition control missing'
     );

@@ -2,12 +2,10 @@ import type { ChartOptions, ChartSeries } from './charts/time-series.js';
 import { mountTimeSeriesCharts } from './charts/time-series.js';
 import { mountHitTimeline } from '../../../../../ui/results/charts/hit-timeline.js';
 import type { RelicComparisonModel } from './charts/relic-comparison.js';
-import { relicComparisonChartSvg } from './charts/relic-comparison.js';
+import { bindRelicComparisonChartHover, relicComparisonChartSvg } from './charts/relic-comparison.js';
 import { escapeHtml } from '../shared/html.js';
 
-// Trusted static section-header glyphs (Lucide swords / flame).
-const DAMAGE_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`;
-const CONDITIONS_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+// Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
 
 const metricDetailsDismissalRoots = new WeakSet<Document>();
@@ -462,6 +460,7 @@ export function mountRotationResults(
   const skillRows = model.skillRows || [];
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
+  // Contributions compare reruns with one modifier disabled; the UI warns that invalid rotations skew results.
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
   const randomDistribution = model.randomDistribution || null;
@@ -484,12 +483,11 @@ export function mountRotationResults(
     )
   );
   const randomDistributionError = String(model.randomDistributionError || '');
-  const randomDistributionAction =
-    !randomDistributionStale && (randomDistribution || randomDistributionError)
-      ? `<button type="button" class="rng-run-button" data-role="rng-run">
-          ${randomDistributionError ? 'Retry' : 'Run again'}
+  const randomDistributionAction = !randomDistributionStale
+    ? `<button type="button" class="rng-run-button" data-role="rng-run">
+          ${randomDistributionError ? 'Retry' : randomDistribution ? 'Recalculate' : 'Calculate range'}
         </button>`
-      : '';
+    : '';
   const chartSeries = model.chartSeries || null;
   const relicComparison = model.relicComparison || null;
   const relicComparisonAvailable = model.relicComparisonAvailable === true;
@@ -510,6 +508,7 @@ export function mountRotationResults(
   const initialSkillRows = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
 
   // Replacing the subtree gives every mount a clean DOM/event-handler slate.
+  // Damage and conditions share one card so the analysis reads as one ordered breakdown.
   container.innerHTML = `${
     showSummary
       ? `<div class="res-summary${summaryPlaceholder ? ' res-summary-placeholder' : ''}"${
@@ -533,11 +532,11 @@ export function mountRotationResults(
       ? `<section class="rng-distribution">
     <div class="rng-distribution-heading">
       <div>
-        <h4>Simulation RNG distribution</h4>
-        <p>Expected is the planning baseline; the low and high estimates show rare outcomes at either end.</p>
+        <h4>Randomized DPS range</h4>
+        <p>See how weapon strength and supported random procs affect expected DPS.</p>
       </div>
       <div class="rng-distribution-heading-actions">
-        ${randomDistributionTrials ? `<span>${number(randomDistributionTrials)} outcomes per run</span>` : ''}
+        ${randomDistributionTrials ? `<span>${number(randomDistributionTrials)} simulations</span>` : ''}
         ${randomDistributionAction}
       </div>
     </div>
@@ -546,7 +545,7 @@ export function mountRotationResults(
         ? `<div class="rng-distribution-progress"
           data-role="rng-progress"
           role="progressbar"
-          aria-label="Calculating RNG outcomes"
+          aria-label="Calculating randomized DPS range"
           aria-valuemin="0"
           aria-valuemax="100"
           aria-valuenow="${Math.round(randomDistributionPercent)}">
@@ -555,7 +554,7 @@ export function mountRotationResults(
           </div>
           <span data-role="rng-progress-label">${number(
             randomDistributionCompleted
-          )} / ${number(randomDistributionTrials)} outcomes (${Math.round(randomDistributionPercent)}%)</span>
+          )} / ${number(randomDistributionTrials)} simulations (${Math.round(randomDistributionPercent)}%)</span>
         </div>`
         : randomDistributionError
           ? `<div class="rng-distribution-status rng-distribution-error">${escapeHtml(randomDistributionError)}</div>`
@@ -588,57 +587,56 @@ export function mountRotationResults(
             </div>
           </div>
           ${randomDistributionExplanationHtml(randomDistribution)}`
-            : `<div class="rng-distribution-manual">
-              <span>Run the distribution when the rotation is ready.</span>
-              <button type="button" class="rng-run-button" data-role="rng-run">
-                Run ${number(randomDistributionTrials)} outcomes
-              </button>
-            </div>`
+            : ''
     }
   </section>`
       : ''
   }
   ${
-    conditions.length
+    skillColumns.length || conditions.length
       ? `<section class="res-breakdown-section">
-    <div class="res-section-title">${CONDITIONS_SECTION_ICON}<span>Conditions</span></div>
-    <div class="res-breakdown cond-breakdown">
-      <div class="res-hdr cond-hdr">
-        <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
-      </div>
-      ${conditions
-        .map(
-          (condition) => `<div class="res-row">
-        <span class="res-skill condi">${escapeHtml(condition.name)}</span>
-        <span class="condi">${number(condition.damage)}</span>
-        <span class="dps">${number(condition.dps)}</span>
-        <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-      </div>`
-        )
-        .join('')}
+    <div class="res-breakdown">
       ${
-        model.conditionTotal
-          ? `<div class="res-row res-total">
-        <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || 'Total Conditions')}</b></span>
-        <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
-        <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
-        <span></span>
+        skillColumns.length
+          ? `<div class="res-section-title">Damage Breakdown</div>
+      <div class="${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
+        <div class="res-hdr res-hdr-sortable" data-role="skill-header">
+          ${skillHeaderHtml(skillColumns, sortState)}
+        </div>
+        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options)}</div>
       </div>`
           : ''
       }
-    </div>
-  </section>`
-      : ''
-  }
-  ${
-    skillColumns.length
-      ? `<section class="res-breakdown-section">
-    <div class="res-section-title">${DAMAGE_SECTION_ICON}<span>Damage Breakdown</span></div>
-    <div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
-      <div class="res-hdr res-hdr-sortable" data-role="skill-header">
-        ${skillHeaderHtml(skillColumns, sortState)}
-      </div>
-      <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options)}</div>
+      ${
+        conditions.length
+          ? `<div class="res-section-title">Conditions</div>
+      <div class="cond-breakdown">
+        <div class="res-hdr cond-hdr">
+          <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+        </div>
+        ${conditions
+          .map(
+            (condition) => `<div class="res-row">
+          <span class="res-skill condi">${escapeHtml(condition.name)}</span>
+          <span class="condi">${number(condition.damage)}</span>
+          <span class="dps">${number(condition.dps)}</span>
+          <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+        </div>`
+          )
+          .join('')}
+        ${
+          model.conditionTotal
+            ? `<div class="res-row res-total">
+          <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || 'Total Conditions')}</b></span>
+          <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
+          <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
+          <span></span>
+        </div>`
+            : ''
+        }
+      </div>`
+          : ''
+      }
     </div>
   </section>`
       : ''
@@ -678,6 +676,7 @@ export function mountRotationResults(
       <span>Modifier Contributions</span>
       ${contributionsStale ? '<span class="contrib-status">Recalculating</span>' : ''}
     </h4>
+    <p class="contrib-disclaimer">Values are estimated by disabling each modifier and rerunning the simulation. They may be misleading if doing so breaks the rotation.</p>
     ${
       contributions.length
         ? `<div class="contrib-table">
@@ -805,6 +804,9 @@ export function mountRotationResults(
         healthBreakpoints: breakpoints
       }) || null;
   }
+
+  // The comparison SVG uses the same hover-value interaction as the time-series charts.
+  if (relicComparison) bindRelicComparisonChartHover(container, relicComparison);
 
   bindSkillSelection();
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');

@@ -34,11 +34,6 @@ import {
 import { renderPalette, resolvePaletteDropItem } from '../palette/view.js';
 import { renderRotationStateSnapshot } from '../state-snapshot/view.js';
 import { createRotationItem, resolveEntrySkill } from '../editing/actions.js';
-import {
-  clearRotationSelection,
-  handleRotationSelectionClick,
-  syncRotationClipboardView
-} from '../editing/clipboard.js';
 import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '../editing/operations.js';
 import {
@@ -427,7 +422,6 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
     },
     onChanged: () => {
       app.rotationInsertionIndex = null;
-      clearRotationSelection(app);
       app.changed(false);
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
@@ -481,7 +475,6 @@ export function renderTimeline(app: ProfessionAppState): void {
       }
     });
     bindTimelineInteractions(element, timelineInteractionOptions(app));
-    syncRotationClipboardView(app);
     return;
   }
 
@@ -1095,23 +1088,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
     if (skill.dataset.highlightBound === 'true') return;
     skill.dataset.highlightBound = 'true';
-    skill.addEventListener('click', (event) => {
-      const index = Number(skill.dataset.idx);
-      const selectionResult = Number.isInteger(index) ? handleRotationSelectionClick(app, index, event) : 'ignored';
-      if (selectionResult !== 'ignored') {
-        app.rotationSkillHighlightKey = null;
-        if (selectionResult === 'copied') {
-          // Completing a loop moves the inspection cursor, so refresh insertion-aware palette state.
-          renderPalette(app);
-          renderTimeline(app);
-          renderRotationStateSnapshot(app);
-        } else {
-          applySkillHighlight();
-        }
-
-        return;
-      }
-
+    skill.addEventListener('click', () => {
       const key = skill.dataset.skillHighlightKey;
       app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
       applySkillHighlight();
@@ -1185,5 +1162,4 @@ export function renderTimeline(app: ProfessionAppState): void {
   }
 
   bindTimelineInteractions(element, timelineInteractionOptions(app));
-  syncRotationClipboardView(app);
 }

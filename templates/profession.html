@@ -25,9 +25,10 @@
         <a class="home-link" href="index.html">← All professions</a>
         <h1>GW2 <span class="accent">{{profession-name}}</span> Rotation Simulator</h1>
       </header>
-      <section class="build-section">
-        <div class="build-left">
-          <div class="panel gear-panel">
+      <!-- One editor owns the complete build and rotation flow so its sections share one contiguous surface. -->
+      <section class="build-editor panel">
+        <section class="build-section">
+          <div class="gear-panel">
             <div class="panel-hdr">
               <h3>Gear</h3>
               <div class="build-io-btns">
@@ -45,90 +46,94 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="panel attributes-panel">
-          <div class="attributes-header">
-            <h3>Attributes</h3>
-            <label for="attribute-weapon-set" {{weapon-set-hidden}}>
-              <span>Weapon set</span>
-              <select id="attribute-weapon-set" class="gear-select">
-                <option value="1">1</option>
-                {{weapon-set-two}}
-              </select>
-            </label>
-          </div>
-          <div id="attributes-list"></div>
-          <p class="attribute-note">{{attribute-note}}</p>
-        </div>
-      </section>
-
-      <!-- Keeps profession weapons and skill choices in one major region beside traits. -->
-      <section class="skills-section combat-loadout-section">
-        <div id="traits-panel" class="traits-panel-inline"></div>
-        <div class="panel skills-panel-left combat-loadout-panel">
-          <div class="combat-loadout-title">Combat loadout</div>
-          <div class="combat-loadout">
-            <div class="combat-loadout-weapons">
-              <div class="combat-loadout-column-label">Weapon Skills</div>
-              <div class="skill-bar-column weapon-bar-column">
-                <div id="weapon-bar" class="weapon-bar"></div>
-              </div>
+          <div class="attributes-panel">
+            <div class="attributes-header">
+              <h3>Attributes</h3>
+              <label for="attribute-weapon-set" {{weapon-set-hidden}}>
+                <span>Weapon set</span>
+                <select id="attribute-weapon-set" class="gear-select">
+                  <option value="1">1</option>
+                  {{weapon-set-two}}
+                </select>
+              </label>
             </div>
-            <div class="combat-loadout-skills">
-              <div class="skill-bar-column equipped-skill-bar-column">
-                <div id="skill-bar" class="skill-bar"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div class="simulation-workspace">
-        <section class="perma-section">
-          <div class="panel perma-panel">
-            <h3>Simulation config</h3>
-            <div id="perma-boons"></div>
+            <div id="attributes-list"></div>
+            <p class="attribute-note">{{attribute-note}}</p>
           </div>
         </section>
 
-        <section class="rotation-section">
-          <div class="panel rotation-panel">
-            <h3>Rotation builder</h3>
-            <div id="rotation-palette" class="rotation-palette"></div>
-            <p class="palette-hint">
-              Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during the previous cast ·
-              <b>Ctrl+click</b> a non-instant skill to interrupt it{{cooldown-hint}}
-            </p>
-            <div class="rotation-mid">
-              <div class="rotation-tl-label">Rotation</div>
-              <div id="start-att-selector" class="start-att-selector"></div>
-              <div class="rotation-btns">
-                <button id="btn-sim-undo" class="btn btn-undo" title="Undo rotation change (Ctrl+Z)" disabled>
-                  ↶ Undo
-                </button>
-                <button id="btn-sim-redo" class="btn btn-undo" title="Redo rotation change (Ctrl+Y)" disabled>
-                  ↷ Redo
-                </button>
-                <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
-                <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
-                <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
-                <input
-                  type="file"
-                  id="rotation-file-input"
-                  accept=".json,.evtc,.evtc.zip,.zevtc,application/json,application/zip"
-                  hidden
-                />
+        <section class="skills-section combat-loadout-section">
+          <div class="traits-loadout-column">
+            <div id="traits-panel" class="traits-panel-inline"></div>
+            <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
+          </div>
+          <div class="skills-panel-left combat-loadout-panel">
+            <div class="combat-loadout-title">Combat loadout</div>
+            <div class="combat-loadout">
+              <div class="combat-loadout-weapons">
+                <div class="combat-loadout-column-label">Weapon Skills</div>
+                <div class="skill-bar-column weapon-bar-column">
+                  <div id="weapon-bar" class="weapon-bar"></div>
+                </div>
+              </div>
+              <div class="combat-loadout-skills">
+                <div class="skill-bar-column equipped-skill-bar-column">
+                  <div id="profession-mechanics" class="skill-bar"></div>
+                </div>
               </div>
             </div>
-            <div id="rotation-active-buffs" class="rotation-active-buffs" hidden></div>
-            <div id="rotation-timeline" class="rotation-timeline"></div>
-            <div id="rotation-warnings" class="rotation-warnings"></div>
-            <div id="rotation-procs" class="rotation-procs"></div>
-            <div id="rotation-event-log" class="rotation-event-log"></div>
           </div>
-          <div id="rotation-results" class="rotation-results"></div>
         </section>
-      </div>
+
+        <div class="simulation-workspace">
+          <section class="perma-section">
+            <div class="panel perma-panel">
+              <h3>Simulation config</h3>
+              <div id="perma-boons"></div>
+            </div>
+          </section>
+
+          <section class="rotation-section">
+            <div class="panel rotation-panel">
+              <h3>
+                <span class="rotation-builder-title">Rotation builder</span>
+                <span class="palette-hint">
+                  Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during the previous cast ·
+                  <b>Ctrl+click</b> a non-instant skill to interrupt it
+                </span>
+              </h3>
+              <div id="rotation-palette" class="rotation-palette"></div>
+              <div class="rotation-mid">
+                <div class="rotation-tl-label">Rotation</div>
+                <div id="start-att-selector" class="start-att-selector"></div>
+                <div class="rotation-btns">
+                  <button id="btn-sim-undo" class="btn btn-undo" title="Undo rotation change (Ctrl+Z)" disabled>
+                    ↶ Undo
+                  </button>
+                  <button id="btn-sim-redo" class="btn btn-undo" title="Redo rotation change (Ctrl+Y)" disabled>
+                    ↷ Redo
+                  </button>
+                  <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
+                  <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
+                  <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
+                  <input
+                    type="file"
+                    id="rotation-file-input"
+                    accept=".json,.evtc,.evtc.zip,.zevtc,application/json,application/zip"
+                    hidden
+                  />
+                </div>
+              </div>
+              <div id="rotation-active-buffs" class="rotation-active-buffs" hidden></div>
+              <div id="rotation-timeline" class="rotation-timeline"></div>
+              <div id="rotation-warnings" class="rotation-warnings"></div>
+              <div id="rotation-procs" class="rotation-procs"></div>
+              <div id="rotation-event-log" class="rotation-event-log"></div>
+            </div>
+            <div id="rotation-results" class="rotation-results"></div>
+          </section>
+        </div>
+      </section>
     </div>
 
     <!-- Load the GW2 selector from its canonical game-owned module. -->

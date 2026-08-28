@@ -175,15 +175,16 @@ export function mountSimulatorTutorial(root: Document = document): void {
 
   const landingHeader = root.querySelector('.landing-header');
   const compactHost = root.querySelector('.community-actions');
-  const host = landingHeader || compactHost;
+  // The shared title bar keeps the tutorial compact; the large landing trigger remains a fallback for older markup.
+  const host = compactHost || landingHeader;
   if (!host) return;
 
-  const trigger = tutorialTrigger(root, Boolean(landingHeader));
+  const trigger = tutorialTrigger(root, !compactHost);
   const dialog = tutorialDialog(root);
   let activeTutorialId = DEFAULT_TUTORIAL_ID;
 
-  if (landingHeader) host.append(trigger);
-  else host.prepend(trigger);
+  if (compactHost) host.prepend(trigger);
+  else host.append(trigger);
   root.body.append(dialog);
 
   const motionPreference = root.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');

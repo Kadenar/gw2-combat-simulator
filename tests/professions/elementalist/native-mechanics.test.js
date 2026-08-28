@@ -620,6 +620,11 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   }
 
   assert.match(palette.innerHTML, /data-role="weaver-current-bar"/);
+  assert.match(
+    palette.innerHTML,
+    /<details class="weaver-weapon-palette"[^>]*data-palette-storage-key="gw2-weaver-cooldowns-expanded" open>/
+  );
+  assert.match(palette.innerHTML, /<summary class="weaver-cooldown-toggle">All weapon skill cooldowns<\/summary>/);
   assert.match(palette.innerHTML, /data-role="weaver-primary-bank"/);
   assert.match(palette.innerHTML, /data-role="weaver-slot-three-bank"/);
   assert.match(palette.innerHTML, /data-role="weaver-secondary-bank"/);

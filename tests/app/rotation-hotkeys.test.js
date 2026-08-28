@@ -16,6 +16,7 @@ import {
   rotationHotkeyActionForCode,
   rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
+  rotationHotkeyStatusLabel,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction,
   saveRotationHotkeyBindings,
@@ -95,6 +96,12 @@ test('rotation hotkeys default on and persist an explicit opt-out', () => {
   assert.equal(loadRotationHotkeysEnabled(storage), false);
   saveRotationHotkeysEnabled(true, storage);
   assert.equal(loadRotationHotkeysEnabled(storage), true);
+});
+
+test('rotation hotkey toolbar labels include the current state', () => {
+  assert.equal(rotationHotkeyStatusLabel(false, false), 'Hotkeys: Disabled');
+  assert.equal(rotationHotkeyStatusLabel(true, false), 'Hotkeys: Off');
+  assert.equal(rotationHotkeyStatusLabel(true, true), 'Hotkeys: On');
 });
 
 test('skill slots resolve to weapon, utility, and profession actions', () => {

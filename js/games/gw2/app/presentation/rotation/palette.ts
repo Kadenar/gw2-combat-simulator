@@ -220,6 +220,25 @@ export function bindPaletteInteractions(
   handlers: PaletteInteractionHandlers = {}
 ): void {
   if (!root) return;
+  // Restore optional palette panels after every rerender and persist the next native disclosure toggle.
+  for (const disclosure of root.querySelectorAll<HTMLDetailsElement>('details[data-palette-storage-key]')) {
+    const storageKey = disclosure.dataset.paletteStorageKey;
+    if (!storageKey) continue;
+    try {
+      const stored = root.ownerDocument.defaultView?.localStorage.getItem(storageKey);
+      if (stored === 'true' || stored === 'false') disclosure.open = stored === 'true';
+    } catch {
+      // Browser storage may be unavailable in private or embedded contexts.
+    }
+    disclosure.ontoggle = () => {
+      try {
+        root.ownerDocument.defaultView?.localStorage.setItem(storageKey, String(disclosure.open));
+      } catch {
+        // Browser storage may be unavailable in private or embedded contexts.
+      }
+    };
+  }
+
   for (const control of root.querySelectorAll<HTMLElement>('.pal-control[data-palette-control-id]')) {
     control.onclick = (event) => {
       handlers.onControlActivate?.(control.dataset.paletteControlId || '', event as unknown as PaletteMouseEvent);

@@ -160,7 +160,7 @@ Important modules include:
 | Module            | Responsibility                                                  |
 | ----------------- | --------------------------------------------------------------- |
 | `index.ts`        | Rotation-builder orchestration                                  |
-| `editing/`        | Rotation mutations, clipboard state, history, and entry editors |
+| `editing/`        | Rotation mutations, history, and entry editors                  |
 | `input/`          | Hotkeys and GW2 keybind import                                  |
 | `palette/`        | Palette state, resources, rendering, and interaction            |
 | `timeline/`       | Timeline model, rendering, interaction, and display controls    |

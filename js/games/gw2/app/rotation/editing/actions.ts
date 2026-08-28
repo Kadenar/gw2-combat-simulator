@@ -1,7 +1,6 @@
 import type { RotationCommand, Skill, SkillId } from '../../../platform/engine/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '../../types.js';
 import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
-import { clearRotationSelection } from './clipboard.js';
 
 /**
  * Resolves the catalog skill behind a rotation entry or palette item. Non-cast
@@ -65,8 +64,6 @@ export function createRotationItem(
  */
 export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
   if (!items.length) return false;
-  // New authored actions invalidate index-based range selections from the previous timeline.
-  clearRotationSelection(app);
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
   if (insertionIndex === null) {
     app.rotationInsertionIndex = null;

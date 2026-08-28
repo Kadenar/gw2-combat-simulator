@@ -283,8 +283,8 @@ function elementRowsHtml(
     .join('');
 }
 
-// Arrange Weaver weapon skills by primary hand, dual slot, and secondary hand;
-// the layout deliberately exposes variants that the normal flat palette hides.
+// Arrange Weaver weapon skills by primary hand, dual slot, and secondary hand,
+// keeping the optional cooldown inventory behind a native disclosure.
 function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext): ProfessionWeaponPaletteView | null {
   if (String(context.specialization || '') !== 'Weaver') return null;
   const skills = context.skills;
@@ -372,7 +372,9 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
         </div>
       </div>`,
     weaponGroupsHtml: [
-      `<div class="weaver-weapon-palette" data-role="weaver-weapon-palette">
+      `<details class="weaver-weapon-palette" data-role="weaver-weapon-palette"
+          data-palette-storage-key="gw2-weaver-cooldowns-expanded" open>
+        <summary class="weaver-cooldown-toggle">All weapon skill cooldowns</summary>
         <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">
         <section class="weaver-cooldown-lane" data-role="weaver-primary-bank">
           <div class="weaver-bank-title">Slots 1-2 <span>Primary</span></div>
@@ -404,7 +406,7 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
         </section>
       </div>
       ${extrasHtml}
-    </div>`
+    </details>`
     ]
   };
 }

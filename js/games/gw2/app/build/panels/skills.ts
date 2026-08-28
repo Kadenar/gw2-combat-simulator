@@ -543,6 +543,7 @@ export function renderSkills(app: ProfessionAppState): void {
 
   // Professions with fixed slot loadouts provide their own complete lower bar.
   if (app.adapter.slotLoadout) {
+    requiredElement('profession-mechanics').replaceChildren();
     renderFixedSlotLoadout(app, spec);
     return;
   }
@@ -574,8 +575,9 @@ export function renderSkills(app: ProfessionAppState): void {
     })
     .join('');
   const skillBar = requiredElement('skill-bar');
+  const professionMechanics = requiredElement('profession-mechanics');
   const inspectionLayout = inspectionGroups.find((group) => group.layout)?.layout || '';
-  skillBar.classList.toggle('has-inspection', inspectionGroups.length > 0);
+  professionMechanics.classList.toggle('has-inspection', inspectionGroups.length > 0);
 
   const selectedSkillsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
   const professionMechanicsHtml = `<div class="skill-bar-inspection${
@@ -588,17 +590,16 @@ export function renderSkills(app: ProfessionAppState): void {
     )
     .join('')}</div>`;
 
-  // Every combined loadout presents profession mechanics before the standard
-  // selectable bar, omitting the mechanics section when none are available.
-  skillBar.innerHTML = `${
+  // Keep mechanics inside Combat loadout while the selectable row can span beneath traits and loadout.
+  professionMechanics.innerHTML = `${
     inspectionGroups.length
       ? `<section class="combat-loadout-skill-section combat-loadout-mechanics">
           <div class="combat-loadout-column-label">Profession Mechanics</div>
           ${professionMechanicsHtml}
         </section>`
       : ''
-  }
-    <section class="combat-loadout-skill-section combat-loadout-selected-skills">
+  }`;
+  skillBar.innerHTML = `<section class="combat-loadout-skill-section combat-loadout-selected-skills">
       <div class="combat-loadout-column-label">Selectable Skills</div>
       ${selectedSkillsHtml}
     </section>`;
@@ -631,7 +632,7 @@ export function renderSkills(app: ProfessionAppState): void {
   });
 
   // Wire profession inspection selectors, including optional text filtering.
-  skillBar.querySelectorAll('.skill-bar-inspection-slot[data-selection-key]').forEach((slot) => {
+  professionMechanics.querySelectorAll('.skill-bar-inspection-slot[data-selection-key]').forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
     const icon = slot.querySelector('.sbar-icon');
     const dropdown = slot.querySelector('.sbar-dropdown');

@@ -12,8 +12,11 @@ import type {
 type TemplateLoadAction = 'build' | 'rotation' | 'template';
 type TemplateCategory = 'power' | 'condi' | 'other';
 type TemplateFilter = 'all' | Exclude<TemplateCategory, 'other'>;
+type TemplateBoon = 'alacrity' | 'quickness' | 'none';
+type TemplateBoonFilter = 'all' | Exclude<TemplateBoon, 'none'>;
 
 const TEMPLATE_FILTERS: readonly TemplateFilter[] = ['all', 'power', 'condi'];
+const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = ['all', 'alacrity', 'quickness'];
 
 function normalizeTemplateSections(manifest: unknown): BuildTemplateSection[] {
   if (!Array.isArray(manifest) || manifest.length === 0) return [];
@@ -40,14 +43,35 @@ export function templateSpecializations(manifest: unknown): string[] {
   ];
 }
 
-function templateSummary(preset: BuildTemplatePreset): string {
-  const details = [preset.rotation ? 'Build + rotation' : 'Build only'];
+export function templateTileContent(preset: BuildTemplatePreset): {
+  name: string;
+  weapons: string;
+  dps: string;
+} {
+  // Split manifest labels into role, weapons, and benchmark text so every tile keeps the requested visual hierarchy.
+  const category = templateCategory(preset);
+  const boon = templateBoon(preset);
+  const weaponMatch = preset.label.match(/\(([^()]*)\)/);
+  const detailsStart = weaponMatch?.index ?? preset.label.length;
+  const name =
+    category === 'other'
+      ? preset.label.slice(0, detailsStart).replace(/\s*-\s*$/, '').trim()
+      : `${category === 'condi' ? 'Condition' : 'Power'}${boon === 'none' ? '' : ` ${boon[0].toUpperCase()}${boon.slice(1)}`}`;
+  const roleSuffix = preset.label.slice(name.length, detailsStart).replace(/\s*-\s*$/, '').trim();
+  const weapons = (weaponMatch?.[1].match(/^\d+\s+Kits?$/i) ? roleSuffix : weaponMatch?.[1] || roleSuffix).replace(
+    /\s*\/\s*/g,
+    ' & '
+  );
   const benchmarkDps = Number(preset.benchmarkDps);
-  if (Number.isFinite(benchmarkDps) && benchmarkDps > 0) {
-    details.push(`${Math.round(benchmarkDps).toLocaleString('en-US')} DPS`);
-  }
 
-  return details.join(' · ');
+  return {
+    name,
+    weapons,
+    dps:
+      Number.isFinite(benchmarkDps) && benchmarkDps > 0
+        ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS`
+        : ''
+  };
 }
 
 export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateCategory {
@@ -60,13 +84,24 @@ export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'bu
   return 'other';
 }
 
-export function templateHasBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): boolean {
+export function templateBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateBoon {
+  // Template names encode support roles, so the selector can filter them without loading every build asset.
   const description = `${preset.label} ${preset.build}`.toLowerCase();
-  return /\b(?:quickness|alacrity)\b|[-/](?:quick|alac)-/.test(description);
+  if (/\balacrity\b|[-/]alac-/.test(description)) return 'alacrity';
+  if (/\bquickness\b|[-/]quick-/.test(description)) return 'quickness';
+  return 'none';
+}
+
+export function templateHasBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): boolean {
+  return templateBoon(preset) !== 'none';
 }
 
 function isTemplateFilter(value: string | undefined): value is TemplateFilter {
   return TEMPLATE_FILTERS.includes(value as TemplateFilter);
+}
+
+function isTemplateBoonFilter(value: string | undefined): value is TemplateBoonFilter {
+  return TEMPLATE_BOON_FILTERS.includes(value as TemplateBoonFilter);
 }
 
 /**
@@ -78,15 +113,17 @@ function isTemplateFilter(value: string | undefined): value is TemplateFilter {
 function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset, section: string | null): string {
   const index = app.templatePresets.push({ ...preset, section }) - 1;
   const label = esc(preset.label);
+  const content = templateTileContent(preset);
   const category = templateCategory(preset);
-  const hasBoon = templateHasBoon(preset);
+  const boon = templateBoon(preset);
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
-  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${hasBoon}" data-template-specialization="${esc(section)}">
+  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false">
-        <span class="template-preset-name">${label}</span>
-        <span class="template-preset-summary">${esc(templateSummary(preset))}</span>
+        <span class="template-preset-name">${esc(content.name)}</span>
+        <span class="template-preset-weapons">${esc(content.weapons)}</span>
+        ${content.dps ? `<span class="template-preset-dps">${esc(content.dps)}</span>` : ''}
       </button>
       <details class="template-actions">
         <summary aria-label="More options for ${label}" title="More loading options">•••</summary>
@@ -101,27 +138,34 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
 function applyTemplateFilter(
   container: HTMLElement,
   filter: TemplateFilter,
-  boonOnly: boolean,
+  boonFilter: TemplateBoonFilter,
   specialization: string | null
 ): void {
   container.querySelectorAll<HTMLButtonElement>('[data-template-filter]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.templateFilter === filter));
   });
-  container
-    .querySelector<HTMLButtonElement>('[data-template-boon-filter]')
-    ?.setAttribute('aria-pressed', String(boonOnly));
+  container.querySelectorAll<HTMLButtonElement>('[data-template-boon-filter]').forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.templateBoonFilter === boonFilter));
+  });
   container.querySelectorAll<HTMLButtonElement>('[data-template-specialization-filter]').forEach((button) => {
     button.setAttribute(
       'aria-pressed',
       String((button.dataset.templateSpecializationFilter || null) === specialization)
     );
   });
+  const roleValue = container.querySelector<HTMLElement>('[data-template-role-value]');
+  const boonValue = container.querySelector<HTMLElement>('[data-template-boon-value]');
+  const specializationValue = container.querySelector<HTMLElement>('[data-template-specialization-value]');
+  if (roleValue) roleValue.textContent = filter === 'all' ? 'Any' : filter === 'condi' ? 'Condition' : 'Power';
+  if (boonValue) boonValue.textContent = boonFilter === 'all' ? 'Any' : boonFilter[0].toUpperCase() + boonFilter.slice(1);
+  if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
   let visibleTemplates = 0;
   container.querySelectorAll<HTMLElement>('.template-preset').forEach((preset) => {
     const matchesDamageType = filter === 'all' || preset.dataset.templateCategory === filter;
+    const matchesBoon = boonFilter === 'all' || preset.dataset.templateBoon === boonFilter;
     const matchesSpecialization = specialization === null || preset.dataset.templateSpecialization === specialization;
-    const visible = matchesDamageType && matchesSpecialization && (!boonOnly || preset.dataset.templateBoon === 'true');
+    const visible = matchesDamageType && matchesBoon && matchesSpecialization;
     preset.hidden = !visible;
     if (visible) visibleTemplates += 1;
   });
@@ -216,7 +260,9 @@ function showTemplateUndo(app: ProfessionAppState, message: string, previousBuil
  * @returns {void}
  */
 function closeTemplateMenus(container: ParentNode | null | undefined): void {
-  container?.querySelectorAll('.template-actions[open]').forEach((details) => details.removeAttribute('open'));
+  container
+    ?.querySelectorAll('.template-actions[open], .template-filter[open]')
+    .forEach((details) => details.removeAttribute('open'));
 }
 
 /**
@@ -224,10 +270,10 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
  * @returns {void}
  */
 function mountBuildTemplateLayout(container: HTMLElement): void {
-  const buildSection = document.querySelector<HTMLElement>('.build-section');
-  if (!buildSection) return;
+  const buildEditor = document.querySelector<HTMLElement>('.build-editor');
+  if (!buildEditor) return;
 
-  const existingMain = buildSection.closest<HTMLElement>('.profession-main');
+  const existingMain = buildEditor.closest<HTMLElement>('.profession-main');
   if (existingMain?.parentElement) {
     const layout = existingMain.parentElement;
     let templateRegion = layout.querySelector<HTMLElement>(':scope > .build-templates-region');
@@ -241,7 +287,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
     return;
   }
 
-  const appRoot = buildSection.parentElement;
+  const appRoot = buildEditor.parentElement;
   if (!appRoot) return;
 
   const layout = document.createElement('div');
@@ -251,15 +297,14 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   const main = document.createElement('div');
   main.className = 'profession-main';
 
-  appRoot.insertBefore(layout, buildSection);
+  // Move the complete build-and-rotation editor as one unit so it stays contiguous beside templates.
+  appRoot.insertBefore(layout, buildEditor);
   layout.append(templateRegion, main);
   templateRegion.append(container);
   while (layout.nextSibling) {
     main.append(layout.nextSibling);
   }
 
-  const simulationWorkspace = main.querySelector<HTMLElement>(':scope > .simulation-workspace');
-  if (simulationWorkspace) layout.append(simulationWorkspace);
   appRoot.classList.add('has-template-sidebar');
 }
 
@@ -287,22 +332,36 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
           <span class="template-actions-hint">••• for partial loading</span>
         </div>
         <div class="template-filters">
-          <div class="template-damage-filters" role="group" aria-label="Filter build templates by damage type">
-            ${TEMPLATE_FILTERS.map(
-              (filter) =>
-                `<button type="button" data-template-filter="${filter}" aria-pressed="${filter === 'all'}">${filter === 'condi' ? 'Condi' : filter[0].toUpperCase() + filter.slice(1)}</button>`
-            ).join('')}
-          </div>
-          <button type="button" data-template-boon-filter aria-pressed="false">Boon</button>
-          <div class="template-specialization-filters" role="group" aria-label="Filter build templates by specialization">
-            <button type="button" data-template-specialization-filter="" aria-pressed="true">All specs</button>
-            ${specializations
-              .map(
-                (specialization) =>
-                  `<button type="button" data-template-specialization-filter="${esc(specialization)}" aria-pressed="false">${esc(specialization)}</button>`
-              )
-              .join('')}
-          </div>
+          <details class="template-filter" name="build-template-filter">
+            <summary>Role: <strong data-template-role-value>Any</strong></summary>
+            <div class="template-filter-menu" role="group" aria-label="Filter build templates by role">
+              ${TEMPLATE_FILTERS.map(
+                (filter) =>
+                  `<button type="button" data-template-filter="${filter}" aria-pressed="${filter === 'all'}">${filter === 'all' ? 'Any' : filter === 'condi' ? 'Condition' : 'Power'}</button>`
+              ).join('')}
+            </div>
+          </details>
+          <details class="template-filter" name="build-template-filter">
+            <summary>Boon: <strong data-template-boon-value>Any</strong></summary>
+            <div class="template-filter-menu" role="group" aria-label="Filter build templates by boon">
+              ${TEMPLATE_BOON_FILTERS.map(
+                (boon) =>
+                  `<button type="button" data-template-boon-filter="${boon}" aria-pressed="${boon === 'all'}">${boon === 'all' ? 'Any' : boon[0].toUpperCase() + boon.slice(1)}</button>`
+              ).join('')}
+            </div>
+          </details>
+          <details class="template-filter template-specialization-filter" name="build-template-filter">
+            <summary>Specialization: <strong data-template-specialization-value>Any</strong></summary>
+            <div class="template-filter-menu" role="group" aria-label="Filter build templates by specialization">
+              <button type="button" data-template-specialization-filter="" aria-pressed="true">Any</button>
+              ${specializations
+                .map(
+                  (specialization) =>
+                    `<button type="button" data-template-specialization-filter="${esc(specialization)}" aria-pressed="false">${esc(specialization)}</button>`
+                )
+                .join('')}
+            </div>
+          </details>
         </div>
         <div class="default-build-groups">${groups}</div>
         <p class="template-filter-empty" hidden>No matching build templates.</p>
@@ -314,7 +373,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     app.templateContainer = container;
     mountBuildTemplateLayout(container);
     let templateFilter: TemplateFilter = 'all';
-    let boonOnly = false;
+    let boonFilter: TemplateBoonFilter = 'all';
     let specializationFilter: string | null = null;
     container.addEventListener('click', (event) => {
       const target = event.target;
@@ -324,7 +383,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         const filter = filterButton.dataset.templateFilter;
         if (isTemplateFilter(filter)) {
           templateFilter = filter;
-          applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
+          filterButton.closest('details')?.removeAttribute('open');
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
         }
 
         return;
@@ -332,8 +392,13 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
 
       const boonFilterButton = target.closest('[data-template-boon-filter]');
       if (boonFilterButton instanceof HTMLButtonElement) {
-        boonOnly = !boonOnly;
-        applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
+        const boon = boonFilterButton.dataset.templateBoonFilter;
+        if (isTemplateBoonFilter(boon)) {
+          boonFilter = boon;
+          boonFilterButton.closest('details')?.removeAttribute('open');
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
+        }
+
         return;
       }
 
@@ -342,7 +407,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         const specialization = specializationFilterButton.dataset.templateSpecializationFilter || null;
         if (specialization === null || specializations.includes(specialization)) {
           specializationFilter = specialization;
-          applyTemplateFilter(container, templateFilter, boonOnly, specializationFilter);
+          specializationFilterButton.closest('details')?.removeAttribute('open');
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
         }
 
         return;
@@ -367,7 +433,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     });
     document.addEventListener('click', (event) => {
       const target = event.target;
-      if (target instanceof Element && !target.closest('.template-actions')) {
+      if (target instanceof Element && !target.closest('.template-actions, .template-filter')) {
         closeTemplateMenus(container);
       }
     });

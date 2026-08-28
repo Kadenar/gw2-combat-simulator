@@ -869,6 +869,9 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(container.innerHTML, /at 3\.25s/);
   assert.ok(container.innerHTML.indexOf('High') < container.innerHTML.indexOf('Low'));
   assert.match(container.innerHTML, /Total Conditions/);
+  assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);
+  assert.doesNotMatch(container.innerHTML, /res-section-title"><svg/);
+  assert.ok(container.innerHTML.indexOf('Damage Breakdown') < container.innerHTML.indexOf('Conditions'));
   assert.match(container.innerHTML, /\+12/);
   assert.match(container.innerHTML, /\+1\.50%/);
   assert.match(
@@ -883,9 +886,11 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
-  assert.match(container.innerHTML, /Simulation RNG distribution/);
-  assert.match(container.innerHTML, /Run again/);
-  assert.match(container.innerHTML, /500 outcomes per run/);
+  assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
+  assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
+  assert.match(container.innerHTML, /Randomized DPS range/);
+  assert.match(container.innerHTML, /Recalculate/);
+  assert.match(container.innerHTML, /500 simulations/);
   assert.match(container.innerHTML, /Rare low outcome/);
   assert.match(container.innerHTML, /About 1 in 100 runs are lower/);
   assert.match(container.innerHTML, /Rare high outcome/);
@@ -905,7 +910,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(container.innerHTML, /single-variable trend estimates/);
   assert.match(container.innerHTML, /averages across each group/);
   assert.match(container.innerHTML, /do not add them together/);
-  assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Simulation RNG distribution'));
+  assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Randomized DPS range'));
   assert.deepEqual(resolved, ['High', 'Low']);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
@@ -1035,7 +1040,7 @@ test('skill damage rows group player damage before owned entities', () => {
   assert.match(html, /aria-label="Entities DPS: 30">30</);
 });
 
-test('RNG distribution waits for its manual run button', () => {
+test('randomized DPS range waits for its calculate button', () => {
   const runButton = {};
   const container = {
     ...inertContainer(),
@@ -1057,14 +1062,15 @@ test('RNG distribution waits for its manual run button', () => {
     }
   );
 
-  assert.match(container.innerHTML, /Run the distribution when the rotation is ready/);
-  assert.match(container.innerHTML, /Run 500 outcomes/);
+  assert.match(container.innerHTML, /weapon strength and supported random procs/);
+  assert.match(container.innerHTML, /500 simulations/);
+  assert.match(container.innerHTML, /Calculate range/);
   assert.equal(typeof runButton.onclick, 'function');
   runButton.onclick();
   assert.equal(runCount, 1);
 });
 
-test('RNG distribution renders completed outcomes and percentage progress', () => {
+test('randomized DPS range renders completed simulations and percentage progress', () => {
   const container = inertContainer();
 
   mountRotationResults(container, {
@@ -1082,7 +1088,7 @@ test('RNG distribution renders completed outcomes and percentage progress', () =
   assert.match(container.innerHTML, /role="progressbar"/);
   assert.match(container.innerHTML, /aria-valuenow="25"/);
   assert.match(container.innerHTML, /style="width: 25%"/);
-  assert.match(container.innerHTML, /125 \/ 500 outcomes \(25%\)/);
+  assert.match(container.innerHTML, /125 \/ 500 simulations \(25%\)/);
 });
 
 test('rotation warnings render a collapsed count and escaped details', () => {
@@ -1230,6 +1236,34 @@ test('palette controls delegate neutral control identities', () => {
 
   control.onclick({});
   assert.equal(activated, 'profession-resource:one');
+});
+
+test('palette disclosures restore and persist their visibility', () => {
+  const writes = [];
+  const disclosure = {
+    dataset: { paletteStorageKey: 'palette-panel-open' },
+    open: true,
+    ontoggle: null
+  };
+
+  bindPaletteInteractions({
+    ownerDocument: {
+      defaultView: {
+        localStorage: {
+          getItem: () => 'false',
+          setItem: (key, value) => writes.push([key, value])
+        }
+      }
+    },
+    querySelectorAll(selector) {
+      return selector === 'details[data-palette-storage-key]' ? [disclosure] : [];
+    }
+  });
+
+  assert.equal(disclosure.open, false);
+  disclosure.open = true;
+  disclosure.ontoggle();
+  assert.deepEqual(writes, [['palette-panel-open', 'true']]);
 });
 
 test('timeline canonical entries expose stable presentation names', () => {

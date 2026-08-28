@@ -40,7 +40,7 @@ const PLOT_HEIGHT = HEIGHT - PAD.top - PAD.bottom;
 // so the two lines never blur together.
 const DEFAULT_OPPONENT_COLOR = '#ffb02e';
 const DEFAULT_THORNS_COLOR = '#2ee6c4';
-const LINE_WIDTH = 2.75;
+const LINE_WIDTH = 2;
 
 function relicLabel(relic: string): string {
   return `Relic of ${relic}`;
@@ -81,12 +81,14 @@ function polyline(
   points: readonly RelicComparisonPoint[],
   color: string,
   pick: (point: RelicComparisonPoint) => number,
-  scale: Scale
+  scale: Scale,
+  dashArray: string
 ): string {
   const coordinates = points
     .map((point) => `${scale.xFor(point.tMs).toFixed(1)},${scale.yFor(pick(point)).toFixed(1)}`)
     .join(' ');
-  return `<polyline fill="none" stroke="${color}" stroke-width="${LINE_WIDTH}" stroke-linejoin="round" stroke-linecap="round" points="${coordinates}" />`;
+  // Fixed-width dashed/solid strokes stay crisp and distinguishable when the curves converge.
+  return `<polyline fill="none" stroke="${color}" stroke-width="${LINE_WIDTH}" stroke-dasharray="${dashArray}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points="${coordinates}" />`;
 }
 
 /** Linearly samples one curve at an arbitrary time, for the crossover marker. */
@@ -107,6 +109,11 @@ function valueAt(
   }
 
   return pick(points[points.length - 1]);
+}
+
+function comparisonPlotPoints(model: RelicComparisonModel): readonly RelicComparisonPoint[] {
+  const clamped = model.points.filter((point) => point.tMs >= model.evaluationStartMs);
+  return clamped.length >= 2 ? clamped : model.points;
 }
 
 function crossoverMarkup(
@@ -164,8 +171,7 @@ export function relicComparisonChartSvg(
   // Clamp the view to the post-opener window so the volatile first-few-seconds
   // average (a tall spike that plunges) does not dominate the axes. Fall back to
   // the full set if clamping would leave too little to draw.
-  const clamped = model.points.filter((point) => point.tMs >= model.evaluationStartMs);
-  const plotPoints = clamped.length >= 2 ? clamped : model.points;
+  const plotPoints = comparisonPlotPoints(model);
   const startMs = plotPoints[0].tMs;
   const endMs = model.durationMs;
   const scale = createScale(plotPoints, startMs, endMs);
@@ -178,13 +184,16 @@ export function relicComparisonChartSvg(
         : `Relic of Thorns does not overtake ${opponent} within this ${formatSeconds(model.durationMs)} rotation.`;
 
   return `<figure class="relic-cmp-figure">
-    <svg class="relic-cmp-svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" preserveAspectRatio="xMidYMid meet"
-      aria-label="Average DPS versus fight duration for ${escapeHtml(opponentLabel)} and ${escapeHtml(thornsLabel)}">
-      ${axisMarkup(plotPoints, startMs, endMs, scale)}
-      ${crossoverMarkup(model, plotPoints, scale)}
-      ${polyline(plotPoints, opponentColor, (point) => point.opponentDps, scale)}
-      ${polyline(plotPoints, thornsColor, (point) => point.thornsDps, scale)}
-    </svg>
+    <div class="chart-canvas-wrap">
+      <svg class="relic-cmp-svg" data-role="relic-comparison-chart" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" preserveAspectRatio="xMidYMid meet"
+        aria-label="Average DPS versus fight duration for ${escapeHtml(opponentLabel)} and ${escapeHtml(thornsLabel)}">
+        ${axisMarkup(plotPoints, startMs, endMs, scale)}
+        ${crossoverMarkup(model, plotPoints, scale)}
+        ${polyline(plotPoints, opponentColor, (point) => point.opponentDps, scale, '7 4')}
+        ${polyline(plotPoints, thornsColor, (point) => point.thornsDps, scale, 'none')}
+      </svg>
+      <div class="chart-tooltip" data-role="relic-comparison-tooltip"></div>
+    </div>
     <figcaption class="relic-cmp-caption">
       <div class="relic-cmp-legend">
         <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${opponentColor}"></span>${escapeHtml(opponentLabel)} <b>${formatDps(model.opponentFinalDps)}</b></span>
@@ -193,4 +202,45 @@ export function relicComparisonChartSvg(
       <p class="relic-cmp-verdict">${verdict}</p>
     </figcaption>
   </figure>`;
+}
+
+/** Shows both relic curves at the fight duration nearest the hovered chart position. */
+export function bindRelicComparisonChartHover(
+  container: HTMLElement | null | undefined,
+  model: RelicComparisonModel,
+  options: RelicComparisonChartOptions = {}
+): void {
+  const svg = container?.querySelector<SVGSVGElement>('[data-role="relic-comparison-chart"]');
+  const tooltip = container?.querySelector<HTMLElement>('[data-role="relic-comparison-tooltip"]');
+  if (!svg || !tooltip || model.points.length < 2) return;
+
+  const plotPoints = comparisonPlotPoints(model);
+  const startMs = plotPoints[0].tMs;
+  const endMs = model.durationMs;
+  const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
+  const thornsLabel = relicLabel(model.targetRelic);
+
+  svg.onmouseleave = () => {
+    tooltip.style.display = 'none';
+  };
+
+  svg.onmousemove = (event) => {
+    const rect = svg.getBoundingClientRect();
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+    const chartX = (pointerX / Math.max(1, rect.width)) * WIDTH;
+    const chartY = (pointerY / Math.max(1, rect.height)) * HEIGHT;
+    if (chartX < PAD.left || chartX > PAD.left + PLOT_WIDTH || chartY < PAD.top || chartY > PAD.top + PLOT_HEIGHT) {
+      tooltip.style.display = 'none';
+      return;
+    }
+
+    const time = startMs + ((chartX - PAD.left) / PLOT_WIDTH) * Math.max(0, endMs - startMs);
+    tooltip.innerHTML = `<div><b>${(time / 1000).toFixed(2)}s</b></div>
+      <div>${escapeHtml(opponentLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.opponentDps))} DPS</div>
+      <div>${escapeHtml(thornsLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.thornsDps))} DPS</div>`;
+    tooltip.style.left = `${pointerX + 12}px`;
+    tooltip.style.top = `${pointerY + 12}px`;
+    tooltip.style.display = 'block';
+  };
 }

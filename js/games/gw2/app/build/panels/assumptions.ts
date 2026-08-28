@@ -1,5 +1,6 @@
 import { escapeHtml as esc, option } from '../../presentation/shared/html.js';
 import { assumptionControlsForSpecialization } from '../../profession/assumptions.js';
+import { MODIFIER_EFFECT_ICONS } from '../../rotation/shared/icons.js';
 import { isSimulationRandomnessControl } from '../../simulation/randomness.js';
 import {
   normalizeTargetArmor,
@@ -27,33 +28,6 @@ const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['vigor', 'Vigor'],
   ['aegis', 'Aegis']
 ];
-
-const EFFECT_COLORS: Readonly<Record<string, string>> = {
-  Might: '#d9a441',
-  Fury: '#d65e5e',
-  Quickness: '#67c8d4',
-  Alacrity: '#9069d8',
-  Protection: '#4f9ec2',
-  Resolution: '#d48f45',
-  Regeneration: '#5ebc72',
-  Swiftness: '#62a7cb',
-  Vigor: '#78bd45',
-  Aegis: '#d9b85f',
-  Vulnerability: '#d67575',
-  Weakness: '#9a8f62',
-  Blindness: '#727272',
-  Slow: '#765bab',
-  Chilled: '#69a8d7',
-  Cripple: '#a66e73',
-  Immobilize: '#8d5c38',
-  Fear: '#5d7f5b',
-  Taunt: '#a45d6e',
-  Burning: '#ed6b38',
-  Bleeding: '#c84848',
-  Torment: '#8f62c2',
-  Confusion: '#b65db0',
-  Poisoned: '#70a33e'
-};
 
 interface EffectItemOptions {
   readonly name: string;
@@ -93,10 +67,10 @@ export function renderAssumptions(app: ProfessionAppState): void {
         <div class="perma-group-content">${contents}</div>
     </details>`;
   const item = ({ name, checked, type, key = name, stacks = null }: EffectItemOptions): string =>
-    `<label class="perma-item" style="--pc:${EFFECT_COLORS[name] || '#aaa'}">
-            <input type="checkbox" data-effect-type="${type}" data-effect-key="${esc(key)}"${checked ? ' checked' : ''}>
-            <span class="perma-name">${esc(name)}</span>
-            ${stacks == null ? '' : `<input type="number" class="perma-stacks" data-effect-type="${type}" data-effect-key="${esc(key)}" min="0" max="25" value="${stacks}"${checked ? '' : ' disabled'}>`}
+    `<label class="perma-item" title="${esc(name)}">
+            <input type="checkbox" aria-label="${esc(name)}" data-effect-type="${type}" data-effect-key="${esc(key)}"${checked ? ' checked' : ''}>
+            <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS[name])}" alt="">
+            ${stacks == null ? '' : `<input type="number" class="perma-stacks" aria-label="${esc(`${name} stacks`)}" data-effect-type="${type}" data-effect-key="${esc(key)}" min="0" max="25" value="${stacks}"${checked ? '' : ' disabled'}>`}
         </label>`;
   const boonItems = [
     item({

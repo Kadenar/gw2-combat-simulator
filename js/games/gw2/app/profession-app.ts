@@ -1,6 +1,5 @@
 import { bindPageControls, createDefaultBuild, loadBuild, normalizeSelectedSkills, saveBuild } from './build/index.js';
 import { addRotation } from './rotation/editing/actions.js';
-import { mountRotationClipboard } from './rotation/editing/clipboard.js';
 import { recordRotationHistory } from './rotation/editing/history.js';
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
@@ -60,9 +59,6 @@ export class ProfessionApp
   simulationError: string;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
-  rotationSelection: ProfessionAppState['rotationSelection'];
-  rotationSelectionMode: boolean;
-  rotationClipboard: ProfessionAppState['rotationClipboard'];
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
   templatePresets: BuildTemplatePreset[];
@@ -105,9 +101,6 @@ export class ProfessionApp
     this.simulationError = '';
     this.dragState = null;
     this.rotationInsertionIndex = null;
-    this.rotationSelection = null;
-    this.rotationSelectionMode = false;
-    this.rotationClipboard = [];
     // Restore timeline display preferences independently from the saved build and simulation configuration.
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
@@ -149,7 +142,6 @@ export class ProfessionApp
 
   async init(): Promise<void> {
     await this.adapter.capabilities.patchPreview?.mount(this);
-    mountRotationClipboard(this);
     bindPageControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       const results = document.getElementById('rotation-results');

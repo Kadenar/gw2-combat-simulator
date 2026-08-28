@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   initBuildTemplates,
   loadTemplateAction,
+  templateBoon,
   templateCategory,
   templateHasBoon,
   templateSpecializations,
@@ -99,6 +100,10 @@ test('template metadata classifies damage type and boon roles', () => {
   assert.equal(templateCategory(powerBoon), 'power');
   assert.equal(templateCategory(condiBoon), 'condi');
   assert.equal(templateCategory(other), 'other');
+  assert.equal(templateBoon(power), 'none');
+  assert.equal(templateBoon(powerBoon), 'quickness');
+  assert.equal(templateBoon(condiBoon), 'alacrity');
+  assert.equal(templateBoon(otherBoon), 'alacrity');
   assert.equal(templateHasBoon(power), false);
   assert.equal(templateHasBoon(condi), false);
   assert.equal(templateHasBoon(powerBoon), true);
@@ -126,18 +131,19 @@ test('filtered templates remain hidden despite their flex layout', () => {
   );
 });
 
-test('desktop template sidebar stays left of the simulator workspace', () => {
+test('desktop template sidebar stays left of the contiguous simulator editor', () => {
   const css = readFileSync(new URL('../../css/style.css', import.meta.url), 'utf8');
   const source = readFileSync(new URL('../../js/games/gw2/app/build/panels/presets.ts', import.meta.url), 'utf8');
+  const template = readFileSync(new URL('../../templates/profession.html', import.meta.url), 'utf8');
 
   assert.match(css, /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: 310px minmax\(0, 1fr\);/);
   assert.match(css, /\.profession-main\s*\{\s*min-width: 0;\s*grid-column: 2;\s*grid-row: 1;/);
   assert.match(css, /\.build-templates-region\s*\{\s*display: contents;/);
-  assert.match(css, /\.build-templates\s*\{[\s\S]*?grid-column: 1;\s*grid-row: 1 \/ span 2;/);
-  assert.match(css, /\.profession-layout > \.simulation-workspace\s*\{\s*grid-column: 2;\s*grid-row: 2;/);
+  assert.match(css, /\.build-templates\s*\{[\s\S]*?grid-column: 1;\s*grid-row: 1;/);
   assert.match(source, /templateRegion\.append\(container\)/);
-  assert.match(source, /layout\.append\(simulationWorkspace\)/);
-  assert.doesNotMatch(source, /templateRegion\.append\(configPanel\)/);
+  assert.doesNotMatch(source, /simulationWorkspace/);
+  assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);
+  assert.doesNotMatch(template, /\n {6}<div class="simulation-workspace">/);
 });
 
 test('template actions load paired or partial state and support undo', async (t) => {

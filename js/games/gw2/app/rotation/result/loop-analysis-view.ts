@@ -209,7 +209,7 @@ export function removeRotationLoopAnalysis(container: HTMLElement): void {
   dialog?.remove();
 }
 
-/** Mounts a compact Analysis-page launcher whose dialog separates the pre-loop opener from repeating patterns. */
+/** Mounts the compact Rotation Pattern launcher after all other Analysis results for temporary low-priority placement. */
 export function renderRotationLoopAnalysis(
   container: HTMLElement,
   app: ProfessionAppState,
@@ -239,10 +239,7 @@ export function renderRotationLoopAnalysis(
       </span>
       <span class="rotation-loop-open-action">View details <span aria-hidden="true">→</span></span>
     </button>`;
-  const insertionPoint = container.querySelector(
-    '.res-breakdown-section, [data-role="result-charts"], .relic-cmp, .res-contributions'
-  );
-  container.insertBefore(section, insertionPoint);
+  container.append(section);
 
   const ownerDocument = container.ownerDocument;
   let dialog = ownerDocument.getElementById(LOOP_DIALOG_ID) as HTMLDialogElement | null;

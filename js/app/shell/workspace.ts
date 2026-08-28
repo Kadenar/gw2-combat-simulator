@@ -125,7 +125,8 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
 
   controller.configButton.setAttribute('aria-expanded', String(state.configOpen));
   const configButtonLabel = state.configOpen ? 'Hide simulation config' : 'Open simulation config';
-  controller.configButton.textContent = '';
+  // Keep the settings action visibly labeled while its accessible hint reflects the drawer state.
+  controller.configButton.textContent = 'Settings';
   controller.configButton.setAttribute('aria-label', configButtonLabel);
   controller.configButton.title = configButtonLabel;
   const configVisible = isSimulationConfigVisible(state);
@@ -171,7 +172,11 @@ function mountRotationHeading(
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
 } {
-  const titleText = heading.textContent?.trim() || 'Rotation builder';
+  const titleText =
+    heading.querySelector('.rotation-builder-title')?.textContent?.trim() ||
+    heading.textContent?.trim() ||
+    'Rotation builder';
+  const hint = heading.querySelector<HTMLElement>('.palette-hint');
   const title = root.createElement('span');
   title.className = 'rotation-builder-title';
   title.textContent = titleText;
@@ -184,6 +189,8 @@ function mountRotationHeading(
   const headingTitle = root.createElement('span');
   headingTitle.className = 'rotation-builder-heading-title';
   headingTitle.append(title, focusIndicator);
+  // Keep the compact interaction guide beside the title instead of consuming a separate builder row.
+  if (hint) headingTitle.append(hint);
 
   const controls = root.createElement('span');
   controls.className = 'rotation-builder-controls';
@@ -200,7 +207,7 @@ function mountRotationHeading(
   focusButton.className = 'btn btn-io rotation-focus-toggle';
   focusButton.title = 'Maximize the rotation builder';
 
-  controls.append(configButton, focusButton);
+  controls.append(focusButton, configButton);
   heading.replaceChildren(headingTitle, controls);
   heading.classList.add('rotation-builder-heading');
 

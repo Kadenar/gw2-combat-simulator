@@ -751,8 +751,8 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
     globalThis.document = previousDocument;
   }
 
-  assert.match(results.innerHTML, /Simulation RNG distribution/);
-  assert.match(results.innerHTML, /Run 500 outcomes/);
+  assert.match(results.innerHTML, /Randomized DPS range/);
+  assert.match(results.innerHTML, /Calculate range/);
   assert.doesNotMatch(results.innerHTML, /Damage Breakdown|result-charts/);
   assert.equal(results.dataset.analysisStale, 'true');
   assert.equal(typeof runButton.onclick, 'function');
@@ -840,6 +840,7 @@ test('Guardian is exposed by the profession selector and app composition', async
 
 test('the generic landing page and profession simulators have separate entries', async () => {
   const landingPage = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
   const professionPages = await Promise.all(
     professionRegistry.map(async (entry) => ({
       entry,
@@ -848,7 +849,10 @@ test('the generic landing page and profession simulators have separate entries',
   );
 
   assert.match(landingPage, /<body class="landing-page">/);
+  assert.match(landingPage, /<header class="landing-header">\s*<div class="header-brand">/);
+  assert.doesNotMatch(landingPage, /Available simulators/);
   assert.match(landingPage, /data-profession-grid/);
+  assert.doesNotMatch(landingPage, /simulator-view-tabs/);
   assert.doesNotMatch(landingPage, /profession-card-mesmer/);
   assert.deepEqual(
     professionOptions,
@@ -862,12 +866,17 @@ test('the generic landing page and profession simulators have separate entries',
     assert.match(source, new RegExp(`data-profession="${entry.id}"`));
     assert.match(source, /assets\/app-[^"']+\.js/);
     assert.match(source, /id="rotation-warnings"/);
-    // Every profession uses the shared combat-loadout card so its weapons,
-    // mechanics, and selectable skills stay together beside traits.
+    // Every profession uses one editor from gear through rotation, with selectable
+    // skills under traits on wide layouts and after combat loadout on narrow layouts.
+    assert.match(source, /build-editor panel/);
+    assert.match(source, /build-editor panel[\s\S]*simulation-workspace/);
     assert.match(source, /skills-section combat-loadout-section/);
+    assert.match(source, /traits-loadout-column/);
     assert.match(source, /combat-loadout-panel/);
     assert.match(source, /combat-loadout-weapons/);
     assert.match(source, /combat-loadout-skills/);
+    assert.match(source, /id="profession-mechanics"/);
+    assert.match(source, /id="skill-bar" class="skill-bar selectable-skills-bar"/);
     assert.doesNotMatch(source, /skills-primary-column/);
     assert.doesNotMatch(source, /equipped-skills-panel/);
     assert.doesNotMatch(source, /weapon-sets-panel/);
@@ -883,6 +892,8 @@ test('the generic landing page and profession simulators have separate entries',
     assert.doesNotMatch(source, /id="skill-info-table"/);
     assert.doesNotMatch(source, /selected-skills-panel/);
   }
+
+  assert.match(css, /\.traits-loadout-column\s*\{[^}]*flex-direction:\s*column;/s);
 });
 
 test('Mesmer default builds resolve without embedded rotations', async () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resultSkillIcon } from '../../js/games/gw2/app/rotation/shared/icons.js';
+import { MODIFIER_EFFECT_ICONS, resultSkillIcon } from '../../js/games/gw2/app/rotation/shared/icons.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '../../js/games/gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '../../js/games/gw2/platform/equipment/sigils/data.js';
 
@@ -11,6 +11,42 @@ const app = {
   skillByName: new Map(),
   skills: []
 };
+
+const SIMULATION_EFFECTS = [
+  'Might',
+  'Fury',
+  'Quickness',
+  'Alacrity',
+  'Protection',
+  'Resolution',
+  'Regeneration',
+  'Swiftness',
+  'Vigor',
+  'Aegis',
+  'Burning',
+  'Bleeding',
+  'Torment',
+  'Confusion',
+  'Poisoned',
+  'Vulnerability',
+  'Weakness',
+  'Blindness',
+  'Slow',
+  'Chilled',
+  'Cripple',
+  'Immobilize',
+  'Fear',
+  'Taunt'
+];
+
+test('every configurable boon and condition has a canonical icon', () => {
+  assert.deepEqual(
+    SIMULATION_EFFECTS.filter((name) => !MODIFIER_EFFECT_ICONS[name]),
+    []
+  );
+  assert.match(MODIFIER_EFFECT_ICONS.Blindness, /Blinded\.png$/);
+  assert.match(MODIFIER_EFFECT_ICONS.Immobilize, /Immobile\.png$/);
+});
 
 test('common modifier contributions use their canonical icons', () => {
   assert.equal(

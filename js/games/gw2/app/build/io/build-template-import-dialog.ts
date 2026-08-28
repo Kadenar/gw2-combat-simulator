@@ -37,14 +37,16 @@ function ensureStyles(document: Document): void {
       border:1px solid var(--border-light); border-radius:12px; background:var(--bg-panel);
       color:var(--text); box-shadow:0 22px 80px rgba(0,0,0,.72); }
     .build-template-import-dialog::backdrop { background:rgba(3,6,12,.82); backdrop-filter:blur(3px); }
-    .build-template-import-header { display:flex; justify-content:space-between; gap:18px; padding:20px 22px;
+    .build-template-import-header { display:flex; align-items:flex-start; gap:18px; padding:20px 22px;
+      text-align:left;
       border-bottom:1px solid var(--border); background:linear-gradient(135deg, rgba(102,170,255,.13), transparent 62%); }
     .build-template-import-eyebrow { margin:0 0 4px; color:var(--accent); font-size:10px;
       font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
     .build-template-import-header h3 { margin:0; color:var(--text-bright); font-size:20px; }
     .build-template-import-header p:last-child { margin:6px 0 0; color:var(--text-dim); font-size:12px; line-height:1.5; }
-    .build-template-import-close { width:32px; height:32px; flex:0 0 auto; border:1px solid var(--border-light);
-      border-radius:50%; background:var(--bg-panel-alt); color:var(--text-dim); font-size:20px; cursor:pointer; }
+    .build-template-import-close { display:grid; width:32px; height:32px; margin-left:auto; padding:0; flex:0 0 32px;
+      place-items:center; border:1px solid var(--border-light); border-radius:50%; background:var(--bg-panel-alt);
+      color:var(--text-dim); font-size:20px; line-height:1; cursor:pointer; }
     .build-template-import-body { padding:20px 22px 22px; }
     .build-template-code-label { display:block; margin-bottom:7px; color:var(--text-bright); font-size:12px; font-weight:600; }
     .build-template-code { box-sizing:border-box; width:100%; min-height:88px; resize:vertical; padding:11px 12px;
@@ -55,10 +57,12 @@ function ensureStyles(document: Document): void {
     .build-template-import-error { margin:14px 0 0; padding:10px 12px; border:1px solid rgba(255,95,95,.45);
       border-radius:7px; background:rgba(255,70,70,.08); color:var(--condi); font-size:12px; line-height:1.5; }
     .build-template-switch-profession { display:inline-flex; margin-top:8px; color:var(--text-bright); }
-    .build-template-preview { margin-top:18px; }
+    /* Present decoded choices as one joined panel so the imported build reads as a single unit. */
+    .build-template-preview { margin-top:18px; overflow:hidden; border:1px solid var(--border-light);
+      border-radius:9px; background:var(--bg-panel-alt); }
     .build-template-preview-hero { display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:14px 15px; border:1px solid var(--border-light); border-radius:9px;
-      background:linear-gradient(135deg, var(--bg-panel-alt), rgba(102,170,255,.08)); }
+      padding:14px 15px; border-bottom:1px solid var(--border);
+      background:linear-gradient(135deg, transparent, rgba(102,170,255,.08)); }
     .build-template-preview-hero small { display:block; margin-bottom:3px; color:var(--text-dim); font-size:10px;
       letter-spacing:.08em; text-transform:uppercase; }
     .build-template-preview-profession { color:var(--text-bright); font-size:17px; font-weight:700; }
@@ -66,8 +70,9 @@ function ensureStyles(document: Document): void {
     .build-template-preview-weapon-select { min-width:180px; padding:5px 8px; border:1px solid var(--border-light);
       border-radius:5px; background:var(--bg-panel-alt); color:var(--text-bright); font-size:12px; }
     .build-template-preview-grid { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr);
-      gap:12px; margin-top:12px; }
-    .build-template-preview-card { padding:14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-panel-alt); }
+      gap:0; }
+    .build-template-preview-card { padding:14px; }
+    .build-template-preview-card + .build-template-preview-card { border-left:1px solid var(--border); }
     .build-template-preview-card h4 { margin:0 0 10px; color:var(--text-bright); font-size:11px;
       letter-spacing:.07em; text-transform:uppercase; }
     .build-template-preview-list { display:grid; gap:7px; }
@@ -76,13 +81,14 @@ function ensureStyles(document: Document): void {
     .build-template-preview-item img { width:28px; height:28px; border-radius:4px; object-fit:cover; }
     .build-template-preview-item-placeholder { width:28px; height:28px; border-radius:4px; background:var(--border); }
     .build-template-preview-item small { display:block; color:var(--text-dim); font-size:10px; }
-    .build-template-import-warnings { margin:12px 0 0; padding:10px 12px; border:1px solid #8b6a25;
-      border-radius:7px; background:rgba(166,124,34,.09); color:#e0bd68; font-size:11px; line-height:1.5; white-space:pre-wrap; }
+    .build-template-import-warnings { margin:0; padding:10px 12px; border-top:1px solid #8b6a25;
+      background:rgba(166,124,34,.09); color:#e0bd68; font-size:11px; line-height:1.5; white-space:pre-wrap; }
     .build-template-import-actions { display:flex; justify-content:flex-end; gap:7px; margin-top:18px; padding-top:16px;
       border-top:1px solid var(--border); }
     .build-template-import-actions [data-build-template-apply]:disabled { opacity:.45; cursor:not-allowed; }
     @media (max-width:640px) { .build-template-preview-grid { grid-template-columns:1fr; }
       .build-template-preview-hero { align-items:flex-start; flex-direction:column; }
+      .build-template-preview-card + .build-template-preview-card { border-top:1px solid var(--border); border-left:0; }
       .build-template-preview-weapons { text-align:left; } }
   `;
   document.head.append(style);

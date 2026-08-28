@@ -37,14 +37,12 @@ const professionPages = {
   guardian: {
     snapshot: 'Guardian PvE API snapshot: July 25, 2026',
     attributeNote:
-      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses on weapon swap. Boons and conditional Guardian modifiers are resolved during simulation.',
-    showCooldownHint: true
+      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses on weapon swap. Boons and conditional Guardian modifiers are resolved during simulation.'
   },
   mesmer: {
     snapshot: 'Mesmer PvE data snapshot: July 23, 2026',
     attributeNote:
-      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses when weapons are swapped. Boons are applied during simulation, not baked into the equipment totals above.',
-    showCooldownHint: true
+      'Values are calculated for the selected weapon set. The simulation changes sigil bonuses when weapons are swapped. Boons are applied during simulation, not baked into the equipment totals above.'
   },
   necromancer: {
     snapshot: 'Necromancer PvE API snapshot: July 25, 2026',
@@ -106,11 +104,7 @@ function renderProfessionPages() {
           .replaceAll('{{attribute-note}}', page.attributeNote)
           .replaceAll('{{weapon-set-hidden}}', page.singleWeaponSet ? ' hidden' : '')
           .replaceAll('{{weapon-set-two}}', page.singleWeaponSet ? '' : '<option value="2">2</option>')
-          .replaceAll('{{loadout-theme}}', page.singleWeaponSet ? '' : ' profession-loadout-theme')
-          .replaceAll(
-            '{{cooldown-hint}}',
-            page.showCooldownHint ? ' · cooldown badges show the state after the current timeline' : ''
-          );
+          .replaceAll('{{loadout-theme}}', page.singleWeaponSet ? '' : ' profession-loadout-theme');
       }
     }
   };

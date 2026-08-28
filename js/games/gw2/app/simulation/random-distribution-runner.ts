@@ -46,7 +46,7 @@ export class RandomDistributionRunner {
       if (requestId !== this.requestId || !app.results) return;
       app.results.randomDistributionStale = false;
       app.results.randomDistributionError =
-        error instanceof Error ? error.message : String(error || 'RNG distribution failed.');
+        error instanceof Error ? error.message : String(error || 'Randomized DPS calculation failed.');
       app.adapter.renderResults(app);
     };
 
@@ -103,7 +103,7 @@ export class RandomDistributionRunner {
       if (label) {
         label.textContent = `${Math.round(
           completed
-        ).toLocaleString()} / ${Math.round(total).toLocaleString()} outcomes (${Math.round(percent)}%)`;
+        ).toLocaleString()} / ${Math.round(total).toLocaleString()} simulations (${Math.round(percent)}%)`;
       }
     };
 

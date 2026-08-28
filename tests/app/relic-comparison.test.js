@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { bindRelicComparisonChartHover } from '../../js/games/gw2/app/presentation/results/charts/relic-comparison.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   RELIC_COMPARISON_TARGET,
@@ -8,6 +9,43 @@ import {
   buildRelicComparisonModel,
   relicComparisonAvailable
 } from '../../js/games/gw2/app/simulation/relic-comparison.js';
+
+test('break-even chart hover shows the time and both relic DPS values', () => {
+  const tooltip = { innerHTML: '', style: {} };
+  const svg = {
+    getBoundingClientRect: () => ({ height: 260, left: 0, top: 0, width: 640 })
+  };
+  const container = {
+    querySelector: (selector) =>
+      selector === '[data-role="relic-comparison-chart"]'
+        ? svg
+        : selector === '[data-role="relic-comparison-tooltip"]'
+          ? tooltip
+          : null
+  };
+  const model = {
+    opponentRelic: 'Fractal',
+    targetRelic: 'Thorns',
+    durationMs: 2000,
+    points: [
+      { tMs: 0, opponentDps: 1000, thornsDps: 900 },
+      { tMs: 2000, opponentDps: 1200, thornsDps: 1100 }
+    ],
+    crossoverMs: null,
+    thornsAlwaysAhead: false,
+    evaluationStartMs: 0,
+    opponentFinalDps: 1200,
+    thornsFinalDps: 1100
+  };
+
+  bindRelicComparisonChartHover(container, model);
+  svg.onmousemove({ clientX: 341, clientY: 100 });
+
+  assert.match(tooltip.innerHTML, /1\.00s/);
+  assert.match(tooltip.innerHTML, /Relic of Fractal: 1,100 DPS/);
+  assert.match(tooltip.innerHTML, /Relic of Thorns: 1,000 DPS/);
+  assert.equal(tooltip.style.display, 'block');
+});
 
 test('relic comparison is offered only for allowlisted opponents, never Thorns itself', () => {
   assert.equal(RELIC_COMPARISON_TARGET, 'Thorns');
