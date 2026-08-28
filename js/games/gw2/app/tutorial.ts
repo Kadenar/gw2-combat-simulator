@@ -205,6 +205,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
 
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   };
+
   root.querySelectorAll<HTMLButtonElement>('[data-tutorial-trigger]').forEach((tutorialTrigger) => {
     tutorialTrigger.addEventListener('click', openDialog);
   });
