@@ -28,60 +28,50 @@
       <!-- One editor owns the complete build and rotation flow so its sections share one contiguous surface. -->
       <section class="build-editor panel">
         <section class="build-section">
+          <!-- Keep gear controls and calculated attributes on one shared surface, separated only by column dividers. -->
           <div class="gear-panel">
-            <div class="panel-hdr">
-              <h3>Gear</h3>
-              <div class="build-io-btns">
-                <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
-                <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
-                <button id="btn-reset-build" class="btn btn-clear">Reset</button>
-                <input type="file" id="import-file-input" accept=".json" hidden />
+            <div class="gear-main">
+              <div class="panel-hdr">
+                <div class="gear-heading">
+                  <h3>Gear</h3>
+                  <div id="gear-set-all" class="gear-set-all"></div>
+                </div>
+                <div class="build-io-btns">
+                  <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
+                  <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
+                  <button id="btn-reset-build" class="btn btn-clear">Reset</button>
+                  <input type="file" id="import-file-input" accept=".json" hidden />
+                </div>
+              </div>
+              <div class="gear-columns">
+                <div id="gear-slots" class="gear-col"></div>
+                <div id="equipment-info" class="gear-col"></div>
+                <div id="weapon-select" class="gear-col weapon-select"></div>
               </div>
             </div>
-            <div class="gear-columns">
-              <div id="gear-slots" class="gear-col"></div>
-              <div class="gear-col-right">
-                <div id="equipment-info"></div>
-                <div id="weapon-select" class="weapon-select"></div>
+            <div class="attributes-panel">
+              <div class="attributes-header">
+                <h3>Attributes</h3>
+                <label for="attribute-weapon-set" {{weapon-set-hidden}}>
+                  <span>Weapon set</span>
+                  <select id="attribute-weapon-set" class="gear-select">
+                    <option value="1">1</option>
+                    {{weapon-set-two}}
+                  </select>
+                </label>
               </div>
+              <div id="attributes-list"></div>
+              <p class="attribute-note">{{attribute-note}}</p>
             </div>
-          </div>
-          <div class="attributes-panel">
-            <div class="attributes-header">
-              <h3>Attributes</h3>
-              <label for="attribute-weapon-set" {{weapon-set-hidden}}>
-                <span>Weapon set</span>
-                <select id="attribute-weapon-set" class="gear-select">
-                  <option value="1">1</option>
-                  {{weapon-set-two}}
-                </select>
-              </label>
-            </div>
-            <div id="attributes-list"></div>
-            <p class="attribute-note">{{attribute-note}}</p>
           </div>
         </section>
 
-        <section class="skills-section combat-loadout-section">
-          <div class="traits-loadout-column">
-            <div id="traits-panel" class="traits-panel-inline"></div>
+        <!-- Keep build choices beside traits; weapon and profession-mechanic previews are already available in the rotation palette. -->
+        <section class="skills-section skill-selection-section">
+          <div id="traits-panel" class="traits-panel-inline"></div>
+          <div class="selectable-skills-panel">
+            <div class="selectable-skills-title">Skills</div>
             <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
-          </div>
-          <div class="skills-panel-left combat-loadout-panel">
-            <div class="combat-loadout-title">Combat loadout</div>
-            <div class="combat-loadout">
-              <div class="combat-loadout-weapons">
-                <div class="combat-loadout-column-label">Weapon Skills</div>
-                <div class="skill-bar-column weapon-bar-column">
-                  <div id="weapon-bar" class="weapon-bar"></div>
-                </div>
-              </div>
-              <div class="combat-loadout-skills">
-                <div class="skill-bar-column equipped-skill-bar-column">
-                  <div id="profession-mechanics" class="skill-bar"></div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 

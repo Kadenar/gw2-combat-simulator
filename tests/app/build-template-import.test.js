@@ -107,8 +107,9 @@ test('GW2 contributes build-code controls that use a review dialog instead of br
 
   assert.doesNotMatch(pageControls, /\bprompt\s*\(/);
   assert.match(pageControls, /buildEditor\.bindControls/);
-  assert.doesNotMatch(pageControls, /\.combat-loadout-title|Import GW2 Build/);
-  assert.match(buildEditor, /\.combat-loadout-title/);
+  assert.doesNotMatch(pageControls, /\.selectable-skills-title|Import GW2 Build/);
+  assert.match(buildEditor, /\.selectable-skills-title/);
+  assert.match(buildEditor, /build-template-import/);
   assert.match(buildEditor, /title\.append\(button\)/);
   assert.doesNotMatch(pageControls, /importBuildButton\.insertAdjacentElement/);
   assert.match(dialog, /createElement\(['"]dialog['"]\)/);

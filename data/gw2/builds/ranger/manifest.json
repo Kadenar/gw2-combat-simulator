@@ -6,6 +6,7 @@
         "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
         "benchmarkDps": 39169,
         "upToDate": true
       }
@@ -18,6 +19,7 @@
         "label": "Power (Hammer / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
         "benchmarkDps": 43141,
         "upToDate": true
       },
@@ -25,6 +27,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
         "benchmarkDps": 42667,
         "dpsReportUrl": "https://dps.report/pGzS-20260718-125337_golem",
         "upToDate": true
@@ -38,6 +41,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
         "benchmarkDps": 43551,
         "upToDate": true
       }
@@ -50,6 +54,7 @@
         "label": "Power (Longbow / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-galeshot-longbow-axe-axe",
         "benchmarkDps": 42275,
         "upToDate": true
       },
@@ -57,6 +62,7 @@
         "label": "Power Quickness (Longbow / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
         "benchmarkDps": 35154,
         "upToDate": true
       }

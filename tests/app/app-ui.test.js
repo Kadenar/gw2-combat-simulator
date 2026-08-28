@@ -937,22 +937,17 @@ test('the generic landing page and profession simulators have separate entries',
     assert.match(source, new RegExp(`data-profession="${entry.id}"`));
     assert.match(source, /assets\/app-[^"']+\.js/);
     assert.match(source, /id="rotation-warnings"/);
-    // Every profession uses one editor from gear through rotation, with selectable
-    // skills under traits on wide layouts and after combat loadout on narrow layouts.
+    // Every profession keeps build-selectable skills beside traits without the redundant combat preview.
     assert.match(source, /build-editor panel/);
     assert.match(source, /build-editor panel[\s\S]*simulation-workspace/);
-    assert.match(source, /skills-section combat-loadout-section/);
-    assert.match(source, /traits-loadout-column/);
-    assert.match(source, /combat-loadout-panel/);
-    assert.match(source, /combat-loadout-weapons/);
-    assert.match(source, /combat-loadout-skills/);
-    assert.match(source, /id="profession-mechanics"/);
+    assert.match(source, /skills-section skill-selection-section/);
+    assert.match(source, /selectable-skills-panel/);
+    assert.match(source, /selectable-skills-title/);
     assert.match(source, /id="skill-bar" class="skill-bar selectable-skills-bar"/);
+    assert.doesNotMatch(source, /Combat loadout|combat-loadout|id="weapon-bar"|id="profession-mechanics"/);
     assert.doesNotMatch(source, /skills-primary-column/);
     assert.doesNotMatch(source, /equipped-skills-panel/);
     assert.doesNotMatch(source, /weapon-sets-panel/);
-    assert.match(source, /skill-bar-column weapon-bar-column/);
-    assert.match(source, /skill-bar-column equipped-skill-bar-column/);
 
     if (entry.id === 'elementalist') {
       assert.match(source, /class="elementalist-theme"/);
@@ -964,7 +959,7 @@ test('the generic landing page and profession simulators have separate entries',
     assert.doesNotMatch(source, /selected-skills-panel/);
   }
 
-  assert.match(css, /\.traits-loadout-column\s*\{[^}]*flex-direction:\s*column;/s);
+  assert.match(css, /\.skill-selection-section\s*\{[^}]*grid-template-columns:\s*647px minmax\(0, 1fr\);/s);
 });
 
 test('Mesmer default builds resolve without embedded rotations', async () => {

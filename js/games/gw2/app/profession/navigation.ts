@@ -1,22 +1,21 @@
 /**
- * Shared Professions / Workspace / Analysis view navigation for simulator pages.
+ * Shared Professions / Workspace / Analysis navigation for simulator pages.
  *
- * The three views are a single-page toggle driven by the URL hash: tab clicks
- * push the hash and swap the active view without a page load, and `hashchange` /
- * `popstate` mirror browser navigation back into the active view. Each view
- * remembers its scroll position so switching back restores where the user was.
- * `mountSimulatorNavigation` is the entry point; the rest are its DOM helpers.
+ * Professions returns to the standalone landing page. Workspace and Analysis
+ * remain single-page views driven by the URL hash and remember their scroll
+ * positions when switching. `mountSimulatorNavigation` is the entry point;
+ * the rest are its DOM helpers.
  */
 
 import { resetRotationWorkspace } from '../../../../app/shell/workspace.js';
 import { embedRoute, isEmbedded } from '../../../../app/embed.js';
 
-export type SimulatorView = 'professions' | 'workspace' | 'analysis';
+export type SimulatorView = 'workspace' | 'analysis';
+type SimulatorSection = 'professions' | SimulatorView;
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
-  professions: '#professions',
   workspace: '#workspace',
   analysis: '#analysis'
 };
@@ -24,13 +23,13 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
-  if (normalized === VIEW_HASHES.professions) return 'professions';
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
   return 'workspace';
 }
 
-/** Builds a same-page href (`<file>#<view>`) for the given view from a pathname. */
-export function simulatorViewHref(pathname: string, view: SimulatorView): string {
+/** Returns the landing page for Professions and a same-page hash for simulator views. */
+export function simulatorViewHref(pathname: string, view: SimulatorSection): string {
+  if (view === 'professions') return 'index.html';
   const route = pathname.split('/').pop() || pathname || 'index.html';
   return `${route}${VIEW_HASHES[view]}`;
 }
@@ -76,18 +75,6 @@ function mountHeaderBrand(root: Document, header: HTMLElement): void {
   brand.append(title);
 }
 
-/** Inserts the profession-browser section (card grid host) after the header (idempotent). */
-function mountProfessionBrowser(root: Document, header: HTMLElement): void {
-  if (root.querySelector('.profession-browser-view')) return;
-
-  const section = root.createElement('section');
-  section.className = 'profession-browser-view';
-  section.setAttribute('aria-label', 'Profession simulators');
-  section.innerHTML = '<div class="profession-grid" data-profession-grid></div>';
-
-  header.after(section);
-}
-
 /**
  * Applies a view: sets `body[data-simulator-view]`, resets the rotation
  * workspace when leaving it, and marks the matching tab active/`aria-current`.
@@ -124,8 +111,8 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 /**
  * Mounts the shared Professions / Workspace / Analysis navigation into the
  * simulator header. No-op unless the header exists, a profession is set, and the
- * tabs are not already mounted. Mounts the brand block, browser section, and
- * analysis heading, builds the three tabs, and
+ * tabs are not already mounted. Mounts the brand block and analysis heading,
+ * builds the landing-page link and two simulator tabs, and
  * wires hash/history-driven view switching with per-view scroll restoration.
  */
 export function mountSimulatorNavigation(root: Document = document): void {
@@ -174,15 +161,17 @@ export function mountSimulatorNavigation(root: Document = document): void {
   };
 
   mountHeaderBrand(root, header);
-  mountProfessionBrowser(root, header);
-  for (const view of ['professions', 'workspace', 'analysis'] as const) {
-    const route = simulatorViewHref(pathname, view);
+  for (const section of ['professions', 'workspace', 'analysis'] as const) {
+    const route = simulatorViewHref(pathname, section);
+    const view = section === 'professions' ? undefined : section;
     const link = createNavigationLink(
       root,
-      view === 'professions' ? 'Professions' : view === 'workspace' ? 'Workspace' : 'Analysis',
+      section === 'professions' ? 'Professions' : section === 'workspace' ? 'Workspace' : 'Analysis',
       isEmbedded() ? embedRoute(route) : route,
       view
     );
+    navigation.append(link);
+    if (!view) continue;
     link.addEventListener('click', (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
@@ -196,7 +185,6 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
       showView(view);
     });
-    navigation.append(link);
   }
 
   header.prepend(navigation);

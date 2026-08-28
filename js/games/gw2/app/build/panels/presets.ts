@@ -96,6 +96,13 @@ export function templateHasBoon(preset: Pick<BuildTemplatePreset, 'label' | 'bui
   return templateBoon(preset) !== 'none';
 }
 
+export function templateSnowCrowsLink(preset: Pick<BuildTemplatePreset, 'snowCrowsUrl'>): string {
+  // Only presets with explicit source metadata expose an external build-page action.
+  return preset.snowCrowsUrl
+    ? `<a href="${esc(preset.snowCrowsUrl)}" target="_blank" rel="noopener noreferrer" role="menuitem">View on Snow Crows</a>`
+    : '';
+}
+
 function isTemplateFilter(value: string | undefined): value is TemplateFilter {
   return TEMPLATE_FILTERS.includes(value as TemplateFilter);
 }
@@ -130,6 +137,7 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
         <div class="template-actions-menu" role="menu">
           <button type="button" role="menuitem" data-template-action="build" data-template-index="${index}">Load build only</button>
           ${rotationAction}
+          ${templateSnowCrowsLink(preset)}
         </div>
       </details>
     </div>`;

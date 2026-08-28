@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { templateTileContent } from '../../js/games/gw2/app/build/panels/presets.js';
+import { templateSnowCrowsLink, templateTileContent } from '../../js/games/gw2/app/build/panels/presets.js';
 
 test('build template tiles separate canonical roles, weapons, and DPS', () => {
   assert.deepEqual(
@@ -20,4 +20,12 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
     }),
     { name: 'Condition Alacrity', weapons: 'Spear', dps: '35,508 DPS' }
   );
+});
+
+test('build template actions expose only configured Snow Crows links', () => {
+  assert.match(
+    templateSnowCrowsLink({ snowCrowsUrl: 'https://snowcrows.com/builds/example?role=power&weapon=hammer' }),
+    /href="https:\/\/snowcrows\.com\/builds\/example\?role=power&amp;weapon=hammer"/
+  );
+  assert.equal(templateSnowCrowsLink({}), '');
 });

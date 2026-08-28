@@ -229,7 +229,7 @@
   border: 1px solid var(--border-light, #3a3a4a);
   border-radius: 4px;
   outline: none;
-  background: var(--bg-dark, #0c0c14);
+  background: var(--bg-panel-alt, oklab(0 0 0 / 0.3));
   color: var(--text-bright, #f0f0ff);
   font: 12px/1.2 var(--mono, monospace);
 }

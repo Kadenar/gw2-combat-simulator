@@ -16,6 +16,38 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
   }
 }
 
+/** Applies one picker choice while keeping specialization lines unique and limiting the build to one elite line. */
+export function selectSpecialization(app: ProfessionAppState, line: number, name: string): void {
+  const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
+  const current = app.build.specializations[line];
+  const selected = specializations.find((specialization) => specialization.name === name);
+  if (
+    !Number.isInteger(line) ||
+    !current ||
+    !selected ||
+    current.name === name ||
+    app.build.specializations.some((specialization, index) => index !== line && specialization.name === name)
+  ) {
+    return;
+  }
+
+  app.build.specializations[line] = { name, traits: '1-1-1' };
+  if (selected.elite) {
+    app.build.specializations.forEach((specialization, index) => {
+      if (index === line) return;
+      if (specializations.find((candidate) => candidate.name === specialization.name)?.elite) {
+        app.build.specializations[index] = {
+          name: app.adapter.specializationFallback,
+          traits: '1-1-1'
+        };
+      }
+    });
+  }
+
+  clampStartingResourceValues(app, app.adapter.eliteSpecialization(app.build));
+  app.changed();
+}
+
 /**
  * @param {ProfessionAppState} app
  * @returns {void}
@@ -32,64 +64,53 @@ export function renderTraits(app: ProfessionAppState): void {
       const picks = selection.traits.split('-').map(Number);
       return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
                 <div class="spec-bg"></div><div class="spec-content">
-                    <div class="spec-header-col">
-                        <div class="spec-icon-wrap"><img src="${esc(spec.icon)}" alt=""></div>
-                        <select class="spec-select" data-line="${lineIndex}">
-                            ${specializations
-                              .map((candidate) => {
-                                const used =
-                                  selectedNames.includes(candidate.name) && candidate.name !== selection.name;
-                                return `<option value="${esc(candidate.name)}"${candidate.name === selection.name ? ' selected' : ''}${used ? ' disabled' : ''}>${esc(candidate.name)}</option>`;
-                              })
-                              .join('')}
-                        </select>
+                    <details class="spec-picker">
+                        <summary class="spec-picker-trigger" aria-label="Change ${esc(spec.name)} specialization" title="Change specialization"></summary>
+                        <div class="spec-picker-menu">
+                            <strong>Select specialization</strong>
+                            <div class="spec-picker-options">
+                                ${specializations
+                                  .map((candidate) => {
+                                    const selected = candidate.name === selection.name;
+                                    const used = selectedNames.includes(candidate.name);
+                                    return `<button type="button" class="spec-picker-option${selected ? ' is-selected' : ''}"
+                                      data-line="${lineIndex}" data-specialization="${esc(candidate.name)}"
+                                      aria-pressed="${selected}" aria-label="${esc(candidate.name)}" title="${esc(candidate.name)}"${used ? ' disabled' : ''}>
+                                        <img src="${esc(candidate.icon)}" alt=""><span>${esc(candidate.name)}</span>
+                                    </button>`;
+                                  })
+                                  .join('')}
+                            </div>
+                        </div>
+                    </details>
+                    <div class="spec-heading">${esc(spec.name)}</div>
+                    <div class="spec-selection">
+                        <img class="spec-selected-icon" src="${esc(spec.icon)}" alt="">
+                        <div class="spec-tiers">${[0, 1, 2]
+                          .map((tier) => {
+                            const minor = spec.minorTraits[tier];
+                            return `${tier ? `<span class="spec-line pick-${picks[tier - 1]}"></span>` : ''}
+                                <div class="spec-tier pick-${picks[tier]}">
+                                    <div class="spec-trait-minor" title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></div>
+                                    <div class="spec-trait-majors">${spec.majorTraits[tier]
+                                      .map(
+                                        (trait, position) =>
+                                          `<div class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
+                                            data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
+                                            title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></div>`
+                                      )
+                                      .join('')}</div>
+                                </div>`;
+                          })
+                          .join('')}</div>
                     </div>
-                    <div class="spec-tiers">${[0, 1, 2]
-                      .map((tier) => {
-                        const minor = spec.minorTraits[tier];
-                        return `${tier ? '<span class="spec-line"></span>' : ''}
-                            <div class="spec-tier">
-                                <div class="spec-trait-minor" title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></div>
-                                <div class="spec-trait-majors">${spec.majorTraits[tier]
-                                  .map(
-                                    (trait, position) =>
-                                      `<div class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
-                                        data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
-                                        title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></div>`
-                                  )
-                                  .join('')}</div>
-                            </div>`;
-                      })
-                      .join('')}</div>
                 </div></div>`;
     })
     .join('');
-  container.querySelectorAll('.spec-select').forEach((select) => {
-    if (!(select instanceof HTMLSelectElement)) return;
-    select.addEventListener('change', () => {
-      const line = Number(select.dataset.line);
-      if (!Number.isInteger(line) || !app.build.specializations[line]) return;
-      app.build.specializations[line] = {
-        name: select.value,
-        traits: '1-1-1'
-      };
-      const newSpec = specializations.find((spec) => spec.name === select.value);
-      if (newSpec?.elite) {
-        app.build.specializations.forEach((other, index) => {
-          if (index === line) return;
-          const otherSpec = specializations.find((spec) => spec.name === other.name);
-          if (otherSpec?.elite) {
-            app.build.specializations[index] = {
-              name: app.adapter.specializationFallback,
-              traits: '1-1-1'
-            };
-          }
-        });
-      }
-
-      clampStartingResourceValues(app, app.adapter.eliteSpecialization(app.build));
-
-      app.changed();
+  container.querySelectorAll('.spec-picker-option').forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    button.addEventListener('click', () => {
+      selectSpecialization(app, Number(button.dataset.line), button.dataset.specialization || '');
     });
   });
   container.querySelectorAll('.spec-trait-major').forEach((trait) => {

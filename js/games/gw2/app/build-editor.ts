@@ -27,13 +27,14 @@ export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   initialize: initBuildTemplates,
   updateSelection: updateTemplateSelection,
   bindControls(app: ProfessionAppState) {
-    const title = document.querySelector<HTMLElement>('.combat-loadout-title');
-    if (!title) throw new Error('Combat loadout header is missing.');
-    if (title.querySelector('.combat-loadout-import')) return;
+    // Keep in-game build import beside the remaining build choices after removing the preview-only combat layout.
+    const title = document.querySelector<HTMLElement>('.selectable-skills-title');
+    if (!title) throw new Error('Selectable skills header is missing.');
+    if (title.querySelector('.build-template-import')) return;
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'btn btn-io combat-loadout-import';
+    button.className = 'btn btn-io build-template-import';
     button.textContent = 'Import GW2 Build';
     title.append(button);
     bindBuildTemplateImportDialog(app, button);

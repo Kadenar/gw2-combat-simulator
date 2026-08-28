@@ -18,6 +18,7 @@
         "label": "Power (Hammer - Symbiotic)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
         "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
         "benchmarkDps": 41724,
         "upToDate": true
@@ -33,6 +34,7 @@
         "label": "Condition Alacrity Spear (2 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
         "benchmarkDps": 35508,
         "upToDate": true
       },
@@ -48,6 +50,7 @@
         "label": "Condition Spear (3 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
         "benchmarkDps": 42538,
         "upToDate": true
       }
@@ -60,6 +63,7 @@
         "label": "Condition (Pistol / Pistol)",
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
         "benchmarkDps": 43341,
         "upToDate": true
       },
@@ -74,6 +78,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
         "benchmarkDps": 41664,
         "upToDate": true
       }
@@ -86,6 +91,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
         "benchmarkDps": 40148,
         "upToDate": true
       },
@@ -93,6 +99,7 @@
         "label": "Power (Rifle)",
         "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
         "benchmarkDps": 38749,
         "upToDate": true
       }
@@ -105,6 +112,7 @@
         "label": "Condition Quickness (Spear)",
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
         "benchmarkDps": 33167,
         "upToDate": true
       },
@@ -112,6 +120,7 @@
         "label": "Power (Hammer)",
         "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
         "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
         "benchmarkDps": 41434,
         "upToDate": true

@@ -100,22 +100,16 @@ function mountStickyHeader(root: Document): void {
   }
 }
 
-/** Renders three armor columns with three always-visible profession artwork stacks each. */
+/** Renders every profession in three compact columns so the landing page stays scannable. */
 function renderProfessionCards(root: Document): void {
   const grid = root.querySelector('[data-profession-grid]');
   if (!grid) return;
   grid.classList.add('profession-showcase-grid');
   grid.replaceChildren();
-  for (const group of professionGroups) {
-    const column = root.createElement('section');
+  for (const professions of professionGroups) {
+    const column = root.createElement('div');
     column.className = 'profession-showcase-group';
-    const heading = root.createElement('h3');
-    heading.id = `profession-group-${group.weight}`;
-    heading.className = 'profession-group-heading';
-    heading.textContent = group.label;
-    column.setAttribute('aria-labelledby', heading.id);
-    column.append(heading);
-    renderProfessionShowcases(root, column, group.entries);
+    renderProfessionShowcases(root, column, professions);
     grid.append(column);
   }
 }

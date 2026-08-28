@@ -7,6 +7,7 @@ import {
   loadProfessionAppAdapter,
   professionRoute
 } from '../../../js/games/gw2/app/profession/registry.js';
+import { renderSkills } from '../../../js/games/gw2/app/build/panels/skills.js';
 import {
   currentAutoattackSkill,
   displayedSkillTiles,
@@ -890,17 +891,24 @@ test('legend palette shows only the destination legend with the shared swap cool
     results: simulate('Core', build.rotation)
   };
   const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const skillBar = { innerHTML: '', classList: { remove() {} }, querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
 
   globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+    getElementById: (id) => (id === 'rotation-palette' ? palette : id === 'skill-bar' ? skillBar : null)
   };
   try {
+    renderSkills(app);
     renderPalette(app);
   } finally {
     globalThis.document = previousDocument;
   }
 
+  assert.match(skillBar.innerHTML, /data-loadout-toggle/);
+  assert.match(skillBar.innerHTML, /data-loadout-key="selectedLegends:[01]"/);
+  assert.doesNotMatch(skillBar.innerHTML, /fixed-loadout-selector-label/);
+  assert.doesNotMatch(skillBar.innerHTML, /skill-bar-key/);
+  assert.doesNotMatch(skillBar.innerHTML, /skill-bar-type/);
   assert.equal((palette.innerHTML.match(/data-skill="Swap Legends"/g) || []).length, 1);
   assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10s<\/span>/);
 });

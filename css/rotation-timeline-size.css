@@ -16,7 +16,7 @@
   padding: 3px 6px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: var(--bg-dark);
+  background: var(--bg-panel-alt);
   color: var(--text-light, var(--text));
   font: inherit;
   cursor: pointer;

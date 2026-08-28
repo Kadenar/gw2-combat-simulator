@@ -7,7 +7,6 @@ import {
   loadProfessionAppAdapter,
   professionRoute
 } from '../../../js/games/gw2/app/profession/registry.js';
-import { weaponSetLabelVisible } from '../../../js/games/gw2/app/build/panels/skills.js';
 import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
 import { paletteSkillView, renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
 import { buildChartSeries, skillBreakdownRows } from '../../../js/games/gw2/app/rotation/result/model.js';
@@ -960,12 +959,6 @@ test('Core and Mechanist skill bars expose their derived F skills', () => {
     holosmith.at(-1).skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ['Light Strike', 'Holo Leap', 'Corona Burst', 'Photon Blitz', 'Holographic Shockwave']
   );
-});
-
-test('Engineer always labels its single weapon set', () => {
-  assert.equal(weaponSetLabelVisible('engineer', false), true);
-  assert.equal(weaponSetLabelVisible('engineer', true), true);
-  assert.equal(weaponSetLabelVisible('guardian', false), false);
 });
 
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {

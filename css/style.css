@@ -4,10 +4,11 @@
 @import url('./rotation-timeline-size.css');
 
 :root {
-  --bg-dark: #0c0c14;
-  --bg-deep: #0c0c14;
-  --bg-panel: #14141f;
-  --bg-panel-alt: #1a1a28;
+  /* Keep page, card, and control surfaces neutral; profession themes only change accents. */
+  --bg-dark: oklch(0.205 0 0);
+  --bg-deep: #111113;
+  --bg-panel: oklch(0.21 0.006 285.885);
+  --bg-panel-alt: #111113;
   --border: #2a2a3a;
   --border-light: #3a3a4a;
   --text: #d8d8e0;
@@ -37,6 +38,16 @@ body {
   font-size: 13px;
   line-height: 1.4;
   padding-bottom: 52px;
+}
+
+/* Native dropdown popups cannot composite translucent control surfaces, so keep their menu rows opaque and dark. */
+select {
+  color-scheme: dark;
+}
+
+select :is(option, optgroup) {
+  background-color: var(--bg-deep);
+  color: var(--text);
 }
 
 #app {
@@ -137,6 +148,7 @@ header h1 {
 .simulator-view-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 3px;
   width: min(100%, 430px);
   margin: 0 auto 10px;
   padding: 3px;
@@ -1239,7 +1251,7 @@ header .community-actions {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
-.template-actions-menu button {
+.template-actions-menu :is(button, a) {
   padding: 6px 8px;
   background: transparent;
   border: 0;
@@ -1248,10 +1260,11 @@ header .community-actions {
   cursor: pointer;
   font: inherit;
   text-align: left;
+  text-decoration: none;
 }
 
-.template-actions-menu button:hover,
-.template-actions-menu button:focus-visible {
+.template-actions-menu :is(button, a):hover,
+.template-actions-menu :is(button, a):focus-visible {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
   outline: none;
@@ -1508,35 +1521,60 @@ header .community-actions {
   border-top: 1px solid var(--border);
 }
 
-.build-section {
+.gear-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 0;
+  grid-template-columns: minmax(0, 1fr) 340px;
   align-items: stretch;
 }
 
-/* Internal sections use dividers while the build editor owns the only outer card. */
-.build-section > :is(.gear-panel, .attributes-panel) {
+/* Gear and attributes share the editor card; padding and dividers define the four dense columns. */
+.gear-main,
+.attributes-panel {
+  min-width: 0;
   padding: 12px;
 }
 
-.build-section > .attributes-panel {
+.gear-panel > .attributes-panel {
   border-left: 1px solid var(--border);
+}
+
+.gear-panel :is(.panel-hdr, .attributes-header) h3 {
+  color: var(--text-bright);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.gear-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 18px;
+}
+
+.gear-set-all {
+  display: grid;
+  grid-template-columns: auto minmax(0, 120px);
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 10px;
 }
 
 .gear-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) minmax(0, 1fr);
 }
 
-.gear-col-right {
+.gear-columns > .gear-col + .gear-col {
+  margin-left: 12px;
   padding-left: 12px;
   border-left: 1px solid var(--border);
 }
 
-.gear-row,
-.gear-table-header {
+.gear-row {
   display: grid;
   grid-template-columns: minmax(70px, 1fr) minmax(0, 170px);
   align-items: center;
@@ -1544,19 +1582,19 @@ header .community-actions {
 }
 
 .gear-row {
-  padding: 2px 0;
+  /* Keep repeated gear controls dense so the editor does not dominate the workspace. */
+  padding: 0;
   border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.gear-table-header {
-  padding: 0 0 5px;
-  border-bottom: 1px solid var(--border-light);
-  color: var(--text-dim);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+#gear-slots .gear-row {
+  grid-template-columns: minmax(70px, 1fr) minmax(0, 135px);
+}
+
+#gear-slots .gear-select-display {
+  max-width: 135px;
+  justify-self: end;
 }
 
 .gear-label {
@@ -1584,12 +1622,12 @@ header .community-actions {
 }
 
 .weapon-select {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
-.weapon-set-heading {
-  margin-top: 7px;
-  padding: 3px 0 2px;
+.gear-section-heading {
+  margin-top: 4px;
+  padding: 2px 0 1px;
   color: var(--accent);
   font-size: 9px;
   font-weight: 700;
@@ -1597,7 +1635,19 @@ header .community-actions {
   text-transform: uppercase;
 }
 
+.gear-section-heading:first-child {
+  margin-top: 0;
+}
+
 /* ─── Gear selects ─── */
+.gear-select-display {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 170px;
+  min-width: 0;
+}
+
 .gear-select {
   width: 100%;
   background: var(--bg-panel-alt);
@@ -1605,11 +1655,118 @@ header .community-actions {
   border-radius: 2px;
   color: var(--text);
   font-size: 11px;
-  padding: 1px 2px;
+  padding: 0 2px;
   max-width: 170px;
   min-width: 0;
   cursor: pointer;
   outline: none;
+}
+
+.gear-select-display > .gear-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gear-select-trigger {
+  width: 100%;
+  min-height: 17px;
+  overflow: hidden;
+  padding: 0 18px 0 2px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='4'%3E%3Cpath d='M0 0l4 4 4-4z' fill='%23b0b0b8'/%3E%3C/svg%3E")
+      no-repeat right 4px center / 8px 4px,
+    var(--bg-panel-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 2px;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gear-select-trigger:is(:hover, :focus-visible),
+.gear-select-display.is-open > .gear-select-trigger {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Detailed choices use a popover so the supporting stats can be quieter than the item name. */
+.gear-select-menu {
+  position: fixed;
+  inset: auto;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(360px, calc(100vh - 16px));
+  margin: 0;
+  padding: 3px;
+  overflow-y: auto;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-light);
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+}
+
+.gear-select-menu::backdrop {
+  background: transparent;
+}
+
+.gear-select-group-label {
+  padding: 5px 6px 2px;
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.gear-select-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 7px;
+  width: 100%;
+  overflow: hidden;
+  padding: 3px 6px;
+  background: transparent;
+  border: 0;
+  border-radius: 2px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gear-select-option:is(:hover, :focus-visible),
+.gear-select-option[aria-selected='true'] {
+  background: color-mix(in srgb, var(--accent) 24%, var(--bg-dark));
+  outline: none;
+}
+
+.gear-select-option:is(:hover, :focus-visible, [aria-selected='true']) .gear-option-detail {
+  color: var(--text);
+}
+
+.gear-option-name {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gear-option-detail {
+  flex: 1 1 220px;
+  min-width: 0;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-style: italic;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .gear-select:hover {
@@ -1618,6 +1775,29 @@ header .community-actions {
 
 .gear-select:focus {
   border-color: var(--accent);
+}
+
+/* Borderless native and enhanced selects use one arrow treatment while row dividers define the layout. */
+.gear-panel .gear-select {
+  appearance: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='4'%3E%3Cpath d='M0 0l4 4 4-4z' fill='%23b0b0b8'/%3E%3C/svg%3E")
+      no-repeat right 4px center / 8px 4px,
+    transparent;
+  border: 0;
+  border-radius: 0;
+  padding-right: 18px;
+}
+
+.gear-panel .gear-select-trigger {
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.gear-panel :is(.gear-select, .gear-select-trigger):focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 
 .gear-select.small-select {
@@ -1657,6 +1837,10 @@ header .community-actions {
   gap: 4px;
 }
 
+.infusion-controls .gear-select-display {
+  max-width: none;
+}
+
 .inf-count {
   width: 46px;
   background: var(--bg-panel-alt);
@@ -1664,7 +1848,7 @@ header .community-actions {
   border-radius: 3px;
   color: var(--text);
   font-size: 11px;
-  padding: 1px 4px;
+  padding: 0 4px;
   text-align: center;
   outline: none;
 }
@@ -1707,23 +1891,34 @@ header .community-actions {
 }
 
 .attr-section h4 {
-  font-size: 11px;
-  color: var(--text);
-  letter-spacing: 0;
-  margin: 8px 0 4px;
-  text-transform: none;
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  margin: 0 0 4px;
+  text-transform: uppercase;
 }
 
-.attr-section:first-child h4 {
-  margin-top: 0;
+#attributes-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#attributes-list .attr-section {
+  min-width: 0;
+}
+
+#attributes-list .attr-section + .attr-section {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
 }
 
 .attr-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  padding: 2px 4px;
-  font-size: 12px;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 10px;
   border-bottom: 1px solid rgba(42, 42, 58, 0.5);
 }
 
@@ -1850,6 +2045,8 @@ header .community-actions {
 .attr-val {
   color: var(--text-bright);
   font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
 }
 
 /* ─── Specialization / Trait Lines ─── */
@@ -1861,9 +2058,9 @@ header .community-actions {
   align-self: flex-start;
 }
 
+/* Stack specialization rows edge-to-edge as one continuous trait panel. */
 .spec-row {
   position: relative;
-  margin-bottom: 4px;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -1876,10 +2073,7 @@ header .community-actions {
 
 .spec-content {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
+  padding: 16px 10px 16px 42px;
   /* Dark edge on the left (behind spec icon), transparent middle, dark edge on right */
   background: linear-gradient(
     90deg,
@@ -1892,93 +2086,239 @@ header .community-actions {
   );
 }
 
-.spec-header-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  width: 52px;
-}
-
-.spec-icon-wrap {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-}
-
-.spec-icon-wrap img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-}
-
-.spec-select {
-  width: 100%;
-  background: rgba(12, 12, 20, 0.85)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%23c8a24c'/%3E%3C/svg%3E")
-    no-repeat right 2px center;
-  color: var(--text-bright);
-  border: 1px solid var(--border-light);
-  border-radius: 3px;
-  font-size: 9px;
-  padding: 1px 10px 1px 2px;
-  cursor: pointer;
+/* Overlay the line name so it does not push the trait grid below the row's vertical center. */
+.spec-heading {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 96px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-align: center;
-  appearance: none;
-  -webkit-appearance: none;
+  text-shadow: 0 1px 2px #000;
+  text-transform: uppercase;
 }
 
-.spec-select:hover {
+.spec-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.spec-picker-trigger {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: grid;
+  width: 32px;
+  place-items: center;
+  border-right: 1px solid var(--border-light);
+  background: rgba(12, 12, 20, 0.74);
+  cursor: pointer;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.spec-picker-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.spec-picker-trigger::after {
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 11px solid var(--accent);
+  content: '';
+  filter: drop-shadow(0 1px 1px #000);
+  transition: transform 0.15s ease;
+}
+
+.spec-picker[open] .spec-picker-trigger::after {
+  transform: rotate(180deg);
+}
+
+.spec-picker-trigger:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--accent) 12%, rgba(12, 12, 20, 0.82));
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.spec-picker[open] .spec-picker-menu {
+  position: absolute;
+  inset: 0 0 0 32px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(15, 20, 24, 0.97);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+}
+
+.spec-picker-menu > strong {
+  color: var(--accent);
+  font-size: 11px;
+  text-align: center;
+}
+
+.spec-picker-options {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow-x: auto;
+}
+
+.spec-picker-option {
+  display: grid;
+  flex: 0 0 55px;
+  gap: 2px;
+  justify-items: center;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.spec-picker-option img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.spec-picker-option span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spec-picker-option:is(:hover, :focus-visible, .is-selected) {
   border-color: var(--accent);
-}
-
-.spec-select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 4px rgba(200, 162, 76, 0.4);
-}
-
-.spec-select option {
-  background: #1a1a2e;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--text-bright);
+  outline: none;
 }
 
-.spec-select option:disabled {
-  color: var(--text-dim);
+.spec-picker-option:disabled:not(.is-selected) {
+  opacity: 0.25;
+  cursor: not-allowed;
+  filter: grayscale(0.75);
+}
+
+.spec-selection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .spec-tiers {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
   gap: 0;
+  margin-top: 2px;
 }
 
+/* Keep the selected specialization emblem aligned with the full trait stack on the left. */
+.spec-selected-icon {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
+  object-fit: contain;
+}
+
+/* Equal gaps on both sides keep each minor trait centered between the neighboring major-trait columns. */
 .spec-tier {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 24px;
 }
 
 .spec-line {
-  width: 20px;
-  height: 2px;
-  background: var(--border-light);
+  position: relative;
+  width: 24px;
+  height: 134px;
   flex-shrink: 0;
-  margin: 0 2px;
+}
+
+/* Connect each minor trait through the chosen major trait before continuing to the next tier. */
+.spec-tier::before,
+.spec-line::before {
+  position: absolute;
+  z-index: 0;
+  height: 2px;
+  background: rgba(245, 245, 255, 0.72);
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+  content: '';
+  transform-origin: left center;
+}
+
+.spec-tier::before {
+  top: calc(50% - 1px);
+  left: 21px;
+}
+
+.spec-tier.pick-1::before {
+  width: 80px;
+  transform: rotate(-35deg);
+}
+
+.spec-tier.pick-2::before {
+  width: 66px;
+}
+
+.spec-tier.pick-3::before {
+  width: 80px;
+  transform: rotate(35deg);
+}
+
+.spec-line::before {
+  left: -21px;
+}
+
+.spec-line.pick-1::before {
+  top: calc(50% - 47px);
+  width: 80px;
+  transform: rotate(35deg);
+}
+
+.spec-line.pick-2::before {
+  top: calc(50% - 1px);
+  width: 66px;
+}
+
+.spec-line.pick-3::before {
+  top: calc(50% + 45px);
+  width: 80px;
+  transform: rotate(-35deg);
 }
 
 .spec-trait-minor {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  padding: 2px;
   overflow: hidden;
-  border: 2px solid var(--accent-dim);
+  background: #050508;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  box-shadow:
+    0 0 0 1px var(--accent-dim),
+    0 1px 3px rgba(0, 0, 0, 0.9);
   flex-shrink: 0;
-  margin-right: 4px;
 }
 
 .spec-trait-minor img {
@@ -1988,16 +2328,19 @@ header .community-actions {
 }
 
 .spec-trait-majors {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
+/* Distinguish fixed minor traits with hexagons and selectable major traits with square frames. */
 .spec-trait-major {
-  width: 32px;
-  height: 32px;
-  /* clip-path diamond — avoids all rotate+overflow:hidden browser clipping bugs */
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  width: 42px;
+  height: 42px;
+  padding: 2px;
+  background: #050508;
   flex-shrink: 0;
   cursor: pointer;
   transition:
@@ -2010,24 +2353,28 @@ header .community-actions {
   height: 100%;
   display: block;
   object-fit: cover;
-}
-
-.spec-trait-major.sel {
-  filter: drop-shadow(0 0 3px rgba(200, 162, 76, 1)) drop-shadow(0 0 5px rgba(200, 162, 76, 0.6));
+  transition:
+    opacity 0.15s,
+    filter 0.15s;
 }
 
 .spec-trait-major.dim {
-  opacity: 0.28;
-  filter: grayscale(0.5);
+  opacity: 1;
+  filter: none;
+}
+
+.spec-trait-major.dim img {
+  opacity: 0.55;
+  filter: grayscale(0.6) contrast(1.1);
 }
 
 .spec-trait-major.dim:hover {
-  opacity: 0.75;
   filter: grayscale(0) drop-shadow(0 0 2px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
 }
 
-.spec-trait-major.sel:hover {
-  filter: drop-shadow(0 0 5px rgba(200, 162, 76, 1)) drop-shadow(0 0 8px rgba(200, 162, 76, 0.7));
+.spec-trait-major.dim:hover img {
+  opacity: 0.9;
+  filter: grayscale(0);
 }
 
 /* ─── Effective Power Section ─── */
@@ -2730,20 +3077,6 @@ header .community-actions {
 .analysis-view-heading span {
   color: var(--text-dim);
   font-size: 12px;
-}
-
-.profession-browser-view {
-  display: none;
-  max-width: 1120px;
-  margin: 22px auto 54px;
-}
-
-body[data-profession][data-simulator-view='professions'] .profession-browser-view {
-  display: block;
-}
-
-body[data-profession][data-simulator-view='professions'] :is(.profession-layout, .build-templates, .build-editor) {
-  display: none;
 }
 
 body[data-profession][data-simulator-view='workspace'] .analysis-view-heading {
@@ -4317,7 +4650,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   margin-bottom: 0;
 }
 
-/* Keep the primary result readable while the user scrolls or switches simulator views. */
+/* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
 .floating-dps {
   position: absolute;
   right: max(14px, env(safe-area-inset-right));
@@ -4331,7 +4664,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   gap: 12px;
   color: var(--text-dim);
   background: color-mix(in srgb, var(--bg-panel-alt) 94%, transparent);
-  border: 1px solid color-mix(in srgb, var(--health) 45%, var(--border-light));
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-light));
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
   pointer-events: none;
@@ -4343,10 +4676,6 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   bottom: max(14px, env(safe-area-inset-bottom));
 }
 
-body[data-profession][data-simulator-view='professions'] .floating-dps {
-  display: none;
-}
-
 .floating-dps-label {
   padding-bottom: 2px;
   font-size: 9px;
@@ -4356,7 +4685,7 @@ body[data-profession][data-simulator-view='professions'] .floating-dps {
 }
 
 .floating-dps-value {
-  color: var(--health);
+  color: var(--accent);
   font-size: 21px;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -7220,11 +7549,11 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 }
 
 @media (max-width: 900px) {
-  .build-section {
+  .gear-panel {
     grid-template-columns: 1fr;
   }
 
-  .build-section > .attributes-panel {
+  .gear-panel > .attributes-panel {
     border-top: 1px solid var(--border);
     border-left: 0;
   }
@@ -7233,7 +7562,9 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     grid-template-columns: 1fr;
   }
 
-  .gear-col-right {
+  .gear-columns > .gear-col + .gear-col {
+    margin-top: 12px;
+    margin-left: 0;
     padding-top: 12px;
     padding-left: 0;
     border-top: 1px solid var(--border);
@@ -7994,28 +8325,19 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   border: 0;
 }
 
-/* Anchor selectable skills beneath the fixed-width traits column on wide layouts. */
-.combat-loadout-section {
-  grid-template-columns: 647px minmax(625px, 1fr);
+/* Keep build-selectable skills beside the fixed-width traits column. */
+.skill-selection-section {
+  grid-template-columns: 647px minmax(0, 1fr);
 }
 
-.traits-loadout-column {
+.selectable-skills-panel {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 12px;
-}
-
-.combat-loadout-panel {
-  container: combat-loadout / inline-size;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 0;
   border-left: 1px solid var(--border);
 }
 
-.combat-loadout-title {
+.selectable-skills-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -8029,170 +8351,16 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   text-transform: none;
 }
 
-.combat-loadout {
-  display: grid;
-  grid-template-columns: minmax(250px, 0.9fr) minmax(300px, 1.1fr);
-  flex: 1;
-  min-width: 0;
-}
-
-.combat-loadout-weapons,
-.combat-loadout-skills {
-  min-width: 0;
-  padding: 14px 16px 16px;
-}
-
-.combat-loadout-weapons {
-  border-right: 1px solid var(--border);
-}
-
-.combat-loadout:not(:has(.combat-loadout-mechanics)) {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.combat-loadout:not(:has(.combat-loadout-mechanics)) .combat-loadout-weapons {
-  border-right: 0;
-}
-
-.combat-loadout-skills:has(.skill-bar:empty) {
-  display: none;
-}
-
-.combat-loadout-column-label {
-  margin-bottom: 9px;
-  padding-bottom: 0;
-  color: var(--text-dim);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  line-height: 1;
-  text-transform: uppercase;
-  border-bottom: 0;
-}
-
-.combat-loadout .combat-loadout-weapons .weapon-bar {
-  align-items: stretch;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-}
-
-.weapon-set-preview-toggle {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  background: var(--bg-deep);
-}
-
-.weapon-set-preview-toggle-button {
-  min-width: 0;
-  padding: 6px 8px;
-  color: var(--text-dim);
-  font: inherit;
-  font-size: 9px;
-  letter-spacing: 0.4px;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.weapon-set-preview-toggle-button:hover,
-.weapon-set-preview-toggle-button:focus-visible {
-  color: var(--text-bright);
-  border-color: var(--border-light);
-  outline: none;
-}
-
-.weapon-set-preview-toggle-button.active {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
-  background: color-mix(in srgb, var(--accent) 14%, var(--bg-panel-alt));
-}
-
-.attunement-preview-toggle {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  color: var(--text-dim);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-
-.attunement-preview-toggle-select {
-  width: 100%;
-  min-width: 0;
-  padding: 5px 24px 5px 8px;
-  color: var(--text);
-  font: inherit;
-  font-size: 10px;
-  letter-spacing: 0;
-  text-transform: none;
-  border: 1px solid var(--border-light);
-  border-radius: 3px;
-  background: var(--bg-deep);
-  cursor: pointer;
-  outline: none;
-}
-
-.attunement-preview-toggle-select:hover,
-.attunement-preview-toggle-select:focus {
-  border-color: var(--accent);
-}
-
-[data-weapon-set-preview][hidden],
-.weapon-attunement-preview[hidden] {
-  display: none;
-}
-
-.combat-loadout .weapon-set-preview {
-  grid-template-columns: repeat(5, max-content);
-  justify-content: space-between;
-  flex: none;
-  width: 100%;
-  box-sizing: border-box;
-  gap: 4px;
-}
-
-.combat-loadout .weapon-set-preview .wskill {
-  width: 42px;
-  height: 42px;
-}
-
-.combat-loadout .weapon-set-preview .chain-skill-frame .wskill {
-  width: 27px;
-  height: 27px;
-}
-
-.elementalist-theme .combat-loadout .weapon-set-preview-group {
-  display: block;
-  width: 100%;
-}
-
-.combat-loadout .skill-bar {
+.selectable-skills-bar {
+  display: flex;
   align-content: start;
   align-items: stretch;
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
   gap: 16px;
-}
-
-.selectable-skills-bar {
-  display: block;
   min-height: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.selectable-skills-bar .combat-loadout-skill-section {
-  width: 100%;
+  padding: 14px 16px 16px;
 }
 
 .selectable-skills-bar .skill-bar-selected {
@@ -8205,68 +8373,45 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   height: 52px;
 }
 
-.combat-loadout .equipped-skill-bar-column {
-  padding: 0;
-  border: 0;
-}
-
-.combat-loadout-skill-section {
-  display: grid;
+/* Ranger pet selectors share one row; Hammer choices span beneath them when equipped. */
+.selectable-skills-bar .ranger-build-selections {
   min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
-.combat-loadout-skill-section .skill-bar-inspection {
-  min-width: 0;
-}
-
-.combat-loadout .skill-bar-selected {
-  gap: 8px;
-}
-
-.combat-loadout .skill-bar-selected .sbar-icon {
-  width: 52px;
-  height: 52px;
-}
-
-.combat-loadout .skill-bar-inspection-slot .sbar-icon {
-  width: 50px;
-  height: 50px;
-}
-
-/* Ranger pet cards share one row in the compact loadout; their mechanics wrap
-   within each half while every specialization-specific group spans below. */
-.combat-loadout .skill-bar-inspection.ranger-mechanics {
+.selectable-skills-bar .skill-bar-inspection.ranger-mechanics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 12px 8px;
 }
 
-.combat-loadout .skill-bar-inspection-group,
-.combat-loadout .skill-bar-inspection-skills {
+.selectable-skills-bar .skill-bar-inspection-group,
+.selectable-skills-bar .skill-bar-inspection-skills {
   box-sizing: border-box;
   min-width: 0;
 }
 
-.combat-loadout .skill-bar-inspection-skills {
+.selectable-skills-bar .skill-bar-inspection-skills {
   width: 100%;
 }
 
-.combat-loadout .ranger-mechanics .ranger-pet {
+.selectable-skills-bar .ranger-mechanics .ranger-pet {
   grid-row: 1;
   justify-self: stretch;
   min-width: 0;
 }
 
-.combat-loadout .ranger-mechanics .ranger-pet-1 {
+.selectable-skills-bar .ranger-mechanics .ranger-pet-1 {
   grid-column: 1;
 }
 
-.combat-loadout .ranger-mechanics .ranger-pet-2 {
+.selectable-skills-bar .ranger-mechanics .ranger-pet-2 {
   grid-column: 2;
 }
 
-.combat-loadout .ranger-mechanics > :not(.ranger-pet) {
+.selectable-skills-bar .ranger-mechanics > :not(.ranger-pet) {
   grid-column: 1 / -1;
   grid-row: auto;
   justify-self: stretch;
@@ -8274,7 +8419,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 /* Flow each pet card's icons and give the enlarged portrait and its equally sized
    pet skills room to wrap, with the picked pet's name beneath the portrait. */
-.combat-loadout .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
+.selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -8282,12 +8427,12 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   gap: 6px;
 }
 
-.combat-loadout .ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
+.selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
   width: 60px;
   height: 60px;
 }
 
-.combat-loadout .ranger-mechanics .ranger-pet .skill-bar-type {
+.selectable-skills-bar .ranger-mechanics .ranger-pet .skill-bar-type {
   display: block;
   width: 100%;
   text-align: center;
@@ -8297,49 +8442,18 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   margin-top: 3px;
 }
 
-.profession-loadout-theme .combat-loadout .engineer-amalgam-protocols .labeled-skill-bar-slot .sbar-icon {
-  width: 50px;
-  height: 50px;
-}
-
 .selectable-skills-bar .fixed-loadout-pairs {
   grid-template-columns: minmax(0, 1fr);
 }
 
 @container profession-main (max-width: 1270px) {
-  .combat-loadout-section {
+  .skill-selection-section {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Flatten the left group so narrow layouts keep traits, loadout, then selectable skills. */
-  .traits-loadout-column {
-    display: contents;
-  }
-
-  .traits-panel-inline {
-    grid-row: 1;
-  }
-
-  .combat-loadout-panel {
-    grid-row: 2;
+  .selectable-skills-panel {
     border-top: 1px solid var(--border);
     border-left: 0;
-  }
-
-  .selectable-skills-bar {
-    grid-row: 3;
-  }
-}
-
-/* Stack only when both loadout columns no longer fit, avoiding dead space below the shorter traits column. */
-@container combat-loadout (max-width: 550px) {
-  .combat-loadout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .combat-loadout-weapons {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
   }
 }
 
@@ -8431,13 +8545,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   cursor: default;
 }
 
-.fixed-loadout-selector-label {
-  color: var(--accent);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 11px;
-  letter-spacing: 0.7px;
-}
-
 .fixed-loadout-trigger {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
@@ -8450,7 +8557,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   text-align: left;
   border: 1px solid var(--border-light);
   border-radius: 5px;
-  background: var(--bg-deep);
+  background: var(--bg-panel-alt);
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -8460,7 +8567,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 .fixed-loadout-trigger:hover,
 .fixed-loadout-trigger[aria-expanded='true'] {
   border-color: color-mix(in srgb, var(--accent) 72%, var(--border));
-  background: color-mix(in srgb, var(--accent) 7%, var(--bg-deep));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-panel-alt));
 }
 
 .fixed-loadout-trigger > img {
@@ -8534,7 +8641,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 2px;
   border: 1px solid var(--border-light);
   border-radius: 4px;
-  background: var(--bg-deep);
+  background: var(--bg-panel-alt);
   cursor: pointer;
 }
 
@@ -9837,7 +9944,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 3px 5px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: var(--bg-dark);
+  background: var(--bg-panel-alt);
   color: var(--text);
 }
 
@@ -9892,7 +9999,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   width: 52px;
   padding: 3px;
   color: var(--text-bright);
-  background: var(--bg-dark);
+  background: var(--bg-panel-alt);
   border: 1px solid var(--border-light);
   border-radius: 3px;
 }
@@ -9921,7 +10028,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 3px 24px 3px 4px;
   border: 1px solid var(--border-light);
   border-radius: 3px;
-  background: var(--bg-dark);
+  background: var(--bg-panel-alt);
   color: var(--text-bright);
   cursor: pointer;
   list-style: none;
@@ -9962,7 +10069,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 4px;
   border: 1px solid var(--border-light);
   border-radius: 4px;
-  background: var(--bg-deep);
+  background: var(--bg-panel-alt);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
 }
 
@@ -10056,26 +10163,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   gap: 12px;
 }
 
-.profession-group-heading {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-  color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.profession-group-heading::after {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-  content: '';
-}
-
 .profession-card-mesmer {
   --profession-accent: #ad83df;
 }
@@ -10117,7 +10204,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 .profession-showcase-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
-  gap: 18px;
 }
 
 .profession-showcase-group {
@@ -10158,6 +10244,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     var(--bg-panel) 100%
   );
   border-bottom: 1px solid color-mix(in srgb, var(--profession-accent) 28%, var(--border));
+  text-align: left;
 }
 
 .profession-showcase-name {

@@ -9,7 +9,7 @@ import {
   weaponPaletteRows,
   weaponSkills
 } from '../../../js/games/gw2/app/rotation/palette/model.js';
-import { skillBarInspectionStacks } from '../../../js/games/gw2/app/build/panels/skills.js';
+import { selectableSkillBarGroups, skillBarInspectionStacks } from '../../../js/games/gw2/app/build/panels/skills.js';
 import { timelineWeaponRows } from '../../../js/games/gw2/app/rotation/timeline/model.js';
 import {
   activeResourceGroup,
@@ -1690,7 +1690,7 @@ test('Ranger skill-bar selections drive pet and Hammer selection', () => {
 
   assert.deepEqual(
     petGroups.map((group) => group.label),
-    ['Pet 1', 'Pet 2']
+    ['Pig', 'Lynx']
   );
   assert.deepEqual(
     petGroups.map((group) => group.className),
@@ -1708,8 +1708,8 @@ test('Ranger skill-bar selections drive pet and Hammer selection', () => {
     petGroups.map((group) => group.selections[0].filterPlaceholder),
     ['Filter pets...', 'Filter pets...']
   );
-  assert.deepEqual(pet1Group.selections[0].skillIds, [ID.FORAGE_SWORD]);
-  assert.deepEqual(pet2Group.selections[0].skillIds, [ID.RENDING_POUNCE]);
+  assert.equal(pet1Group.selections[0].skillIds, undefined);
+  assert.equal(pet2Group.selections[0].skillIds, undefined);
   assert.equal(pet1Group.selections[0].optionEntries.length, RANGER_PETS.length);
   assert.equal(
     rangerProfession.ui.updateSkillBarSelection(soulbeastContext, {
@@ -1738,14 +1738,17 @@ test('Ranger skill-bar selections drive pet and Hammer selection', () => {
     mergedPetGroups.map((group) => group.skillIds),
     [[], []]
   );
-  // Merged Beast skills moved off the pet portrait cards into dedicated Beastmode-section
-  // rows; the cards now only caption the portrait with the picked pet's name.
+  // Pet cards use the selected pet as their heading without repeating its name or combat skills below.
+  assert.deepEqual(
+    mergedPetGroups.map((group) => group.label),
+    ['Smokescale', 'Fanged Iboga']
+  );
   assert.equal(mergedPetGroups[0].selections[0].leadingSkillIds, undefined);
   assert.equal(mergedPetGroups[1].selections[0].leadingSkillIds, undefined);
-  assert.equal(mergedPetGroups[0].selections[0].typeLabel, 'Smokescale');
-  assert.equal(mergedPetGroups[1].selections[0].typeLabel, 'Fanged Iboga');
-  assert.deepEqual(mergedPetGroups[0].selections[0].skillIds, [ID.SMOKE_CLOUD]);
-  assert.deepEqual(mergedPetGroups[1].selections[0].skillIds, [ID.NARCOTIC_SPORES_PET]);
+  assert.equal(mergedPetGroups[0].selections[0].typeLabel, undefined);
+  assert.equal(mergedPetGroups[1].selections[0].typeLabel, undefined);
+  assert.equal(mergedPetGroups[0].selections[0].skillIds, undefined);
+  assert.equal(mergedPetGroups[1].selections[0].skillIds, undefined);
   const soulbeastGroups = rangerProfession.ui.skillBarGroups(soulbeastContext);
   // Both pets' merged Beast skills now live inside the Beastmode section beside the
   // toggle rather than in their own labeled rows.
@@ -1788,6 +1791,11 @@ test('Ranger skill-bar selections drive pet and Hammer selection', () => {
   );
   const untamedGroups = rangerProfession.ui.skillBarGroups(untamedContext);
 
+  assert.deepEqual(
+    selectableSkillBarGroups('ranger', untamedGroups).map((group) => group.id),
+    ['ranger-pet-1-selection', 'ranger-pet-2-selection', 'ranger-hammer-selection']
+  );
+  assert.deepEqual(selectableSkillBarGroups('warrior', untamedGroups), []);
   assert.equal(
     untamedGroups.find((group) => group.id === 'ranger-pet-1-selection').layout,
     'ranger-mechanics ranger-untamed-mechanics'

@@ -30,48 +30,26 @@ frame.addEventListener('load', async () => {
     app.build = createElementalistBuildDefaults();
     app.changed();
 
-    // The Elementalist control changes only the visible weapon-skill row and
-    // retains that choice when the shared skill bar rerenders.
-    let selector = document.querySelector('.attunement-preview-toggle-select');
-    let previews = [...document.querySelectorAll('.weapon-attunement-preview')];
-    const optionValues = [...selector.options].map((option) => option.value);
+    // The build editor now keeps only build choices, with selectable skills directly beside traits.
+    const section = document.querySelector('.skill-selection-section');
+    const traits = document.getElementById('traits-panel');
+    const selectablePanel = document.querySelector('.selectable-skills-panel');
+    const selectedSkills = [...document.querySelectorAll('#skill-bar .skill-bar-slot[data-key]')];
 
     assert(
-      ['Fire', 'Water', 'Air', 'Earth'].every((attunement) => optionValues.includes(attunement)),
-      'attunement preview dropdown is missing a core attunement'
+      section?.firstElementChild === traits && section.lastElementChild === selectablePanel,
+      'selectable skills are not directly to the right of traits'
     );
+    assert(selectedSkills.length === 5, 'heal, utility, and elite selections are missing');
     assert(
-      previews.filter((preview) => !preview.hidden).length === 1 &&
-        previews.find((preview) => !preview.hidden)?.dataset.attunement === selector.value,
-      'attunement dropdown does not initially show one matching preview'
-    );
-
-    selector.value = 'Water';
-    selector.dispatchEvent(new window.Event('change', { bubbles: true }));
-    assert(
-      previews.find((preview) => preview.dataset.attunement === 'Water')?.hidden === false &&
-        previews.filter((preview) => preview.dataset.attunement !== 'Water').every((preview) => preview.hidden),
-      'attunement dropdown did not switch the preview to Water'
-    );
-
-    app.changed();
-    selector = document.querySelector('.attunement-preview-toggle-select');
-    previews = [...document.querySelectorAll('.weapon-attunement-preview')];
-    assert(
-      selector.value === 'Water' &&
-        previews.find((preview) => preview.dataset.attunement === 'Water')?.hidden === false,
-      'selected attunement preview was not preserved after rerendering'
-    );
-    assert(
-      !document.querySelector('[data-weapon-set-toggle]'),
-      'Elementalist rendered a weapon-set toggle instead of attunements'
+      !document.querySelector('[data-weapon-set-preview], .weapon-attunement-preview'),
+      'removed weapon previews are still rendered'
     );
 
     output.dataset.status = 'passed';
     output.textContent = JSON.stringify({
       profession: app.profession.id,
-      attunement: selector.value,
-      previewCount: previews.length
+      selectableSkillCount: selectedSkills.length
     });
   } catch (error) {
     output.dataset.status = 'failed';

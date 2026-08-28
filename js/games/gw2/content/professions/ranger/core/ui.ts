@@ -230,10 +230,11 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
       specialization === 'Core'
         ? 'ranger-mechanics'
         : `ranger-mechanics ranger-${specialization.toLowerCase()}-mechanics`;
+    // Name each pet selector with the chosen pet and leave combat skills to the rotation palette.
     const groups: ProfessionSkillBarGroup[] = [
       {
         id: 'ranger-pet-1-selection',
-        label: 'Pet 1',
+        label: pet?.name || 'Pet 1',
         skillIds: [],
         selections: [
           {
@@ -241,10 +242,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
             filterPlaceholder: 'Filter pets...',
             selectionValue: pet?.name || '',
             selectionKey: 'selectedPet',
-            selectionIndex: 0,
-            // Caption the enlarged portrait with the picked pet's name across every specialization.
-            typeLabel: pet?.name,
-            skillIds: commandableSkillIds(pet?.skillIds || [])
+            selectionIndex: 0
           }
         ],
         color: '#7ca64a',
@@ -253,7 +251,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
       },
       {
         id: 'ranger-pet-2-selection',
-        label: 'Pet 2',
+        label: pet2?.name || 'Pet 2',
         skillIds: [],
         selections: [
           {
@@ -261,10 +259,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
             filterPlaceholder: 'Filter pets...',
             selectionValue: pet2?.name || '',
             selectionKey: 'selectedPet2',
-            selectionIndex: 1,
-            // Caption the enlarged portrait with the picked pet's name across every specialization.
-            typeLabel: pet2?.name,
-            skillIds: commandableSkillIds(pet2?.skillIds || [])
+            selectionIndex: 1
           }
         ],
         color: '#7ca64a',

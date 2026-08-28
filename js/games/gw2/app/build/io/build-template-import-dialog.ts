@@ -30,8 +30,7 @@ function ensureStyles(document: Document): void {
   const style = document.createElement('style');
   style.id = 'build-template-import-styles';
   style.textContent = `
-    .combat-loadout-title { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .combat-loadout-import { margin-left:auto; letter-spacing:normal; text-transform:none; }
+    .build-template-import { margin-left:auto; letter-spacing:normal; text-transform:none; }
     .build-template-import-dialog { position:fixed; inset:0; width:min(760px, calc(100vw - 28px));
       max-height:calc(100vh - 28px); margin:auto; padding:0; overflow:auto;
       border:1px solid var(--border-light); border-radius:12px; background:var(--bg-panel);

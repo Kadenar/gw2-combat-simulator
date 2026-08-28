@@ -1,23 +1,150 @@
 import { FOOD_GROUPS } from '../../../platform/equipment/consumables/food.js';
-import { GEAR_SLOTS, INFUSION_STATS, PREFIX_GROUPS } from '../../../platform/equipment/gear/stats.js';
+import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '../../../platform/equipment/gear/stats.js';
 import { RELIC_GROUPS } from '../../../platform/equipment/relics/catalog.js';
 import { RUNE_GROUPS } from '../../../platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '../../../platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '../../../platform/equipment/consumables/utilities.js';
 import { setWeaponSigil } from '../../../platform/equipment/sigils/loadout.js';
-import { groupedOptions, option } from '../../presentation/shared/html.js';
+import { escapeHtml, groupedOptions, option } from '../../presentation/shared/html.js';
 import { requiredElement, requiredInput, requiredSelect } from '../../../../../ui/shared/dom.js';
+import {
+  foodOptionLabel,
+  prefixOptionLabel,
+  relicOptionLabel,
+  runeOptionLabel,
+  sigilOptionLabel,
+  utilityOptionLabel
+} from '../equipment-option-labels.js';
 
 import type { ProfessionAppState } from '../../types.js';
 
-// Column headers make the dense gear controls read as one data editor instead of a stack of cards.
-function tableHeader(category: string, selection: string): string {
-  return `<div class="gear-table-header"><span>${category}</span><span>${selection}</span></div>`;
+// Short section headings separate related controls without repeating what each select already communicates.
+function sectionHeading(label: string): string {
+  return `<div class="gear-section-heading">${label}</div>`;
 }
 
-function selectRow(label: string, id: string, optionsHtml: string): string {
+// The native select remains the state source while the visible trigger keeps the closed control compact.
+function compactSelect(selectedLabel: string, selectHtml: string): string {
+  return `<div class="gear-select-display">${selectHtml}<button type="button" class="gear-select-trigger">${escapeHtml(selectedLabel)}</button></div>`;
+}
+
+function splitOptionLabel(label: string): { name: string; details: string } {
+  const separator = ' \u2014 ';
+  const separatorIndex = label.indexOf(separator);
+  return separatorIndex < 0
+    ? { name: label, details: '' }
+    : { name: label.slice(0, separatorIndex), details: label.slice(separatorIndex + separator.length) };
+}
+
+// Upgrade detailed native selects into styled popovers while preserving their existing change handlers and values.
+function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
+  const display = select.parentElement;
+  const trigger = display?.querySelector('.gear-select-trigger');
+  if (!(display instanceof HTMLElement) || !(trigger instanceof HTMLButtonElement)) return;
+
+  const menu = document.createElement('div');
+  const menuId = `gear-select-menu-${index}`;
+  menu.id = menuId;
+  menu.className = 'gear-select-menu';
+  menu.setAttribute('popover', 'auto');
+  menu.setAttribute('role', 'listbox');
+  menu.setAttribute('aria-label', select.getAttribute('aria-label') || 'Equipment options');
+  trigger.setAttribute('popovertarget', menuId);
+  trigger.setAttribute('aria-haspopup', 'listbox');
+  trigger.setAttribute('aria-expanded', 'false');
+  select.tabIndex = -1;
+  select.setAttribute('aria-hidden', 'true');
+
+  const addOption = (optionElement: HTMLOptionElement, parent: HTMLElement): void => {
+    const { name, details } = splitOptionLabel(optionElement.textContent);
+    const choice = document.createElement('button');
+    choice.type = 'button';
+    choice.className = 'gear-select-option';
+    choice.dataset.value = optionElement.value;
+    choice.disabled = optionElement.disabled;
+    choice.setAttribute('role', 'option');
+    choice.setAttribute('aria-selected', String(optionElement.selected));
+
+    const primary = document.createElement('span');
+    primary.className = 'gear-option-name';
+    primary.textContent = name;
+    choice.append(primary);
+    if (details) {
+      const supporting = document.createElement('span');
+      supporting.className = 'gear-option-detail';
+      supporting.textContent = details;
+      choice.append(supporting);
+    }
+
+    choice.addEventListener('click', () => {
+      menu.hidePopover();
+      select.value = optionElement.value;
+      trigger.textContent = name;
+      menu.querySelectorAll('[role="option"]').forEach((item) => {
+        item.setAttribute('aria-selected', String(item === choice));
+      });
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    parent.append(choice);
+  };
+
+  for (const child of select.children) {
+    if (child instanceof HTMLOptGroupElement) {
+      const group = document.createElement('div');
+      group.className = 'gear-select-group';
+      group.setAttribute('role', 'group');
+      group.setAttribute('aria-label', child.label);
+      const heading = document.createElement('div');
+      heading.className = 'gear-select-group-label';
+      heading.textContent = child.label;
+      group.append(heading);
+      for (const optionElement of child.children) {
+        if (optionElement instanceof HTMLOptionElement) addOption(optionElement, group);
+      }
+
+      menu.append(group);
+    } else if (child instanceof HTMLOptionElement) {
+      addOption(child, menu);
+    }
+  }
+
+  menu.addEventListener('toggle', () => {
+    const isOpen = menu.matches(':popover-open');
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    display.classList.toggle('is-open', isOpen);
+    if (!isOpen) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(triggerRect.left, window.innerWidth - menuRect.width - 8))}px`;
+    menu.style.top = `${
+      triggerRect.bottom + menuRect.height + 2 <= window.innerHeight
+        ? triggerRect.bottom + 2
+        : Math.max(8, triggerRect.top - menuRect.height - 2)
+    }px`;
+    menu.querySelector<HTMLButtonElement>('[aria-selected="true"]:not(:disabled)')?.focus();
+  });
+
+  menu.addEventListener('keydown', (event) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    const choices = [...menu.querySelectorAll<HTMLButtonElement>('.gear-select-option:not(:disabled)')];
+    const currentIndex = choices.indexOf(document.activeElement as HTMLButtonElement);
+    const nextIndex =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? choices.length - 1
+          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + choices.length) % choices.length;
+    event.preventDefault();
+    choices[nextIndex]?.focus();
+  });
+
+  display.append(menu);
+}
+
+function selectRow(label: string, id: string, selectedLabel: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>
-            <select class="gear-select" id="${id}">${optionsHtml}</select></div>`;
+            ${compactSelect(selectedLabel, `<select class="gear-select" id="${id}">${optionsHtml}</select>`)}</div>`;
 }
 
 /**
@@ -32,23 +159,27 @@ export function renderGear(app: ProfessionAppState): void {
     prefix: string,
     className: string,
     attributes: string,
+    statSlot: string,
     hidden = false
   ): string => `<div class="gear-row"${hidden ? ' style="display:none"' : ''}>
                 <span class="gear-label">${label}</span>
-                <select class="gear-select ${className}" ${attributes}>
-                    ${groupedOptions(PREFIX_GROUPS, prefix)}
-                </select>
+                ${compactSelect(
+                  prefix,
+                  `<select class="gear-select ${className}" ${attributes}>
+                    ${groupedOptions(PREFIX_GROUPS, prefix, (name) => prefixOptionLabel(name, statSlot))}
+                </select>`
+                )}
             </div>`;
   const armorRows = GEAR_SLOTS.filter((slot) => slot !== 'Weapon1' && slot !== 'Weapon2')
     .map((slot) =>
-      gearPrefixRow(slot === 'Leggins' ? 'Leggings' : slot, b.gear[slot], 'gear-prefix', `data-slot="${slot}"`)
+      gearPrefixRow(slot === 'Leggins' ? 'Leggings' : slot, b.gear[slot], 'gear-prefix', `data-slot="${slot}"`, slot)
     )
     .join('');
   const weaponPrefixRows = (setNumber: number, weapons: string[], prefixes: string[], allowEmpty = false): string => {
     const setTwoHanded = app.weaponData[weapons[0]]?.wielding === '2h';
     const setUnequipped = allowEmpty && !weapons[0];
-    return `<div class="weapon-set-heading"${setUnequipped ? ' style="display:none"' : ''}>${
-      hasSecondWeaponSet ? `Weapon set ${setNumber} stats` : 'Weapon stats'
+    return `<div class="gear-section-heading"${setUnequipped ? ' style="display:none"' : ''}>${
+      hasSecondWeaponSet ? `Weapon set ${setNumber}` : 'Weapon'
     }</div>
         ${[0, 1]
           .map((slot) =>
@@ -57,20 +188,23 @@ export function renderGear(app: ProfessionAppState): void {
               prefixes[slot],
               'weapon-prefix',
               `id="sel-stat${setNumber}-${slot + 1}" data-set="${setNumber}" data-slot="${slot}"`,
+              setTwoHanded && slot === 0 ? 'Weapon2H' : `Weapon${slot + 1}`,
               setUnequipped || (setTwoHanded && slot === 1)
             )
           )
           .join('')}`;
   };
 
-  requiredElement('gear-slots').innerHTML = `${tableHeader('Equipment', 'Prefix')}
-      <div class="gear-row gear-set-all-row">
-        <span class="gear-label">Set all</span>
-        <select class="gear-select" id="sel-set-all">
-          <option value="">— choose prefix —</option>
-          ${groupedOptions(PREFIX_GROUPS, '')}
-        </select>
-      </div>
+  // Keep the bulk prefix action in the header so the equipment column contains only per-slot rows.
+  requiredElement('gear-set-all').innerHTML = `<span>Set all</span>
+      ${compactSelect(
+        'Choose prefix',
+        `<select class="gear-select" id="sel-set-all">
+        <option value="">Choose prefix</option>
+        ${groupedOptions(PREFIX_GROUPS, '', (name) => prefixOptionLabel(name))}
+      </select>`
+      )}`;
+  requiredElement('gear-slots').innerHTML = `${sectionHeading('Equipment')}
       ${armorRows}
       ${weaponPrefixRows(1, b.weapons, [b.gear.Weapon1, b.gear.Weapon2])}
       ${hasSecondWeaponSet ? weaponPrefixRows(2, b.alternateWeapons, b.alternateWeaponPrefixes, true) : ''}`;
@@ -128,7 +262,7 @@ export function renderGear(app: ProfessionAppState): void {
     const setTwoHanded = app.weaponData[weapons[0]]?.wielding === '2h';
     const setUnequipped = allowEmpty && !weapons[0];
     const disabledStyle = setUnequipped ? 'display:none' : setTwoHanded ? 'opacity:.4;pointer-events:none' : '';
-    return `<div class="weapon-set-heading">Weapon set${hasSecondWeaponSet ? ` ${setNumber}` : ''}</div>
+    return `<div class="gear-section-heading">Weapon set${hasSecondWeaponSet ? ` ${setNumber}` : ''}</div>
                 <div class="gear-row"><span class="gear-label">Main hand</span>
                     <select id="sel-mh${setNumber}" class="gear-select">${
                       allowEmpty ? option('', weapons[0], 'None') : ''
@@ -144,10 +278,11 @@ export function renderGear(app: ProfessionAppState): void {
                     selectRow(
                       `Sigil ${slot + 1}`,
                       `sel-sig${setNumber}-${slot + 1}`,
+                      sigils[slot],
                       groupedOptions(
                         SIGIL_GROUPS,
                         sigils[slot],
-                        (name) => name,
+                        sigilOptionLabel,
                         (name) => name === sigils[slot === 0 ? 1 : 0]
                       )
                     )
@@ -156,7 +291,6 @@ export function renderGear(app: ProfessionAppState): void {
   };
 
   requiredElement('weapon-select').innerHTML = `
-            ${tableHeader('Weapons', 'Selection')}
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
             ${hasSecondWeaponSet ? weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true) : ''}`;
   const bindWeaponSet = (setNumber: number, weapons: string[]): void => {
@@ -199,11 +333,11 @@ export function renderGear(app: ProfessionAppState): void {
   if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement('equipment-info').innerHTML = `
-            ${tableHeader('Upgrades', 'Selection')}
-            ${selectRow('Rune', 'sel-rune', groupedOptions(RUNE_GROUPS, b.rune))}
-            ${selectRow('Relic', 'sel-relic', groupedOptions(RELIC_GROUPS, b.relic))}
-            ${selectRow('Food', 'sel-food', groupedOptions(FOOD_GROUPS, b.food))}
-            ${selectRow('Utility', 'sel-utility', groupedOptions(UTILITY_GROUPS, b.utility))}
+            ${sectionHeading('Upgrades')}
+            ${selectRow('Rune', 'sel-rune', b.rune, groupedOptions(RUNE_GROUPS, b.rune, runeOptionLabel))}
+            ${selectRow('Relic', 'sel-relic', b.relic, groupedOptions(RELIC_GROUPS, b.relic, relicOptionLabel))}
+            ${selectRow('Food', 'sel-food', b.food, groupedOptions(FOOD_GROUPS, b.food, foodOptionLabel))}
+            ${selectRow('Utility', 'sel-utility', b.utility, groupedOptions(UTILITY_GROUPS, b.utility, utilityOptionLabel))}
             <div class="gear-row"><span class="gear-label">Jade Bot</span>
                 <input type="checkbox" id="chk-jbc" class="gear-checkbox"${b.jadeBotCore ? ' checked' : ''}>
             </div>
@@ -213,9 +347,12 @@ export function renderGear(app: ProfessionAppState): void {
                 <span class="gear-label">Infusion ${index + 1}</span>
                 <div class="infusion-controls">
                     <input class="inf-count" data-index="${index}" type="number" min="0" max="18" value="${infusion.count}">
-                    <select class="gear-select inf-stat" data-index="${index}">
-                        ${INFUSION_STATS.map((stat) => option(stat, infusion.stat)).join('')}
-                    </select>
+                    ${compactSelect(
+                      infusion.stat,
+                      `<select class="gear-select inf-stat" data-index="${index}">
+                        ${INFUSION_STATS.map((stat) => option(stat, infusion.stat, `${stat} (+${INFUSION_BONUS} each)`)).join('')}
+                    </select>`
+                    )}
                 </div>
             </div>`
               )
@@ -258,5 +395,8 @@ export function renderGear(app: ProfessionAppState): void {
       infusion.stat = select.value;
       app.changed();
     });
+  });
+  document.querySelectorAll('.gear-select-display > select').forEach((select, index) => {
+    if (select instanceof HTMLSelectElement) enhanceDetailedSelect(select, index);
   });
 }

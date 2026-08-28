@@ -14,13 +14,6 @@ export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
 
 export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
 
-/** Display labels for each armor class group. */
-export const ARMOR_WEIGHT_LABELS: Readonly<Record<ArmorWeight, string>> = {
-  light: 'Light Armor',
-  medium: 'Medium Armor',
-  heavy: 'Heavy Armor'
-};
-
 export interface ProfessionRegistryEntry {
   /** Stable lowercase identifier used by builds and pages. */
   readonly id: string;
@@ -395,21 +388,13 @@ const entries: readonly ProfessionRegistryEntry[] = [
 
 export const professionRegistry: readonly ProfessionRegistryEntry[] = entries;
 
-export interface ProfessionArmorGroup {
-  readonly weight: ArmorWeight;
-  readonly label: string;
-  readonly entries: readonly ProfessionRegistryEntry[];
-}
-
 /**
  * Registry entries partitioned by armor class in `ARMOR_WEIGHTS` order, for
- * navigation surfaces that render grouped headers. Empty groups are omitted.
+ * the landing-page columns. Empty groups are omitted.
  */
-export const professionGroups: readonly ProfessionArmorGroup[] = ARMOR_WEIGHTS.map((weight) => ({
-  weight,
-  label: ARMOR_WEIGHT_LABELS[weight],
-  entries: professionRegistry.filter((entry) => entry.armorWeight === weight)
-})).filter((group) => group.entries.length > 0);
+export const professionGroups: readonly (readonly ProfessionRegistryEntry[])[] = ARMOR_WEIGHTS.map((weight) =>
+  professionRegistry.filter((entry) => entry.armorWeight === weight)
+).filter((group) => group.length > 0);
 
 const byId = new Map<string, ProfessionRegistryEntry>(professionRegistry.map((entry) => [entry.id, entry]));
 
