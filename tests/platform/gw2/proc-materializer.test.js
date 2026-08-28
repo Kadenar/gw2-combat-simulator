@@ -37,3 +37,25 @@ test('critical facts follow weapon swaps without proc sigils', () => {
   assert.ok(hits.length > 0);
   assert.ok(hits.every((event) => event.didCrit === true));
 });
+
+test('sigils retrigger on a hit at the exact internal-cooldown boundary', () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    [
+      '__combat_start',
+      { name: '__wait', waitMs: 40 },
+      'Flying Cutter',
+      { name: '__wait', waitMs: 4560 },
+      'Flying Cutter'
+    ],
+    defaultSimulationConfig({
+      stats: { ...defaults.stats, precision: 4000 },
+      sigilSets: [{ names: ['Torment'], strike: 1, condition: 1 }, { names: [] }]
+    })
+  );
+
+  assert.deepEqual(
+    result.procSteps.filter((step) => step.skill === 'Sigil of Torment').map((step) => step.start),
+    [357, 5357]
+  );
+});

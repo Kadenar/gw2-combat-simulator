@@ -1,5 +1,4 @@
 import { enqueueOrdered } from '../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../kernel/core/clock.js';
 import type { SchedulerRecord } from '../engine/types.js';
 import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '../equipment/consumables/food.js';
@@ -10,7 +9,8 @@ import { gw2SigilSet } from '../combat/query/runtime-rules.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
-  isResolverCriticalSigil
+  isResolverCriticalSigil,
+  isSigilInternalCooldownReady
 } from '../equipment/sigils/proc-events.js';
 import {
   handleBoonRelics,
@@ -115,7 +115,7 @@ function createResolvedCriticalSigilEffects(
   for (const name of names) {
     const proc = SIGIL_PROC_LOOKUP[name];
     const readyAt = ctx.sigil.readyAt.get(name) || 0;
-    if (proc?.trigger !== 'crit' || !isInternalCooldownReady(event.at, readyAt)) {
+    if (proc?.trigger !== 'crit' || !isSigilInternalCooldownReady(event.at, readyAt)) {
       continue;
     }
 

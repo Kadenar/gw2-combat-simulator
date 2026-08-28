@@ -1287,6 +1287,10 @@ test('Condition Quickness Herald weapon packets use their measured interrupt com
 
     assert.equal(skill.quicknessCastTimeMs ?? skill.castTimeMs, castTimeMs, `${skill.name} cast`);
     assert.equal(skill.interruptCommitMs, commitMs, `${skill.name} commit`);
+    if (skillId === SKILL.MANIFEST_TOXIN) {
+      // Both launched packets outlive a later animation cancel in EVTC replay.
+      assert.ok(skill.effects.every((effect) => effect.persistsAfterInterrupt === true));
+    }
     assert.equal(damageCount(commitMs - 1), 0, `${skill.name} before commit`);
     assert.equal(damageCount(commitMs), packetCount, `${skill.name} at commit`);
   }

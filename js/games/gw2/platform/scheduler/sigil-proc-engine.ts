@@ -1,4 +1,3 @@
-import { isInternalCooldownReady } from '../../../../kernel/core/clock.js';
 import type { SchedulerContext, SimulationEvent } from '../engine/types.js';
 import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
 import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
@@ -7,7 +6,8 @@ import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   GW2_SCHEDULER_SIGIL_PREDICTION,
-  isResolverCriticalSigil
+  isResolverCriticalSigil,
+  isSigilInternalCooldownReady
 } from '../equipment/sigils/proc-events.js';
 import type { Gw2Config } from '../simulation/config.js';
 import type { Gw2SigilProc } from '../equipment/types.js';
@@ -85,7 +85,7 @@ export function sigilCapabilities(config: Gw2Config): SigilCapabilities {
 
 export function createSigilProcEngine(config: Gw2Config, state: MaterializerState): Readonly<SigilProcEngine> {
   const sigilReady = (name: string, at: number): boolean =>
-    isInternalCooldownReady(at, state.sigil.readyAt.get(name) || 0);
+    isSigilInternalCooldownReady(at, state.sigil.readyAt.get(name) || 0);
 
   const armSigil = (name: string, at: number, cooldown: number): void => {
     state.sigil.readyAt.set(name, at + cooldown);

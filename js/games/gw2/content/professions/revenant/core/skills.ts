@@ -64,7 +64,9 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         actorType: 'player',
         atMs: 440,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        // Once Manifest Toxin launches, its strike and Poison survive a later animation cancel.
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -74,7 +76,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         actorType: 'player',
         atMs: 440,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
