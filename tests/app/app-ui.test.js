@@ -12,7 +12,7 @@ import {
 } from '../../js/games/gw2/app/build/panels/options.js';
 import { getBuildExportPayload } from '../../js/games/gw2/app/build/io/files.js';
 import { skillBarDisplaySkill } from '../../js/games/gw2/app/build/panels/skills.js';
-import { clampStartingResourceValues } from '../../js/games/gw2/app/build/panels/traits.js';
+import { clampStartingResourceValues, selectSpecialization } from '../../js/games/gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '../../js/games/gw2/app/build/state/persistence.js';
 import { groupedOptions, option } from '../../js/games/gw2/app/presentation/shared/html.js';
 import {
@@ -83,6 +83,49 @@ test('starting resource clamps cover every active resource view', () => {
     initialBlight: 5,
     unchanged: 9
   });
+});
+
+test('specialization selection replaces another elite line and refreshes its resources', () => {
+  let changed = 0;
+  const app = {
+    build: {
+      initialResource: 10,
+      specializations: [
+        { name: 'Damage', traits: '2-2-2' },
+        { name: 'Old Elite', traits: '3-3-3' },
+        { name: 'Support', traits: '2-2-2' }
+      ]
+    },
+    specializations: [
+      { name: 'Damage', elite: false },
+      { name: 'Support', elite: false },
+      { name: 'Fallback', elite: false },
+      { name: 'Old Elite', elite: true },
+      { name: 'New Elite', elite: true }
+    ],
+    adapter: {
+      specializationFallback: 'Fallback',
+      eliteSpecialization: (build) =>
+        build.specializations.find((specialization) => specialization.name.endsWith('Elite'))?.name || 'Core'
+    },
+    resourceDefinitions: (specialization) => {
+      assert.equal(specialization, 'New Elite');
+      return [{ maximum: 5 }];
+    },
+    changed() {
+      changed += 1;
+    }
+  };
+
+  selectSpecialization(app, 2, 'New Elite');
+
+  assert.deepEqual(app.build.specializations, [
+    { name: 'Damage', traits: '2-2-2' },
+    { name: 'Fallback', traits: '1-1-1' },
+    { name: 'New Elite', traits: '1-1-1' }
+  ]);
+  assert.equal(app.build.initialResource, 5);
+  assert.equal(changed, 1);
 });
 
 test('target armor presets use base by default and allow custom values', () => {
@@ -512,7 +555,7 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
   assert.deepEqual(PREFIX_GROUPS, [
     {
       label: 'Power',
-      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's"]
+      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's", "Zealot's"]
     },
     {
       label: 'Condition',
@@ -520,6 +563,7 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
         'Celestial',
         'Dire',
         'Grieving',
+        "Plaguedoctor's",
         'Rabid',
         "Rampager's",
         "Ritualist's",
@@ -769,17 +813,14 @@ test('published simulation results refresh result-dependent palette state', asyn
   assert.ok(outputRenderer.indexOf('renderPalette(app)') < outputRenderer.indexOf('renderTimeline(app)'));
 });
 
-test('current rotation DPS stays above the footer and hides in the professions view', async () => {
+test('current rotation DPS stays above the footer on simulator pages', async () => {
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 
   assert.match(
     css,
     /\.floating-dps\s*\{\s*position: absolute;\s*right: max\(14px, env\(safe-area-inset-right\)\);\s*bottom: calc\(100% \+ 12px\);/
   );
-  assert.match(
-    css,
-    /body\[data-profession\]\[data-simulator-view='professions'\] \.floating-dps\s*\{\s*display: none;/
-  );
+  assert.doesNotMatch(css, /data-simulator-view='professions'/);
 });
 
 test('gear panel leaves current rotation DPS to the floating metric', async () => {

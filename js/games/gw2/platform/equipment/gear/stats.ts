@@ -16,7 +16,7 @@ export const GEAR_SLOTS = [
   'Weapon2'
 ];
 
-// GEAR_STATS[prefix][slot] → { stat: value, ... }
+// Maps each prefix to level-80 ascended slot values so selected gear contributes its in-game attributes.
 export const GEAR_STATS = {
   "Berserker's": {
     Helm: { Power: 63, Precision: 45, Ferocity: 45 },
@@ -34,6 +34,23 @@ export const GEAR_STATS = {
     Weapon1: { Power: 125, Precision: 90, Ferocity: 90 },
     Weapon2: { Power: 125, Precision: 90, Ferocity: 90 },
     Weapon2H: { Power: 251, Precision: 179, Ferocity: 179 }
+  },
+  "Zealot's": {
+    Helm: { Power: 63, Precision: 45, 'Healing Power': 45 },
+    Shoulders: { Power: 47, Precision: 34, 'Healing Power': 34 },
+    Chest: { Power: 141, Precision: 101, 'Healing Power': 101 },
+    Gloves: { Power: 47, Precision: 34, 'Healing Power': 34 },
+    Leggins: { Power: 94, Precision: 67, 'Healing Power': 67 },
+    Boots: { Power: 47, Precision: 34, 'Healing Power': 34 },
+    Amulet: { Power: 157, Precision: 108, 'Healing Power': 108 },
+    Ring1: { Power: 126, Precision: 85, 'Healing Power': 85 },
+    Ring2: { Power: 126, Precision: 85, 'Healing Power': 85 },
+    Accessory1: { Power: 110, Precision: 74, 'Healing Power': 74 },
+    Accessory2: { Power: 110, Precision: 74, 'Healing Power': 74 },
+    Back: { Power: 63, Precision: 40, 'Healing Power': 40 },
+    Weapon1: { Power: 125, Precision: 90, 'Healing Power': 90 },
+    Weapon2: { Power: 125, Precision: 90, 'Healing Power': 90 },
+    Weapon2H: { Power: 251, Precision: 179, 'Healing Power': 179 }
   },
   "Assassin's": {
     Helm: { Power: 45, Precision: 63, Ferocity: 45 },
@@ -505,6 +522,98 @@ export const GEAR_STATS = {
       Concentration: 118,
       'Condition Damage': 215,
       Expertise: 118
+    }
+  },
+  "Plaguedoctor's": {
+    Helm: {
+      'Condition Damage': 54,
+      Vitality: 54,
+      'Healing Power': 30,
+      Concentration: 30
+    },
+    Shoulders: {
+      'Condition Damage': 40,
+      Vitality: 40,
+      'Healing Power': 22,
+      Concentration: 22
+    },
+    Chest: {
+      'Condition Damage': 121,
+      Vitality: 121,
+      'Healing Power': 67,
+      Concentration: 67
+    },
+    Gloves: {
+      'Condition Damage': 40,
+      Vitality: 40,
+      'Healing Power': 22,
+      Concentration: 22
+    },
+    Leggins: {
+      'Condition Damage': 81,
+      Vitality: 81,
+      'Healing Power': 44,
+      Concentration: 44
+    },
+    Boots: {
+      'Condition Damage': 40,
+      Vitality: 40,
+      'Healing Power': 22,
+      Concentration: 22
+    },
+    Amulet: {
+      'Condition Damage': 133,
+      Vitality: 133,
+      'Healing Power': 71,
+      Concentration: 71
+    },
+    Ring1: {
+      'Condition Damage': 106,
+      Vitality: 106,
+      'Healing Power': 56,
+      Concentration: 56
+    },
+    Ring2: {
+      'Condition Damage': 106,
+      Vitality: 106,
+      'Healing Power': 56,
+      Concentration: 56
+    },
+    Accessory1: {
+      'Condition Damage': 92,
+      Vitality: 92,
+      'Healing Power': 49,
+      Concentration: 49
+    },
+    Accessory2: {
+      'Condition Damage': 92,
+      Vitality: 92,
+      'Healing Power': 49,
+      Concentration: 49
+    },
+    Back: {
+      'Condition Damage': 52,
+      Vitality: 52,
+      'Healing Power': 27,
+      Concentration: 27
+    },
+    Weapon1: {
+      'Condition Damage': 108,
+      Vitality: 108,
+      'Healing Power': 59,
+      Concentration: 59
+    },
+    Weapon2: {
+      'Condition Damage': 108,
+      Vitality: 108,
+      'Healing Power': 59,
+      Concentration: 59
+    },
+    Weapon2H: {
+      'Condition Damage': 215,
+      Vitality: 215,
+      'Healing Power': 118,
+      Concentration: 118
     }
   },
   "Trailblazer's": {
