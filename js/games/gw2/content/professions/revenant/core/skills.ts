@@ -1782,7 +1782,11 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         condition: 'Bleeding',
         stacks: 1,
         duration: 3,
-        actorType: 'player'
+        actorType: 'player',
+        // Shattershot's Bleeding lands with the projectile on its 400 ms commit frame.
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

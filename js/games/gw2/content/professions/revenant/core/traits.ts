@@ -12,6 +12,7 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../data/i
 import { hasTrait } from '../../../../platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/scheduler/policy.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../platform/scheduler/skill-events.js';
+import { effectiveRevenantEnergyCost } from '../energy.js';
 import { revenantCombatActive } from './legend.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
@@ -289,7 +290,11 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
     });
   }
 
-  if (!([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id))) {
+  if (
+    !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id)) &&
+    // Only Energy-costing skills empower Embrace; free attacks such as Shattershot do not.
+    effectiveRevenantEnergyCost(context, skill) > 0
+  ) {
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS
     );

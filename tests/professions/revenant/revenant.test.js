@@ -1290,6 +1290,20 @@ test('Condition Quickness Herald weapon packets use their measured interrupt com
     assert.equal(damageCount(commitMs - 1), 0, `${skill.name} before commit`);
     assert.equal(damageCount(commitMs), packetCount, `${skill.name} at commit`);
   }
+
+  const committedShattershot = simulate(
+    'Herald',
+    [{ name: 'Shattershot', interruptMs: 400 }],
+    { ...baseHeraldConfig, primaryWeapon: 'Shortbow', secondaryWeapon: '' },
+    observationTail(4000)
+  );
+  const committedBleeds = committedShattershot.events.filter(
+    (event) => event.type === 'condition' && event.skillId === SKILL.SHATTERSHOT && event.condition === 'Bleeding'
+  );
+
+  // A committed projectile retains every on-hit packet even when its remaining animation is canceled.
+  assert.equal(committedBleeds.length, 1);
+  assert.equal(committedBleeds[0].at, 0.4);
 });
 
 test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
@@ -3101,6 +3115,29 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
     [1, 2]
   );
   assert.equal(empowered.endState.profession.activeUpkeeps.length, 0);
+
+  const freeSkill = simulate(
+    'Core',
+    ['Embrace the Darkness', 'Shattershot', { type: 'wait', durationMs: 600 }, 'Resist the Darkness'],
+    {
+      primaryWeapon: 'Shortbow',
+      secondaryWeapon: '',
+      selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DEMON,
+      initialEnergy: 100
+    }
+  );
+
+  // Embrace empowerment is earned only by spending Energy, not by merely casting a skill.
+  assert.deepEqual(
+    freeSkill.events
+      .filter(
+        (event) =>
+          event.type === 'condition' && event.skillName === 'Embrace the Darkness' && event.condition === 'Torment'
+      )
+      .map((event) => event.stacks),
+    [1, 1]
+  );
 });
 
 test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
@@ -3837,11 +3874,16 @@ test('Band Together makes the next Renegade summon instant and enhanced', () => 
     ]
   );
 
-  const concurrent = simulate('Renegade', ["Icerazor's Ire", { name: "Razorclaw's Rage", offset: 100 }], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100
-  });
+  const concurrent = simulate(
+    'Renegade',
+    ["Icerazor's Ire", { name: "Razorclaw's Rage", offset: 100 }],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100
+    },
+    observationTail(2000)
+  );
 
   assert.deepEqual(
     concurrent.steps.map((step) => [step.start, step.fullCastMs]),
@@ -3849,6 +3891,19 @@ test('Band Together makes the next Renegade summon instant and enhanced', () => 
       [0, 520],
       [100, 0]
     ]
+  );
+  // Every eligible hit consumes one charge at its hit time; Razorclaw has no internal cooldown.
+  assert.deepEqual(
+    concurrent.events
+      .filter(
+        (event) =>
+          event.type === 'condition' &&
+          event.skillName === "Razorclaw's Rage" &&
+          event.stacks === 1 &&
+          !event.triggeredByAlly
+      )
+      .map((event) => Math.round(event.at * 1000)),
+    [1020, 1181, 1342]
   );
 
   const primed = simulate('Renegade', ["Icerazor's Ire"], {

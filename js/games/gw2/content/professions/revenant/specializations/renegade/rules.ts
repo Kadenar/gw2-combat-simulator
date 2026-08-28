@@ -18,11 +18,13 @@ import { renegadeState } from './state.js';
 import { RENEGADE_PROFILE_IDS, RENEGADE_SPIRIT_BOON_PROFILE_ID } from './skills.js';
 import {
   handleRenegadeCriticalTraitsTask,
+  handleRazorclawProcTask,
   initializeRenegadeTraits,
   modifyRenegadeCastDuration,
   modifyRenegadeRechargeDuration,
   observeRenegadeTraits,
-  RENEGADE_CRITICAL_TRAITS_TASK
+  RENEGADE_CRITICAL_TRAITS_TASK,
+  RENEGADE_RAZORCLAW_PROC_TASK
 } from './traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
 import type {
@@ -245,6 +247,7 @@ export const renegadeSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: Object.freeze({
-    [RENEGADE_CRITICAL_TRAITS_TASK]: handleRenegadeCriticalTraitsTask
+    [RENEGADE_CRITICAL_TRAITS_TASK]: handleRenegadeCriticalTraitsTask,
+    [RENEGADE_RAZORCLAW_PROC_TASK]: handleRazorclawProcTask
   })
 });

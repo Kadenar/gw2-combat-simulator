@@ -17,6 +17,7 @@ import type {
 } from '../../types.js';
 
 export const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
+export const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';
 
 function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulationEvent): number {
   const state = renegadeState.from(context);
@@ -156,6 +157,46 @@ export function handleRenegadeCriticalTraitsTask(
   applyCriticalTraits(context, event);
 }
 
+function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  const razorclaw = renegadeState.from(context).razorclawsRage;
+  if (
+    Number(razorclaw?.charges || 0) <= 0 ||
+    event.at >= Number(razorclaw.expiresAt || 0) ||
+    !isInternalCooldownReady(event.at, Number(razorclaw.readyAt || 0))
+  ) {
+    return;
+  }
+
+  const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
+  const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
+  if (!profile || !effect) return;
+  razorclaw.charges -= 1;
+  razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
+  emitSkillCondition(context, {
+    cause: event,
+    at: event.at,
+    source: 'revenant',
+    sourceId: ID.RAZORCLAWS_RAGE,
+    actorType: 'player',
+    skillId: ID.RAZORCLAWS_RAGE,
+    skillName: "Razorclaw's Rage",
+    name: "Razorclaw's Rage — Bleeding",
+    condition: String(effect.condition || 'Bleeding'),
+    stacks: Number(effect.stacks || 1),
+    duration: Number(effect.duration || 0)
+  });
+}
+
+/** Resolves a hit-triggered Razorclaw charge when the scheduler reaches the hit timestamp. */
+export function handleRazorclawProcTask(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ readonly eventOrder: number }>
+): void {
+  const event = context.eventByOrder(Number(task.payload?.eventOrder)) as RevenantSimulationEvent | undefined;
+  if (!event) throw new Error(`Missing Razorclaw trigger event ${String(task.payload?.eventOrder)}.`);
+  applyRazorclawProc(context, event);
+}
+
 export function modifyRenegadeCastDuration(context: RevenantPrecastContext, duration: number): number {
   // Empowered Band Together is instant-cast (0 duration) so no animation lane is reserved; normal summons keep their full cast time
   return context.skill?.handlerId === 'revenant.band-together' &&
@@ -221,35 +262,13 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     }
   }
 
-  const razorclaw = state.razorclawsRage;
-  if (
-    // Skip the Razorclaw's Rage hit itself to avoid infinite recursion
-    event.skillId === ID.RAZORCLAWS_RAGE ||
-    Number(razorclaw?.charges || 0) <= 0 ||
-    event.at >= Number(razorclaw.expiresAt || 0) ||
-    // readyAt enforces the 1-second internal cooldown between player-hit-triggered bleeds
-    !isInternalCooldownReady(event.at, Number(razorclaw.readyAt || 0))
-  ) {
-    return;
+  if (event.skillId !== ID.RAZORCLAWS_RAGE) {
+    // Damage is emitted when a cast is scheduled, so defer charge checks until the hit actually occurs.
+    context.tasks.schedule({
+      id: `${RENEGADE_RAZORCLAW_PROC_TASK}:${event.__order}`,
+      type: RENEGADE_RAZORCLAW_PROC_TASK,
+      at: Math.max(context.state.time, event.at),
+      payload: { eventOrder: Number(event.__order) }
+    });
   }
-
-  const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
-  if (!profile || !effect) return;
-  razorclaw.charges -= 1;
-  razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
-  emitSkillCondition(context, {
-    cause: event,
-
-    at: event.at,
-    source: 'revenant',
-    sourceId: ID.RAZORCLAWS_RAGE,
-    actorType: 'player',
-    skillId: ID.RAZORCLAWS_RAGE,
-    skillName: "Razorclaw's Rage",
-    name: "Razorclaw's Rage — Bleeding",
-    condition: String(effect.condition || 'Bleeding'),
-    stacks: Number(effect.stacks || 1),
-    duration: Number(effect.duration || 0)
-  });
 }

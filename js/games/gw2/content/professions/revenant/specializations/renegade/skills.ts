@@ -611,7 +611,8 @@ const RENEGADE_DECLARATIONS: readonly (Skill | BalanceProfile)[] = Object.freeze
   triggeredRenegadeAction({
     id: RENEGADE_PROFILE_IDS.razorclawsRageProc,
     name: "Razorclaw's Rage — Empowered Attack",
-    cooldown: 1,
+    // Consecutive allied attacks consume the four buff charges without an internal cooldown.
+    cooldown: 0,
     effects: [
       {
         type: 'condition',
