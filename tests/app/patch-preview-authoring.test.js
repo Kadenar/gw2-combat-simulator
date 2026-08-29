@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   compactPatchPreview,
   createEffectTemplate,
+  effectDetail,
   generatePatchOverview,
   groupPatchAuthoringSkills,
   numericEditForValue,
@@ -160,6 +161,32 @@ test('patch authoring groups skills by weapon and slot type', () => {
   );
 });
 
+test('patch authoring subgroups Elementalist weapon skills by attunement', () => {
+  const entry = (id, name, attunement) => ({
+    id,
+    name,
+    moduleId: 'Core',
+    skill: { id, name, type: 'Weapon', weapon: 'Dagger', attunement },
+    patchableFields: {}
+  });
+  const [dagger] = groupPatchAuthoringSkills([
+    entry(1, 'Fire Skill', 'Fire'),
+    entry(2, 'Water Skill', 'Water'),
+    entry(3, 'Air Skill', 'Air'),
+    entry(4, 'Earth Skill', 'Earth'),
+    entry(5, 'Dual Skill', 'Fire+Water')
+  ]);
+
+  assert.deepEqual(
+    dagger.attunementGroups.map((group) => group.label),
+    ['Air', 'Earth', 'Fire', 'Water', 'Dual']
+  );
+  assert.deepEqual(
+    dagger.attunementGroups.at(-1).skills.map((skill) => skill.name),
+    ['Dual Skill']
+  );
+});
+
 test('patch authoring numeric controls preserve stale live-value checks', () => {
   assert.equal(numericEditValue(10, undefined), 10);
   assert.equal(numericEditValue(10, 12), 12);
@@ -200,7 +227,7 @@ test('patch authoring compacts empty edits without dropping numeric zero', () =>
   );
 });
 
-test('patch authoring provides valid effect templates and normalized search', () => {
+test('patch authoring provides valid effect templates, labels, and normalized search', () => {
   assert.deepEqual(createEffectTemplate('strike'), {
     type: 'strike',
     coefficient: 1,
@@ -215,6 +242,17 @@ test('patch authoring provides valid effect templates and normalized search', ()
     atMs: 0
   });
   assert.equal(patchSearchText('Bloody Roar', ['strikeDamage', 'multiply']), 'bloody roar strikedamage multiply');
+  assert.equal(
+    effectDetail({
+      type: 'condition',
+      ticks: [{ atMs: 280, condition: 'Bleeding', stacks: 1, duration: 7 }]
+    }),
+    'Bleeding'
+  );
+  assert.equal(
+    effectDetail({ type: 'condition', name: 'Fire', condition: 'Burning', stacks: 1, duration: 1.5 }),
+    'Fire · Burning'
+  );
 });
 
 test('patch authoring generates an overview and discards manual notes', () => {

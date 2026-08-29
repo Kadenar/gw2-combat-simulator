@@ -125,6 +125,17 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(profile('Weaver', WEAVER_BALANCE_PROFILE_IDS.primordialStance).profile.effects[0].coefficient, 0.33);
   assert.equal(profile('Catalyst', CATALYST_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 30);
   assert.equal(profile('Evoker', EVOKER_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 6);
+  assert.equal(
+    modules.get('Core').skills.some((entry) => entry.id === ID.FRIGID_FLURRY),
+    true
+  );
+  assert.equal(
+    modules.get('Core').balanceProfiles.some((entry) => entry.profile.parentId === ID.FRIGID_FLURRY),
+    false
+  );
+  assert.deepEqual(modules.get('Core').modifierRules.find((rule) => rule.id === 'elementalist.inferno').parameters, {
+    powerScaling: 0.0825
+  });
 
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(

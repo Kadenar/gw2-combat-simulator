@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import path from 'node:path';
 import test from 'node:test';
 
 import {
+  createPatchPreviewAuthoringApi,
   serializeActivePatchPreview,
   validateAuthoringPreview
 } from '../../scripts/patch-preview/patch-preview-authoring-api.mjs';
@@ -14,10 +16,29 @@ test('patch authoring serializer emits the typed active preview module', () => {
     professions: { warrior: { skills: { 1: { cooldown: 8 } } } }
   });
 
-  assert.match(source, /import type \{ PatchPreview \}/);
+  assert.match(source, /import type \{ PatchPreview \} from "\.\/authoring\/patches\.js"/);
   assert.match(source, /export const activePatchPreview: PatchPreview = \{/);
   assert.match(source, /"august-preview"/);
   assert.match(source, /export default activePatchPreview;/);
+});
+
+test('patch authoring API loads the compiled GW2 runtime', async () => {
+  const response = {
+    end(body) {
+      this.body = body;
+    },
+    writeHead(status) {
+      this.status = status;
+    }
+  };
+  const handle = createPatchPreviewAuthoringApi({
+    root: process.cwd(),
+    buildRoot: path.join(process.cwd(), 'dist')
+  });
+
+  assert.equal(await handle({ method: 'GET' }, response, '/api/patch-preview'), true);
+  assert.equal(response.status, 200);
+  assert.equal(JSON.parse(response.body).sourceFile, 'js/games/gw2/integrations/patches/active-preview.ts');
 });
 
 test('patch authoring validation dispatches each profession patch', () => {

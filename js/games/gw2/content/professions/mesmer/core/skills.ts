@@ -1567,6 +1567,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     ],
     castTimeMs: 660
   },
+  // Non-Mirage Axe variants retain separate IDs so their conditions and finishers resolve independently.
   [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
     implemented: true,
     type: 'Weapon',
@@ -1574,6 +1575,16 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Troubadour',
     environment: 'Terrestrial',
     cooldown: 0.25,
+    ammo: 2,
+    ammoRecharge: 6,
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: 'Whirl',
+        applications: 2,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     resource: {
       mode: 'add',
       count: 1
@@ -1592,6 +1603,12 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         condition: 'torment',
         duration: 4,
         stacks: 3
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        duration: 1,
+        stacks: 3
       }
     ],
     // The Troubadour variant keeps the same measured Axe cast timing as Mirage.
@@ -1604,6 +1621,13 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     specialization: 'Troubadour',
     environment: 'Terrestrial',
     cooldown: 8,
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -1626,7 +1650,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 1020
+    quicknessCastTimeMs: 1000
   },
   [ID.FRIENDLY_FIRE]: {
     implemented: true,

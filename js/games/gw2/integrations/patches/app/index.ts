@@ -21,6 +21,7 @@ import {
   compactPatchPreview,
   createEffectTemplate,
   createPatchPreviewDraft,
+  effectDetail,
   generatePatchOverview,
   groupPatchAuthoringSkills,
   numericEditForValue,
@@ -378,7 +379,7 @@ function effectCards(skill: NativePatchAuthoringSkill): string {
   return effects
     .map((effect, effectIndex) => {
       const removed = effectRemoved(edit, effectIndex);
-      const detail = effect.name || effect.condition || effect.boon || effect.kind || '';
+      const detail = effectDetail(effect);
       return `<article class="patch-effect${removed ? ' is-removed' : ''}">
         <header>
           <div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div>
@@ -459,6 +460,13 @@ function skillDetail(skill: NativePatchAuthoringSkill | null): string {
   </article>`;
 }
 
+function skillOption(skill: NativePatchAuthoringSkill): string {
+  return `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? ' is-selected' : ''}${hasSkillEdit(skill.id.toString()) ? ' is-changed' : ''}" data-select-skill="${escapeHtml(skill.id)}">
+    ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ''}
+    <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || 'Skill')} · ${escapeHtml(skill.id)}</small></span>
+  </button>`;
+}
+
 function skillSection(module: NativePatchAuthoringModule): string {
   const query = search.trim().toLocaleLowerCase();
   const skills = [...module.skills]
@@ -481,16 +489,17 @@ function skillSection(module: NativePatchAuthoringModule): string {
               .map(
                 (group) => `<section class="patch-skill-group" data-skill-group="${escapeHtml(group.key)}">
                   <h3 class="patch-skill-group-heading"><span>${escapeHtml(group.label)}</span><small>${group.skills.length}</small></h3>
-                  ${group.skills
-                    .map(
-                      (
-                        skill
-                      ) => `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? ' is-selected' : ''}${hasSkillEdit(skill.id.toString()) ? ' is-changed' : ''}" data-select-skill="${escapeHtml(skill.id)}">
-                        ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ''}
-                        <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || 'Skill')} · ${escapeHtml(skill.id)}</small></span>
-                      </button>`
-                    )
-                    .join('')}
+                  ${(group.attunementGroups.length
+                    ? group.attunementGroups.map(
+                        (
+                          attunement
+                        ) => `<section class="patch-skill-attunement-group" data-attunement="${escapeHtml(attunement.key)}">
+                            <h4 class="patch-skill-attunement-heading"><span>${escapeHtml(attunement.label)}</span><small>${attunement.skills.length}</small></h4>
+                            ${attunement.skills.map(skillOption).join('')}
+                          </section>`
+                      )
+                    : group.skills.map(skillOption)
+                  ).join('')}
                 </section>`
               )
               .join('')
@@ -597,7 +606,7 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
         effects.length
           ? effects
               .map((effect, effectIndex) => {
-                const detail = effect.name || effect.condition || effect.boon || effect.kind || '';
+                const detail = effectDetail(effect);
                 return `<article class="patch-effect">
                   <header><div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div></header>
                   <div class="patch-number-grid">${balanceProfileEffectRows(id, effectIndex, effect, edit)}</div>

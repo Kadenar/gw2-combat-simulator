@@ -103,6 +103,16 @@ export function createSkillSpecialEffectController({
       }
     }
 
+    if (skill.id === ID.TROUBADOUR_AXES_OF_SYMMETRY) {
+      // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
+      const clones = professionCoreState(state).clones.filter((clone) => clone.createdAt <= castStart + 0.0001);
+      if (clones.length) {
+        addCondition(skill.name, at, { name: 'Confusion', duration: 6, stacks: clones.length }, 'Player', skill.name, {
+          skillId: skill.id
+        });
+      }
+    }
+
     if (skill.id === ID.MIND_THE_GAP) {
       professionCoreState(state).clarityUntil =
         at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier || CLARITY_DURATION);

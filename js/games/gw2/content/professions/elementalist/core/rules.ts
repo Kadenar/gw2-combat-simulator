@@ -158,6 +158,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
     .sort((left, right) => left.at - right.at);
 
   if (skill.name === 'Frigid Flurry' && state.pistolBullets.Water === true) {
+    // An active ice bullet gives every Frigid Flurry strike its fixed 20% projectile-finisher chance.
     for (const [index, event] of activationEvents.entries()) {
       const replacement = context.replaceEvent(event, {
         comboFinishers: [
@@ -165,7 +166,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
             ownerId: 'elementalist',
             attemptGroup: `runtime:${index + 1}`,
             finisherType: 'Projectile',
-            chance: elementalistBalanceValue(context, PROFILE.frigidFlurry, 'procChance', 0.2),
+            chance: 0.2,
             ambiguousFieldSelection: 'oldest'
           }
         ]

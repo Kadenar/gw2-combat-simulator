@@ -10180,6 +10180,23 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   color: var(--accent);
 }
 
+.landing-community {
+  border: 0;
+}
+
+.landing-community h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.landing-community h3:not(:first-child) {
+  margin-top: 24px;
+}
+
+.landing-community a {
+  color: var(--accent);
+}
+
 .profession-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

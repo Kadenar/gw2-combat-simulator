@@ -24,7 +24,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   ragingRicochet: 'elementalist.core.raging-ricochet-bullet',
   searingSalvo: 'elementalist.core.searing-salvo-bullet',
   frozenFusillade: 'elementalist.core.frozen-fusillade-bullet',
-  frigidFlurry: 'elementalist.core.frigid-flurry-bullet',
   dazingDischarge: 'elementalist.core.dazing-discharge-bullet',
   shatteringStone: 'elementalist.core.shattering-stone-bullet',
   fulgor: 'elementalist.core.fulgor-pulses',
@@ -207,9 +206,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
       effects: [{ type: 'strike', coefficient: 0.75, hits: 1 }, namedCondition('Water Bullet', 'Bleeding', 5, 8)]
     }
   ),
-  variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.frigidFlurry, ID.FRIGID_FLURRY, 'Frigid Flurry - Water Bullet', {
-    procChance: 0.2
-  }),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.dazingDischarge, ID.DAZING_DISCHARGE, 'Dazing Discharge - Air Bullet', {
     durationMultiplier: 5,
     rechargeMultiplier: 0.67

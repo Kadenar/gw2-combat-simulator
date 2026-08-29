@@ -1216,7 +1216,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
 
   assert.deepEqual(
     axeSkills.steps.map((step) => step.end - step.start),
-    [430, 530, 720, 920, 1020]
+    [430, 530, 720, 920, 1000]
   );
 
   const greatswordSkills = simulateMesmer(

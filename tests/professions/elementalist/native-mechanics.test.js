@@ -2450,7 +2450,16 @@ test('core damage traits expose their exact resolver modifiers', () => {
   assert.equal(rules.get('elementalist.elements-of-rage-condition').operation, 'damage-additive');
   assert.equal(rules.get('elementalist.elements-of-rage-strike').amount, 0.15);
   assert.equal(rules.get('elementalist.persisting-flames').operation, 'damage-additive');
-  assert.equal(rules.get('elementalist.inferno').target, 'conditionDamage');
+  const inferno = rules.get('elementalist.inferno');
+  assert.equal(inferno.target, 'conditionDamage');
+  assert.equal(
+    inferno.factor(
+      { time: 0, query: { statsAt: () => ({ power: 1000, conditionDamage: 1000 }) } },
+      'conditionDamage',
+      inferno.parameters
+    ),
+    213.5 / 286
+  );
 
   const { app: core } = createNativeApp({
     lines: [['Fire'], ['Air'], ['Arcane']]

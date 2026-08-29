@@ -691,6 +691,30 @@ pre {
   font-size: inherit;
 }
 
+/* Elementalist weapon groups use a second heading level so their large catalogs remain scannable by attunement. */
+.patch-skill-attunement-group {
+  display: flex;
+  padding-left: 6px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.patch-skill-attunement-heading {
+  display: flex;
+  margin: 2px 0 0;
+  padding: 5px 6px 3px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.patch-skill-attunement-heading small {
+  font-size: inherit;
+}
+
 .patch-skill-option {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);

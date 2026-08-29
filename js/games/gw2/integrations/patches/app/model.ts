@@ -16,12 +16,57 @@ export interface PatchAuthoringSkillGroup {
   readonly key: string;
   readonly label: string;
   readonly skills: readonly NativePatchAuthoringSkill[];
+  readonly attunementGroups: readonly PatchAuthoringSkillAttunementGroup[];
+}
+
+export interface PatchAuthoringSkillAttunementGroup {
+  readonly key: string;
+  readonly label: string;
+  readonly skills: readonly NativePatchAuthoringSkill[];
 }
 
 interface SkillGroupIdentity {
   readonly key: string;
   readonly label: string;
   readonly order: number;
+}
+
+const ELEMENTALIST_ATTUNEMENT_ORDER = new Map(
+  ['Air', 'Earth', 'Fire', 'Water', 'Dual', 'Other'].map((attunement, index) => [attunement, index])
+);
+
+function skillAttunementGroup(entry: NativePatchAuthoringSkill): string | null {
+  const attunement = String(entry.skill.attunement || '');
+  if (!attunement) return null;
+  if (attunement.includes('+')) return 'Dual';
+  return ELEMENTALIST_ATTUNEMENT_ORDER.has(attunement) ? attunement : 'Other';
+}
+
+/** Adds Elementalist attunement buckets beneath weapon groups while leaving other profession groups flat. */
+function groupSkillsByAttunement(
+  skills: readonly NativePatchAuthoringSkill[]
+): readonly PatchAuthoringSkillAttunementGroup[] {
+  if (!skills.some(skillAttunementGroup)) return [];
+
+  const groups = new Map<string, NativePatchAuthoringSkill[]>();
+  for (const skill of skills) {
+    const label = skillAttunementGroup(skill) || 'Other';
+    const entries = groups.get(label) || [];
+    entries.push(skill);
+    groups.set(label, entries);
+  }
+
+  return [...groups]
+    .sort(
+      ([left], [right]) =>
+        (ELEMENTALIST_ATTUNEMENT_ORDER.get(left) ?? Number.MAX_SAFE_INTEGER) -
+        (ELEMENTALIST_ATTUNEMENT_ORDER.get(right) ?? Number.MAX_SAFE_INTEGER)
+    )
+    .map(([label, entries]) => ({
+      key: label.toLocaleLowerCase(),
+      label,
+      skills: entries
+    }));
 }
 
 function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentity {
@@ -73,11 +118,15 @@ export function groupPatchAuthoringSkills(
 
   return [...groups.values()]
     .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label))
-    .map(({ key, label, skills: entries }) => ({
-      key,
-      label,
-      skills: entries.sort((left, right) => left.name.localeCompare(right.name))
-    }));
+    .map(({ key, label, skills: entries }) => {
+      const sortedSkills = entries.sort((left, right) => left.name.localeCompare(right.name));
+      return {
+        key,
+        label,
+        skills: sortedSkills,
+        attunementGroups: key.startsWith('weapon:') ? groupSkillsByAttunement(sortedSkills) : []
+      };
+    });
 }
 
 export function createPatchPreviewDraft(): PatchPreview {
@@ -122,6 +171,15 @@ export function createEffectTemplate(type: string): SkillEffect {
     default:
       return { type: 'strike', coefficient: 1, hits: 1, atMs: 0 };
   }
+}
+
+/** Shows both an effect's context label and payload without requiring raw metadata inspection. */
+export function effectDetail(effect: Readonly<SkillEffect>): string {
+  const firstTick = Array.isArray(effect.ticks) ? effect.ticks[0] : undefined;
+  const details = [effect.name, effect.condition, effect.boon, effect.kind, firstTick?.condition].filter(
+    (detail): detail is string => typeof detail === 'string' && detail.length > 0
+  );
+  return [...new Set(details)].join(' · ');
 }
 
 const FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({

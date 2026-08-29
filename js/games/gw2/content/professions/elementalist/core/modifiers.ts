@@ -49,10 +49,9 @@ function infernoBurningFactor(
   const stats = context.query?.statsAt(context.time, context.event, context.runtime);
   const power = Number(stats?.power || 0);
   const conditionDamage = Number(stats?.conditionDamage || 0);
-  const normalBurningRate = parameters.conditionBase + parameters.conditionScaling * conditionDamage;
-  return normalBurningRate > 0
-    ? (parameters.powerBase + parameters.powerScaling * power) / normalBurningRate
-    : parameters.fallbackFactor;
+  // Only Inferno's power coefficient is balance-authorable; its shared burning formula stays canonical.
+  const normalBurningRate = 131 + 0.155 * conditionDamage;
+  return normalBurningRate > 0 ? (131 + parameters.powerScaling * power) / normalBurningRate : 1;
 }
 
 export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -60,13 +59,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     id: 'elementalist.inferno',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'multiply',
-    parameters: {
-      conditionBase: 131,
-      conditionScaling: 0.155,
-      powerBase: 131,
-      powerScaling: 0.0825,
-      fallbackFactor: 1
-    } as Readonly<Record<string, number>>,
+    parameters: { powerScaling: 0.0825 } as Readonly<Record<string, number>>,
     factor: infernoBurningFactor,
     when: (context) => hasTrait(context, 'Inferno') && context.condition === 'Burning'
   },
