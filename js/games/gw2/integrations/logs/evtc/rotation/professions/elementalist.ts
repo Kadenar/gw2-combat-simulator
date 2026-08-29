@@ -449,6 +449,7 @@ function recoverMissingFireShieldActions(
       if (actionName(action) === 'Fire Attunement') {
         return Math.abs(action.start - event.time) <= AURA_SIGNAL_WINDOW_MS;
       }
+
       return (
         FIRE_AURA_SOURCES.has(actionName(action)) &&
         event.time >= action.start - AURA_SIGNAL_WINDOW_MS &&
