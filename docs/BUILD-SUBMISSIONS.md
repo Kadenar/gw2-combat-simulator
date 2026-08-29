@@ -48,10 +48,3 @@ For each submission:
 
 Labels such as `build-submission`, `needs-review`, `accepted`, and `rejected`
 can be added in GitHub for moderation, but the form does not depend on them.
-
-## Optional future automation
-
-A maintainer-only workflow can later accept an issue number and prepare a pull
-request after approval. Keep that workflow manually dispatched or gated behind
-a maintainer-controlled label so unreviewed submissions never create branches
-or pull requests.
