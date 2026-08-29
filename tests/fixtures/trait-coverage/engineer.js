@@ -16,6 +16,7 @@ const IMPLEMENTED = new Set([
   'Big Boomer',
   'Compounding Chemicals',
   'Energy Amplifier',
+  'HGH',
   'Optimized Activation',
   'Static Discharge',
   'Power Wrench',

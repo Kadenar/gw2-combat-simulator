@@ -1031,6 +1031,55 @@ test('reconstructs the Core Engineer mine opening from post-combat effect eviden
   assert.deepEqual(result.warnings, []);
 });
 
+test('reconstructs Core Acid Bomb, Gadgeteer mine, and Weaponmaster sword log IDs', () => {
+  const skills = [
+    skill(5936, 'Acid Bomb'),
+    skill(30337, 'Throw Mine'),
+    skill(70514, 'Sun Edge'),
+    skill(69906, 'Sun Ripper'),
+    skill(70771, 'Gleam Saber'),
+    skill(69565, 'Radiant Arc'),
+    skill(71121, 'Refraction Cutter')
+  ];
+  const fixture = engineerLog(
+    skills,
+    [
+      event({ time: 1000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...animation(5936, 2000, 250),
+      ...animation(30337, 3000, 500),
+      event({ time: 3500, target: TARGET, value: 1000, skillId: 30337 }),
+      event({ time: 3500, target: TARGET, value: 1000, skillId: 30337 }),
+      ...animation(70514, 4000, 440),
+      event({ time: 4300, target: TARGET, value: 1000, skillId: 70514 }),
+      ...animation(69906, 4600, 480),
+      event({ time: 4900, target: TARGET, value: 1000, skillId: 69906 }),
+      ...animation(70771, 5200, 720),
+      event({ time: 5700, target: TARGET, value: 1000, skillId: 70771 }),
+      ...animation(69565, 6000, 840),
+      event({ time: 6500, target: TARGET, value: 1000, skillId: 69565 }),
+      ...animation(71121, 7000, 520),
+      event({ time: 7300, target: TARGET, value: 1000, skillId: 71121 })
+    ],
+    { elite: 0 }
+  );
+
+  const result = reconstructEvtcRotation(fixture, engineerCatalog, {
+    selectedSkillNames: ['Elixir Gun', 'Throw Mine']
+  });
+  const actionId = (name) => result.actions.find((action) => action.name === name)?.skillId;
+
+  // These are the raw IDs emitted by the supplied Core Engineer EVTC log.
+  assert.deepEqual(result.warnings, []);
+  assert.equal(actionId('Acid Bomb'), 5936);
+  assert.equal(actionId('Throw Mine'), 6161);
+  assert.equal(result.actions.filter((action) => action.name === 'Detonate').length, 1);
+  assert.equal(actionId('Sun Edge'), 70514);
+  assert.equal(actionId('Sun Ripper'), 69906);
+  assert.equal(actionId('Gleam Saber'), 70771);
+  assert.equal(actionId('Radiant Arc'), 69565);
+  assert.equal(actionId('Refraction Cutter'), 71121);
+});
+
 test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
   const skills = [
     skill(6161, 'Throw Mine', {

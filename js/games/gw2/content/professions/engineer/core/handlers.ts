@@ -66,7 +66,13 @@ function armPrecombatMineField(context: EngineerCastContext): void {
 
 function duplicateGadgeteerMine(context: EngineerCastContext, skill: EngineerSkill, event: SimulationEvent): void {
   if (skill.id !== ID.DETONATE || event.type !== 'damage' || !hasTrait(context.config, TRAIT.GADGETEER)) return;
-  // Gadgeteer adds one mine to Throw Mine; copying its strike makes both mines detonate together.
+  // The added mine needs a separate combo attempt while sharing the original Detonate activation.
+  const comboFinishers = Array.isArray(event.comboFinishers)
+    ? (event.comboFinishers as SchedulerRecord[]).map((finisher) => ({
+        ...finisher,
+        attemptGroup: 'gadgeteer-mine'
+      }))
+    : undefined;
   emitSkillDamage(context, skill, {
     at: event.at,
     coefficient: Number(event.coefficient || 0),
@@ -75,7 +81,7 @@ function duplicateGadgeteerMine(context: EngineerCastContext, skill: EngineerSki
     skillWeapon: String(event.skillWeapon || 'Unequipped'),
     metadata: {
       damageKind: event.damageKind,
-      comboFinishers: event.comboFinishers
+      comboFinishers
     }
   });
 }

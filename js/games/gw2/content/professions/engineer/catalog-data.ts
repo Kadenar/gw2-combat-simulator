@@ -139,7 +139,19 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
 
 const generatedIds = new Set<SkillId>(SKILLS.map((skill) => skill.id));
 
-const generatedSource = SKILLS.map((skill) => ({ ...skill }));
+const CORE_SWORD_SKILL_IDS = new Set<SkillId>([
+  ID.SUN_EDGE_ID_70514,
+  ID.SUN_RIPPER_ID_69906,
+  ID.GLEAM_SABER_ID_70771,
+  ID.RADIANT_ARC_ID_69565,
+  ID.REFRACTION_CUTTER_ID_71121
+]);
+
+const generatedSource = SKILLS.map((skill) => ({
+  ...skill,
+  // Weaponmaster sword variants are profession-wide despite the API's stale Holosmith label.
+  ...(CORE_SWORD_SKILL_IDS.has(skill.id) ? { specialization: '' } : {})
+}));
 
 const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
 

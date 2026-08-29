@@ -19,7 +19,7 @@ import {
   recordTrait,
   resolverSkill
 } from './shared.js';
-import type { SkillId } from '../../../../platform/engine/types.js';
+import type { SimulationEvent, SkillId } from '../../../../platform/engine/types.js';
 import type { ResolvedCriticalHitOptions } from '../../../../integrations/patches/authoring/mechanics.js';
 import type {
   EngineerCastContext,
@@ -38,6 +38,64 @@ export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boole
 
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
   return skill?.type === 'Heal' || skill?.slot === 'Heal';
+}
+
+function isElixirSkill(skill: EngineerSkill | undefined): boolean {
+  return Boolean(skill?.categories?.some((category) => String(category).toLowerCase() === 'elixir'));
+}
+
+function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
+  if (
+    !hasTrait(context.config, TRAIT.HGH) ||
+    !isElixirSkill(skill) ||
+    context.effectiveEnd < context.fullEnd - context.epsilon
+  )
+    return;
+
+  // HGH grants fixed-duration boons and extends Acid Bomb far enough for one additional pulse.
+  emitSkillBuff(context, skill, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.HGH,
+    actorType: 'player',
+    name: 'HGH — might',
+    kind: 'might',
+    duration: 12,
+    stacks: 2
+  });
+  emitSkillBuff(context, skill, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.HGH,
+    actorType: 'player',
+    name: 'HGH — fury',
+    kind: 'fury',
+    duration: 4,
+    stacks: 1
+  });
+  if (skill.id === ID.ACID_BOMB) {
+    emitSkillDamage(context, skill, {
+      at: context.fullEnd + 6,
+      activationId: context.action.activationId,
+      coefficient: 0.85,
+      hits: 1,
+      name: 'Acid Bomb',
+      actorType: 'player'
+    });
+  }
+}
+
+export function observeEngineerHghEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
+  if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return;
+  const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId) as EngineerSkill | undefined;
+  if (!isElixirSkill(skill)) return;
+
+  if (event.type === 'combo_field') {
+    const duration = Number(event.expiresAt) - event.at;
+    if (duration > 0) context.replaceEvent(event, { expiresAt: event.at + duration * 1.2 });
+  } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
+    context.replaceEvent(event, { duration: Number(event.duration) * 1.2 });
+  }
 }
 
 // Grenadier procs on healing skill casts (Healing Turret Overcharge in-game); 20s ICD
@@ -191,6 +249,7 @@ export function applyEngineerCastTraits(context: EngineerCastContext, skill: Eng
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
   applyEngineerToolbeltTraits(context, skill, at);
+  applyHgh(context, skill, at);
 }
 
 // checks both the event flag and skill category — some skills lack the explosion category in the API

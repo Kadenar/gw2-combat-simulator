@@ -7,7 +7,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { engineerCoreCastAvailability } from './availability.js';
 import { advanceEngineerResources } from './resources.js';
 import { handleElectricArtilleryExpire, handleElectricArtilleryReady, handleLightningRodCharge } from './spear.js';
-import { applyEngineerCastTraits, isEngineerToolbeltSkill } from './traits.js';
+import { applyEngineerCastTraits, isEngineerToolbeltSkill, observeEngineerHghEvent } from './traits.js';
 import { handleEngineerTurretAttack } from './turrets.js';
 import { observeEngineerMineFieldEvent } from './handlers.js';
 import {
@@ -360,11 +360,18 @@ export const engineerCoreSchedulerHooks = Object.freeze({
       handler: applyEngineerCastTraits
     }
   ]),
-  onEventScheduled: {
-    id: 'engineer.mine-field',
-    order: 10,
-    handler: observeEngineerMineFieldEvent
-  },
+  onEventScheduled: Object.freeze([
+    {
+      id: 'engineer.mine-field',
+      order: 10,
+      handler: observeEngineerMineFieldEvent
+    },
+    {
+      id: 'engineer.hgh-duration',
+      order: 20,
+      handler: observeEngineerHghEvent
+    }
+  ]),
   taskHandlers: Object.freeze({
     'engineer.turret-attack': handleEngineerTurretAttack,
     'engineer.lightning-rod-charge': handleLightningRodCharge,

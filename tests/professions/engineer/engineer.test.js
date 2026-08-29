@@ -1042,8 +1042,9 @@ test('Engineer mine and turret detonations are armed by their parent skills', ()
     [0, 12000]
   );
 
-  // Gadgeteer's added mine shares the original Detonate input instead of requiring another flip.
-  const gadgeteer = simulate('Core', ['Throw Mine', 'Detonate'], {
+  // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.
+  const gadgeteer = simulate('Core', ['Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit', 'Throw Mine', 'Detonate'], {
+    selectedSkills: [...baseConfig.selectedSkills, 'Bomb Kit'],
     selectedTraitIds: [TRAIT.GADGETEER]
   });
   assert.equal(
@@ -1051,6 +1052,105 @@ test('Engineer mine and turret detonations are armed by their parent skills', ()
       .length,
     2
   );
+  const mineFinishers = gadgeteer.events.filter(
+    (event) => event.type === 'combo_finisher' && event.skillName === 'Detonate'
+  );
+  assert.equal(mineFinishers.length, 2);
+  assert.equal(new Set(mineFinishers.map((event) => event.attemptId)).size, 2);
+  assert.equal(
+    gadgeteer.resolvedEvents.filter((event) => event.type === 'combo' && event.skillName === 'Detonate').length,
+    2
+  );
+});
+
+test('Elixir Gun packets, fields, finishers, and HGH use their authored contracts', () => {
+  const selectedSkills = [...baseConfig.selectedSkills, 'Elixir Gun'];
+  const result = simulate(
+    'Core',
+    [
+      'Elixir Gun',
+      'Tranquilizer Dart',
+      'Glob Shot',
+      'Fumigate',
+      'Acid Bomb',
+      'Super Elixir',
+      { type: 'wait', durationMs: 6000 }
+    ],
+    { selectedSkills }
+  );
+  const damage = (events, name) => events.filter((event) => event.type === 'damage' && event.skillName === name);
+  const conditions = (name, condition) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === name && event.condition === condition
+    );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    damage(result.resolvedEvents, 'Tranquilizer Dart').map((event) => event.coefficient),
+    [0.4]
+  );
+  assert.deepEqual(
+    conditions('Tranquilizer Dart', 'Bleeding').map((event) => [event.stacks, event.duration]),
+    [[1, 4]]
+  );
+  assert.deepEqual(
+    conditions('Tranquilizer Dart', 'Weakness').map((event) => [event.stacks, event.duration]),
+    [[1, 1]]
+  );
+  assert.equal(engineerCatalog.skillsById.get(ID.TRANQUILIZER_DART).comboFinishers[0].chance, 0.2);
+
+  assert.deepEqual(
+    damage(result.resolvedEvents, 'Glob Shot').map((event) => event.coefficient),
+    [0.75]
+  );
+  assert.deepEqual(
+    conditions('Glob Shot', 'Crippled').map((event) => event.duration),
+    [3]
+  );
+  assert.deepEqual(
+    conditions('Glob Shot', 'Immobilized').map((event) => event.duration),
+    [2]
+  );
+  assert.equal(engineerCatalog.skillsById.get(ID.GLOB_SHOT).cooldown, 8);
+
+  assert.deepEqual(
+    damage(result.resolvedEvents, 'Fumigate').map((event) => event.coefficient),
+    [0.4, 0.4, 0.4, 0.4, 0.4]
+  );
+  assert.deepEqual(
+    conditions('Fumigate', 'Poisoned').map((event) => [event.stacks, event.duration]),
+    Array(5).fill([1, 2])
+  );
+  assert.deepEqual(
+    conditions('Fumigate', 'Vulnerability').map((event) => [event.stacks, event.duration]),
+    Array(5).fill([1, 6])
+  );
+  assert.equal(engineerCatalog.skillsById.get(ID.FUMIGATE).cooldown, 12);
+
+  assert.deepEqual(
+    damage(result.resolvedEvents, 'Acid Bomb').map((event) => event.coefficient),
+    [1.35, 0.85, 0.85, 0.85, 0.85, 0.85]
+  );
+  assert.equal(
+    result.events.filter((event) => event.type === 'combo_finisher' && event.skillName === 'Acid Bomb').length,
+    1
+  );
+  assert.equal(engineerCatalog.skillsById.get(ID.ACID_BOMB).effects[0].comboFinishers[0].finisherType, 'Blast');
+  assert.equal(engineerCatalog.skillsById.get(ID.SUPER_ELIXIR).cooldown, 16);
+  assert.equal(engineerCatalog.skillsById.get(ID.SUPER_ELIXIR).comboFields[0].fieldType, 'Light');
+
+  const hgh = simulate('Core', ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }], {
+    selectedSkills,
+    selectedTraitIds: [TRAIT.HGH]
+  });
+  const hghField = hgh.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
+  const hghBuff = (kind) =>
+    hgh.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH && event.kind === kind);
+
+  assert.equal(damage(hgh.resolvedEvents, 'Acid Bomb').length, 7);
+  assert.equal(hghField.expiresAt - hghField.at, 6);
+  assert.deepEqual([hghBuff('might').stacks, hghBuff('might').duration], [2, 12]);
+  assert.deepEqual([hghBuff('fury').stacks, hghBuff('fury').duration], [1, 4]);
 });
 
 test('detonating a turret cancels its remaining summoned attacks', () => {
@@ -2451,6 +2551,16 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   const mechanistRuntime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
   const holosmithRuntime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
 
+  for (const id of [
+    ID.SUN_EDGE_ID_70514,
+    ID.SUN_RIPPER_ID_69906,
+    ID.GLEAM_SABER_ID_70771,
+    ID.RADIANT_ARC_ID_69565,
+    ID.REFRACTION_CUTTER_ID_71121
+  ]) {
+    assert.equal(skill(id).specialization, '');
+  }
+
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_ID_70771), true);
   assert.equal(
@@ -2562,6 +2672,19 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.ok(blades.every((event) => event.comboFinishers[0].chance === 1));
   assert.equal(bleeds.length, 2);
   assert.ok(bleeds.every((event) => event.stacks === 1 && event.duration === 4));
+  const core = simulate(
+    'Core',
+    [
+      { type: 'cast', skillId: ID.REFRACTION_CUTTER_ID_71121 },
+      { type: 'cast', skillId: ID.SUN_EDGE_ID_70514 },
+      { type: 'cast', skillId: ID.SUN_RIPPER_ID_69906 },
+      { type: 'cast', skillId: ID.GLEAM_SABER_ID_70771 },
+      { type: 'cast', skillId: ID.RADIANT_ARC_ID_69565 }
+    ],
+    { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' }
+  );
+
+  assert.deepEqual(core.warnings, []);
   assert.ok(
     result.procSteps.some((step) => step.skill === 'Gleam Saber — Sword Recharge' && step.cooldownReduction === 1)
   );

@@ -2,7 +2,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../../platform/engine/types.js';
 
-// Owns the equip action, palette skills, stow action, and linked toolbelt skill for Elixir Gun.
+// Owns the equip action and packet-level palette mechanics so fields and finishers stay observable.
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_GUN]: {
     implemented: true,
@@ -16,6 +16,15 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     implemented: true,
     castTimeMs: 750,
     cooldown: 0,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Projectile',
+        chance: 0.2,
+        preferredFieldTypes: ['Fire'],
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -61,6 +70,13 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
         actorType: 'player'
       },
       {
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
+      },
+      {
         type: 'boon',
         boon: 'swiftness',
         duration: 3,
@@ -73,19 +89,38 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     implemented: true,
     castTimeMs: 250,
     cooldown: 12,
-    effects: [
+    comboFields: [
       {
-        type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
-        name: 'Acid Bomb — Packet 1',
-        actorType: 'player'
-      },
+        ownerId: 'engineer',
+        fieldType: 'Light',
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
+    ],
+    effects: [
       {
         type: 'strike',
         coefficient: 1.35,
         hits: 1,
-        name: 'Initial Damage',
+        name: 'Acid Bomb',
+        actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      },
+      {
+        type: 'strike',
+        coefficient: 4.25,
+        hits: 5,
+        atMs: 1000,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        name: 'Acid Bomb',
         actorType: 'player'
       }
     ],
@@ -95,6 +130,14 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     implemented: true,
     castTimeMs: 500,
     cooldown: 16,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Light',
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: [],
     kit: 'Elixir Gun'
   },
@@ -117,15 +160,25 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
       {
         type: 'condition',
         condition: 'Poisoned',
-        stacks: 5,
+        stacks: 1,
         duration: 2,
+        applications: 5,
+        atMs: 304,
+        intervalMs: 304,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
-        stacks: 5,
+        stacks: 1,
         duration: 6,
+        applications: 5,
+        atMs: 304,
+        intervalMs: 304,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         actorType: 'player'
       }
     ],
