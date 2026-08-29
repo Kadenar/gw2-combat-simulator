@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 4,
+  "profession": "elementalist",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Spear", ""],
+  "alternateWeapons": ["", ""],
+  "rune": "Dragonhunter",
+  "weaponSigils": [
+    ["Force", "Impact"],
+    ["Force", "Impact"]
+  ],
+  "relic": "Fireworks",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Fire",
+      "traits": "1-3-1"
+    },
+    {
+      "name": "Air",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Evoker",
+      "traits": "1-1-1"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "Rejuvenate",
+    "Utility1": "Fox's Fury",
+    "Utility2": "Glyph of Storms (Fire)",
+    "Utility3": "Arcane Echo",
+    "Elite": "Glyph of Elementals"
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "hitboxSize": "small",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 5,
+      "Burning": true,
+      "Torment": 5,
+      "Confusion": 5,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetArmor": 2597,
+  "rotation": [],
+  "startAttunement": "Air",
+  "secondaryAttunement": "Air",
+  "initialCatalystEnergy": 30,
+  "evokerElement": "Air",
+  "initialEvokerCharges": 6,
+  "initialEvokerEmpowered": 0,
+  "pistolBullets": {
+    "Fire": false,
+    "Water": false,
+    "Air": false,
+    "Earth": false
+  }
+}

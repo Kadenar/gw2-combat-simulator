@@ -41,6 +41,17 @@ export interface DpsReportDamageDistribution {
   readonly connectedHits?: number;
 }
 
+export interface DpsReportWeaponSet {
+  readonly weapons?: readonly string[];
+  readonly timeframe?: readonly number[];
+}
+
+export interface DpsReportMinion {
+  readonly name: string;
+  readonly id?: number;
+  readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
+}
+
 export interface DpsReportPlayer {
   readonly name: string;
   readonly account?: string;
@@ -51,6 +62,8 @@ export interface DpsReportPlayer {
   readonly activeTimes?: readonly number[];
   readonly buffUptimes?: readonly DpsReportBuffTimeline[];
   readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
+  readonly weaponSets?: readonly DpsReportWeaponSet[];
+  readonly minions?: readonly DpsReportMinion[];
   readonly rotation: readonly DpsReportRotationGroup[];
 }
 

@@ -1,0 +1,1391 @@
+{
+  "rotation": [
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Glyph of Storms (Air)",
+      "skillId": 5737
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 240
+    },
+    {
+      "name": "__combat_start",
+      "offset": 640
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 240
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Arcane Echo",
+      "skillId": 5635,
+      "offset": 120
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 0
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 160
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 320
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 0
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 480
+    },
+    {
+      "name": "Etching: Haboob",
+      "skillId": 72900
+    },
+    {
+      "name": "Fissure",
+      "skillId": 73010
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 400
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Haboob",
+      "skillId": 73017
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 240
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 120
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 120
+    },
+    {
+      "name": "Etching: Jökulhlaup",
+      "skillId": 72982
+    },
+    {
+      "name": "Undertow",
+      "skillId": 73148
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662
+    },
+    {
+      "name": "Ice Beam",
+      "skillId": 73061
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 200
+    },
+    {
+      "name": "Jökulhlaup",
+      "skillId": 73140
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 600
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 160
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 360
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 40
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 160
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 200
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 560
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 600
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 280
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 520
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Rejuvenate",
+      "skillId": 76634
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 120
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 40
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 520
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 280
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 120
+    },
+    {
+      "name": "Etching: Haboob",
+      "skillId": 72900
+    },
+    {
+      "name": "Fissure",
+      "skillId": 73010
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 240
+    },
+    {
+      "name": "Haboob",
+      "skillId": 73017
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 400
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 80
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 600
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 80
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 240
+    },
+    {
+      "name": "Etching: Jökulhlaup",
+      "skillId": 72982
+    },
+    {
+      "name": "Undertow",
+      "skillId": 73148
+    },
+    {
+      "name": "Ice Beam",
+      "skillId": 73061
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 320
+    },
+    {
+      "name": "Jökulhlaup",
+      "skillId": 73140
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 240
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 280
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 40
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 240
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Arcane Echo",
+      "skillId": 5635,
+      "offset": 80
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 240
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 160
+    },
+    {
+      "name": "Rejuvenate",
+      "skillId": 76634
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370
+    },
+    {
+      "name": "__wait",
+      "waitMs": 280
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 600
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 240
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 240
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 560
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 200
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 0
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Glyph of Storms (Air)",
+      "skillId": 5737
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 400
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 320
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910,
+      "interruptMs": 120
+    },
+    {
+      "name": "Etching: Haboob",
+      "skillId": 72900
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910,
+      "interruptMs": 40
+    },
+    {
+      "name": "Fissure",
+      "skillId": 73010
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 360
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910,
+      "interruptMs": 0
+    },
+    {
+      "name": "Haboob",
+      "skillId": 73017
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 320
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 200
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Restorative Spear",
+      "skillId": 72966,
+      "interruptMs": 200
+    },
+    {
+      "name": "Etching: Jökulhlaup",
+      "skillId": 72982
+    },
+    {
+      "name": "Undertow",
+      "skillId": 73148
+    },
+    {
+      "name": "Ice Beam",
+      "skillId": 73061
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 480
+    },
+    {
+      "name": "Jökulhlaup",
+      "skillId": 73140
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 360
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 600
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 280
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 320
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 120
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 280
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 160
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 80
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 0
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 480
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 40
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 360
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Fissure",
+      "skillId": 73010
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 280
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 440
+    },
+    {
+      "name": "Restorative Spear",
+      "skillId": 72966,
+      "interruptMs": 40
+    },
+    {
+      "name": "Ice Beam",
+      "skillId": 73061
+    },
+    {
+      "name": "Restorative Spear",
+      "skillId": 72966
+    },
+    {
+      "name": "Undertow",
+      "skillId": 73148
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 280
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 360
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 600
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 80
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 600
+    },
+    {
+      "name": "Arcane Echo",
+      "skillId": 5635,
+      "offset": 80
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 160
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 120
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 200
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 600
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 40
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 280
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 40
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 0
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 560
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 280
+    },
+    {
+      "name": "Etching: Haboob",
+      "skillId": 72900
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910,
+      "interruptMs": 160
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Stone Strike",
+      "skillId": 72910,
+      "interruptMs": 120
+    },
+    {
+      "name": "Fissure",
+      "skillId": 73010
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Haboob",
+      "skillId": 73017
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 200
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Twister",
+      "skillId": 72998
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 240
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 280
+    },
+    {
+      "name": "Restorative Spear",
+      "skillId": 72966,
+      "interruptMs": 120
+    },
+    {
+      "name": "Etching: Jökulhlaup",
+      "skillId": 72982
+    },
+    {
+      "name": "Restorative Spear",
+      "skillId": 72966,
+      "interruptMs": 320
+    },
+    {
+      "name": "Undertow",
+      "skillId": 73148
+    },
+    {
+      "name": "Ice Beam",
+      "skillId": 73061
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 240
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Jökulhlaup",
+      "skillId": 73140
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 320
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Energize",
+      "skillId": 73037,
+      "offset": 360
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 240
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 120
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 40
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Etching: Volcano",
+      "skillId": 73054
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Meteor",
+      "skillId": 72988
+    },
+    {
+      "name": "Seethe",
+      "skillId": 73137
+    },
+    {
+      "name": "Lightning Blitz",
+      "skillId": 77089
+    },
+    {
+      "name": "Flame Spear",
+      "skillId": 73088,
+      "interruptMs": 80
+    },
+    {
+      "name": "Volcano",
+      "skillId": 73044
+    },
+    {
+      "name": "Blazing Barrage",
+      "skillId": 73080
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 400
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 360
+    },
+    {
+      "name": "Fulgor",
+      "skillId": 73091
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 120
+    },
+    {
+      "name": "Etching: Derecho",
+      "skillId": 72915
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 0
+    },
+    {
+      "name": "Glyph of Storms (Air)",
+      "skillId": 5737
+    },
+    {
+      "name": "Zap",
+      "skillId": 77370,
+      "offset": 920
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 160
+    },
+    {
+      "name": "Fox's Fury",
+      "skillId": 76711
+    },
+    {
+      "name": "Lightning Javelin",
+      "skillId": 73124,
+      "interruptMs": 40
+    },
+    {
+      "name": "Derecho",
+      "skillId": 73092
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 160
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495,
+      "offset": 240
+    },
+    {
+      "name": "Earthen Spear",
+      "skillId": 72905
+    }
+  ]
+}

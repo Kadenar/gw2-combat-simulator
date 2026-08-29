@@ -28,6 +28,9 @@ const specializationAnalyzers: ReadonlyMap<string, ElementalistActionTransform> 
 ]);
 const TEMPEST_OVERLOAD_DWELL_MS = 5000;
 const HURL_PACKET_GROUP_MS = 1000;
+const FIRE_AURA_BUFF_ID = 5677;
+const AURA_SIGNAL_WINDOW_MS = 150;
+const FIRE_AURA_SOURCES = new Set(['Feel the Burn!', 'Signet of Fire', 'Conflagration', 'Overload Fire']);
 const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth']);
 const SPEAR_ETCHING_INITIAL_BUFFS = Object.freeze([
   { buffSkillId: 73133, skillId: ID.ETCHING_VOLCANO, name: 'Etching: Volcano' },
@@ -38,6 +41,10 @@ const SPEAR_ETCHING_INITIAL_BUFFS = Object.freeze([
 
 function isAction(action: EvtcRecordedRotationAction, skillId: number): boolean {
   return action.rawSkillId === skillId || action.canonicalSkillId === skillId;
+}
+
+function actionName(action: EvtcRecordedRotationAction): string {
+  return action.canonicalName || action.rawName;
 }
 
 function configuredStartingAttunement(context: EvtcProfessionReconstructionContext): string {
@@ -82,11 +89,16 @@ function playerInstance(context: EvtcProfessionReconstructionContext): number | 
 }
 
 function ownedElementalCommandActions(
-  context: EvtcProfessionReconstructionContext
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
 ): readonly EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
   const firstPlayerEvent = firstPlayerEventTime(context);
+  const recoveredOpeningStart =
+    context.profile.specializationId === 'evoker'
+      ? Math.min(...actions.filter((action) => action.precast === true).map((action) => action.start))
+      : Number.POSITIVE_INFINITY;
   return ELEMENTAL_COMMANDS.flatMap(({ speciesId, character, action }) => {
     const actors = new Set(
       context.log.agents
@@ -121,10 +133,16 @@ function ownedElementalCommandActions(
         );
       if (!directStart && !unmatchedStop) return [];
       const inferredStart = directStart ? event.time : event.time - event.value;
-      // A clipped legacy command can retain effect packets but lose its activation start;
-      // anchor the player input to the first observed command packet instead of pre-log time.
+      // Once another Evoker packet establishes a real precast lane, preserve the
+      // command stop's start time; otherwise anchor clipped legacy input to its first packet.
+      const preservePrecast =
+        unmatchedStop &&
+        firstPlayerEvent != null &&
+        Number.isFinite(recoveredOpeningStart) &&
+        inferredStart < firstPlayerEvent;
       const observedStart =
         unmatchedStop &&
+        !preservePrecast &&
         event.stateChange === EVTC_STATE_CHANGE.NONE &&
         firstPlayerEvent != null &&
         inferredStart < firstPlayerEvent
@@ -395,6 +413,71 @@ function filterUncommittedFlamestrikes(
   });
 }
 
+function recoverMissingFireShieldActions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const skill = findRotationSkill(ID.FIRE_SHIELD, 'Fire Shield', context.catalog, context.profile);
+  if (!skill) return [...actions];
+  const hasFocus =
+    String(context.professionConfig?.secondaryWeapon || '')
+      .trim()
+      .toLowerCase() === 'focus' || actions.some((action) => isAction(action, ID.TRANSMUTE_FIRE));
+  if (!hasFocus) return [...actions];
+
+  const recovered = context.log.events.flatMap<EvtcRecordedRotationAction>((event, eventIndex) => {
+    if (
+      event.source !== context.playerAddress ||
+      event.target !== context.playerAddress ||
+      event.skillId !== FIRE_AURA_BUFF_ID ||
+      event.buff === 0 ||
+      event.buffRemove !== 0 ||
+      Math.max(event.value, event.buffDamage) <= 0 ||
+      (event.stateChange !== EVTC_STATE_CHANGE.NONE && event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY)
+    ) {
+      return [];
+    }
+
+    const auraEnd = event.time + Math.max(event.value, event.buffDamage);
+    const transmuted = actions.some(
+      (action) => isAction(action, ID.TRANSMUTE_FIRE) && action.start >= event.time && action.start <= auraEnd
+    );
+    const alreadyRecorded = actions.some(
+      (action) => isAction(action, ID.FIRE_SHIELD) && Math.abs(action.start - event.time) <= AURA_SIGNAL_WINDOW_MS
+    );
+    const explainedBySource = actions.some((action) => {
+      if (actionName(action) === 'Fire Attunement') {
+        return Math.abs(action.start - event.time) <= AURA_SIGNAL_WINDOW_MS;
+      }
+      return (
+        FIRE_AURA_SOURCES.has(actionName(action)) &&
+        event.time >= action.start - AURA_SIGNAL_WINDOW_MS &&
+        event.time <= action.end + AURA_SIGNAL_WINDOW_MS
+      );
+    });
+    if (!transmuted || alreadyRecorded || explainedBySource) return [];
+
+    // Transmute Fire proves the Focus chain was activated; the preceding unexplained
+    // self-aura is the instant Fire Shield input omitted from ArcDPS animations.
+    return [
+      {
+        start: event.time,
+        end: event.time,
+        expectedDuration: 0,
+        rawSkillId: ID.FIRE_SHIELD,
+        rawName: 'Fire Shield',
+        canonicalSkillId: ID.FIRE_SHIELD,
+        canonicalName: 'Fire Shield',
+        evidence: 'buff-transition' as const,
+        status: 'instant' as const,
+        eventIndex
+      }
+    ];
+  });
+
+  return [...actions, ...recovered];
+}
+
 function openingSpearEtchingPrecasts(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
@@ -484,12 +567,13 @@ export function reconstructElementalistProfessionActions(
         String(action.canonicalName || action.rawName) === `${startingAttunement} Attunement`
       )
   );
+  actions = recoverMissingFireShieldActions(context, actions);
   actions = specializationAnalyzers.get(context.profile.specializationId)?.(context, actions) || actions;
   actions = openingTempestScepterPrecast(context, actions);
   actions = openingSpearEtchingPrecasts(context, actions);
   actions = inferArcLightningChannelDurations(context, actions);
   actions = filterUncommittedFlamestrikes(context, actions);
-  actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context)];
+  actions = [...actions, ...collapsedHurlActions(context, actions), ...ownedElementalCommandActions(context, actions)];
   return orderSimultaneousAttunementTransitions(context, actions).sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );

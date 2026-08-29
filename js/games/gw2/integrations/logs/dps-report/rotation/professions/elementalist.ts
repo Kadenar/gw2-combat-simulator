@@ -1,8 +1,11 @@
 import type { Skill } from '../../../../../platform/engine/types.js';
+import { GW2_ACTION_TICK_MS, quicknessReferenceCastTimeMs } from '../../../../../platform/skills/timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '../../../../../content/professions/elementalist/data/ids.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../../../content/professions/elementalist/core/elemental-profile.js';
+import { firstStrikePacketOffsetMs } from '../../../lib/rotation/timing.js';
 import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
 
 type Element = keyof typeof ELEMENTALIST_ATTUNEMENT_SKILL_IDS;
@@ -27,6 +30,12 @@ const SHORTENABLE_SKILLS = new Map([
   ['Arc Lightning', 2600]
 ]);
 const ATTUNEMENT_SUFFIX_SKILLS = new Set(['Glyph of Elemental Power', 'Primordial Stance', 'Deploy Jade Sphere']);
+const SPEAR_ETCHING_BY_FULL_SKILL = new Map<string, ElementalistSkillIdentity>([
+  ['Volcano', { name: 'Etching: Volcano', skillId: ID.ETCHING_VOLCANO }],
+  ['Jökulhlaup', { name: 'Etching: Jökulhlaup', skillId: ID.ETCHING_JO_KULHLAUP }],
+  ['Derecho', { name: 'Etching: Derecho', skillId: ID.ETCHING_DERECHO }],
+  ['Haboob', { name: 'Etching: Haboob', skillId: ID.ETCHING_HABOOB }]
+]);
 const AERIAL_AGILITY_CHAIN: readonly ElementalistSkillIdentity[] = Object.freeze([
   { name: 'Aerial Agility', skillId: ID.AERIAL_AGILITY },
   { name: 'Aerial Agility (chain)', skillId: ID.AERIAL_AGILITY_CHAIN },
@@ -41,7 +50,9 @@ const GLYPH_OF_STORMS = new Map<string, ElementalistSkillIdentity>([
   ['Lightning Storm', { name: 'Glyph of Storms (Air)', skillId: ID.GLYPH_OF_STORMS_AIR }],
   ['Sandstorm', { name: 'Glyph of Storms (Earth)', skillId: ID.GLYPH_OF_STORMS_EARTH }]
 ]);
-const AURA_WINDOW_MS = 1500;
+const AURA_SOURCE_GRACE_MS = 150;
+const IGNITE_DAMAGE_SKILL_ID = 76882;
+const FLAME_BARRAGE_FIRST_PACKET_MS = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.projectileImpacts[0] * 1000;
 const AURA_RECOVERY: readonly AuraRecoveryConfig[] = Object.freeze([
   {
     buffId: 5677,
@@ -148,6 +159,23 @@ function configuredStartingElement(context: DpsReportProfessionReconstructionCon
   return elementName(context.professionConfig?.startAttunement) || 'Fire';
 }
 
+function equippedWeapons(context: DpsReportProfessionReconstructionContext): {
+  readonly primaryWeapon: string;
+  readonly secondaryWeapon: string;
+} {
+  const reported = context.player.weaponSets?.find(({ timeframe }) => {
+    if (!Array.isArray(timeframe) || timeframe.length < 2) return true;
+    return Number(timeframe[0]) < context.phase.end && Number(timeframe[1]) > context.phase.start;
+  })?.weapons;
+
+  // Prefer an explicit imported build, then use EI's active weapon-set metadata so
+  // standalone dps.report imports can recover omitted weapon skills safely.
+  return {
+    primaryWeapon: normalized(context.professionConfig?.primaryWeapon || reported?.[0]),
+    secondaryWeapon: normalized(context.professionConfig?.secondaryWeapon || reported?.[1])
+  };
+}
+
 function inferStartingElement(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[]
@@ -220,7 +248,7 @@ function inferredAction(
   identity: ElementalistSkillIdentity,
   at: number,
   eventIndex: number,
-  inference: 'elementalist-aura' | 'elementalist-blinding-flash'
+  inference: NonNullable<DpsReportRecordedAction['inference']>
 ): DpsReportRecordedAction {
   return {
     start: at,
@@ -252,13 +280,98 @@ function activationTimes(states: readonly (readonly [number, number])[] | undefi
   return activations;
 }
 
+function primaryTargetHits(context: DpsReportProfessionReconstructionContext, skillId: number): number {
+  if (context.report.targets?.length !== 1) return 0;
+  const phaseIndex = context.report.phases.indexOf(context.phase);
+  const row = context.player.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === skillId);
+  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
+}
+
+function fireElementalHits(context: DpsReportProfessionReconstructionContext, skillId: number): number {
+  if (context.report.targets?.length !== 1) return 0;
+  const phaseIndex = context.report.phases.indexOf(context.phase);
+  const elemental = context.player.minions?.find(
+    (minion) => Number(minion.id) === 6524 || normalized(minion.name) === 'fire elemental'
+  );
+  const row = elemental?.targetDamageDist?.[0]?.[phaseIndex]?.find((entry) => Number(entry.id) === skillId);
+  return Math.max(0, Number(row?.connectedHits ?? row?.hits ?? 0));
+}
+
+function recoverOpeningDragonsTooth(
+  context: DpsReportProfessionReconstructionContext,
+  actions: readonly DpsReportRecordedAction[]
+): DpsReportRecordedAction[] {
+  if (context.profile.specializationId !== 'evoker' || equippedWeapons(context).primaryWeapon !== 'scepter') return [];
+  const ordered = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  const recorded = ordered.filter(
+    (action) => action.rawSkillId === ID.DRAGONS_TOOTH || action.canonicalSkillId === ID.DRAGONS_TOOTH
+  );
+  const firstAction = ordered[0];
+  const skill = recorded[0] ? actionSkill(recorded[0], context) : null;
+  const duration = quicknessReferenceCastTimeMs(skill);
+  if (
+    !firstAction ||
+    !skill ||
+    !(duration > 0) ||
+    primaryTargetHits(context, ID.DRAGONS_TOOTH) !== recorded.length + 1
+  ) {
+    return [];
+  }
+
+  // One surplus Dragon's Tooth hit proves EI clipped exactly one cast. Place that
+  // setup cast against the first reported action, matching the scepter precast lane.
+  return [
+    {
+      start: firstAction.start - duration,
+      end: firstAction.start,
+      rawSkillId: ID.DRAGONS_TOOTH,
+      rawName: "Dragon's Tooth",
+      status: 'completed',
+      eventIndex: firstAction.eventIndex - 0.1,
+      isSwap: false,
+      metadataAccurate: false,
+      expectedDurationMs: duration,
+      inference: 'elementalist-damage-evidence',
+      canonicalSkillId: ID.DRAGONS_TOOTH,
+      canonicalName: "Dragon's Tooth"
+    }
+  ];
+}
+
+function recoverOpeningIgnite(
+  context: DpsReportProfessionReconstructionContext,
+  actions: readonly DpsReportRecordedAction[]
+): DpsReportRecordedAction[] {
+  if (context.profile.specializationId !== 'evoker') return [];
+  const identity = namedSkill(context, 'Ignite');
+  const skill = context.catalog?.skills.find((candidate) => Number(candidate.id) === identity?.skillId) || null;
+  const strikeOffset = firstStrikePacketOffsetMs(skill, 0, { explicitOnly: true });
+  if (!identity || strikeOffset == null) return [];
+
+  const ignites = actions.filter((action) => action.rawSkillId === ID.IGNITE || action.canonicalSkillId === ID.IGNITE);
+  const reportedHits = ignites.filter(
+    (action) => action.start + strikeOffset >= context.phase.start && action.start + strikeOffset < context.phase.end
+  ).length;
+  if (primaryTargetHits(context, IGNITE_DAMAGE_SKILL_ID) !== reportedHits + 1) return [];
+
+  // A surplus raw familiar hit plus a late reported Ignite proves one clipped
+  // activation; offset it before the phase so its modeled strike lands at the boundary.
+  return [
+    inferredAction(
+      identity,
+      context.phase.start - strikeOffset,
+      Math.min(-0.05, ...actions.map((action) => action.eventIndex - 0.05)),
+      'elementalist-damage-evidence'
+    )
+  ];
+}
+
 function recoverAuraActions(
   context: DpsReportProfessionReconstructionContext,
   actions: readonly DpsReportRecordedAction[],
   nextEventIndex: () => number
 ): DpsReportRecordedAction[] {
-  const primaryWeapon = normalized(context.professionConfig?.primaryWeapon);
-  const secondaryWeapon = normalized(context.professionConfig?.secondaryWeapon);
+  const { primaryWeapon, secondaryWeapon } = equippedWeapons(context);
   const hasPistol = primaryWeapon === 'pistol' || secondaryWeapon === 'pistol';
   const recovered: DpsReportRecordedAction[] = [];
 
@@ -277,9 +390,15 @@ function recoverAuraActions(
     for (const at of activationTimes(states, true)) {
       if (!inSelectedPhase(context, at)) continue;
       const explained = actions.some((action) => {
-        if (Math.abs(action.start - at) > AURA_WINDOW_MS) return false;
-        if (config.swapElement && swappedElement(action) === config.swapElement) return true;
-        return sources.has(actionName(action));
+        if (config.swapElement && swappedElement(action) === config.swapElement) {
+          return Math.abs(action.start - at) <= AURA_SOURCE_GRACE_MS;
+        }
+
+        return (
+          sources.has(actionName(action)) &&
+          at >= action.start - AURA_SOURCE_GRACE_MS &&
+          at <= action.end + AURA_SOURCE_GRACE_MS
+        );
       });
       if (!explained) {
         recovered.push(inferredAction(skill, at, nextEventIndex(), 'elementalist-aura'));
@@ -295,7 +414,7 @@ function recoverBlindingFlashActions(
   actions: readonly DpsReportRecordedAction[],
   nextEventIndex: () => number
 ): DpsReportRecordedAction[] {
-  if (normalized(context.professionConfig?.primaryWeapon) !== 'scepter') return [];
+  if (equippedWeapons(context).primaryWeapon !== 'scepter') return [];
   const skill = namedSkill(context, 'Blinding Flash');
   if (!skill) return [];
 
@@ -358,6 +477,92 @@ function recoverBlindingFlashActions(
   return recovered;
 }
 
+function recoverOpeningSpearEtching(
+  context: DpsReportProfessionReconstructionContext,
+  actions: readonly DpsReportRecordedAction[],
+  nextEventIndex: () => number
+): DpsReportRecordedAction[] {
+  const ordered = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+  const full = ordered.find((action) => SPEAR_ETCHING_BY_FULL_SKILL.has(actionName(action)));
+  if (!full) return [];
+  const identity = SPEAR_ETCHING_BY_FULL_SKILL.get(actionName(full));
+  if (!identity) return [];
+  if (ordered.some((action) => actionName(action) === identity.name && action.start < full.start)) return [];
+  const skill = actionSkill(
+    {
+      ...full,
+      rawSkillId: identity.skillId,
+      rawName: identity.name,
+      canonicalSkillId: identity.skillId,
+      canonicalName: identity.name
+    },
+    context
+  );
+  if (!skill) return [];
+  const duration = Math.max(0, Number(skill.quicknessCastTimeMs || skill.castTimeMs || 0));
+  const end = ordered[0]?.start ?? context.phase.start;
+
+  // A full etching before its first base cast proves EI clipped the opening setup;
+  // place that setup immediately before the earliest surviving report action.
+  return [
+    {
+      start: end - duration,
+      end,
+      rawSkillId: identity.skillId,
+      rawName: identity.name,
+      status: 'completed',
+      eventIndex: nextEventIndex(),
+      isSwap: false,
+      metadataAccurate: false,
+      expectedDurationMs: duration,
+      inference: 'elementalist-spear-etching',
+      canonicalSkillId: identity.skillId,
+      canonicalName: identity.name
+    }
+  ];
+}
+
+function recoverOpeningFlameBarrage(
+  context: DpsReportProfessionReconstructionContext,
+  actions: readonly DpsReportRecordedAction[],
+  openingEtching: readonly DpsReportRecordedAction[],
+  nextEventIndex: () => number
+): DpsReportRecordedAction[] {
+  const primaryWeapon = equippedWeapons(context).primaryWeapon;
+  if (context.profile.specializationId !== 'evoker' || !['scepter', 'spear'].includes(primaryWeapon)) return [];
+  const recorded = actions.filter((action) => normalized(actionName(action)) === 'flame barrage');
+  if (fireElementalHits(context, ID.FLAME_BARRAGE_ELEMENTAL_COMMAND) <= recorded.length * 4) return [];
+  const firstAction = [...actions].sort(
+    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
+  )[0];
+  if (!firstAction) return [];
+  const at =
+    primaryWeapon === 'scepter'
+      ? context.phase.start - FLAME_BARRAGE_FIRST_PACKET_MS
+      : Math.min(
+          context.phase.start - GW2_ACTION_TICK_MS,
+          firstAction.start + Math.max(0, Number(openingEtching[0]?.expectedDurationMs || 0))
+        );
+
+  // Four packets are the maximum per Flame Barrage command. Surplus minion hits
+  // therefore prove EI clipped one pre-combat command from the player's rotation.
+  return [
+    {
+      start: at,
+      end: at,
+      rawSkillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      rawName: 'Flame Barrage',
+      status: 'instant',
+      eventIndex: nextEventIndex(),
+      isSwap: false,
+      metadataAccurate: false,
+      inference: 'elementalist-damage-evidence',
+      canonicalSkillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      canonicalName: 'Flame Barrage'
+    }
+  ];
+}
+
 /** Reconstructs Elementalist attunement variants and report-omitted weapon actions from EI evidence. */
 export function reconstructElementalistDpsReportActions(
   context: DpsReportProfessionReconstructionContext
@@ -369,9 +574,24 @@ export function reconstructElementalistDpsReportActions(
     return eventIndex;
   };
 
+  const recoveredEtching = recoverOpeningSpearEtching(context, normalizedActions, nextEventIndex);
+  const recoveredFlameBarrage = recoverOpeningFlameBarrage(
+    context,
+    normalizedActions,
+    recoveredEtching,
+    nextEventIndex
+  );
+  const recoveredDragonsTooth = recoverOpeningDragonsTooth(context, normalizedActions);
+  const recoveredIgnite = recoverOpeningIgnite(context, normalizedActions);
   const recoveredAuras = recoverAuraActions(context, normalizedActions, nextEventIndex);
   const recoveredBlindingFlash = recoverBlindingFlashActions(context, normalizedActions, nextEventIndex);
-  return [...normalizedActions, ...recoveredAuras, ...recoveredBlindingFlash].sort(
-    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
-  );
+  return [
+    ...normalizedActions,
+    ...recoveredEtching,
+    ...recoveredFlameBarrage,
+    ...recoveredDragonsTooth,
+    ...recoveredIgnite,
+    ...recoveredAuras,
+    ...recoveredBlindingFlash
+  ].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
 }

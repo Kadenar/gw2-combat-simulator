@@ -249,6 +249,14 @@
     "section": "Evoker",
     "presets": [
       {
+        "label": "Power (Spear)",
+        "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
+        "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
+        "dpsReportUrl": "https://dps.report/43o1-20260523-171228_golem",
+        "benchmarkDps": 39085,
+        "upToDate": true
+      },
+      {
         "label": "Power Hare (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-power-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",

@@ -10,6 +10,8 @@ const TARGET = 0x2000n;
 const EARTH_ELEMENTAL = 0x3000n;
 const FIRE_ELEMENTAL = 0x4000n;
 const TOAD_FAMILIAR = 0x5000n;
+const AIR_FAMILIAR = 0x6000n;
+const FIRE_FOX = 0x7000n;
 
 function event(overrides = {}) {
   return {
@@ -919,6 +921,263 @@ test('uses the Evoker parser to normalize familiar skills', () => {
         skillId: ID.SEISMIC_IMPACT,
         name: 'Seismic Impact'
       }
+    ]
+  );
+});
+
+test('reconstructs a clipped Evoker scepter/focus opener and instant familiar inputs', () => {
+  const events = [
+    event({
+      time: 3_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    ...animation(ID.FLAMEWALL, 3_000, 560),
+    event({
+      time: 3_200,
+      source: FIRE_FOX,
+      value: 500,
+      skillId: 76882,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    }),
+    event({ time: 3_560, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 4_000,
+      source: FIRE_FOX,
+      value: 800,
+      skillId: 76882,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({
+      time: 4_500,
+      target: PLAYER,
+      value: 4_000,
+      skillId: 5677,
+      buff: 1
+    }),
+    ...animation(ID.TRANSMUTE_FIRE, 4_700, 360),
+    event({ time: 4_920, target: TARGET, value: 100, skillId: ID.DRAGONS_TOOTH }),
+    event({
+      time: 5_500,
+      source: FIRE_ELEMENTAL,
+      value: 3_000,
+      skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      sourceInstance: 9,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.RESET
+    }),
+    ...animation(ID.DRAGONS_TOOTH, 6_000, 680)
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260416',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 4,
+      skillCount: 7,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Evoker',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      },
+      {
+        address: FIRE_ELEMENTAL,
+        profession: 6524,
+        elite: 0xffffffff,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fire Elemental',
+        account: '',
+        subgroup: ''
+      },
+      {
+        address: FIRE_FOX,
+        profession: 27043,
+        elite: 0xffffffff,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fire Fox',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: ID.FLAMEWALL, name: 'Flamewall' },
+      { id: 76882, name: 'Ignite' },
+      { id: 5677, name: 'Fire Aura' },
+      { id: ID.FIRE_SHIELD, name: 'Fire Shield' },
+      { id: ID.TRANSMUTE_FIRE, name: 'Transmute Fire' },
+      { id: ID.DRAGONS_TOOTH, name: "Dragon's Tooth" },
+      { id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, name: 'Flame Barrage' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.FIRE_ATTUNEMENT, 'Fire Attunement'),
+    catalogSkill(ID.FLAMEWALL, 'Flamewall', 'Weapon', { quicknessCastTimeMs: 560 }),
+    catalogSkill(ID.IGNITE, 'Ignite', 'Profession', { independentCast: true }),
+    catalogSkill(ID.FIRE_SHIELD, 'Fire Shield', 'Weapon', { independentCast: true }),
+    catalogSkill(ID.TRANSMUTE_FIRE, 'Transmute Fire', 'Weapon', { quicknessCastTimeMs: 360 }),
+    catalogSkill(ID.DRAGONS_TOOTH, "Dragon's Tooth", 'Weapon', {
+      quicknessCastTimeMs: 680,
+      effects: [
+        {
+          type: 'strike',
+          ticks: [{ atMs: 2_600, coefficient: 1 }],
+          timingAnchor: 'castStart',
+          timingScale: 'cast'
+        }
+      ]
+    }),
+    catalogSkill(ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, 'Flame Barrage', 'Elite', { independentCast: true })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.actions
+      .filter((action) => ["Dragon's Tooth", 'Flame Barrage', 'Ignite', 'Fire Shield'].includes(action.name))
+      .map(({ name, timestampMs, evidence }) => ({ name, timestampMs, evidence })),
+    [
+      { name: "Dragon's Tooth", timestampMs: 0, evidence: 'effect' },
+      { name: 'Flame Barrage', timestampMs: 180, evidence: 'legacy-activation' },
+      { name: 'Ignite', timestampMs: 380, evidence: 'legacy-activation' },
+      { name: 'Ignite', timestampMs: 1_680, evidence: 'legacy-activation' },
+      { name: 'Fire Shield', timestampMs: 2_180, evidence: 'buff-transition' },
+      { name: "Dragon's Tooth", timestampMs: 3_680, evidence: 'animation' }
+    ]
+  );
+  assert.ok(
+    result.rotation.findIndex((command) => command.name === 'Fire Shield') <
+      result.rotation.findIndex((command) => command.name === 'Transmute Fire')
+  );
+});
+
+test('reconstructs Air Evoker instant inputs from their owned animation and self-buffs', () => {
+  const events = [
+    event({ time: 2_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 2_100,
+      source: AIR_FAMILIAR,
+      target: TARGET,
+      value: 800,
+      skillId: 76803,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    event({
+      time: 2_200,
+      target: PLAYER,
+      value: 10_000,
+      skillId: 76507,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    }),
+    event({
+      time: 2_300,
+      target: PLAYER,
+      value: 5_000,
+      skillId: 73071,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260507',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 2,
+      skillCount: 3,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Evoker',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 76803, name: 'Zap' },
+      { id: 76507, name: 'Arcane Echo' },
+      { id: 73071, name: 'Energize' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.ZAP, 'Zap'),
+    catalogSkill(ID.ARCANE_ECHO, 'Arcane Echo', 'Utility'),
+    catalogSkill(ID.ENERGIZE, 'Energize', 'Weapon', {
+      slot: 'Weapon_3',
+      weapon: 'Spear',
+      attunement: 'Air'
+    })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills }, { professionConfig: { evokerElement: 'Air' } });
+
+  assert.deepEqual(
+    result.actions.map(({ name, timestampMs, evidence }) => ({ name, timestampMs, evidence })),
+    [
+      { name: 'Zap', timestampMs: 100, evidence: 'animation' },
+      { name: 'Arcane Echo', timestampMs: 200, evidence: 'buff-transition' },
+      { name: 'Energize', timestampMs: 300, evidence: 'buff-transition' }
     ]
   );
 });

@@ -6,17 +6,24 @@ import {
   FAMILIAR_ELEMENTS
 } from '../../../../../../content/professions/elementalist/specializations/evoker/constants.js';
 import { weaponSkillChargeGain } from '../../../../../../content/professions/elementalist/specializations/evoker/resources.js';
-import { skillForAction } from '../../effect-packets.js';
+import { findRotationSkill } from '../../catalog.js';
+import { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, skillForAction } from '../../effect-packets.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
 const EVOKER_SKILL_ALIASES = new Map([
+  [76803, { name: 'Zap', skillId: ID.ZAP }],
   [76925, { name: 'Calcify', skillId: ID.CALCIFY }],
   [76707, { name: 'Seismic Impact', skillId: ID.SEISMIC_IMPACT }],
   [77247, { name: "Toad's Fortitude", skillId: ID.TOADS_FORTITUDE }]
 ]);
 const CALCIFY_RAW_SKILL_ID = 76925;
+const IGNITE_RAW_SKILL_ID = 76882;
+const ZAP_RAW_SKILL_ID = 76803;
 const CALCIFY = Object.freeze({ name: 'Calcify', skillId: ID.CALCIFY });
+const IGNITE = Object.freeze({ name: 'Ignite', skillId: ID.IGNITE });
+const ZAP = Object.freeze({ name: 'Zap', skillId: ID.ZAP });
 const EVOKER_ELEMENTS = new Set<ElementalistAttunement>(['Fire', 'Water', 'Air', 'Earth']);
+const OPENING_SIGNAL_WINDOW_MS = 150;
 
 interface EvokerChargeGrant {
   readonly at: number;
@@ -122,6 +129,146 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
   }
 
   return actions;
+}
+
+function zapActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const ownerInstance = playerInstance(context);
+  if (ownerInstance == null) return [];
+
+  // ArcDPS records the player's instant Zap input as the owned Air familiar's
+  // animation start; each start is one replayable input even if its visual is cancelled.
+  return context.log.events.flatMap((event, eventIndex) =>
+    event.sourceMasterInstance === ownerInstance &&
+    event.skillId === ZAP_RAW_SKILL_ID &&
+    event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
+      ? [
+          {
+            start: event.time,
+            end: event.time,
+            expectedDuration: 0,
+            rawSkillId: event.skillId,
+            rawName: ZAP.name,
+            canonicalSkillId: ZAP.skillId,
+            canonicalName: ZAP.name,
+            evidence: 'animation' as const,
+            status: 'instant' as const,
+            eventIndex
+          }
+        ]
+      : []
+  );
+}
+
+function isOwnedAnimationStart(event: ParsedEvtcEvent, ownerInstance: number, skillId: number): boolean {
+  return (
+    event.sourceMasterInstance === ownerInstance &&
+    event.skillId === skillId &&
+    (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
+      (event.stateChange === EVTC_STATE_CHANGE.NONE &&
+        (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)))
+  );
+}
+
+function igniteAction(
+  event: ParsedEvtcEvent,
+  eventIndex: number,
+  start: number,
+  precast = false
+): EvtcRecordedRotationAction {
+  return {
+    start,
+    end: start,
+    expectedDuration: 0,
+    rawSkillId: event.skillId,
+    rawName: IGNITE.name,
+    canonicalSkillId: IGNITE.skillId,
+    canonicalName: IGNITE.name,
+    evidence:
+      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START || event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP
+        ? 'animation'
+        : 'legacy-activation',
+    status: 'instant',
+    eventIndex,
+    ...(precast ? { precast: true } : {})
+  };
+}
+
+function igniteActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const ownerInstance = playerInstance(context);
+  if (ownerInstance == null) return [];
+  const ownedEvents = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .filter(({ event }) => event.sourceMasterInstance === ownerInstance && event.skillId === IGNITE_RAW_SKILL_ID);
+  const starts = ownedEvents.filter(({ event }) => isOwnedAnimationStart(event, ownerInstance, IGNITE_RAW_SKILL_ID));
+  const actions = starts.map(({ event, eventIndex }) => igniteAction(event, eventIndex, event.time));
+
+  // Legacy logs can begin after the familiar animation starts. Its unmatched stop
+  // still carries the elapsed duration needed to restore the clipped player input.
+  for (const { event, eventIndex } of ownedEvents) {
+    const completedStop =
+      event.value > 0 &&
+      (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP || event.stateChange === EVTC_STATE_CHANGE.NONE) &&
+      (event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET);
+    if (!completedStop) continue;
+    const start = event.time - event.value;
+    const matched = starts.some(
+      ({ event: candidate }) => candidate.source === event.source && Math.abs(candidate.time - start) <= 150
+    );
+    if (!matched) actions.push(igniteAction(event, eventIndex, start, true));
+  }
+
+  return actions;
+}
+
+function openingDragonsToothActions(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[]
+): EvtcRecordedRotationAction[] {
+  const skill = findRotationSkill(ID.DRAGONS_TOOTH, "Dragon's Tooth", context.catalog, context.profile);
+  const duration = quicknessRuntimeDurationMs(skill);
+  const strikeOffset = firstStrikePacketOffsetMs(skill, duration, { explicitOnly: true });
+  const firstAction = [...actions].sort(
+    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
+  )[0];
+  const firstRecordedTooth = actions
+    .filter((action) => action.rawSkillId === ID.DRAGONS_TOOTH || action.canonicalSkillId === ID.DRAGONS_TOOTH)
+    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0];
+  if (!skill || !(duration > 0) || strikeOffset == null || !firstAction || !firstRecordedTooth) return [];
+
+  const packet = context.log.events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .find(
+      ({ event }) =>
+        event.source === context.playerAddress &&
+        event.skillId === ID.DRAGONS_TOOTH &&
+        event.time < firstRecordedTooth.start &&
+        event.target !== 0n &&
+        event.value > 0 &&
+        event.buff === 0 &&
+        event.activation === EVTC_ACTIVATION.NONE &&
+        event.stateChange === EVTC_STATE_CHANGE.NONE
+    );
+  if (!packet) return [];
+  const start = packet.event.time - strikeOffset;
+  if (Math.abs(start + duration - firstAction.start) > OPENING_SIGNAL_WINDOW_MS) return [];
+
+  // A Dragon's Tooth hit without a matching activation proves the cast began before
+  // logging; its explicit packet offset places it directly before the first kept cast.
+  return [
+    {
+      start,
+      end: start + duration,
+      expectedDuration: duration,
+      rawSkillId: ID.DRAGONS_TOOTH,
+      rawName: "Dragon's Tooth",
+      canonicalSkillId: ID.DRAGONS_TOOTH,
+      canonicalName: "Dragon's Tooth",
+      evidence: 'effect',
+      status: 'completed',
+      eventIndex: packet.eventIndex,
+      precast: true
+    }
+  ];
 }
 
 function boundedInteger(value: unknown, fallback: number, maximum: number): number {
@@ -238,7 +385,9 @@ export function reconstructEvokerActions(
       canonicalName: identity.name
     };
   });
-  return alignCalcifyWithResourceReadiness(context, [...normalized, ...calcifyActions(context)]).sort(
+  const recovered = [...normalized, ...zapActions(context), ...igniteActions(context), ...calcifyActions(context)];
+  recovered.push(...openingDragonsToothActions(context, normalized));
+  return alignCalcifyWithResourceReadiness(context, recovered).sort(
     (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
 }

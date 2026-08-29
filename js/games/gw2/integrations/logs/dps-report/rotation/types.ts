@@ -43,6 +43,8 @@ export interface DpsReportRecordedAction {
     | 'willbender-jurisdiction'
     | 'elementalist-aura'
     | 'elementalist-blinding-flash'
+    | 'elementalist-damage-evidence'
+    | 'elementalist-spear-etching'
     | 'virtuoso-opening'
     | 'troubadour-opening'
     | 'ranger-opening'

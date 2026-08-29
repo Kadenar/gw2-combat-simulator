@@ -365,6 +365,7 @@ function warningList(
             action.inference != null &&
             action.inference !== 'elementalist-aura' &&
             action.inference !== 'elementalist-blinding-flash' &&
+            action.inference !== 'elementalist-damage-evidence' &&
             action.inference !== 'ranger-damage-evidence' &&
             action.control == null &&
             !(action.inference === 'initial-kit' && action.skill?.handlerId === 'engineer.kit-stow')
@@ -387,6 +388,7 @@ function warningList(
           (action) =>
             action.inference === 'elementalist-aura' ||
             action.inference === 'elementalist-blinding-flash' ||
+            action.inference === 'elementalist-damage-evidence' ||
             action.inference === 'ranger-damage-evidence'
         )
         .map((action) => action.name)
