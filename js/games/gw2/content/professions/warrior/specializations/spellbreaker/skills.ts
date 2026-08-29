@@ -185,6 +185,15 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KILL_SHOT_ID_42041]: {
     implemented: true,
+    skillWeapon: 'Rifle',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',

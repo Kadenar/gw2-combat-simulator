@@ -29,7 +29,7 @@ function afterResourceSkill(
 }
 
 // Use the adrenaline snapshot captured before effects to grant first-hit traits
-// once and replace tiered burst packets with their correct profile values.
+// once and replace tiered Eviscerate and Kill Shot packets with their correct values.
 function adjustResourceSkillEffect(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -58,11 +58,20 @@ function adjustResourceSkillEffect(
     });
   }
 
-  if (skill.id !== ID.EVISCERATE || event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
+  if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
     return;
   }
 
   const tier = burstTier(context, spent);
+  if (skill.name === 'Kill Shot') {
+    context.replaceEvent(event, {
+      coefficient: [2.25, 2.75, 3.25][tier - 1],
+      name: `Kill Shot — Level ${tier} Damage`
+    });
+    return;
+  }
+
+  if (skill.id !== ID.EVISCERATE) return;
   const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
   const strike = warriorBalanceProfileEffect(warriorBalanceProfile(context, variantId), 'strike');
   context.replaceEvent(event, {

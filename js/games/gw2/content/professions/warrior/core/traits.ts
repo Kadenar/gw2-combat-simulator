@@ -345,6 +345,13 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
 
 /** Runs Core Warrior mechanics owned by one completed skill activation. */
 export const warriorCoreSkillMechanicHandlers = Object.freeze({
+  'warrior.core.reload-rifle': ({ context, at }: { context: WarriorSchedulerContext; at: number }): void => {
+    // Rifle Butt restores one count to other rifle ammo skills and readies every rifle burst.
+    for (const skill of context.catalog.skills) {
+      if (skill.weapon === 'Rifle' && skill.ammo) restoreAmmo(context, skill, 1, at);
+      if (skill.name === 'Kill Shot' || skill.name === 'Gun Flame') context.state.cooldowns.delete(skill.id);
+    }
+  },
   'warrior.core.reset-crushing-blow': ({ context }: { context: WarriorSchedulerContext }): void => {
     context.state.cooldowns.delete(ID.CRUSHING_BLOW);
   },

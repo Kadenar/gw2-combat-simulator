@@ -206,6 +206,17 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
 
 const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
+    id: 'warrior.kill-shot-threshold',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    order: 100,
+    // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
+    when: (context) =>
+      eventSkill(context)?.name === 'Kill Shot' &&
+      (context.config?.target?.defiant === true || targetHealthFraction(context) < 0.5)
+  },
+  {
     id: 'warrior.throw-axe-health-threshold',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',

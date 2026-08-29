@@ -1167,6 +1167,105 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   );
 });
 
+test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion contracts', () => {
+  const skill = (id) => warriorCatalog.skillsById.get(id);
+  const strike = (id) => skill(id).effects.find((effect) => effect.type === 'strike');
+  const conditions = (id) =>
+    skill(id)
+      .effects.filter((effect) => effect.type === 'condition')
+      .map(({ condition, stacks, duration }) => [condition, stacks, duration]);
+  const finisherChance = (id) => skill(id).comboFinishers?.[0]?.chance;
+
+  assert.deepEqual(
+    [ID.FIERCE_SHOT, ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => [
+      strike(id).coefficient,
+      strike(id).hits
+    ]),
+    [
+      [1, 1],
+      [4, 5],
+      [1.6, 1],
+      [1, 1]
+    ]
+  );
+  assert.deepEqual(
+    [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => [
+      skill(id).ammo,
+      skill(id).ammoCastLockout,
+      skill(id).ammoRecharge
+    ]),
+    [
+      [2, 1, 10],
+      [2, 1, 8],
+      [2, 1, 20]
+    ]
+  );
+  assert.deepEqual([finisherChance(ID.FIERCE_SHOT), finisherChance(ID.VOLLEY)], [0.2, 0.2]);
+  assert.deepEqual([finisherChance(ID.BRUTAL_SHOT), finisherChance(ID.KILL_SHOT)], [1, 1]);
+  assert.deepEqual(conditions(ID.EXPLOSIVE_SHELL), [
+    ['Crippled', 1, 5],
+    ['Vulnerability', 10, 10]
+  ]);
+  assert.deepEqual(conditions(ID.BRUTAL_SHOT), [
+    ['Immobilized', 1, 1.5],
+    ['Vulnerability', 8, 12]
+  ]);
+  assert.equal(strike(ID.EXPLOSIVE_SHELL).metadata.damageKind, 'explosion');
+  assert.deepEqual(
+    skill(ID.FIERCE_SHOT).effects.find((effect) => effect.type === 'boon'),
+    { type: 'boon', boon: 'might', duration: 5, stacks: 1 }
+  );
+  assert.equal(skill(ID.KILL_SHOT).skillWeapon, 'Rifle');
+  assert.equal(skill(ID.RIFLE_BUTT).cooldown, 12);
+  assert.equal(
+    skill(ID.RIFLE_BUTT).effects.find((effect) => effect.type === 'control').metadata.controlKind,
+    'knockback'
+  );
+});
+
+test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {
+  // A minimal one-cast rotation isolates the burst tier and target multiplier contracts.
+  const killShot = (specialization, initialResource, config = {}) =>
+    simulate(specialization, ['Kill Shot'], {
+      initialResource,
+      primaryWeapon: 'Rifle',
+      stats: { precision: 0, ferocity: 0 },
+      targetHealthFraction: 1,
+      target: { defiant: false, conditions: {} },
+      ...config
+    });
+  const packet = (result) => result.events.find((event) => event.type === 'damage' && event.skillId === ID.KILL_SHOT);
+
+  assert.deepEqual(
+    [10, 20, 30].map((adrenaline) => packet(killShot('Core', adrenaline)).coefficient),
+    [2.25, 2.75, 3.25]
+  );
+  assert.equal(packet(killShot('Spellbreaker', 20)).coefficient, 2.25);
+
+  const normal = killShot('Core', 10);
+  const defiant = killShot('Core', 10, { target: { defiant: true, conditions: {} } });
+  const belowHalf = killShot('Core', 10, { targetHealthFraction: 0.49 });
+
+  assert.ok(Math.abs(defiant.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
+  assert.ok(Math.abs(belowHalf.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
+});
+
+test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
+  // Spend one count and the burst first so Rifle Butt must restore each live recharge state.
+  const result = simulate('Core', ['Volley', 'Explosive Shell', 'Brutal Shot', 'Kill Shot', 'Rifle Butt'], {
+    initialResource: 30,
+    primaryWeapon: 'Rifle',
+    boons: { quickness: true }
+  });
+
+  assert.deepEqual(
+    [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => result.endState.ammoBySkillId[String(id)].charges),
+    [2, 2, 2]
+  );
+  assert.equal(result.endState.cooldowns['Kill Shot'], undefined);
+  assert.equal(result.endState.cooldowns['Rifle Butt'].remaining, 12_000);
+});
+
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {
   const result = simulate('Spellbreaker', ['Disrupting Stab'], {
     primaryWeapon: 'Dagger',

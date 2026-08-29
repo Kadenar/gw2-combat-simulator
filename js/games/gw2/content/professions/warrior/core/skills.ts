@@ -127,6 +127,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.RIFLE_BUTT]: {
     implemented: true,
+    // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
+    cooldown: 12,
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.reload-rifle',
+        timingAnchor: 'castEnd'
+      }
+    ],
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -656,6 +664,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KILL_SHOT]: {
     implemented: true,
+    skillWeapon: 'Rifle',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 833,
     adrenalineCost: 10,
     burstTier: 1,
@@ -973,6 +990,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.VOLLEY]: {
     implemented: true,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 0.2,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 1667,
     effects: [
       {
@@ -1133,6 +1158,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.FIERCE_SHOT]: {
     implemented: true,
+    // Rifle projectile finishers stay declarative so each emitted shot uses the shared combo scheduler.
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 0.2,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -1207,7 +1241,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       {
         type: 'strike',
         coefficient: 1.6,
-        hits: 1
+        hits: 1,
+        metadata: {
+          damageKind: 'explosion'
+        }
       },
       {
         type: 'condition',
@@ -1225,6 +1262,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KILL_SHOT_ID_14473]: {
     implemented: true,
+    skillWeapon: 'Rifle',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 833,
     adrenalineCost: 10,
     burstTier: 1,
@@ -1240,6 +1286,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KILL_SHOT_ID_14474]: {
     implemented: true,
+    skillWeapon: 'Rifle',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 833,
     adrenalineCost: 10,
     burstTier: 1,
@@ -1255,6 +1310,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.KILL_SHOT_ID_14475]: {
     implemented: true,
+    skillWeapon: 'Rifle',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 833,
     adrenalineCost: 10,
     burstTier: 1,
@@ -2001,12 +2065,26 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.BRUTAL_SHOT]: {
     implemented: true,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     quicknessCastTimeMs: 500,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 1.5
       },
       {
         type: 'condition',
