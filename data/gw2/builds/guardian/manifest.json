@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 42816,
+        "benchmarkDps": 42820,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -64,7 +64,7 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
-        "benchmarkDps": 41809,
+        "benchmarkDps": 41621,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -79,14 +79,14 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 42043
+        "benchmarkDps": 42083
       },
       {
         "label": "Power (Greatsword / Longbow)",
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41416,
+        "benchmarkDps": 41497,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true
@@ -96,7 +96,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
-        "benchmarkDps": 37872,
+        "benchmarkDps": 37869,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

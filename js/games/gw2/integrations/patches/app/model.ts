@@ -1,7 +1,12 @@
 import type { SkillEffect } from '../../../platform/engine/types.js';
-import type { NativePatchAuthoringMetadata, NativePatchAuthoringSkill } from '../authoring/module-types.js';
+import type {
+  NativePatchAuthoringBalanceProfile,
+  NativePatchAuthoringMetadata,
+  NativePatchAuthoringSkill
+} from '../authoring/module-types.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
+  balanceProfileHasAuthorableControls,
   type EffectPatch,
   type ModifierRulePatchEdit,
   type PatchOverviewEntry,
@@ -35,6 +40,7 @@ const ELEMENTALIST_ATTUNEMENT_ORDER = new Map(
   ['Air', 'Earth', 'Fire', 'Water', 'Dual', 'Other'].map((attunement, index) => [attunement, index])
 );
 
+/** Normalizes a skill's attunement into the small set of authoring navigation buckets. */
 function skillAttunementGroup(entry: NativePatchAuthoringSkill): string | null {
   const attunement = String(entry.skill.attunement || '');
   if (!attunement) return null;
@@ -69,6 +75,7 @@ function groupSkillsByAttunement(
     }));
 }
 
+/** Assigns a skill to a stable weapon, slot, profession, or triggered-action group. */
 function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentity {
   const type = String(entry.skill.type || 'Skill');
   if (type === 'Weapon') {
@@ -105,6 +112,7 @@ function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentit
   };
 }
 
+/** Builds ordered, searchable skill groups for the authoring navigation. */
 export function groupPatchAuthoringSkills(
   skills: readonly NativePatchAuthoringSkill[]
 ): readonly PatchAuthoringSkillGroup[] {
@@ -129,6 +137,19 @@ export function groupPatchAuthoringSkills(
     });
 }
 
+/** Splits cast-owned variants from trait and mechanic profiles so the UI can put them in the correct section. */
+export function partitionPatchAuthoringBalanceProfiles(entries: readonly NativePatchAuthoringBalanceProfile[]): {
+  readonly profiles: readonly NativePatchAuthoringBalanceProfile[];
+  readonly skillVariants: readonly NativePatchAuthoringBalanceProfile[];
+} {
+  const authorable = entries.filter((entry) => balanceProfileHasAuthorableControls(entry.profile));
+  return {
+    profiles: authorable.filter((entry) => entry.profile.profileKind !== 'skill-variant'),
+    skillVariants: authorable.filter((entry) => entry.profile.profileKind === 'skill-variant')
+  };
+}
+
+/** Creates the minimal valid preview shell used before an active preview exists. */
 export function createPatchPreviewDraft(): PatchPreview {
   return {
     id: 'upcoming-patch',
@@ -137,6 +158,7 @@ export function createPatchPreviewDraft(): PatchPreview {
   };
 }
 
+/** Resolves every supported numeric edit form to the value shown in the editor. */
 export function numericEditValue(liveValue: number, edit?: NumEdit): number {
   if (edit == null) return liveValue;
   if (typeof edit === 'number') return edit;
@@ -145,10 +167,12 @@ export function numericEditValue(liveValue: number, edit?: NumEdit): number {
   return liveValue + edit.add;
 }
 
+/** Emits a guarded replacement only when the author changed the live value. */
 export function numericEditForValue(liveValue: number, previewValue: number): NumEdit | undefined {
   return Object.is(liveValue, previewValue) ? undefined : { from: liveValue, to: previewValue };
 }
 
+/** Provides a valid editable starter payload for each effect type the UI can add. */
 export function createEffectTemplate(type: string): SkillEffect {
   switch (type) {
     case 'condition':
@@ -156,20 +180,19 @@ export function createEffectTemplate(type: string): SkillEffect {
         type,
         condition: 'Bleeding',
         stacks: 1,
-        duration: 1,
-        atMs: 0
+        duration: 1
       };
     case 'boon':
-      return { type, boon: 'Might', stacks: 1, duration: 1, atMs: 0 };
+      return { type, boon: 'Might', stacks: 1, duration: 1 };
     case 'buff':
-      return { type, kind: 'buff', stacks: 1, duration: 1, atMs: 0 };
+      return { type, kind: 'buff', stacks: 1, duration: 1 };
     case 'control':
     case 'blind':
-      return { type, atMs: 0 };
+      return { type };
     case 'custom':
-      return { type, eventType: 'custom', event: {}, atMs: 0 };
+      return { type, eventType: 'custom', event: {} };
     default:
-      return { type: 'strike', coefficient: 1, hits: 1, atMs: 0 };
+      return { type: 'strike', coefficient: 1, hits: 1 };
   }
 }
 
@@ -201,14 +224,44 @@ const FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({
   stacks: 'stacks'
 });
 
+const SECOND_FIELDS = new Set([
+  'ammoCastLockout',
+  'ammoRecharge',
+  'baseDuration',
+  'cooldown',
+  'duration',
+  'durationPerTier',
+  'enhancedDuration',
+  'highDuration',
+  'internalCooldown',
+  'packetInterval',
+  'pulseInterval',
+  'recharge',
+  'rechargeReduction',
+  'summonInterval'
+]);
+
+/** Produces author-facing labels and units without changing stable runtime field names. */
+export function authoringNumericFieldLabel(field: string, profile = false): string {
+  if (profile && field === 'durationMultiplier') return 'duration value (profile-specific)';
+  const label = FIELD_LABELS[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLocaleLowerCase();
+  if (field.endsWith('Ms')) return `${label.replace(/ ms$/i, '')} (ms)`;
+  if (SECOND_FIELDS.has(field)) return `${label} (s)`;
+  if (field === 'procChance' || field === 'criticalChance') return `${label} (0-1)`;
+  return label;
+}
+
+/** Converts stable storage keys into concise labels used by generated overview prose. */
 function fieldLabel(field: string): string {
   return FIELD_LABELS[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLocaleLowerCase();
 }
 
+/** Keeps generated numeric summaries compact while avoiding floating-point noise. */
 function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)));
 }
 
+/** Describes one numeric edit in human-readable patch-note language. */
 function describeNumEdit(field: string, edit: NumEdit): string {
   const label = fieldLabel(field);
   if (typeof edit === 'number') return `${label} set to ${formatNumber(edit)}`;
@@ -224,6 +277,7 @@ function describeNumEdit(field: string, edit: NumEdit): string {
   return `${label} ${sign}${formatNumber(edit.add)}`;
 }
 
+/** Names the selected effect or tick for deterministic generated summaries. */
 function effectTarget(patch: EffectPatch): string {
   const selector =
     patch.effectIndex != null
@@ -232,11 +286,13 @@ function effectTarget(patch: EffectPatch): string {
   return patch.tickIndex == null ? selector : `${selector} tick ${String(patch.tickIndex)}`;
 }
 
+/** Builds a short identity for effects added as complete authored payloads. */
 function effectIdentity(effect: Readonly<SkillEffect>): string {
   const detail = effect.name || effect.condition || effect.boon || effect.kind;
   return `${effect.type}${detail ? ` ${String(detail)}` : ''}`;
 }
 
+/** Collapses every skill-style field and effect edit into one generated sentence. */
 function skillPatchSummary(edit: SkillPatchEdit): string {
   const changes = new Set<string>();
   for (const [field, numericEdit] of Object.entries(edit.fields || {})) {
@@ -245,7 +301,6 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
 
   for (const [field, numericEdit] of [
     ['cooldown', edit.cooldown],
-    ['castTimeMs', edit.castTimeMs],
     ['coefficient', edit.coefficient]
   ] as const) {
     if (numericEdit != null) changes.add(describeNumEdit(field, numericEdit));
@@ -288,6 +343,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Skill metadata changed.';
 }
 
+/** Generates overview entries for authored skill changes using live display names. */
 function generatedSkillOverview(
   skills: Readonly<Record<string, SkillPatchEdit>>,
   metadata: NativePatchAuthoringMetadata | undefined
@@ -307,13 +363,14 @@ function generatedSkillOverview(
   }));
 }
 
+/** Generates overview entries for profile changes, including variants shown under Skills. */
 function generatedBalanceProfileOverview(
   profiles: Readonly<Record<string, SkillPatchEdit>>,
   metadata: NativePatchAuthoringMetadata | undefined
 ): PatchOverviewEntry[] {
   const names = new Map<string, string>();
   for (const module of metadata?.modules || []) {
-    for (const entry of module.balanceProfiles || []) {
+    for (const entry of [...(module.balanceProfiles || []), ...(module.skillVariants || [])]) {
       names.set(String(entry.id), entry.name);
       names.set(entry.name, entry.name);
     }
@@ -326,6 +383,7 @@ function generatedBalanceProfileOverview(
   }));
 }
 
+/** Summarizes static and resolver-parameter modifier edits in one sentence. */
 function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   const changes: string[] = [];
   for (const field of ['amount', 'factor'] as const) {
@@ -343,6 +401,7 @@ function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Modifier metadata changed.';
 }
 
+/** Generates overview entries for modifier-rule changes using declaration labels. */
 function generatedModifierOverview(
   edits: Readonly<Record<string, ModifierRulePatchEdit>>,
   metadata: NativePatchAuthoringMetadata | undefined
@@ -361,6 +420,7 @@ function generatedModifierOverview(
   }));
 }
 
+/** Rebuilds read-only overview text from the current authored diff and live metadata. */
 export function generatePatchOverview(
   preview: PatchPreview,
   metadata: readonly NativePatchAuthoringMetadata[]
@@ -386,6 +446,7 @@ export function generatePatchOverview(
   return generated;
 }
 
+/** Removes undefined and empty containers while retaining meaningful falsy values. */
 function compactValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     const values = value.map(compactValue).filter((entry) => entry !== undefined);
@@ -403,6 +464,7 @@ function compactValue(value: unknown): unknown {
   return value === undefined ? undefined : value;
 }
 
+/** Compacts a preview before saving while preserving its required identity fields. */
 export function compactPatchPreview(preview: PatchPreview): PatchPreview {
   const compacted = compactValue(structuredClone(preview)) as MutableRecord | undefined;
   if (!compacted) return createPatchPreviewDraft();
@@ -411,6 +473,7 @@ export function compactPatchPreview(preview: PatchPreview): PatchPreview {
   return compacted as unknown as PatchPreview;
 }
 
+/** Normalizes heterogeneous metadata into one lowercase search string. */
 export function patchSearchText(...values: unknown[]): string {
   return values
     .flatMap((value) => (Array.isArray(value) ? value : [value == null ? '' : String(value)]))

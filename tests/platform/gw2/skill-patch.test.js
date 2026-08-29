@@ -617,6 +617,7 @@ test('native professions compile preview modifier rules in isolated runtimes', (
           name: 'Modifier Strike',
           implemented: true,
           castTimeMs: 0,
+          cooldown: 10,
           effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
         }
       ]
@@ -761,7 +762,7 @@ test('native professions compile preview modifier rules in isolated runtimes', (
   );
   assert.equal(
     family.validatePatch({
-      skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } },
+      skills: { 10: { fields: { cooldown: { from: 10, to: 12 } } } },
       modifierRules: {
         'fixture.trait-critical-chance': {
           amount: { from: 0.1, to: 0.15 }
@@ -769,6 +770,10 @@ test('native professions compile preview modifier rules in isolated runtimes', (
       }
     }),
     true
+  );
+  assert.throws(
+    () => family.validatePatch({ skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } } }),
+    /unsupported patch field castTimeMs/
   );
   assert.throws(() => family.validatePatch({ skills: { missing: { cooldown: 10 } } }), /unknown skill missing/);
 

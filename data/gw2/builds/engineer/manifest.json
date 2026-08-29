@@ -6,7 +6,7 @@
         "label": "Power (Hammer)",
         "build": "data/gw2/builds/engineer/b-power-core-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
-        "benchmarkDps": 36204,
+        "benchmarkDps": 36285,
         "upToDate": true
       }
     ]
@@ -27,7 +27,7 @@
         "label": "Power (Rifle - Double Helix)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 43624,
+        "benchmarkDps": 43574,
         "upToDate": true
       },
       {
@@ -122,7 +122,7 @@
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
         "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
-        "benchmarkDps": 41434,
+        "benchmarkDps": 41383,
         "upToDate": true
       }
     ]

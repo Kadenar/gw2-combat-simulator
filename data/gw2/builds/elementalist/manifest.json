@@ -180,7 +180,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-scepter-btth.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/aAgi-20260414-165732_golem",
-        "benchmarkDps": 41515,
+        "benchmarkDps": 41574,
         "upToDate": true
       },
       {
@@ -203,7 +203,7 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-catalyst-scepter-btth.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 35289,
+        "benchmarkDps": 35348,
         "upToDate": true
       },
       {
@@ -233,14 +233,14 @@
         "label": "Inferno (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40411,
+        "benchmarkDps": 40444,
         "upToDate": false
       },
       {
         "label": "Inferno Quickness (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-quick-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-quick-catalyst.json",
-        "benchmarkDps": 36834,
+        "benchmarkDps": 36929,
         "upToDate": false
       }
     ]
@@ -253,7 +253,7 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/R5M5-20260414-134009_golem",
-        "benchmarkDps": 42393,
+        "benchmarkDps": 41586,
         "upToDate": true
       },
       {
@@ -261,7 +261,7 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/0Ez4-20260414-142811_golem",
-        "benchmarkDps": 32493,
+        "benchmarkDps": 31903,
         "upToDate": true
       },
       {
@@ -269,7 +269,7 @@
         "build": "data/gw2/builds/elementalist/b-power-alac-evoker-toad.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-evoker-toad.json",
         "dpsReportUrl": "https://dps.report/tFzd-20260415-200807_golem",
-        "benchmarkDps": 33502,
+        "benchmarkDps": 33519,
         "upToDate": true
       },
       {

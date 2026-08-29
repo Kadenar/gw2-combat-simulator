@@ -77,7 +77,6 @@ export interface EffectPatch extends EffectSelector {
   readonly stacks?: NumEdit;
   readonly duration?: NumEdit;
   readonly applications?: NumEdit;
-  readonly atMs?: NumEdit;
   readonly intervalMs?: NumEdit;
   readonly flatDamage?: NumEdit;
   readonly flatStrikeBase?: NumEdit;
@@ -90,7 +89,7 @@ export interface EffectPatch extends EffectSelector {
 }
 
 export interface SkillPatchEdit {
-  /** Numeric skill fields such as cooldown, castTimeMs, or initiativeCost. */
+  /** Numeric balance fields such as cooldown or initiativeCost. */
   readonly fields?: Readonly<Record<string, NumEdit>>;
   readonly effects?: readonly EffectPatch[];
   /** Complete effects appended after edits/removals of existing effects. */
@@ -103,7 +102,6 @@ export interface SkillPatchEdit {
   readonly conditions?: Readonly<Record<string, { readonly stacks?: NumEdit; readonly duration?: NumEdit }>>;
   readonly boons?: Readonly<Record<string, { readonly stacks?: NumEdit; readonly duration?: NumEdit }>>;
   readonly cooldown?: NumEdit;
-  readonly castTimeMs?: NumEdit;
 }
 
 /** Patches a non-skill balance profile using the same numeric/effect grammar. */
@@ -137,24 +135,16 @@ export interface PatchPreview {
 
 export type PatchRuntimeValues = Readonly<Record<string, NumEdit>>;
 
+/** Numeric balance fields accepted by both the authoring API and sparse patch validation. */
 export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
-  // Activation, recharge, ammo, and action sequencing.
-  'castTimeMs',
-  'quicknessCastTimeMs',
-  'quicknessCastMultiplier',
-  'commitAtMs',
-  'initialDelay',
-  'selfStunMs',
+  // Recharge and ammo.
   'cooldown',
   'recharge',
-  'rechargeOffsetMs',
   'rechargeMultiplier', // fraction of recharge duration retained
   'rechargeReduction', // flat seconds removed from recharge
   'rechargePenalty',
   'ammo',
-  'ammoCastLockout',
   'ammoRecharge',
-  'alternateEvery',
 
   // Resource costs, gains, regeneration, and upkeep.
   'resourceCost',
@@ -181,8 +171,6 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'highStrikeFactor',
   'enhancedStrikeFactor',
   'enhancedConditionBaseDurationFactor',
-  'firstPacketRatio',
-  'packetIntervalRatio',
   'lifeSiphonDamagePerStack',
   'weaponStrength',
 
@@ -241,6 +229,42 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'windForceGain'
 ]);
 
+const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
+  'alternateEvery',
+  'ammoCastLockout',
+  'atMs',
+  'castTimeMs',
+  'commitAtMs',
+  'firstPacketRatio',
+  'initialDelay',
+  'interruptCommitMs',
+  'packetIntervalRatio',
+  'quicknessCastMultiplier',
+  'quicknessCastTimeMs',
+  'rechargeOffsetMs',
+  'selfStunMs'
+]);
+
+/** Balance profiles use the same reduced root-field boundary as authored skills. */
+export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = PATCHABLE_SKILL_NUMERIC_FIELDS;
+
+export const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
+  'baseExtraBlades',
+  'basePacketCount',
+  'basePower',
+  'damagePerCoefficient',
+  'highExtraBlades',
+  'highPacketCount',
+  'maximumTargets',
+  'minionCount',
+  'packetCount',
+  'packetInterval',
+  'pulseInterval',
+  'summonInterval',
+  'summons',
+  'weaponStrength'
+]);
+
 export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'allyStacks',
   'coefficient',
@@ -248,7 +272,6 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'stacks',
   'duration',
   'applications',
-  'atMs',
   'intervalMs',
   'flatDamage',
   'flatStrikeBase',
@@ -260,11 +283,50 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'maximumRecipients'
 ] as const);
 
+export const PATCHABLE_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
+
+const BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = new Set<string>(PATCHABLE_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS);
+const ADVANCED_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = new Set([
+  'applications',
+  'damagePerCoefficient',
+  'flatDamage',
+  'flatStrikeBase',
+  'flatStrikePowerCoeff',
+  'intervalMs',
+  'maximumRecipients'
+]);
+
+export type BalanceProfileAuthoringTier = 'primary' | 'advanced';
+
+/** Separates common patch-note values from specialist calibration controls in the profile editor. */
+export function balanceProfileNumericFieldTier(field: string): BalanceProfileAuthoringTier | null {
+  if (!PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS.includes(field)) return null;
+  return ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS.includes(field) ? 'advanced' : 'primary';
+}
+
+/** Treats one-hit declarations as structural while keeping changed hit counts visible as primary balance values. */
+export function balanceProfileEffectNumericFieldTier(field: string, value: number): BalanceProfileAuthoringTier | null {
+  if (!BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS.has(field)) return null;
+  return ADVANCED_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS.has(field) || (field === 'hits' && value === 1)
+    ? 'advanced'
+    : 'primary';
+}
+
+/** Detects whether an effect or nested tick exposes at least one approved profile control. */
+function effectHasAuthorableProfileValue(effect: Readonly<SkillEffect>): boolean {
+  for (const [field, value] of Object.entries(effect)) {
+    if (typeof value === 'number' && balanceProfileEffectNumericFieldTier(field, value)) return true;
+  }
+
+  return Array.isArray(effect.ticks) && effect.ticks.some(effectHasAuthorableProfileValue);
+}
+
 const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
 
+/** Reads a nested numeric candidate without treating missing path segments as errors. */
 function valueAtPath(root: unknown, path: string): unknown {
   let value = root;
   for (const segment of path.split('.')) {
@@ -280,7 +342,7 @@ function valueAtPath(root: unknown, path: string): unknown {
   return value;
 }
 
-/** Returns the numeric skill fields supported by patch authoring. */
+/** Returns only the numeric skill fields deliberately exposed by the authoring API. */
 export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfile>): Readonly<Record<string, number>> {
   return Object.freeze(
     Object.fromEntries(
@@ -292,9 +354,73 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
   );
 }
 
-/** Returns the numeric balance-profile fields supported by patch authoring. */
-export const balanceProfilePatchableNumericFields = skillPatchableNumericFields;
+/** Recursively removes runtime-only timing fields before catalog data crosses the authoring API boundary. */
+function withoutRuntimeOnlyAuthoringFields(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutRuntimeOnlyAuthoringFields);
+  if (!value || typeof value !== 'object') return structuredClone(value);
+  return Object.fromEntries(
+    Object.entries(value as Readonly<Record<string, unknown>>).flatMap(([field, nested]) =>
+      AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ? [] : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
+    )
+  );
+}
 
+/** Builds a skill reference for the editor while retaining complete timing data in the runtime catalog. */
+export function skillAuthoringReference(skill: Readonly<Skill>): Readonly<Skill> {
+  return deepFreeze(withoutRuntimeOnlyAuthoringFields(skill) as Skill);
+}
+
+/** Returns the numeric balance-profile fields supported by patch authoring. */
+export function balanceProfilePatchableNumericFields(
+  profile: Readonly<BalanceProfile>
+): Readonly<Record<string, number>> {
+  return Object.freeze(
+    Object.fromEntries(
+      PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS.flatMap((field) => {
+        const value = valueAtPath(profile, field);
+        return typeof value === 'number' ? [[field, value]] : [];
+      })
+    )
+  );
+}
+
+/** Keeps runtime-only or empty profiles out of the authoring payload without removing them from the catalog. */
+export function balanceProfileHasAuthorableControls(profile: Readonly<BalanceProfile>): boolean {
+  return (
+    Object.keys(balanceProfilePatchableNumericFields(profile)).length > 0 ||
+    (profile.effects || []).some(effectHasAuthorableProfileValue)
+  );
+}
+
+/** Copies effect identity and approved numeric controls while dropping runtime-only timing metadata. */
+function balanceProfileEffectAuthoringReference(record: Readonly<Record<string, unknown>>): MutableRecord {
+  return Object.fromEntries(
+    Object.entries(record).flatMap(([field, value]) => {
+      if (field === 'ticks' && Array.isArray(value)) {
+        return [[field, value.map((tick) => balanceProfileEffectAuthoringReference(tick as Readonly<MutableRecord>))]];
+      }
+
+      if (typeof value === 'number' && !balanceProfileEffectNumericFieldTier(field, value)) return [];
+      return [[field, structuredClone(value)]];
+    })
+  );
+}
+
+/** Builds the sanitized profile reference sent to authoring without leaking simulator-only fields. */
+export function balanceProfileAuthoringReference(profile: Readonly<BalanceProfile>): Readonly<BalanceProfile> {
+  return deepFreeze({
+    id: profile.id,
+    name: profile.name,
+    profileKind: profile.profileKind,
+    ...(profile.parentId == null ? {} : { parentId: profile.parentId }),
+    ...balanceProfilePatchableNumericFields(profile),
+    effects: (profile.effects || []).map((effect) =>
+      balanceProfileEffectAuthoringReference(effect as unknown as Readonly<MutableRecord>)
+    )
+  } as unknown as BalanceProfile);
+}
+
+/** Applies one numeric edit at a validated direct or dotted path on a cloned catalog record. */
 function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEdit, skillName: string): void {
   const segments = field.split('.');
   const key = segments.pop()!;
@@ -315,6 +441,7 @@ function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEd
   owner[key] = applyNumEdit(Number(owner[key]), edit, `${skillName}.${field}`);
 }
 
+/** Coerces a value to a finite number so invalid authored math fails at its boundary. */
 function numericValue(value: unknown, label: string): number {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) {
@@ -357,6 +484,7 @@ export function patchRuntimeValue(
   return edit == null ? liveValue : applyNumEdit(liveValue, edit, `Patch constant ${key}`);
 }
 
+/** Freezes patched catalog data recursively so previews cannot mutate canonical runtime declarations. */
 function deepFreeze<T>(value: T): T {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) {
     return value;
@@ -368,6 +496,7 @@ function deepFreeze<T>(value: T): T {
 
 const MODIFIER_PATCH_FIELDS = new Set(['amount', 'factor', 'parameters']);
 
+/** Rejects malformed or empty modifier edits before applying them to a declaration. */
 function assertModifierRulePatchEdit(id: string, edit: ModifierRulePatchEdit): void {
   if (!edit || typeof edit !== 'object' || Array.isArray(edit)) {
     throw new TypeError(`Modifier rule ${id} patch must be an object.`);
@@ -384,6 +513,7 @@ function assertModifierRulePatchEdit(id: string, edit: ModifierRulePatchEdit): v
   }
 }
 
+/** Clones and patches one modifier rule while preserving resolver-backed values. */
 function patchModifierRule(rule: Gw2ModifierRule, edit: ModifierRulePatchEdit): Readonly<Gw2ModifierRule> {
   assertModifierRulePatchEdit(rule.id, edit);
   const patched = { ...rule } as {
@@ -468,11 +598,13 @@ export function applyModifierRulePatch(
   return Object.freeze(rules.map((rule) => replacements.get(rule) || rule)) as readonly Gw2ModifierRule[];
 }
 
+/** Returns a declarative tick timeline when the selected effect owns one. */
 function effectTicks(effect: SkillEffect): readonly (StrikeTick | ConditionTick)[] | null {
   const ticks = (effect as StrikeEffect | ConditionEffect).ticks;
   return Array.isArray(ticks) ? ticks : null;
 }
 
+/** Checks whether an effect satisfies every identity field supplied by a selector. */
 function effectMatches(effect: SkillEffect, patch: EffectSelector): boolean {
   if (patch.type != null && effect.type !== patch.type) return false;
   if (patch.name != null && effect.name !== patch.name) return false;
@@ -485,6 +617,7 @@ function effectMatches(effect: SkillEffect, patch: EffectSelector): boolean {
   return true;
 }
 
+/** Resolves a selector to deterministic effect indexes and rejects accidental multi-matches. */
 function selectedEffects(
   effects: readonly SkillEffect[],
   patch: EffectSelector,
@@ -512,10 +645,12 @@ function selectedEffects(
   return matches;
 }
 
+/** Applies condition selectors to individual strike or condition ticks. */
 function tickMatches(tick: StrikeTick | ConditionTick, patch: EffectPatch): boolean {
   return patch.condition == null || ('condition' in tick && tick.condition === patch.condition);
 }
 
+/** Applies supported numeric effect edits to one effect or tick object. */
 function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: string): void {
   for (const field of EFFECT_NUMERIC_FIELDS) {
     const edit = patch[field];
@@ -528,6 +663,7 @@ function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: st
   }
 }
 
+/** Routes an effect edit to its top-level payload or selected tick timeline. */
 function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): SkillEffect {
   const mutable = effect as unknown as MutableRecord;
   const sourceTicks = effectTicks(effect);
@@ -572,6 +708,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
   return effect;
 }
 
+/** Expands coefficient, condition, and boon shorthands into the common effect-patch grammar. */
 function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
   const effects = [...(edit.effects || [])];
   if (edit.coefficient != null) {
@@ -598,13 +735,13 @@ function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
   return effects;
 }
 
+/** Produces an immutable patched skill without mutating the live catalog record. */
 function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   const clone = structuredClone(skill) as Skill;
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
-    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown }),
-    ...(edit.castTimeMs == null ? {} : { castTimeMs: edit.castTimeMs })
+    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
     if (!SKILL_NUMERIC_FIELDS.has(field)) {
@@ -640,13 +777,13 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   return deepFreeze(clone);
 }
 
+/** Produces an immutable patched balance profile using the shared sparse patch grammar. */
 function patchBalanceProfile(profile: BalanceProfile, edit: BalanceProfilePatchEdit): BalanceProfile {
   const clone = structuredClone(profile) as BalanceProfile;
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
-    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown }),
-    ...(edit.castTimeMs == null ? {} : { castTimeMs: edit.castTimeMs })
+    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
     if (!SKILL_NUMERIC_FIELDS.has(field)) {
@@ -681,6 +818,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: BalanceProfilePatchE
   return deepFreeze(clone);
 }
 
+/** Resolves a skill patch key by stable string ID, numeric ID, or canonical name. */
 function findSkill(catalog: Readonly<CanonicalCatalog>, key: string): Skill | undefined {
   const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
   const byId =

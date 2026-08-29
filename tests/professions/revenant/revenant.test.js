@@ -374,27 +374,28 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   assert.equal(preview.balanceProfilesById.get(resources.id).energyRegenerationPerSecond, 6);
 });
 
-test('Elemental Blast exposes patch-authorable packet timelines', () => {
+test('Elemental Blast keeps packet timing runtime-only while exposing packet values', () => {
   const herald = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const elementalBlast = herald.skills.find((skill) => skill.id === SKILL.ELEMENTAL_BLAST).skill;
+  const runtimeElementalBlast = revenantCatalog.skillsById.get(SKILL.ELEMENTAL_BLAST);
   const [strike, conditions] = elementalBlast.effects;
 
   assert.equal(elementalBlast.handlerId, 'revenant.facet-consume');
   assert.deepEqual(
-    strike.ticks.map((tick) => [tick.atMs, tick.coefficient]),
+    strike.ticks.map((tick) => tick.coefficient),
+    [1.5, 1.5, 1.5]
+  );
+  assert.deepEqual(
+    conditions.ticks.map((tick) => [tick.condition, tick.stacks, tick.duration]),
     [
-      [280, 1.5],
-      [1280, 1.5],
-      [2280, 1.5]
+      ['Weakness', 1, 5],
+      ['Chilled', 1, 3],
+      ['Burning', 2, 4]
     ]
   );
   assert.deepEqual(
-    conditions.ticks.map((tick) => [tick.atMs, tick.condition, tick.stacks, tick.duration]),
-    [
-      [280, 'Weakness', 1, 5],
-      [1280, 'Chilled', 1, 3],
-      [2280, 'Burning', 2, 4]
-    ]
+    runtimeElementalBlast.effects[0].ticks.map((tick) => tick.atMs),
+    [280, 1280, 2280]
   );
 });
 
@@ -440,43 +441,40 @@ test('Herald facets expose recurring pulse fields to patch authoring', () => {
   assert.equal(patchedStrength.pulseInterval, 2);
 });
 
-test('Beguiling Haze variants share the common cast timing fields', () => {
+test('Beguiling Haze keeps runtime cast timing out of profile authoring metadata', () => {
   const conduit = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Conduit');
-  const profile = (id) => conduit.balanceProfiles.find((entry) => entry.id === id);
+  const profile = (id) => conduit.skillVariants.find((entry) => entry.id === id);
   const mainExtension = profile(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension);
   const followUp = profile(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
+  const runtimeMain = revenantCatalog.balanceProfilesById.get(
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
+  );
+  const runtimeFollowUp = revenantCatalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
 
-  assert.equal(mainExtension.patchableFields.castTimeMs, 400);
-  assert.equal(mainExtension.patchableFields.quicknessCastMultiplier, 0.9);
-  assert.equal(followUp.patchableFields.castTimeMs, 250);
-  assert.equal(followUp.patchableFields.quicknessCastMultiplier, 0.96);
+  assert.equal(runtimeMain.castTimeMs, 400);
+  assert.equal(runtimeMain.quicknessCastMultiplier, 0.9);
+  assert.equal(runtimeFollowUp.castTimeMs, 250);
+  assert.equal(runtimeFollowUp.quicknessCastMultiplier, 0.96);
+  assert.equal(mainExtension, undefined);
+  assert.equal(followUp.profile.castTimeMs, undefined);
+  assert.equal(followUp.profile.quicknessCastMultiplier, undefined);
+  assert.equal(followUp.patchableFields.castTimeMs, undefined);
+  assert.equal(followUp.patchableFields.quicknessCastMultiplier, undefined);
   assert.equal(Object.hasOwn(followUp.profile, 'mainCastExtensionMs'), false);
   assert.equal(Object.hasOwn(followUp.profile, 'mainQuicknessCastMultiplier'), false);
 
-  const preview = applyRevenantPatch({
-    balanceProfiles: {
-      [CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension]: {
-        fields: {
-          castTimeMs: { from: 400, to: 450 },
-          quicknessCastMultiplier: { from: 0.9, to: 0.85 }
+  assert.throws(
+    () =>
+      applyRevenantPatch({
+        balanceProfiles: {
+          [CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension]: {
+            fields: {
+              castTimeMs: { from: 400, to: 450 }
+            }
+          }
         }
-      },
-      [CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp]: {
-        fields: {
-          castTimeMs: { from: 250, to: 200 },
-          quicknessCastMultiplier: { from: 0.96, to: 0.9 }
-        }
-      }
-    }
-  });
-
-  assert.equal(
-    preview.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension).castTimeMs,
-    450
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp).quicknessCastMultiplier,
-    0.9
+      }),
+    /unsupported patch field castTimeMs/
   );
 });
 
@@ -595,7 +593,8 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   const renegade = revenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const skill = (id) => renegade.skills.find((entry) => entry.id === id);
   const named = (name) => renegade.skills.find((entry) => entry.name === name);
-  const namedProfile = (name) => renegade.balanceProfiles.find((entry) => entry.name === name);
+  const namedProfile = (name) =>
+    [...renegade.balanceProfiles, ...renegade.skillVariants].find((entry) => entry.name === name);
   const baseIcerazor = skill(SKILL.ICERAZORS_IRE);
   const enhancedIcerazor = skill(SKILL.ICERAZORS_IRE_ID_72359);
   const razorclaw = skill(SKILL.RAZORCLAWS_RAGE);
@@ -610,21 +609,21 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   const allForOne = namedProfile('All for One');
 
   assert.deepEqual(
-    baseIcerazor.skill.effects[0].ticks.map((tick) => [tick.atMs, tick.coefficient]),
-    [
-      [500, 2],
-      [661, 2],
-      [822, 2]
-    ]
+    baseIcerazor.skill.effects[0].ticks.map((tick) => tick.coefficient),
+    [2, 2, 2]
+  );
+  assert.deepEqual(
+    revenantCatalog.skillsById.get(SKILL.ICERAZORS_IRE).effects[0].ticks.map((tick) => tick.atMs),
+    [500, 661, 822]
   );
   assert.equal(enhancedIcerazor.skill.simulatorExcluded, true);
   assert.deepEqual(
-    enhancedIcerazor.skill.effects[0].ticks.map((tick) => [tick.atMs, tick.coefficient]),
-    [
-      [1200, 2],
-      [1361, 2],
-      [1522, 2]
-    ]
+    enhancedIcerazor.skill.effects[0].ticks.map((tick) => tick.coefficient),
+    [2, 2, 2]
+  );
+  assert.deepEqual(
+    revenantCatalog.skillsById.get(SKILL.ICERAZORS_IRE_ID_72359).effects[0].ticks.map((tick) => tick.atMs),
+    [1200, 1361, 1522]
   );
   assert.deepEqual(
     razorclaw.skill.effects.find((effect) => effect.kind === 'razorclaws-rage'),

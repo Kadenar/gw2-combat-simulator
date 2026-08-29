@@ -14,9 +14,12 @@ import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
   applySkillPatch,
-  patchRuntimeValuesFor,
+  balanceProfileAuthoringReference,
+  balanceProfileHasAuthorableControls,
   balanceProfilePatchableNumericFields,
+  patchRuntimeValuesFor,
   professionPatchFor,
+  skillAuthoringReference,
   skillPatchableNumericFields,
   validatePatchOverview,
   validatePatchPreview
@@ -217,6 +220,15 @@ function createPatchAuthoringMetadata(
     modules: Object.freeze(
       modules.map((module) => {
         const fragment = fragments.get(module.id)!;
+        const authoringBalanceProfiles = (fragment.balanceProfiles || []).map((profile) =>
+          Object.freeze({
+            id: profile.id,
+            name: profile.name,
+            moduleId: module.id,
+            profile: balanceProfileAuthoringReference(profile),
+            patchableFields: balanceProfilePatchableNumericFields(profile)
+          })
+        );
         return Object.freeze({
           id: module.id,
           traits: Object.freeze([...(fragment.traits || [])]),
@@ -228,20 +240,21 @@ function createPatchAuthoringMetadata(
                   id: skill.id,
                   name: skill.name,
                   moduleId: module.id,
-                  skill,
+                  skill: skillAuthoringReference(skill),
                   patchableFields: skillPatchableNumericFields(skill)
                 })
               )
           ),
           balanceProfiles: Object.freeze(
-            (fragment.balanceProfiles || []).map((profile) =>
-              Object.freeze({
-                id: profile.id,
-                name: profile.name,
-                moduleId: module.id,
-                profile,
-                patchableFields: balanceProfilePatchableNumericFields(profile)
-              })
+            authoringBalanceProfiles.filter(
+              (entry) =>
+                entry.profile.profileKind !== 'skill-variant' && balanceProfileHasAuthorableControls(entry.profile)
+            )
+          ),
+          skillVariants: Object.freeze(
+            authoringBalanceProfiles.filter(
+              (entry) =>
+                entry.profile.profileKind === 'skill-variant' && balanceProfileHasAuthorableControls(entry.profile)
             )
           ),
           modifierRules: Object.freeze(

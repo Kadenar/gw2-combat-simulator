@@ -329,6 +329,12 @@ pre {
   border-top: 1px solid var(--border);
 }
 
+/* Keeps trait modifiers and trait effects mutually visible without stacking two long editors. */
+.patch-trait-tabs {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .patch-work-section {
   margin-top: 12px;
   padding: 16px;
@@ -622,6 +628,28 @@ pre {
   padding: 4px 6px;
 }
 
+/* Specialist calibration stays available without competing with routine balance-note fields. */
+.patch-advanced-fields {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-soft);
+}
+
+.patch-advanced-fields > summary {
+  padding: 8px 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.patch-advanced-fields > .patch-number-grid {
+  margin: 0;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .patch-resolver-note,
 .patch-empty-inline {
   margin: 6px 0;
@@ -781,6 +809,23 @@ pre {
 
 .patch-detail-section {
   margin-top: 15px;
+}
+
+/* Runtime skill variants are edited alongside their owning skill instead of in the profile list. */
+.patch-variant-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.patch-variant-list .patch-skill-option {
+  border-color: var(--border);
+  background: var(--panel-soft);
+}
+
+.patch-variant-back {
+  margin-bottom: 10px;
 }
 
 .patch-effect.is-removed {

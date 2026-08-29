@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
+  authoringNumericFieldLabel,
   compactPatchPreview,
   createEffectTemplate,
   effectDetail,
@@ -10,10 +11,22 @@ import {
   groupPatchAuthoringSkills,
   numericEditForValue,
   numericEditValue,
+  partitionPatchAuthoringBalanceProfiles,
   patchSearchText
 } from '../../js/games/gw2/integrations/patches/app/model.js';
+import {
+  balanceProfileAuthoringReference,
+  balanceProfileEffectNumericFieldTier,
+  balanceProfileHasAuthorableControls,
+  balanceProfileNumericFieldTier,
+  balanceProfilePatchableNumericFields,
+  skillAuthoringReference,
+  skillPatchableNumericFields
+} from '../../js/games/gw2/integrations/patches/authoring/patches.js';
+import { elementalistProfession } from '../../js/games/gw2/content/professions/elementalist/definition.js';
 import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
 import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
+import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
 import { rangerProfession } from '../../js/games/gw2/content/professions/ranger/definition.js';
 import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
@@ -187,6 +200,131 @@ test('patch authoring subgroups Elementalist weapon skills by attunement', () =>
   );
 });
 
+test('patch authoring separates runtime-only, advanced, and primary profile values', () => {
+  const profile = {
+    id: 'fixture',
+    name: 'Fixture',
+    profileKind: 'mechanic',
+    initialDelay: 0.5,
+    maximumStacks: 10,
+    pulseInterval: 1,
+    effects: [{ type: 'strike', coefficient: 1.5, hits: 1, atMs: 240 }]
+  };
+
+  assert.deepEqual(balanceProfilePatchableNumericFields(profile), { maximumStacks: 10, pulseInterval: 1 });
+  assert.deepEqual(balanceProfileAuthoringReference(profile), {
+    id: 'fixture',
+    name: 'Fixture',
+    profileKind: 'mechanic',
+    maximumStacks: 10,
+    pulseInterval: 1,
+    effects: [{ type: 'strike', coefficient: 1.5, hits: 1 }]
+  });
+  assert.equal(balanceProfileNumericFieldTier('initialDelay'), null);
+  assert.equal(balanceProfileNumericFieldTier('maximumStacks'), 'primary');
+  assert.equal(balanceProfileNumericFieldTier('pulseInterval'), 'advanced');
+  assert.equal(balanceProfileEffectNumericFieldTier('atMs', 200), null);
+  assert.equal(balanceProfileEffectNumericFieldTier('hits', 1), 'advanced');
+  assert.equal(balanceProfileEffectNumericFieldTier('hits', 3), 'primary');
+  assert.equal(balanceProfileEffectNumericFieldTier('coefficient', 1.5), 'primary');
+});
+
+test('patch authoring keeps skill timing in the runtime catalog', () => {
+  const skill = {
+    id: 1,
+    name: 'Fixture',
+    castTimeMs: 900,
+    quicknessCastTimeMs: 600,
+    quicknessCastMultiplier: 0.75,
+    initialDelay: 0.5,
+    cooldown: 12,
+    summonAttack: { initialDelay: 1, coefficient: 2 },
+    effects: [{ type: 'strike', coefficient: 1.5, atMs: 300 }]
+  };
+
+  assert.deepEqual(skillPatchableNumericFields(skill), { cooldown: 12 });
+  assert.deepEqual(skillAuthoringReference(skill), {
+    id: 1,
+    name: 'Fixture',
+    cooldown: 12,
+    summonAttack: { coefficient: 2 },
+    effects: [{ type: 'strike', coefficient: 1.5 }]
+  });
+  assert.equal(skill.castTimeMs, 900);
+  assert.equal(skill.summonAttack.initialDelay, 1);
+});
+
+test('patch authoring separates skill variants and emits no runtime cast fields', () => {
+  const professions = [
+    elementalistProfession,
+    engineerProfession,
+    guardianProfession,
+    mesmerProfession,
+    necromancerProfession,
+    rangerProfession,
+    revenantProfession,
+    thiefProfession,
+    warriorProfession
+  ];
+
+  for (const profession of professions) {
+    for (const module of profession.patchAuthoring.modules) {
+      assert.equal(
+        module.balanceProfiles.some((entry) => entry.profile.profileKind === 'skill-variant'),
+        false
+      );
+      assert.equal(
+        module.skillVariants.every((entry) => entry.profile.profileKind === 'skill-variant'),
+        true
+      );
+    }
+  }
+
+  const payload = JSON.stringify(professions.map((profession) => profession.patchAuthoring));
+  assert.doesNotMatch(payload, /"castTimeMs":/);
+  assert.doesNotMatch(payload, /"quicknessCastTimeMs":/);
+  assert.doesNotMatch(payload, /"quicknessCastMultiplier":/);
+  assert.doesNotMatch(payload, /"initialDelay":/);
+  assert.doesNotMatch(payload, /"atMs":/);
+  assert.doesNotMatch(payload, /"interruptCommitMs":/);
+});
+
+test('patch authoring moves variants out of profiles and omits empty cards', () => {
+  const entry = (id, profile, patchableFields = {}) => ({
+    id,
+    name: profile.name,
+    moduleId: 'Core',
+    profile: { id, effects: [], ...profile },
+    patchableFields
+  });
+  const trait = entry(1, { name: 'Trait', profileKind: 'trait', internalCooldown: 5 }, { internalCooldown: 5 });
+  const variant = entry('variant', {
+    name: 'Variant',
+    profileKind: 'skill-variant',
+    parentId: 10,
+    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 2 }]
+  });
+  const empty = entry('empty', { name: 'Empty', profileKind: 'skill-variant' });
+  const groups = partitionPatchAuthoringBalanceProfiles([trait, variant, empty]);
+
+  assert.equal(balanceProfileHasAuthorableControls(empty.profile), false);
+  assert.deepEqual(
+    groups.profiles.map((profile) => profile.id),
+    [1]
+  );
+  assert.deepEqual(
+    groups.skillVariants.map((profile) => profile.id),
+    ['variant']
+  );
+});
+
+test('patch authoring labels profile controls with readable units', () => {
+  assert.equal(authoringNumericFieldLabel('cooldown'), 'cooldown (s)');
+  assert.equal(authoringNumericFieldLabel('rechargeOffsetMs'), 'recharge offset (ms)');
+  assert.equal(authoringNumericFieldLabel('procChance'), 'proc chance (0-1)');
+  assert.equal(authoringNumericFieldLabel('durationMultiplier', true), 'duration value (profile-specific)');
+});
+
 test('patch authoring numeric controls preserve stale live-value checks', () => {
   assert.equal(numericEditValue(10, undefined), 10);
   assert.equal(numericEditValue(10, 12), 12);
@@ -231,15 +369,13 @@ test('patch authoring provides valid effect templates, labels, and normalized se
   assert.deepEqual(createEffectTemplate('strike'), {
     type: 'strike',
     coefficient: 1,
-    hits: 1,
-    atMs: 0
+    hits: 1
   });
   assert.deepEqual(createEffectTemplate('condition'), {
     type: 'condition',
     condition: 'Bleeding',
     stacks: 1,
-    duration: 1,
-    atMs: 0
+    duration: 1
   });
   assert.equal(patchSearchText('Bloody Roar', ['strikeDamage', 'multiply']), 'bloody roar strikedamage multiply');
   assert.equal(
@@ -366,6 +502,13 @@ test('patch authoring UI uses an official source and read-only overview', async 
   );
 
   assert.match(source, /data-select-section="overview"/);
+  assert.match(source, /data-select-section="mechanics"/);
+  assert.doesNotMatch(source, /data-select-section="profiles"/);
+  assert.match(source, /data-select-trait-view="modifiers"/);
+  assert.match(source, /data-select-trait-view="effects"/);
+  assert.match(source, /selectedTraitView === 'modifiers'/);
+  assert.match(source, /balanceProfileSection\(module, 'trait'\)/);
+  assert.match(source, /balanceProfileSection\(module, 'mechanic'\)/);
   assert.match(source, /Official patch notes URL/);
   assert.match(source, /Generated from diff/);
   assert.match(source, /renderSelectedSkill\(\);\s*return;/);

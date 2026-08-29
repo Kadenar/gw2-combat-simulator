@@ -267,6 +267,7 @@ export interface NativePatchAuthoringSkill {
   readonly id: SkillId;
   readonly name: string;
   readonly moduleId: string;
+  /** Sanitized authoring reference; the runtime catalog retains complete cast timing. */
   readonly skill: Readonly<Skill>;
   readonly patchableFields: Readonly<Record<string, number>>;
 }
@@ -275,6 +276,7 @@ export interface NativePatchAuthoringBalanceProfile {
   readonly id: SkillId;
   readonly name: string;
   readonly moduleId: string;
+  /** Sanitized authoring reference; the runtime catalog retains the complete profile. */
   readonly profile: Readonly<BalanceProfile>;
   readonly patchableFields: Readonly<Record<string, number>>;
 }
@@ -301,7 +303,9 @@ export interface NativePatchAuthoringModule {
   readonly id: string;
   readonly traits: readonly Readonly<CatalogEntity>[];
   readonly skills: readonly NativePatchAuthoringSkill[];
+  /** Trait and mechanic profiles only; skill-owned variants have their own authoring collection. */
   readonly balanceProfiles: readonly NativePatchAuthoringBalanceProfile[];
+  readonly skillVariants: readonly NativePatchAuthoringBalanceProfile[];
   readonly modifierRules: readonly NativePatchAuthoringModifierRule[];
 }
 
