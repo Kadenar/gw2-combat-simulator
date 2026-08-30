@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { posix } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 import { elementalistNativeModules } from '../../js/games/gw2/content/professions/elementalist/modules.js';
@@ -34,6 +36,34 @@ const EXPECTED_MODULE_IDS = Object.freeze({
   thief: ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary'],
   warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
 });
+
+const RETIRED_OWNERSHIP_FILENAMES = new Set(['resolver.ts', 'rule-helpers.ts', 'rules.ts', 'scheduler.ts']);
+const RETIRED_PHASE_DIRECTORIES = new Set(['execution', 'resolution', 'resolver', 'scheduler']);
+const IMPORT_SPECIFIER_PATTERN = /\b(?:from\s+|import\s*(?:\(\s*)?)["']([^"']+)["']/g;
+
+function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
+  return readdirSync(directoryUrl, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
+      const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directoryUrl);
+
+      if (entry.isDirectory()) return collectTypeScriptSources(url, relativePath);
+      if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
+      return [{ relativePath, source: readFileSync(url, 'utf8') }];
+    });
+}
+
+function professionSources(profession) {
+  return collectTypeScriptSources(new URL(`../../js/games/gw2/content/professions/${profession}/`, import.meta.url));
+}
+
+function relativeImportTargets({ relativePath, source }) {
+  return [...source.matchAll(IMPORT_SPECIFIER_PATTERN)]
+    .map((match) => match[1])
+    .filter((specifier) => specifier.startsWith('.'))
+    .map((specifier) => posix.normalize(posix.join(posix.dirname(relativePath), specifier)));
+}
 
 function schedulerDeclarations(module) {
   const availability = module.mechanics?.execution?.availability;
@@ -106,6 +136,58 @@ test('profession modules register phase behavior only through explicit sections'
         'reactions'
       ]) {
         assert.equal(module.mechanics[legacyKey], undefined, `${label}/mechanics.${legacyKey}`);
+      }
+    }
+  }
+});
+
+test('profession content keeps semantic ownership names instead of phase-mirrored trees', () => {
+  for (const profession of Object.keys(PROFESSION_MODULES)) {
+    for (const { relativePath } of professionSources(profession)) {
+      const segments = relativePath.split('/');
+      const filename = segments.at(-1);
+
+      assert.equal(
+        RETIRED_OWNERSHIP_FILENAMES.has(filename),
+        false,
+        `${profession}/${relativePath} uses a retired generic filename`
+      );
+
+      for (const directory of segments.slice(0, -1)) {
+        assert.equal(
+          RETIRED_PHASE_DIRECTORIES.has(directory),
+          false,
+          `${profession}/${relativePath} belongs in a GW2 concept directory, not ${directory}/`
+        );
+      }
+    }
+  }
+});
+
+test('Core never depends on elite content and elite specializations never depend on siblings', () => {
+  for (const profession of Object.keys(PROFESSION_MODULES)) {
+    for (const source of professionSources(profession)) {
+      const { relativePath } = source;
+
+      for (const target of relativeImportTargets(source)) {
+        if (relativePath.startsWith('core/')) {
+          assert.equal(
+            target.startsWith('specializations/'),
+            false,
+            `${profession}/${relativePath} imports elite content ${target}`
+          );
+        }
+
+        const sourceSpecialization = relativePath.match(/^specializations\/([^/]+)\//)?.[1];
+        const targetSpecialization = target.match(/^specializations\/([^/]+)\//)?.[1];
+
+        if (sourceSpecialization && targetSpecialization) {
+          assert.equal(
+            targetSpecialization,
+            sourceSpecialization,
+            `${profession}/${relativePath} imports sibling specialization ${target}`
+          );
+        }
       }
     }
   }

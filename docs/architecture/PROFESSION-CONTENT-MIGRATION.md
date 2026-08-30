@@ -184,10 +184,28 @@ All nine profession families now use only `mechanics.execution` and `mechanics.r
 | 4C | Migrate Elementalist and Revenant |
 | 4D | Migrate Mesmer last because it has the highest scheduler-coordination risk |
 | 5 | Retire compatibility facades and legacy raw hook registration (complete) |
-| 6 | Enforce dependency direction and prohibit regression to generic ownership |
+| 6 | Enforce dependency direction and prohibit regression to generic ownership (complete) |
 
 Every phase is based on the preceding branch. Each pull request must remain reviewable as a delta against its immediate
 predecessor and must run the complete repository check and test suites.
+
+## Automated enforcement
+
+The repository enforces the stable boundaries without adding an architecture-tool dependency:
+
+- TypeScript exposes only `mechanics.execution` and `mechanics.resolution` as native phase registration surfaces.
+- Runtime authoring validation rejects retired JavaScript fields and reports their replacement paths.
+- ESLint prevents execution/scheduler internals from importing resolution/resolver internals, and vice versa.
+- ESLint prevents profession `skills/`, `traits/`, `mechanics/`, `state`, and `data/` modules from importing application
+  code. Build and presentation adapters are excluded because they intentionally translate UI configuration.
+- Architecture tests prohibit mirrored phase directories and generic `rules.ts`, `rule-helpers.ts`, `scheduler.ts`, and
+  `resolver.ts` ownership files inside profession content.
+- Architecture tests prevent Core from importing elite-specialization content and prevent one elite specialization
+  from importing another. Profession-root family adapters remain the explicit place for cross-slice composition.
+
+Concept modules are intentionally allowed to use scheduler and resolver primitives: a single concept can expose
+behavior to both phases. The enforced engine boundary and phase-explicit `module.ts` registration keep that cross-phase
+behavior deliberate without duplicating the concept in phase-oriented content trees.
 
 ## Review checklist
 
