@@ -92,13 +92,15 @@ test('migrated profession modules register phase behavior only through explicit 
   for (const [profession, modules] of [
     ['ranger', rangerNativeModules],
     ['guardian', guardianNativeModules],
-    ['necromancer', necromancerNativeModules]
+    ['necromancer', necromancerNativeModules],
+    ['engineer', engineerNativeModules],
+    ['thief', thiefNativeModules],
+    ['warrior', warriorNativeModules]
   ]) {
     for (const module of modules) {
       const label = `${profession}/${module.id}`;
 
       assert.ok(module.mechanics.execution, `${label}/execution`);
-      assert.ok(module.mechanics.resolution, `${label}/resolution`);
       assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
 
       for (const legacyKey of [

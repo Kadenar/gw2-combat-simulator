@@ -42,7 +42,7 @@ import {
 } from '../../../js/games/gw2/content/professions/warrior/data/ids.js';
 import { warriorProfession } from '../../../js/games/gw2/content/professions/warrior/definition.js';
 import { berserkerModule } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/module.js';
-import { berserkerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/rules.js';
+import { berserkerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
 import { BERSERKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/berserker/profiles.js';
 import { bladeswornModule } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/module.js';
 import {
@@ -51,15 +51,15 @@ import {
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
-} from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/dragon-trigger.js';
-import { advanceBladesworn } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/traits.js';
+} from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { advanceBladesworn } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/traits/index.js';
 import { createBladeswornState } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/state.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 import { paragonModule } from '../../../js/games/gw2/content/professions/warrior/specializations/paragon/module.js';
 import { PARAGON_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/paragon/profiles.js';
 import { spellbreakerModule } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/module.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/rules.js';
+import { spellbreakerAttributeRules } from '../../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
 const baseConfig = Object.freeze({
@@ -287,7 +287,14 @@ test('Warrior core and elite profession resources remain isolated', () => {
 
 test('Warrior Core does not own elite resource, cast, UI, or trait branches', async () => {
   const sources = await Promise.all(
-    ['availability.ts', 'handlers.ts', 'resources.ts', 'state.ts', 'traits.ts', 'presentation.ts'].map((name) =>
+    [
+      'mechanics/availability.ts',
+      'skills/handlers.ts',
+      'mechanics/adrenaline-and-endurance.ts',
+      'state.ts',
+      'traits/index.ts',
+      'presentation.ts'
+    ].map((name) =>
       readFile(new URL(`../../../js/games/gw2/content/professions/warrior/core/${name}`, import.meta.url), 'utf8')
     )
   );

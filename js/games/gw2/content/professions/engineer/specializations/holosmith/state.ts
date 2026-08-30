@@ -2,7 +2,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
 import { hasTrait } from '../../../../../platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '../../core/state.js';
-import { HOLOSMITH_HEAT } from './mechanics.js';
+import { HOLOSMITH_HEAT } from './mechanics/constants.js';
 import type { EngineerConfig, HolosmithState } from '../../types.js';
 
 // Holosmith owns both its public projection keys and the inactive compatibility values.

@@ -33,10 +33,10 @@ import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
 } from '../../../js/games/gw2/content/professions/thief/data/ids.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/core/skills.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/core/skills/index.js';
 import { thiefAppAdapter } from '../../../js/games/gw2/content/professions/thief/app/app-definition.js';
 import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
-import { daredevilModifierRules } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/rules.js';
+import { daredevilModifierRules } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/core/profiles.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/profiles.js';

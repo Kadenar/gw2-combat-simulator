@@ -10,9 +10,9 @@ import { SKILLS, SPECIALIZATIONS } from './thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from './ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from './thief-supplemental-skills.js';
 import { TRAITS } from './traits-data.js';
-import { spearChainStageForSkill } from '../core/conditions.js';
-import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '../core/weapons.js';
-import { deadeyeWeaponSkillMatchesSet } from '../specializations/deadeye/weapons.js';
+import { spearChainStageForSkill } from '../core/skills/spear-and-venoms.js';
+import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '../core/skills/weapons.js';
+import { deadeyeWeaponSkillMatchesSet } from '../specializations/deadeye/skills/weapons.js';
 import type { CatalogEntity, SkillId } from '../../../../platform/engine/types.js';
 import type { ThiefSkill, ThiefWeaponMatcherContext } from '../types.js';
 

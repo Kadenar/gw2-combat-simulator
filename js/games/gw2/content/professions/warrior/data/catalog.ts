@@ -9,11 +9,11 @@ import type { ProfessionModuleDataOptions } from '../../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from './warrior-supplemental-skills.js';
 import { TRAITS } from './traits-data.js';
-import { WARRIOR_CORE_SKILL_MECHANICS } from '../core/skills.js';
-import { BERSERKER_SKILL_MECHANICS } from '../specializations/berserker/skills.js';
-import { SPELLBREAKER_SKILL_MECHANICS } from '../specializations/spellbreaker/skills.js';
-import { BLADESWORN_SKILL_MECHANICS } from '../specializations/bladesworn/skills.js';
-import { PARAGON_SKILL_MECHANICS } from '../specializations/paragon/skills.js';
+import { WARRIOR_CORE_SKILL_MECHANICS } from '../core/skills/index.js';
+import { BERSERKER_SKILL_MECHANICS } from '../specializations/berserker/skills/index.js';
+import { SPELLBREAKER_SKILL_MECHANICS } from '../specializations/spellbreaker/skills/index.js';
+import { BLADESWORN_SKILL_MECHANICS } from '../specializations/bladesworn/skills/index.js';
+import { PARAGON_SKILL_MECHANICS } from '../specializations/paragon/skills/index.js';
 import type { CatalogEntity, Skill, SkillId } from '../../../../platform/engine/types.js';
 import type { NativeAutoattackChains } from '../../../../integrations/patches/authoring/module-types.js';
 

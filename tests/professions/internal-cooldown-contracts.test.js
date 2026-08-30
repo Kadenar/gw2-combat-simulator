@@ -7,7 +7,7 @@ import { applyViciousEmpowerment } from '../../js/games/gw2/content/professions/
 import { createCatalystState } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '../../js/games/gw2/content/professions/engineer/core/state.js';
-import { reactToEngineerCondition } from '../../js/games/gw2/content/professions/engineer/core/traits.js';
+import { reactToEngineerCondition } from '../../js/games/gw2/content/professions/engineer/core/traits/index.js';
 import { ENGINEER_TRAIT_IDS } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
 import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
 import { createGuardianCoreState } from '../../js/games/gw2/content/professions/guardian/core/state.js';
@@ -30,13 +30,13 @@ import { createRenegadeState } from '../../js/games/gw2/content/professions/reve
 import { observeRenegadeTraits } from '../../js/games/gw2/content/professions/revenant/specializations/renegade/traits.js';
 import { thiefCatalog } from '../../js/games/gw2/content/professions/thief/catalog.js';
 import { createThiefCoreState } from '../../js/games/gw2/content/professions/thief/core/state.js';
-import { reactToThiefCoreBuff } from '../../js/games/gw2/content/professions/thief/core/traits.js';
+import { reactToThiefCoreBuff } from '../../js/games/gw2/content/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS } from '../../js/games/gw2/content/professions/thief/data/ids.js';
 import { warriorCatalog } from '../../js/games/gw2/content/professions/warrior/catalog.js';
 import { createWarriorCoreState } from '../../js/games/gw2/content/professions/warrior/core/state.js';
 import { WARRIOR_TRAIT_IDS } from '../../js/games/gw2/content/professions/warrior/data/ids.js';
 import { createSpellbreakerState } from '../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/state.js';
-import { reactToSpellbreakerDamage } from '../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/traits.js';
+import { reactToSpellbreakerDamage } from '../../js/games/gw2/content/professions/warrior/specializations/spellbreaker/traits/index.js';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;

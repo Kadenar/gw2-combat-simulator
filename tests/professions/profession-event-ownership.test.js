@@ -7,8 +7,8 @@ import { ENGINEER_TRAIT_IDS } from '../../js/games/gw2/content/professions/engin
 import {
   applyEngineerSharpshooterConditionDamage,
   engineerCoreModifierRules
-} from '../../js/games/gw2/content/professions/engineer/core/rules.js';
-import { amalgamModifierRules } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/rules.js';
+} from '../../js/games/gw2/content/professions/engineer/core/traits/modifiers.js';
+import { amalgamModifierRules } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
 import { modifyNecromancerCoreAttributes } from '../../js/games/gw2/content/professions/necromancer/core/traits/modifiers.js';
 import { reaperModifierRules } from '../../js/games/gw2/content/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
 import { RANGER_TRAIT_IDS } from '../../js/games/gw2/content/professions/ranger/data/ids.js';
@@ -18,7 +18,7 @@ import { soulbeastModifierRules } from '../../js/games/gw2/content/professions/r
 import { REVENANT_TRAIT_IDS } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
 import { revenantCoreModifierRules } from '../../js/games/gw2/content/professions/revenant/core/rules.js';
 import { THIEF_TRAIT_IDS } from '../../js/games/gw2/content/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '../../js/games/gw2/content/professions/thief/core/rules.js';
+import { thiefCoreModifierRules } from '../../js/games/gw2/content/professions/thief/core/traits/modifiers.js';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],

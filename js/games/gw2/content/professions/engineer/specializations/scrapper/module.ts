@@ -6,9 +6,9 @@ import {
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { createEngineerModuleData } from '../../data/catalog.js';
-import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './resolver.js';
-import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './rules.js';
-import { SCRAPPER_SKILL_MECHANICS } from './skills.js';
+import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './traits/reactions.js';
+import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './traits/modifiers.js';
+import { SCRAPPER_SKILL_MECHANICS } from './skills/index.js';
 import { scrapperState } from './state.js';
 import { SCRAPPER_BALANCE_PROFILES } from './profiles.js';
 import { scrapperUi } from './presentation.js';
@@ -23,30 +23,34 @@ export const scrapperModule = defineNativeModule({
   state: { scheduler: scrapperState.create, resolver: scrapperState.create },
   mechanics: {
     modifiers: scrapperAttributeRules,
-    castRules: scrapperCastRules,
-    // afterSkillEffects runs after all skill effects are emitted, allowing trait buffs
-    // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
-    castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
-    schedulerHooks: {
-      onEventScheduled: scrapperSchedulerHooks.onEventScheduled
+    execution: {
+      castRules: scrapperCastRules,
+      // afterSkillEffects runs after all skill effects are emitted, allowing trait buffs
+      // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
+      castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
+      hooks: {
+        onEventScheduled: scrapperSchedulerHooks.onEventScheduled
+      }
     },
-    reactions: [
-      onResolvedDamage({
-        id: 'engineer.scrapper.damage',
-        handler: scrapperResolverEventReactions.damage
-      }),
-      onBuffApplied({
-        id: 'engineer.scrapper.buff',
-        handler: scrapperResolverEventReactions.buff
-      }),
-      onComboResolved({
-        id: 'engineer.scrapper.kinetic-accelerators',
-        handler: scrapperResolverEventReactions.combo
-      })
-    ],
-    resolverHooks: {
-      // Handles the self-scheduled pulse event that keeps Mass Momentum ticking.
-      eventHandlers: scrapperResolverEventHandlers
+    resolution: {
+      reactions: [
+        onResolvedDamage({
+          id: 'engineer.scrapper.damage',
+          handler: scrapperResolverEventReactions.damage
+        }),
+        onBuffApplied({
+          id: 'engineer.scrapper.buff',
+          handler: scrapperResolverEventReactions.buff
+        }),
+        onComboResolved({
+          id: 'engineer.scrapper.kinetic-accelerators',
+          handler: scrapperResolverEventReactions.combo
+        })
+      ],
+      hooks: {
+        // Handles the self-scheduled pulse event that keeps Mass Momentum ticking.
+        eventHandlers: scrapperResolverEventHandlers
+      }
     }
   },
   presentation: scrapperUi

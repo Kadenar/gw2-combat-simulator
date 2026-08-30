@@ -1,5 +1,5 @@
 import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from './assumptions.js';
+import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '../../app/antiquary-assumptions.js';
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '../../data/ids.js';
 import type { RotationStateSnapshotItem } from '../../../../../platform/engine/types.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';

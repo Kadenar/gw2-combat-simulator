@@ -5,15 +5,15 @@ import {
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { createEngineerModuleData } from '../../data/catalog.js';
-import { mechanistSkillHandlers } from './handlers.js';
-import { mechanistCriticalHitDefinitions, mechanistResolverEventReactions } from './resolver.js';
+import { mechanistSkillHandlers } from './skills/handlers.js';
+import { mechanistCriticalHitDefinitions, mechanistResolverEventReactions } from './mechanics/mech-effects.js';
 import {
   mechanistAdvancedSchedulerHooks,
   mechanistAfterCast,
   mechanistAttributeRules,
   mechanistCastRules
-} from './rules.js';
-import { MECHANIST_SKILL_MECHANICS } from './skills.js';
+} from './mechanics/mech-rules.js';
+import { MECHANIST_SKILL_MECHANICS } from './skills/index.js';
 import { mechanistState } from './state.js';
 import { MECHANIST_BALANCE_PROFILES } from './profiles.js';
 import { mechanistUi } from './presentation.js';
@@ -24,24 +24,28 @@ export const mechanistModule = defineNativeModule({
   id: 'Mechanist',
   data: createEngineerModuleData('Mechanist', {
     skillMechanics: MECHANIST_SKILL_MECHANICS,
-    balanceProfiles: MECHANIST_BALANCE_PROFILES,
-    handlers: mechanistSkillHandlers
+    balanceProfiles: MECHANIST_BALANCE_PROFILES
   }),
   state: { scheduler: mechanistState.create, resolver: mechanistState.create },
   mechanics: {
     modifiers: mechanistAttributeRules,
-    castRules: mechanistCastRules,
-    // Trait and recovery handling waits until effectiveEnd, after authored
-    // packets, so extending the mech lane cannot reorder the player's effects.
-    castLifecycle: [afterSkillEffects(mechanistAfterCast)],
-    schedulerHooks: mechanistAdvancedSchedulerHooks,
-    reactions: [
-      ...mechanistCriticalHitDefinitions.map(onResolvedCriticalHit),
-      onResolvedDamage({
-        id: 'engineer.mechanist.damage',
-        handler: mechanistResolverEventReactions.damage
-      })
-    ]
+    execution: {
+      skillHandlers: mechanistSkillHandlers,
+      castRules: mechanistCastRules,
+      // Trait and recovery handling waits until effectiveEnd, after authored
+      // packets, so extending the mech lane cannot reorder the player's effects.
+      castLifecycle: [afterSkillEffects(mechanistAfterCast)],
+      hooks: mechanistAdvancedSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        ...mechanistCriticalHitDefinitions.map(onResolvedCriticalHit),
+        onResolvedDamage({
+          id: 'engineer.mechanist.damage',
+          handler: mechanistResolverEventReactions.damage
+        })
+      ]
+    }
   },
   presentation: mechanistUi
 });

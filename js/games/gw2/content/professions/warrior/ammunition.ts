@@ -1,4 +1,4 @@
-import { recordBladeswornAmmoSpend } from './specializations/bladesworn/ammunition.js';
+import { recordBladeswornAmmoSpend } from './specializations/bladesworn/mechanics/ammunition.js';
 import type { WarriorCastContext } from './types.js';
 
 /** Routes generic ammo-spend facts to the active slice that reacts to them. */

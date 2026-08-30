@@ -112,6 +112,25 @@ Concept names are preferred over `rules.ts` and `resolver.ts`, but a concept may
 behaviors. For example, `mechanics/tomes-and-mantras.ts` assembles Firebrand scheduling policy while the canonical
 Tome and Mantra implementations stay in `mechanics/tomes.ts` and `skills/mantras.ts`.
 
+## Engineer, Thief, and Warrior layouts
+
+The medium-complexity professions use the same ownership rules with profession-specific concepts:
+
+- Engineer groups kit skill declarations under `core/skills/kits/`, keeps sword, spear, dodge, and flip behavior with
+  skills, and places kit, turret, heat, Photon Forge, mech, and evolved-form systems under `mechanics/`. Scrapper's
+  predominantly trait-owned scheduling and resolver behavior stays under `traits/`.
+- Thief keeps weapon, dodge, spear-chain, and venom behavior under `skills/`; initiative, endurance, Steal, stealth,
+  and weapon state live under `mechanics/`. Artifact, malice, and Shadow Shroud behavior use specialization mechanic
+  homes. Family-level Thieves Guild dispatch remains at the profession root because it deliberately selects an active
+  specialization-owned summon without making Core depend on elite content.
+- Warrior keeps generic actions and skill definitions under `skills/`, trait modifiers under `traits/`, and
+  adrenaline/endurance systems under `mechanics/`. Berserk, Dragon Trigger, Gunsaber, Flow, chants, Motivation, and
+  Full Counter remain owned by their specializations. Family-level ammunition and resource routers remain at the
+  profession root because they are explicit cross-slice boundaries.
+
+A phase section is present only when the module contributes to that phase. For example, a specialization with only
+scheduler behavior does not add an empty `mechanics.resolution` object for symmetry.
+
 ## Stacked delivery plan
 
 | Phase | Goal |

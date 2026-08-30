@@ -1,9 +1,9 @@
 import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { deadeyeCastAvailability } from './availability.js';
+import { deadeyeCastAvailability } from './mechanics/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from './mechanics.js';
-import { deadeyeWeaponSkillMatchesSet } from './weapons.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from './mechanics/malice.js';
+import { deadeyeWeaponSkillMatchesSet } from './skills/weapons.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
 
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {

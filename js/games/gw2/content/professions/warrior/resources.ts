@@ -1,9 +1,9 @@
 import type { ScheduledTask } from '../../../platform/engine/types.js';
-import { gainCoreWarriorAdrenaline, spendCoreWarriorAdrenaline } from './core/resources.js';
-import { gainBladeswornFlow, bladeswornGainsAdrenalineOnHit } from './specializations/bladesworn/resources.js';
-import { spendBerserkerAdrenaline } from './specializations/berserker/resources.js';
-import { spendParagonAdrenaline } from './specializations/paragon/resources.js';
-import { spendSpellbreakerAdrenaline } from './specializations/spellbreaker/resources.js';
+import { gainCoreWarriorAdrenaline, spendCoreWarriorAdrenaline } from './core/mechanics/adrenaline-and-endurance.js';
+import { gainBladeswornFlow, bladeswornGainsAdrenalineOnHit } from './specializations/bladesworn/mechanics/flow.js';
+import { spendBerserkerAdrenaline } from './specializations/berserker/mechanics/adrenaline.js';
+import { spendParagonAdrenaline } from './specializations/paragon/mechanics/adrenaline.js';
+import { spendSpellbreakerAdrenaline } from './specializations/spellbreaker/mechanics/adrenaline.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from './types.js';
 
 function specializationKind(context: WarriorSchedulerContext): string {

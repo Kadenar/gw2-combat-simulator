@@ -1,4 +1,4 @@
-import { THIEF_STOLEN_SKILL_IDS } from '../../core/steal.js';
+import { THIEF_STOLEN_SKILL_IDS } from '../../core/mechanics/steal.js';
 import { thiefStealPaletteGroups, thiefUiState } from '../../core/presentation.js';
 import type { RotationStateSnapshotItem } from '../../../../../platform/engine/types.js';
 import type { ThiefUiContext } from '../../types.js';

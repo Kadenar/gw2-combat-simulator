@@ -15,7 +15,7 @@ import type {
 } from '../../../../../platform/engine/types.js';
 import type { WarriorSkill, WarriorUiContext } from '../../types.js';
 import type { Gw2SimulationResult } from '../../../../../platform/simulation/types.js';
-import { dragonChargeReleaseProjection } from './charge-release.js';
+import { dragonChargeReleaseProjection } from './mechanics/charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);

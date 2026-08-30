@@ -1,10 +1,10 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from './assumptions.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '../app/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
-import { spearChainStageForSkill } from './conditions.js';
-import { thiefWeaponSkillMatchesSet } from './weapons.js';
-import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from './steal.js';
+import { spearChainStageForSkill } from './skills/spear-and-venoms.js';
+import { thiefWeaponSkillMatchesSet } from './skills/weapons.js';
+import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from './mechanics/steal.js';
 import type { RotationStateSnapshotItem } from '../../../../platform/engine/types.js';
 import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '../types.js';
 

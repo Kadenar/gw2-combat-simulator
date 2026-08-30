@@ -31,7 +31,7 @@ import {
   weaponPaletteStackHtml,
   weaponPaletteRows
 } from '../../js/games/gw2/app/rotation/palette/model.js';
-import { dragonChargeReleaseProjection } from '../../js/games/gw2/content/professions/warrior/specializations/bladesworn/charge-release.js';
+import { dragonChargeReleaseProjection } from '../../js/games/gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,

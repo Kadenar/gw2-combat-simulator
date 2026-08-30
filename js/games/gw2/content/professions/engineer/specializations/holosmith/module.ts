@@ -1,15 +1,15 @@
 import { afterSkillEffects } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { createEngineerModuleData } from '../../data/catalog.js';
-import { holosmithSkillHandlers } from './handlers.js';
-import { holosmithResolverEventHandlers } from './resolver.js';
+import { holosmithSkillHandlers } from './skills/handlers.js';
+import { holosmithResolverEventHandlers } from './mechanics/photon-forge-effects.js';
 import {
   holosmithAdvancedSchedulerHooks,
   holosmithAfterCast,
   holosmithAttributeRules,
   holosmithCastRules
-} from './rules.js';
-import { HOLOSMITH_SKILL_MECHANICS } from './skills.js';
+} from './mechanics/photon-forge-rules.js';
+import { HOLOSMITH_SKILL_MECHANICS } from './skills/index.js';
 import { holosmithState } from './state.js';
 import { HOLOSMITH_BALANCE_PROFILES } from './profiles.js';
 import { bindHolosmithUi } from './presentation.js';
@@ -27,7 +27,6 @@ export const holosmithModule = defineNativeModule({
   data: createEngineerModuleData('Holosmith', {
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     balanceProfiles: HOLOSMITH_BALANCE_PROFILES,
-    handlers: holosmithSkillHandlers,
     // Runtime name lookup must select the heat-aware identities over Core's non-Holosmith variants.
     skillNameOverrides: {
       'Radiant Arc': ID.RADIANT_ARC,
@@ -43,10 +42,15 @@ export const holosmithModule = defineNativeModule({
   state: { scheduler: holosmithState.create, resolver: holosmithState.create },
   mechanics: {
     modifiers: holosmithAttributeRules,
-    castRules: holosmithCastRules,
-    castLifecycle: [afterSkillEffects(holosmithAfterCast)],
-    schedulerHooks: holosmithAdvancedSchedulerHooks,
-    resolverHooks: { eventHandlers: holosmithResolverEventHandlers }
+    execution: {
+      skillHandlers: holosmithSkillHandlers,
+      castRules: holosmithCastRules,
+      castLifecycle: [afterSkillEffects(holosmithAfterCast)],
+      hooks: holosmithAdvancedSchedulerHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: holosmithResolverEventHandlers }
+    }
   },
   presentation: bindHolosmithUi
 });

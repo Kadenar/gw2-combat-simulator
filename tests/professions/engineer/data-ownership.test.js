@@ -5,7 +5,7 @@ import test from 'node:test';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/engineer/core/skills.js';
+} from '../../../js/games/gw2/content/professions/engineer/core/skills/index.js';
 import { ENGINEER_SKILL_IDS } from '../../../js/games/gw2/content/professions/engineer/data/ids.js';
 
 const KIT_SLUGS = new Map([
@@ -24,7 +24,7 @@ function ownedKit(skill) {
 
 // Loads every Core kit fragment so the aggregate contract proves disjoint ownership without a hand-maintained file list.
 async function kitFragments() {
-  const directory = new URL('../../../js/games/gw2/content/professions/engineer/core/skill-data/', import.meta.url);
+  const directory = new URL('../../../js/games/gw2/content/professions/engineer/core/skills/kits/', import.meta.url);
   return Promise.all(
     readdirSync(directory)
       .filter((filename) => filename.endsWith('.ts'))
