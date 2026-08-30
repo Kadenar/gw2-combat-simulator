@@ -1,7 +1,10 @@
-import { findRotationSkill } from '../../catalog.js';
-import { committedActionsFromStrikePackets } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { SIGNAL_WINDOW_MS, skillDuration } from './shared.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { SIGNAL_WINDOW_MS, skillDuration } from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION = 18059;
 const METAL_LEGION_GUITAR_FOLLOW_UP_ANIMATION = 76596;

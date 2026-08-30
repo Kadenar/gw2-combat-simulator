@@ -1,5 +1,8 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   combatStart,
   directAction,
@@ -9,7 +12,7 @@ import {
   SIGNAL_DEDUPLICATION_WINDOW_MS,
   SWAP_LEGENDS,
   type RevenantActionIdentity
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/shared.js';
 
 const ENCHANTED_DAGGERS = Object.freeze({
   name: 'Enchanted Daggers',

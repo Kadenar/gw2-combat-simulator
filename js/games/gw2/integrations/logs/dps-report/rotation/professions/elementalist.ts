@@ -1,12 +1,15 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import { GW2_ACTION_TICK_MS, quicknessReferenceCastTimeMs } from '../../../../../platform/skills/timing.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { GW2_ACTION_TICK_MS, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
-} from '../../../../../content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../../../content/professions/elementalist/core/skills/elemental-profiles.js';
-import { firstStrikePacketOffsetMs } from '../../../lib/rotation/timing.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
+} from '#gw2/content/professions/elementalist/data/ids.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 type Element = keyof typeof ELEMENTALIST_ATTUNEMENT_SKILL_IDS;
 

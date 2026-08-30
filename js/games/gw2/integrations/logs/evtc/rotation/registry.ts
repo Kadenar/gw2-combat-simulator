@@ -1,9 +1,17 @@
-import { EvtcError } from '../errors.js';
-import type { EvtcRotationReconstruction, ParsedEvtc } from '../types.js';
-import type { EvtcRotationCatalog } from './catalog.js';
-import { detectEvtcRotationPlayers, reconstructWithProfile, type EvtcRotationOptions } from './reconstruct.js';
-import { EVTC_ROTATION_PROFILES, evtcRotationProfile, type EvtcRotationProfessionProfile } from './profiles.js';
-import { selectRotationPlayer } from '../../lib/rotation/selection.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import type { EvtcRotationReconstruction, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationCatalog } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import {
+  detectEvtcRotationPlayers,
+  reconstructWithProfile,
+  type EvtcRotationOptions
+} from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
+import {
+  EVTC_ROTATION_PROFILES,
+  evtcRotationProfile,
+  type EvtcRotationProfessionProfile
+} from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 
 export interface EvtcProfessionRotationParser {
   readonly id: string;

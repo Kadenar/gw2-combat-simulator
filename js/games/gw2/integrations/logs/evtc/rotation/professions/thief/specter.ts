@@ -1,6 +1,9 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   canonicalAction,
   combatStart,
@@ -8,7 +11,7 @@ import {
   hasSelectedSkill,
   SIGNAL_WINDOW_MS,
   skillDuration
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief/shared.js';
 
 const SPIDER_VENOM = Object.freeze({ name: 'Spider Venom', skillId: 13037 });
 const WELL_OF_SORROW = Object.freeze({

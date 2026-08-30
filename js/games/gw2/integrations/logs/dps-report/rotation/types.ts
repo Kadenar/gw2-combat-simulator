@@ -1,8 +1,8 @@
-import type { Skill } from '../../../../platform/engine/types.js';
-import type { RotationCatalog } from '../../lib/rotation/catalog.js';
-import type { RotationActionStatus } from '../../lib/rotation/model.js';
-import type { RotationProfessionProfile } from '../../lib/rotation/profiles.js';
-import type { DpsReportPhase, DpsReportPlayer, ParsedDpsReport } from '../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
+import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import type { DpsReportPhase, DpsReportPlayer, ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
 
 export interface DpsReportRotationOptions {
   readonly playerIndex?: number;

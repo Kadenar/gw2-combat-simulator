@@ -1,14 +1,17 @@
-import { normalizeNecromancerAutoattackChains } from './necromancer/autoattacks.js';
-import { reconstructHarbingerActions } from './necromancer/harbinger.js';
-import { reconstructReaperActions } from './necromancer/reaper.js';
-import { reconstructRitualistActions } from './necromancer/ritualist.js';
-import { reconstructScourgeActions } from './necromancer/scourge.js';
-import { effectAction, initialSelfBuffCount } from './necromancer/shared.js';
+import { normalizeNecromancerAutoattackChains } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/autoattacks.js';
+import { reconstructHarbingerActions } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/harbinger.js';
+import { reconstructReaperActions } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/reaper.js';
+import { reconstructRitualistActions } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/ritualist.js';
+import { reconstructScourgeActions } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/scourge.js';
+import {
+  effectAction,
+  initialSelfBuffCount
+} from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/shared.js';
 import type {
   EvtcProfessionActionReconstructor,
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
-} from './types.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const SOUL_BARBS_BUFF = 53489;
 const SHROUD_PRECAST_WAIT_MS = 9000;

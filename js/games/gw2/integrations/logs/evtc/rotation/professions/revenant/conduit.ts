@@ -1,7 +1,15 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { reconstructCommonRevenantActions } from './common.js';
-import { directAction, hasRecordedAction, runtimeDuration, SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { reconstructCommonRevenantActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
+import {
+  directAction,
+  hasRecordedAction,
+  runtimeDuration,
+  SIGNAL_DEDUPLICATION_WINDOW_MS
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/shared.js';
 
 const COSMIC_WISDOM_BUFF_ID = 76559;
 const COSMIC_WISDOM = Object.freeze({

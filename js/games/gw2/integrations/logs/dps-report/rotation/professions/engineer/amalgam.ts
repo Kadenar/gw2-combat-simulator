@@ -1,5 +1,8 @@
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
-import { mergeCompositeActions } from '../../../../lib/rotation/rules/composites.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
+import { mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 
 const COMPOSITE_SIGNAL_WINDOW_MS = 150;
 

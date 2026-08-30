@@ -1,7 +1,15 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { sequentialWarriorCorePrecasts } from './common.js';
-import { combatStart, initialAction, recordedDuration, type WarriorActionIdentity } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { sequentialWarriorCorePrecasts } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
+import {
+  combatStart,
+  initialAction,
+  recordedDuration,
+  type WarriorActionIdentity
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
 
 const WINDS_OF_DISENCHANTMENT = Object.freeze({
   name: 'Winds of Disenchantment',

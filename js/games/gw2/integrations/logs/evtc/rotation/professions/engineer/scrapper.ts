@@ -1,7 +1,7 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { inferDetonateActions, normalizeKitTransitions } from './kits.js';
-import { canonicalAction, castDuration, combatStartTime, selectedIdentity, selectedSkill } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { inferDetonateActions, normalizeKitTransitions } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/kits.js';
+import { canonicalAction, castDuration, combatStartTime, selectedIdentity, selectedSkill } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const RECONSTRUCTION_FIELD = Object.freeze({ name: 'Reconstruction Field', skillId: 29505 });
 const PROTECTION = 717;

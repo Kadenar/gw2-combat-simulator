@@ -8,7 +8,7 @@ import type {
   RotationActionSummary,
   RotationPlayerIdentity,
   RotationReconstructionBase
-} from '../lib/rotation/model.js';
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 
 export const EVTC_STATE_CHANGE = Object.freeze({
   NONE: 0,

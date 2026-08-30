@@ -1,6 +1,9 @@
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import { quicknessReferenceCastTimeMs } from '../../../../../../platform/skills/timing.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const PROCESSION_OF_BLADES_ID = 30364;
 const SWORD_OF_JUSTICE_ID = 9168;

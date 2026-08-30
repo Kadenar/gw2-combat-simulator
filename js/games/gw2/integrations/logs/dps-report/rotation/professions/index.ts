@@ -1,17 +1,17 @@
-import { reconstructEngineerDpsReportActions } from './engineer.js';
-import { reconstructElementalistDpsReportActions } from './elementalist.js';
-import { reconstructGuardianDpsReportActions } from './guardian.js';
-import { reconstructMesmerDpsReportActions } from './mesmer.js';
-import { reconstructNecromancerDpsReportActions } from './necromancer.js';
-import { reconstructRangerDpsReportActions } from './ranger.js';
-import { reconstructRevenantDpsReportActions } from './revenant.js';
-import { reconstructThiefDpsReportActions } from './thief.js';
-import { reconstructWarriorDpsReportActions } from './warrior.js';
+import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/engineer.js';
+import { reconstructElementalistDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/elementalist.js';
+import { reconstructGuardianDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/guardian.js';
+import { reconstructMesmerDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/mesmer.js';
+import { reconstructNecromancerDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/necromancer.js';
+import { reconstructRangerDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/ranger.js';
+import { reconstructRevenantDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/revenant.js';
+import { reconstructThiefDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/thief.js';
+import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/warrior.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
-} from '../types.js';
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const reconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
   ['elementalist', reconstructElementalistDpsReportActions],

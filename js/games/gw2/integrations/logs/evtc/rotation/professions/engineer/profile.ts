@@ -1,4 +1,4 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 
 export const engineerProfileSource: EvtcProfessionProfileSource = {
   professionId: 'engineer',

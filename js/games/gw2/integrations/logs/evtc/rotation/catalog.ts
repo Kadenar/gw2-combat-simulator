@@ -7,4 +7,4 @@ export {
   normalizedName,
   skillIdentity,
   type RotationCatalog as EvtcRotationCatalog
-} from '../../lib/rotation/catalog.js';
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';

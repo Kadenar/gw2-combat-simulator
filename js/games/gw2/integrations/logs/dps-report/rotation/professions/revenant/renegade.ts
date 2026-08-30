@@ -1,5 +1,8 @@
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  DpsReportProfessionReconstructionContext,
+  DpsReportRecordedAction
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const ICERAZOR = Object.freeze({ name: "Icerazor's Ire", skillId: 40485 });
 const RAZORCLAW = Object.freeze({ name: "Razorclaw's Rage", skillId: 42949 });

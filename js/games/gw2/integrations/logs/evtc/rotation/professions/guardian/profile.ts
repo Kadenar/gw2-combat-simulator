@@ -1,5 +1,5 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { LUMINARY_BUFF_TRANSITIONS } from './luminary.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { LUMINARY_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/luminary.js';
 
 export const guardianProfileSource: EvtcProfessionProfileSource = {
   professionId: 'guardian',

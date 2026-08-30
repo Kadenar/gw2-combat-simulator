@@ -1,7 +1,13 @@
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { detectedWarriorCorePrecast, WARRIOR_CORE_ACTIONS } from './common.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  detectedWarriorCorePrecast,
+  WARRIOR_CORE_ACTIONS
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/common.js';
 import {
   hasActionNear,
   instantAction,
@@ -10,7 +16,7 @@ import {
   sequentialInitialActions,
   SIGNAL_WINDOW_MS,
   type WarriorActionIdentity
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
 
 const UNSHEATHE_GUNSABER = Object.freeze({
   name: 'Unsheathe Gunsaber',

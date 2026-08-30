@@ -2,16 +2,16 @@ import {
   ROTATION_PROFILES,
   type RotationActionIdentity,
   type RotationProfessionProfile
-} from '../../lib/rotation/profiles.js';
-import { elementalistProfileSource } from './professions/elementalist/profile.js';
-import { engineerProfileSource } from './professions/engineer/profile.js';
-import { guardianProfileSource } from './professions/guardian/profile.js';
-import { mesmerProfileSource } from './professions/mesmer/profile.js';
-import { necromancerProfileSource } from './professions/necromancer/profile.js';
-import { rangerProfileSource } from './professions/ranger/profile.js';
-import { revenantProfileSource } from './professions/revenant/profile.js';
-import { thiefProfileSource } from './professions/thief/profile.js';
-import { warriorProfileSource } from './professions/warrior/profile.js';
+} from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { elementalistProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/elementalist/profile.js';
+import { engineerProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/profile.js';
+import { guardianProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/profile.js';
+import { mesmerProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/profile.js';
+import { necromancerProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/profile.js';
+import { rangerProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/profile.js';
+import { revenantProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/profile.js';
+import { thiefProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/thief/profile.js';
+import { warriorProfileSource } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/profile.js';
 
 export type EvtcRotationActionIdentity = RotationActionIdentity;
 

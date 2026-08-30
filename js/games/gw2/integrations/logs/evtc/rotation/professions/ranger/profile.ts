@@ -1,7 +1,7 @@
-import type { EvtcProfessionProfileSource } from '../../profiles.js';
-import { DRUID_BUFF_TRANSITIONS } from './druid.js';
-import { SOULBEAST_BUFF_TRANSITIONS } from './soulbeast.js';
-import { UNTAMED_BUFF_TRANSITIONS } from './untamed.js';
+import type { EvtcProfessionProfileSource } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { DRUID_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/druid.js';
+import { SOULBEAST_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/soulbeast.js';
+import { UNTAMED_BUFF_TRANSITIONS } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/untamed.js';
 
 export const rangerProfileSource: EvtcProfessionProfileSource = {
   professionId: 'ranger',

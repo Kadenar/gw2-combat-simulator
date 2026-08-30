@@ -1,5 +1,10 @@
-import { EvtcError } from './errors.js';
-import type { ParsedEvtc, ParsedEvtcAgent, ParsedEvtcEvent, ParsedEvtcSkill } from './types.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import type {
+  ParsedEvtc,
+  ParsedEvtcAgent,
+  ParsedEvtcEvent,
+  ParsedEvtcSkill
+} from '#gw2/integrations/logs/evtc/types.js';
 
 export const EVTC_PARSE_LIMITS = Object.freeze({
   maximumExpandedBytes: 512 * 1024 * 1024,

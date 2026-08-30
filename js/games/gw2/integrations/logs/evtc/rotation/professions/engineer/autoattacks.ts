@@ -1,6 +1,12 @@
-import { committedActionsFromStrikePackets, quicknessRuntimeDurationMs } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { normalized, skillForAction } from './shared.js';
+import {
+  committedActionsFromStrikePackets,
+  quicknessRuntimeDurationMs
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { normalized, skillForAction } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const MAX_AUTOATTACK_IMPACT_MS = 2000;
 const AUTOATTACK_COMPLETION_TOLERANCE_MS = 75;

@@ -1,7 +1,12 @@
-import type { BalanceProfile, CanonicalCatalog } from '../../../../../../platform/engine/types.js';
-import type { Gw2Config } from '../../../../../../platform/simulation/config.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../../../../content/professions/mesmer/data/ids.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtc, type ParsedEvtcEvent } from '../../../types.js';
+import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  EVTC_ACTIVATION,
+  EVTC_STATE_CHANGE,
+  type ParsedEvtc,
+  type ParsedEvtcEvent
+} from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
@@ -11,7 +16,7 @@ import {
   hasSelectedTrait,
   primaryStrikeTarget,
   traitBalanceProfile
-} from '../condition-proc-observation.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
 export interface MesmerSharperImagesObservation {
   readonly targetAddress: bigint;

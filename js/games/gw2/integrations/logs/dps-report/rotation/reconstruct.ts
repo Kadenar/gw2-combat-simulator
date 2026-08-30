@@ -1,20 +1,25 @@
-import { actionKind, findNamedRotationSkill, findRotationSkill, skillIdentity } from '../../lib/rotation/catalog.js';
-import type { RotationCatalog } from '../../lib/rotation/catalog.js';
+import {
+  actionKind,
+  findNamedRotationSkill,
+  findRotationSkill,
+  skillIdentity
+} from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   ReconstructedCommand,
   ReconstructedRotationCommand,
   RotationActionStatus
-} from '../../lib/rotation/model.js';
-import type { RotationProfessionProfile } from '../../lib/rotation/profiles.js';
-import { buildReplayTimeline, replayCombatStart } from '../../lib/rotation/timeline.js';
-import { firstStrikePacketOffsetMs } from '../../lib/rotation/timing.js';
-import type { Skill } from '../../../../platform/engine/types.js';
+} from '#gw2/integrations/logs/lib/rotation/model.js';
+import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import {
   GW2_ACTION_TICK_MS,
   observedCommittedInterruptMs,
   quicknessReferenceCastTimeMs
-} from '../../../../platform/skills/timing.js';
-import { DpsReportError } from '../errors.js';
+} from '#gw2/platform/skills/timing.js';
+import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
   DpsReportPhase,
@@ -24,10 +29,14 @@ import type {
   DpsReportRotationReconstruction,
   DpsReportSkillMetadata,
   ParsedDpsReport
-} from '../types.js';
-import { dpsReportRotationProfile } from './profiles.js';
-import { reconstructDpsReportProfessionActions } from './professions/index.js';
-import type { DpsReportRecordedAction, DpsReportResolvedAction, DpsReportRotationOptions } from './types.js';
+} from '#gw2/integrations/logs/dps-report/types.js';
+import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rotation/profiles.js';
+import { reconstructDpsReportProfessionActions } from '#gw2/integrations/logs/dps-report/rotation/professions/index.js';
+import type {
+  DpsReportRecordedAction,
+  DpsReportResolvedAction,
+  DpsReportRotationOptions
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const TIMING_TOLERANCE_MS = 50;
 const DUPLICATE_SIGNAL_WINDOW_MS = 75;

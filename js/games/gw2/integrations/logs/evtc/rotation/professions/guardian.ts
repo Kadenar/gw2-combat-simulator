@@ -1,10 +1,26 @@
-import { normalizeGuardianAutoattacks } from './guardian/autoattacks.js';
-import { addGuardianCommonActions, finalizeGuardianActions, prepareGuardianActions } from './guardian/common.js';
-import { normalizeFirebrandWeaponTransitions, reconstructFirebrandActions } from './guardian/firebrand.js';
-import { normalizeLuminaryWeaponTransitions, reconstructLuminaryActions } from './guardian/luminary.js';
-import { normalizeDefaultGuardianWeaponTransitions } from './guardian/shared.js';
-import { normalizeGuardianCompositeAnimations, reconstructWillbenderActions } from './guardian/willbender.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+import { normalizeGuardianAutoattacks } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/autoattacks.js';
+import {
+  addGuardianCommonActions,
+  finalizeGuardianActions,
+  prepareGuardianActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/common.js';
+import {
+  normalizeFirebrandWeaponTransitions,
+  reconstructFirebrandActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/firebrand.js';
+import {
+  normalizeLuminaryWeaponTransitions,
+  reconstructLuminaryActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/luminary.js';
+import { normalizeDefaultGuardianWeaponTransitions } from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
+import {
+  normalizeGuardianCompositeAnimations,
+  reconstructWillbenderActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/willbender.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 type GuardianActionTransform = (
   context: EvtcProfessionReconstructionContext,

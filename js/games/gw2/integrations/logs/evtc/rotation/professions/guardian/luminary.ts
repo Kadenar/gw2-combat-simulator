@@ -1,7 +1,14 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcRotationBuffTransition } from '../../profiles.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, isPhysicalWeaponSwap, SWAP_WEAPONS } from './shared.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcRotationBuffTransition } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  isPhysicalWeaponSwap,
+  SWAP_WEAPONS
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const RADIANT_COURAGE = Object.freeze({
   name: 'Radiant Courage',

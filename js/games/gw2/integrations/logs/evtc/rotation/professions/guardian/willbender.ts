@@ -1,7 +1,16 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { firstStrikePacketOffsetMs } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, firstPlayerEventTime, recordedDuration, SIGNAL_WINDOW_MS, skillFor } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  firstPlayerEventTime,
+  recordedDuration,
+  SIGNAL_WINDOW_MS,
+  skillFor
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const SWORD_OF_JUSTICE = Object.freeze({
   name: 'Sword of Justice',

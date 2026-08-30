@@ -1,8 +1,13 @@
-import type { BalanceProfile, CanonicalCatalog } from '../../../../../platform/engine/types.js';
-import { gw2ConditionDurationMultiplier } from '../../../../../platform/combat/query/runtime-rules.js';
-import type { Gw2Config } from '../../../../../platform/simulation/config.js';
-import type { Gw2SigilSet, Gw2Stats } from '../../../../../platform/equipment/types.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtc, type ParsedEvtcEvent } from '../../types.js';
+import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/types.js';
+import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/query/runtime-rules.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
+import {
+  EVTC_ACTIVATION,
+  EVTC_STATE_CHANGE,
+  type ParsedEvtc,
+  type ParsedEvtcEvent
+} from '#gw2/integrations/logs/evtc/types.js';
 
 export const EVTC_BLEEDING_SKILL_ID = 736;
 export const EVTC_CRIPPLED_SKILL_ID = 721;

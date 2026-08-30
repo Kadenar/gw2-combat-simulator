@@ -1,6 +1,15 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, type EngineerActionIdentity, normalized, selectedSkill, skillForAction } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  type EngineerActionIdentity,
+  normalized,
+  selectedSkill,
+  skillForAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/shared.js';
 
 const DETONATE = Object.freeze({ name: 'Detonate', skillId: 6162 });
 const MINE_DAMAGE_SIGNALS = new Set([6161, 30337]);

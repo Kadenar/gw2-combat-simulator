@@ -1,7 +1,10 @@
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import { firstStrikePacketOffsetMs } from '../../effect-packets.js';
-import { openingStrikeCombatStartMs } from '../../../../lib/rotation/timing.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { firstStrikePacketOffsetMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { openingStrikeCombatStartMs } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import {
   combatStart,
   hasActionNear,
@@ -12,7 +15,7 @@ import {
   recordedDuration,
   SIGNAL_WINDOW_MS,
   skillFor
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/warrior/shared.js';
 
 const BERSERK = Object.freeze({ name: 'Berserk', skillId: 30185 });
 const OUTRAGE = Object.freeze({ name: 'Outrage', skillId: 30258 });

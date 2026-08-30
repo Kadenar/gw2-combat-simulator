@@ -1,14 +1,21 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '../../../types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../../../content/professions/elementalist/data/ids.js';
-import type { ElementalistAttunement } from '../../../../../../content/professions/elementalist/core/state.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { ElementalistAttunement } from '#gw2/content/professions/elementalist/core/state.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
-} from '../../../../../../content/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { weaponSkillChargeGain } from '../../../../../../content/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { findRotationSkill } from '../../catalog.js';
-import { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, skillForAction } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { weaponSkillChargeGain } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import {
+  firstStrikePacketOffsetMs,
+  quicknessRuntimeDurationMs,
+  skillForAction
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 const EVOKER_SKILL_ALIASES = new Map([
   [76803, { name: 'Zap', skillId: ID.ZAP }],

@@ -1,6 +1,14 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalAction, type GuardianActionIdentity, isPhysicalWeaponSwap, SWAP_WEAPONS } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  canonicalAction,
+  type GuardianActionIdentity,
+  isPhysicalWeaponSwap,
+  SWAP_WEAPONS
+} from '#gw2/integrations/logs/evtc/rotation/professions/guardian/shared.js';
 
 const TOME_OF_JUSTICE = Object.freeze({
   name: 'Tome of Justice',

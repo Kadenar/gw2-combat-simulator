@@ -1,12 +1,15 @@
-import { EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   assembleRevenantActions,
   firstActionAnchor,
   initialEnchantedDaggersActions,
   legendSwapActions,
   recoverRevenantPrecastActions
-} from './common.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/common.js';
 import {
   directAction,
   playerInstance,
@@ -14,7 +17,7 @@ import {
   runtimeDuration,
   skillFor,
   type RevenantActionIdentity
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/revenant/shared.js';
 
 const ORDERS_FROM_ABOVE = Object.freeze({
   name: 'Orders from Above',

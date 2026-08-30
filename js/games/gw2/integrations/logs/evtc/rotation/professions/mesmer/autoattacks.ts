@@ -1,7 +1,10 @@
-import { findRotationSkill } from '../../catalog.js';
-import { committedActionsFromStrikePackets } from '../../effect-packets.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { canonicalCast, directSkillSignals } from './shared.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import { committedActionsFromStrikePackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { canonicalCast, directSkillSignals } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
 
 const MAX_AUTOATTACK_IMPACT_MS = 2000;
 const WINDS_OF_CHAOS = Object.freeze({ name: 'Winds of Chaos', skillId: 10273 });

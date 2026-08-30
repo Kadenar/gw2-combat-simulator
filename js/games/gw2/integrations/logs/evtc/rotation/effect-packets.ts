@@ -1,12 +1,15 @@
-import type { Skill } from '../../../../platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import {
   firstStrikePacketOffsetMs,
   quicknessRuntimeDurationMs,
   strikePacketOffsets
-} from '../../lib/rotation/timing.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../types.js';
-import { findRotationSkill } from './catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './professions/types.js';
+} from '#gw2/integrations/logs/lib/rotation/timing.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 export const EFFECT_PACKET_TOLERANCE_MS = 80;
 const AGENT_SPAWN_STATE_CHANGE = 6;

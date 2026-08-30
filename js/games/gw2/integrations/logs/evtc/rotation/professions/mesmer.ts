@@ -1,10 +1,13 @@
-import { removeUncommittedMesmerAutoattacks } from './mesmer/autoattacks.js';
-import { reconstructChronomancerActions } from './mesmer/chronomancer.js';
-import { addMesmerCommonActions } from './mesmer/common.js';
-import { reconstructMirageActions } from './mesmer/mirage.js';
-import { dedupeActions, encounterEndTime } from './mesmer/shared.js';
-import { reconstructVirtuosoActions } from './mesmer/virtuoso.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
+import { removeUncommittedMesmerAutoattacks } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/autoattacks.js';
+import { reconstructChronomancerActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/chronomancer.js';
+import { addMesmerCommonActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/common.js';
+import { reconstructMirageActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/mirage.js';
+import { dedupeActions, encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/shared.js';
+import { reconstructVirtuosoActions } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/virtuoso.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 type MesmerActionTransform = (
   context: EvtcProfessionReconstructionContext,

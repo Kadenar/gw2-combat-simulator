@@ -1,7 +1,7 @@
-import type { BalanceProfile, CanonicalCatalog, Skill } from '../../../../../../platform/engine/types.js';
-import type { Gw2Config } from '../../../../../../platform/simulation/config.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../../../../content/professions/engineer/data/ids.js';
-import type { ParsedEvtc } from '../../../types.js';
+import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
@@ -13,7 +13,7 @@ import {
   matchingConditionApplications,
   primaryStrikeTarget,
   traitBalanceProfile
-} from '../condition-proc-observation.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
 const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
 const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;

@@ -1,13 +1,13 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { ownedPetAddresses } from './pets.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { ownedPetAddresses } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/pets.js';
 import {
   directAction,
   firstPlayerEventTime,
   playerInstance,
   rawSkillName,
   type RangerActionIdentity
-} from './shared.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/ranger/shared.js';
 
 const SHARPENING_STONE = Object.freeze({
   name: 'Sharpening Stone',

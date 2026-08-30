@@ -1,5 +1,5 @@
-import { EvtcError } from '../errors.js';
-import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../profession-metadata.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
@@ -12,7 +12,7 @@ import {
   type ParsedEvtc,
   type ParsedEvtcAgent,
   type ParsedEvtcEvent
-} from '../types.js';
+} from '#gw2/integrations/logs/evtc/types.js';
 import {
   actionKind,
   effectWindowMs,
@@ -21,17 +21,23 @@ import {
   isDirectPlayerSkill,
   skillIdentity,
   type EvtcRotationCatalog
-} from './catalog.js';
+} from '#gw2/integrations/logs/evtc/rotation/catalog.js';
 import {
   EFFECT_PACKET_TOLERANCE_MS,
   missingInterruptCommitWarnings,
   quicknessRuntimeDurationMs,
   reconcileCastEffectPackets
-} from './effect-packets.js';
-import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
-import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
-import { buildReplayTimeline, replayCombatStart } from '../../lib/rotation/timeline.js';
-import { observedCommittedInterruptMs } from '../../../../platform/skills/timing.js';
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  EVTC_ROTATION_PROFILES,
+  type EvtcRotationProfessionProfile
+} from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import {
+  reconstructProfessionActions,
+  type EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { buildReplayTimeline, replayCombatStart } from '#gw2/integrations/logs/lib/rotation/timeline.js';
+import { observedCommittedInterruptMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
 const EVTC_TIMING_QUANTUM_MS = 40;

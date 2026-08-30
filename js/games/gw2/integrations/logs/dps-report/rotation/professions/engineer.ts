@@ -1,10 +1,10 @@
-import { reconstructAmalgamDpsReportActions } from './engineer/amalgam.js';
-import { reconstructEngineerDependencies } from './engineer/shared.js';
+import { reconstructAmalgamDpsReportActions } from '#gw2/integrations/logs/dps-report/rotation/professions/engineer/amalgam.js';
+import { reconstructEngineerDependencies } from '#gw2/integrations/logs/dps-report/rotation/professions/engineer/shared.js';
 import type {
   DpsReportProfessionActionReconstructor,
   DpsReportProfessionReconstructionContext,
   DpsReportRecordedAction
-} from '../types.js';
+} from '#gw2/integrations/logs/dps-report/rotation/types.js';
 
 const specializationReconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
   ['amalgam', reconstructAmalgamDpsReportActions]

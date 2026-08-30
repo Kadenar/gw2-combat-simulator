@@ -3,6 +3,9 @@ export {
   getDpsReportProfessionRotationParser,
   reconstructDpsReportRotation,
   type DpsReportProfessionRotationParser
-} from './registry.js';
-export { detectDpsReportRotationPlayers, reconstructDpsReportWithProfile } from './reconstruct.js';
-export type { DpsReportRotationOptions } from './types.js';
+} from '#gw2/integrations/logs/dps-report/rotation/registry.js';
+export {
+  detectDpsReportRotationPlayers,
+  reconstructDpsReportWithProfile
+} from '#gw2/integrations/logs/dps-report/rotation/reconstruct.js';
+export type { DpsReportRotationOptions } from '#gw2/integrations/logs/dps-report/rotation/types.js';

@@ -1,7 +1,14 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
-import { findRotationSkill } from '../../catalog.js';
-import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
-import { effectAction, hasRecordedAction, INSTANT_SIGNAL_WINDOW_MS } from './shared.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { findRotationSkill } from '#gw2/integrations/logs/evtc/rotation/catalog.js';
+import type {
+  EvtcProfessionReconstructionContext,
+  EvtcRecordedRotationAction
+} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import {
+  effectAction,
+  hasRecordedAction,
+  INSTANT_SIGNAL_WINDOW_MS
+} from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/shared.js';
 
 const MANIFEST_SAND_SHADE = Object.freeze({
   name: 'Manifest Sand Shade',
