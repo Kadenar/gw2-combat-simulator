@@ -70,8 +70,11 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
 
   assert.equal(profile('Core', GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile.threshold, 5);
   assert.equal(profile('Dragonhunter', DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile.effects[0].duration, 2);

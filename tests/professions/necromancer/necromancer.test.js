@@ -112,8 +112,12 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
+
   const bloodFiend = profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack);
   const shade = profile('Scourge', SCOURGE_BALANCE_PROFILE_IDS.shade);
   const blight = profile('Harbinger', HARBINGER_BALANCE_PROFILE_IDS.resources);

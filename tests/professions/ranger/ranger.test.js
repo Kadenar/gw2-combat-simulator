@@ -280,8 +280,11 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) =>
-    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const profile = (moduleId, profileId) => {
+    const module = modules.get(moduleId);
+
+    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
+  };
 
   assert.equal(profile('Core', RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha).patchableFields.weaponAttributeBonus, 300);
   assert.equal(profile('Druid', DRUID_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 100);
