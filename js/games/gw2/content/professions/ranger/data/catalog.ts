@@ -11,7 +11,7 @@ import { RANGER_PET_SKILLS } from './ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from './ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from './ranger-supplemental-skills.js';
 import { TRAITS } from './traits-data.js';
-import { isRangerHammerVariant } from '../core/hammer.js';
+import { isRangerHammerVariant } from '../core/skills/hammer.js';
 import type { CatalogEntity, SkillId } from '../../../../platform/engine/types.js';
 import type { RangerSkill } from '../types.js';
 

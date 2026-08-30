@@ -6,18 +6,14 @@ import {
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
 import { createRangerModuleData } from '../data/catalog.js';
-import { rangerCoreSkillHandlers } from './handlers.js';
-import {
-  rangerCoreAttributeRules,
-  rangerCoreCastRules,
-  rangerCoreSchedulerHooks,
-  rangerCoreSkillMechanicHandlers
-} from './rules.js';
-import { RANGER_CORE_BASE_SKILL_MECHANICS, RANGER_CORE_EXTRA_SKILLS } from './skills.js';
+import { rangerCoreSkillHandlers, rangerCoreSkillMechanicHandlers } from './skills/handlers.js';
+import { rangerCoreAttributeRules, rangerCoreCastRules } from './traits/modifiers.js';
+import { RANGER_CORE_BASE_SKILL_MECHANICS, RANGER_CORE_EXTRA_SKILLS } from './skills/index.js';
 import { projectRangerEndState } from '../state/index.js';
 import { createRangerCoreState } from './state.js';
 import { bindRangerCoreUi } from './presentation.js';
-import { rangerCoreEventHandlers, rangerCoreEventReactions } from './resolver.js';
+import { rangerCoreEventHandlers, rangerCoreEventReactions } from './mechanics/reactions.js';
+import { rangerCoreExecutionHooks } from './mechanics/execution.js';
 import { RANGER_CORE_BALANCE_PROFILES } from './profiles.js';
 
 export const rangerCoreModule = defineNativeModule({
@@ -25,8 +21,7 @@ export const rangerCoreModule = defineNativeModule({
   data: createRangerModuleData('Core', {
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
     balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
-    extraSkills: RANGER_CORE_EXTRA_SKILLS,
-    handlers: rangerCoreSkillHandlers
+    extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
   state: {
     scheduler: createRangerCoreState,
@@ -35,16 +30,21 @@ export const rangerCoreModule = defineNativeModule({
   },
   mechanics: {
     modifiers: rangerCoreAttributeRules,
-    castRules: rangerCoreCastRules,
-    skillMechanicHandlers: rangerCoreSkillMechanicHandlers,
-    schedulerHooks: rangerCoreSchedulerHooks,
-    resolverHooks: { eventHandlers: rangerCoreEventHandlers },
-    reactions: [
-      ...rangerCoreEventReactions.critical.map(onResolvedCriticalHit),
-      ...rangerCoreEventReactions.damage.map(onResolvedDamage),
-      ...rangerCoreEventReactions.control.map(onResolvedControl),
-      ...rangerCoreEventReactions.buff.map(onBuffApplied)
-    ]
+    execution: {
+      skillHandlers: rangerCoreSkillHandlers,
+      castRules: rangerCoreCastRules,
+      skillMechanicHandlers: rangerCoreSkillMechanicHandlers,
+      hooks: rangerCoreExecutionHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: rangerCoreEventHandlers },
+      reactions: [
+        ...rangerCoreEventReactions.critical.map(onResolvedCriticalHit),
+        ...rangerCoreEventReactions.damage.map(onResolvedDamage),
+        ...rangerCoreEventReactions.control.map(onResolvedControl),
+        ...rangerCoreEventReactions.buff.map(onBuffApplied)
+      ]
+    }
   },
   presentation: bindRangerCoreUi
 });

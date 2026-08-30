@@ -73,6 +73,28 @@ mechanics/continuum-split/
 Top-level mirrored profession `execution/` and `resolution/` trees are prohibited because they split semantic
 ownership and encourage duplicate definitions.
 
+## Ranger reference layout
+
+Ranger is the first profession migrated to the target model. Its layout demonstrates the intended asymmetry:
+
+- Core skills are grouped in `core/skills/`; the large canonical skill catalog remains one `index.ts`, while cast
+  handlers and hammer-specific helpers have explicit homes beside it.
+- Core trait modifiers and cast rules live in `core/traits/modifiers.ts`.
+- Pets, resource advancement, weapon state, event reactions, and availability live in `core/mechanics/` because they
+  are profession systems rather than a single skill or trait.
+- Specialization mechanics use GW2 concept names such as `mechanics/celestial-avatar.ts`, `mechanics/beastmode.ts`,
+  and `mechanics/unleash.ts`; generic `rules.ts` and `resolver.ts` filenames are no longer used.
+- Small trait or skill collections remain grouped. The reference layout does not require one file per definition.
+
+Each Ranger `module.ts` is the visible phase boundary. It keeps shared modifiers at `mechanics.modifiers`, registers
+cast and scheduling behavior under `mechanics.execution`, and registers reactions and resolver event hooks under
+`mechanics.resolution`. Skill handlers are registered only through `mechanics.execution.skillHandlers`; canonical
+skill mechanics remain in the owner-local skill definition module.
+
+The Core execution hook file is deliberately a composition adapter. It coordinates several Core concepts for the
+scheduler but does not become a second owner for pets, resources, traits, or weapons. Resolution implementations stay
+with their owning concept and are only assembled by `module.ts`.
+
 ## Stacked delivery plan
 
 | Phase | Goal |

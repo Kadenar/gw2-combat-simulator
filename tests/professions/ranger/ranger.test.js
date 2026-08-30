@@ -46,33 +46,33 @@ import { RANGER_PETS } from '../../../js/games/gw2/content/professions/ranger/da
 import { RANGER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/ranger.js';
 import { rangerProfession } from '../../../js/games/gw2/content/professions/ranger/definition.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/ranger/core/profiles.js';
-import { RANGER_CORE_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/core/skills.js';
+import { RANGER_CORE_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/profiles.js';
-import { DRUID_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/skills.js';
-import { druidAttributeRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/rules.js';
+import { DRUID_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/skills/index.js';
+import { druidAttributeRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
 import { DRUID_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/state.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
-import { SOULBEAST_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/skills.js';
+import { SOULBEAST_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/skills/index.js';
 import { SOULBEAST_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/profiles.js';
-import { UNTAMED_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/skills.js';
+import { UNTAMED_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/skills/index.js';
 import { UNTAMED_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/state.js';
 import { GALESHOT_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/ranger/specializations/galeshot/profiles.js';
-import { GALESHOT_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/galeshot/skills.js';
+import { GALESHOT_BASE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/ranger/specializations/galeshot/skills/index.js';
 import { GALESHOT_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/specializations/galeshot/state.js';
-import { rangerPetCombatMetadata } from '../../../js/games/gw2/content/professions/ranger/core/pets.js';
+import { rangerPetCombatMetadata } from '../../../js/games/gw2/content/professions/ranger/core/mechanics/pets.js';
 import {
   rangerCoreAttributeRules,
   rangerCoreCastRules,
   rangerCoreModifierRules
-} from '../../../js/games/gw2/content/professions/ranger/core/rules.js';
+} from '../../../js/games/gw2/content/professions/ranger/core/traits/modifiers.js';
 import {
   soulbeastAttributeRules,
   soulbeastCastRules,
   soulbeastModifierRules
-} from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/rules.js';
-import { untamedCastRules } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/rules.js';
+} from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { untamedCastRules } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/mechanics/unleash.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/state/index.js';
 import { rangerAppAdapter } from '../../../js/games/gw2/content/professions/ranger/app/app-definition.js';
 

@@ -12,9 +12,9 @@ import {
 } from '../../../js/games/gw2/content/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '../../../js/games/gw2/content/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '../../../js/games/gw2/content/professions/ranger/definition.js';
-import { rangerCoreCriticalReactions } from '../../../js/games/gw2/content/professions/ranger/core/resolver.js';
-import { rangerCoreModifierRules } from '../../../js/games/gw2/content/professions/ranger/core/rules.js';
-import { druidModifierRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/rules.js';
+import { rangerCoreCriticalReactions } from '../../../js/games/gw2/content/professions/ranger/core/mechanics/reactions.js';
+import { rangerCoreModifierRules } from '../../../js/games/gw2/content/professions/ranger/core/traits/modifiers.js';
+import { druidModifierRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
 import { rangerAppAdapter } from '../../../js/games/gw2/content/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({

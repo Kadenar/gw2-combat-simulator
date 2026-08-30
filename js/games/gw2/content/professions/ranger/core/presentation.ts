@@ -17,8 +17,8 @@ import type {
   SkillId
 } from '../../../../platform/engine/types.js';
 import type { RangerSkill, RangerUiContext, RangerUiSelection } from '../types.js';
-import { isRangerHammerVariant, normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './hammer.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './weapon-state.js';
+import { isRangerHammerVariant, normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './skills/hammer.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './mechanics/weapon-state.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 

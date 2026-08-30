@@ -21,7 +21,7 @@ import { createScourgeState } from '../../js/games/gw2/content/professions/necro
 import { rangerCatalog } from '../../js/games/gw2/content/professions/ranger/catalog.js';
 import { createRangerCoreState } from '../../js/games/gw2/content/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '../../js/games/gw2/content/professions/ranger/data/ids.js';
-import { reactToSoulbeastBuff } from '../../js/games/gw2/content/professions/ranger/specializations/soulbeast/resolver.js';
+import { reactToSoulbeastBuff } from '../../js/games/gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '../../js/games/gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant/catalog.js';
 import { createRevenantCoreState } from '../../js/games/gw2/content/professions/revenant/core/state.js';

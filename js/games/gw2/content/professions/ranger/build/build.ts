@@ -6,7 +6,7 @@ import { RANGER_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
 import { rangerCatalog } from '../catalog.js';
 import { RANGER_PETS } from '../data/ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
-import { normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from '../core/hammer.js';
+import { normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from '../core/skills/hammer.js';
 import type { RangerCanonicalBuild } from '../types.js';
 import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
 

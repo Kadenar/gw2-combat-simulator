@@ -6,9 +6,9 @@ import {
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { createRangerModuleData } from '../../data/catalog.js';
-import { soulbeastSkillHandlers } from './handlers.js';
-import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './rules.js';
-import { SOULBEAST_BASE_SKILL_MECHANICS } from './skills.js';
+import { soulbeastSkillHandlers } from './skills/handlers.js';
+import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './mechanics/beastmode.js';
+import { SOULBEAST_BASE_SKILL_MECHANICS } from './skills/index.js';
 import { soulbeastState } from './state.js';
 import { bindSoulbeastUi } from './presentation.js';
 import {
@@ -18,51 +18,55 @@ import {
   reactToSoulbeastControl,
   reactToSoulbeastDamage,
   soulbeastEventHandlers
-} from './resolver.js';
+} from './mechanics/beastmode-effects.js';
 import { SOULBEAST_BALANCE_PROFILES } from './profiles.js';
 
 export const soulbeastModule = defineNativeModule({
   id: 'Soulbeast',
   data: createRangerModuleData('Soulbeast', {
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,
-    balanceProfiles: SOULBEAST_BALANCE_PROFILES,
-    handlers: soulbeastSkillHandlers
+    balanceProfiles: SOULBEAST_BALANCE_PROFILES
   }),
   // Scheduler and resolver each get their own independent state instance — they run in separate phases.
   state: { scheduler: soulbeastState.create, resolver: soulbeastState.create },
   mechanics: {
     modifiers: soulbeastAttributeRules,
-    castRules: soulbeastCastRules,
-    schedulerHooks: soulbeastSchedulerHooks,
-    resolverHooks: { eventHandlers: soulbeastEventHandlers },
-    reactions: [
-      onResolvedDamage({
-        id: 'ranger.soulbeast-damage',
-        order: 20,
-        handler: reactToSoulbeastDamage
-      }),
-      // Winter's Bite runs at order 30 so it fires after the main damage reaction (order 20) has already processed the hit.
-      onResolvedDamage({
-        id: 'ranger.winters-bite',
-        order: 30,
-        handler: reactToRangerWinterBite
-      }),
-      onResolvedControl({
-        id: 'ranger.soulbeast-control',
-        order: 20,
-        handler: reactToSoulbeastControl
-      }),
-      onConditionApplied({
-        id: 'ranger.soulbeast-condition',
-        order: 20,
-        handler: reactToSoulbeastCondition
-      }),
-      onBuffApplied({
-        id: 'ranger.soulbeast-buff',
-        order: 20,
-        handler: reactToSoulbeastBuff
-      })
-    ]
+    execution: {
+      skillHandlers: soulbeastSkillHandlers,
+      castRules: soulbeastCastRules,
+      hooks: soulbeastSchedulerHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: soulbeastEventHandlers },
+      reactions: [
+        onResolvedDamage({
+          id: 'ranger.soulbeast-damage',
+          order: 20,
+          handler: reactToSoulbeastDamage
+        }),
+        // Winter's Bite runs at order 30 so it fires after the main damage reaction (order 20) has already processed the hit.
+        onResolvedDamage({
+          id: 'ranger.winters-bite',
+          order: 30,
+          handler: reactToRangerWinterBite
+        }),
+        onResolvedControl({
+          id: 'ranger.soulbeast-control',
+          order: 20,
+          handler: reactToSoulbeastControl
+        }),
+        onConditionApplied({
+          id: 'ranger.soulbeast-condition',
+          order: 20,
+          handler: reactToSoulbeastCondition
+        }),
+        onBuffApplied({
+          id: 'ranger.soulbeast-buff',
+          order: 20,
+          handler: reactToSoulbeastBuff
+        })
+      ]
+    }
   },
   presentation: bindSoulbeastUi
 });

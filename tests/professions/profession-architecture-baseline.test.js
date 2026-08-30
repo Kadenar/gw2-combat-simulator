@@ -88,6 +88,28 @@ test('phase-explicit native declarations retain their scheduler and resolver dis
   }
 });
 
+test('Ranger reference modules register phase behavior only through explicit sections', () => {
+  for (const module of rangerNativeModules) {
+    const label = `ranger/${module.id}`;
+
+    assert.ok(module.mechanics.execution, `${label}/execution`);
+    assert.ok(module.mechanics.resolution, `${label}/resolution`);
+    assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
+
+    for (const legacyKey of [
+      'availability',
+      'castLifecycle',
+      'skillMechanicHandlers',
+      'castRules',
+      'schedulerHooks',
+      'resolverHooks',
+      'reactions'
+    ]) {
+      assert.equal(module.mechanics[legacyKey], undefined, `${label}/mechanics.${legacyKey}`);
+    }
+  }
+});
+
 test('scheduler and resolver state factories never share a mutable state instance', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {
