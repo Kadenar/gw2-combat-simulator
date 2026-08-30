@@ -1,12 +1,12 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onConditionApplied, onResolvedControl } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../../catalog-data.js';
+import { createRangerModuleData } from '../../data/catalog.js';
 import { druidSkillHandlers } from './handlers.js';
 import { druidAttributeRules, druidCastRules, druidSchedulerHooks } from './rules.js';
 import { reactToDruidCondition, reactToDruidControl } from './resolver.js';
 import { DRUID_BASE_SKILL_MECHANICS } from './skills.js';
 import { druidState } from './state.js';
-import { druidUi } from './ui.js';
+import { druidUi } from './presentation.js';
 import { DRUID_BALANCE_PROFILES } from './profiles.js';
 
 export const druidModule = defineNativeModule({

@@ -8,7 +8,7 @@ import { emitStateSnapshot } from '../../../../../platform/engine/events/state-s
 import type { EmitSkillBuffOptions } from '../../../../../platform/scheduler/skill-events.js';
 import { addBlight, consumeBlight, harbingerState, purgeHarbingerTimedState } from './state.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../../state.js';
+import { snapshotNecromancerState } from '../../state/index.js';
 /**
  * Harbinger blight skill handlers.
  *

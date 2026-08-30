@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createThiefModuleData } from '../../catalog-data.js';
+import { createThiefModuleData } from '../../data/catalog.js';
 import { daredevilAttributeRules, daredevilCastRules, daredevilSchedulerHooks } from './rules.js';
 import { daredevilState } from './state.js';
 import { DAREDEVIL_SKILL_MECHANICS } from './skills.js';
 import { DAREDEVIL_BALANCE_PROFILES } from './profiles.js';
-import { daredevilUi } from './ui.js';
+import { daredevilUi } from './presentation.js';
 
 export const daredevilModule = defineNativeModule({
   id: 'Daredevil',

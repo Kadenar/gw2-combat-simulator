@@ -3,7 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/games/gw2/content/professions/warrior/build.js';
+import {
+  migrateWarriorBuild,
+  validateWarriorBuild
+} from '../../../js/games/gw2/content/professions/warrior/build/build.js';
 import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
 import {
   WARRIOR_SKILL_IDS as ID,

@@ -23,7 +23,7 @@ import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '../../../js/games/gw2/content/professions/necromancer/build.js';
+} from '../../../js/games/gw2/content/professions/necromancer/build/build.js';
 import {
   necromancerCatalog,
   NECROMANCER_NON_DPS_SKILL_NAMES

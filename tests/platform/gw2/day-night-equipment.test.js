@@ -6,7 +6,7 @@ import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { FOOD_DATA } from '../../../js/games/gw2/platform/equipment/consumables/food.js';
 import { aggregateSigilSet } from '../../../js/games/gw2/platform/equipment/sigils/loadout.js';
-import { createNecromancerBuildDefaults } from '../../../js/games/gw2/content/professions/necromancer/build.js';
+import { createNecromancerBuildDefaults } from '../../../js/games/gw2/content/professions/necromancer/build/build.js';
 
 test('the shared simulation config defaults to day and preserves a night selection', () => {
   const build = createNecromancerBuildDefaults();

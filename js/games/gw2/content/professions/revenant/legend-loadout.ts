@@ -1,5 +1,5 @@
 import { createFixedSlotLoadout } from '../../../app/profession/slot-loadout.js';
-import { REVENANT_DECLARED_SKILLS } from './catalog-data.js';
+import { REVENANT_DECLARED_SKILLS } from './data/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from './data/ids.js';
 import { REVENANT_LEGEND_SPECIALIZATIONS } from './legend-rules.js';
 import { HERALD_MECHANICS } from './specializations/herald/mechanics.js';

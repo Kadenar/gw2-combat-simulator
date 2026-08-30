@@ -1,7 +1,7 @@
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { emitSkillCondition, emitSkillDamage } from '../../../../platform/scheduler/skill-events.js';
-import { snapshotRevenantState } from '../state.js';
+import { snapshotRevenantState } from '../state/index.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *

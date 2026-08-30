@@ -1,9 +1,9 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../../catalog-data.js';
+import { createRevenantModuleData } from '../../data/catalog.js';
 import { heraldSkillHandlers } from './handlers.js';
 import { heraldAttributeRules, heraldCastRules, heraldSchedulerHooks } from './rules.js';
 import { heraldState } from './state.js';
-import { heraldUi } from './ui.js';
+import { heraldUi } from './presentation.js';
 import { HERALD_BALANCE_PROFILES, HERALD_BASE_SKILL_MECHANICS } from './skills.js';
 
 export const heraldModule = defineNativeModule({

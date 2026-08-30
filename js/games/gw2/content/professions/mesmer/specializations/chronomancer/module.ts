@@ -1,5 +1,5 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../catalog-data.js';
+import { createMesmerModuleData } from '../../data/catalog.js';
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
@@ -7,7 +7,7 @@ import {
   chronomancerSkillMechanicHandlers
 } from './rules.js';
 import { createChronomancerResolverState, chronomancerState } from './state.js';
-import { chronomancerUi } from './ui.js';
+import { chronomancerUi } from './presentation.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,

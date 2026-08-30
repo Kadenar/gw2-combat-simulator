@@ -1,11 +1,11 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createThiefModuleData } from '../../catalog-data.js';
+import { createThiefModuleData } from '../../data/catalog.js';
 import { antiquarySkillHandlers } from './handlers.js';
 import { antiquaryResolverEventReactions } from './resolver.js';
 import { antiquaryAttributeRules, antiquaryCastRules, antiquarySchedulerHooks } from './rules.js';
 import { antiquaryState } from './state.js';
-import { antiquaryUi } from './ui.js';
+import { antiquaryUi } from './presentation.js';
 import { ANTIQUARY_SKILL_MECHANICS } from './skills.js';
 import { ANTIQUARY_BALANCE_PROFILES } from './profiles.js';
 

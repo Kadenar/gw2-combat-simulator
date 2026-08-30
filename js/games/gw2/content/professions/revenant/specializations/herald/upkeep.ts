@@ -3,7 +3,7 @@ import { professionCoreState } from '../../../../../platform/engine/profession/s
 import type { SchedulerRecord, SkillId } from '../../../../../platform/engine/types.js';
 import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
 import { emitSkillBuff } from '../../../../../platform/scheduler/skill-events.js';
-import { snapshotRevenantState } from '../../state.js';
+import { snapshotRevenantState } from '../../state/index.js';
 import { hasTrait } from '../../../../../platform/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {

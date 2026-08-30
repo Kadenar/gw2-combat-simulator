@@ -42,7 +42,7 @@ import {
 import { mesmerCatalog } from '../../../js/games/gw2/content/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../../js/games/gw2/content/professions/mesmer/definition.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
-import { toApplicationBuild } from '../../../js/games/gw2/content/professions/mesmer/build.js';
+import { toApplicationBuild } from '../../../js/games/gw2/content/professions/mesmer/build/build.js';
 import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {

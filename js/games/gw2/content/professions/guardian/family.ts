@@ -1,6 +1,6 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createGuardianBuildDefaults, migrateGuardianBuild, validateGuardianBuild } from './build.js';
+import { createGuardianBuildDefaults, migrateGuardianBuild, validateGuardianBuild } from './build/build.js';
 import { guardianNativeModules } from './modules.js';
 import { GUARDIAN_SKILL_IDS as ID } from './data/ids.js';
 

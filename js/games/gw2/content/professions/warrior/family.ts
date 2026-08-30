@@ -1,6 +1,6 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createWarriorBuildDefaults, migrateWarriorBuild, validateWarriorBuild } from './build.js';
+import { createWarriorBuildDefaults, migrateWarriorBuild, validateWarriorBuild } from './build/build.js';
 import { warriorNativeModules } from './modules.js';
 
 export const warriorProfession = defineNativeProfession({

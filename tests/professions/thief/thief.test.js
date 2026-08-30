@@ -23,7 +23,7 @@ import {
   createThiefBuildDefaults,
   migrateThiefBuild,
   validateThiefBuild
-} from '../../../js/games/gw2/content/professions/thief/build.js';
+} from '../../../js/games/gw2/content/professions/thief/build/build.js';
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from '../../../js/games/gw2/content/professions/thief/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/thief/data/thief-supplemental-skills.js';

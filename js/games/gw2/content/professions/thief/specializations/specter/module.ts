@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onConditionApplied } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createThiefModuleData } from '../../catalog-data.js';
+import { createThiefModuleData } from '../../data/catalog.js';
 import { specterSkillHandlers } from './handlers.js';
 import { specterAttributeRules, specterCastRules, specterSchedulerHooks } from './rules.js';
 import { specterState } from './state.js';
-import { specterUi } from './ui.js';
+import { specterUi } from './presentation.js';
 import { SPECTER_SKILL_MECHANICS } from './skills.js';
 import { applyLarcenousTorment } from './resolver.js';
 import { SPECTER_BALANCE_PROFILES } from './profiles.js';

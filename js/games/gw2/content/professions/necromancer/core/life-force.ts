@@ -2,7 +2,7 @@ import { hasTrait } from '../../../../platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '../../../../platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../state.js';
+import { snapshotNecromancerState } from '../state/index.js';
 import { gw2AlliedPlayerAssumptions } from '../../../../platform/combat/state/allied-players.js';
 import { selectedSkillNameSet } from '../../../../platform/builds/selected-skills.js';
 /**

@@ -1,7 +1,7 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from './build.js';
-import { thiefWeaponSkillMatchesSet } from './catalog-data.js';
+import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from './build/build.js';
+import { thiefWeaponSkillMatchesSet } from './data/catalog.js';
 import { thiefNativeModules } from './modules.js';
 
 export const thiefProfession = defineNativeProfession({

@@ -1,11 +1,11 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onFoodProcCreated, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRevenantModuleData } from '../../catalog-data.js';
+import { createRevenantModuleData } from '../../data/catalog.js';
 import { renegadeSkillHandlers } from './handlers.js';
 import { renegadeEventHandlers, revenantRenegadeEventReactions } from './resolver.js';
 import { renegadeAttributeRules, renegadeCastRules, renegadeSchedulerHooks } from './rules.js';
 import { renegadeState } from './state.js';
-import { renegadeUi } from './ui.js';
+import { renegadeUi } from './presentation.js';
 import { RENEGADE_BASE_SKILL_MECHANICS, RENEGADE_BALANCE_PROFILES, RENEGADE_EXTRA_SKILLS } from './skills.js';
 
 export const renegadeModule = defineNativeModule({

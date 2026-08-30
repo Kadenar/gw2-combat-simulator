@@ -337,4 +337,4 @@ export const necromancerCoreCastRules = Object.freeze({
 });
 
 export { necromancerCoreSkillMechanicHandlers, necromancerSchedulerHooks };
-export { snapshotNecromancerState } from '../state.js';
+export { snapshotNecromancerState } from '../state/index.js';

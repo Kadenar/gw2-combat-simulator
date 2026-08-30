@@ -1,5 +1,5 @@
 import { handleConduitSurge, handleElectricArtillery, handleLightningRodPulse } from './events.js';
-import { handleEngineerState } from '../state.js';
+import { handleEngineerState } from '../state/index.js';
 import {
   engineerCoreCriticalHitDefinitions,
   handleEngineerDodge,

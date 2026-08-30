@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
+import { createNecromancerModuleData } from '../../data/catalog.js';
 import { ritualistEventHandlers, ritualistResolverEventReactions } from './resolver.js';
 import { ritualistAttributeRules, ritualistCastRules, ritualistSchedulerHooks } from './rules.js';
 import { ritualistState } from './state.js';
-import { ritualistUi } from './ui.js';
+import { ritualistUi } from './presentation.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from './skills.js';
 import { ritualistSkillHandlers } from './handlers.js';
 import { RITUALIST_BALANCE_PROFILES } from './profiles.js';

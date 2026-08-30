@@ -1,5 +1,5 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createWarriorModuleData } from '../../catalog-data.js';
+import { createWarriorModuleData } from '../../data/catalog.js';
 import { BLADESWORN_SKILL_MECHANICS } from './skills.js';
 import { bladeswornSkillHandlers } from './handlers.js';
 import {
@@ -9,7 +9,7 @@ import {
   bladeswornSkillMechanicHandlers
 } from './rules.js';
 import { bladeswornState } from './state.js';
-import { bladeswornUi } from './ui.js';
+import { bladeswornUi } from './presentation.js';
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
 import { BLADESWORN_BALANCE_PROFILES } from './profiles.js';
 

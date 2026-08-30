@@ -1,13 +1,13 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createEngineerModuleData } from '../../catalog-data.js';
+import { createEngineerModuleData } from '../../data/catalog.js';
 import { amalgamSkillHandlers } from './handlers.js';
 import { amalgamResolverEventReactions } from './resolver.js';
 import { amalgamAttributeRules, amalgamCastRules, amalgamSchedulerHooks } from './rules.js';
 import { AMALGAM_SKILL_MECHANICS } from './skills.js';
 import { amalgamState } from './state.js';
 import { AMALGAM_BALANCE_PROFILES } from './profiles.js';
-import { bindAmalgamUi } from './ui.js';
+import { bindAmalgamUi } from './presentation.js';
 
 // Compose cast-time protocol state with resolver-side reactions: handlers establish
 // strains and Evolve state, while resolved hits drive Rapacious and Carbolic procs.

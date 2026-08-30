@@ -35,7 +35,7 @@ import { createExpectedProcTracker } from './expected-procs.js';
 import { createMesmerEventMaterializer } from './event-materializer.js';
 import { createResourceController } from './resources.js';
 import { createSkillEffectController } from './skill-effects.js';
-import { mesmerResourceDefinition, mesmerResourceProfileId } from '../state.js';
+import { mesmerResourceDefinition, mesmerResourceProfileId } from '../state/index.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   MESMER_CORE_SHATTER_PROFILE_IDS,

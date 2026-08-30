@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createWarriorModuleData } from '../../catalog-data.js';
+import { createWarriorModuleData } from '../../data/catalog.js';
 import { PARAGON_SKILL_MECHANICS } from './skills.js';
 import { paragonSkillHandlers } from './handlers.js';
 import { paragonAttributeRules, paragonSchedulerHooks } from './rules.js';
 import { paragonState } from './state.js';
-import { paragonUi } from './ui.js';
+import { paragonUi } from './presentation.js';
 import { paragonResolverEventHandlers } from './resolver.js';
 import { PARAGON_BALANCE_PROFILES } from './profiles.js';
 

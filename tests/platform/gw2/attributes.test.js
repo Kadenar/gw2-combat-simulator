@@ -5,7 +5,7 @@ import {
   replaceBuild as replaceBuildFor
 } from '../../../js/games/gw2/app/build/state/persistence.js';
 import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '../../../js/games/gw2/content/professions/mesmer/build-attributes.js';
+import { applyMesmerBuildAttributeRules } from '../../../js/games/gw2/content/professions/mesmer/build/attributes.js';
 import {
   calculateCommonAttributes,
   createCalculateAttributes,

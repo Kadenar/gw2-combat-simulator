@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createDefaultBuild, replaceBuild } from '../../../js/games/gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '../../../js/games/gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '../../../js/games/gw2/content/professions/mesmer/build-attributes.js';
+import { applyMesmerBuildAttributeRules } from '../../../js/games/gw2/content/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '../../../js/games/gw2/content/professions/mesmer/definition.js';
 import { resolveProfessionRuntime } from '../../../js/games/gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '../../../js/games/gw2/platform/combat/query/combat-query.js';

@@ -158,7 +158,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/c
 import type { Gw2Stats } from '../../../../platform/equipment/types.js';
 import type { RevenantConfig, RevenantCoreState, RevenantState } from '../types.js';
 
-export { snapshotRevenantState } from '../state.js';
+export { snapshotRevenantState } from '../state/index.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;

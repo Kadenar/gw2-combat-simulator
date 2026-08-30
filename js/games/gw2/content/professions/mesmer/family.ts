@@ -1,8 +1,8 @@
 import { assembleNativeApplicationCatalog } from '../../../integrations/patches/authoring/catalog.js';
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createMesmerBuildDefaults, migrateMesmerBuild, validateMesmerBuild } from './build.js';
-import { MESMER_NATIVE_CATALOG_OPTIONS } from './catalog-data.js';
+import { createMesmerBuildDefaults, migrateMesmerBuild, validateMesmerBuild } from './build/build.js';
+import { MESMER_NATIVE_CATALOG_OPTIONS } from './data/catalog.js';
 import { mesmerNativeModules } from './modules.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { MesmerSchedulerContext } from './types.js';

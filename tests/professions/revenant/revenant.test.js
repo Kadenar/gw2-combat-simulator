@@ -37,14 +37,14 @@ import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
   validateRevenantBuild
-} from '../../../js/games/gw2/content/professions/revenant/build.js';
-import { applyRevenantBuildAttributeRules } from '../../../js/games/gw2/content/professions/revenant/build-attributes.js';
+} from '../../../js/games/gw2/content/professions/revenant/build/build.js';
+import { applyRevenantBuildAttributeRules } from '../../../js/games/gw2/content/professions/revenant/build/attributes.js';
 import { revenantAppAdapter } from '../../../js/games/gw2/content/professions/revenant/app/app-definition.js';
 import { revenantCatalog } from '../../../js/games/gw2/content/professions/revenant/catalog.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
-} from '../../../js/games/gw2/content/professions/revenant/specializations/vindicator/ui.js';
+} from '../../../js/games/gw2/content/professions/revenant/specializations/vindicator/presentation.js';
 import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/revenant/data/revenant-api-metadata.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/revenant/data/revenant-supplemental-skills.js';
 import {

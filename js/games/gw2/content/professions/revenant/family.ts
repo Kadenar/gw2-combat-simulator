@@ -1,6 +1,6 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createRevenantBuildDefaults, migrateRevenantBuild, validateRevenantBuild } from './build.js';
+import { createRevenantBuildDefaults, migrateRevenantBuild, validateRevenantBuild } from './build/build.js';
 import { revenantNativeModules } from './modules.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 

@@ -27,7 +27,7 @@ import type { SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/combat/modifiers/types.js';
 import type { EngineerRechargeContext } from '../types.js';
 
-export { snapshotEngineerState } from '../state.js';
+export { snapshotEngineerState } from '../state/index.js';
 
 // Chemical Rounds extends pistol-skill base durations before the normal capped condition-duration multiplier.
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {

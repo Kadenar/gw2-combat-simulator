@@ -30,7 +30,13 @@ content/professions/<profession>/
   modules.ts
   catalog.ts
   build/
+    build.ts
+    attributes.ts
   data/
+    catalog.ts
+    ... generated/static inputs
+  state/
+    index.ts
   core/
     module.ts
     state.ts
@@ -48,6 +54,7 @@ content/professions/<profession>/
     profiles.ts
     presentation.ts
   app/
+    assumptions.ts | ... browser integration
 ```
 
 The tree is intentionally asymmetric. Directories exist only when they make a real concept easier to find. A cohesive
@@ -95,4 +102,3 @@ For every phase:
 5. Verify patch-preview authoring metadata when profiles or modifier declarations move.
 6. Verify public end-state projection and state snapshot serialization.
 7. Confirm generated-data scripts do not emit into behavioral directories.
-

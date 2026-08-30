@@ -153,7 +153,7 @@ Every native profession otherwise uses the same source roles:
 - Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
   `mechanics.ts`); families do not use mixed
   profession-wide runtime aggregates.
-- `catalog-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
+- `data/catalog.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
 - owner-local skill modules or focused handler modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that

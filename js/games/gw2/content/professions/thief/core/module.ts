@@ -5,12 +5,12 @@ import {
   onResolvedCriticalHit,
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createThiefModuleData } from '../catalog-data.js';
+import { createThiefModuleData } from '../data/catalog.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from './resolver.js';
 import { thiefCoreAttributeRules, thiefCoreCastRules, thiefCoreSchedulerHooks } from './rules.js';
 import { createThiefCoreState } from './state.js';
-import { projectThiefEndState } from '../state.js';
-import { thiefCoreUi } from './ui.js';
+import { projectThiefEndState } from '../state/index.js';
+import { thiefCoreUi } from './presentation.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from './skills.js';
 import { thiefCoreSkillHandlers } from './handlers.js';
 import { THIEF_CORE_BALANCE_PROFILES } from './profiles.js';

@@ -1,8 +1,8 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createElementalistModuleData } from '../../catalog-data.js';
+import { createElementalistModuleData } from '../../data/catalog.js';
 import { weaverAttributeRules, weaverCastRules, weaverSchedulerHooks, weaverSkillMechanicHandlers } from './rules.js';
 import { createWeaverState } from './state.js';
-import { weaverUi } from './ui.js';
+import { weaverUi } from './presentation.js';
 import { WEAVER_SKILL_MECHANICS } from './skills.js';
 import { WEAVER_BALANCE_PROFILES } from './profiles.js';
 

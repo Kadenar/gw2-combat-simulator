@@ -1,6 +1,6 @@
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../state.js';
+import { snapshotEngineerState } from '../state/index.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../../platform/combat/state/traits.js';
 import { spendEndurance } from '../../../../platform/combat/resources/endurance.js';

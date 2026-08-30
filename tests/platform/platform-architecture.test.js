@@ -49,14 +49,14 @@ import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild
-} from '../../js/games/gw2/content/professions/mesmer/build.js';
+} from '../../js/games/gw2/content/professions/mesmer/build/build.js';
 import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
 import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '../../js/games/gw2/content/professions/mesmer/state.js';
+import { snapshotMesmerState } from '../../js/games/gw2/content/professions/mesmer/state/index.js';
 import { testProfession } from '../fixtures/test-profession.js';
 import { isStandardBoon } from '../../js/games/gw2/platform/combat/state/boons.js';
 

@@ -1,6 +1,6 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedControl, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../../catalog-data.js';
+import { createRangerModuleData } from '../../data/catalog.js';
 import { untamedSkillHandlers } from './handlers.js';
 import {
   untamedAttributeRules,
@@ -11,7 +11,7 @@ import {
 import { reactToUntamedControl, reactToUntamedDamage, untamedEventHandlers } from './resolver.js';
 import { UNTAMED_BASE_SKILL_MECHANICS } from './skills.js';
 import { untamedState } from './state.js';
-import { bindUntamedUi } from './ui.js';
+import { bindUntamedUi } from './presentation.js';
 import { UNTAMED_BALANCE_PROFILES } from './profiles.js';
 
 export const untamedModule = defineNativeModule({

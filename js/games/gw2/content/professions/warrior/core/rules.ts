@@ -29,7 +29,7 @@ import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '
 import type { WarriorCoreState } from '../types.js';
 import { gw2ConfiguredWeaponSet } from '../../../../platform/equipment/weapons/loadout.js';
 
-export { snapshotWarriorState } from '../state.js';
+export { snapshotWarriorState } from '../state/index.js';
 
 function coreState(context: Gw2ModifierContext): Partial<WarriorCoreState> {
   return readProfessionCoreState<WarriorCoreState>(context.runtime?.profession);

@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createWarriorModuleData } from '../../catalog-data.js';
+import { createWarriorModuleData } from '../../data/catalog.js';
 import { BERSERKER_SKILL_MECHANICS } from './skills.js';
 import { berserkerSkillHandlers } from './handlers.js';
 import { berserkerAttributeRules, berserkerCastRules, berserkerSchedulerHooks } from './rules.js';
 import { berserkerState } from './state.js';
-import { berserkerUi } from './ui.js';
+import { berserkerUi } from './presentation.js';
 import { berserkerReactions } from './resolver.js';
 import { BERSERKER_BALANCE_PROFILES } from './profiles.js';
 

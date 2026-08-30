@@ -4,16 +4,16 @@ import {
   onConditionApplied,
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createElementalistModuleData } from '../catalog-data.js';
+import { createElementalistModuleData } from '../data/catalog.js';
 import {
   elementalistCoreAttributeRules,
   elementalistCoreCastRules,
   elementalistCoreSchedulerHooks,
   elementalistCoreSkillMechanicHandlers
 } from './rules.js';
-import { projectElementalistEndState } from '../state.js';
+import { projectElementalistEndState } from '../state/index.js';
 import { createElementalistCoreState } from './state.js';
-import { bindElementalistCoreUi } from './ui.js';
+import { bindElementalistCoreUi } from './presentation.js';
 import { ELEMENTALIST_CORE_EXTRA_SKILLS, ELEMENTALIST_CORE_SKILL_MECHANICS } from './skills.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from './profiles.js';
 import {

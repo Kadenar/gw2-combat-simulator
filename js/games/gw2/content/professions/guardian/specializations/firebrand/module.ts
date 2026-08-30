@@ -4,13 +4,13 @@ import {
   onResolvedDamage,
   skillAvailability
 } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../../catalog-data.js';
+import { createGuardianModuleData } from '../../data/catalog.js';
 import { firebrandSkillHandlers } from './handlers.js';
 import { firebrandEventHandlers, firebrandEventReactions } from './resolver.js';
 import { firebrandAttributeRules, firebrandCastRules, firebrandSchedulerHooks } from './rules.js';
 import { FIREBRAND_SKILL_MECHANICS } from './skills.js';
 import { firebrandState } from './state.js';
-import { firebrandUi } from './ui.js';
+import { firebrandUi } from './presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from './profiles.js';
 
 export const firebrandModule = defineNativeModule({

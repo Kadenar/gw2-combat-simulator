@@ -1,9 +1,9 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../../catalog-data.js';
+import { createRevenantModuleData } from '../../data/catalog.js';
 import { conduitSkillHandlers } from './handlers.js';
 import { conduitAttributeRules, conduitCastRules, conduitSchedulerHooks } from './rules.js';
 import { conduitState } from './state.js';
-import { conduitUi } from './ui.js';
+import { conduitUi } from './presentation.js';
 import { CONDUIT_BASE_SKILL_MECHANICS, CONDUIT_BALANCE_PROFILES } from './skills.js';
 
 export const conduitModule = defineNativeModule({

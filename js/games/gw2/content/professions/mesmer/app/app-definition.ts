@@ -3,8 +3,8 @@
 // the engine contract exported by ../definition.js.
 
 import { defineProfessionApp } from '../../../../app/create-adapter.js';
-import { applyMesmerBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyMesmerBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { mesmerProfession } from '../definition.js';
 import type { MesmerApplicationBuild } from '../types.js';
 

@@ -7,7 +7,7 @@ import { guardianProfession } from '../../js/games/gw2/content/professions/guard
 import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
 import { rangerProfession } from '../../js/games/gw2/content/professions/ranger/definition.js';
-import { projectRangerEndState } from '../../js/games/gw2/content/professions/ranger/state.js';
+import { projectRangerEndState } from '../../js/games/gw2/content/professions/ranger/state/index.js';
 import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
 import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
 import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';

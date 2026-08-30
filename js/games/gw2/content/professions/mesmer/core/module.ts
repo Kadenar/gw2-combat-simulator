@@ -1,6 +1,6 @@
 import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
 import { onResolvedBlind, onResolvedControl } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createMesmerModuleData } from '../catalog-data.js';
+import { createMesmerModuleData } from '../data/catalog.js';
 import {
   mesmerCoreAttributeRules,
   mesmerCastRules,
@@ -9,8 +9,8 @@ import {
 } from './rules.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from './resolver.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from './state.js';
-import { projectMesmerEndState, snapshotMesmerState } from '../state.js';
-import { mesmerCoreUi } from './ui.js';
+import { projectMesmerEndState, snapshotMesmerState } from '../state/index.js';
+import { mesmerCoreUi } from './presentation.js';
 import {
   MESMER_CORE_EXTRA_SKILLS,
   MESMER_CORE_SKILL_MECHANICS,

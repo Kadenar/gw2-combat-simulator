@@ -2,7 +2,7 @@ import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner
 } from '../../../integrations/patches/authoring/catalog.js';
-import { thiefWeaponSkillMatchesSet } from './catalog-data.js';
+import { thiefWeaponSkillMatchesSet } from './data/catalog.js';
 import { thiefNativeModules } from './modules.js';
 import type { ThiefSkill } from './types.js';
 

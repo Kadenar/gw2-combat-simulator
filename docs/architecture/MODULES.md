@@ -76,7 +76,7 @@ Use this table as the first place to look.
 | EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
 | dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
 | Upcoming balance changes                                              | Patch-preview system                                  |
-| Build migration/default/validation                                    | Profession `build.ts`                                 |
+| Build migration/default/validation                                    | Profession `build/build.ts`                           |
 | New profession page/registry entry                                    | `js/games/gw2/app/profession/registry.ts`             |
 
 The main rule is:
@@ -808,7 +808,7 @@ A helper should become platform code only when it represents genuinely reusable 
 
 ---
 
-## `ui.ts`
+## `presentation.ts`
 
 Profession presentation hooks.
 
@@ -823,7 +823,7 @@ Examples:
 - UI availability messages;
 - event-log presentation.
 
-`ui.ts` should read simulation state, not independently reproduce combat mechanics.
+`presentation.ts` should read simulation state, not independently reproduce combat mechanics.
 
 ---
 
@@ -992,7 +992,7 @@ composition/presentation boundaries where required.
 Profession build defaults, migrations, and validation belong in:
 
 ```text
-js/games/gw2/content/professions/<profession>/build.ts
+js/games/gw2/content/professions/<profession>/build/build.ts
 ```
 
 Shared Guild Wars 2 build normalization belongs in:
@@ -1155,10 +1155,10 @@ runtime state
 → state.ts
 
 execution behavior
-→ rules / handlers / resolver / descriptive mechanic file
+→ owning skill, trait, or descriptive mechanic file
 
 presentation
-→ ui.ts
+→ presentation.ts
 ```
 
 ## 3. Which phase owns it?
@@ -1236,7 +1236,13 @@ js/games/gw2/content/professions/new-profession/
     modules.ts
     family.ts
     definition.ts
-    build.ts
+    build/
+        build.ts
+        attributes.ts
+    data/
+        catalog.ts
+    state/
+        index.ts
     app/
 ```
 

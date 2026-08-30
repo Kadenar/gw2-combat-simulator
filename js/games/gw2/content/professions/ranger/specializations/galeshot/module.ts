@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRangerModuleData } from '../../catalog-data.js';
+import { createRangerModuleData } from '../../data/catalog.js';
 import { galeshotSkillHandlers } from './handlers.js';
 import { galeshotAttributeRules, galeshotCastRules, galeshotSchedulerHooks } from './rules.js';
 import { GALESHOT_BASE_SKILL_MECHANICS } from './skills.js';
 import { galeshotState } from './state.js';
-import { galeshotUi } from './ui.js';
+import { galeshotUi } from './presentation.js';
 import { galeshotEventHandlers } from './resolver.js';
 import { GALESHOT_BALANCE_PROFILES } from './profiles.js';
 

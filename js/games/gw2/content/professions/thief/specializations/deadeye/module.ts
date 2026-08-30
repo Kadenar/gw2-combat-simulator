@@ -1,9 +1,9 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createThiefModuleData } from '../../catalog-data.js';
+import { createThiefModuleData } from '../../data/catalog.js';
 import { deadeyeSkillHandlers } from './handlers.js';
 import { deadeyeAttributeRules, deadeyeCastRules, deadeyeSchedulerHooks } from './rules.js';
 import { deadeyeState } from './state.js';
-import { deadeyeUi } from './ui.js';
+import { deadeyeUi } from './presentation.js';
 import { DEADEYE_SKILL_MECHANICS } from './skills.js';
 import { DEADEYE_BALANCE_PROFILES } from './profiles.js';
 

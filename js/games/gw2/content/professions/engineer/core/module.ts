@@ -4,7 +4,7 @@ import {
   onResolvedCriticalHit,
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createEngineerModuleData } from '../catalog-data.js';
+import { createEngineerModuleData } from '../data/catalog.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { engineerCoreSkillHandlers } from './handlers.js';
 import {
@@ -16,9 +16,9 @@ import {
 import { engineerCoreResolverEventHandlers, engineerCoreResolverEventReactions } from './resolver.js';
 import { ENGINEER_CORE_EXTRA_SKILLS, ENGINEER_CORE_SKILL_MECHANICS, ENGINEER_TURRET_ATTACK_SKILLS } from './skills.js';
 import { createEngineerCoreState } from './state.js';
-import { projectEngineerEndState } from '../state.js';
+import { projectEngineerEndState } from '../state/index.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from './profiles.js';
-import { bindEngineerCoreUi } from './ui.js';
+import { bindEngineerCoreUi } from './presentation.js';
 import type { EngineerSchedulerContext } from '../types.js';
 
 export const engineerCoreModule = defineNativeModule({

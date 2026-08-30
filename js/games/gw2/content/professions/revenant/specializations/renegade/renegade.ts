@@ -9,7 +9,7 @@ import {
 } from '../../../../../platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
 import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { snapshotRevenantState } from '../../state.js';
+import { snapshotRevenantState } from '../../state/index.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { renegadeState } from './state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID, RENEGADE_PROFILE_IDS } from './skills.js';

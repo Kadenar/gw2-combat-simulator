@@ -1,6 +1,6 @@
 import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from './state.js';
+import { snapshotRevenantState } from './state/index.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { baseRevenantEnergyCost } from './core/energy.js';
 import { applyConduitEnergyCostRules } from './specializations/conduit/energy.js';

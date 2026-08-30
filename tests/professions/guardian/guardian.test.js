@@ -19,8 +19,8 @@ import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild
-} from '../../../js/games/gw2/content/professions/guardian/build.js';
-import { applyGuardianBuildAttributeRules } from '../../../js/games/gw2/content/professions/guardian/build-attributes.js';
+} from '../../../js/games/gw2/content/professions/guardian/build/build.js';
+import { applyGuardianBuildAttributeRules } from '../../../js/games/gw2/content/professions/guardian/build/attributes.js';
 import { guardianCatalog } from '../../../js/games/gw2/content/professions/guardian/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/guardian/data/guardian-api-metadata.js';
 import { guardianProfession } from '../../../js/games/gw2/content/professions/guardian/definition.js';

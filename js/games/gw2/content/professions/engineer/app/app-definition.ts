@@ -3,8 +3,8 @@
 // the engine contract exported by ../definition.js.
 
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyEngineerBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyEngineerBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { engineerProfession } from '../definition.js';
 import type { EngineerApplicationBuild, EngineerEvolveAttributePool } from '../types.js';
 

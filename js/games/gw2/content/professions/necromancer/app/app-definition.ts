@@ -3,8 +3,8 @@
 // behavior to the engine contract exported by ../definition.js.
 
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyNecromancerBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyNecromancerBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import { necromancerProfession } from '../definition.js';

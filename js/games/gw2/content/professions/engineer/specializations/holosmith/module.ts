@@ -1,6 +1,6 @@
 import { afterSkillEffects } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../catalog-data.js';
+import { createEngineerModuleData } from '../../data/catalog.js';
 import { holosmithSkillHandlers } from './handlers.js';
 import { holosmithResolverEventHandlers } from './resolver.js';
 import {
@@ -12,7 +12,7 @@ import {
 import { HOLOSMITH_SKILL_MECHANICS } from './skills.js';
 import { holosmithState } from './state.js';
 import { HOLOSMITH_BALANCE_PROFILES } from './profiles.js';
-import { bindHolosmithUi } from './ui.js';
+import { bindHolosmithUi } from './presentation.js';
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 
 // Declare both Photon Forge autoattack variants through the catalog contract so

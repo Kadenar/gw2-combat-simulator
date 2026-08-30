@@ -1,12 +1,12 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedControl, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../../catalog-data.js';
+import { createGuardianModuleData } from '../../data/catalog.js';
 import { dragonhunterSkillHandlers } from './handlers.js';
 import { dragonhunterEventHandlers, dragonhunterEventReactions } from './resolver.js';
 import { dragonhunterAttributeRules, dragonhunterSchedulerHooks, dragonhunterSkillMechanicHandlers } from './rules.js';
 import { DRAGONHUNTER_SKILL_MECHANICS } from './skills.js';
 import { dragonhunterState } from './state.js';
-import { dragonhunterUi } from './ui.js';
+import { dragonhunterUi } from './presentation.js';
 import { DRAGONHUNTER_BALANCE_PROFILES } from './profiles.js';
 
 export const dragonhunterModule = defineNativeModule({

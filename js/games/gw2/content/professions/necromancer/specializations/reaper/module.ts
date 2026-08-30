@@ -4,11 +4,11 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
+import { createNecromancerModuleData } from '../../data/catalog.js';
 import { reaperResolverEventReactions } from './resolver.js';
 import { reaperAttributeRules, reaperCastRules, reaperSchedulerHooks } from './rules.js';
 import { reaperState } from './state.js';
-import { reaperUi } from './ui.js';
+import { reaperUi } from './presentation.js';
 import { REAPER_BASE_SKILL_MECHANICS } from './skills.js';
 import { reaperSkillHandlers } from './handlers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';

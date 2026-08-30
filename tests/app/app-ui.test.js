@@ -56,10 +56,10 @@ import { PREFIXES, PREFIX_GROUPS } from '../../js/games/gw2/platform/equipment/g
 import { SIGIL_GROUPS } from '../../js/games/gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '../../js/games/gw2/platform/equipment/sigils/data.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '../../js/games/gw2/platform/equipment/weapons/data.js';
-import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
-import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build.js';
+import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build/build.js';
+import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build/build.js';
 import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
+import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build/build.js';
 import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 

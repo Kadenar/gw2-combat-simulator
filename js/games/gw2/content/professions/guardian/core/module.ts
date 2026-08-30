@@ -1,13 +1,13 @@
 import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
 import { onBuffApplied, onResolvedDamage } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../catalog-data.js';
+import { createGuardianModuleData } from '../data/catalog.js';
 import { guardianCoreSkillHandlers } from './handlers.js';
 import { guardianCoreEventHandlers, guardianCoreEventReactions } from './resolver.js';
 import { guardianCoreAttributeRules, guardianCoreCastRules, guardianCoreSchedulerHooks } from './rules.js';
 import { GUARDIAN_CORE_EXTRA_SKILLS, GUARDIAN_CORE_SKILL_MECHANICS } from './skills.js';
 import { createGuardianCoreState } from './state.js';
-import { projectGuardianEndState, snapshotGuardianState } from '../state.js';
-import { bindGuardianCoreUi } from './ui.js';
+import { projectGuardianEndState, snapshotGuardianState } from '../state/index.js';
+import { bindGuardianCoreUi } from './presentation.js';
 import type { GuardianSchedulerContext } from '../types.js';
 import { GUARDIAN_CORE_BALANCE_PROFILES } from './profiles.js';
 

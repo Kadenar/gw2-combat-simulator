@@ -5,7 +5,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../catalog-data.js';
+import { createNecromancerModuleData } from '../data/catalog.js';
 import {
   necromancerCoreAttributeRules,
   necromancerCoreCastRules,
@@ -15,8 +15,8 @@ import {
 } from './rules.js';
 import { necromancerCoreResolverEventHandlers, necromancerCoreResolverEventReactions } from './resolver.js';
 import { createNecromancerCoreState } from './state.js';
-import { projectNecromancerEndState } from '../state.js';
-import { bindNecromancerCoreUi } from './ui.js';
+import { projectNecromancerEndState } from '../state/index.js';
+import { bindNecromancerCoreUi } from './presentation.js';
 import { NECROMANCER_CORE_BASE_SKILL_MECHANICS, NECROMANCER_CORE_EXTRA_SKILLS } from './skills.js';
 import { necromancerCoreSkillHandlers } from './handlers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';

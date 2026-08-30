@@ -1,7 +1,7 @@
 import { conduitState } from './state.js';
 import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state.js';
+import { snapshotRevenantState } from '../../state/index.js';
 import { gw2PrimaryWeapon } from '../../../../../platform/equipment/weapons/loadout.js';
 import {
   emitSkillBuff,

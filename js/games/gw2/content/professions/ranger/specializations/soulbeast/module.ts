@@ -5,12 +5,12 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../../catalog-data.js';
+import { createRangerModuleData } from '../../data/catalog.js';
 import { soulbeastSkillHandlers } from './handlers.js';
 import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './rules.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from './skills.js';
 import { soulbeastState } from './state.js';
-import { bindSoulbeastUi } from './ui.js';
+import { bindSoulbeastUi } from './presentation.js';
 import {
   reactToRangerWinterBite,
   reactToSoulbeastBuff,

@@ -1,11 +1,11 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onConditionApplied } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
+import { createNecromancerModuleData } from '../../data/catalog.js';
 import { scourgeSkillHandlers } from './handlers.js';
 import { scourgeResolverEventReactions } from './resolver.js';
 import { scourgeAttributeRules, scourgeCastRules, scourgeSchedulerHooks } from './rules.js';
 import { scourgeState } from './state.js';
-import { scourgeUi } from './ui.js';
+import { scourgeUi } from './presentation.js';
 import { SCOURGE_BASE_SKILL_MECHANICS } from './skills.js';
 import { SCOURGE_BALANCE_PROFILES } from './profiles.js';
 

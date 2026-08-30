@@ -1594,7 +1594,7 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
   assert.doesNotMatch(coreTraitSource, /Function Gyro|engineerMech/);
   assert.doesNotMatch(coreAvailabilitySource, /Photon Forge/);
   const familyStateSource = readFileSync(
-    new URL('../../js/games/gw2/content/professions/engineer/state.ts', import.meta.url),
+    new URL('../../js/games/gw2/content/professions/engineer/state/index.ts', import.meta.url),
     'utf8'
   );
   assert.doesNotMatch(familyStateSource, /['"](?:photonForgeActive|mech|selectedMorphSkillIds)['"]/);

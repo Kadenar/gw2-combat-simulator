@@ -28,7 +28,7 @@ import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
-} from '../../../js/games/gw2/content/professions/warrior/build.js';
+} from '../../../js/games/gw2/content/professions/warrior/build/build.js';
 import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
 import { warriorNativeModules } from '../../../js/games/gw2/content/professions/warrior/modules.js';
 import { warriorCoreModule } from '../../../js/games/gw2/content/professions/warrior/core/module.js';
@@ -287,7 +287,7 @@ test('Warrior core and elite profession resources remain isolated', () => {
 
 test('Warrior Core does not own elite resource, cast, UI, or trait branches', async () => {
   const sources = await Promise.all(
-    ['availability.ts', 'handlers.ts', 'resources.ts', 'state.ts', 'traits.ts', 'ui.ts'].map((name) =>
+    ['availability.ts', 'handlers.ts', 'resources.ts', 'state.ts', 'traits.ts', 'presentation.ts'].map((name) =>
       readFile(new URL(`../../../js/games/gw2/content/professions/warrior/core/${name}`, import.meta.url), 'utf8')
     )
   );

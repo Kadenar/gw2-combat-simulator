@@ -3,8 +3,8 @@
 // the engine contract exported by ../definition.js.
 
 import { defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyGuardianBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyGuardianBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { guardianProfession } from '../definition.js';
 import type { GuardianApplicationBuild } from '../types.js';
 

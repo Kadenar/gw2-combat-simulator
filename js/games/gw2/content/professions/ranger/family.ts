@@ -1,6 +1,6 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createRangerBuildDefaults, migrateRangerBuild, validateRangerBuild } from './build.js';
+import { createRangerBuildDefaults, migrateRangerBuild, validateRangerBuild } from './build/build.js';
 import { rangerNativeModules } from './modules.js';
 
 export const rangerProfession = defineNativeProfession({

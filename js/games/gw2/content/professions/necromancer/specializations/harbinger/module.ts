@@ -1,10 +1,10 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../catalog-data.js';
+import { createNecromancerModuleData } from '../../data/catalog.js';
 import { harbingerResolverEventReactions } from './resolver.js';
 import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from './rules.js';
 import { harbingerState } from './state.js';
-import { harbingerUi } from './ui.js';
+import { harbingerUi } from './presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from './skills.js';
 import { harbingerSkillHandlers } from './handlers.js';
 import { HARBINGER_BALANCE_PROFILES } from './profiles.js';

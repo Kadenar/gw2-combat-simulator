@@ -3,7 +3,7 @@ import { emitStateSnapshot } from '../../../../platform/engine/events/state-snap
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../../platform/scheduler/policy.js';
 import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
-import { snapshotEngineerState } from '../state.js';
+import { snapshotEngineerState } from '../state/index.js';
 import type { SchedulerRecord, Skill, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
 import type { EngineerCastContext, EngineerScheduledTask, EngineerSchedulerContext, EngineerSkill } from '../types.js';
 

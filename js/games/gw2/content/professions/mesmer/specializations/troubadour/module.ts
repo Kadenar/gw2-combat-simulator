@@ -1,5 +1,5 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../catalog-data.js';
+import { createMesmerModuleData } from '../../data/catalog.js';
 import {
   troubadourAttributeRules,
   troubadourCastRules,
@@ -7,7 +7,7 @@ import {
   troubadourSkillMechanicHandlers
 } from './rules.js';
 import { createTroubadourResolverState, troubadourState } from './state.js';
-import { troubadourUi } from './ui.js';
+import { troubadourUi } from './presentation.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,

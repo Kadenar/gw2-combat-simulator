@@ -5,13 +5,13 @@ import {
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../catalog-data.js';
+import { createEngineerModuleData } from '../../data/catalog.js';
 import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './resolver.js';
 import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './rules.js';
 import { SCRAPPER_SKILL_MECHANICS } from './skills.js';
 import { scrapperState } from './state.js';
 import { SCRAPPER_BALANCE_PROFILES } from './profiles.js';
-import { scrapperUi } from './ui.js';
+import { scrapperUi } from './presentation.js';
 
 export const scrapperModule = defineNativeModule({
   id: 'Scrapper',

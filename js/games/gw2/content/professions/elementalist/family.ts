@@ -1,8 +1,8 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createElementalistBuildDefaults, migrateElementalistBuild, validateElementalistBuild } from './build.js';
+import { createElementalistBuildDefaults, migrateElementalistBuild, validateElementalistBuild } from './build/build.js';
 import { ELEMENTALIST_NATIVE_CATALOG_OPTIONS, elementalistNativeModules } from './modules.js';
-import { elementalistFamilyUi } from './ui.js';
+import { elementalistFamilyUi } from './presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from './data/ids.js';
 import { observeElementalistAutoattackTransition } from './core/weapon-state.js';
 

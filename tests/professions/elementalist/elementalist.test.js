@@ -21,7 +21,7 @@ import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
-} from '../../../js/games/gw2/content/professions/elementalist/build.js';
+} from '../../../js/games/gw2/content/professions/elementalist/build/build.js';
 import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
 import {

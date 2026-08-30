@@ -1,4 +1,4 @@
-import { handleThiefState } from '../state.js';
+import { handleThiefState } from '../state/index.js';
 import {
   reactToThiefCoreBuff,
   reactToThiefCoreCondition,
@@ -6,7 +6,7 @@ import {
   thiefCoreCriticalReactions
 } from './traits.js';
 
-export { handleThiefState } from '../state.js';
+export { handleThiefState } from '../state/index.js';
 export {
   reactToThiefCoreBuff,
   reactToThiefCoreCondition,

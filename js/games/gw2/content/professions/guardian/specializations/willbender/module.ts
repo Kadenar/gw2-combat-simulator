@@ -1,11 +1,11 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createGuardianModuleData } from '../../catalog-data.js';
+import { createGuardianModuleData } from '../../data/catalog.js';
 import { willbenderSkillHandlers } from './handlers.js';
 import { willbenderEventHandlers } from './resolver.js';
 import { willbenderAttributeRules, willbenderSchedulerHooks, willbenderSkillMechanicHandlers } from './rules.js';
 import { WILLBENDER_SKILL_MECHANICS } from './skills.js';
 import { willbenderState } from './state.js';
-import { willbenderUi } from './ui.js';
+import { willbenderUi } from './presentation.js';
 import { WILLBENDER_BALANCE_PROFILES } from './profiles.js';
 
 export const willbenderModule = defineNativeModule({

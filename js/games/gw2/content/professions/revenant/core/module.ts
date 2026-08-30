@@ -1,5 +1,5 @@
 import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../catalog-data.js';
+import { createRevenantModuleData } from '../data/catalog.js';
 import { revenantCoreEventHandlers } from './resolver.js';
 import {
   revenantCoreAttributeRules,
@@ -8,8 +8,8 @@ import {
   snapshotRevenantState
 } from './rules.js';
 import { createRevenantCoreState } from './state.js';
-import { projectRevenantEndState } from '../state.js';
-import { revenantCoreUi } from './ui.js';
+import { projectRevenantEndState } from '../state/index.js';
+import { revenantCoreUi } from './presentation.js';
 import {
   REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,

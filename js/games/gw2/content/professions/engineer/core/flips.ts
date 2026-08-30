@@ -1,6 +1,6 @@
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../state.js';
+import { snapshotEngineerState } from '../state/index.js';
 import { turretOwnerId } from './turrets.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 

@@ -16,26 +16,26 @@ import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild
-} from '../../js/games/gw2/content/professions/engineer/build.js';
+} from '../../js/games/gw2/content/professions/engineer/build/build.js';
 import { engineerAppAdapter } from '../../js/games/gw2/content/professions/engineer/app/app-definition.js';
 import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
 import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
+import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build/build.js';
 import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
-import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
+import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build/build.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
-} from '../../js/games/gw2/content/professions/necromancer/build.js';
+} from '../../js/games/gw2/content/professions/necromancer/build/build.js';
 import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
 import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
-import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build.js';
+import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build/build.js';
 import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
-import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build.js';
+import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build/build.js';
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };

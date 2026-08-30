@@ -1,6 +1,6 @@
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../state.js';
+import { snapshotNecromancerState } from '../state/index.js';
 /**
  * Core (profession-agnostic) necromancer skill handlers.
  *

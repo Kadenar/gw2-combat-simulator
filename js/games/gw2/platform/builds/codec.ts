@@ -572,8 +572,8 @@ function normalizeSelectedSkills(
 
 /**
  * @param {unknown} value
- * @param {readonly import("./types.d.ts").Gw2BuildInfusion[]} fallback
- * @returns {import("./types.d.ts").Gw2BuildInfusion[]}
+ * @param {readonly import("./types.ts").Gw2BuildInfusion[]} fallback
+ * @returns {import("./types.ts").Gw2BuildInfusion[]}
  */
 function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
   if (!Array.isArray(value)) return clone([...fallback]);

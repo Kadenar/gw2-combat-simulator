@@ -1,6 +1,6 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../../catalog-data.js';
+import { createGuardianModuleData } from '../../data/catalog.js';
 import { luminarySkillHandlers } from './handlers.js';
 import { luminaryEventHandlers, luminaryEventReactions } from './resolver.js';
 import {
@@ -11,7 +11,7 @@ import {
 } from './rules.js';
 import { LUMINARY_SKILL_MECHANICS } from './skills.js';
 import { luminaryState } from './state.js';
-import { luminaryUi } from './ui.js';
+import { luminaryUi } from './presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from './profiles.js';
 
 export const luminaryModule = defineNativeModule({

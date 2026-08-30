@@ -3,13 +3,13 @@ import test from 'node:test';
 
 import { createGw2SimulationConfig } from '../../js/games/gw2/app/simulation/config.js';
 import { DEFAULT_TARGET_CONDITIONS } from '../../js/games/gw2/platform/builds/default-target-conditions.js';
-import { createElementalistBuildDefaults } from '../../js/games/gw2/content/professions/elementalist/build.js';
-import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build.js';
-import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build.js';
-import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build.js';
-import { createNecromancerBuildDefaults } from '../../js/games/gw2/content/professions/necromancer/build.js';
-import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build.js';
-import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build.js';
+import { createElementalistBuildDefaults } from '../../js/games/gw2/content/professions/elementalist/build/build.js';
+import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build/build.js';
+import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build/build.js';
+import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build/build.js';
+import { createNecromancerBuildDefaults } from '../../js/games/gw2/content/professions/necromancer/build/build.js';
+import { createRevenantBuildDefaults } from '../../js/games/gw2/content/professions/revenant/build/build.js';
+import { createThiefBuildDefaults } from '../../js/games/gw2/content/professions/thief/build/build.js';
 
 test('all profession pages use the shared default target conditions', () => {
   for (const createDefaults of [

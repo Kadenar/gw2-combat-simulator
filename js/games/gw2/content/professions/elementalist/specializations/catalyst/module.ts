@@ -7,7 +7,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createElementalistModuleData } from '../../catalog-data.js';
+import { createElementalistModuleData } from '../../data/catalog.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystComboTraits,
@@ -22,7 +22,7 @@ import {
   catalystSkillMechanicHandlers
 } from './rules.js';
 import { createCatalystState } from './state.js';
-import { catalystUi } from './ui.js';
+import { catalystUi } from './presentation.js';
 import { CATALYST_SKILL_MECHANICS } from './skills.js';
 import { CATALYST_BALANCE_PROFILES } from './profiles.js';
 

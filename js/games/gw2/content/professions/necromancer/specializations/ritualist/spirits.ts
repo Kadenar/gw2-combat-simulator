@@ -7,7 +7,7 @@ import {
 } from '../../../../../platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
 import { ritualistState } from './state.js';
-import { snapshotNecromancerState } from '../../state.js';
+import { snapshotNecromancerState } from '../../state/index.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
 import { gw2PrimaryWeapon } from '../../../../../platform/equipment/weapons/loadout.js';
 /**

@@ -12,7 +12,7 @@ import { hasTrait } from '../../../../platform/combat/state/traits.js';
  * Handlers depend on this module; it must not depend on them.
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { snapshotNecromancerState } from '../state.js';
+import { snapshotNecromancerState } from '../state/index.js';
 import { syncNecromancerResources } from './state.js';
 import type {
   NecromancerCastContext,

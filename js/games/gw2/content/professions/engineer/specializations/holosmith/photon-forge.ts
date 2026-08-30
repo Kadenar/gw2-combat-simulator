@@ -1,7 +1,7 @@
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
 import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
 import { holosmithState } from './state.js';
-import { snapshotEngineerState } from '../../state.js';
+import { snapshotEngineerState } from '../../state/index.js';
 import { decorateHolosmithHeatEvent } from './heat-tiers.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';

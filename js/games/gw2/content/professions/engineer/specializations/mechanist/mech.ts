@@ -8,7 +8,7 @@ import { emitStateSnapshot } from '../../../../../platform/engine/events/state-s
 import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
 import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
 import { mechanistState } from './state.js';
-import { snapshotEngineerState } from '../../state.js';
+import { snapshotEngineerState } from '../../state/index.js';
 import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasTrait } from '../../../../../platform/combat/state/traits.js';

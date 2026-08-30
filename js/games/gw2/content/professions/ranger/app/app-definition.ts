@@ -1,7 +1,7 @@
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { applyRangerBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyRangerBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import { rangerProfession } from '../definition.js';
 import type { RangerApplicationBuild } from '../types.js';

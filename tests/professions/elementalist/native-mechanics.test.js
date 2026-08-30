@@ -14,7 +14,7 @@ import {
   weaponPaletteRows
 } from '../../../js/games/gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '../../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
-import { applyElementalistBuildAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/build-attributes.js';
+import { applyElementalistBuildAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/build/attributes.js';
 import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
 import { elementalistCoreModifierRules } from '../../../js/games/gw2/content/professions/elementalist/core/modifiers.js';

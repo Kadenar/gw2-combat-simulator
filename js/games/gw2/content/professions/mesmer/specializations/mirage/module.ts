@@ -1,8 +1,8 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../catalog-data.js';
+import { createMesmerModuleData } from '../../data/catalog.js';
 import { mirageAttributeRules, mirageCastRules, mirageSchedulerHooks, mirageSkillMechanicHandlers } from './rules.js';
 import { createMirageResolverState, mirageState } from './state.js';
-import { mirageUi } from './ui.js';
+import { mirageUi } from './presentation.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,

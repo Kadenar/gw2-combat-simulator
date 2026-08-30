@@ -3,8 +3,8 @@
 // the engine contract exported by ../definition.js.
 
 import { defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyRevenantBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyRevenantBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { revenantProfession } from '../definition.js';
 import type { RevenantApplicationBuild } from '../types.js';
 

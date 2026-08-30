@@ -5,7 +5,7 @@ import {
   onResolvedCriticalHit,
   onResolvedDamage
 } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../catalog-data.js';
+import { createRangerModuleData } from '../data/catalog.js';
 import { rangerCoreSkillHandlers } from './handlers.js';
 import {
   rangerCoreAttributeRules,
@@ -14,9 +14,9 @@ import {
   rangerCoreSkillMechanicHandlers
 } from './rules.js';
 import { RANGER_CORE_BASE_SKILL_MECHANICS, RANGER_CORE_EXTRA_SKILLS } from './skills.js';
-import { projectRangerEndState } from '../state.js';
+import { projectRangerEndState } from '../state/index.js';
 import { createRangerCoreState } from './state.js';
-import { bindRangerCoreUi } from './ui.js';
+import { bindRangerCoreUi } from './presentation.js';
 import { rangerCoreEventHandlers, rangerCoreEventReactions } from './resolver.js';
 import { RANGER_CORE_BALANCE_PROFILES } from './profiles.js';
 

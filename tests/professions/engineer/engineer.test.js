@@ -25,7 +25,7 @@ import {
   migrateEngineerBuild,
   toApplicationBuild,
   validateEngineerBuild
-} from '../../../js/games/gw2/content/professions/engineer/build.js';
+} from '../../../js/games/gw2/content/professions/engineer/build/build.js';
 import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/engineer/data/engineer-supplemental-skills.js';

@@ -15,7 +15,7 @@ import {
   targetConditionActive
 } from '../../../../platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { snapshotRangerState } from '../state.js';
+import { snapshotRangerState } from '../state/index.js';
 import { rangerCoreCastAvailability } from './availability.js';
 import { rangerPetByName } from './state.js';
 import { advanceRangerResources } from './resources.js';

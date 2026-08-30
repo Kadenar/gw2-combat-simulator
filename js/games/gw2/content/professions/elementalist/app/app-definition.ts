@@ -1,6 +1,6 @@
 import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyElementalistBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyElementalistBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { elementalistProfession } from '../definition.js';
 import type { CatalystEmpowermentPool, ElementalistApplicationBuild } from '../types.js';
 import type { Skill } from '../../../../platform/engine/types.js';

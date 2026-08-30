@@ -3,8 +3,8 @@
 // the engine contract exported by ../definition.js.
 
 import { defineProfessionApp } from '../../../../app/create-adapter.js';
-import { applyThiefBuildAttributeRules } from '../build-attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { applyThiefBuildAttributeRules } from '../build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
 import { thiefProfession } from '../definition.js';
 import type { ThiefApplicationBuild } from '../types.js';
 

@@ -3,7 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { warriorAppAdapter } from '../../../js/games/gw2/content/professions/warrior/app/app-definition.js';
-import { migrateWarriorBuild, validateWarriorBuild } from '../../../js/games/gw2/content/professions/warrior/build.js';
+import {
+  migrateWarriorBuild,
+  validateWarriorBuild
+} from '../../../js/games/gw2/content/professions/warrior/build/build.js';
 import { warriorCatalog } from '../../../js/games/gw2/content/professions/warrior/catalog.js';
 import { getActiveTraits } from '../../../js/games/gw2/content/professions/warrior/data/traits-data.js';
 import {

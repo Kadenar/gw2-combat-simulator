@@ -149,7 +149,10 @@ test('Thief modules own vertical source slices', () => {
     existsSync(new URL('../../../js/games/gw2/content/professions/thief/core/events.ts', import.meta.url)),
     false
   );
-  assert.equal(existsSync(new URL('../../../js/games/gw2/content/professions/thief/state.ts', import.meta.url)), true);
+  assert.equal(
+    existsSync(new URL('../../../js/games/gw2/content/professions/thief/state/index.ts', import.meta.url)),
+    true
+  );
   assert.equal(
     existsSync(
       new URL('../../../js/games/gw2/content/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)

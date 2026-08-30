@@ -1,8 +1,8 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createElementalistModuleData } from '../../catalog-data.js';
+import { createElementalistModuleData } from '../../data/catalog.js';
 import { evokerAttributeRules, evokerCastRules, evokerSchedulerHooks } from './rules.js';
 import { createEvokerState } from './state.js';
-import { evokerUi } from './ui.js';
+import { evokerUi } from './presentation.js';
 import { EVOKER_SKILL_MECHANICS } from './skills.js';
 import { evokerSkillHandlers } from './handlers.js';
 import { EVOKER_BALANCE_PROFILES } from './profiles.js';

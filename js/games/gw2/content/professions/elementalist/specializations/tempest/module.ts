@@ -1,9 +1,9 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onAuraApplied } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createElementalistModuleData } from '../../catalog-data.js';
+import { createElementalistModuleData } from '../../data/catalog.js';
 import { tempestAttributeRules, tempestCastRules, tempestSchedulerHooks } from './rules.js';
 import { createTempestState } from './state.js';
-import { tempestUi } from './ui.js';
+import { tempestUi } from './presentation.js';
 import { TEMPEST_SKILL_MECHANICS } from './skills.js';
 import { applyTempestResolverAura } from './resolver.js';
 import { tempestSkillHandlers } from './handlers.js';

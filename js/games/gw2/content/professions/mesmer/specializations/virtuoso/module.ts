@@ -1,8 +1,8 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../catalog-data.js';
+import { createMesmerModuleData } from '../../data/catalog.js';
 import { virtuosoAttributeRules, virtuosoCastRules, virtuosoRuntimeHooks } from './rules.js';
 import { createVirtuosoResolverState, virtuosoState } from './state.js';
-import { virtuosoUi } from './ui.js';
+import { virtuosoUi } from './presentation.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from './skills.js';
 import { virtuosoSkillHandlers } from './handlers.js';
 import { VIRTUOSO_BALANCE_PROFILES } from './profiles.js';

@@ -1,9 +1,9 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../../catalog-data.js';
+import { createRevenantModuleData } from '../../data/catalog.js';
 import { vindicatorSkillHandlers } from './handlers.js';
 import { vindicatorAttributeRules, vindicatorCastRules, vindicatorSchedulerHooks } from './rules.js';
 import { vindicatorState } from './state.js';
-import { vindicatorUi } from './ui.js';
+import { vindicatorUi } from './presentation.js';
 import { VINDICATOR_BASE_SKILL_MECHANICS, VINDICATOR_BALANCE_PROFILES } from './skills.js';
 
 export const vindicatorModule = defineNativeModule({

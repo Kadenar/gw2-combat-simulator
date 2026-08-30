@@ -33,8 +33,8 @@ import {
   createRangerBuildDefaults,
   migrateRangerBuild,
   validateRangerBuild
-} from '../../../js/games/gw2/content/professions/ranger/build.js';
-import { applyRangerBuildAttributeRules } from '../../../js/games/gw2/content/professions/ranger/build-attributes.js';
+} from '../../../js/games/gw2/content/professions/ranger/build/build.js';
+import { applyRangerBuildAttributeRules } from '../../../js/games/gw2/content/professions/ranger/build/attributes.js';
 import { rangerCatalog } from '../../../js/games/gw2/content/professions/ranger/catalog.js';
 import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/ranger/data/ranger-api-metadata.js';
 import {
@@ -73,7 +73,7 @@ import {
   soulbeastModifierRules
 } from '../../../js/games/gw2/content/professions/ranger/specializations/soulbeast/rules.js';
 import { untamedCastRules } from '../../../js/games/gw2/content/professions/ranger/specializations/untamed/rules.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '../../../js/games/gw2/content/professions/ranger/state/index.js';
 import { rangerAppAdapter } from '../../../js/games/gw2/content/professions/ranger/app/app-definition.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.

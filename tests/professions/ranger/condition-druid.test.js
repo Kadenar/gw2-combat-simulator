@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { timelineWeaponRows } from '../../../js/games/gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { migrateRangerBuild } from '../../../js/games/gw2/content/professions/ranger/build.js';
+import { migrateRangerBuild } from '../../../js/games/gw2/content/professions/ranger/build/build.js';
 import { rangerCatalog } from '../../../js/games/gw2/content/professions/ranger/catalog.js';
 import {
   RANGER_SKILL_IDS as ID,

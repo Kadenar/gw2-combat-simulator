@@ -1,6 +1,6 @@
 import { emitStateSnapshot } from '../../../../platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../state.js';
+import { snapshotEngineerState } from '../state/index.js';
 import { emitEngineerBarSwap } from './events.js';
 import type { EngineerCastContext, EngineerSkill } from '../types.js';
 

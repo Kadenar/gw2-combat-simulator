@@ -13,22 +13,22 @@ import { SKILL_HANDLER_MODES } from '../../js/games/gw2/platform/engine/skills/h
 import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../helpers/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/engineer.js';
-import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/engineer/state.js';
-import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/elementalist/state.js';
+import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/engineer/state/index.js';
+import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/elementalist/state/index.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../fixtures/trait-coverage/elementalist.js';
 import { GUARDIAN_TRAIT_COVERAGE } from '../fixtures/trait-coverage/guardian.js';
-import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/guardian/state.js';
+import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/guardian/state/index.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
 import { NECROMANCER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/necromancer.js';
-import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/necromancer/state.js';
+import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/necromancer/state/index.js';
 import { RANGER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/ranger.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/ranger/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/ranger/state/index.js';
 import { REVENANT_TRAIT_COVERAGE } from '../fixtures/trait-coverage/revenant.js';
-import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/revenant/state.js';
+import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/revenant/state/index.js';
 import { THIEF_TRAIT_COVERAGE } from '../fixtures/trait-coverage/thief.js';
-import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/thief/state.js';
+import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/thief/state/index.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../fixtures/trait-coverage/warrior.js';
-import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/warrior/state.js';
+import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/games/gw2/content/professions/warrior/state/index.js';
 import { professionRegistry, PROFESSION_ROUTES } from '../../js/games/gw2/app/profession/registry.js';
 import {
   createProfessionSnapshot,

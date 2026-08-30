@@ -4,7 +4,7 @@ import {
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../catalog-data.js';
+import { createEngineerModuleData } from '../../data/catalog.js';
 import { mechanistSkillHandlers } from './handlers.js';
 import { mechanistCriticalHitDefinitions, mechanistResolverEventReactions } from './resolver.js';
 import {
@@ -16,7 +16,7 @@ import {
 import { MECHANIST_SKILL_MECHANICS } from './skills.js';
 import { mechanistState } from './state.js';
 import { MECHANIST_BALANCE_PROFILES } from './profiles.js';
-import { mechanistUi } from './ui.js';
+import { mechanistUi } from './presentation.js';
 
 // Compose the mech's independent scheduler lane with resolver reactions for
 // hit-triggered traits; the engineer's own cast lane remains owned by Core.

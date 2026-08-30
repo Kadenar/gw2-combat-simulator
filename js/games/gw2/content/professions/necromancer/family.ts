@@ -1,6 +1,6 @@
 import { defineNativeProfession } from '../../../integrations/patches/authoring/profession.js';
 import { activePatchPreview } from '../../../integrations/patches/active-preview.js';
-import { createNecromancerBuildDefaults, migrateNecromancerBuild, validateNecromancerBuild } from './build.js';
+import { createNecromancerBuildDefaults, migrateNecromancerBuild, validateNecromancerBuild } from './build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
