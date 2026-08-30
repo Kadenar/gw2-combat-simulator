@@ -5,7 +5,7 @@ import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { necromancerNativeModules } from './modules.js';
 import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
 import type { NecromancerConfig, NecromancerResolverEvent } from './types.js';
-import { observeNecromancerAutoattackTransition } from './core/contract.js';
+import { observeNecromancerAutoattackTransition } from './core/mechanics/execution.js';
 
 // Merge direct hits and condition ticks by timestamp to find the first exact
 // scheduling boundary where cumulative damage moves the target below half health.

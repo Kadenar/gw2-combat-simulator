@@ -739,17 +739,17 @@ test('Necromancer modules contain complete vertical slices', () => {
     'obsolete aggregate handler-mechanics table'
   );
   for (const relative of [
-    'specializations/reaper/combos.ts',
-    'specializations/reaper/resolver.ts',
-    'specializations/scourge/shades.ts',
-    'specializations/scourge/resolver.ts',
-    'specializations/harbinger/blight.ts',
-    'specializations/harbinger/dark-barrage.ts',
-    'specializations/harbinger/resolver.ts',
-    'specializations/ritualist/spirits.ts',
-    'specializations/ritualist/weapon-spells.ts',
-    'specializations/ritualist/events.ts',
-    'specializations/ritualist/resolver.ts'
+    'specializations/reaper/mechanics/combos.ts',
+    'specializations/reaper/mechanics/shroud-effects.ts',
+    'specializations/scourge/mechanics/shades.ts',
+    'specializations/scourge/mechanics/shade-effects.ts',
+    'specializations/harbinger/mechanics/blight.ts',
+    'specializations/harbinger/skills/dark-barrage.ts',
+    'specializations/harbinger/mechanics/blight-effects.ts',
+    'specializations/ritualist/mechanics/spirits.ts',
+    'specializations/ritualist/skills/weapon-spells.ts',
+    'specializations/ritualist/mechanics/event-handlers.ts',
+    'specializations/ritualist/mechanics/spirit-effects.ts'
   ]) {
     assert.equal(
       existsSync(new URL(`../../js/games/gw2/content/professions/necromancer/${relative}`, import.meta.url)),

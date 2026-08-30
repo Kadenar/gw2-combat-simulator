@@ -1,6 +1,6 @@
 import type { ScourgeState } from '../../types.js';
 import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '../../core/state-reconciliation.js';
+import { registerNecromancerStatePreserver } from '../../core/mechanics/state-reconciliation.js';
 
 export function createScourgeState(): ScourgeState {
   const state: ScourgeState = {

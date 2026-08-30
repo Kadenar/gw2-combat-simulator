@@ -9,8 +9,8 @@ import {
   engineerCoreModifierRules
 } from '../../js/games/gw2/content/professions/engineer/core/rules.js';
 import { amalgamModifierRules } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/rules.js';
-import { modifyNecromancerCoreAttributes } from '../../js/games/gw2/content/professions/necromancer/core/rules.js';
-import { reaperModifierRules } from '../../js/games/gw2/content/professions/necromancer/specializations/reaper/rules.js';
+import { modifyNecromancerCoreAttributes } from '../../js/games/gw2/content/professions/necromancer/core/traits/modifiers.js';
+import { reaperModifierRules } from '../../js/games/gw2/content/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
 import { RANGER_TRAIT_IDS } from '../../js/games/gw2/content/professions/ranger/data/ids.js';
 import { rangerCoreModifierRules } from '../../js/games/gw2/content/professions/ranger/core/traits/modifiers.js';
 import { galeshotModifierRules } from '../../js/games/gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';

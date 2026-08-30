@@ -5,12 +5,12 @@ import {
   onResolvedDamage
 } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { createNecromancerModuleData } from '../../data/catalog.js';
-import { reaperResolverEventReactions } from './resolver.js';
-import { reaperAttributeRules, reaperCastRules, reaperSchedulerHooks } from './rules.js';
+import { reaperResolverEventReactions } from './mechanics/shroud-effects.js';
+import { reaperAttributeRules, reaperCastRules, reaperSchedulerHooks } from './mechanics/reaper-shroud.js';
 import { reaperState } from './state.js';
 import { reaperUi } from './presentation.js';
-import { REAPER_BASE_SKILL_MECHANICS } from './skills.js';
-import { reaperSkillHandlers } from './handlers.js';
+import { REAPER_BASE_SKILL_MECHANICS } from './skills/index.js';
+import { reaperSkillHandlers } from './skills/handlers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
 import { REAPER_BALANCE_PROFILES } from './profiles.js';
 
@@ -19,7 +19,6 @@ export const reaperModule = defineNativeModule({
   data: createNecromancerModuleData('Reaper', {
     skillMechanics: REAPER_BASE_SKILL_MECHANICS,
     balanceProfiles: REAPER_BALANCE_PROFILES,
-    handlers: reaperSkillHandlers,
     // Shroud autoattack chain runs separately from the out-of-shroud chain; both must be registered.
     autoattackChains: {
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]]
@@ -29,22 +28,27 @@ export const reaperModule = defineNativeModule({
   state: { scheduler: reaperState.create, resolver: reaperState.create },
   mechanics: {
     modifiers: reaperAttributeRules,
-    castRules: reaperCastRules,
-    reactions: [
-      onResolvedDamage({
-        id: 'necromancer.reaper.damage',
-        handler: reaperResolverEventReactions.damage
-      }),
-      onResolvedControl({
-        id: 'necromancer.reaper.control',
-        handler: reaperResolverEventReactions.control
-      }),
-      onConditionApplied({
-        id: 'necromancer.reaper.condition',
-        handler: reaperResolverEventReactions.condition
-      })
-    ],
-    schedulerHooks: reaperSchedulerHooks
+    execution: {
+      skillHandlers: reaperSkillHandlers,
+      castRules: reaperCastRules,
+      hooks: reaperSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        onResolvedDamage({
+          id: 'necromancer.reaper.damage',
+          handler: reaperResolverEventReactions.damage
+        }),
+        onResolvedControl({
+          id: 'necromancer.reaper.control',
+          handler: reaperResolverEventReactions.control
+        }),
+        onConditionApplied({
+          id: 'necromancer.reaper.condition',
+          handler: reaperResolverEventReactions.condition
+        })
+      ]
+    }
   },
   presentation: reaperUi
 });

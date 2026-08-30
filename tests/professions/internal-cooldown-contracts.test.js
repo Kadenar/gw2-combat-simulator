@@ -11,12 +11,12 @@ import { reactToEngineerCondition } from '../../js/games/gw2/content/professions
 import { ENGINEER_TRAIT_IDS } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
 import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
 import { createGuardianCoreState } from '../../js/games/gw2/content/professions/guardian/core/state.js';
-import { reactToAshesHit } from '../../js/games/gw2/content/professions/guardian/specializations/firebrand/tomes.js';
+import { reactToAshesHit } from '../../js/games/gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { createFirebrandState } from '../../js/games/gw2/content/professions/guardian/specializations/firebrand/state.js';
 import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
 import { createNecromancerCoreState } from '../../js/games/gw2/content/professions/necromancer/core/state.js';
 import { NECROMANCER_TRAIT_IDS } from '../../js/games/gw2/content/professions/necromancer/data/ids.js';
-import { scourgeSchedulerHooks } from '../../js/games/gw2/content/professions/necromancer/specializations/scourge/rules.js';
+import { scourgeSchedulerHooks } from '../../js/games/gw2/content/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
 import { createScourgeState } from '../../js/games/gw2/content/professions/necromancer/specializations/scourge/state.js';
 import { rangerCatalog } from '../../js/games/gw2/content/professions/ranger/catalog.js';
 import { createRangerCoreState } from '../../js/games/gw2/content/professions/ranger/core/state.js';

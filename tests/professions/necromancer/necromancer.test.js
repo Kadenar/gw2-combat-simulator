@@ -39,7 +39,10 @@ import {
   createNecromancerCoreState,
   normalizedNecromancerLifeForceCost
 } from '../../../js/games/gw2/content/professions/necromancer/core/state.js';
-import { addSoulShards, purgeTimedState } from '../../../js/games/gw2/content/professions/necromancer/core/shared.js';
+import {
+  addSoulShards,
+  purgeTimedState
+} from '../../../js/games/gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/core/profiles.js';
 import { REAPER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/reaper/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/necromancer/specializations/scourge/profiles.js';

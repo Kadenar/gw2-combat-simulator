@@ -1,15 +1,15 @@
 import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
 import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
 import { createGuardianModuleData } from '../../data/catalog.js';
-import { luminarySkillHandlers } from './handlers.js';
-import { luminaryEventHandlers, luminaryEventReactions } from './resolver.js';
+import { luminarySkillHandlers } from './skills/handlers.js';
+import { luminaryEventHandlers, luminaryEventReactions } from './mechanics/radiant-forge-effects.js';
 import {
   luminaryAttributeRules,
   luminaryCastRules,
   luminarySchedulerHooks,
   luminarySkillMechanicHandlers
-} from './rules.js';
-import { LUMINARY_SKILL_MECHANICS } from './skills.js';
+} from './mechanics/radiant-forge-rules.js';
+import { LUMINARY_SKILL_MECHANICS } from './skills/index.js';
 import { luminaryState } from './state.js';
 import { luminaryUi } from './presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from './profiles.js';
@@ -18,8 +18,7 @@ export const luminaryModule = defineNativeModule({
   id: 'Luminary',
   data: createGuardianModuleData('Luminary', {
     skillMechanics: LUMINARY_SKILL_MECHANICS,
-    balanceProfiles: LUMINARY_BALANCE_PROFILES,
-    handlers: luminarySkillHandlers
+    balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
   state: {
     // Both scheduler and resolver get independent state instances; the resolver
@@ -30,13 +29,18 @@ export const luminaryModule = defineNativeModule({
   },
   mechanics: {
     modifiers: luminaryAttributeRules,
-    castRules: luminaryCastRules,
-    skillMechanicHandlers: luminarySkillMechanicHandlers,
-    schedulerHooks: luminarySchedulerHooks,
-    // .map(onResolvedDamage) wraps each reaction so it only fires after damage
-    // has been numerically resolved rather than at raw event time.
-    reactions: luminaryEventReactions.damage.map(onResolvedDamage),
-    resolverHooks: { eventHandlers: luminaryEventHandlers }
+    execution: {
+      skillHandlers: luminarySkillHandlers,
+      castRules: luminaryCastRules,
+      skillMechanicHandlers: luminarySkillMechanicHandlers,
+      hooks: luminarySchedulerHooks
+    },
+    resolution: {
+      // .map(onResolvedDamage) wraps each reaction so it only fires after damage
+      // has been numerically resolved rather than at raw event time.
+      reactions: luminaryEventReactions.damage.map(onResolvedDamage),
+      hooks: { eventHandlers: luminaryEventHandlers }
+    }
   },
   presentation: luminaryUi
 });

@@ -95,6 +95,23 @@ The Core execution hook file is deliberately a composition adapter. It coordinat
 scheduler but does not become a second owner for pets, resources, traits, or weapons. Resolution implementations stay
 with their owning concept and are only assembled by `module.ts`.
 
+## Guardian and Necromancer layouts
+
+Guardian and Necromancer follow the reference principles without copying Ranger's exact directories:
+
+- Guardian puts virtues, Justice reactions, weapon state, and specialization systems such as tomes and Radiant Forge
+  under `mechanics/`. Mantras and spear behavior stay with `skills/`. Guardian's Core execution adapter composes
+  spear, weapon, and trait hooks while their implementations remain with their semantic owners.
+- Necromancer groups life force, shroud lifecycle, minions, conditions, and state reconciliation under `mechanics/`.
+  Weapon and flip handlers stay under `skills/`. Elite mechanics have explicit homes for Blight, Reaper Shroud,
+  spirits, Soul Shards, and shades.
+- Both professions use `mechanics.execution` and `mechanics.resolution` exclusively at the module boundary. Their
+  canonical skill mechanics remain in owner-local `skills/index.ts` files and are not duplicated by phase.
+
+Concept names are preferred over `rules.ts` and `resolver.ts`, but a concept may still contain several coordinated
+behaviors. For example, `mechanics/tomes-and-mantras.ts` assembles Firebrand scheduling policy while the canonical
+Tome and Mantra implementations stay in `mechanics/tomes.ts` and `skills/mantras.ts`.
+
 ## Stacked delivery plan
 
 | Phase | Goal |
