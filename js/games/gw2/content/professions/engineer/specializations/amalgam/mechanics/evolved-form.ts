@@ -1,22 +1,22 @@
-import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { amalgamState } from '../state.js';
-import { snapshotEngineerState } from '../../../state/index.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { AMALGAM_NEW_GENES_BOONS } from './new-genes.js';
-import type { SchedulerRecord, SkillId } from '../../../../../../platform/engine/types.js';
+import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { amalgamState } from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
+import { AMALGAM_NEW_GENES_BOONS } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
   EngineerSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
 interface AmalgamBuff {
   readonly kind: string;
@@ -30,6 +30,7 @@ interface MercurialTendenciesPayload extends SchedulerRecord {
   readonly sourceSkill?: string;
 }
 
+/** Resolves the equipped protocol IDs to unique Morph names for strain application. */
 function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
   return new Set(
     amalgamState
@@ -39,10 +40,10 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
   );
 }
 
-// Maps each morph name to the strain effect granted by the Silver Lining trait
-// (or, for Evolve without Silver Lining, applied for each selected morph).
-// Thorns only sets a timestamp-until timer; its damage is handled via the
-// resolver (Rapacious Strain ICD check) rather than emitting here.
+/**
+ * Applies the strain mapped to a Morph name, emitting status effects immediately
+ * while retaining timestamp-backed strains for later modifier and resolver checks.
+ */
 function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string, at: number): void {
   const state = amalgamState.from(context);
   const strainDuration = engineerBalanceValue(context, PROFILE.strains, 'durationMultiplier', 8);
@@ -129,6 +130,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string
   }
 }
 
+/** Reads the damaging-field assumption across supported configuration shapes. */
 function assumesDamagingField(context: EngineerSchedulerContext): boolean {
   return Boolean(
     context.config.professionAssumptions?.inDamagingField ??
@@ -138,9 +140,7 @@ function assumesDamagingField(context: EngineerSchedulerContext): boolean {
   );
 }
 
-// Thorns Retaliation fires once per second for 6 s while inside a damaging
-// field. Only emitted when the "inDamagingField" assumption is enabled because
-// the field source and uptime cannot be inferred from the rotation alone.
+/** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 function scheduleThornsRetaliation(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!assumesDamagingField(context)) return;
   const hits = engineerBalanceValue(context, PROFILE.morphs, 'maximumStacks', 6);
@@ -163,9 +163,11 @@ function scheduleThornsRetaliation(context: EngineerCastContext, skill: Engineer
   }
 }
 
+/** Resolves a completed Morph cast, including its protocol state and selected trait payoffs. */
 export function activateAmalgamMorph(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const state = amalgamState.from(context);
+  // Apply protocol-owned state before any trait reactions inspect the cast.
   if (skill.name === 'Defensive Protocol: Thorns') {
     state.thornsUntil = Math.max(
       state.thornsUntil,
@@ -174,6 +176,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     scheduleThornsRetaliation(context, skill, at);
   }
 
+  // Resolve traits whose duration or strain depends on the chosen protocol.
   if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
@@ -203,6 +206,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     applyAmalgamStrain(context, skill.name, at);
   }
 
+  // New Genes combines universal boons with one protocol-specific boon.
   if (hasTrait(context.config, TRAIT.NEW_GENES)) {
     const buffs: AmalgamBuff[] = [
       {
@@ -249,6 +253,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   emitStateSnapshot(context, 'engineer', at, 'amalgam-morph', snapshotEngineerState(context.state.profession));
 }
 
+/** Activates Plasmatic State at its observed mid-cast packet timestamp. */
 export function activatePlasmaticState(context: EngineerCastContext, _skill: EngineerSkill): void {
   const castDuration = Math.max(0, context.fullEnd - context.start);
   // Plasmatic State is a two-phase cast. Its buff and first damage packet land
@@ -261,6 +266,7 @@ export function activatePlasmaticState(context: EngineerCastContext, _skill: Eng
   emitStateSnapshot(context, 'engineer', at, 'plasmatic-state', snapshotEngineerState(context.state.profession));
 }
 
+/** Activates Evolved, grants selected strains, and resolves Evolve trait interactions. */
 export function evolveAmalgam(context: EngineerCastContext): void {
   const castDuration = Math.max(0, context.fullEnd - context.start);
   // EVTC applies Evolved and all three strain buffs roughly 520 ms into the
@@ -307,9 +313,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   emitStateSnapshot(context, 'engineer', at, 'evolve', snapshotEngineerState(context.state.profession));
 }
 
-// Watches the scheduler event stream and queues a Mercurial Tendencies task for
-// every control event. Summon-sourced controls (Jade Mech CC) are excluded
-// because Mercurial Tendencies only procs on the player's own control effects.
+/** Queues Mercurial Tendencies checks for player control events while excluding summon-sourced control. */
 export function observeAmalgamScheduledEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
   if (
     context.config.specialization !== 'Amalgam' ||
@@ -328,8 +332,7 @@ export function observeAmalgamScheduledEvent(context: EngineerSchedulerContext, 
   });
 }
 
-// Reduces Evolve's cooldown by 2.5 s per control event (0.25 s ICD between
-// procs). Works with both standard cooldown and ammo-based recharge tracking.
+/** Reduces every tracked Evolve recharge by the profiled amount after enforcing the trait's internal cooldown. */
 export function handleMercurialTendencies(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<MercurialTendenciesPayload>
@@ -339,6 +342,7 @@ export function handleMercurialTendencies(
   const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
   if (!isInternalCooldownReady(at, readyAt)) return;
 
+  // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
   let reducedBy = 0;
   const rechargeReduction = engineerBalanceValue(context, PROFILE.mercurialTendencies, 'rechargeReduction', 2.5);
   const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
@@ -350,6 +354,7 @@ export function handleMercurialTendencies(
 
   if (!(reducedBy > 0)) return;
 
+  // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
   coreState.traitProcReadyAt.mercurialTendencies =
     at + engineerBalanceValue(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.25);
   context.emit({

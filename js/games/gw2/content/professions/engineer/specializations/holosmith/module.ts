@@ -1,19 +1,19 @@
-import { afterSkillEffects } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../data/catalog.js';
-import { holosmithSkillHandlers } from './skills/handlers.js';
-import { holosmithResolverEventHandlers } from './mechanics/photon-forge-effects.js';
+import { afterSkillEffects } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
+import { holosmithSkillHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/skills/execution.js';
+import { holosmithResolverEventHandlers } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
 import {
   holosmithAdvancedSchedulerHooks,
   holosmithAfterCast,
   holosmithAttributeRules,
   holosmithCastRules
-} from './mechanics/photon-forge-rules.js';
-import { HOLOSMITH_SKILL_MECHANICS } from './skills/index.js';
-import { holosmithState } from './state.js';
-import { HOLOSMITH_BALANCE_PROFILES } from './profiles.js';
-import { bindHolosmithUi } from './presentation.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/holosmith/skills/index.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { HOLOSMITH_BALANCE_PROFILES } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import { bindHolosmithUi } from '#gw2/content/professions/engineer/specializations/holosmith/presentation.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 
 // Declare both Photon Forge autoattack variants through the catalog contract so
 // scheduling and the shared palette projector advance the same chain state.

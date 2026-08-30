@@ -1,12 +1,19 @@
-import type { BalanceProfile, SkillId } from '../../../../../platform/engine/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerTraitDamageProfile } from '../../core/profiles.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS, MESMER_TROUBADOUR_TRAIT_DAMAGE } from './mechanics/definitions.js';
-import type { MesmerInstrument } from '../../types.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  mesmerBalanceProfile,
+  mesmerBalanceProfileEffect,
+  mesmerTraitDamageProfile
+} from '#gw2/content/professions/mesmer/core/profiles.js';
+import {
+  MESMER_TROUBADOUR_INSTRUMENTS,
+  MESMER_TROUBADOUR_TRAIT_DAMAGE
+} from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+import type { MesmerInstrument } from '#gw2/content/professions/mesmer/types.js';
 
 export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.troubadour.resources',

@@ -1,5 +1,5 @@
-import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState } from '../../core/presentation.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerPetPaletteGroup, rangerUiState } from '#gw2/content/professions/ranger/core/presentation.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -7,8 +7,8 @@ import type {
   RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { RangerSkill, RangerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RangerSkill, RangerUiContext } from '#gw2/content/professions/ranger/types.js';
 
 // Module-level cache populated once in bindUntamedUi; avoids filtering the catalog on every render.
 let petSkillIds: SkillId[] = [];

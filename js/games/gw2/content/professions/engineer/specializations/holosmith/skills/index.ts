@@ -1,6 +1,6 @@
 /** Holosmith-only Engineer mechanics, including the heat-aware sword variants. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { HolosmithSkillFragment } from '../types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { HolosmithSkillFragment } from '#gw2/content/professions/engineer/specializations/holosmith/types.js';
 export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {

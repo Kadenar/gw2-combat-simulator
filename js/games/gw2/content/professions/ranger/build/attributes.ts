@@ -1,12 +1,12 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/ranger/data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult
-} from '../../../../platform/builds/types.js';
-import type { RangerBuild } from '../types.js';
-import { selectedRangerPet } from '../core/state.js';
+} from '#gw2/platform/builds/types.js';
+import type { RangerBuild } from '#gw2/content/professions/ranger/types.js';
+import { selectedRangerPet } from '#gw2/content/professions/ranger/core/state.js';
 
 const PACK_ALPHA_ATTRIBUTES = Object.freeze(['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality']);
 

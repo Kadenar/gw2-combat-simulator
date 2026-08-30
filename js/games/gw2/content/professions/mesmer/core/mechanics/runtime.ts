@@ -1,4 +1,4 @@
-import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type {
   MesmerAmbushAttack,
   MesmerInstrument,
@@ -9,7 +9,7 @@ import type {
   MesmerShatterResolver,
   MesmerShatterResolvedHandler,
   MesmerTraitDamage
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> = Object.freeze({
   [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,

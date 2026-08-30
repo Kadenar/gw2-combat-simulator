@@ -1,9 +1,26 @@
-/** Spear weapon-skill mechanics owned by the Weaver module. */
+/**
+ * Spear weapon-skill mechanics owned by the Weaver module.
+ *
+ * Weaver occupies the slot-3 spear position with a dual attack selected by the
+ * unordered pair of attunements held across its two hands; every fragment names
+ * its pair in `attunement`, and Weaver availability only offers the skill when
+ * both of those elements are currently attuned.
+ *
+ * Unlike the other Weaver weapons, every spear dual is instant: each entry has
+ * a 0 ms cast and lands its whole payload in one packet at offset 0, so cast
+ * scaling never moves these effects.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * The six spear dual attacks, keyed by skill id and merged into
+ * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
+ */
 export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire+Water. The only spear dual that grants an aura: `aura: 'Fire|3'` is
+  // read by the core cast hook as a three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
     name: 'Frostfire Ward',
     type: 'Weapon',
@@ -31,6 +48,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Fire+Air. Heaviest single spear packet, paired with self superspeed and
+  // three stacks of Might rather than any condition.
   [ID.GALVANIZE]: {
     name: 'Galvanize',
     type: 'Weapon',
@@ -77,6 +96,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Fire+Earth. Blast finisher into the oldest ambiguous field, plus Burning
+  // and three stacks of Bleeding.
   [ID.FIERY_IMPACT]: {
     name: 'Fiery Impact',
     type: 'Weapon',
@@ -193,6 +214,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Water+Earth. Modelled purely as a Blast finisher: one strike, no conditions
+  // and no boons.
   [ID.SOOTHING_BURST]: {
     name: 'Soothing Burst',
     type: 'Weapon',

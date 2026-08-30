@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -11,10 +11,13 @@ import type {
   MesmerRuntimeState,
   MesmerSkill,
   MesmerStrikeEffect
-} from '../../types.js';
-import type { SchedulerState } from '../../../../../platform/engine/types.js';
-import { castRelativeEffectTimingScale } from '../../../../../platform/skills/timing.js';
-import type { MesmerPhantasmEffectController, MesmerPhantasmExecution } from '../mechanics/phantasms.js';
+} from '#gw2/content/professions/mesmer/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import type {
+  MesmerPhantasmEffectController,
+  MesmerPhantasmExecution
+} from '#gw2/content/professions/mesmer/core/mechanics/illusions/phantasms.js';
 
 export interface MesmerSkillDamageResult {
   readonly firstFencerTriggerAt: number;

@@ -1,16 +1,24 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { readProfessionSpecializationState } from '../../../../../../platform/engine/profession/state.js';
-import { isGw2PlayerModifierOwnedEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import { denySkillCast as deny } from '../../../../lib/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../../types.js';
-import { untamedState } from '../state.js';
-import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../../core/profiles.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  RangerCastContext,
+  RangerPrecastContext,
+  RangerSchedulerContext,
+  RangerSkill
+} from '#gw2/content/professions/ranger/types.js';
+import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 

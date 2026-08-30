@@ -1,7 +1,7 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state/index.js';
-import { spendEndurance } from '../../../../../platform/combat/resources/endurance.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 /**
  * Core Revenant action-handler map.
  *
@@ -9,9 +9,9 @@ import { spendEndurance } from '../../../../../platform/combat/resources/enduran
  * feature. handlers.js applies the actual replacement strategies so these
  * modules remain focused on their state transitions.
  */
-import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
-import { swapRevenantLegend } from '../mechanics/legend-swap.js';
-import type { RevenantCastContext, RevenantSkill } from '../../types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import { swapRevenantLegend } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import type { RevenantCastContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
 /** Pays the profession-wide endurance cost for a dodge. */
 export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill): void {

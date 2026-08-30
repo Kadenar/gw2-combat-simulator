@@ -1,9 +1,9 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { RangerResolverContext, RangerResolverEvent } from '../../../types.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect } from '../../../core/profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
+import { rangerBalanceProfile, rangerBalanceProfileEffect } from '#gw2/content/professions/ranger/core/profiles.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 function triggerBloodMoon(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!hasTrait(context, TRAIT.BLOOD_MOON)) return;

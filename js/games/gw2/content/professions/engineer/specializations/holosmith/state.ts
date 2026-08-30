@@ -1,9 +1,9 @@
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { selectedEngineerTraits } from '../../core/state.js';
-import { HOLOSMITH_HEAT } from './mechanics/constants.js';
-import type { EngineerConfig, HolosmithState } from '../../types.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { selectedEngineerTraits } from '#gw2/content/professions/engineer/core/state.js';
+import { HOLOSMITH_HEAT } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { EngineerConfig, HolosmithState } from '#gw2/content/professions/engineer/types.js';
 
 // Holosmith owns both its public projection keys and the inactive compatibility values.
 export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -30,6 +30,7 @@ export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Holosmit
   kitLockoutUntil: 0
 });
 
+/** Creates isolated Holosmith heat, Forge, trait-charge, and lockout state from a build configuration. */
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
   const traits = selectedEngineerTraits(config);
   // Resource capacity is structural Holosmith state, not patchable balance data.

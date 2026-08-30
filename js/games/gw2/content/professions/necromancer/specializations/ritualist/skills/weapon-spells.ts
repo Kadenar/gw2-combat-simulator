@@ -6,16 +6,16 @@
  * a real heal-slot application even though healing and incoming-damage
  * reduction are outside the damage simulator.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
 import {
-  gw2AlliedEffectRecipients,
-  gw2AlliedPlayerProcTimeline
-} from '../../../../../../platform/combat/state/allied-players.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { necromancerActiveMinionCompanionIds } from '../../../core/mechanics/state-helpers.js';
-import { necromancerBalanceProfile } from '../../../core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import type { NecromancerCastContext, NecromancerSkill } from '../../../types.js';
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { necromancerActiveMinionCompanionIds } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
+import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
 const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> = Object.freeze({
   [ID.NIGHTMARE_WEAPON]: 'nightmare',
@@ -23,6 +23,7 @@ const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> = Object.free
   [ID.RESILIENT_WEAPON]: 'resilient'
 });
 
+// Snapshot per-recipient charges and pre-schedule modeled allied-player procs for one weapon-spell cast.
 function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
   const definition = skill.effects?.find((effect) => effect.type === 'buff');
@@ -92,6 +93,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
   return true;
 }
 
+/** Exposes Ritualist weapon-spell applications through the shared skill-handler contract. */
 export const necromancerWeaponSpellSkillHandlers = Object.freeze({
   'necromancer.weapon-spell': applyWeaponSpell
 });

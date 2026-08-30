@@ -1,10 +1,14 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { CAST_READY } from '../../../../../platform/engine/skills/availability.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { denySkillCast } from '../../../lib/availability.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import type { AvailabilityResult } from '../../../../../platform/engine/types.js';
-import type { GuardianAvailabilityContext, GuardianPrecastContext, GuardianSkill } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { denySkillCast } from '#gw2/content/professions/lib/availability.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type {
+  GuardianAvailabilityContext,
+  GuardianPrecastContext,
+  GuardianSkill
+} from '#gw2/content/professions/guardian/types.js';
 
 // Resolve the active Guardian specialization consistently from build, config,
 // and runtime contexts used by both UI and scheduler gates.

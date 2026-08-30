@@ -1,18 +1,18 @@
-import { attributeProvenance } from '../../../../../../platform/builds/attribute-provenance.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { guardianBoonActive } from '../../../core/traits/modifiers.js';
-import { advanceTomeState, tomePageAvailability, tomeStateAvailability } from './tomes.js';
-import { observeFirebrandScheduledEvent, updateFirebrandCastState } from '../traits/index.js';
+import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { guardianBoonActive } from '#gw2/content/professions/guardian/core/traits/modifiers.js';
+import { advanceTomeState, tomePageAvailability, tomeStateAvailability } from '#gw2/content/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import { observeFirebrandScheduledEvent, updateFirebrandCastState } from '#gw2/content/professions/guardian/specializations/firebrand/traits/index.js';
 import {
   advanceFirebrandMantras,
   completeFirebrandMantra,
   firebrandMantraAvailability,
   initializeFirebrandMantras
-} from '../skills/mantras.js';
-import { initializeFirebrandBalanceState } from '../state.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
+} from '#gw2/content/professions/guardian/specializations/firebrand/skills/mantras.js';
+import { initializeFirebrandBalanceState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 
 export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

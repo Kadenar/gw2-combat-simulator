@@ -1,14 +1,14 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { addAttribute } from '../../../../platform/builds/attributes.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/mesmer/data/traits-data.js';
+import { addAttribute } from '#gw2/platform/builds/attributes.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2BuildAttributeRuleContext,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { MesmerBuild } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { MesmerBuild } from '#gw2/content/professions/mesmer/types.js';
 
 // Fold Mesmer trait conversions, selected-signet bonuses, duration bonuses, and
 // assumption-dependent critical chance into the shared build attribute result.

@@ -1,13 +1,13 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onConditionApplied } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createThiefModuleData } from '../../data/catalog.js';
-import { specterSkillHandlers } from './skills/handlers.js';
-import { specterAttributeRules, specterCastRules, specterSchedulerHooks } from './mechanics/shadow-shroud-rules.js';
-import { specterState } from './state.js';
-import { specterUi } from './presentation.js';
-import { SPECTER_SKILL_MECHANICS } from './skills/index.js';
-import { applyLarcenousTorment } from './mechanics/shadow-shroud-effects.js';
-import { SPECTER_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onConditionApplied } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
+import { specterSkillHandlers } from '#gw2/content/professions/thief/specializations/specter/skills/execution.js';
+import { specterAttributeRules, specterCastRules, specterSchedulerHooks } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud-rules.js';
+import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
+import { specterUi } from '#gw2/content/professions/thief/specializations/specter/presentation.js';
+import { SPECTER_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/specter/skills/index.js';
+import { applyLarcenousTorment } from '#gw2/content/professions/thief/specializations/specter/mechanics/shadow-shroud-effects.js';
+import { SPECTER_BALANCE_PROFILES } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
 
 export const specterModule = defineNativeModule({
   id: 'Specter',

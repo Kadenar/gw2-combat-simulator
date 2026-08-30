@@ -1,21 +1,36 @@
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { EPSILON, isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import type { SchedulerRecord } from '../../../../../platform/engine/types.js';
-import { onResolvedCriticalHit } from '../../../../../integrations/patches/authoring/mechanics.js';
-import type { NativeResolvedDamageDetails } from '../../../../../integrations/patches/authoring/module-types.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import type { Gw2EventDraft } from '../../../../../platform/equipment/relics/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../../platform/resolver/types.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import type { ElementalistResolverContext, ElementalistResolverEvent } from '../../types.js';
-import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from '../state.js';
+/**
+ * Resolver-phase Core Elementalist reactions.
+ *
+ * Mirrors attunement and aura state into resolver-side Core state and materializes
+ * the trait follow-ups that depend on resolved facts: critical hits, applied
+ * conditions, and field ticks.
+ */
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
+import type { NativeResolvedDamageDetails } from '#gw2/integrations/patches/authoring/module-types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/content/professions/elementalist/data/ids.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistResolverEvent
+} from '#gw2/content/professions/elementalist/types.js';
+import {
+  isElementalistAttunement,
+  type ElementalistAuraState,
+  type ElementalistCoreState
+} from '#gw2/content/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue
-} from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 
+// Fire fields whose damage ticks feed Persisting Flames stacks.
 const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
   'Flamewall',
   'Pyroclastic Blast',
@@ -26,6 +41,7 @@ const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
   'Lava Font',
   'Wildfire'
 ]);
+// Resolver profession state may or may not be namespaced under `core`.
 function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
   const profession = context.profession as {
     core?: ElementalistCoreState;
@@ -50,6 +66,7 @@ export function applyElementalistResolverAttunement(
   }
 }
 
+/** Best available display name of the skill behind a resolver event, used for attribution. */
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {
   return String(event.skillName || event.name || event.source || '');
 }
@@ -89,6 +106,7 @@ function applyElementalistDerivedCondition(
   context.applyCondition(application);
 }
 
+/** Queues a resolver-derived boon with Elementalist attribution and boon-duration scaling applied. */
 export function queueElementalistBuff(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -118,12 +136,14 @@ export function queueElementalistBuff(
   enqueueOrdered(context.queue, application);
 }
 
+/** Returns the resolver-side applications of one boon kind whose window covers `at`. */
 export function activeElementalistBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
   return (context.boons.get(kind.toLowerCase()) || []).filter(
     (application) => application.at <= at + EPSILON && application.expiresAt > at + EPSILON
   );
 }
 
+/** Rewrites the expiry of every currently active application of a boon kind and returns those applications. */
 export function refreshElementalistBuffs(
   context: Gw2ResolverRuntime,
   kind: string,
@@ -147,6 +167,7 @@ export function refreshElementalistBuffs(
   return [...active];
 }
 
+/** Queues a resolver-generated aura event, already extended by Smothering Auras. */
 export function queueElementalistAura(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -232,10 +253,13 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
   }
 }
 
+/** Records a trait proc marker attributed to the skill whose hit triggered it. */
 export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, name: string): void {
   context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
 }
 
+// Shared predicate: the trait is selected and the event is a player damage packet
+// that the hit context considers eligible to crit.
 function criticalTraitEligible(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -252,6 +276,8 @@ function criticalTraitEligible(
 
 // Declare output-only critical traits as resolver reactions so they share the
 // canonical hit fact and the platform's expected-progress/RNG contract.
+// Each entry pairs an internal cooldown with expected-progress tracking; the two
+// precision traits additionally roll a profile-driven chance on each critical hit.
 export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.raging-storm',
@@ -386,6 +412,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   })
 ]);
 
+// Grants one Persisting Flames stack, with its duration taken from the trait profile.
 function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Persisting Flames')) return;
   queueElementalistBuff(
@@ -398,6 +425,7 @@ function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEv
   );
 }
 
+/** Resolver damage hook: field ticks from Persisting Flames fire fields grant a stack. */
 export function applyElementalistResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -435,6 +463,7 @@ export function applyElementalistResolvedCondition(context: Gw2ResolverRuntime, 
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
 }
 
+/** Mirrors the window in which activating Signet of Fire suppresses its passive precision into resolver state. */
 export function applyElementalistResolverSignetFire(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const core = coreState(context);
   core.signetOfFireDisabledUntil = Number(event.disabledUntil || event.at);

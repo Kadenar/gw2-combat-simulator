@@ -1,11 +1,14 @@
-import { reactToCoreGuardianJusticeHit } from './justice-reaction.js';
-import { handleVirtueActivation, handleVirtueRefresh } from './virtues.js';
+import { reactToCoreGuardianJusticeHit } from '#gw2/content/professions/guardian/core/mechanics/justice-reaction.js';
+import {
+  handleVirtueActivation,
+  handleVirtueRefresh
+} from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
 import {
   handleSymbolOfIgnitionField,
   handleRighteousInstinctsTick,
   reactToGuardianBuffTraits,
   reactToGuardianDamageTraits
-} from '../traits/index.js';
+} from '#gw2/content/professions/guardian/core/traits/index.js';
 
 export const guardianCoreEventHandlers = Object.freeze({
   'guardian.virtue-activated': handleVirtueActivation,

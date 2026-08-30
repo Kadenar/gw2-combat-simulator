@@ -1,5 +1,5 @@
-import { GUARDIAN_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TEST_OF_FAITH]: {

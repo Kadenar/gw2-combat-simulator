@@ -11,7 +11,7 @@
  * avoiding duplication when build attributes are already present.
  */
 
-import { REVENANT_LEGEND_IDS as LEGEND } from '../../../data/ids.js';
+import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/content/professions/revenant/data/ids.js';
 
 // Legendary Entity grants every attribute represented by Bolstered Bonds.
 const ALL_ATTRIBUTES = Object.freeze([

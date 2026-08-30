@@ -1,18 +1,27 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { castRelativeEffectTimingScale } from '../../../../../../platform/skills/timing.js';
-import type { SchedulerRecord, Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../../types.js';
-import { emitElementalistProc } from '../../../core/mechanics/effects.js';
+/**
+ * Familiar cast lifecycle - the heart of the Evoker specialization.
+ *
+ * A basic familiar spends the whole charge bar and adds an empowered stack; at
+ * three stacks its empowered flip form becomes castable and spends them back to
+ * zero. This module drives that cycle across the cast-start, after-cast, and
+ * cast-complete phases, including flip-interrupt cancellation, Ignite tiering,
+ * the familiar traits (Prowess, Blessing, Galvanic Enchantment, Specialized
+ * Elements), and the Evoker meditation payloads.
+ */
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistSchedulerContext
+} from '#gw2/content/professions/elementalist/types.js';
+import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   elementalistBalanceEffect,
   elementalistBalanceValue,
   elementalistEffectValue
-} from '../../../core/profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 import {
   BASIC_FAMILIARS,
   ELECTRIC_ENCHANTMENT_ICON,
@@ -21,17 +30,20 @@ import {
   FAMILIAR_FLIP_DELAYS,
   FAMILIAR_INTERRUPT_WINDOWS,
   FAMILIAR_PROFILE_BY_BASIC
-} from './constants.js';
-import { completeEvokerAttunement, triggerSpecializedElementEntry } from './attunements.js';
-import { materializeArmedElectricEnchantments } from './enchantments.js';
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import {
+  completeEvokerAttunement,
+  triggerSpecializedElementEntry
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/attunements.js';
+import { materializeArmedElectricEnchantments } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import {
   emitResource,
   flushPendingWeaponChargeGains,
   grantWeaponSkillCharges,
   weaponSkillChargeGain
-} from './resources.js';
-import { evokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
 // reads effects directly from the catalog so balance patches to those skills propagate without code changes
 function releaseElementalProcession(context: ElementalistCastContext, sourceSkill: Skill): void {
@@ -109,9 +121,15 @@ function cancelActivationEffects(context: ElementalistSchedulerContext, activati
   }
 }
 
+/**
+ * Pre-cast bookkeeping: records the charge grant this command will produce,
+ * marks a starting familiar cast as active, and applies the flip-interrupt rule
+ * when a basic familiar cuts its own empowered form short.
+ */
 export function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   const familiarElement = FAMILIAR_ELEMENTS[skill.name];
+  // non-concurrent commands anchor their own charge grant so a concurrent familiar can adopt it below
   if (context.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
     const postFamiliarGain = gain > 0 ? gain : skill.name === 'Rejuvenate' ? state.maximumCharges : 0;
@@ -130,6 +148,7 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
     });
   }
 
+  // familiar casts block every other action until they finish (enforced in availability.ts)
   if (familiarElement) {
     const concurrentParent =
       context.command.concurrentOffsetMs != null
@@ -182,6 +201,11 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
   }
 }
 
+/**
+ * Post-scheduling adjustments to a cast's own events: drops them all when the
+ * activation was flip-interrupted, rewrites Ignite's burning duration for its
+ * current tier, and emits Fox's Fury's might-scaled bonus payload.
+ */
 export function afterCast(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   if (state.cancelledFamiliarActivations[context.reservationId]) {
@@ -216,6 +240,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     state.igniteLastUsedAt = context.start;
   }
 
+  // Fox's Fury picks one of three tiers from the might stacks held at cast start
   if (skill.name === "Fox's Fury") {
     const might = context.buffStacks('might', context.start);
     const threshold = elementalistBalanceValue(context, PROFILE.foxsFury, 'threshold', 10);
@@ -251,6 +276,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
   }
 }
 
+// refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
 function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): void {
   const at = context.effectiveEnd;
   const baseDuration = elementalistBalanceValue(context, PROFILE.familiarsProwess, 'durationMultiplier', 5);
@@ -286,6 +312,7 @@ function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): v
   });
 }
 
+// Specialized Elements: shortens every weapon skill's remaining recharge by the given multiplier
 function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, multiplier: number): void {
   const at = context.effectiveEnd;
   for (const candidate of context.catalog.skills) {
@@ -296,6 +323,11 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, mu
   }
 }
 
+/**
+ * Settles a completed cast: the attunement transition, weapon charge accrual,
+ * the familiar traits, the charge/empowered state machine, and the Evoker
+ * utility skill payloads.
+ */
 export function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   // Evoker supplies its trait-proc policy before Core's completion hook, while Core still owns the shared transition.
   if (completeEvokerAttunement(context, skill)) {
@@ -377,6 +409,9 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     });
   }
 
+  // charge state machine: a basic familiar spends the whole bar and adds an
+  // empowered stack (arming its flip skill after the profile delay), the empowered
+  // form spends the stacks back to zero, and Rejuvenate refills the bar outright
   if (BASIC_FAMILIARS.has(skill.name)) {
     state.charges = 0;
     state.empowered = Math.min(
@@ -402,11 +437,13 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     emitResource(context, skill, state);
   }
 
+  // the blocking familiar cast is over: release the grants deferred past its charge reset
   if (completesActiveFamiliar) {
     flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;
   }
 
+  // remaining branches are the Evoker meditation utility payloads
   if (skill.name === 'Elemental Procession') {
     releaseElementalProcession(context, skill);
   }

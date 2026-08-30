@@ -1,8 +1,8 @@
-import type { SchedulerState } from '../../../../../platform/engine/types.js';
-import { createIllusionResourceController } from '../mechanics/illusion-resources.js';
-import { createPhantasmEffectController } from '../mechanics/phantasms.js';
-import { createSkillDamageController } from './damage.js';
-import { createSkillSpecialEffectController } from './special-effects.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
+import { createIllusionResourceController } from '#gw2/content/professions/mesmer/core/mechanics/illusions/resources.js';
+import { createPhantasmEffectController } from '#gw2/content/professions/mesmer/core/mechanics/illusions/phantasms.js';
+import { createSkillDamageController } from '#gw2/content/professions/mesmer/core/skills/damage.js';
+import { createSkillSpecialEffectController } from '#gw2/content/professions/mesmer/core/skills/special-effects.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddCondition,
@@ -23,7 +23,7 @@ import type {
   MesmerSkill,
   MesmerSkillEffectController,
   MesmerTraitDamage
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 interface SkillEffectControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

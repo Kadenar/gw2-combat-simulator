@@ -1,5 +1,5 @@
-import type { WarriorResolverContext, WarriorResolverEvent } from '../../types.js';
-import { warriorBoonRemovalCounts } from './resolution-helpers.js';
+import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/content/professions/warrior/types.js';
+import { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/resolution-helpers.js';
 
 /**
  * Resolves boon-removal effects emitted by core Warrior skills and publishes

@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { SpellbreakerState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { SpellbreakerState } from '#gw2/content/professions/warrior/types.js';
 
 export function createSpellbreakerState(): SpellbreakerState {
   return {

@@ -1,3 +1,9 @@
+/**
+ * Weaver presentation contract: palette availability messages, the rotation
+ * state snapshot, timeline and event-log labels, and the custom weapon palette
+ * that renders the main-hand / off-hand split. Everything here is a read-only
+ * projection of scheduler or end state; none of it may mutate the simulation.
+ */
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
@@ -9,22 +15,27 @@ import type {
   SchedulerRecord,
   SimulationEvent,
   Skill
-} from '../../../../../platform/engine/types.js';
-import { escapeHtml as esc } from '../../../../../app/presentation/shared/html.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_WEAVER_SKILL_IDS } from '../../data/ids.js';
-import { getActiveTraits } from '../../data/traits-data.js';
-import type { ElementalistBuildSpecialization } from '../../types.js';
-import { ELEMENTALIST_ATTUNEMENTS } from '../../core/state.js';
-import { weaverDualAttunements } from './skills/index.js';
+} from '#gw2/platform/engine/types.js';
+import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_WEAVER_SKILL_IDS
+} from '#gw2/content/professions/elementalist/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/elementalist/data/traits-data.js';
+import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/content/professions/elementalist/core/state.js';
+import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
+// Prefer live scheduler state, falling back to the end-of-simulation snapshot.
 function uiState(context: SchedulerRecord): SchedulerRecord {
   const live = context.professionState as SchedulerRecord | undefined;
   const end = context.state as { profession?: SchedulerRecord } | undefined;
   return live || end?.profession || {};
 }
 
+// Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: SchedulerRecord): boolean {
   const build = context.build as { specializations?: readonly ElementalistBuildSpecialization[] } | undefined;
   return getActiveTraits(build?.specializations || []).some((trait) => trait.name === 'Elements of Rage');
@@ -51,6 +62,8 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
   const now = Number(context.time || 0);
   const primary = String(state.primaryAttunement || build?.startAttunement || 'Fire');
   const secondary = String(state.secondaryAttunement || build?.secondaryAttunement || primary);
+  // Unravel, then the Weave Self / Tailored Victory flipover pair, then the
+  // attunement buttons; each explains itself before the weapon-slot rules run.
   if (skill.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
     const available = hasElementsOfRage(context);
     return { available, message: available ? '' : 'Requires Elements of Rage.' };
@@ -69,12 +82,14 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
     };
   }
 
+  // An attunement is only blocked when both hands already hold that element.
   if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
     const target = skill.name.replace(/ Attunement$/, '');
     const available = target !== primary || target !== secondary;
     return { available, message: available ? '' : `Already attuned to ${target}.` };
   }
 
+  // A dual hammer skill cannot recreate an orb that is still orbiting.
   const hammerElements = skill.weapon === 'Hammer' ? weaverDualAttunements(skill) : null;
   const hammerOrbs = (state.hammerOrbs || {}) as SchedulerRecord;
   if (hammerElements?.some((element) => hammerOrbs[element] != null && Number(hammerOrbs[element]) >= now)) {
@@ -86,6 +101,8 @@ function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): Pale
 
   if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
   if (isCarriedAutoattackSkill(context, skill)) return { available: true, message: '' };
+  // Same slot ladder the scheduler gate uses: 1-2 main hand, 3 dual, 4-5 off
+  // hand, with Unravel restricting the bar to the primary element.
   const dualAttunements = weaverDualAttunements(skill);
   const required = dualAttunements || [String(skill.attunement)];
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
@@ -127,6 +144,7 @@ function unravelTimelineWeaponLineTransition(context: SchedulerRecord): string |
     : undefined;
 }
 
+// Only swaps that carried an off-hand element get the "F/W -> A" style row.
 function eventLogRow(_context: SchedulerRecord, event: SimulationEvent): ProfessionEventLogDescriptor | undefined {
   if (event.type !== 'elementalist.attunement' || !event.fromSecondaryAttunement) return undefined;
   return {
@@ -138,6 +156,7 @@ function eventLogRow(_context: SchedulerRecord, event: SimulationEvent): Profess
   };
 }
 
+// Describe the Weaver state at one inspected point of the rotation editor.
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
   const state = uiState(context);
   const primary = String(state.primaryAttunement || 'Fire');
@@ -172,6 +191,7 @@ interface WeaverWeaponPaletteRow {
   readonly skills: Skill[];
 }
 
+/** The fixed roles a Weaver weapon bar splits into, produced by the layout pass. */
 interface WeaverWeaponPaletteLayout {
   readonly primaryRows: WeaverWeaponPaletteRow[];
   readonly sameAttunementSkills: Skill[];
@@ -182,6 +202,9 @@ interface WeaverWeaponPaletteLayout {
 
 /** Projects Weaver weapon variants into their fixed combat-bar roles. */
 export function weaverWeaponPaletteLayout(skills: readonly Skill[]): WeaverWeaponPaletteLayout {
+  // Slots 1-2 are main-hand rows, slot 3 splits into same-element and mixed dual
+  // variants, slots 4-5 are off-hand rows, and anything unclaimed falls through
+  // to `extraSkills`.
   const elementalRows = ['Fire', 'Water', 'Air', 'Earth'].map((attunement) => ({
     attunement,
     skills: skills.filter((skill) => skill.attunement === attunement)
@@ -215,6 +238,7 @@ export function weaverWeaponPaletteLayout(skills: readonly Skill[]): WeaverWeapo
   };
 }
 
+// Show only the chain step the live autoattack chain state is currently on.
 function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord): boolean {
   if (!skill.chainRoot) return true;
   const chainRoot = String(skill.chainRoot);
@@ -222,6 +246,7 @@ function autoattackChainSkillAvailable(skill: Skill, chainState: SchedulerRecord
   return skill.name === expected || skill.id === Number(expected);
 }
 
+// Condense an attunement or dual pair into initials, e.g. "Fire+Air" -> "F/A".
 function attunementBadge(attunement: unknown): string {
   return String(attunement || '')
     .split('+')
@@ -258,6 +283,7 @@ function skillCellHtml(
     </div>`;
 }
 
+// One labelled row per element, used by the collapsible cooldown banks.
 function elementRowsHtml(
   rows: readonly WeaverWeaponPaletteRow[],
   selectedAttunement: string,
@@ -297,6 +323,8 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
   const isAvailable = context.isSkillAvailable;
   const unavailableMessage = context.unavailableMessage;
   const renderSkill = context.renderSkill;
+  // The "current" bar shows only what the present pair can cast; the banks below
+  // show every variant with its cooldown.
   const layout = weaverWeaponPaletteLayout(skills);
   const active = (candidates: readonly Skill[]): Skill[] => candidates.filter(isAvailable);
   const currentPrimarySkills = (
@@ -342,6 +370,7 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
         )
         .join('')}</div>
     </div>`;
+  // Skills no slot role claimed (bundles, transformed bars) keep their own bank.
   const extraSkills = layout.extraSkills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
   const extrasHtml = extraSkills.length
     ? `<div class="weaver-extra-bank" data-role="weaver-extra-bank">
@@ -411,6 +440,7 @@ function renderWeaverWeaponPalette(context: ProfessionWeaponPaletteRenderContext
   };
 }
 
+/** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: SchedulerRecord) =>
     hasElementsOfRage(context)

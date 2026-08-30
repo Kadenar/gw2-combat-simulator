@@ -1,14 +1,20 @@
+/**
+ * Tempest UI contract: groups the four overloads on the skill bar and rotation palette, and
+ * previews overload availability so the editor can grey out casts the scheduler would reject.
+ */
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,
   SchedulerRecord,
   Skill
-} from '../../../../../platform/engine/types.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { elementalistBalanceValue } from '../../core/profiles.js';
-import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '../../data/ids.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+} from '#gw2/platform/engine/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 
+// Editor-side preview of the scheduler's overload gate: non-overload skills always pass, an
+// overload requires its own attunement, and an entered attunement must have dwelled long enough.
 function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   if (!skill.overload) return { available: true, message: '' };
   const state = (context.professionState as SchedulerRecord | undefined) || {};
@@ -21,6 +27,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
     };
   }
 
+  // A negative entry stamp marks the configured starting attunement as already dwelled.
   const enteredAt = Number(state.attunementEnteredAt ?? -1);
   if (enteredAt < 0) return { available: true, message: '' };
 
@@ -43,6 +50,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   };
 }
 
+/** Presentation fragment the Tempest module contributes to the elementalist UI contract. */
 export const tempestUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: () => [
     {

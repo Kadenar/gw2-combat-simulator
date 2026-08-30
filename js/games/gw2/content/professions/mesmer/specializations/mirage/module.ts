@@ -1,20 +1,23 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../data/catalog.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   mirageAttributeRules,
   mirageCastRules,
   mirageSchedulerHooks,
   mirageSkillMechanicHandlers
-} from './mechanics/ambush-rules.js';
-import { createMirageResolverState, mirageState } from './state.js';
-import { mirageUi } from './presentation.js';
+} from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
+import {
+  createMirageResolverState,
+  mirageState
+} from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
+import { mirageUi } from '#gw2/content/professions/mesmer/specializations/mirage/presentation.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills/index.js';
-import { mirageSkillHandlers } from './skills/handlers.js';
-import { MIRAGE_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/mirage/skills/index.js';
+import { mirageSkillHandlers } from '#gw2/content/professions/mesmer/specializations/mirage/skills/execution.js';
+import { MIRAGE_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 
 export const mirageModule = defineNativeModule({
   id: 'Mirage',

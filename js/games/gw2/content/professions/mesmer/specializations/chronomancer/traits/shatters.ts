@@ -1,9 +1,9 @@
-import type { SkillEffect } from '../../../../../../platform/engine/types.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { mesmerBalanceValue } from '../../../core/profiles.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import type { MesmerCastContext, MesmerShatterResolution } from '../../../types.js';
+import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerCastContext, MesmerShatterResolution } from '#gw2/content/professions/mesmer/types.js';
 
 // Materialize one Chronomancer shatter boon with clone-scaled duration and
 // profile-owned recipient metadata.

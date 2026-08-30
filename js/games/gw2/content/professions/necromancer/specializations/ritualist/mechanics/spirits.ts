@@ -1,15 +1,15 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { ritualistState } from '../state.js';
-import { snapshotNecromancerState } from '../../../state/index.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { gw2PrimaryWeapon } from '../../../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -18,31 +18,37 @@ import { gw2PrimaryWeapon } from '../../../../../../platform/equipment/weapons/l
  * Summon Spirits schedules each spirit's distinct follow-up instead of
  * collapsing them into the player cast.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   gainNecromancerLifeForce,
   registerNecromancerCreatureStrikeMultiplier,
   registerCreatureSummonReaction,
   runCreatureSummonReactions
-} from '../../../core/mechanics/state-helpers.js';
-import { syncNecromancerResources } from '../../../core/state.js';
+} from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
 import {
   registerNecromancerResourceAdvance,
   registerNecromancerShroudLifecycle
-} from '../../../core/mechanics/shroud-lifecycle.js';
-import type { ScheduledTask, SchedulerRecord, SkillId } from '../../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import type { ScheduledTask, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSkill,
   RitualistState
-} from '../../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   balanceProfileEffect,
   necromancerBalanceProfile
-} from '../../../core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID } from '../profiles.js';
+} from '#gw2/content/professions/necromancer/core/profiles.js';
+import {
+  RITUALIST_BALANCE_PROFILE_IDS as PROFILE,
+  RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID
+} from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 const SPIRIT_ATTACK_TASK = 'necromancer.ritualist-spirit-attack';
 const SPIRIT_ATTACK_STOP_TASK = 'necromancer.ritualist-spirit-attack-stop';
@@ -86,6 +92,7 @@ function applyRitualistCreatureSummonTraits(
   at: number,
   count: number
 ): void {
+  // Boon of Creation scales its life-force grant with the number of creatures actually summoned.
   if (hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     gainNecromancerLifeForce(
       context,
@@ -94,6 +101,7 @@ function applyRitualistCreatureSummonTraits(
     );
   }
 
+  // Explosive Growth combines simultaneous summons into one coefficient-scaled trait packet.
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
   const explosive = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.explosiveGrowth), 'strike');
   emitSkillDamage(context, skill, {
@@ -114,10 +122,12 @@ function applyRitualistCreatureSummonTraits(
 // Initialize spirit generations, shared cadence, Soul Twisting, and Ritualist
 // resource state from the selected build.
 function initializeRitualistRuntime(context: NecromancerSchedulerContext): void {
+  // Register summon traits and autonomous-spirit scaling before casts begin.
   registerCreatureSummonReaction(context, 'ritualist.creature-summon-traits', applyRitualistCreatureSummonTraits);
   registerNecromancerCreatureStrikeMultiplier(context, 'ritualist.spirits-strength', (castContext) =>
     hasTrait(castContext, TRAIT.SPIRITS_STRENGTH) ? 1.5 : 1
   );
+  // Entering shroud establishes a new spirit cadence; exiting drops spirits unless Lingering Spirits owns them.
   registerNecromancerShroudLifecycle(context, 'ritualist.shroud', {
     onEnter: (runtime, skill) => {
       if (skill.shroudEntry !== 'ritualist') return;
@@ -131,6 +141,7 @@ function initializeRitualistRuntime(context: NecromancerSchedulerContext): void 
       ritualistState.from(runtime).activeSpirits = {};
     }
   });
+  // Lingering spirits pay continuous life force outside shroud and disappear when the resource is exhausted.
   registerNecromancerResourceAdvance(context, 'ritualist.lingering-spirits', (runtime, start, end) => {
     const core = professionCoreState(runtime);
     const state = ritualistState.from(runtime);
@@ -149,6 +160,7 @@ function initializeRitualistRuntime(context: NecromancerSchedulerContext): void 
   });
 }
 
+// Refund only the completed summon that consumed Soul Twisting's one-use allowance.
 function refundSoulTwisting(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = ritualistState.from(context);
@@ -181,6 +193,7 @@ function spiritDefinition(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   skillId: SkillId
 ): SpiritDefinition | undefined {
+  // Resolve the profile and stable spirit key before interpreting positional effects.
   const profileId = RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)];
   const profile = necromancerBalanceProfile(context, profileId);
   if (!profile) return undefined;
@@ -198,6 +211,7 @@ function spiritDefinition(
   const initial = effects[1];
   const lingering = effects[2];
   const active = key === 'wanderlust' ? effects[3] : effects[2];
+  // Normalize authored millisecond timings and explicit tick lists into scheduler seconds.
   const initialTicks = Array.isArray(initial?.ticks)
     ? (initial.ticks as readonly {
         readonly atMs: number;
@@ -228,6 +242,7 @@ function spiritDefinition(
   };
 }
 
+// Resolve the cast-time weapon used by player-owned spirit packets, including incomplete-loadout fallback.
 function activePrimaryWeapon(context: NecromancerCastContext): string {
   // Player-owned spirit skill packets inherit the weapon selected at cast time,
   // with the existing set-1 fallback retained for incomplete sandbox configs.
@@ -235,6 +250,7 @@ function activePrimaryWeapon(context: NecromancerCastContext): string {
   return String(gw2PrimaryWeapon(context.config, weaponSet) || gw2PrimaryWeapon(context.config, 1) || '');
 }
 
+// Stamp spirit packets with stable ownership, attack classification, and summon weapon strength.
 function spiritMetadata(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   key: string,
@@ -271,6 +287,7 @@ function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState,
     : state.spiritAutoAnchorAt + Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval) * interval;
 }
 
+// Replace a spirit generation's autonomous loop without disturbing the cadence shared by other spirits.
 function queueSpiritAutoattacks(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -297,6 +314,7 @@ function queueSpiritAutoattacks(
   });
 }
 
+// Materialize one generation-safe spirit attack and continue its shared-cadence task loop.
 function handleSpiritAutoattack(
   context: NecromancerSchedulerContext,
   task: ScheduledTask<SpiritAttackTaskPayload>
@@ -343,6 +361,7 @@ function handleSpiritAutoattack(
   }
 }
 
+// Cancel the superseded generation's task owner so its queued autoattacks cannot continue.
 function handleSpiritAutoattackStop(
   context: NecromancerSchedulerContext,
   task: ScheduledTask<SpiritAttackStopTaskPayload>
@@ -366,6 +385,7 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
     stacks: Number(quickness?.stacks || 1),
     ...boonOptions
   });
+  // The remaining profile entries map one distinct party boon to each spirit.
   const boonIndex = key === 'anguish' ? 1 : key === 'wanderlust' ? 2 : 3;
   const boon = balanceProfileEffect(profile, 'boon', boonIndex);
   if (key === 'anguish') {
@@ -395,6 +415,7 @@ function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Necromanc
   }
 }
 
+// Publish Painful Bond's visible status and matching resolver application at the same timestamp.
 function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
   // Painful Bond is a profession status rather than a standard boon, so its
   // authored duration remains fixed even when the build has Concentration.
@@ -436,6 +457,7 @@ function emitAnguishInitial(
   spirit: SpiritDefinition,
   at: number
 ): void {
+  // Apply the opening control conditions before the profile-timed barrage begins.
   emitSkillCondition(context, skill, { at, condition: 'Crippled', stacks: 1, duration: 4 });
   emitSkillCondition(context, skill, { at, condition: 'Vulnerability', stacks: 8, duration: 10 });
   const hitCount = Number(spirit.summonHits || 1);
@@ -445,6 +467,7 @@ function emitAnguishInitial(
       { length: hitCount },
       (_, index) => Number(spirit.summonDelay || 0) + index * Number(spirit.summonInterval || 0)
     );
+  // Painful Bond begins on the first barrage impact and shares the same authored hit schedule.
   emitPainfulBond(context, skill, at + Number(hitDelays[0] || 0));
   for (let index = 0; index < hitDelays.length; index += 1) {
     emitSkillDamage(context, skill, {
@@ -463,6 +486,7 @@ function emitAnguishInitial(
   }
 }
 
+// Schedule Wanderlust's player swing and the spirit field's staggered condition sequence.
 function emitWanderlustInitial(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -487,6 +511,7 @@ function emitWanderlustInitial(
     metadata: spiritMetadata(context, 'wanderlust', 'initial')
   });
   emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
+  // The lingering field applies its later conditions on their own observed offsets.
   emitSkillCondition(context, skill, {
     at: fieldAt,
     source: 'Spirit',
@@ -516,6 +541,7 @@ function emitWanderlustInitial(
   });
 }
 
+// Activate or replace one spirit, publish shared summon traits, and schedule its unique opening sequence.
 function summonSpirit(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -535,12 +561,14 @@ function summonSpirit(
     state.pendingSoulTwistSkill = skill.id;
   }
 
+  // Shared state, trait reactions, and party boons observe the summon before spirit-specific attacks begin.
   emitStateSnapshot(context, 'necromancer', at, 'spirit-summoned', snapshotNecromancerState(context.state.profession), {
     dedupeAcrossSourceIds: true
   });
   runCreatureSummonReactions(context, skill, at);
   emitEmpoweringSpirits(context, skill, spirit.key);
 
+  // Each spirit owns a distinct opening payload, followed by the same autonomous attack loop.
   if (spirit.key === 'anguish') {
     emitAnguishInitial(context, skill, spirit, at);
   } else if (spirit.key === 'wanderlust') {
@@ -556,6 +584,7 @@ function summonSpirit(
   queueSpiritAutoattacks(context, skill, spirit, at);
 }
 
+// Trigger the active spirits' coordinated attacks without reviving or interrupting unavailable spirits.
 function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
   const state = ritualistState.from(context);
   for (const spiritId of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
@@ -606,6 +635,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
   });
 }
 
+// Dispatch Ritualist profession casts to Essence Blast, coordinated spirit attacks, or a spirit summon.
 function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = ritualistState.from(context);
   const at = context.effectiveEnd;
@@ -692,6 +722,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
     return false;
   }
 
+  // Every recognized Innervate restores the same life force and publishes the resulting state.
   gainNecromancerLifeForce(context, 10, at);
   emitStateSnapshot(context, 'necromancer', at, 'innervate', snapshotNecromancerState(context.state.profession), {
     dedupeAcrossSourceIds: true
@@ -699,6 +730,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
   return true;
 }
 
+/** Exposes Ritualist profession-skill and Innervate casts through the shared skill-handler contract. */
 export const necromancerSpiritSkillHandlers = Object.freeze({
   'necromancer.ritualist': ritualist,
   'necromancer.innervate': innervate

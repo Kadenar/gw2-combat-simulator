@@ -1,9 +1,9 @@
-import { mirageState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+import { mirageState } from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { BalanceProfile, SchedulerState, SkillEffect, SkillId } from '../../../../../../platform/engine/types.js';
-import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { BalanceProfile, SchedulerState, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddCondition,
@@ -20,7 +20,7 @@ import type {
   MesmerRuntimeState,
   MesmerQueueResources,
   MesmerSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 interface MirageActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

@@ -1,11 +1,11 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { RangerResolverContext, RangerResolverEvent } from '../../../types.js';
-import { untamedState } from '../state.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect } from '../../../core/profiles.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
+import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
+import { rangerBalanceProfile, rangerBalanceProfileEffect } from '#gw2/content/professions/ranger/core/profiles.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);

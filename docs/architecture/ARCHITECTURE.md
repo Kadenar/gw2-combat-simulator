@@ -132,7 +132,7 @@ The normal author workflow is:
 3. Add the module to the profession's Core-first tuple in `modules.ts`.
 4. Export `assembleNativeApplicationCatalog(modules, options)` through the stable root `catalog.ts`; do not hand-build
    runtime fragments.
-5. Keep browser persistence and rendering composition in `app/app-definition`, separate from the engine-facing family
+5. Keep browser persistence and rendering composition in `app/app-definition`, separate from the engine-facing
    definition.
 
 Every native profession otherwise uses the same source roles:
@@ -152,12 +152,12 @@ Every native profession otherwise uses the same source roles:
 - Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
   `mechanics.ts`); families do not use mixed
   profession-wide runtime aggregates.
-- `data/catalog.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
+- `catalog/module-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
-- owner-local skill modules or focused handler modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
-  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application catalog
-  is assembled from module contributions.
+- Owner-local `skills/execution.ts` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
+  cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application
+  catalog is assembled from module contributions.
 
 Profession-specific state machines remain in named feature modules beside these boundaries. Skill entries reference
 those handlers explicitly. The repeatable module authoring and migration requirements are defined in

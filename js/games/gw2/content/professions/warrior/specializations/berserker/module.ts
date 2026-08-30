@@ -1,12 +1,16 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createWarriorModuleData } from '../../data/catalog.js';
-import { BERSERKER_SKILL_MECHANICS } from './skills/index.js';
-import { berserkerSkillHandlers } from './skills/handlers.js';
-import { berserkerAttributeRules, berserkerCastRules, berserkerSchedulerHooks } from './mechanics/berserk-rules.js';
-import { berserkerState } from './state.js';
-import { berserkerUi } from './presentation.js';
-import { berserkerReactions } from './mechanics/berserk-effects.js';
-import { BERSERKER_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createWarriorModuleData } from '#gw2/content/professions/warrior/catalog/module-data.js';
+import { BERSERKER_SKILL_MECHANICS } from '#gw2/content/professions/warrior/specializations/berserker/skills/index.js';
+import { berserkerSkillHandlers } from '#gw2/content/professions/warrior/specializations/berserker/skills/execution.js';
+import {
+  berserkerAttributeRules,
+  berserkerCastRules,
+  berserkerSchedulerHooks
+} from '#gw2/content/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
+import { berserkerState } from '#gw2/content/professions/warrior/specializations/berserker/state.js';
+import { berserkerUi } from '#gw2/content/professions/warrior/specializations/berserker/presentation.js';
+import { berserkerReactions } from '#gw2/content/professions/warrior/specializations/berserker/mechanics/berserk-effects.js';
+import { BERSERKER_BALANCE_PROFILES } from '#gw2/content/professions/warrior/specializations/berserker/profiles.js';
 
 export const berserkerModule = defineNativeModule({
   id: 'Berserker',

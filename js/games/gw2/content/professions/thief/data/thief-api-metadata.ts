@@ -2,11 +2,8 @@
 // Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Thief to refresh.
 // Simulator mechanics are maintained under thief/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { ThiefSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 export type ThiefApiTrait = Gw2ApiTrait;
 export type ThiefApiSpecialization = Gw2ApiSpecialization;

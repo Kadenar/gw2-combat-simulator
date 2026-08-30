@@ -1,10 +1,10 @@
-import { GEAR_SLOTS } from '../../../../platform/equipment/gear/stats.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { necromancerCatalog } from '../catalog.js';
-import type { NecromancerCanonicalBuild } from '../types.js';
-import { createProfessionBuildCodec } from '../../lib/build-codec.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
+import type { NecromancerCanonicalBuild } from '#gw2/content/professions/necromancer/types.js';
+import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 /**
  * Necromancer persisted-build definition.
@@ -18,10 +18,10 @@ import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
 export const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
 export const NECROMANCER_PROFESSION_ID = 'necromancer';
 
+/** Re-exports the shared default target-condition factory through the Necromancer build contract. */
 export { createDefaultTargetConditions };
 
-// Seed a complete, schema-current Necromancer preset including shroud resources,
-// spear shards, assumptions, equipment, and selected skills.
+/** Creates the schema-current Necromancer preset used for new builds and migration fallbacks. */
 export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
   return {
     schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
@@ -90,6 +90,9 @@ const necromancerBuildCodec = createProfessionBuildCodec<NecromancerCanonicalBui
   }
 });
 
+/** Migrates persisted Necromancer builds to the current canonical schema. */
 export const migrateNecromancerBuild = necromancerBuildCodec.migrateBuild;
+/** Validates a Necromancer build against the canonical schema and resource constraints. */
 export const validateNecromancerBuild = necromancerBuildCodec.validateBuild;
+/** Converts a canonical Necromancer build into the shape consumed by the application runtime. */
 export const toApplicationBuild = necromancerBuildCodec.toApplicationBuild;

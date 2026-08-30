@@ -1,13 +1,13 @@
-import { antiquaryState } from '../state.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from '../../../core/mechanics/resource-events.js';
-import { pilferArtifacts } from './artifacts.js';
-import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../../types.js';
-import { thiefBalanceProfile } from '../../../core/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import { pilferArtifacts } from '#gw2/content/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
+import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 export function advanceAntiquaryResources(context: ThiefSchedulerContext, target: number): void {
   const state = antiquaryState.from(context);

@@ -1,7 +1,8 @@
-import type { RitualistState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { registerNecromancerStatePreserver } from '../../core/mechanics/state-reconciliation.js';
+import type { RitualistState } from '#gw2/content/professions/necromancer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { registerNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
+/** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
 export function createRitualistState(): RitualistState {
   const state: RitualistState = {
     activeSpirits: {},

@@ -1,16 +1,27 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistPrecastContext } from '../../../types.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../../core/state.js';
-import { activeHammerOrbElements } from '../../../core/skills/hammer.js';
-import { activeBuffEvents, skillWeapon } from '../../../core/mechanics/effects.js';
+/**
+ * Weaver-side runtime behaviour for the hammer orbs that dual skills create and
+ * Grand Finale consumes; the cataloged hammer skill data lives in
+ * `skills/weapons/hammer.ts`.
+ */
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistPrecastContext
+} from '#gw2/content/professions/elementalist/types.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  type ElementalistAttunement
+} from '#gw2/content/professions/elementalist/core/state.js';
+import { activeHammerOrbElements } from '#gw2/content/professions/elementalist/core/skills/hammer.js';
+import { activeBuffEvents, skillWeapon } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceValue
-} from '../../../core/profiles.js';
-import { weaverDualAttunements } from './index.js';
-import { weaverState } from '../state.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
+import { weaverState } from '#gw2/content/professions/elementalist/specializations/weaver/state.js';
 
 /** Creates and refreshes the two hammer orbs granted by a Weaver dual skill. */
 export function applyWeaverHammerState(context: ElementalistCastContext, skill: Skill): void {
@@ -20,6 +31,8 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const orbDuration = elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier', 15);
+  // Any orb still alive is extended to the new full duration, including the
+  // buff events already placed on the timeline.
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
     const expiresAt = state.hammerOrbs[element];
@@ -30,6 +43,8 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
     }
   }
 
+  // The cast's own pair is (re)created and attributed to this activation; the
+  // buff is only emitted for an element that was not already orbiting.
   for (const element of elements) {
     state.hammerOrbs[element] = at + orbDuration;
     state.hammerOrbGrantedBy[element] = skill.name;
@@ -61,6 +76,7 @@ export function weaverHammerAvailability(
   const elements = weaverDualAttunements(skill);
   if (!elements) return null;
   const state = professionCoreState(context);
+  // Every dual hammer skill shares one short lockout after the last orb cast.
   const retryAt =
     state.hammerOrbLastCastAt + elementalistBalanceValue(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
   if (retryAt > context.start + context.epsilon) {
@@ -83,6 +99,7 @@ export function weaverHammerAvailability(
     };
   }
 
+  // Final gate: the skill's element pair must match the two attuned hands.
   const secondary = weaverState.from(context).secondaryAttunement || state.primaryAttunement;
   return elements.includes(state.primaryAttunement) && elements.includes(secondary)
     ? { ready: true }

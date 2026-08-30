@@ -1,18 +1,21 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onConditionApplied,
   onResolvedControl,
   onResolvedDamage
-} from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../data/catalog.js';
-import { reaperResolverEventReactions } from './mechanics/shroud-effects.js';
-import { reaperAttributeRules, reaperCastRules, reaperSchedulerHooks } from './mechanics/reaper-shroud.js';
-import { reaperState } from './state.js';
-import { reaperUi } from './presentation.js';
-import { REAPER_BASE_SKILL_MECHANICS } from './skills/index.js';
-import { reaperSkillHandlers } from './skills/handlers.js';
-import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
-import { REAPER_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
+import { reaperResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/reaper/mechanics/shroud-effects.js';
+import {
+  reaperAttributeRules,
+  reaperCastRules,
+  reaperSchedulerHooks
+} from '#gw2/content/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
+import { reaperState } from '#gw2/content/professions/necromancer/specializations/reaper/state.js';
+import { reaperUi } from '#gw2/content/professions/necromancer/specializations/reaper/presentation.js';
+import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/reaper/skills/index.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import { REAPER_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
 
 export const reaperModule = defineNativeModule({
   id: 'Reaper',
@@ -29,7 +32,6 @@ export const reaperModule = defineNativeModule({
   mechanics: {
     modifiers: reaperAttributeRules,
     execution: {
-      skillHandlers: reaperSkillHandlers,
       castRules: reaperCastRules,
       hooks: reaperSchedulerHooks
     },

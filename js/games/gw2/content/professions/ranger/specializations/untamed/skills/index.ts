@@ -1,6 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Untamed Ranger module. */
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';

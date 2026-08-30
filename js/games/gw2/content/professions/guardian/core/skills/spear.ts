@@ -1,18 +1,22 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
  * applies its conditional damage changes to scheduler events.
  */
 
-import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
-import { buildGuardianStrike } from '../mechanics/event-handlers.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
+import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import {
   GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
   guardianBalanceProfile,
   guardianBalanceProfileEffect
-} from '../profiles.js';
-import type { SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
-import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../../types.js';
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  GuardianCastContext,
+  GuardianSchedulerContext,
+  GuardianSkill
+} from '#gw2/content/professions/guardian/types.js';
 
 type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 

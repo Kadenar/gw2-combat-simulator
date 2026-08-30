@@ -1,18 +1,23 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { activeBoonStacks } from '../../../core/traits/query-helpers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { SchedulerRecord, SimulationEvent } from '../../../../../../platform/engine/types.js';
-import type { EngineerMaximumAmmoContext, EngineerSchedulerContext, EngineerSkill } from '../../../types.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { scrapperState } from '../state.js';
-import { applyScrapperCastTraits } from './index.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { activeBoonStacks } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type {
+  EngineerMaximumAmmoContext,
+  EngineerSchedulerContext,
+  EngineerSkill
+} from '#gw2/content/professions/engineer/types.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import { scrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
+import { applyScrapperCastTraits } from '#gw2/content/professions/engineer/specializations/scrapper/traits/index.js';
 
+/** Determines whether a predicted combo may emit Kinetic Accelerators boons and consumes the whirl ICD. */
 function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, event: SimulationEvent): boolean {
   if (
     !hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS) ||
@@ -34,6 +39,7 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
   return true;
 }
 
+/** Materializes Kinetic Accelerators' boon packets when a qualifying predicted combo is scheduled. */
 function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
   if (!kineticAcceleratorsTriggerAllowed(context, event)) return;
   const sourceSkill =

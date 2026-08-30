@@ -1,10 +1,10 @@
-import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { deadeyeCastAvailability } from './mechanics/availability.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from './mechanics/malice.js';
-import { deadeyeWeaponSkillMatchesSet } from './skills/weapons.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { deadeyeCastAvailability } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/availability.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeWeaponSkillMatchesSet } from '#gw2/content/professions/thief/specializations/deadeye/skills/weapons.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;

@@ -1,16 +1,20 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onBuffApplied,
   onConditionApplied,
   onResolvedControl,
   onResolvedDamage
-} from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../../data/catalog.js';
-import { soulbeastSkillHandlers } from './skills/handlers.js';
-import { soulbeastAttributeRules, soulbeastCastRules, soulbeastSchedulerHooks } from './mechanics/beastmode.js';
-import { SOULBEAST_BASE_SKILL_MECHANICS } from './skills/index.js';
-import { soulbeastState } from './state.js';
-import { bindSoulbeastUi } from './presentation.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
+import { soulbeastSkillHandlers } from '#gw2/content/professions/ranger/specializations/soulbeast/skills/execution.js';
+import {
+  soulbeastAttributeRules,
+  soulbeastCastRules,
+  soulbeastSchedulerHooks
+} from '#gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/soulbeast/skills/index.js';
+import { soulbeastState } from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
+import { bindSoulbeastUi } from '#gw2/content/professions/ranger/specializations/soulbeast/presentation.js';
 import {
   reactToRangerWinterBite,
   reactToSoulbeastBuff,
@@ -18,8 +22,8 @@ import {
   reactToSoulbeastControl,
   reactToSoulbeastDamage,
   soulbeastEventHandlers
-} from './mechanics/beastmode-effects.js';
-import { SOULBEAST_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { SOULBEAST_BALANCE_PROFILES } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
 
 export const soulbeastModule = defineNativeModule({
   id: 'Soulbeast',

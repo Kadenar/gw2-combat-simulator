@@ -1,42 +1,51 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
+/**
+ * Scheduler-side Catalyst mechanics.
+ *
+ * Owns Jade Sphere energy (spent on deployment, regained from damaging hits), the
+ * per-attunement sphere windows and their Spectacular Sphere / Sphere Specialist
+ * payouts, Elemental Empowerment stack bookkeeping and the attribute bonus it
+ * grants, the augment mechanic handlers, and the scheduler-side trait procs.
+ *
+ * The resolver counterparts live in `mechanics/reactions.ts`.
+ */
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
   SchedulerRecord,
   SimulationEvent,
   Skill
-} from '../../../../../../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import {
-  professionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../../platform/engine/profession/state.js';
-import type { Gw2ModifierContext } from '../../../../../../platform/combat/modifiers/types.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { grantEndurance } from '../../../../../../platform/combat/resources/endurance.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { applyElementalistAura } from '../../../core/mechanics/execution.js';
-import { elementalistEventSkill } from '../../../core/mechanics/effects.js';
-import type { ElementalistAttunement } from '../../../core/state.js';
-import type { CatalystEmpowermentPool } from '../../../types.js';
+  applyElementalistAura,
+  elementalistEventSkill
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import type { ElementalistAttunement } from '#gw2/content/professions/elementalist/core/state.js';
+import type { CatalystEmpowermentPool } from '#gw2/content/professions/elementalist/types.js';
 import type {
   ElementalistCastContext,
   ElementalistPrecastContext,
   ElementalistSchedulerContext
-} from '../../../types.js';
+} from '#gw2/content/professions/elementalist/types.js';
 import {
   CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS,
   CATALYST_MAXIMUM_ENERGY,
   catalystState,
   grantCatalystElementalEmpowerment
-} from '../state.js';
-import { catalystModifierRules } from '../traits/modifiers.js';
+} from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
+import { catalystModifierRules } from '#gw2/content/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue
-} from '../../../core/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
 const SPHERE_COST = 10;
 const SPHERE_SPECIALIST_DURATION_MULTIPLIER = 1.5;
@@ -61,6 +70,7 @@ function maximumEmpowerment(context: unknown): number {
   );
 }
 
+// Adopt the balance-profile energy cap before the fight and clamp any seeded energy to it.
 function initialize(context: ElementalistSchedulerContext): void {
   const state = catalystState.from(context);
   state.maximumEnergy = maximumEnergy(context);
@@ -90,11 +100,15 @@ function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: Sched
     CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS
   );
   const stacks = Math.min(maximumStacks, timedStacks);
+  // Empowered Empowerment replaces flat per-stack scaling with a coefficient ramp,
+  // paying the full conversion only once every stack is up.
   const multiplier = hasTrait(context, 'Empowered Empowerment')
     ? stacks === maximumStacks
       ? elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'attributeConversion', 0.2)
       : stacks * elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'coefficientMultiplier', 0.015)
     : stacks * elementalistBalanceValue(context, PROFILE.elementalEmpowerment, 'attributePerStack', 0.01);
+  // The build may pin the attribute pool the bonus is computed from; otherwise the
+  // incoming resolved attributes are used.
   const pool = context.config?.catalystEmpowermentPool as Partial<CatalystEmpowermentPool> | undefined;
   const modified = { ...attributes };
 
@@ -108,6 +122,8 @@ function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: Sched
   return modified;
 }
 
+// Jade Sphere deployment requires the matching attunement and the profile energy
+// cost; every other skill passes through untouched.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
   const state = catalystState.from(context);
@@ -157,6 +173,9 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
     maximum: maximumEnergy(context),
     change: -sphereCost
   });
+  // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
+  // Both are stretched by Sphere Specialist here and flagged so afterCast does not
+  // scale them a second time.
   if (hasTrait(context, 'Spectacular Sphere')) {
     const durationMultiplier = hasTrait(context, 'Sphere Specialist')
       ? elementalistBalanceValue(
@@ -222,6 +241,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
     return;
   }
 
+  // Only this activation's unflagged buffs are stretched; anything already scaled at
+  // cast start is skipped.
   for (const event of context.events) {
     if (
       event.activationId === context.reservationId &&
@@ -242,6 +263,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
+// Relentless Fire's damage window is the longer profile duration while the Fire
+// Jade Sphere is still active, and the shorter one otherwise.
 function activateRelentlessFire(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
   emitSkillBuff(context, {
@@ -259,6 +282,7 @@ function activateRelentlessFire(context: ElementalistSchedulerContext, skill: Sk
   });
 }
 
+// Opens the Shattering Ice proc window, extended while the Water Jade Sphere is up.
 function activateShatteringIce(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
   const duration =
@@ -297,6 +321,7 @@ function activateElementalCelerity(context: ElementalistSchedulerContext, skill:
     }
   }
 
+  // Each element contributes its boon only while that element's sphere is still active.
   const boons: readonly (readonly [ElementalistAttunement, string, number, number])[] = [
     ['Fire', 'might', 5, 6],
     ['Water', 'vigor', 1, 6],
@@ -355,6 +380,7 @@ export const catalystSkillMechanicHandlers = Object.freeze({
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
   const core = professionCoreState(context);
+  // Every aura gained adds an Empowering Auras stack buff.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
     const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
     const source = String(event.skillName || event.source || 'Aura');
@@ -371,6 +397,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     });
   }
 
+  // Elemental Empowerment's baseline stacks begin at combat start; without an explicit
+  // combat_start the first offensive player/summon event stands in for it.
   const implicitCombatEvent =
     !context.hasExplicitCombatStart &&
     ['player', 'summon'].includes(String(event.actorType || '')) &&
@@ -385,6 +413,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     });
   }
 
+  // Untracked empowerment buffs are folded into the timed stack list; buffs already
+  // flagged as tracked were counted when this module emitted them.
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'elemental empowerment' &&
@@ -403,6 +433,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     return;
   }
 
+  // Elemental Epitome's other half: an aura gain also grants an empowerment stack.
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
     const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
     const source = String(event.skillName || event.source || 'Elemental Epitome');
@@ -420,6 +451,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     return;
   }
 
+  // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement' && hasTrait(context, 'Energized Elements')) {
     const before = state.energy;
     const energyGain = elementalistBalanceValue(context, PROFILE.energizedElements, 'resourceGain', 2);
@@ -453,6 +485,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     return;
   }
 
+  // Combo finishers drive Elemental Epitome's aura and Elemental Synergy's payout,
+  // each on its own per-attunement internal cooldown.
   if (event.type === 'combo') {
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
     if (
@@ -513,6 +547,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     return;
   }
 
+  // Player control effects and immobilize feed Vicious Empowerment through a task so
+  // the internal cooldown is evaluated in scheduler order.
   const immobilize =
     event.type === 'condition' && ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
   if (
@@ -527,6 +563,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     });
   }
 
+  // Anything left that is a damaging non-summon hit earns energy; the task is attributed
+  // to the owning activation.
   if (event.type !== 'damage' || event.actorType === 'summon' || !(Number(event.coefficient) > 0)) {
     return;
   }
@@ -542,6 +580,8 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   });
 }
 
+// Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless
+// Sphere Specialist is taken.
 function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const state = catalystState.from(context);
   if (task.at < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
@@ -566,6 +606,8 @@ function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: Sc
   });
 }
 
+// Folds an observed empowerment buff into the timed stack list at its original
+// application time rather than the time the task runs.
 function handleCatalystEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   grantCatalystElementalEmpowerment(
     catalystState.from(context),
@@ -612,6 +654,7 @@ function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: Sche
     duration,
     elementalEmpowermentTracked: true
   });
+  // Re-arm at expiry so the baseline stacks behave as permanent for the whole fight.
   context.tasks.schedule({
     type: CATALYST_BASE_EMPOWERMENT_TASK,
     at: at + duration,
@@ -621,6 +664,8 @@ function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: Sche
   });
 }
 
+// Grants the Vicious Empowerment stacks for a control or immobilize proc, ignoring
+// pre-combat events and honouring the shared internal cooldown.
 function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
   if (context.combatStartTime != null && at < context.combatStartTime) return;
@@ -639,6 +684,10 @@ function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: S
   );
 }
 
+/**
+ * Cast-time Catalyst rules: the Jade Sphere availability gate and the Elemental
+ * Enchantment recharge reduction applied to sphere cooldowns.
+ */
 export const catalystCastRules = Object.freeze({
   availability: {
     id: 'elementalist.catalyst-availability',
@@ -651,11 +700,17 @@ export const catalystCastRules = Object.freeze({
       : duration
 });
 
+/** Catalyst attribute contributions: the Elemental Empowerment bonus plus the trait damage modifiers. */
 export const catalystAttributeRules = Object.freeze({
   modifyAttributes: modifyCatalystAttributes,
   modifierRules: catalystModifierRules
 });
 
+/**
+ * Scheduler wiring for Catalyst: energy setup, sphere spend and Sphere Specialist
+ * scaling around a cast, the event listener that drives energy and trait procs, and
+ * the deferred task handlers those procs schedule.
+ */
 export const catalystSchedulerHooks = Object.freeze({
   initialize: {
     id: 'elementalist.catalyst-initialize',

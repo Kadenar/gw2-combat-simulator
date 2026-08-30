@@ -29,14 +29,14 @@ content/professions/<profession>/
   definition.ts
   modules.ts
   catalog.ts
+  catalog/
+    module-data.ts
   build/
     build.ts
     attributes.ts
   data/
-    catalog.ts
     ... generated/static inputs
-  state/
-    index.ts
+  state.ts | state/
   core/
     module.ts
     state.ts
@@ -77,9 +77,10 @@ ownership and encourage duplicate definitions.
 
 Ranger is the first profession migrated to the target model. Its layout demonstrates the intended asymmetry:
 
-- Core skills are grouped in `core/skills/`; the large canonical skill catalog remains one `index.ts`, while cast
-  handlers and hammer-specific helpers have explicit homes beside it.
-- Core trait modifiers and cast rules live in `core/traits/modifiers.ts`.
+- Core skills are grouped by weapon or family in `core/skills/`; scheduler activation registries live in
+  `skills/execution.ts`, and hammer-specific helpers stay beside their declarations.
+- Core trait behavior is split into named line owners such as `marksmanship.ts`, `skirmishing.ts`,
+  `wilderness-survival.ts`, and `beastmastery.ts`; shared modifiers and cast rules remain in `modifiers.ts`.
 - Pets, resource advancement, weapon state, event reactions, and availability live in `core/mechanics/` because they
   are profession systems rather than a single skill or trait.
 - Specialization mechanics use GW2 concept names such as `mechanics/celestial-avatar.ts`, `mechanics/beastmode.ts`,
@@ -91,24 +92,22 @@ cast and scheduling behavior under `mechanics.execution`, and registers reaction
 `mechanics.resolution`. Skill handlers are registered only through `mechanics.execution.skillHandlers`; canonical
 skill mechanics remain in the owner-local skill definition module.
 
-The Core execution hook file is deliberately a composition adapter. It coordinates several Core concepts for the
-scheduler but does not become a second owner for pets, resources, traits, or weapons. Resolution implementations stay
-with their owning concept and are only assembled by `module.ts`.
+Core scheduler hooks are assembled directly by `module.ts`; their implementations remain in pets, resources, traits,
+skills, and weapon concepts. Resolution implementations likewise stay with their owners.
 
 ## Guardian and Necromancer layouts
 
 Guardian and Necromancer follow the reference principles without copying Ranger's exact directories:
 
 - Guardian puts virtues, Justice reactions, weapon state, and specialization systems such as tomes and Radiant Forge
-  under `mechanics/`. Mantras and spear behavior stay with `skills/`. Guardian's Core execution adapter composes
-  spear, weapon, and trait hooks while their implementations remain with their semantic owners.
+  under `mechanics/`. Mantras and spear behavior stay with `skills/`; `module.ts` composes their phase contributions.
 - Necromancer groups life force, shroud lifecycle, minions, conditions, and state reconciliation under `mechanics/`.
-  Weapon and flip handlers stay under `skills/`. Elite mechanics have explicit homes for Blight, Reaper Shroud,
+  Weapon and flip activation behavior stays under `skills/`. Elite mechanics have explicit homes for Blight, Reaper Shroud,
   spirits, Soul Shards, and shades.
 - Both professions use `mechanics.execution` and `mechanics.resolution` exclusively at the module boundary. Their
   canonical skill mechanics remain in owner-local `skills/index.ts` files and are not duplicated by phase.
 
-Concept names are preferred over `rules.ts` and `resolver.ts`, but a concept may still contain several coordinated
+Concept names replace retired `rules.ts` and `resolver.ts` owners, but a concept may still contain several coordinated
 behaviors. For example, `mechanics/tomes-and-mantras.ts` assembles Firebrand scheduling policy while the canonical
 Tome and Mantra implementations stay in `mechanics/tomes.ts` and `skills/mantras.ts`.
 
@@ -141,13 +140,13 @@ many otherwise independent skills:
   hammer orbs, and pistol bullets remain beside the skills that create them. Catalyst Jade Sphere and Elemental
   Empowerment, Tempest overloads, Weaver dual attunements, and Evoker familiars each have specialization-local
   mechanic homes.
-- Revenant keeps canonical skill declarations and handlers under `skills/`, trait formulas under `traits/`, and
+- Revenant keeps canonical skill declarations and activation behavior under `skills/`, trait formulas under `traits/`, and
   Energy, legend swap, upkeep, and weapon state under Core `mechanics/`. Herald facets, Renegade's Kalla systems,
   Vindicator Alliance/dodge behavior, and Conduit affinity/forms and Bolstered Bonds remain owned by their
   specializations.
 - Revenant's Energy cost dispatcher remains at the profession root because it deliberately composes Core costs with
   active-specialization adjustments. Declarative legend legality lives in `data/legends.ts`, while the application
-  loadout adapter lives in `build/legend-loadout.ts`.
+  loadout adapter lives in `app/legend-loadout.ts`.
 
 Both profession families register scheduler and resolver behavior exclusively through phase-scoped module sections.
 Their module files are the visible adapters between concept-owned implementations and the phase-oriented engine.
@@ -157,17 +156,16 @@ Their module files are the visible adapters between concept-owned implementation
 Mesmer retains its existing controller-based runtime because those controllers already preserve a single authoritative
 definition for each skill and specialization mechanic. The migration makes their ownership discoverable:
 
-- Core skill declarations, handlers, damage materialization, and special-effect handling live under `skills/`.
-  Clone attacks, phantasms, shatters, illusion resources, availability, event materialization, and shared runtime
-  composition live under `mechanics/`.
-- `core/mechanics/execution.ts` is an explicit scheduler adapter. It composes concept-owned controllers but does not
-  become a second definition of their skills or mechanics. Core resolver reactions are assembled separately from
-  `core/mechanics/reactions.ts`.
+- Core skill declarations, activation behavior, cast lifecycle, recharge, damage materialization, and special-effect
+  handling live under `skills/`. Clone attacks, phantasms, illusion resources, event materialization, and scheduler
+  coordination share the named `mechanics/illusions/` concept; shatters and availability retain their focused files.
+- `core/module.ts` assembles the illusion hooks with skill- and trait-owned contributions. Core resolver reactions are
+  assembled separately from `core/mechanics/reactions.ts`.
 - Chronomancer owns Continuum Split and Time Bomb under its mechanic directory. Mirage owns Mirage Cloak and ambush
   behavior. Virtuoso owns blades and Bladesongs while Deadly Blades and shatter trait reactions remain under
   `traits/`. Troubadour owns instruments, notes, and tales under its mechanic directory.
-- Family-level skill-handler selection remains a cross-slice adapter at `mechanics/skill-handlers.ts`; shared public
-  resource projection now lives beside the other profession state composition in `state/resources.ts`.
+- Shared public resource projection lives beside the other multi-file Mesmer state composition in
+  `state/resources.ts`.
 
 All nine profession families now use only `mechanics.execution` and `mechanics.resolution` to register phase behavior.
 
@@ -195,13 +193,15 @@ The repository enforces the stable boundaries without adding an architecture-too
 
 - TypeScript exposes only `mechanics.execution` and `mechanics.resolution` as native phase registration surfaces.
 - Runtime authoring validation rejects retired JavaScript fields and reports their replacement paths.
-- ESLint prevents execution/scheduler internals from importing resolution/resolver internals, and vice versa.
+- ESLint prevents execution/scheduler internals from importing resolution/resolver internals, and vice versa, and
+  prevents neutral engine modules from importing profession content or application code.
 - ESLint prevents profession `skills/`, `traits/`, `mechanics/`, `state`, and `data/` modules from importing application
   code. Build and presentation adapters are excluded because they intentionally translate UI configuration.
-- Architecture tests prohibit mirrored phase directories and generic `rules.ts`, `rule-helpers.ts`, `scheduler.ts`, and
-  `resolver.ts` ownership files inside profession content.
+- Architecture tests prohibit mirrored phase directories and generic `handlers.ts`, `rules.ts`, `rule-helpers.ts`,
+  `scheduler.ts`, and `resolver.ts` ownership files inside profession content.
 - Architecture tests prevent Core from importing elite-specialization content and prevent one elite specialization
-  from importing another. Profession-root family adapters remain the explicit place for cross-slice composition.
+  from importing another, including through `#gw2/*` aliases. They also enforce the folded `definition.ts`,
+  `catalog/module-data.ts`, asymmetric root state layout, declarative data ownership, and leaf `module.ts` boundary.
 
 Concept modules are intentionally allowed to use scheduler and resolver primitives: a single concept can expose
 behavior to both phases. The enforced engine boundary and phase-explicit `module.ts` registration keep that cross-phase

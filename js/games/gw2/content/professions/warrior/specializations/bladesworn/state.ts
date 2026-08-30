@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { BladeswornState, WarriorConfig } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { BladeswornState, WarriorConfig } from '#gw2/content/professions/warrior/types.js';
 
 export function createBladeswornState(config: WarriorConfig = {}): BladeswornState {
   return {

@@ -1,4 +1,4 @@
-import type { ThiefSummonDefinition } from '../../../types.js';
+import type { ThiefSummonDefinition } from '#gw2/content/professions/thief/types.js';
 
 // Daredevil replaces the third Thieves Guild summon with its staff-wielding specialist.
 export const DAREDEVIL_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze({

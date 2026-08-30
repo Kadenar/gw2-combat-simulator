@@ -1,18 +1,18 @@
-import { emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gw2RechargeRate } from '../../../../../../platform/combat/query/runtime-rules.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { warriorBoonRemovalCounts } from '../../../core/mechanics/reactions.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../../core/profiles.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { spellbreakerState } from '../state.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2RechargeRate } from '#gw2/platform/combat/query/runtime-rules.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/reactions.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
+import { spellbreakerState } from '#gw2/content/professions/warrior/specializations/spellbreaker/state.js';
 import type {
   WarriorResolverContext,
   WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent
-} from '../../../types.js';
+} from '#gw2/content/professions/warrior/types.js';
 
 // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
 const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);

@@ -1,6 +1,6 @@
-import type { BalanceProfile } from '../../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 
 export const SPECTER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'thief.specter.resources',

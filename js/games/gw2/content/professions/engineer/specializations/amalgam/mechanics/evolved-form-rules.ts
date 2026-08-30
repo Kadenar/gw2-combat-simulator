@@ -1,23 +1,30 @@
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState,
   cloneEngineerAttributes,
   eventSkill
-} from '../../../core/traits/query-helpers.js';
-import { applyEngineerSharpshooterConditionDamage } from '../../../core/traits/modifiers.js';
-import { engineerBalanceValue } from '../../../core/profiles.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { amalgamCastAvailability } from './availability.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { EngineerEvolveAttributePool, EngineerMaximumAmmoContext } from '../../../types.js';
-import { handleMercurialTendencies, observeAmalgamScheduledEvent } from './evolved-form.js';
+} from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
+import { applyEngineerSharpshooterConditionDamage } from '#gw2/content/professions/engineer/core/traits/modifiers.js';
+import { engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/amalgam/profiles.js';
+import { amalgamCastAvailability } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/availability.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  EngineerEvolveAttributePool,
+  EngineerMaximumAmmoContext
+} from '#gw2/content/professions/engineer/types.js';
+import {
+  handleMercurialTendencies,
+  observeAmalgamScheduledEvent
+} from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 
+/** Registers scheduled-event observation and deferred Mercurial Tendencies execution. */
 export const amalgamSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'engineer.amalgam-events',
@@ -43,10 +50,12 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
   ['healingPower', 'Healing Power']
 ] as const);
 
+/** Limits Morph-only modifiers to eligible player strike packets from Morph skills. */
 function morphStrike(context: Gw2ModifierContext): boolean {
   return Boolean(isGw2PlayerModifierEligibleEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
 }
 
+/** Defines Amalgam's event-level strike, condition, and duration modifiers. */
 export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'engineer.willing-host',
@@ -87,6 +96,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
+/** Applies Evolve and Titanic bonuses before finalizing Sharpshooter's replacement attribute. */
 function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
@@ -118,19 +128,20 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
   return modified;
 }
 
-// Double Helix upgrades Evolve from a single-charge to a 2-ammo skill, which
-// lets it store a second use while on cooldown.
+/** Upgrades Evolve to two ammo with Double Helix without reducing a larger authored maximum. */
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
   return context.skill?.name === 'Evolve' && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(engineerBalanceValue(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
     : maximum;
 }
 
+/** Exposes Amalgam's aggregate attribute transformation and packet modifier rules. */
 export const amalgamAttributeRules = Object.freeze({
   modifyAttributes: modifyAmalgamAttributes,
   modifierRules: amalgamModifierRules
 });
 
+/** Exposes Amalgam cast availability and ammo-capacity rules to the scheduler. */
 export const amalgamCastRules = Object.freeze({
   availability: {
     id: 'engineer.amalgam-availability',

@@ -1,16 +1,21 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { emitSkillCondition } from '../../../../../platform/scheduler/skill-events.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from './resource-events.js';
-import type { ThiefCastContext, ThiefCoreState, ThiefSkill, ThiefStealthAttackChargeState } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import type {
+  ThiefCastContext,
+  ThiefCoreState,
+  ThiefSkill,
+  ThiefStealthAttackChargeState
+} from '#gw2/content/professions/thief/types.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '../profiles.js';
+} from '#gw2/content/professions/thief/core/profiles.js';
 
 // Consume either active stealth or a specialization-granted attack charge, then
 // apply leave-stealth traits and Revealed from one cast-start transition.

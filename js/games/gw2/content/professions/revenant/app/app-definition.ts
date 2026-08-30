@@ -2,11 +2,11 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { applyRevenantBuildAttributeRules } from '../build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
-import { revenantProfession } from '../definition.js';
-import type { RevenantApplicationBuild } from '../types.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { applyRevenantBuildAttributeRules } from '#gw2/content/professions/revenant/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/revenant/build/build.js';
+import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import type { RevenantApplicationBuild } from '#gw2/content/professions/revenant/types.js';
 
 // Exposes Revenant only through the shared browser application contract.
 export const revenantAppAdapter = defineProfessionApp({

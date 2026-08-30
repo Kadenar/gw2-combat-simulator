@@ -1,9 +1,9 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** @fileoverview Tracks Guardian temporary weapon-flip availability. */
 
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import type { GuardianCastContext, GuardianSkill } from '../../types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import type { GuardianCastContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 
 /**
  * Arms or consumes Guardian flip skills after a completed cast. Shared GW2

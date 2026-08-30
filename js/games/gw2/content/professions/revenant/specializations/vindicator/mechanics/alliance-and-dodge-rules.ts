@@ -1,32 +1,32 @@
-import { vindicatorState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { playerHealthFraction } from '../../../../../../platform/combat/query/runtime-query.js';
-import { grantEndurance } from '../../../../../../platform/combat/resources/endurance.js';
+import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
-import { denySkillCast as denyRevenantSkill } from '../../../../lib/availability.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../../core/traits/legend-invocation.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../../core/traits/modifiers.js';
-import { completeVindicatorDodge } from './dodge.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import { modifyVindicatorCastDuration, modifyVindicatorRechargeDuration } from '../traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2Stats } from '../../../../../../platform/equipment/types.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib/availability.js';
+import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { completeVindicatorDodge } from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/dodge.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import { modifyVindicatorCastDuration, modifyVindicatorRechargeDuration } from '#gw2/content/professions/revenant/specializations/vindicator/traits/index.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 // 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {

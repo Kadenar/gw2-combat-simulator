@@ -1,15 +1,19 @@
-import { emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import { advanceScheduledCriticalProc } from '../../../../../../platform/scheduler/critical-facts.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from '../../../core/profiles.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  mesmerBalanceProfile,
+  mesmerBalanceProfileEffect,
+  mesmerBalanceValue
+} from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerCastContext,
   MesmerSchedulerContext,
   MesmerSchedulerTask,
   MesmerShatterResolution
-} from '../../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerCastContext, resolution: MesmerShatterResolution): void {

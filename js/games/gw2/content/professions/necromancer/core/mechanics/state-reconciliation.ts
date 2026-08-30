@@ -8,6 +8,7 @@ export function registerNecromancerStatePreserver(state: object, preserver: Stat
   statePreservers.set(state, preserver);
 }
 
+/** Captures the registered specialization-state restore callback, or a no-op when none exists. */
 export function captureNecromancerStatePreserver(state: object): StateRestore {
   return statePreservers.get(state)?.() || (() => undefined);
 }

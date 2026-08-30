@@ -1,10 +1,10 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { defaultWeaponSkillMatchesSet } from '../../../../platform/equipment/weapons/skill-matcher.js';
-import { gw2ConfiguredWeaponSet } from '../../../../platform/equipment/weapons/loadout.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { RANGER_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
-import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
-import { RANGER_PETS } from '../data/ranger-pet-data.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/ranger/app/assumptions.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -15,10 +15,14 @@ import type {
   SchedulerRecord,
   Skill,
   SkillId
-} from '../../../../platform/engine/types.js';
-import type { RangerSkill, RangerUiContext, RangerUiSelection } from '../types.js';
-import { isRangerHammerVariant, normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './skills/hammer.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './mechanics/weapon-state.js';
+} from '#gw2/platform/engine/types.js';
+import type { RangerSkill, RangerUiContext, RangerUiSelection } from '#gw2/content/professions/ranger/types.js';
+import {
+  isRangerHammerVariant,
+  normalizeRangerHammerSkillIds,
+  RANGER_HAMMER_VARIANT_PAIRS
+} from '#gw2/content/professions/ranger/core/skills/hammer.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/content/professions/ranger/core/mechanics/weapon-state.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 

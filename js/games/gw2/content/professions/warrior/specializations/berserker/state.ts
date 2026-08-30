@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { BerserkerState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { BerserkerState } from '#gw2/content/professions/warrior/types.js';
 
 // kingOfFiresCriticalProgress accumulates fractional crit probability in
 // deterministic mode so that expected crits fire at the statistically correct rate.

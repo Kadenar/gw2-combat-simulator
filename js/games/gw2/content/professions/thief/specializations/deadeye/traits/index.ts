@@ -1,12 +1,12 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from '../../../core/mechanics/resource-events.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import type { ThiefCastContext, ThiefEmissionContext, ThiefSkill } from '../../../types.js';
-import { deadeyeState } from '../state.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../../core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import type { ThiefCastContext, ThiefEmissionContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
+import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
+import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 // Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {

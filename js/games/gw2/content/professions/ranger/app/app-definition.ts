@@ -1,10 +1,10 @@
-import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../../app/create-adapter.js';
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { applyRangerBuildAttributeRules } from '../build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
-import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
-import { rangerProfession } from '../definition.js';
-import type { RangerApplicationBuild } from '../types.js';
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { applyRangerBuildAttributeRules } from '#gw2/content/professions/ranger/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/ranger/build/build.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
+import type { RangerApplicationBuild } from '#gw2/content/professions/ranger/types.js';
 
 // Exposes Ranger only through the shared browser application contract.
 export const rangerAppAdapter = defineProfessionApp({

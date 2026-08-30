@@ -1,7 +1,7 @@
-import { vindicatorState } from '../state.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../../state/index.js';
+import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant dodge execution.
  *
@@ -9,14 +9,14 @@ import { snapshotRevenantState } from '../../../state/index.js';
  * state, and emits the selected dodge replacement's delayed strike from the
  * immutable profile in this specialization's mechanics module.
  */
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { emitSkillBuff, emitSkillDamage } from '../../../../../../platform/scheduler/skill-events.js';
-import { grantEndurance } from '../../../../../../platform/combat/resources/endurance.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { BalanceProfile } from '../../../../../../platform/engine/types.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../../../types.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
 function skillById(context: RevenantSchedulerContext, id: string | number): RevenantSkill | undefined {
   return context.catalog.skillsById.get(id);

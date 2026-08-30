@@ -1,6 +1,6 @@
-import { spearChainStageForSkill } from './spear-and-venoms.js';
-import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '../../types.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '#gw2/content/professions/thief/types.js';
 
 // Match weapon skills against hand requirements while projecting live rifle
 // stance and spear-chain state outside the full weapon-bar preview.

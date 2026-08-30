@@ -1,15 +1,35 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import type { ElementalistSchedulerContext } from '../../../types.js';
-import { elementalistEventSkill, emitElementalistProc } from '../../../core/mechanics/effects.js';
-import { elementalistBalanceEffect, elementalistBalanceValue } from '../../../core/profiles.js';
-import { applyEvokerAttunementRechargePolicy } from './attunements.js';
-import { emitElectricEnchantment } from './enchantments.js';
-import { evokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+/**
+ * Evoker reactions to events as they are scheduled.
+ *
+ * The single scheduler subscription that fans out to the attunement recharge
+ * policy, the Fire familiar's burning-driven Might, Electric Enchantment
+ * consumption, and the Elemental Balance / Elemental Dynamo attunement-entry
+ * traits.
+ */
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import {
+  elementalistEventSkill,
+  emitElementalistProc
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import {
+  elementalistBalanceEffect,
+  elementalistBalanceValue
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { applyEvokerAttunementRechargePolicy } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/attunements.js';
+import { emitElectricEnchantment } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
+import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
+/**
+ * Reacts to every newly scheduled event: applies the Evoker attunement recharge
+ * policy, procs the Fire familiar's Might on burning, spends an armed Electric
+ * Enchantment stack on qualifying player strikes, then handles the
+ * attunement-entry traits.
+ */
 export function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
@@ -35,6 +55,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     });
   }
 
+  // forward-facing consumption; enchantments.ts covers strikes already queued when the stack was granted
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
     if (state.electricEnchantmentStacks > 0) {
       state.electricEnchantmentStacks -= 1;
@@ -43,6 +64,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     }
   }
 
+  // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
     return;
   }
@@ -69,6 +91,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     }
   }
 
+  // Elemental Dynamo turns each entry into familiar charges and reports the new total
   if (!hasTrait(context, 'Elemental Dynamo')) return;
   state.charges = Math.min(
     state.maximumCharges,

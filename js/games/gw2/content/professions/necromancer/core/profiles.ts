@@ -1,10 +1,13 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../integrations/patches/authoring/balance-profiles.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import {
   balanceProfileEffect as selectBalanceProfileEffect,
   balanceProfileFromContext
-} from '../../../../platform/combat/state/balance-profiles.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
 
 export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   soulShards: 'necromancer.core.soul-shards',
@@ -40,6 +43,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   spitefulSpirit: TRAIT.SPITEFUL_SPIRIT
 });
 
+// Stamp the shared summon profile shape onto each minion's declarative balance fields and effects.
 const minion = (
   id: string,
   name: string,
@@ -572,10 +576,12 @@ export const NECROMANCER_MINION_PROFILE_BY_SKILL_ID: Readonly<Record<number, str
   [ID.SUMMON_FLESH_GOLEM]: NECROMANCER_CORE_BALANCE_PROFILE_IDS.fleshGolemAttack
 });
 
+/** Resolves a Necromancer balance profile from the simulation context's active patch data. */
 export function necromancerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
   return balanceProfileFromContext(context, id);
 }
 
+/** Selects the indexed effect of a requested type from a resolved balance profile. */
 export function balanceProfileEffect(
   profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
   type: string,

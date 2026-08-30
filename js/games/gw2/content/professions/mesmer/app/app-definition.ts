@@ -2,11 +2,11 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defineProfessionApp } from '../../../../app/create-adapter.js';
-import { applyMesmerBuildAttributeRules } from '../build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
-import { mesmerProfession } from '../definition.js';
-import type { MesmerApplicationBuild } from '../types.js';
+import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { applyMesmerBuildAttributeRules } from '#gw2/content/professions/mesmer/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/mesmer/build/build.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import type { MesmerApplicationBuild } from '#gw2/content/professions/mesmer/types.js';
 
 // Exposes Mesmer only through the shared browser application contract.
 export const mesmerAppAdapter = defineProfessionApp({

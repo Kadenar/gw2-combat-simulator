@@ -1,8 +1,8 @@
 /**
  * Vindicator skill mechanics owned by the Vindicator Revenant module.
  */
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { BalanceProfile, SkillFragment } from '../../../../../../platform/engine/types.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import type { BalanceProfile, SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const VINDICATOR_BALANCE_PROFILE_IDS = Object.freeze({
   spiritBoon: 'revenant.spirit-boon.alliance',

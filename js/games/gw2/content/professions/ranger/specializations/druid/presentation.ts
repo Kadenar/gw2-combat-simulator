@@ -1,12 +1,12 @@
-import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState } from '../../core/presentation.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerPetPaletteGroup, rangerUiState } from '#gw2/content/professions/ranger/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { RangerSkill, RangerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RangerSkill, RangerUiContext } from '#gw2/content/professions/ranger/types.js';
 
 const AVATAR_SKILLS = Object.freeze([
   ID.COSMIC_RAY,

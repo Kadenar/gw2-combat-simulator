@@ -1,10 +1,20 @@
-import type { ScheduledTask } from '../../../platform/engine/types.js';
-import { gainCoreWarriorAdrenaline, spendCoreWarriorAdrenaline } from './core/mechanics/adrenaline-and-endurance.js';
-import { gainBladeswornFlow, bladeswornGainsAdrenalineOnHit } from './specializations/bladesworn/mechanics/flow.js';
-import { spendBerserkerAdrenaline } from './specializations/berserker/mechanics/adrenaline.js';
-import { spendParagonAdrenaline } from './specializations/paragon/mechanics/adrenaline.js';
-import { spendSpellbreakerAdrenaline } from './specializations/spellbreaker/mechanics/adrenaline.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from './types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import {
+  gainCoreWarriorAdrenaline,
+  spendCoreWarriorAdrenaline
+} from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import {
+  gainBladeswornFlow,
+  bladeswornGainsAdrenalineOnHit
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/flow.js';
+import { spendBerserkerAdrenaline } from '#gw2/content/professions/warrior/specializations/berserker/mechanics/adrenaline.js';
+import { spendParagonAdrenaline } from '#gw2/content/professions/warrior/specializations/paragon/mechanics/adrenaline.js';
+import { spendSpellbreakerAdrenaline } from '#gw2/content/professions/warrior/specializations/spellbreaker/mechanics/adrenaline.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill
+} from '#gw2/content/professions/warrior/types.js';
 
 function specializationKind(context: WarriorSchedulerContext): string {
   return context.state.profession.specialization.kind;

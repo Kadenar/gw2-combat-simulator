@@ -1,34 +1,39 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
   targetHealthFraction
-} from '../../../../../platform/combat/query/runtime-query.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/platform/combat/query/runtime-query.js';
 import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../platform/engine/profession/state.js';
-import { necromancerCastRules } from '../mechanics/execution.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE, necromancerBalanceProfile } from '../profiles.js';
-import type { SchedulerRecord } from '../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { necromancerCastRules } from '#gw2/content/professions/necromancer/core/mechanics/availability.js';
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  necromancerBalanceProfile
+} from '#gw2/content/professions/necromancer/core/profiles.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   NecromancerCoreState,
   NecromancerRechargeModifierContext,
   NecromancerSkill,
   NecromancerState
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
+/** Reads Core Necromancer state from a resolver-side modifier context. */
 export function necromancerRuntimeCoreState(context: Gw2ModifierContext): Partial<NecromancerCoreState> {
   return readProfessionCoreState<NecromancerCoreState>(context.runtime?.profession);
 }
 
+/** Reads the expected Necromancer specialization state from a resolver-side modifier context. */
 export function necromancerRuntimeSpecializationState(
   context: Gw2ModifierContext,
   expectedKind: string
@@ -36,14 +41,17 @@ export function necromancerRuntimeSpecializationState(
   return readProfessionSpecializationState<NecromancerState>(context.runtime?.profession, expectedKind) || {};
 }
 
+/** Resolves the active modifier event's Necromancer-specific skill metadata. */
 export function necromancerEventSkill(context: Gw2ModifierContext): NecromancerSkill | undefined {
   return eventSkill<NecromancerSkill>(context);
 }
 
+/** Returns the active Necromancer shroud identifier, or an empty string outside shroud. */
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
   return String(necromancerRuntimeCoreState(context).activeShroud || '');
 }
 
+/** Reports permanent or runtime Chilled target state at modifier evaluation time. */
 export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   return (
     targetConditionActive(context, 'Chilled') ||
@@ -51,6 +59,7 @@ export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   );
 }
 
+/** Reports whether target assumptions or a live non-defiant control window make the target controlled. */
 export function necromancerTargetControlled(context: Gw2ModifierContext): boolean {
   return (
     Boolean(context.config?.target?.controlled) ||
@@ -59,6 +68,7 @@ export function necromancerTargetControlled(context: Gw2ModifierContext): boolea
   );
 }
 
+/** Clones mutable combat attributes with the numeric fields used by Necromancer conversions. */
 export function cloneNecromancerAttributes(attributes: SchedulerRecord): SchedulerRecord & {
   power: number;
   precision: number;
@@ -79,6 +89,7 @@ export function cloneNecromancerAttributes(attributes: SchedulerRecord): Schedul
   };
 }
 
+/** Converts a critical-hit-only multiplier into its expected strike-damage factor. */
 export function necromancerCriticalExpectedFactor(context: Gw2ModifierContext, criticalHitFactor: number): number {
   if (!context.query || !context.event) return 1;
   const critical = context.query.critical(context.event, context.time, context.runtime);
@@ -87,6 +98,7 @@ export function necromancerCriticalExpectedFactor(context: Gw2ModifierContext, c
   return modifiedExpected / normalExpected;
 }
 
+/** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
 function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   return (
     hasSelectedSkill(context, 'Signet of Spite') &&
@@ -95,6 +107,7 @@ function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   );
 }
 
+/** Restricts player attributes and outgoing modifiers to player-owned contexts. */
 function playerModifierContext(context: Gw2ModifierContext): boolean {
   // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
   return context.event
@@ -102,6 +115,7 @@ function playerModifierContext(context: Gw2ModifierContext): boolean {
     : context.actorType == null || context.actorType === 'player';
 }
 
+/** Applies Core Necromancer static conversions and runtime-dependent attribute bonuses. */
 export function modifyNecromancerCoreAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord
@@ -281,12 +295,12 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
   }
 ]);
 
+/** Compiles declarative Necromancer modifier rules into the shared hook contract. */
 export function compileNecromancerModifierRules(rules: readonly Gw2ModifierRule[]) {
   return createModifierHooks({ rules });
 }
 
-// Apply Necromancer skill-family recharge traits after shared Alacrity policy,
-// retaining explicit minion-death recharge exceptions.
+/** Applies Core skill-family recharge traits while preserving minion-death recharge exceptions. */
 function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   let result = duration;
   const skill = context.skill;
@@ -302,6 +316,7 @@ function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModif
   return result;
 }
 
+/** Extends eligible scepter condition base durations for Lingering Curse. */
 function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   return necromancerEventSkill(context)?.weapon === 'Scepter' &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
@@ -310,6 +325,7 @@ function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, dur
     : duration;
 }
 
+/** Aligns Isolate's recharge start to the cast progress where its flip activates. */
 function modifyNecromancerRechargeStart(
   context: {
     readonly skill?: NecromancerSkill;

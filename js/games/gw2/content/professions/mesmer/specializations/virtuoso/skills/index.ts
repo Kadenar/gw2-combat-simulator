@@ -2,8 +2,8 @@
  * Raw Virtuoso skill mechanics. Generated once from the characterized
  * pre-migration table; this file is now the runtime source owner.
  */
-import { MESMER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment, SkillId } from '../../../../../../platform/engine/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.THOUSAND_CUTS]: {

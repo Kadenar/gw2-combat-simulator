@@ -1,19 +1,15 @@
-import {
-  emitSkillCondition,
-  emitSkillControl,
-  emitSkillDamage
-} from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../../state/index.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SchedulerRecord } from '../../../../../platform/engine/types.js';
+import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
 interface LightningRodTaskPayload extends SchedulerRecord {
   readonly activationId: string;
@@ -25,6 +21,7 @@ const LIGHTNING_ROD_PULSE_COUNT = 8;
 // measured from EVTC across eleven activations — EA becomes available 4.196–4.203s after LR starts
 const ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS = 4.2;
 
+/** Emits the standard player-sourced event envelope used by Engineer spear mechanics. */
 function emitSpearEvent(context: EngineerCastContext, skill: EngineerSkill, at: number, eventType: string): void {
   context.emit({
     type: eventType,
@@ -38,6 +35,7 @@ function emitSpearEvent(context: EngineerCastContext, skill: EngineerSkill, at: 
   });
 }
 
+/** Starts Lightning Rod's pulse sequence and the timed Electric Artillery availability window. */
 export function scheduleLightningRod(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   // reservationId becomes the activationId so all tasks from this cast share a cancellable ownerId
@@ -99,6 +97,7 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   });
 }
 
+/** Applies Conduit Surge's Focused window and emits its synchronized state and skill events. */
 export function scheduleConduitSurge(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   // update focusedUntil in scheduler state for subsequent availability/damage checks
@@ -108,6 +107,7 @@ export function scheduleConduitSurge(context: EngineerCastContext, skill: Engine
   emitSpearEvent(context, skill, at, 'engineer.conduit-surge');
 }
 
+/** Fires Electric Artillery with its live Lightning Rod charges and clears the armed sequence. */
 export function scheduleElectricArtillery(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -141,6 +141,7 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   );
 }
 
+/** Records one non-stale Lightning Rod charge while enforcing charge expiry and the twelve-charge cap. */
 export function handleLightningRodCharge(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>
@@ -158,6 +159,7 @@ export function handleLightningRodCharge(
   }
 }
 
+/** Makes Electric Artillery available when the active Lightning Rod sequence finishes arming. */
 export function handleElectricArtilleryReady(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>
@@ -176,6 +178,7 @@ export function handleElectricArtilleryReady(
   );
 }
 
+/** Clears an unused Electric Artillery window after its active Lightning Rod sequence expires. */
 export function handleElectricArtilleryExpire(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>
@@ -197,6 +200,7 @@ export function handleElectricArtilleryExpire(
   );
 }
 
+/** Emits Roiling Skies as a stun, or as a launch while Focused is active. */
 export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill: EngineerSkill): void {
   // Focused state changes the CC type from Stun to Launch
   const isFocused = professionCoreState(context).focusedUntil > context.effectiveEnd;
@@ -213,6 +217,7 @@ export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill:
   });
 }
 
+/** Emits Devastator's delayed six-packet damage and Burning follow-up when Focused survives to impact. */
 export function scheduleDevastatorFollowup(context: EngineerCastContext, skill: EngineerSkill): void {
   // fullEnd (not effectiveEnd) — follow-up fires at animation end, not the interrupt-commit point
   const impactAt = context.fullEnd;

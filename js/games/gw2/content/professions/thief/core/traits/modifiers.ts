@@ -1,39 +1,39 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../platform/engine/profession/state.js';
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
   targetHealthFraction
-} from '../../../../../platform/combat/query/runtime-query.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { thiefCoreCastAvailability } from '../mechanics/availability.js';
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { thiefCoreCastAvailability } from '#gw2/content/professions/thief/core/mechanics/availability.js';
 import {
   advanceThiefCoreResources,
   completeThiefCoreResources,
   spendThiefCoreResources
-} from '../mechanics/initiative-and-endurance.js';
-import { snapshotThiefState } from '../state.js';
-import { updateThiefTraitCastState } from './index.js';
-import { updateThiefWeaponState } from '../mechanics/weapon-state.js';
-import { thiefCoreTaskHandlers } from '../mechanics/task-handlers.js';
-import { applyThiefWeaponSwapEffects } from '../skills/actions.js';
-import type { SchedulerRecord, Skill } from '../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/thief/core/mechanics/initiative-and-endurance.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { updateThiefTraitCastState } from '#gw2/content/professions/thief/core/traits/index.js';
+import { updateThiefWeaponState } from '#gw2/content/professions/thief/core/mechanics/weapon-state.js';
+import { thiefCoreTaskHandlers } from '#gw2/content/professions/thief/core/mechanics/task-handlers.js';
+import { applyThiefWeaponSwapEffects } from '#gw2/content/professions/thief/core/skills/actions.js';
+import type { SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierHooks, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type {
-  Gw2ModifierContext,
-  Gw2ModifierHooks,
-  Gw2ModifierRule
-} from '../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../platform/combat/query/types.js';
-import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '../../types.js';
-import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+  ThiefCoreState,
+  ThiefPrecastContext,
+  ThiefSchedulerContext
+} from '#gw2/content/professions/thief/types.js';
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/thief/core/profiles.js';
 
 export function thiefEventSkill(context: Gw2ModifierContext): Skill | undefined {
   return eventSkill(context);

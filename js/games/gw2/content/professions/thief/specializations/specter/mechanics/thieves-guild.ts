@@ -1,4 +1,4 @@
-import type { ThiefSummonCondition, ThiefSummonDefinition, ThiefSummonStrike } from '../../../types.js';
+import type { ThiefSummonCondition, ThiefSummonDefinition, ThiefSummonStrike } from '#gw2/content/professions/thief/types.js';
 
 const SKILL = Object.freeze({
   WELL_OF_SORROW: 67795,

@@ -1,21 +1,21 @@
-import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../../../platform/results/query.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
+import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,
   warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/warrior/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem
-} from '../../../../../platform/engine/types.js';
-import type { WarriorSkill, WarriorUiContext } from '../../types.js';
-import type { Gw2SimulationResult } from '../../../../../platform/simulation/types.js';
-import { dragonChargeReleaseProjection } from './mechanics/charge-release.js';
+} from '#gw2/platform/engine/types.js';
+import type { WarriorSkill, WarriorUiContext } from '#gw2/content/professions/warrior/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { dragonChargeReleaseProjection } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);

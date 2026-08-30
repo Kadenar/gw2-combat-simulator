@@ -1,21 +1,21 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import { SPECIALIZATIONS } from '../../data/guardian-api-metadata.js';
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { isGw2PlayerActorEvent } from '../../../../../platform/combat/state/event-ownership.js';
-import { combinedTargetDamage } from '../../../../../platform/combat/state/target-health.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { buildGuardianStrike } from '../mechanics/event-handlers.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { SPECIALIZATIONS } from '#gw2/content/professions/guardian/data/guardian-api-metadata.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import {
   GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
   guardianBalanceProfile,
   guardianBalanceProfileEffect
-} from '../profiles.js';
-import type { SchedulerRecord, SkillId } from '../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianCoreState,
@@ -23,7 +23,7 @@ import type {
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill
-} from '../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 const TRAIT_BY_ID = new Map(
   SPECIALIZATIONS.flatMap((specialization) => [

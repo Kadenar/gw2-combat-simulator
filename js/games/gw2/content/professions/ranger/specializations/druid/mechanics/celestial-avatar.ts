@@ -1,14 +1,18 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { resetAutoattackChains } from '../../../../../../platform/skills/autoattack-chains.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { applyRangerWeaponSwapTraits } from '../../../core/traits/index.js';
-import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '../../../types.js';
-import { druidState } from '../state.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../../core/profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+import { druidState } from '#gw2/content/professions/ranger/specializations/druid/state.js';
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK = 'ranger.druid-astral-force-damage';
 

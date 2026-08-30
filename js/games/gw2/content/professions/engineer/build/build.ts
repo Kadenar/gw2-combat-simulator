@@ -1,11 +1,11 @@
-import { GEAR_SLOTS } from '../../../../platform/equipment/gear/stats.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { createProfessionBuildCodec } from '../../lib/build-codec.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
-import { engineerCatalog } from '../catalog.js';
-import type { RotationCommand, SchedulerRecord, Skill } from '../../../../platform/engine/types.js';
-import type { EngineerCanonicalBuild } from '../types.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import type { RotationCommand, SchedulerRecord, Skill } from '#gw2/platform/engine/types.js';
+import type { EngineerCanonicalBuild } from '#gw2/content/professions/engineer/types.js';
 
 /**
  * Engineer persisted-build definition.
@@ -31,8 +31,10 @@ const AMALGAM_MORPHS = new Set(
     .map((skill) => skill.id)
 );
 
+/** Re-exports the shared default target-condition factory through the Engineer build contract. */
 export { createDefaultTargetConditions };
 
+/** Creates the canonical Engineer build used for new presets and migration fallbacks. */
 export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
   return {
     schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
@@ -74,10 +76,12 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
   };
 }
 
+/** Keeps one legal, uniquely named Amalgam morph in each configurable profession slot. */
 function normalizeMorphs(value: unknown): number[] {
   const source = Array.isArray(value) ? value : DEFAULT_MORPHS;
   const selected = new Map<number, number>();
   const selectedNames = new Set<string>();
+  // Retain only legal saved choices while enforcing one unique morph name per profession slot.
   for (const rawId of source) {
     const id = Number(rawId);
     const skill = engineerCatalog.skillsById.get(id);
@@ -92,6 +96,7 @@ function normalizeMorphs(value: unknown): number[] {
     selectedNames.add(skill!.name);
   }
 
+  // Fill any missing slots from canonical defaults, then other legal morphs when a name is already used.
   for (const slot of [2, 3, 4]) {
     if (selected.has(slot)) continue;
     const defaultId = DEFAULT_MORPHS[slot - 2];
@@ -108,6 +113,7 @@ function normalizeMorphs(value: unknown): number[] {
   return [2, 3, 4].map((slot) => selected.get(slot)) as number[];
 }
 
+/** Rebinds legacy name-based morph casts to the IDs selected by the normalized build. */
 function normalizeMorphRotation(
   rotation: readonly RotationCommand[],
   savedRotation: unknown,
@@ -123,6 +129,7 @@ function normalizeMorphRotation(
   );
   const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
   return rotation.map((command, index) => {
+    // Only legacy casts without an ID need name-based rebinding; canonical commands pass through unchanged.
     const raw = rawRotation[index];
     const rawCommand = raw && typeof raw === 'object' ? (raw as SchedulerRecord) : null;
     const legacyName =
@@ -150,6 +157,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
     }
   },
   normalizeExtra(build, { saved }) {
+    // Normalize the morph loadout first because legacy rotation entries depend on the selected IDs.
     const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
     return {
       ...build,
@@ -176,6 +184,9 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   }
 });
 
+/** Migrates persisted Engineer builds to the current canonical schema. */
 export const migrateEngineerBuild = engineerBuildCodec.migrateBuild;
+/** Validates an Engineer build against the canonical schema and profession-specific constraints. */
 export const validateEngineerBuild = engineerBuildCodec.validateBuild;
+/** Converts a canonical Engineer build into the shape consumed by the application runtime. */
 export const toApplicationBuild = engineerBuildCodec.toApplicationBuild;

@@ -3,11 +3,11 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
@@ -21,21 +21,24 @@ import {
   projectDragonFlow,
   requestedDragonCharges,
   type DragonFlowRateSegment
-} from '../mechanics/dragon-trigger.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { resetAutoattackChains } from '../../../../../../platform/skills/autoattack-chains.js';
-import { selectedSkillNameSet } from '../../../../../../platform/builds/selected-skills.js';
-import { applyWarriorBurstSpendTraits, grantBerserkersPower } from '../../../core/traits/index.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../../core/profiles.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { bladeswornState } from '../state.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import {
+  applyWarriorBurstSpendTraits,
+  grantBerserkersPower
+} from '#gw2/content/professions/warrior/core/traits/index.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
+import { bladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill
-} from '../../../types.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/content/professions/warrior/types.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
 const UNSEEN_SWORD_STRIKE_ID = 62847;
 

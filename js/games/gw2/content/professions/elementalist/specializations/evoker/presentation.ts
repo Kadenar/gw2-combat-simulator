@@ -1,3 +1,11 @@
+/**
+ * Evoker build-editor and rotation-palette presentation.
+ *
+ * Renders the F5 familiar selector, mirrors charge/empowered state into palette
+ * availability and resource dials, and surfaces the Elemental Balance window in
+ * the rotation snapshot. Reads a projected UI-side state record rather than live
+ * simulation state, falling back to build defaults before a run exists.
+ */
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
@@ -5,16 +13,24 @@ import type {
   RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
-} from '../../../../../platform/engine/types.js';
-import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '../../data/ids.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../core/state.js';
-import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './mechanics/constants.js';
-import type { EvokerState } from './state.js';
+} from '#gw2/platform/engine/types.js';
+import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  type ElementalistAttunement
+} from '#gw2/content/professions/elementalist/core/state.js';
+import {
+  BASIC_FAMILIARS,
+  FAMILIAR_ELEMENTS
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import type { EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
 
+// the projected state record is absent until a simulation has produced one
 function uiState(context: SchedulerRecord): Partial<EvokerState> {
   return (context.professionState as Partial<EvokerState> | undefined) || {};
 }
 
+// prefers simulated state, then the build's configured element, then Fire
 function selectedElement(context: SchedulerRecord): ElementalistAttunement {
   const build = context.build as SchedulerRecord | undefined;
   const value = String(uiState(context).element || build?.evokerElement || 'Fire');
@@ -23,6 +39,7 @@ function selectedElement(context: SchedulerRecord): ElementalistAttunement {
     : 'Fire';
 }
 
+// basic/empowered familiar pair per element, keyed for the familiar skill id table
 const FAMILIAR_SKILL_NAMES = Object.freeze({
   Fire: { basic: 'Ignite', empowered: 'Conflagration' },
   Water: { basic: 'Splash', empowered: 'BuoyantDeluge' },
@@ -105,6 +122,11 @@ function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotIte
     : [];
 }
 
+/**
+ * The Evoker slice of the profession UI contract: the familiar skill-bar group
+ * and its element selector, the F5 palette group and its availability, the
+ * rotation snapshot, and the charge/empowered resource dials.
+ */
 export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: SchedulerRecord) => {
     const element = selectedElement(context);

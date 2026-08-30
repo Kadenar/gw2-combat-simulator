@@ -1,14 +1,25 @@
-/** Dagger weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Dagger weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers slots 1-5 in all four attunements, including the Frost/Shocking aura
+ * flipover pairs that swap between granting an aura and transmuting it.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
 
+// One tick per second of the fire trail Burning Speed leaves behind, shared by its strike and Burning timelines.
 const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as const;
 
+/**
+ * Skill-id keyed fragments the Core module contributes to the dagger catalog.
+ * Each entry declares the packet timeline the scheduler materializes for that skill.
+ */
 export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
     name: "Dragon's Claw",
     type: 'Weapon',
@@ -42,6 +53,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Channelled flame cone: four evenly spaced strike/Burning pairs. `per-packet` interruption keeps
+  // only the ticks that already landed when the channel is cut short.
   [ID.DRAKES_BREATH]: {
     name: "Drake's Breath",
     interruptMode: 'per-packet',
@@ -78,6 +91,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Leap impact plus a lingering fire field: the trailing packets are tagged `field-tick` so Persisting
+  // Flames can recognize and extend them along with the field itself.
   [ID.BURNING_SPEED]: {
     name: 'Burning Speed',
     type: 'Weapon',
@@ -149,6 +164,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Single hit that also lays a five-second fire field for other skills to finish in.
   [ID.RING_OF_FIRE]: {
     name: 'Ring of Fire',
     type: 'Weapon',
@@ -221,6 +237,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // The blade strikes outbound and again on its return a second later, each pass applying Vulnerability.
   [ID.VAPOR_BLADE]: {
     name: 'Vapor Blade',
     type: 'Weapon',
@@ -285,6 +302,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Four-tick channel, each tick declared as its own strike packet.
   [ID.CONE_OF_COLD]: {
     name: 'Cone of Cold',
     type: 'Weapon',
@@ -343,6 +361,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Blast finisher that lands before its own ice field opens at cast end, so it can only finish an earlier field.
   [ID.FROZEN_BURST]: {
     name: 'Frozen Burst',
     type: 'Weapon',
@@ -398,6 +417,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Instant aura grant that flips the slot to Transmute Frost; `aura: 'Frost|10'` is the aura/duration
+  // pair the cast-effects layer reads when applying it.
   [ID.FROST_AURA]: {
     name: 'Frost Aura',
     type: 'Weapon',
@@ -413,6 +434,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     implemented: true,
     effects: []
   },
+  // Consumes the Frost Aura and flips the slot back to Frost Aura; the `aura-transmute` marker keeps
+  // the flipover visible to rotation loop analysis as a state-gated action.
   [ID.TRANSMUTE_FROST]: {
     name: 'Transmute Frost',
     type: 'Weapon',
@@ -450,6 +473,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     ],
     elementalistStateMachine: 'aura-transmute'
   },
+  // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.
   [ID.CLEANSING_WAVE]: {
     name: 'Cleansing Wave',
     type: 'Weapon',
@@ -463,6 +487,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     implemented: true,
     effects: []
   },
+  // Two-hit auto-attack landing inside a single cast.
   [ID.LIGHTNING_WHIP]: {
     name: 'Lightning Whip',
     type: 'Weapon',
@@ -499,6 +524,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Delayed payload: the blast plus Weakness and Fury resolve roughly a second after the short cast ends.
   [ID.CONVERGENCE]: {
     name: 'Convergence',
     type: 'Weapon',
@@ -556,6 +582,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Air-attunement counterpart of the Frost Aura pair: grants the aura and flips to Transmute Lightning.
   [ID.SHOCKING_AURA]: {
     name: 'Shocking Aura',
     type: 'Weapon',
@@ -571,6 +598,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     implemented: true,
     effects: []
   },
+  // Consumes the Shocking Aura for a crit-capable strike plus a crowd-control application, then flips back.
   [ID.TRANSMUTE_LIGHTNING]: {
     name: 'Transmute Lightning',
     type: 'Weapon',
@@ -721,6 +749,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // Two impacts within one cast — the small initial hit and the larger delayed one — each carrying its
+  // own Bleeding and Cripple application.
   [ID.RING_OF_EARTH]: {
     name: 'Ring of Earth',
     type: 'Weapon',
@@ -904,6 +934,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   },
+  // The zero-coefficient packet at cast start exists only to fire the blast finisher at channel start;
+  // the damage and conditions land with the eruption near cast end.
   [ID.CHURNING_EARTH]: {
     name: 'Churning Earth',
     type: 'Weapon',

@@ -1,5 +1,6 @@
-import type { EngineerCastContext, EngineerSkill } from '../../types.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
+/** Reduces recharge on active Engineer sword skills other than the triggering Gleam Saber cast. */
 export function rechargeOtherSwordSkills(context: EngineerCastContext, gleamSaber: EngineerSkill): void {
   const at = context.effectiveEnd;
   // scan both maps — a skill lives in exactly one (ammo OR cooldowns, never both)

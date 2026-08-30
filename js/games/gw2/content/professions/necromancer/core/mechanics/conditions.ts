@@ -1,5 +1,5 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Condition-manipulation skill handlers.
  *
@@ -10,22 +10,26 @@ import { professionCoreState } from '../../../../../platform/engine/profession/s
  * `necromancerConditionSkillHandlers` map plus the self-condition
  * apply/purge/transfer helpers reused by shroud/scheduler code.
  */
-import { createGw2CombatQuery, selectedGw2TraitValues } from '../../../../../platform/combat/query/combat-query.js';
-import { isDamagingCondition } from '../../../../../platform/combat/state/targets.js';
-import { createRelicTimelineRuntime } from '../../../../../platform/equipment/relics/runtime.js';
-import { relicConditionDurationBonus } from '../../../../../platform/equipment/relics/query.js';
-import { projectCastRelativeEffectTimingMs } from '../../../../../platform/skills/timing.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
+import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   NecromancerCastContext,
   NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerQueryRuntime,
+  NecromancerSchedulerContext,
   NecromancerSelfCondition,
   NecromancerSimulationEvent,
   NecromancerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
 const CORRUPTION_SELF_CONDITIONS = Object.freeze({
   [ID.CONSUME_CONDITIONS]: Object.freeze({
@@ -46,6 +50,7 @@ const CORRUPTION_SELF_CONDITIONS = Object.freeze({
   })
 });
 
+// Rebuild the combat query at the application timestamp so relic and trait duration effects use historical state.
 function conditionDurationMultiplier(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -90,6 +95,7 @@ function conditionDurationMultiplier(
   );
 }
 
+/** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
 export function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
   state.selfConditions = (state.selfConditions || []).filter(
     (application) => application.appliedAt <= at && application.expiresAt > at
@@ -97,6 +103,7 @@ export function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: 
   return state.selfConditions;
 }
 
+/** Removes up to the requested number of distinct active self-condition types. */
 export function removeNecromancerSelfCondition(
   state: NecromancerCoreState,
   at: number,
@@ -113,8 +120,7 @@ export function removeNecromancerSelfCondition(
   return selected.size;
 }
 
-// Record a self-condition with bounded timing and emit its canonical state event
-// so transfer and shroud traits see the same application.
+/** Records a duration-scaled self-condition and emits the canonical state event used by later transfers. */
 export function applyNecromancerSelfCondition(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -134,6 +140,7 @@ export function applyNecromancerSelfCondition(
     sourceSkillId: skill.id,
     sourceSkillName: skill.name
   };
+  // Persist before emission so reactions observing the event see the newly active application.
   purgeNecromancerSelfConditions(professionCoreState(context), at);
   professionCoreState(context).selfConditions.push(application);
   context.emit({
@@ -153,6 +160,7 @@ export function applyNecromancerSelfCondition(
   return application;
 }
 
+// Preserve the remaining duration and source attribution when converting a self-condition into a target packet.
 function emitTransferredApplication(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,
@@ -174,6 +182,7 @@ function emitTransferredApplication(
     transferredCondition: true,
     transferredFromSkillId: application.sourceSkillId
   } as const;
+  // Emit through the canonical condition path so damaging and non-damaging applications resolve uniformly.
   emitSkillCondition(context, {
     ...common,
 
@@ -182,8 +191,7 @@ function emitTransferredApplication(
   });
 }
 
-// Move the oldest eligible active self-conditions to the target, removing each
-// source application only after its transferred packet is emitted.
+/** Transfers eligible active self-conditions to the target and removes the source applications. */
 export function transferNecromancerSelfConditions(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,
@@ -197,6 +205,7 @@ export function transferNecromancerSelfConditions(
 ): number {
   const state = professionCoreState(context);
   const active = purgeNecromancerSelfConditions(state, at);
+  // Plague Sending consumes the newest applications regardless of condition type.
   if (latestApplications) {
     const transferred = active.slice(-maximumConditionTypes);
     if (!transferred.length) return 0;
@@ -209,6 +218,7 @@ export function transferNecromancerSelfConditions(
     return transferred.length;
   }
 
+  // Ordinary transfers select the oldest distinct condition types and move every stack of each selected type.
   const selected = new Set<string>();
   for (const application of active) {
     if (selected.size >= maximumConditionTypes) break;
@@ -225,6 +235,7 @@ export function transferNecromancerSelfConditions(
   return transferred.length;
 }
 
+// Apply a corruption skill's base and trait-added self-conditions, then resolve any armed Plague Sending transfer.
 function corruption(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   if (skill.id === ID.BLOOD_IS_POWER) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike' && effect.atMs != null);
@@ -249,6 +260,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
     >
   )[skill.id];
   if (!mechanics) return false;
+  // Base corruptions always land before Master of Corruption additions so transfer order stays deterministic.
   for (const application of mechanics.base) {
     applyNecromancerSelfCondition(
       context,
@@ -271,6 +283,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
     }
   }
 
+  // An armed shroud transfer consumes the newest corruption applications from this cast first.
   if (professionCoreState(context).plagueSendingArmed) {
     const transferred = transferNecromancerSelfConditions(context, skill, 2, context.effectiveEnd, {
       latestApplications: true
@@ -294,6 +307,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
   return false;
 }
 
+// Route each transfer skill to its distinct-condition limit.
 function transfer(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const maximum = (
     {
@@ -308,6 +322,7 @@ function transfer(context: NecromancerCastContext, skill: NecromancerSkill): boo
   return false;
 }
 
+// Apply Life Siphon's self-bleed once on the first resolved strike packet.
 function lifeSiphonSelfBleed(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -317,6 +332,7 @@ function lifeSiphonSelfBleed(
   applyNecromancerSelfCondition(context, skill, 'Bleeding', 1, 8, event.at);
 }
 
+// Apply Dark Pact's self-bleed and immobilize only after its first strike confirms a hit.
 function darkPactOnHit(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -332,6 +348,7 @@ function darkPactOnHit(
   });
 }
 
+// Scale Devouring Darkness torment by the configured number of target conditions, capped at five.
 function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
   const count = Math.min(
@@ -346,6 +363,28 @@ function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSk
   return true;
 }
 
+/** Transfers Plague Sending conditions on the first eligible player strike after the trait is armed. */
+export function observeNecromancerPlagueSendingEvent(
+  context: NecromancerSchedulerContext,
+  event: NecromancerSimulationEvent
+): void {
+  const state = professionCoreState(context);
+  if (
+    !state.plagueSendingArmed ||
+    event.type !== 'damage' ||
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0)
+  )
+    return;
+  const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+  if (!skill || Number(state.plagueSendingEntrySkillId) === Number(event.skillId)) return;
+  const transferred = transferNecromancerSelfConditions(context, skill, 2, event.at, { latestApplications: true });
+  if (!transferred) return;
+  state.plagueSendingArmed = false;
+  state.plagueSendingEntrySkillId = null;
+}
+
+/** Maps condition-manipulation handler keys to their cast and on-hit implementations. */
 export const necromancerConditionSkillHandlers = Object.freeze({
   'necromancer.corruption': corruption,
   'necromancer.condition-transfer': transfer,

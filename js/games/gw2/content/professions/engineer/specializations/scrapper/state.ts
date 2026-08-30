@@ -1,8 +1,7 @@
-import type { ScrapperState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
+import type { ScrapperState } from '#gw2/content/professions/engineer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
-// Only whirl finishers share Kinetic Accelerators' ICD; blast and leap combos
-// deliberately bypass this timestamp and can proc on every successful combo.
+/** Creates Scrapper's whirl-only Kinetic Accelerators cooldown state. */
 export function createScrapperState(): ScrapperState {
   return {
     kineticAcceleratorsWhirlReadyAt: 0

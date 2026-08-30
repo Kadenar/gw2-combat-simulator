@@ -1,4 +1,4 @@
-import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
@@ -7,13 +7,13 @@ import {
   warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/warrior/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,
   RotationStateSnapshotItem
-} from '../../../../../platform/engine/types.js';
-import type { WarriorSkill, WarriorUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { WarriorSkill, WarriorUiContext } from '#gw2/content/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
 const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({

@@ -1,5 +1,5 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
  * Summoned-elemental subsystem for Glyph of Elementals (Fire / Earth).
  *
@@ -25,30 +25,36 @@ import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
-} from '../../../../../platform/scheduler/policy.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+} from '#gw2/platform/scheduler/policy.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   AvailabilityResult,
   ScheduledTask,
   SchedulerRecord,
   SimulationEvent,
   Skill
-} from '../../../../../platform/engine/types.js';
-import { denyCast, retryCast } from '../../../../../platform/engine/skills/availability.js';
+} from '#gw2/platform/engine/types.js';
+import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext,
   ElementalistSchedulerContext
-} from '../../types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
+} from '#gw2/content/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   ELEMENTAL_LIGHTNING_JOLT_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
-} from './elemental-profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 
-export { EARTH_ELEMENTAL_EVTC_PROFILE, FIRE_ELEMENTAL_EVTC_PROFILE } from './elemental-profiles.js';
+export {
+  EARTH_ELEMENTAL_EVTC_PROFILE,
+  FIRE_ELEMENTAL_EVTC_PROFILE
+} from '#gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
 
 type ElementalKind = 'Fire' | 'Earth';
 type ElementalImpact =
@@ -60,6 +66,8 @@ type ElementalImpact =
   | 'enervating-punch'
   | 'stomp';
 
+// Payload carried by every elemental scheduler task. The two generation stamps are the
+// staleness guard; `impact`/`hitIndex` identify which hit of an action is landing.
 interface ElementalTaskPayload extends SchedulerRecord {
   readonly summonGeneration: number;
   readonly actionGeneration?: number;
@@ -75,8 +83,9 @@ const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_EXPIRE_TASK = 'elementalist.elemental-expire';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
 
-// Player-commanded flip skills gated on an active elemental of the matching element.
+/** Fire Elemental's player-commanded flip skill; castable only while a Fire Elemental is live. */
 export const FLAME_BARRAGE_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
+/** Earth Elemental's player-commanded flip skill; castable only while an Earth Elemental is live. */
 export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
 
 function ready(): AvailabilityResult {
@@ -119,6 +128,8 @@ function elementalForGlyph(skill: Skill): ElementalKind | null {
   return null;
 }
 
+// Resolves the catalog skill that owns an element, so auto-summon and post-expiry recharge
+// can act on the glyph even when it was never explicitly cast.
 function glyphSkillForElement(context: ElementalistSchedulerContext, element: ElementalKind): Skill | null {
   return (
     context.catalog.skillsByName.get(element === 'Earth' ? 'Glyph of Elementals (Earth)' : 'Glyph of Elementals') ||
@@ -132,7 +143,10 @@ function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
   return element === 'Earth' ? 'Stomp' : 'Flame Barrage';
 }
 
-// Stable per-summon actor id so damage/strikes attribute to the right companion.
+/**
+ * Stable per-summon actor identity, so every strike and effect the elemental produces
+ * attributes to the right companion instead of bleeding across re-summons.
+ */
 export function elementalistElementalCompanionId(summonGeneration: number): string {
   return `elementalist-elemental:${summonGeneration}`;
 }
@@ -723,7 +737,10 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   scheduleNextAi(context, at + delay, elemental.actionGeneration);
 }
 
-// Cast-start hook: tags the glyph's action event with which element it summons.
+/**
+ * Cast-start hook: tags the glyph's action event with which element it summons so the
+ * timeline and presentation layers can tell the two variants apart. No-op for other skills.
+ */
 export function beginElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
@@ -772,8 +789,10 @@ function summonElemental(
   if (startImmediately) startElemental(context, at);
 }
 
-// Cast-complete hook: summons the elemental at cast end. Starts immediately unless we
-// are pre-combat waiting on an explicit combat-start event.
+/**
+ * Cast-complete hook: spawns the elemental at cast end. Its attack loop starts immediately
+ * unless the rotation is still pre-combat and waiting on an explicit combat-start event.
+ */
 export function completeElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
@@ -786,7 +805,10 @@ export function completeElementalistGlyphCast(context: ElementalistLifecycleCont
   );
 }
 
-// Cast-complete hook for the player-commanded flip skills; routes to the right starter.
+/**
+ * Cast-complete hook for the player-commanded flip skills: pre-empts whatever the elemental
+ * is doing and drives Flame Barrage / Stomp on the live companion.
+ */
 export function completeElementalistElementalCommand(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
     startFlameBarrage(context, context.effectiveEnd);
@@ -795,8 +817,10 @@ export function completeElementalistElementalCommand(context: ElementalistLifecy
   }
 }
 
-// Arms a single Lightning Jolt copy (from an allied trait proc) on the active
-// elemental; it rides the elemental's next strike, then is consumed. See emitStrike.
+/**
+ * Arms one Lightning Jolt copy on the live elemental. The charge rides the elemental's next
+ * strike as a bonus hit and is consumed there (see emitStrike); ignored with no elemental out.
+ */
 export function armElementalistElementalLightningJolt(
   context: ElementalistLifecycleContext,
   skillId: number,
@@ -812,11 +836,13 @@ export function armElementalistElementalLightningJolt(
   }
 }
 
-// Event observer driving auto-summon and delayed start. Two triggers:
-//   1) any player action while no elemental is active (and one is slotted) → summon
-//      (without starting), so the companion exists alongside the player's opener;
-//   2) combat start (explicit event, or first offensive event when none is expected)
-//      → summon-and-start if none active, otherwise start the pending elemental.
+/**
+ * Event observer driving auto-summon and the delayed attack-loop start. Two triggers:
+ *   1) any player action while no elemental is active (and one is slotted) → summon
+ *      (without starting), so the companion exists alongside the player's opener;
+ *   2) combat start (explicit event, or first offensive event when none is expected)
+ *      → summon-and-start if none active, otherwise start the pending elemental.
+ */
 export function observeElementalistElementalEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = professionCoreState(context);
   const selected = selectedElemental(context);
@@ -850,9 +876,11 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
   startElemental(context, event.at);
 }
 
-// Availability gate. Command flips (Flame Barrage / Stomp) are usable when the matching
-// elemental is active — or would be auto-summoned. The glyphs themselves are blocked
-// (returning retryAt) while their elemental is still alive; null for unrelated skills.
+/**
+ * Availability gate for this subsystem. Command flips (Flame Barrage / Stomp) are usable when
+ * the matching elemental is active — or would be auto-summoned; the glyphs themselves are
+ * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
+ */
 export function elementalistElementalAvailability(
   context: ElementalistCastContext,
   skill: Skill
@@ -884,7 +912,10 @@ export function elementalistElementalAvailability(
     : ready();
 }
 
-// Task-type → handler map consumed by the elementalist scheduler registration.
+/**
+ * Task-type → handler map registered with the elementalist scheduler; these three handlers are
+ * the entire runtime of a summoned elemental (decide, land a hit, expire).
+ */
 export const elementalistElementalTaskHandlers = Object.freeze({
   [ELEMENTAL_AI_TASK]: handleElementalAiTask,
   [ELEMENTAL_IMPACT_TASK]: handleElementalImpactTask,

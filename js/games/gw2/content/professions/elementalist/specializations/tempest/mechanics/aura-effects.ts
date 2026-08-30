@@ -1,22 +1,30 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { Gw2ResolverEvent } from '../../../../../../platform/resolver/types.js';
-import type { ElementalistResolverContext } from '../../../types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { ElementalistResolverContext } from '#gw2/content/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
   elementalistSourceSkill,
   queueElementalistBuff,
   recordElementalistTraitProc,
   refreshElementalistBuffs
-} from '../../../core/mechanics/reactions.js';
-import { elementalistBalanceEffect, elementalistBalanceValue } from '../../../core/profiles.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/reactions.js';
+import {
+  elementalistBalanceEffect,
+  elementalistBalanceValue
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 
-// Convert resolved auras into Tempest trait boons and effects after the aura has
-// been accepted by the core resolver.
+/**
+ * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
+ * the core resolver: refreshes Tempestuous Aria's damage window and queues the Invigorating
+ * Torrents and Elemental Bastion boons, recording each trait that fired as a proc.
+ */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Tempestuous Aria')) {
     const extension = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'durationMultiplier', 5);
     const maximum = elementalistBalanceValue(context, PROFILE.tempestuousAria, 'maximumStacks', 10);
+    // Extend the newest live application instead of stacking a second one, clamping the new expiry
+    // to the maximum window measured from this aura; with none live, start a fresh application.
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
     if (current) {
       refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (expiresAt) =>
@@ -29,6 +37,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     recordElementalistTraitProc(context, event, 'Tempestuous Aria');
   }
 
+  // Balance data supplies the boon name/stacks/duration; the literal pair is the fallback identity.
   if (hasTrait(context, 'Invigorating Torrents')) {
     for (const [name, kind] of [
       ['Vigor', 'Vigor'],

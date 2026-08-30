@@ -1,9 +1,9 @@
-import { antiquaryState } from '../state.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '../../../types.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../../core/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/content/professions/thief/types.js';
+import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 // Spend one unexpired Mistburn charge on a qualifying player strike and attach
 // its Burning without allowing the mortar's granting strike to self-consume.

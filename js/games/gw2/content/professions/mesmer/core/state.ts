@@ -1,4 +1,4 @@
-import type { MesmerConfig, MesmerCoreState, MesmerResolverState } from '../types.js';
+import type { MesmerConfig, MesmerCoreState, MesmerResolverState } from '#gw2/content/professions/mesmer/types.js';
 
 /** Creates state owned by every Mesmer build, excluding active-specialization fields. */
 export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): MesmerCoreState {

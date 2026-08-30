@@ -1,10 +1,13 @@
-import { emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { buildGuardianStrike } from '../../../core/mechanics/event-handlers.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import type { GuardianCastContext, GuardianSkill } from '../../../types.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/content/professions/guardian/data/ids.js';
+import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import type { GuardianCastContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export function applySoaringDevastation(context: GuardianCastContext, skill: GuardianSkill, skillWeapon: string): void {
   if (!hasTrait(context, TRAIT.SOARING_DEVASTATION)) return;

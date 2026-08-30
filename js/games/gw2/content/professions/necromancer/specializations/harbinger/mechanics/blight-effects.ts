@@ -1,10 +1,20 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { applyTraitCondition, applyTraitVulnerability } from '../../../core/traits/index.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '../../../types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import {
+  applyTraitCondition,
+  applyTraitVulnerability
+} from '#gw2/content/professions/necromancer/core/traits/index.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent
+} from '#gw2/content/professions/necromancer/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 
+/** Applies Harbinger traits triggered by eligible resolved player or summon strikes. */
 function reactToDamage(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Trait procs must not trigger from synthetic "effect" damage (e.g. Cascading Corruption Meltdown hits).
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;

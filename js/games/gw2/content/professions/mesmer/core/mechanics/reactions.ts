@@ -1,5 +1,8 @@
-import { triggerIneptitudeFromBlind, triggerIneptitudeFromInterrupt } from '../traits/index.js';
-import type { MesmerResolverContext, MesmerResolverEvent } from '../../types.js';
+import {
+  triggerIneptitudeFromBlind,
+  triggerIneptitudeFromInterrupt
+} from '#gw2/content/professions/mesmer/core/traits/index.js';
+import type { MesmerResolverContext, MesmerResolverEvent } from '#gw2/content/professions/mesmer/types.js';
 
 const noop = (): void => {};
 

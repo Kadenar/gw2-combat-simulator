@@ -1,13 +1,13 @@
-import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../data/legends.js';
-import { activeRevenantLegend, revenantUiState } from '../../core/presentation.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
+import { activeRevenantLegend, revenantUiState } from '#gw2/content/professions/revenant/core/presentation.js';
 import type {
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { RevenantUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RevenantUiContext } from '#gw2/content/professions/revenant/types.js';
 
 // Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.
 const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({

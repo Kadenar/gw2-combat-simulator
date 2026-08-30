@@ -1,16 +1,19 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../integrations/patches/authoring/balance-profiles.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValue
-} from '../../../../platform/combat/state/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from './mechanics/definitions.js';
-import type { MesmerShatter, MesmerTraitDamage } from '../types.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  MESMER_CORE_SHATTERS,
+  MESMER_CORE_TRAIT_DAMAGE
+} from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
+import type { MesmerShatter, MesmerTraitDamage } from '#gw2/content/professions/mesmer/types.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',

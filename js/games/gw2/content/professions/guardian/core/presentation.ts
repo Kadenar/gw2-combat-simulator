@@ -1,7 +1,7 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../platform/combat/state/traits.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import type {
   CanonicalCatalog,
   ProfessionEventLogDescriptor,
@@ -9,8 +9,13 @@ import type {
   RotationStateSnapshotItem,
   SchedulerRecord,
   SkillId
-} from '../../../../platform/engine/types.js';
-import type { GuardianResolverEvent, GuardianSkill, GuardianState, GuardianUiContext } from '../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  GuardianResolverEvent,
+  GuardianSkill,
+  GuardianState,
+  GuardianUiContext
+} from '#gw2/content/professions/guardian/types.js';
 
 let guardianCatalog: Readonly<CanonicalCatalog>;
 

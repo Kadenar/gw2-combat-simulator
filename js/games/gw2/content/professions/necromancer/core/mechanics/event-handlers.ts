@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
  *
@@ -10,9 +10,12 @@ import { professionCoreState } from '../../../../../platform/engine/profession/s
  *   - `handleNecromancerSummonAttack` materializes a queued minion
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '../../types.js';
-import { captureNecromancerStatePreserver } from './state-reconciliation.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent
+} from '#gw2/content/professions/necromancer/types.js';
+import { captureNecromancerStatePreserver } from '#gw2/content/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 /**
  * Declares revive-only skills as supported without changing combat state,
@@ -20,6 +23,7 @@ import { captureNecromancerStatePreserver } from './state-reconciliation.js';
  */
 export function handleNecromancerReviveEvent(): void {}
 
+// Union independently observed expiry stacks while preserving the largest multiplicity at each timestamp.
 function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[] = []): number[] {
   const counts = new Map<number, number>();
   for (const values of [left, right]) {
@@ -39,8 +43,7 @@ function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[
     .slice(-30);
 }
 
-// Merge a typed Necromancer state event into resolver state while preserving
-// independent resource, transform, minion, and specialization fields.
+/** Reconciles a state snapshot while preserving resolver-only and specialization-owned fields. */
 export function handleNecromancerStateEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -63,6 +66,7 @@ export function handleNecromancerStateEvent(
     traitProcReadyAt: core.traitProcReadyAt,
     tasteForBloodBuffs: core.tasteForBloodBuffs
   };
+  // Capture specialization-only fields before replacing the shared and active-specialization snapshots.
   const restoreSpecializationState = captureNecromancerStatePreserver(active.state);
   for (const key of coreKeys) delete mutableCore[key];
   for (const key of specializationKeys) delete specializationState[key];
@@ -73,6 +77,7 @@ export function handleNecromancerStateEvent(
     }
   }
 
+  // Merge independently accumulated resolver data after the snapshot replacement.
   core.carapaceExpiries = mergeExpiryStacks(core.carapaceExpiries, resolverCarapace);
   for (const [key, value] of Object.entries(resolverOnly)) {
     if (value !== undefined) mutableCore[key] = value;
@@ -81,6 +86,7 @@ export function handleNecromancerStateEvent(
   restoreSpecializationState();
 }
 
+/** Converts the internal Necromancer chill packet into a canonical target condition event. */
 export function handleNecromancerChillEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -101,8 +107,7 @@ export function handleNecromancerChillEvent(
   });
 }
 
-// Validate summon ownership and generation before converting a scheduled minion
-// or spirit packet into canonical resolver damage and follow-up effects.
+/** Drops stale summon packets, then materializes attacks whose owner and generation remain active. */
 export function handleNecromancerSummonAttack(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -129,6 +134,7 @@ export function materializeNecromancerSummonAttack(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
+  // Materialize the strike first so same-timestamp secondary effects retain scheduler ordering.
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,
@@ -163,6 +169,7 @@ export function materializeNecromancerSummonAttack(
     spiritAttackType: event.spiritAttackType,
     anguishConditionalDamage: event.anguishConditionalDamage
   });
+  // Follow the strike with its optional condition and control payloads.
   if (Array.isArray(event.onHitCondition)) {
     const [condition, stacks, duration] = event.onHitCondition;
     enqueueOrdered(context.queue, {

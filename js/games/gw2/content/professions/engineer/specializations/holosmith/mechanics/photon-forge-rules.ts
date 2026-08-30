@@ -1,10 +1,13 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { engineerSpecializationState } from '../../../core/traits/query-helpers.js';
-import { holosmithCastAvailability } from './availability.js';
-import { holosmithEventMetadata, holosmithEventStrikeFactor } from './heat-tiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { engineerSpecializationState } from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
+import { holosmithCastAvailability } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/availability.js';
+import {
+  holosmithEventMetadata,
+  holosmithEventStrikeFactor
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
   advancePhotonForgeState,
   handleHolosmithKitEquip,
@@ -14,11 +17,11 @@ import {
   initializePhotonForgeHeat,
   observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
-} from './photon-forge.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { EngineerCastContext, EngineerSkill } from '../../../types.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
-// skill.id === -5 is the synthetic dodge skill; TRV fires at dodge start (context.start), not end.
+/** Handles post-cast kit transitions and triggers Thermal Release Valve at synthetic dodge start. */
 function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerSkill): void {
   handleHolosmithKitEquip(context, skill);
   if (skill.id === -5) {
@@ -26,6 +29,7 @@ function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerS
   }
 }
 
+/** Registers Holosmith heat initialization, observation, advancement, cast, and task hooks. */
 export const holosmithSchedulerHooks = Object.freeze({
   initialize: {
     id: 'engineer.photon-forge-initialize',
@@ -54,18 +58,19 @@ export const holosmithSchedulerHooks = Object.freeze({
   })
 });
 
-// afterCast is split out so module.ts can wire it through the castLifecycle
-// (afterSkillEffects) rather than the scheduler hook path. Scheduler hooks don't
-// have access to cast context, so dodge-triggered TRV must go through castLifecycle.
+/**
+ * Splits `afterCast` into the cast lifecycle, where dodge-triggered TRV has cast context,
+ * while retaining context-free hooks in the advanced scheduler contract.
+ */
 export const { afterCast: holosmithAfterCast, ...holosmithAdvancedSchedulerHooks } = holosmithSchedulerHooks;
 
-// Skill resolvers attach authored base-duration factors before ordinary condition
-// duration bonuses are capped, keeping the modifier layer skill-agnostic.
+/** Applies an authored skill factor before ordinary condition-duration bonuses are capped. */
 function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
   const factor = Number(holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1);
   return multiplier * (Number.isFinite(factor) ? Math.max(0, factor) : 1);
 }
 
+/** Defines Holosmith's heat- and trait-sensitive packet modifier rules. */
 export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'engineer.lasers-edge',
@@ -119,11 +124,13 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   }
 ]);
 
+/** Exposes Holosmith condition-base-duration and packet modifier rules. */
 export const holosmithAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyHolosmithConditionBaseDuration,
   modifierRules: holosmithModifierRules
 });
 
+/** Exposes Holosmith cast availability to the scheduler. */
 export const holosmithCastRules = Object.freeze({
   availability: {
     id: 'engineer.holosmith-availability',

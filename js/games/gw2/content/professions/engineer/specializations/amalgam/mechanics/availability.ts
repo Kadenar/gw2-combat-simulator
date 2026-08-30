@@ -1,8 +1,9 @@
-import { amalgamState } from '../state.js';
-import { denySkillCast as denyEngineerCast } from '../../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '../../../types.js';
+import { amalgamState } from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { EngineerPrecastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
+/** Rejects Amalgam Morph casts that are not equipped in the current protocol selection. */
 export function amalgamCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Amalgam') return { ready: true };
   const state = amalgamState.from(context);

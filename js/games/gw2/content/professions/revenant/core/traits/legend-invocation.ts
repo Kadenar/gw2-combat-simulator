@@ -1,6 +1,6 @@
-import { materializeSkillEffectApplications } from '../../../../../platform/engine/effects/materializer.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 /**
  * Trait effects triggered by invoking a legend.
  *
@@ -8,11 +8,18 @@ import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/poli
  * Inferno for Core legends at legend-swap completion. Elite legends add their
  * own invocation behavior through specialization-local observers.
  */
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { BalanceProfile, Skill, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../../types.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  RevenantCastContext,
+  RevenantSchedulerContext,
+  RevenantSkill
+} from '#gw2/content/professions/revenant/types.js';
 
 const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 

@@ -1,4 +1,4 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '../../../data/ids.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
 
 const freeze = <T>(value: T): Readonly<T> => Object.freeze(value);
 

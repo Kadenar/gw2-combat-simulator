@@ -1,5 +1,5 @@
-import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 
 export const RANGER_HAMMER_VARIANT_PAIRS: readonly (readonly [number, number])[] = Object.freeze([
   Object.freeze([ID.WILD_SWING, ID.UNLEASHED_WILD_SWING]) as readonly [number, number],

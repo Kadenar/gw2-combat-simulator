@@ -1,8 +1,8 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state/index.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapons/loadout.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 /**
  * Revenant spear recharge and Crushing Abyss mechanics.
  *
@@ -10,8 +10,8 @@ import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapon
  * hit. Abyssal Raze scales from the Crushing Abyss stacks that existed before
  * that use, then grants one new ten-second stack after its impact.
  */
-import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantConfig,
@@ -20,7 +20,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 const RECHARGE_TASK = 'revenant.abyssal-raze-recharge';
 const CRUSHING_GAIN_TASK = 'revenant.crushing-abyss-gain';

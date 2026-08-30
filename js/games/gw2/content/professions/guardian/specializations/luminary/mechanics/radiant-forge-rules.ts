@@ -1,14 +1,20 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { GUARDIAN_SKILL_IDS } from '../../../data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import {
   guardianTargetDisabled,
   guardianTimedBuffActive,
   latestGuardianTimedBuff
-} from '../../../core/traits/modifiers.js';
-import { advanceRadiantForgeState, radiantForgeAvailability } from './radiant-forge.js';
-import { observeLuminaryScheduledEvent, updateLuminaryTraitCastState } from '../traits/index.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { GuardianSchedulerContext, GuardianSkill } from '../../../types.js';
+} from '#gw2/content/professions/guardian/core/traits/modifiers.js';
+import {
+  advanceRadiantForgeState,
+  radiantForgeAvailability
+} from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import {
+  observeLuminaryScheduledEvent,
+  updateLuminaryTraitCastState
+} from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { GuardianSchedulerContext, GuardianSkill } from '#gw2/content/professions/guardian/types.js';
 
 export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

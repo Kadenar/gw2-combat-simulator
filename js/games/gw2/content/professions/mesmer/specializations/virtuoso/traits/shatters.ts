@@ -1,7 +1,7 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { mesmerBalanceValue } from '../../../core/profiles.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import type { MesmerCastContext, MesmerShatterResolution } from '../../../types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerCastContext, MesmerShatterResolution } from '#gw2/content/professions/mesmer/types.js';
 
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 export function resolveInfiniteForgeRefund(context: MesmerCastContext, resolution: MesmerShatterResolution): void {

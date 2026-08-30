@@ -1,32 +1,32 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { selectedSkillNameSet } from '../../../../../../platform/builds/selected-skills.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../../../platform/combat/query/runtime-rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/query/runtime-rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,
   engineerEvent,
   eventSkill
-} from '../../../core/traits/query-helpers.js';
+} from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS,
   engineerBalanceProfile,
   engineerBalanceValue
-} from '../../../core/profiles.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { mechanistCastAvailability } from './availability.js';
+} from '#gw2/content/professions/engineer/core/profiles.js';
+import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/mechanist/profiles.js';
+import { mechanistCastAvailability } from '#gw2/content/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import {
   applyEngineerMechCastTraits,
   handleEngineerMechAttack,
   initializeEngineerMech,
   isEngineerMechCommand,
   observeEngineerMechEvent
-} from './mech.js';
-import { engineerMechAttributes } from '../state.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { EngineerRechargeContext } from '../../../types.js';
+} from '#gw2/content/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { engineerMechAttributes } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { EngineerRechargeContext } from '#gw2/content/professions/engineer/types.js';
 
 export const mechanistSchedulerHooks = Object.freeze({
   initialize: {
@@ -51,6 +51,7 @@ export const mechanistSchedulerHooks = Object.freeze({
 
 export const { afterCast: mechanistAfterCast, ...mechanistAdvancedSchedulerHooks } = mechanistSchedulerHooks;
 
+/** Recognizes native and replayed events that belong to the jade mech. */
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
   const event = engineerEvent(context);
   if (event?.engineerMech === true || event?.application?.engineerMech === true) {
@@ -65,11 +66,12 @@ function engineerMechEvent(context: Gw2ModifierContext): boolean {
   return slot >= 1 && slot <= 3;
 }
 
+/** Checks the normalized active loadout for a named Mechanist signet. */
 function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
-  // Mechanist signet checks use the platform loadout normalizer directly.
   return selectedSkillNameSet(context.config?.selectedSkills).has(name);
 }
 
+/** Requires both J-Drive and the named signet for J-Drive's passive modifiers. */
 function jDriveSignet(context: Gw2ModifierContext, name: string): boolean {
   return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) && selectedSignet(context, name);
 }
@@ -116,6 +118,7 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   }
 ]);
 
+/** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
 function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
   if (!engineerMechEvent(context)) return modified;
@@ -149,12 +152,15 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Sche
   return mech;
 }
 
+/** Applies Jade Dynamo and Overclock/J-Drive recharge reductions to eligible Mechanist skills. */
 function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     return duration * engineerBalanceValue(context, PROFILE.jadeDynamo, 'rechargeMultiplier', 0.8);
   }
 
+  // Overclock Signet passively reduces other signet recharges while selected
+  // and ready; J-Drive keeps the passive active while Overclock is recharging.
   if (
     skill?.id !== ID.OVERCLOCK_SIGNET &&
     skill?.categories?.some((category) => String(category).toLowerCase() === 'signet')

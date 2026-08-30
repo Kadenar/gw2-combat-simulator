@@ -1,9 +1,9 @@
-import { emitSkillBuff, emitSkillControl } from '../../../../../../platform/scheduler/skill-events.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import type { EngineerCastContext, EngineerSkill } from '../../../types.js';
+import { emitSkillBuff, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 // Some skills set type="Heal", others only set slot="Heal"; check both.
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
@@ -24,6 +24,7 @@ function category(skill: EngineerSkill, name: string): boolean {
   return Boolean(skill.categories?.some((value) => String(value).toLowerCase() === name.toLowerCase()));
 }
 
+/** Emits the post-cast boon, combo, and control effects granted by active Scrapper traits. */
 export function applyScrapperCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   // Speed of Synergy: healing toolbelt skills grant superspeed.
   // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 7s.

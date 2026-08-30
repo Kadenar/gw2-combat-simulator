@@ -1,6 +1,6 @@
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { ThiefSkill } from '../../../types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 interface DeadeyeAvailabilityContext {
   readonly state?: { readonly profession?: unknown };

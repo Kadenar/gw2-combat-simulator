@@ -1,21 +1,28 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
-import { onBuffApplied, onResolvedDamage } from '../../../../integrations/patches/authoring/mechanics.js';
-import { createWarriorModuleData } from '../data/catalog.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onBuffApplied, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createWarriorModuleData } from '#gw2/content/professions/warrior/catalog/module-data.js';
 import {
   WARRIOR_CORE_SKILL_MECHANICS,
   WARRIOR_DODGE,
   WARRIOR_SWAP_WEAPONS,
   WARRIOR_WEAPON_STOW
-} from './skills/index.js';
-import { warriorCoreSkillHandlers } from './skills/handlers.js';
-import { warriorCoreSkillMechanicHandlers } from './traits/index.js';
-import { warriorCoreAttributeRules, warriorCoreCastRules, warriorCoreSchedulerHooks } from './traits/modifiers.js';
-import { createWarriorCoreState } from './state.js';
-import { projectWarriorEndState, snapshotWarriorState } from '../state/index.js';
-import { bindWarriorCoreUi } from './presentation.js';
-import type { WarriorSchedulerContext } from '../types.js';
-import { warriorCoreEventHandlers, warriorCoreEventReactions } from './mechanics/reactions.js';
-import { WARRIOR_CORE_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/warrior/core/skills/index.js';
+import { warriorCoreSkillHandlers } from '#gw2/content/professions/warrior/core/skills/execution.js';
+import { warriorCoreSkillMechanicHandlers } from '#gw2/content/professions/warrior/core/traits/index.js';
+import {
+  warriorCoreAttributeRules,
+  warriorCoreCastRules,
+  warriorCoreSchedulerHooks
+} from '#gw2/content/professions/warrior/core/traits/modifiers.js';
+import { createWarriorCoreState } from '#gw2/content/professions/warrior/core/state.js';
+import { projectWarriorEndState, snapshotWarriorState } from '#gw2/content/professions/warrior/state.js';
+import { bindWarriorCoreUi } from '#gw2/content/professions/warrior/core/presentation.js';
+import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
+import {
+  warriorCoreEventHandlers,
+  warriorCoreEventReactions
+} from '#gw2/content/professions/warrior/core/mechanics/reactions.js';
+import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/content/professions/warrior/core/profiles.js';
 
 export const warriorCoreModule = defineNativeModule({
   id: 'Core',

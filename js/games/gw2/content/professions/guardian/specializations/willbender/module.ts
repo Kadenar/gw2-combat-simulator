@@ -1,16 +1,16 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createGuardianModuleData } from '../../data/catalog.js';
-import { willbenderSkillHandlers } from './skills/handlers.js';
-import { willbenderEventHandlers } from './mechanics/virtue-effects.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
+import { willbenderSkillHandlers } from '#gw2/content/professions/guardian/specializations/willbender/skills/execution.js';
+import { willbenderEventHandlers } from '#gw2/content/professions/guardian/specializations/willbender/mechanics/virtue-effects.js';
 import {
   willbenderAttributeRules,
   willbenderSchedulerHooks,
   willbenderSkillMechanicHandlers
-} from './mechanics/virtue-rules.js';
-import { WILLBENDER_SKILL_MECHANICS } from './skills/index.js';
-import { willbenderState } from './state.js';
-import { willbenderUi } from './presentation.js';
-import { WILLBENDER_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
+import { WILLBENDER_SKILL_MECHANICS } from '#gw2/content/professions/guardian/specializations/willbender/skills/index.js';
+import { willbenderState } from '#gw2/content/professions/guardian/specializations/willbender/state.js';
+import { willbenderUi } from '#gw2/content/professions/guardian/specializations/willbender/presentation.js';
+import { WILLBENDER_BALANCE_PROFILES } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
 
 export const willbenderModule = defineNativeModule({
   id: 'Willbender',

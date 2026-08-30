@@ -1,18 +1,18 @@
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
 import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { selectedSkillNameSet } from '../../../../../../platform/builds/selected-skills.js';
-import { antiquaryState } from '../state.js';
-import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from '../../../core/mechanics/resource-events.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
+  THIEF_ARTIFACT_IDS,
+  THIEF_SKILL_IDS as ID,
+  THIEF_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   AntiquaryState,
   ThiefArtifactSlot,
@@ -22,13 +22,13 @@ import type {
   ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/thief/types.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
   THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
-} from '../../../core/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/thief/core/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 interface ForgedSurferTaskPayload extends Record<string, unknown> {
   readonly generation: number;

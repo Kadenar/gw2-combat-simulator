@@ -1,13 +1,13 @@
-import { GEAR_SLOTS } from '../../../../platform/equipment/gear/stats.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { normalizeRotation } from '../../../../platform/engine/execution/rotation.js';
-import { mesmerCatalog } from '../catalog.js';
-import { resolveMesmerSkillIdFromDuplicateName } from '../data/duplicate-skill-names.js';
-import type { SchedulerRecord } from '../../../../platform/engine/types.js';
-import type { MesmerCanonicalBuild } from '../types.js';
-import { createProfessionBuildCodec } from '../../lib/build-codec.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { resolveMesmerSkillIdFromDuplicateName } from '#gw2/content/professions/mesmer/data/duplicate-skill-names.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { MesmerCanonicalBuild } from '#gw2/content/professions/mesmer/types.js';
+import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 /**
  * Mesmer persisted-build definition.

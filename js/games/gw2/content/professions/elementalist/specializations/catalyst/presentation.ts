@@ -6,9 +6,12 @@ import type {
   SchedulerRecord,
   SimulationEvent,
   Skill
-} from '../../../../../platform/engine/types.js';
-import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '../../data/ids.js';
-import { CATALYST_MAXIMUM_ENERGY, type CatalystState } from './state.js';
+} from '#gw2/platform/engine/types.js';
+import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import {
+  CATALYST_MAXIMUM_ENERGY,
+  type CatalystState
+} from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
 
 const CATALYST_SPHERE_COST = 10;
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));
@@ -17,6 +20,9 @@ function uiState(context: SchedulerRecord): Partial<CatalystState> {
   return (context.professionState as Partial<CatalystState> | undefined) || {};
 }
 
+// Mirrors the scheduler availability rule for the palette: a Jade Sphere needs the
+// matching attunement and the sphere cost in energy, falling back to build defaults
+// before any simulated state exists.
 function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   if (skill.skillFamily !== 'Jade Sphere') {
     return { available: true, message: '' };
@@ -39,6 +45,8 @@ function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   };
 }
 
+// Empowering Auras has no stored state, so replay its buff events up to the
+// inspected time to recover the live stack count and remaining duration.
 function empoweringAurasAt(context: SchedulerRecord, at: number): { stacks: number; remaining: number } | null {
   let expiries: number[] = [];
   const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
@@ -99,6 +107,10 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   return items;
 }
 
+/**
+ * Catalyst UI contract: the F5 Jade Sphere skill and palette groups, palette gating,
+ * the energy resource bar, and the timed state shown at a rotation point.
+ */
 export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: () => [
     {

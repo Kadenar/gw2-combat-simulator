@@ -1,13 +1,13 @@
-import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
-import { activeRevenantLegend, revenantUiState } from '../../core/presentation.js';
-import { HERALD_MECHANICS } from './mechanics/facets.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import { activeRevenantLegend, revenantUiState } from '#gw2/content/professions/revenant/core/presentation.js';
+import { HERALD_MECHANICS } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facets.js';
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { RevenantSkill, RevenantUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RevenantSkill, RevenantUiContext } from '#gw2/content/professions/revenant/types.js';
 
 const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
 

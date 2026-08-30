@@ -1,32 +1,46 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { isStandardBoon } from '../../../../../../platform/combat/state/boons.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../../core/traits/legend-invocation.js';
-import { revenantActiveBoonCount, revenantTimedBuff } from '../../../core/traits/modifiers.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill
+} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { revenantActiveBoonCount, revenantTimedBuff } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
-import type { RevenantScheduledTask, RevenantSchedulerContext, RevenantSimulationEvent } from '../../../types.js';
-import { heraldState } from '../state.js';
-import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID, HERALD_SPIRIT_BOON_PROFILE_ID } from '../skills/index.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
+import type {
+  RevenantScheduledTask,
+  RevenantSchedulerContext,
+  RevenantSimulationEvent
+} from '#gw2/content/professions/revenant/types.js';
+import { heraldState } from '#gw2/content/professions/revenant/specializations/herald/state.js';
+import {
+  HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
+  HERALD_SPIRIT_BOON_PROFILE_ID
+} from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
 import {
   afterHeraldFacetCast,
   handleElevatedCompassionPulse,
   handleHeraldFacetPulse,
   HERALD_ELEVATED_COMPASSION_TASK,
   syncElevatedCompassion
-} from './facet-upkeep.js';
-import { denySkillCast as denyRevenantSkill } from '../../../../lib/availability.js';
-import type { RevenantCastContext, RevenantPrecastContext, RevenantSkill } from '../../../types.js';
+} from '#gw2/content/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib/availability.js';
+import type {
+  RevenantCastContext,
+  RevenantPrecastContext,
+  RevenantSkill
+} from '#gw2/content/professions/revenant/types.js';
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

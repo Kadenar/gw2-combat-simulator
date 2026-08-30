@@ -1,11 +1,15 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createThiefModuleData } from '../../data/catalog.js';
-import { deadeyeSkillHandlers } from './skills/handlers.js';
-import { deadeyeAttributeRules, deadeyeCastRules, deadeyeSchedulerHooks } from './mechanics/malice-rules.js';
-import { deadeyeState } from './state.js';
-import { deadeyeUi } from './presentation.js';
-import { DEADEYE_SKILL_MECHANICS } from './skills/index.js';
-import { DEADEYE_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
+import { deadeyeSkillHandlers } from '#gw2/content/professions/thief/specializations/deadeye/skills/execution.js';
+import {
+  deadeyeAttributeRules,
+  deadeyeCastRules,
+  deadeyeSchedulerHooks
+} from '#gw2/content/professions/thief/specializations/deadeye/mechanics/malice-rules.js';
+import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
+import { deadeyeUi } from '#gw2/content/professions/thief/specializations/deadeye/presentation.js';
+import { DEADEYE_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/deadeye/skills/index.js';
+import { DEADEYE_BALANCE_PROFILES } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 export const deadeyeModule = defineNativeModule({
   id: 'Deadeye',

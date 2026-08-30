@@ -1,26 +1,29 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { TRAITS as NECROMANCER_TRAITS } from '../../data/traits-data.js';
-import { addCarapace, necromancerActiveMinionCompanionIds } from '../mechanics/state-helpers.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { combinedTargetDamage } from '../../../../../platform/combat/state/target-health.js';
-import { gw2AlliedEffectRecipients } from '../../../../../platform/combat/state/allied-players.js';
-import { onResolvedCriticalHit } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
-import type { Gw2EventDraft } from '../../../../../platform/equipment/relics/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { TRAITS as NECROMANCER_TRAITS } from '#gw2/content/professions/necromancer/data/traits-data.js';
+import {
+  addCarapace,
+  necromancerActiveMinionCompanionIds
+} from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
   necromancerBalanceProfile
-} from '../profiles.js';
+} from '#gw2/content/professions/necromancer/core/profiles.js';
 
 interface TraitDamageDefinition {
   readonly name: string;
@@ -54,6 +57,7 @@ interface TraitVulnerabilityDefinition {
   readonly duration: number;
 }
 
+/** Queues a flat life-steal trait packet and records matching proc attribution. */
 function queueTraitDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -80,9 +84,11 @@ function queueTraitDamage(
     ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
     triggeredBy: event.skillName
   });
+  // Mirror the scheduled packet in result-level trait attribution.
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
+/** Applies a trait-owned condition immediately and records its proc attribution. */
 export function applyTraitCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -108,6 +114,7 @@ export function applyTraitCondition(
   context.recordProc?.('trait', name, event.at, event.skillName);
 }
 
+/** Queues a coefficient-based trait strike and records matching proc attribution. */
 export function queueTraitCoefficientDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -137,6 +144,7 @@ export function queueTraitCoefficientDamage(
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
+/** Reports whether resolved player and environment damage has crossed half the configured target health. */
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
   const maximum = Number(context.config.target?.health || 0);
   if (!(maximum > 0)) return false;
@@ -168,6 +176,7 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
   });
 }
 
+/** Maps a player, spirit, or selected minion hit to its independent Vampiric Presence cooldown owner. */
 function vampiricPresenceActorKey(context: NecromancerResolverContext, event: NecromancerResolverEvent): string | null {
   // Spirit attacks are owner-attributed and share the player's proc interval;
   // ordinary minions remain independent capped allied recipients.
@@ -194,6 +203,7 @@ function queueVampiricPresence(
   actorKey: string,
   intervalAlreadyApplied = false
 ): void {
+  // Select the live shroud packet and recipient-owned cooldown before materializing the life steal.
   const profile = necromancerBalanceProfile(context, PROFILE.vampiricPresence);
   const state = professionCoreState(context);
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
@@ -213,6 +223,7 @@ function queueVampiricPresence(
     else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
   }
 
+  // Both player and allied-recipient paths converge on the same attributed packet.
   queueTraitDamage(context, event, {
     name: 'Vampiric Presence',
     traitId: TRAIT.VAMPIRIC_PRESENCE,
@@ -221,6 +232,7 @@ function queueVampiricPresence(
   });
 }
 
+/** Applies an allied player's pre-materialized Vampiric Presence proc. */
 export function reactToVampiricPresenceAlliedHit(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -229,6 +241,7 @@ export function reactToVampiricPresenceAlliedHit(
   queueVampiricPresence(context, event, `ally:${Number(event.allyIndex || 0)}`, true);
 }
 
+/** Reads permanent and timed Chilled target state at the requested timestamp. */
 export function targetIsChilled(context: NecromancerResolverContext, at: number): boolean {
   if (
     context.config.target?.conditions?.Chilled === true ||
@@ -267,6 +280,7 @@ function companionTasteForBloodRecipient(companionId: string): string {
   return `companion:${companionId}`;
 }
 
+/** Adds one expiring Taste for Blood application to an independent recipient pool. */
 function addTasteForBloodApplication(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -290,6 +304,7 @@ const OVERFLOWING_THIRST_ICON = String(
   NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || ''
 );
 
+/** Consumes a recipient charge as Taste for Blood's power-only life-steal packet. */
 function queueTasteForBlood(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.overflowingThirst), 'strike');
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
@@ -327,6 +342,7 @@ export function reactToTasteForBloodAlliedHit(
   queueTasteForBlood(context, event);
 }
 
+/** Applies a trait-owned Vulnerability packet and records matching proc attribution. */
 export function applyTraitVulnerability(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -348,6 +364,7 @@ export function applyTraitVulnerability(
   context.recordProc?.('trait', name, event.at, event.skillName);
 }
 
+/** Applies all Core Necromancer traits triggered by one resolved player or summon strike. */
 export function reactToNecromancerCoreDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -360,6 +377,7 @@ export function reactToNecromancerCoreDamage(
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
+  // Baseline life-steal and first-hit shroud traits resolve before threshold-dependent effects.
   applyVampiric(context, event);
   if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.reapersMight), 'boon');
@@ -384,6 +402,7 @@ export function reactToNecromancerCoreDamage(
     context.recordProc?.('trait', "Reaper's Might", event.at, event.skillName);
   }
 
+  // Below-half-health traits share the resolver's accumulated target-damage boundary.
   if (
     hasTrait(context, TRAIT.SIPHONED_POWER) &&
     targetBelowHalfHealth(context) &&
@@ -454,6 +473,7 @@ export function reactToNecromancerCoreDamage(
     });
   }
 
+  // Shroud skill-one traits attach their condition packets to the triggering hit.
   if (hasTrait(context, TRAIT.DHUUMFIRE) && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.dhuumfire), 'condition');
     const interval = Number(event.dhuumfireInterval || 0);
@@ -487,6 +507,7 @@ export function reactToNecromancerCoreDamage(
     });
   }
 
+  // Generic critical, recipient-cooldown, and consumable-buff reactions run last.
   necromancerBarbedPrecisionReaction.handler(context, event, details);
   if (hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) {
     const actorKey = vampiricPresenceActorKey(context, event);
@@ -543,12 +564,12 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   }
 });
 
-// Route resolved conditions into Necromancer trait reactions after the source
-// condition has been accepted by the resolver.
+/** Applies Core trait reactions after a source condition has entered canonical resolver state. */
 export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
+  // Chilled extends the shared target window and may attach Bitter Chill.
   if (event.condition === 'Chilled') {
     professionCoreState(context).targetChilledUntil = Math.max(
       Number(professionCoreState(context).targetChilledUntil || 0),
@@ -572,13 +593,13 @@ export function reactToNecromancerCoreCondition(
     }
   }
 
+  // Corruptor's Fervor gains carapace from any non-summon condition application.
   if (event.actorType !== 'summon' && hasTrait(context, TRAIT.CORRUPTERS_FERVOR)) {
     addCarapace(professionCoreState(context), 1, event.at);
   }
 }
 
-// Convert a qualifying Blind into ICD-bound Chilling Darkness through the
-// resolver's condition application hook.
+/** Converts a qualifying Blind into Chilling Darkness after enforcing its internal cooldown. */
 export function reactToNecromancerBlind(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (
     !hasTrait(context, TRAIT.CHILLING_DARKNESS) ||
@@ -597,16 +618,17 @@ export function reactToNecromancerBlind(context: NecromancerResolverContext, eve
   });
 }
 
-// Record target-control and Dread windows, then attach fear-specific Terror and
-// the generic Insidious Disruption condition to the originating control event.
+/** Records target-control windows and attaches fear and disruption trait conditions. */
 export function reactToNecromancerCoreControl(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
+  // Every control extends the shared target window used by control-sensitive modifiers.
   professionCoreState(context).targetControlledUntil = Math.max(
     Number(professionCoreState(context).targetControlledUntil || 0),
     event.at + Math.max(0.001, Number(event.duration || 0))
   );
+  // Fear additionally opens Dread and may echo the source duration through Terror.
   if (event.controlKind === 'fear' || event.kind === 'fear') {
     professionCoreState(context).dreadUntil = Math.max(
       Number(professionCoreState(context).dreadUntil || 0),
@@ -622,6 +644,7 @@ export function reactToNecromancerCoreControl(
     }
   }
 
+  // Insidious Disruption attaches Torment to any qualifying control event.
   if (hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.insidiousDisruption), 'condition');
     applyTraitCondition(context, event, {

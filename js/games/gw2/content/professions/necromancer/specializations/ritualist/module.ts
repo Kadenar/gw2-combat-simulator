@@ -1,17 +1,17 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../data/catalog.js';
-import { ritualistEventHandlers, ritualistResolverEventReactions } from './mechanics/spirit-effects.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
+import { ritualistEventHandlers, ritualistResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import {
   ritualistAttributeRules,
   ritualistCastRules,
   ritualistSchedulerHooks
-} from './mechanics/spirits-and-shards.js';
-import { ritualistState } from './state.js';
-import { ritualistUi } from './presentation.js';
-import { RITUALIST_BASE_SKILL_MECHANICS } from './skills/index.js';
-import { ritualistSkillHandlers } from './skills/handlers.js';
-import { RITUALIST_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirits-and-shards.js';
+import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
+import { ritualistUi } from '#gw2/content/professions/necromancer/specializations/ritualist/presentation.js';
+import { RITUALIST_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/ritualist/skills/index.js';
+import { ritualistSkillHandlers } from '#gw2/content/professions/necromancer/specializations/ritualist/skills/execution.js';
+import { RITUALIST_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 export const ritualistModule = defineNativeModule({
   id: 'Ritualist',

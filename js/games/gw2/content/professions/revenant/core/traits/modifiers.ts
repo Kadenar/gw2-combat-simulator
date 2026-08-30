@@ -1,16 +1,16 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapons/loadout.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.
  */
 
-import { revenantCastAvailability } from '../mechanics/availability.js';
-import { advanceRevenantEnergy } from '../mechanics/energy.js';
-import { spendRevenantEnergy } from '../../energy.js';
-import { prepareRevenantHitboxEvent } from '../mechanics/event-handlers.js';
-import { handleRevenantUpkeepPulse } from '../mechanics/upkeep.js';
-import { completeRevenantFollowup } from '../skills/actions.js';
+import { revenantCastAvailability } from '#gw2/content/professions/revenant/core/mechanics/availability.js';
+import { advanceRevenantEnergy } from '#gw2/content/professions/revenant/core/mechanics/energy.js';
+import { spendRevenantEnergy } from '#gw2/content/professions/revenant/energy.js';
+import { prepareRevenantHitboxEvent } from '#gw2/content/professions/revenant/core/mechanics/event-handlers.js';
+import { handleRevenantUpkeepPulse } from '#gw2/content/professions/revenant/core/mechanics/upkeep.js';
+import { completeRevenantFollowup } from '#gw2/content/professions/revenant/core/skills/actions.js';
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
@@ -18,7 +18,7 @@ import {
   observeRevenantWeaponEvent,
   resetCoalescenceOfRuin,
   updateRevenantWeaponState
-} from '../mechanics/weapon-state.js';
+} from '#gw2/content/professions/revenant/core/mechanics/weapon-state.js';
 import {
   afterRevenantCast,
   handleImpossibleOddsStrike,
@@ -26,20 +26,20 @@ import {
   modifyRevenantCastDuration,
   modifyRevenantRechargeDuration,
   observeRevenantEvent
-} from './index.js';
+} from '#gw2/content/professions/revenant/core/traits/index.js';
 import {
   advanceRevenantSpearState,
   handleAbyssalRazeRechargeReduction,
   handleCrushingAbyssGain,
   handleCrushingAbyssWeaponSwap,
   observeRevenantSpearEvent
-} from '../skills/spear.js';
+} from '#gw2/content/professions/revenant/core/skills/spear.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 /**
  * Pays the skill's Energy cost and captures weapon state at cast start.
@@ -137,28 +137,25 @@ export const revenantSchedulerHooks = Object.freeze({
   })
 });
 
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { isStandardBoon } from '../../../../../platform/combat/state/boons.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../platform/combat/state/event-ownership.js';
-import { isDamagingCondition } from '../../../../../platform/combat/state/targets.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   playerHealthFraction,
   targetConditionActive,
   targetHealthFraction,
   vulnerabilityStacks
-} from '../../../../../platform/combat/query/runtime-query.js';
-import { REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../platform/engine/profession/state.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
-import type { Gw2Stats } from '../../../../../platform/equipment/types.js';
-import type { RevenantConfig, RevenantCoreState, RevenantState } from '../../types.js';
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { RevenantConfig, RevenantCoreState, RevenantState } from '#gw2/content/professions/revenant/types.js';
 
-export { snapshotRevenantState } from '../../state/index.js';
+export { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;

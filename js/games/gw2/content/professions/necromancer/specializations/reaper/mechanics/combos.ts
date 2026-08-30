@@ -1,11 +1,11 @@
 /** Reaper-specific combo field assumptions and summon-owned finisher resolution. */
-import { enqueueGw2OwnedComboFinisher } from '../../../../../../platform/resolver/combo-resolution.js';
+import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerSchedulerContext,
   NecromancerSimulationEvent
-} from '../../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
 // Far-future sentinel so the assumption field is never reclaimed during a normal simulation run.
 const ASSUMED_FIELD_EXPIRES_AT = 1_000_000_000;

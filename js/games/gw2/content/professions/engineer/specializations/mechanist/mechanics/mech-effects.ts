@@ -1,25 +1,26 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   applyEngineerDerivedCondition,
   procState,
   queueBuff,
   recordTrait,
   resolverSkill
-} from '../../../core/mechanics/state-helpers.js';
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   engineerBalanceEffectValue,
   engineerBalanceValue
-} from '../../../core/profiles.js';
+} from '#gw2/content/professions/engineer/core/profiles.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerResolverReactionDetails
-} from '../../../types.js';
-import type { ResolvedCriticalHitOptions } from '../../../../../../integrations/patches/authoring/mechanics.js';
+} from '#gw2/content/professions/engineer/types.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 
+/** Recognizes resolver events produced by the mech, including legacy summon packets inferred by mechanic slot. */
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.engineerMech === true || event.application?.engineerMech === true) return true;
   if (event.actorType !== 'summon') return false;
@@ -72,6 +73,7 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
   EngineerResolverReactionDetails
 >[]);
 
+/** Applies on-damage arm traits to qualifying mech strikes while maintaining their independent cooldowns. */
 function reactToMechanistDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,

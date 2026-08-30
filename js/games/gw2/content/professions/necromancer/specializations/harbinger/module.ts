@@ -1,13 +1,13 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createNecromancerModuleData } from '../../data/catalog.js';
-import { harbingerResolverEventReactions } from './mechanics/blight-effects.js';
-import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from './mechanics/blight-and-shroud.js';
-import { harbingerState } from './state.js';
-import { harbingerUi } from './presentation.js';
-import { HARBINGER_BASE_SKILL_MECHANICS } from './skills/index.js';
-import { harbingerSkillHandlers } from './skills/handlers.js';
-import { HARBINGER_BALANCE_PROFILES } from './profiles.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createNecromancerModuleData } from '#gw2/content/professions/necromancer/catalog/module-data.js';
+import { harbingerResolverEventReactions } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-effects.js';
+import { harbingerAttributeRules, harbingerCastRules, harbingerSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight-and-shroud.js';
+import { harbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import { harbingerUi } from '#gw2/content/professions/necromancer/specializations/harbinger/presentation.js';
+import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/index.js';
+import { harbingerSkillHandlers } from '#gw2/content/professions/necromancer/specializations/harbinger/skills/execution.js';
+import { HARBINGER_BALANCE_PROFILES } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 
 export const harbingerModule = defineNativeModule({
   id: 'Harbinger',

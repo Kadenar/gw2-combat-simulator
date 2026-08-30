@@ -1,16 +1,16 @@
-import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerMechanicSkillBarGroups,
   mesmerResourceViews
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/mesmer/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,
   SchedulerRecord,
   Skill
-} from '../../../../../platform/engine/types.js';
-import type { MesmerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { MesmerUiContext } from '#gw2/content/professions/mesmer/types.js';
 
 const VIRTUOSO_MECHANIC_SKILLS = Object.freeze([
   ID.BLADESONG_HARMONY,

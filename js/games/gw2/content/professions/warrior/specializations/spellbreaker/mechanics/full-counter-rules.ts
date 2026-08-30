@@ -1,18 +1,15 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import {
-  professionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { warriorBalanceProfile } from '../../../core/profiles.js';
-import { syncWarriorAdrenaline } from '../../../core/mechanics/adrenaline-and-endurance.js';
-import type { WarriorSchedulerContext } from '../../../types.js';
-import { observeSpellbreakerEvent } from '../traits/index.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { gw2PrimaryWeapon } from '../../../../../../platform/equipment/weapons/loadout.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
+import { observeSpellbreakerEvent } from '#gw2/content/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/spellbreaker/profiles.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 export const spellbreakerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {

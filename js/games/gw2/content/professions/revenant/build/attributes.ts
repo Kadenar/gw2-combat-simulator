@@ -1,14 +1,14 @@
-import { bolsteredBondsBonuses } from '../specializations/conduit/traits/bolstered-bonds.js';
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { bolsteredBondsBonuses } from '#gw2/content/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
+import { getActiveTraits } from '#gw2/content/professions/revenant/data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { RevenantBuild } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { RevenantBuild } from '#gw2/content/professions/revenant/types.js';
 
 const BUILD_ATTRIBUTE_NAMES = Object.freeze({
   power: 'Power',

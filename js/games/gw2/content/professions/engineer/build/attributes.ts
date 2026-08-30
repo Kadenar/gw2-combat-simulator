@@ -1,14 +1,18 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/engineer/data/traits-data.js';
+import {
+  createBuildAttributeContext,
+  finalizeProfessionBuildAttributes
+} from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { EngineerBuild } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { EngineerBuild } from '#gw2/content/professions/engineer/types.js';
 
+/** Applies Engineer trait bonuses and exposes the pre-profession conversion pool used by Amalgam. */
 export function applyEngineerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext
@@ -24,6 +28,7 @@ export function applyEngineerBuildAttributeRules(
 
   const traitDurations: Gw2NumericAttributes = {};
 
+  // Describe static trait bonuses declaratively so shared provenance and conversion ordering stay intact.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -116,6 +121,7 @@ export function applyEngineerBuildAttributeRules(
     traitDurations['Poison Duration'] = 33;
   }
 
+  // Preserve the common conversion pool separately because Amalgam evolves from the pre-profession values.
   const finalized = finalizeProfessionBuildAttributes(common, {
     activeTraits,
     attributeEffects,

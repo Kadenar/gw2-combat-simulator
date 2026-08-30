@@ -1,10 +1,22 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
+/**
+ * Weaver balance data: the tunable durations, recharges, trait bonuses, and
+ * dual-skill bullet effects that Weaver mechanics look up by profile id at
+ * runtime instead of hardcoding, so balance patches can override them.
+ */
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 
+/**
+ * Stable lookup keys for the profiles below: mechanic and skill-variant profiles
+ * use namespaced strings, while trait profiles are keyed by their trait id.
+ */
 export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.weaver.resources',
   primordialStance: 'elementalist.weaver.primordial-stance',
@@ -58,7 +70,12 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   duration
 });
 
+/** Default profiles registered with the Weaver module data. */
 export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Shared Weave Self bucket: `initialDelay` is the attunement recharge applied
+  // after every swap inside Weave Self, `recharge` the Perfect Weave window,
+  // `durationMultiplier` the Weave Self duration, and `firstPacketRatio` the
+  // fraction of the cast at which Weave Self activates.
   {
     id: WEAVER_BALANCE_PROFILE_IDS.resources,
     name: 'Weaver Attunement Resources',

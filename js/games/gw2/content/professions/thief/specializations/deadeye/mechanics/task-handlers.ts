@@ -1,8 +1,8 @@
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import type { ThiefScheduledTask, ThiefSchedulerContext } from '../../../types.js';
-import { deadeyeState } from '../state.js';
-import { resolveDeadeyeMaliceHit } from './malice.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
+import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
+import { resolveDeadeyeMaliceHit } from '#gw2/content/professions/thief/specializations/deadeye/mechanics/malice.js';
 
 export function expireDeadeyesMark(
   context: ThiefSchedulerContext,

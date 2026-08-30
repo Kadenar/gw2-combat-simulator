@@ -1,20 +1,20 @@
-import { emitSkillBuff } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state/index.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant temporary weapon and flip state. The shared GW2 controller owns
  * canonical autoattack chains; this module owns Abyssal Strike, Imperial
  * Guard, True Strike, and the typed tasks that expire those follow-ups.
  */
-import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 /** Updates the Revenant-specific Abyssal Strike sequence after shared chain handling. */
 export function updateRevenantWeaponState(context: RevenantCastContext, skill: RevenantSkill): void {

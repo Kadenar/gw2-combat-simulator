@@ -1,9 +1,9 @@
-import { handleWarriorBoonRemoval } from './event-handlers.js';
-import { reactToWarriorBuff, reactToWarriorDamage } from '../traits/index.js';
+import { handleWarriorBoonRemoval } from '#gw2/content/professions/warrior/core/mechanics/event-handlers.js';
+import { reactToWarriorBuff, reactToWarriorDamage } from '#gw2/content/professions/warrior/core/traits/index.js';
 
-export { handleWarriorBoonRemoval } from './event-handlers.js';
-export { warriorBoonRemovalCounts } from './resolution-helpers.js';
-export { reactToWarriorBuff, reactToWarriorDamage } from '../traits/index.js';
+export { handleWarriorBoonRemoval } from '#gw2/content/professions/warrior/core/mechanics/event-handlers.js';
+export { warriorBoonRemovalCounts } from '#gw2/content/professions/warrior/core/mechanics/resolution-helpers.js';
+export { reactToWarriorBuff, reactToWarriorDamage } from '#gw2/content/professions/warrior/core/traits/index.js';
 
 export const warriorCoreEventHandlers = Object.freeze({
   'warrior.boon-removal': handleWarriorBoonRemoval

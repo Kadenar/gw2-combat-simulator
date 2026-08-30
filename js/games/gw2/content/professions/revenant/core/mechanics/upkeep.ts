@@ -1,22 +1,22 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { snapshotRevenantState } from '../../state/index.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *
  * Toggles and releases shared upkeep skills and handles recurring Core upkeep
  * pulses. Elite specializations own any additional upkeep lifecycle.
  */
-import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SchedulerRecord, SkillId } from '../../../../../platform/engine/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill,
   RevenantUpkeepState
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
 

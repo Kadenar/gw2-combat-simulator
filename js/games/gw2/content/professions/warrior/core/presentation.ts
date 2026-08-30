@@ -1,8 +1,8 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { timedBuffAt, timedBuffStacksAt } from '../../../../platform/results/query.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { getActiveTraits } from '../data/traits-data.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/warrior/data/traits-data.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -12,11 +12,16 @@ import type {
   ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
-} from '../../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../../platform/simulation/types.js';
-import type { WarriorSpecializationSelection } from '../data/traits-data.js';
-import type { WarriorSimulationEvent, WarriorSkill, WarriorState, WarriorUiContext } from '../types.js';
-import { gw2PrimaryWeapon } from '../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { WarriorSpecializationSelection } from '#gw2/content/professions/warrior/data/traits-data.js';
+import type {
+  WarriorSimulationEvent,
+  WarriorSkill,
+  WarriorState,
+  WarriorUiContext
+} from '#gw2/content/professions/warrior/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 /** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
 const SIGNET_MASTERY_MAX_STACKS = 5;

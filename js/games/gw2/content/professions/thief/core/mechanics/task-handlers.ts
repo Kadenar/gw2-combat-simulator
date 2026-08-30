@@ -1,4 +1,4 @@
-import { expireThievesGuild, handleThievesGuildAttack } from '../skills/actions.js';
+import { expireThievesGuild, handleThievesGuildAttack } from '#gw2/content/professions/thief/core/skills/actions.js';
 
 export const thiefCoreTaskHandlers = Object.freeze({
   'thief.thieves-guild-attack': handleThievesGuildAttack,

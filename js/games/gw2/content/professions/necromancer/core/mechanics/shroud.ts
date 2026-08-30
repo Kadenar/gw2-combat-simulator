@@ -1,8 +1,8 @@
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../../state/index.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Shroud entry/exit and Lich Form handlers.
  *
@@ -13,16 +13,25 @@ import { snapshotNecromancerState } from '../../state/index.js';
  * The resource clock is advanced to `context.start` first so entry sees an
  * up-to-date life-force pool. Exports `necromancerShroudSkillHandlers`.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
   necromancerBalanceProfile
-} from '../profiles.js';
-import { advanceNecromancerState, leaveShroud } from './life-force.js';
-import { addCarapace, gainNecromancerLifeForce } from './state-helpers.js';
-import { runNecromancerShroudEnter } from './shroud-lifecycle.js';
-import type { NecromancerCastContext, NecromancerSkill } from '../../types.js';
+} from '#gw2/content/professions/necromancer/core/profiles.js';
+import {
+  advanceNecromancerState,
+  leaveShroud
+} from '#gw2/content/professions/necromancer/core/mechanics/life-force.js';
+import {
+  addCarapace,
+  gainNecromancerLifeForce
+} from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { runNecromancerShroudEnter } from '#gw2/content/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
 // Snapshot current life-force-related state, arm the matching exit skill, and
 // apply all entry traits before publishing the shroud weapon-set transition.
@@ -35,6 +44,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce((total, count) => total + Number(count || 0) * 2, 0)
     : 0;
+  // Resolve entry-time carapace and life-force traits against the pre-transform state.
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
     gainNecromancerLifeForce(context, Math.min(30, timedCarapace + minionCarapace) * 0.5, at);
   }
@@ -53,6 +63,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     }
   }
 
+  // Establish the transform, exit flip, and Plague Sending arm before lifecycle callbacks run.
   state.activeShroud = shroud;
   state.activeShroudEntryId = skill.id;
   state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
@@ -68,6 +79,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   state.plagueSendingEntrySkillId = null;
   runNecromancerShroudEnter(context, skill, at);
 
+  // Emit shared on-entry boons and trait attacks after specialization lifecycle effects.
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
   }
@@ -131,6 +143,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     });
   }
 
+  // Publish the visible weapon transition only after all entry state and trait effects are committed.
   context.emit({
     type: 'weapon_set',
     at,
@@ -147,6 +160,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   return true;
 }
 
+// Route transform skills through entry or the shared life-force shroud exit path.
 function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   advanceNecromancerState(context, context.start);
   if (skill.shroudEntry) return activateShroud(context, skill);
@@ -158,6 +172,7 @@ function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boole
   return false;
 }
 
+// Enter or leave the fixed-duration Lich transform without invoking life-force shroud lifecycle hooks.
 function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -182,6 +197,7 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
   return true;
 }
 
+/** Maps shroud and Lich transform handler keys to their cast implementations. */
 export const necromancerShroudSkillHandlers = Object.freeze({
   'necromancer.shroud': shroud,
   'necromancer.lich': lich

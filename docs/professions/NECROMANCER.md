@@ -1,11 +1,10 @@
 # Necromancer
 
 Native shared-engine profession. Entry point `necromancer.html`.
-`definition.ts` is the stable export; `family.ts` resolves one cached
-simulation contract from Core plus one of Reaper, Scourge, Harbinger, or
-Ritualist. Each directory holds `module.ts`, `state.ts`, `skills.ts`,
-`handlers.ts`, `profiles.ts`, `rules.ts`, and `ui.ts`, and only the selected
-elite's skills/traits/state/handlers are present in a given runtime.
+`definition.ts` owns the stable cached simulation contract built from Core plus
+one of Reaper, Scourge, Harbinger, or Ritualist. Each slice contains only the
+concept files it needs, and only the selected elite's skills, traits, state, and
+activation behavior are present in a given runtime.
 
 ## Data
 

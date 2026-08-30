@@ -1,11 +1,11 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../integrations/patches/authoring/balance-profiles.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValue
-} from '../../../../platform/combat/state/balance-profiles.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 
 export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.core.resources',
@@ -155,10 +155,12 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   })
 ]);
 
+/** Resolves an Engineer balance profile from the active simulation context. */
 export function engineerBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
   return balanceProfileFromContext(context, id);
 }
 
+/** Selects an effect of the requested type from a balance profile. */
 export function engineerBalanceProfileEffect(
   profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
   type: string,
@@ -167,10 +169,12 @@ export function engineerBalanceProfileEffect(
   return balanceProfileEffect(profile, type, index);
 }
 
+/** Reads a numeric profile field while preserving a caller-provided fallback. */
 export function engineerBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
   return balanceProfileValue(engineerBalanceProfile(context, id), field, fallback);
 }
 
+/** Reads a numeric field from a specific typed effect in an Engineer balance profile. */
 export function engineerBalanceEffectValue(
   context: unknown,
   id: SkillId,

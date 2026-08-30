@@ -1,4 +1,4 @@
-import type { GuardianWillbenderState } from '../../../types.js';
+import type { GuardianWillbenderState } from '#gw2/content/professions/guardian/types.js';
 
 export const WILLBENDER_MAX_LETHAL_TEMPO = 5;
 

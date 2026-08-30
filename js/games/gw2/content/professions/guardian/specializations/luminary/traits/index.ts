@@ -1,19 +1,26 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { luminaryState } from '../state.js';
-import { PIERCING_STANCE_IMPACT_MS } from '../skills/index.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isGw2PlayerActorEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { projectCastRelativeEffectTimingMs } from '../../../../../../platform/skills/timing.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { buildGuardianStrike } from '../../../core/mechanics/event-handlers.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill } from '../../../core/traits/index.js';
-import { reactToJusticeHitWithOptions } from '../../../core/mechanics/virtues.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
+import { PIERCING_STANCE_IMPACT_MS } from '#gw2/content/professions/guardian/specializations/luminary/skills/index.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  emitGuardianProc,
+  guardianTraitIcon,
+  isGuardianSymbolSkill
+} from '#gw2/content/professions/guardian/core/traits/index.js';
+import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
@@ -22,7 +29,7 @@ import type {
   GuardianSkill,
   GuardianLuminaryState,
   GuardianVirtue
-} from '../../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 const RADIANT_WEAPON_SKILLS = Object.freeze({
   hammer: GUARDIAN_SKILL_IDS.DAZZLING_HAMMER,

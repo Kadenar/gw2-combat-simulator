@@ -1,9 +1,14 @@
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { selectedEngineerTraits } from '../../core/state.js';
-import type { BalanceProfile, SkillId } from '../../../../../platform/engine/types.js';
-import type { EngineerConfig, EngineerMechAttributes, EngineerPlayerStats, MechanistState } from '../../types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { selectedEngineerTraits } from '#gw2/content/professions/engineer/core/state.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  EngineerConfig,
+  EngineerMechAttributes,
+  EngineerPlayerStats,
+  MechanistState
+} from '#gw2/content/professions/engineer/types.js';
 
 // Mechanist owns its public mech projection and the disabled inactive representation.
 export const MECHANIST_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -21,7 +26,10 @@ export const MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Mechanis
   }
 });
 
+/** Resolves the three mech command skills supplied by the active mechanist traits. */
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {
+  // Each trait row contributes one command and defaults to its first option
+  // when the build does not explicitly select another trait in that row.
   const pick = (groups: readonly (readonly [SkillId, SkillId])[]): SkillId => {
     for (const [traitId, skillId] of groups) {
       if (hasTrait(traits, traitId)) return skillId;
@@ -49,10 +57,12 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
   ];
 }
 
+/** Reads a non-negative player attribute while supplying its baseline when absent. */
 function playerAttribute(stats: EngineerPlayerStats, key: keyof EngineerMechAttributes, fallback = 0): number {
   return Math.max(0, Number(stats?.[key] ?? fallback));
 }
 
+/** Calculates the jade mech's inherited combat attributes for the selected trait configuration. */
 export function engineerMechAttributes(
   config: EngineerConfig = {},
   playerStats: EngineerPlayerStats = {},
@@ -62,6 +72,7 @@ export function engineerMechAttributes(
   const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
   const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
+  // Balance profiles may omit fields, so inheritance always retains a native fallback.
   const profileNumber = (field: string, fallback: number): number => {
     const value = profile?.[field];
     return Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -102,6 +113,7 @@ export function engineerMechAttributes(
   };
 }
 
+/** Creates the initial active-mech state, including trait-selected commands and inherited attributes. */
 export function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {

@@ -1,11 +1,21 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
-import { actualNecromancerLifeForceCost, normalizedNecromancerLifeForceCost } from '../state.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { denySkillCast as deny } from '../../../lib/availability.js';
-import type { AvailabilityResult, SkillId } from '../../../../../platform/engine/types.js';
-import type { NecromancerPrecastContext, NecromancerCoreState, NecromancerSkill } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import {
+  actualNecromancerLifeForceCost,
+  normalizedNecromancerLifeForceCost
+} from '#gw2/content/professions/necromancer/core/state.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  NecromancerPrecastContext,
+  NecromancerCoreState,
+  NecromancerSkill
+} from '#gw2/content/professions/necromancer/types.js';
 
 const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.DEATHLY_CLAWS,
@@ -34,6 +44,7 @@ function specialization(context: NecromancerPrecastContext): string {
   return context.config?.specialization || 'Core';
 }
 
+/** Returns the shroud form a skill requires, or an empty string for ordinary skills. */
 export function requiredShroud(skill?: NecromancerSkill): string {
   return String(skill?.shroud || '');
 }
@@ -82,6 +93,7 @@ function shroudEntryGate(
   return READY;
 }
 
+// Allow an exit only while its matching transform or persistent flip is active.
 function shroudExitGate(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -92,6 +104,7 @@ function shroudExitGate(
   return available ? READY : deny(skill, 'necromancer.not-in-shroud', 'the matching shroud is not active.');
 }
 
+// Keep Lich entry separate from ordinary shrouds because it has no life-force gate.
 function lichFormGate(
   _context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -101,6 +114,7 @@ function lichFormGate(
   return activeShroud ? deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`) : READY;
 }
 
+// Restrict the Lich replacement bar to its active transform window.
 function lichSkillGate(
   _context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -110,6 +124,7 @@ function lichSkillGate(
   return activeShroud === 'lich' ? READY : deny(skill, 'necromancer.requires-lich', 'requires Lich Form.');
 }
 
+// Match each specialization shroud skill to the currently active shroud identity.
 function inShroudGate(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -124,6 +139,7 @@ function inShroudGate(
   return READY;
 }
 
+// Prevent a replacement summon from bypassing its active minion's death-recharge contract.
 function activeMinionGate(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
@@ -206,6 +222,7 @@ export function necromancerBuildAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {
+  // Reject catalog and specialization mismatches before evaluating trait replacements.
   if (!skill.implemented) {
     return deny(skill, 'necromancer.not-implemented', 'it is not implemented by the simulator.');
   }
@@ -250,3 +267,19 @@ export function necromancerCastAvailability(
 
   return READY;
 }
+
+/** Registers Core Necromancer state and build availability in stable order. */
+export const necromancerCastRules = Object.freeze({
+  availability: Object.freeze([
+    {
+      id: 'necromancer.cast-state',
+      order: 10,
+      handler: necromancerCastAvailability
+    },
+    {
+      id: 'necromancer.build',
+      order: 100,
+      handler: necromancerBuildAvailability
+    }
+  ])
+});

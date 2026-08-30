@@ -1,14 +1,14 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../integrations/patches/authoring/balance-profiles.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValue
-} from '../../../../platform/combat/state/balance-profiles.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'ranger.core.resources',

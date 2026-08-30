@@ -3,10 +3,14 @@
  * scheduler-owned state.
  */
 
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerBalanceValue } from '../profiles.js';
-import type { MesmerResolverContext, MesmerResolverEvent } from '../../types.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  mesmerBalanceProfile,
+  mesmerBalanceProfileEffect,
+  mesmerBalanceValue
+} from '#gw2/content/professions/mesmer/core/profiles.js';
+import type { MesmerResolverContext, MesmerResolverEvent } from '#gw2/content/professions/mesmer/types.js';
 
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.

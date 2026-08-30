@@ -1,5 +1,5 @@
-import type { SkillFragment } from '../../../../../platform/engine/types.js';
-import type { EngineerSkill } from '../../types.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import type { EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
 /**
  * Owns skill metadata consumed only by Holosmith mechanics, keeping heat and

@@ -1,5 +1,5 @@
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Shadow Shroud entry and exit are state-selected variants of one UI tile.
 const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';

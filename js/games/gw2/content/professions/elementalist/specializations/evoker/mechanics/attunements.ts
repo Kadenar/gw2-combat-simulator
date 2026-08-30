@@ -1,34 +1,46 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { SimulationEvent, Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../../types.js';
+/**
+ * Evoker attunement behaviour layered over the Core Elementalist system.
+ *
+ * Three responsibilities: gate Core's attunement-entry trait procs behind
+ * Evocation's shared internal cooldown, apply Evoker's own off-attunement
+ * recharge policy after a swap, and - under Specialized Elements, where swapping
+ * is disabled - fire the entry effects from empowered familiar casts without any
+ * attunement actually changing.
+ */
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistSchedulerContext
+} from '#gw2/content/professions/elementalist/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
-} from '../../../core/state.js';
+} from '#gw2/content/professions/elementalist/core/state.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
   targetAttunement,
   type ElementalistAttunementTraitTrigger
-} from '../../../core/mechanics/attunements.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/attunements.js';
 import {
   grantElementalistRockSolid,
   triggerEarthenBlast,
   triggerElectricDischarge,
   triggerSunspot
-} from '../../../core/traits/index.js';
+} from '#gw2/content/professions/elementalist/core/traits/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue
-} from '../../../core/profiles.js';
-import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from './constants.js';
-import { evokerState, type EvokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
@@ -38,6 +50,7 @@ const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
   CORE_PROFILE.rockSolid
 ]);
 
+// reports whether the trait may proc now, arming its next Evocation ICD window when it may
 function consumeEvokerAttunementTraitCooldown(
   context: ElementalistSchedulerContext,
   state: EvokerState,
@@ -53,6 +66,11 @@ function consumeEvokerAttunementTraitCooldown(
   return true;
 }
 
+/**
+ * Runs Core's attunement completion with Evoker's proc policy attached, and
+ * reports whether the skill was an attunement swap at all so the caller can tell
+ * Core the transition is already handled.
+ */
 export function completeEvokerAttunement(context: ElementalistCastContext, skill: Skill): boolean {
   const target = targetAttunement(skill);
   if (!target) return false;
@@ -69,6 +87,12 @@ export function completeEvokerAttunement(context: ElementalistCastContext, skill
   return true;
 }
 
+/**
+ * Rewrites attunement readiness after a swap, giving the elements that were not
+ * entered the short Evoker off-attunement recharge while keeping any shorter
+ * cooldown that was already running (snapshotted by `availability.ts` before the
+ * swap fired).
+ */
 export function applyEvokerAttunementRechargePolicy(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,

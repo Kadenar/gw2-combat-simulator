@@ -1,14 +1,18 @@
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { clamp } from '../../../../../platform/combat/numeric.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
 import {
   enqueueGw2OwnedComboFinisher,
   type EnqueueGw2OwnedComboFinisherOptions
-} from '../../../../../platform/resolver/combo-resolution.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../../../platform/engine/types.js';
-import type { Gw2EventDraft } from '../../../../../platform/equipment/relics/types.js';
-import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '../../types.js';
+} from '#gw2/platform/resolver/combo-resolution.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import type { SchedulerRecord, SimulationActorType, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
+import type {
+  EngineerResolverContext,
+  EngineerResolverEvent,
+  EngineerSkill
+} from '#gw2/content/professions/engineer/types.js';
 
 interface QueueDamageOptions {
   readonly name: string;
@@ -43,6 +47,7 @@ interface ApplyConditionOptions {
   readonly metadata?: SchedulerRecord;
 }
 
+/** Resolves an event's skill ID to Engineer-specific catalog metadata. */
 export function resolverSkill(
   context: EngineerResolverContext,
   skillId: SkillId | null | undefined
@@ -51,6 +56,7 @@ export function resolverSkill(
   return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
 }
 
+/** Enqueues one derived Engineer strike and materializes any attached combo finisher. */
 export function queueDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -116,6 +122,7 @@ export function queueDamage(
   }
 }
 
+/** Enqueues a derived Engineer buff after applying the shared boon-duration rules. */
 export function queueBuff(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -137,6 +144,7 @@ export function queueBuff(
   });
 }
 
+/** Applies a derived condition immediately so same-timestamp reactions observe it in order. */
 export function applyEngineerDerivedCondition(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -169,13 +177,14 @@ export function applyEngineerDerivedCondition(
   context.applyCondition(application);
 }
 
-// lazy-initializes traitProcReadyAt — the field starts undefined and is created on first access
+/** Returns the lazily initialized Core trait proc state shared by Engineer reactions. */
 export function procState(context: EngineerResolverContext): Record<string, number | boolean> {
   const state = professionCoreState(context);
   state.traitProcReadyAt ||= {};
   return state.traitProcReadyAt;
 }
 
+/** Records a trait proc for result attribution without changing combat state. */
 export function recordTrait(
   context: EngineerResolverContext,
   name: string,
@@ -185,6 +194,7 @@ export function recordTrait(
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
+/** Counts permanent and timed boon applications at a timestamp, capped to the requested maximum. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
   const normalized = String(kind || '').toLowerCase();
   const permanent = context.config?.boons?.[normalized];

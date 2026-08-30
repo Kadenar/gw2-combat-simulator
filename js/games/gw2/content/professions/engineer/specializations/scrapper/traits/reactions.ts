@@ -1,12 +1,17 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { activeBoonStacks, procState, queueBuff, recordTrait } from '../../../core/mechanics/state-helpers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { scrapperState } from '../state.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '../../../types.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import {
+  activeBoonStacks,
+  procState,
+  queueBuff,
+  recordTrait
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import { scrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/content/professions/engineer/types.js';
 
 // Deduplicates pulse events: if one is already scheduled at or before `at`, skip.
 // massMomentumPulseAt tracks the timestamp of the outstanding pulse so stale ones are ignored.
@@ -65,6 +70,7 @@ function reactToScrapperDamage(context: EngineerResolverContext, event: Engineer
   if (Number(event.coefficient) > 0) triggerMassMomentum(context, event);
 }
 
+/** Reacts to might thresholds and stability applications that can start Scrapper trait procs. */
 function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
@@ -97,6 +103,7 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
   if (kind === 'stability') triggerMassMomentum(context, event);
 }
 
+/** Confirms Kinetic Accelerators combo procs and advances the resolver's whirl-only cooldown. */
 function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (
     !hasTrait(context, TRAIT.KINETIC_ACCELERATORS) ||

@@ -1,11 +1,11 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerRuntimeFor } from './runtime.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerCastContext,
   MesmerConditionApplication,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 function conditionFromProfile(
   context: MesmerCastContext,

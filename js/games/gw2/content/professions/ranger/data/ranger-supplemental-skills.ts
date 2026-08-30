@@ -1,4 +1,4 @@
-import type { RangerSkill } from '../types.js';
+import type { RangerSkill } from '#gw2/content/professions/ranger/types.js';
 
 export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze([
   {

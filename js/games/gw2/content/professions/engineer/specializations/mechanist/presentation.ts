@@ -3,17 +3,17 @@ import {
   engineerUiState,
   namedSkillId,
   uniqueIdsBySkillName
-} from '../../core/presentation.js';
-import { getActiveTraits } from '../../data/traits-data.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-import { selectedMechCommands } from './state.js';
+} from '#gw2/content/professions/engineer/core/presentation.js';
+import { getActiveTraits } from '#gw2/content/professions/engineer/data/traits-data.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import { selectedMechCommands } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { EngineerResolverEvent, EngineerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { EngineerResolverEvent, EngineerUiContext } from '#gw2/content/professions/engineer/types.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a
 // historical result is inspected without a complete build projection.
@@ -24,6 +24,7 @@ function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
     : [...(engineerUiState(context).mech?.commandSkillIds || [])];
 }
 
+/** Builds the profession bar from the selected commands and the current mech toggle action. */
 function mechanistProfessionSkills(context: EngineerUiContext) {
   const commands = mechanistCommandSkills(context);
   const mechActive = engineerUiState(context).mech?.active !== false;

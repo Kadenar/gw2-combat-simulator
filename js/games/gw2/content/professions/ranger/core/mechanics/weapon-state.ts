@@ -1,7 +1,7 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { RANGER_SKILL_IDS as ID } from '../../data/ids.js';
-import type { RangerCastContext, RangerSkill } from '../../types.js';
-import { isRangerHammerVariant } from '../skills/hammer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import type { RangerCastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+import { isRangerHammerVariant } from '#gw2/content/professions/ranger/core/skills/hammer.js';
 
 const WEAPON_FLIP_DURATION_BY_PARENT = Object.freeze({
   [ID.COUNTERATTACK]: 5

@@ -1,9 +1,25 @@
-/** Staff weapon-skill mechanics owned by the Weaver module. */
+/**
+ * Staff weapon-skill mechanics owned by the Weaver module.
+ *
+ * Weaver occupies the slot-3 staff position with a dual attack selected by the
+ * unordered pair of attunements held across its two hands; every fragment names
+ * its pair in `attunement`, and Weaver availability only offers the skill when
+ * both of those elements are currently attuned.
+ *
+ * Declarative data only - no handler logic lives here. Effect offsets are
+ * authored against the quickened timeline given by `quicknessCastTimeMs` and
+ * are scaled back out for slower casts by the cast-scaled scheduler policy.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * The six staff dual attacks, keyed by skill id and merged into
+ * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
+ */
 export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire+Water. One packet bundling the strike, the blind and self-Regeneration.
   [ID.PRESSURE_BLAST]: {
     name: 'Pressure Blast',
     type: 'Weapon',
@@ -76,6 +92,11 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Fire+Earth. The only staff dual that lays a field: a four-second Fire field
+  // opening at cast end, backed by an impact hit at 720 ms and then four
+  // one-second `field-tick` pulses (1720-4720 ms), each stacking one second of
+  // Burning. Named in the core Persisting Flames list, so that trait can extend
+  // both the field and these tick packets.
   [ID.PYROCLASTIC_BLAST]: {
     name: 'Pyroclastic Blast',
     type: 'Weapon',
@@ -191,6 +212,9 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Air+Water. Three 0.25 hits at 280/640/1000 ms, but only the first carries
+  // the payload - eight stacks of Vulnerability, Chilled and the crowd-control
+  // application; the follow-ups are strike damage alone.
   [ID.MONSOON]: {
     name: 'Monsoon',
     type: 'Weapon',
@@ -278,6 +302,8 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     specialization: 'Weaver'
   },
+  // Water+Earth. Five one-second pulses from 1280 ms to 5280 ms - all of them
+  // after the 640 ms cast - each re-applying Cripple and Immobilize.
   [ID.LAHAR]: {
     name: 'Lahar',
     type: 'Weapon',

@@ -1,18 +1,18 @@
-import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
 import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteAvailability,
   warriorPaletteGroups,
   warriorSkillBarGroups,
   warriorUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/warrior/core/presentation.js';
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SimulationEvent
-} from '../../../../../platform/engine/types.js';
-import type { WarriorSkill, WarriorUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { WarriorSkill, WarriorUiContext } from '#gw2/content/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
 

@@ -1,17 +1,17 @@
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { readProfessionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { GW2_STANDARD_BOONS } from '../../../../../platform/combat/state/boons.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   eventSkill as gw2EventSkill,
   hasSelectedSkill,
   targetConditionActive,
   targetHealthFraction
-} from '../../../../../platform/combat/query/runtime-query.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { warriorCastAvailability } from '../mechanics/availability.js';
-import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { warriorCastAvailability } from '#gw2/content/professions/warrior/core/mechanics/availability.js';
+import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/core/profiles.js';
 import {
   advanceWarriorTraits,
   applyWarriorWeaponSwapTraits,
@@ -20,16 +20,16 @@ import {
   handleWarriorArmsCriticalTask,
   initializeWarriorTraits,
   observeWarriorEvent
-} from './index.js';
-import { advanceWarriorResources } from '../mechanics/adrenaline-and-endurance.js';
-import { handleWarriorAdrenalineTask } from '../../resources.js';
-import type { SchedulerRecord } from '../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
-import type { WarriorCoreState } from '../../types.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/content/professions/warrior/core/traits/index.js';
+import { advanceWarriorResources } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import { handleWarriorAdrenalineTask } from '#gw2/content/professions/warrior/resources.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/content/professions/warrior/types.js';
+import type { WarriorCoreState } from '#gw2/content/professions/warrior/types.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
-export { snapshotWarriorState } from '../../state/index.js';
+export { snapshotWarriorState } from '#gw2/content/professions/warrior/state.js';
 
 function coreState(context: Gw2ModifierContext): Partial<WarriorCoreState> {
   return readProfessionCoreState<WarriorCoreState>(context.runtime?.profession);

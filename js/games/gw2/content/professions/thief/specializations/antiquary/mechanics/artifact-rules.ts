@@ -1,16 +1,22 @@
-import { antiquaryState } from '../state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { thiefRuntimeSpecializationState } from '../../../core/traits/modifiers.js';
-import { antiquaryCastAvailability } from './availability.js';
-import { handleForgedSurfer, handleSkrittScuffle } from './artifacts.js';
-import { advanceAntiquaryResources, spendAntiquaryResources } from './resources.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { ThiefPrecastContext } from '../../../types.js';
-import { thiefBalanceProfile } from '../../../core/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { antiquaryState } from '#gw2/content/professions/thief/specializations/antiquary/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { thiefRuntimeSpecializationState } from '#gw2/content/professions/thief/core/traits/modifiers.js';
+import { antiquaryCastAvailability } from '#gw2/content/professions/thief/specializations/antiquary/mechanics/availability.js';
+import {
+  handleForgedSurfer,
+  handleSkrittScuffle
+} from '#gw2/content/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import {
+  advanceAntiquaryResources,
+  spendAntiquaryResources
+} from '#gw2/content/professions/thief/specializations/antiquary/mechanics/resources.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { ThiefPrecastContext } from '#gw2/content/professions/thief/types.js';
+import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 export const antiquaryTaskHandlers = Object.freeze({
   'thief.forged-surfer': handleForgedSurfer,

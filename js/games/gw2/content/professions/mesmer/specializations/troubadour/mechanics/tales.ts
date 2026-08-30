@@ -1,9 +1,9 @@
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { troubadourState } from '../state.js';
-import type { MesmerSchedulerContext, MesmerSkill } from '../../../types.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
+import { troubadourState } from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
+import type { MesmerSchedulerContext, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerSchedulerContext;

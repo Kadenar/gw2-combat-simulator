@@ -1,20 +1,16 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillControl
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { renegadeState } from '../state.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
+import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   activeKallasFervorStacks,
   grantKallasFervor,
   isBandTogetherReady
-} from '../mechanics/kalla-and-band-together.js';
-import { RENEGADE_PROFILE_IDS } from '../skills/index.js';
-import { advanceScheduledCriticalProc } from '../../../../../../platform/scheduler/critical-facts.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
+} from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { RENEGADE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
@@ -22,7 +18,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 export const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
 export const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';

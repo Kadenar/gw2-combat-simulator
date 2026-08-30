@@ -10,16 +10,12 @@ import type {
   SimulationEvent,
   Skill,
   SkillId
-} from '../../../platform/engine/types.js';
-import type { Gw2Build, Gw2CanonicalBuild, Gw2NumericAttributes } from '../../../platform/builds/types.js';
-import type { Gw2Config } from '../../../platform/simulation/config.js';
-import type {
-  Gw2HitResolutionContext,
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime
-} from '../../../platform/resolver/types.js';
-import type { Gw2Stats } from '../../../platform/equipment/types.js';
-import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../../app/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2Build, Gw2CanonicalBuild, Gw2NumericAttributes } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '#gw2/app/types.js';
 
 export interface EngineerSpecializationSelection {
   readonly name?: string;

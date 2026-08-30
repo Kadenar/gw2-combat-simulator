@@ -1,15 +1,15 @@
-import { emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import { advanceScheduledCriticalProc } from '../../../../../../platform/scheduler/critical-facts.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect } from '../../../core/profiles.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerBalanceProfile, mesmerBalanceProfileEffect } from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerSchedulerContext,
   MesmerSchedulerTask,
   MesmerVirtuosoExpectedProcCandidate
-} from '../../../types.js';
-import { virtuosoState } from '../state.js';
+} from '#gw2/content/professions/mesmer/types.js';
+import { virtuosoState } from '#gw2/content/professions/mesmer/specializations/virtuoso/state.js';
 
 const PROC_PROGRESS_TOLERANCE = 1e-9;
 

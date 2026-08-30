@@ -1,9 +1,27 @@
-/** Pistol weapon-skill mechanics owned by the Weaver module. */
+/**
+ * Pistol weapon-skill mechanics owned by the Weaver module.
+ *
+ * Weaver occupies the slot-3 pistol position with a dual attack selected by the
+ * unordered pair of attunements held across its two hands; every fragment names
+ * its pair in `attunement`, and Weaver availability only offers the skill when
+ * both of those elements are currently attuned.
+ *
+ * Most entries also carry `elementalistStateMachine: 'pistol-bullets'`, the
+ * declarative marker tying them to the Elementalist pistol bullet mechanic.
+ * Stocking and spending bullets is keyed by skill id elsewhere (the core
+ * `PISTOL_SKILL_ELEMENTS` table), so nothing in this file mutates bullet state.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * The six pistol dual attacks, keyed by skill id and merged into
+ * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
+ */
 export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire+Water. Three-shot burst at 280/440/640 ms; the opening shot chills and
+  // the two follow-ups each stack Burning.
   [ID.FROSTFIRE_FLURRY]: {
     name: 'Frostfire Flurry',
     type: 'Weapon',
@@ -95,6 +113,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Weaver',
     elementalistStateMachine: 'pistol-bullets'
   },
+  // Fire+Air. Single Projectile finisher carrying the blind and five stacks of
+  // Vulnerability.
   [ID.PURBLINDING_PLASMA]: {
     name: 'Purblinding Plasma',
     type: 'Weapon',
@@ -209,6 +229,8 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Weaver',
     elementalistStateMachine: 'pistol-bullets'
   },
+  // Air+Water. The one dual with no offensive packet at all: it only self-boons
+  // (Regeneration and Stability) at cast start.
   [ID.FLOWING_FINESSE]: {
     name: 'Flowing Finesse',
     type: 'Weapon',
@@ -245,6 +267,9 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Weaver',
     elementalistStateMachine: 'pistol-bullets'
   },
+  // Water+Earth. Two shots at 280/480 ms, each applying two Bleeding stacks.
+  // Unlike the other five entries this one carries no `elementalistStateMachine`
+  // marker.
   [ID.ECHOING_EROSION]: {
     name: 'Echoing Erosion',
     type: 'Weapon',
@@ -310,6 +335,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Air+Earth. Single Projectile finisher carrying Weakness and Cripple.
   [ID.ENERVATING_EARTH]: {
     name: 'Enervating Earth',
     type: 'Weapon',

@@ -4,8 +4,8 @@
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
 // EVTC splits Demolish into a one-second spin and a 560 ms smash; fixed packet

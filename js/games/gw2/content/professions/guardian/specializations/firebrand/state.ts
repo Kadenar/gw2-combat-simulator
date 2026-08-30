@@ -1,9 +1,9 @@
-import { GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import type { GuardianConfig, GuardianFirebrandState, GuardianSchedulerContext } from '../../types.js';
+import { GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { guardianBalanceProfile, guardianBalanceProfileEffect } from '#gw2/content/professions/guardian/core/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
+import type { GuardianConfig, GuardianFirebrandState, GuardianSchedulerContext } from '#gw2/content/professions/guardian/types.js';
 
 export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
   const archivistOfWhispers = hasTrait(config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);

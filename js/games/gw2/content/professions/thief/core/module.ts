@@ -1,19 +1,29 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onBuffApplied,
   onConditionApplied,
   onResolvedCriticalHit,
   onResolvedDamage
-} from '../../../../integrations/patches/authoring/mechanics.js';
-import { createThiefModuleData } from '../data/catalog.js';
-import { thiefCoreEventHandlers, thiefCoreEventReactions } from './mechanics/reactions.js';
-import { thiefCoreAttributeRules, thiefCoreCastRules, thiefCoreSchedulerHooks } from './traits/modifiers.js';
-import { createThiefCoreState } from './state.js';
-import { projectThiefEndState } from '../state/index.js';
-import { thiefCoreUi } from './presentation.js';
-import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from './skills/index.js';
-import { thiefCoreSkillHandlers } from './skills/handlers.js';
-import { THIEF_CORE_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
+import {
+  thiefCoreEventHandlers,
+  thiefCoreEventReactions
+} from '#gw2/content/professions/thief/core/mechanics/reactions.js';
+import {
+  thiefCoreAttributeRules,
+  thiefCoreCastRules,
+  thiefCoreSchedulerHooks
+} from '#gw2/content/professions/thief/core/traits/modifiers.js';
+import { createThiefCoreState } from '#gw2/content/professions/thief/core/state.js';
+import { projectThiefEndState } from '#gw2/content/professions/thief/state.js';
+import { thiefCoreUi } from '#gw2/content/professions/thief/core/presentation.js';
+import {
+  THIEF_CORE_EXTRA_SKILLS,
+  THIEF_CORE_SKILL_MECHANICS
+} from '#gw2/content/professions/thief/core/skills/index.js';
+import { thiefCoreSkillHandlers } from '#gw2/content/professions/thief/core/skills/execution.js';
+import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/content/professions/thief/core/profiles.js';
 
 export const thiefCoreModule = defineNativeModule({
   id: 'Core',

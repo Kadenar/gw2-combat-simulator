@@ -1,13 +1,13 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/thief/data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { ThiefBuild } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { ThiefBuild } from '#gw2/content/professions/thief/types.js';
 
 function wields(build: ThiefBuild, weapon: string, weaponSet: number): boolean {
   const weapons = weaponSet === 2 ? build.alternateWeapons : build.weapons;

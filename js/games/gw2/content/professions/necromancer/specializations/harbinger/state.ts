@@ -1,6 +1,7 @@
-import type { HarbingerState, NecromancerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
+import type { HarbingerState, NecromancerConfig } from '#gw2/content/professions/necromancer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
+/** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
   const initialBlight = Math.max(0, Math.min(25, Math.trunc(Number(config.initialBlight || 0))));
   // Cap at 19 rather than 20: pre-combat stacks must never immediately trigger Meltdown on the first consumed Blight.
@@ -26,11 +27,13 @@ export function syncHarbingerState<TState extends HarbingerState>(state: TState)
   return state;
 }
 
+/** Removes expired Blight applications and reconciles the public stack count. */
 export function purgeHarbingerTimedState(state: HarbingerState, at: number): void {
   state.blightExpiries = state.blightExpiries.filter((expiresAt: number) => expiresAt > at);
   syncHarbingerState(state);
 }
 
+/** Adds as many 25-second Blight applications as the stack cap permits. */
 export function addBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 25 - state.blightExpiries.length);
@@ -39,6 +42,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number): nu
   return count;
 }
 
+/** Consumes the oldest active Blight applications up to the requested amount. */
 export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.blightExpiries.length);

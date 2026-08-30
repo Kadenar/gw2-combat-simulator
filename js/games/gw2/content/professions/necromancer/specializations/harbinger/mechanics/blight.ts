@@ -3,12 +3,17 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import type { EmitSkillBuffOptions } from '../../../../../../platform/scheduler/skill-events.js';
-import { addBlight, consumeBlight, harbingerState, purgeHarbingerTimedState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../../../state/index.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import type { EmitSkillBuffOptions } from '#gw2/platform/scheduler/skill-events.js';
+import {
+  addBlight,
+  consumeBlight,
+  harbingerState,
+  purgeHarbingerTimedState
+} from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Harbinger blight skill handlers.
  *
@@ -17,12 +22,22 @@ import { snapshotNecromancerState } from '../../../state/index.js';
  * fresh blight. Consuming blight also feeds the Cascading Corruption trait,
  * which procs Meltdown every 20 stacks. Exports `necromancerBlightSkillHandlers`.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { NecromancerCastContext, NecromancerSchedulerContext, NecromancerSkill } from '../../../types.js';
-import type { BalanceProfile, SkillEffect } from '../../../../../../platform/engine/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '../profiles.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type {
+  NecromancerCastContext,
+  NecromancerSchedulerContext,
+  NecromancerSkill
+} from '#gw2/content/professions/necromancer/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import {
+  HARBINGER_BALANCE_PROFILE_IDS as PROFILE,
+  HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
+} from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
 
 export const MELTDOWN_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png';
 
@@ -33,6 +48,7 @@ const CASCADING_CORRUPTION_EFFECT: NecromancerSkill = Object.freeze({
   skillWeapon: 'Unequipped'
 });
 
+/** Advances timed Blight accrual through a target time while Harbinger Shroud remains active. */
 export function advanceHarbingerBlight(context: NecromancerSchedulerContext, target: number): void {
   const state = harbingerState.from(context);
   const coreState = professionCoreState(context);
@@ -65,6 +81,7 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   }
 }
 
+/** Accumulates consumed Blight and emits Meltdown whenever Cascading Corruption crosses its threshold. */
 function applyCascadingCorruption(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -124,8 +141,7 @@ function applyCascadingCorruption(
   });
 }
 
-// Materialize either the base or Blight-empowered elixir profile while retaining
-// Blight metadata and party-boon routing on every supported effect type.
+/** Materializes a base or empowered elixir profile while preserving Blight metadata and boon routing. */
 function emitElixirEffects(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -134,6 +150,7 @@ function emitElixirEffects(
   boonOptions: Pick<EmitSkillBuffOptions, 'metadata'> | undefined,
   blight: number
 ): void {
+  // Translate each declarative profile effect through the scheduler emitter that owns its event type.
   for (const effect of (source.effects || []) as readonly SkillEffect[]) {
     if (effect.type === 'strike') {
       emitSkillDamage(context, skill, {
@@ -174,6 +191,7 @@ function emitElixirEffects(
   }
 }
 
+/** Commits an elixir throw, consumes empowerment Blight, emits its profile, then grants fresh Blight. */
 function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
   // These three elixirs have a mid-cast impact time; others (Bliss, Ignorance, Anguish) impact at cast end.
@@ -233,6 +251,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   return true;
 }
 
+/** Resolves a Harbinger shroud skill from its base or Blight-empowered balance profile. */
 function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
   // Devouring Cut must reach its declared commit frame before spending Blight or landing its packet.

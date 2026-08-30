@@ -5,16 +5,16 @@ import {
   handleRangerPoisonousStrikes,
   handleRangerSharpeningStone,
   handleRangerWinterBiteReady
-} from './event-handlers.js';
+} from '#gw2/content/professions/ranger/core/mechanics/event-handlers.js';
 import {
   rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction,
   reactToRangerCoreBuff,
   reactToRangerCoreControl,
   reactToRangerCoreDamage
-} from '../traits/index.js';
+} from '#gw2/content/professions/ranger/core/traits/index.js';
 
-export { rangerCoreCriticalReactions } from '../traits/index.js';
+export { rangerCoreCriticalReactions } from '#gw2/content/professions/ranger/core/traits/index.js';
 
 export const rangerCoreEventHandlers = Object.freeze({
   'ranger.blood-thirst': handleRangerBloodThirst,

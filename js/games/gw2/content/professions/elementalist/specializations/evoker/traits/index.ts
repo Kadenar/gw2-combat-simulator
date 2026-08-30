@@ -1,11 +1,19 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext } from '../../../types.js';
-import { elementalistBalanceEffect } from '../../../core/profiles.js';
-import { ALTRUISTIC_ASPECT_BOONS } from '../mechanics/constants.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+/**
+ * Evoker trait behaviour that hangs off skill execution rather than off a
+ * mechanic hook - currently just Altruistic Aspect's meditation boons.
+ */
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
+import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ALTRUISTIC_ASPECT_BOONS } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
+/**
+ * Grants Altruistic Aspect's per-meditation boon when the trait is slotted and
+ * the completing skill is one of the four it covers; otherwise a no-op.
+ */
 export function applyAltruisticAspect(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Altruistic Aspect')) return;
   const boon = ALTRUISTIC_ASPECT_BOONS.get(skill.id);

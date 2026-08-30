@@ -1,18 +1,28 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import { resolveDeadlyBlades } from '../traits/deadly-blades.js';
-import { resolveBladesong } from './bladesongs.js';
-import { resolveInfiniteForgeRefund } from '../traits/shatters.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  applyMesmerRuntimeManifest,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { resolveDeadlyBlades } from '#gw2/content/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+import { resolveBladesong } from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
+import { resolveInfiniteForgeRefund } from '#gw2/content/professions/mesmer/specializations/virtuoso/traits/shatters.js';
 import {
   MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
   MESMER_VIRTUOSO_CONTROL_SKILLS,
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
   MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_TRAIT_DAMAGE
-} from './definitions.js';
-import type { MesmerSchedulerContext } from '../../../types.js';
-import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE, VIRTUOSO_SHATTER_PROFILE_IDS } from '../profiles.js';
-import { mesmerBalanceValue, mesmerProfiledShatters, mesmerProfiledTraitDamage } from '../../../core/profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
+import {
+  VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE,
+  VIRTUOSO_SHATTER_PROFILE_IDS
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
+import {
+  mesmerBalanceValue,
+  mesmerProfiledShatters,
+  mesmerProfiledTraitDamage
+} from '#gw2/content/professions/mesmer/core/profiles.js';
 
 export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);

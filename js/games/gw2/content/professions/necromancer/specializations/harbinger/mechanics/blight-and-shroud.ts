@@ -1,32 +1,36 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { gainNecromancerLifeForce } from '../../../core/mechanics/state-helpers.js';
-import { advanceHarbingerBlight } from './blight.js';
-import { harbingerState } from '../state.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gainNecromancerLifeForce } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import { advanceHarbingerBlight } from '#gw2/content/professions/necromancer/specializations/harbinger/mechanics/blight.js';
+import { harbingerState } from '#gw2/content/professions/necromancer/specializations/harbinger/state.js';
 import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
   necromancerCriticalExpectedFactor,
   necromancerRuntimeSpecializationState
-} from '../../../core/traits/modifiers.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
+} from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   NecromancerRechargeModifierContext,
   NecromancerSimulationEvent,
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSkill
-} from '../../../types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { registerNecromancerShroudLifecycle } from '../../../core/mechanics/shroud-lifecycle.js';
+} from '#gw2/content/professions/necromancer/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/harbinger/profiles.js';
+import { registerNecromancerShroudLifecycle } from '#gw2/content/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 
+/** Applies Harbinger's health baseline and registers its shroud-exit Blight cursor cleanup. */
 function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void {
   const core = professionCoreState(context);
   if (!professionStaticRulesApplied(context.config)) {
@@ -43,6 +47,7 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
   });
 }
 
+/** Advances Blight and applies Harbinger shroud-entry and Dark Barrage cast traits. */
 function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = harbingerState.from(context);
   const at = context.effectiveEnd;
@@ -145,6 +150,7 @@ export const harbingerSchedulerHooks = Object.freeze({
   }
 });
 
+/** Applies Harbinger vitality and vitality-derived conversions when the build layer has not. */
 function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config)) {
@@ -177,6 +183,7 @@ function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: Sche
   return result;
 }
 
+/** Reads event-snapshotted Blight before falling back to current Harbinger runtime state. */
 function activeBlight(context: Gw2ModifierContext): number {
   const event = context.event as NecromancerSimulationEvent | undefined;
   // Prefer the snapshotted blight from the event so that modifier rules see the value at the moment of impact,
@@ -187,6 +194,7 @@ function activeBlight(context: Gw2ModifierContext): number {
   );
 }
 
+/** Computes Wicked Corruption's incremental expected critical factor without double-counting Death Perception. */
 function wickedCorruptionCriticalFactor(
   context: Gw2ModifierContext,
   parameters: Readonly<Record<string, number>>
@@ -204,6 +212,7 @@ function wickedCorruptionCriticalFactor(
   return combinedFactor / coreFactor;
 }
 
+/** Applies Dark Gunslinger's pistol recharge reduction. */
 function modifyHarbingerRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   return context.skill?.weapon === 'Pistol' && hasTrait(context, TRAIT.DARK_GUNSLINGER)
     ? duration * Number(necromancerBalanceProfile(context, PROFILE.darkGunslinger)?.rechargeMultiplier || 0.8)

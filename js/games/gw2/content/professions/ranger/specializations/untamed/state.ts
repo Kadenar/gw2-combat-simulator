@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { RangerConfig, RangerState, UntamedState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { RangerConfig, RangerState, UntamedState } from '#gw2/content/professions/ranger/types.js';
 
 // Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.
 export const UNTAMED_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([

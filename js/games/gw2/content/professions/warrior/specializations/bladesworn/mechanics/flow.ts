@@ -1,5 +1,5 @@
-import { bladeswornState } from '../state.js';
-import type { WarriorSchedulerContext } from '../../../types.js';
+import { bladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
+import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
 
 /** Converts Warrior-family adrenaline gains into Bladesworn flow. */
 export function gainBladeswornFlow(context: WarriorSchedulerContext, amount: number): void {

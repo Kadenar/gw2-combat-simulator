@@ -1,9 +1,10 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../../state/index.js';
-import { turretOwnerId } from '../mechanics/turrets.js';
-import type { EngineerCastContext, EngineerSkill } from '../../types.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { turretOwnerId } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
+/** Makes an explicitly declared palette follow-up available after its parent cast completes. */
 function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   // paletteFlipSkillId explicitly declares a palette flip; flipSkillId is the raw API
   // field which conflates palette flips with chain skills. Fall back to flipSkillId
@@ -21,6 +22,7 @@ function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   );
 }
 
+/** Consumes a palette follow-up and cancels tasks owned by its removed parent turret. */
 function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   professionCoreState(context).availableFlips[skill.id] = false;
   const parentId = Number(skill.flipParentId ?? context.catalog.skillsByName.get(skill.flipParentName || '')?.id);
@@ -38,6 +40,7 @@ function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   );
 }
 
+/** Routes palette-arm and palette-consume handlers to their state transitions. */
 export const engineerFlipSkillHandlers = Object.freeze({
   'engineer.arm-flip': armFlip,
   'engineer.consume-flip': consumeFlip

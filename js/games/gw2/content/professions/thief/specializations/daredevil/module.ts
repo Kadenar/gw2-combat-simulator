@@ -1,10 +1,14 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createThiefModuleData } from '../../data/catalog.js';
-import { daredevilAttributeRules, daredevilCastRules, daredevilSchedulerHooks } from './mechanics/dodge-rules.js';
-import { daredevilState } from './state.js';
-import { DAREDEVIL_SKILL_MECHANICS } from './skills/index.js';
-import { DAREDEVIL_BALANCE_PROFILES } from './profiles.js';
-import { daredevilUi } from './presentation.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createThiefModuleData } from '#gw2/content/professions/thief/catalog/module-data.js';
+import {
+  daredevilAttributeRules,
+  daredevilCastRules,
+  daredevilSchedulerHooks
+} from '#gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
+import { daredevilState } from '#gw2/content/professions/thief/specializations/daredevil/state.js';
+import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/daredevil/skills/index.js';
+import { DAREDEVIL_BALANCE_PROFILES } from '#gw2/content/professions/thief/specializations/daredevil/profiles.js';
+import { daredevilUi } from '#gw2/content/professions/thief/specializations/daredevil/presentation.js';
 
 export const daredevilModule = defineNativeModule({
   id: 'Daredevil',

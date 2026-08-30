@@ -1,8 +1,8 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { WarriorCastContext, WarriorSchedulerContext } from '../../../types.js';
-import { warriorBalanceProfile } from '../../../core/profiles.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import type { WarriorCastContext, WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
+import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 
 // Dragon Trigger ticks every 250 ms to potentially grant one charge.
 export const DRAGON_CHARGE_INTERVAL_SECONDS = 0.25;

@@ -1,9 +1,9 @@
-import { normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { guardianCatalog } from '../catalog.js';
-import type { GuardianCanonicalBuild } from '../types.js';
-import { createProfessionBuildCodec } from '../../lib/build-codec.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
+import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import type { GuardianCanonicalBuild } from '#gw2/content/professions/guardian/types.js';
+import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 /**
  * Guardian persisted-build definition.

@@ -1,24 +1,26 @@
-import { emitSkillCondition } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import {
-  gw2AlliedPlayerAssumptions,
-  gw2AlliedPlayerProcTimeline
-} from '../../../../../platform/combat/state/allied-players.js';
-import { gainThiefInitiative } from '../mechanics/resource-events.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import {
   beginStealthAttack as beginBaseStealthAttack,
   completeStealthAttack as completeBaseStealthAttack
-} from '../mechanics/stealth.js';
+} from '#gw2/content/professions/thief/core/mechanics/stealth.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '../profiles.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
-import type { ThiefCastContext, ThiefPrecastContext, ThiefSimulationEvent, ThiefSkill } from '../../types.js';
+} from '#gw2/content/professions/thief/core/profiles.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  ThiefCastContext,
+  ThiefPrecastContext,
+  ThiefSimulationEvent,
+  ThiefSkill
+} from '#gw2/content/professions/thief/types.js';
 
 const SPEAR_LEAD_SKILLS = new Set<number>([ID.MANTIS_STING, ID.UNSUSPECTING_STRIKE]);
 const SPEAR_FOLLOW_UP_SKILLS = new Set<number>([ID.ENTANGLING_ASP, ID.VAMPIRIC_SLASH]);

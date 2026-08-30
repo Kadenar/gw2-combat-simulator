@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { DruidState, RangerConfig, RangerState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { DruidState, RangerConfig, RangerState } from '#gw2/content/professions/ranger/types.js';
 
 // Druid owns its public Celestial Avatar resource projection.
 export const DRUID_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([

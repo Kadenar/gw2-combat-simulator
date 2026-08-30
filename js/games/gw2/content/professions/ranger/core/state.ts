@@ -1,5 +1,5 @@
-import { RANGER_PETS } from '../data/ranger-pet-data.js';
-import type { RangerConfig, RangerCoreState, RangerState } from '../types.js';
+import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
+import type { RangerConfig, RangerCoreState, RangerState } from '#gw2/content/professions/ranger/types.js';
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
   const selected = String(slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig');

@@ -1,16 +1,27 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { professionCoreState, readProfessionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { attributeProvenance } from '../../../../../platform/builds/attribute-provenance.js';
-import { GW2_STANDARD_BOONS } from '../../../../../platform/combat/state/boons.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { hasSelectedSkill, targetConditionActive } from '../../../../../platform/combat/query/runtime-query.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import type { SchedulerRecord, SimulationEvent } from '../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
-import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianState } from '../../types.js';
-import { guardianBuildAvailability, guardianCastAvailability } from '../mechanics/availability.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from '../profiles.js';
-import { gw2PrimaryWeapon } from '../../../../../platform/equipment/weapons/loadout.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import type { SchedulerRecord, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  GuardianCastContext,
+  GuardianSchedulerContext,
+  GuardianSkill,
+  GuardianState
+} from '#gw2/content/professions/guardian/types.js';
+import {
+  guardianBuildAvailability,
+  guardianCastAvailability
+} from '#gw2/content/professions/guardian/core/mechanics/availability.js';
+import {
+  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  guardianBalanceProfile
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
   SchedulerRecord & {

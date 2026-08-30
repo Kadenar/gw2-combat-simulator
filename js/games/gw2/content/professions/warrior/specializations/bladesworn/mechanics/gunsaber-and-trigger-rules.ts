@@ -1,27 +1,31 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { bladeswornState } from '../state.js';
-import type { AvailabilityResult, SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { bladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   maximumDragonCharges,
   requestedDragonCharges
-} from './dragon-trigger.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../../types.js';
-import { warriorBalanceProfile } from '../../../core/profiles.js';
-import { syncWarriorAdrenaline } from '../../../core/mechanics/adrenaline-and-endurance.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill
+} from '#gw2/content/professions/warrior/types.js';
+import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 import {
   advanceBladesworn,
   bladeswornSkillMechanicHandlers,
   completeBladeswornSkill,
   observeBladeswornEvent,
   trackBladeswornAmmoCast
-} from '../traits/index.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/traits/index.js';
 
 export { bladeswornSkillMechanicHandlers };
 

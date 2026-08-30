@@ -1,8 +1,15 @@
-/** Sword weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Sword weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers slots 1-3 across all four attunements. Every attunement has its own three-step
+ * autoattack chain wired through `nextChainId` and looping back to its opener, plus two
+ * cooldown skills in slots 2 and 3. Declarative data merged into the Core skill catalog by
+ * `core/skills/index.ts`.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import { conditionTimeline, strikeTimeline } from '../../../../../../platform/engine/effects/factories.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Canonical Sword timelines keep condition applications aligned with their originating strike packets.
 const QUANTUM_STRIKE_TICKS = [
@@ -17,9 +24,16 @@ const QUANTUM_STRIKE_TICKS = [
   { atMs: 2200, coefficient: 0.425 }
 ] as const;
 
+// Rust Frenzy lands eight equal packets as four near-simultaneous pairs.
 const RUST_FRENZY_TICKS = [360, 360, 600, 640, 840, 840, 1080, 1120] as const;
 
+/**
+ * Skill-id keyed fragments the catalog layers over the raw sword skill records so the
+ * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ */
 export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire autoattack chain opener; Fire Strike -> Fire Swipe -> Searing Slash -> back, with only
+  // the finisher applying Burning. The Water, Air, and Earth chains below follow the same shape.
   [ID.FIRE_STRIKE]: {
     name: 'Fire Strike',
     type: 'Weapon',
@@ -112,6 +126,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Leap finisher that lays its own short fire field, then two trailing field-tick packets one
+  // second apart after the leap connects.
   [ID.FLAME_UPRISING]: {
     name: 'Flame Uprising',
     type: 'Weapon',
@@ -305,6 +321,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Front-loaded strike at 40ms plus Regeneration, leaving a 4s water field behind the cast.
   [ID.RIPTIDE]: {
     name: 'Riptide',
     type: 'Weapon',
@@ -445,6 +462,8 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Chain finisher: the main strike at 560ms followed by three smaller bolts 200ms apart, which
+  // land after the 760ms cast has ended.
   [ID.CALL_LIGHTNING]: {
     name: 'Call Lightning',
     type: 'Weapon',
@@ -572,6 +591,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Nine-packet flurry; the shared tick table keeps one Vulnerability stack aligned to each strike.
   [ID.QUANTUM_STRIKE]: {
     name: 'Quantum Strike',
     type: 'Weapon',
@@ -791,6 +811,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Eight paired packets, each applying its own Bleeding stack on the same timestamps.
   [ID.RUST_FRENZY]: {
     name: 'Rust Frenzy',
     type: 'Weapon',

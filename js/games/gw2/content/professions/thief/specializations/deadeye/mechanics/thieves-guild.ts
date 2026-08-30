@@ -1,4 +1,4 @@
-import type { ThiefSummonDefinition } from '../../../types.js';
+import type { ThiefSummonDefinition } from '#gw2/content/professions/thief/types.js';
 
 // Deadeye owns the rifle-wielding third summon selected by Thieves Guild.
 export const DEADEYE_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze({

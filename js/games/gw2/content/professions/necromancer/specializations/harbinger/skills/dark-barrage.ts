@@ -1,8 +1,9 @@
-import { emitSkillCondition, emitSkillDamage } from '../../../../../../platform/scheduler/skill-events.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { NecromancerCastContext, NecromancerSkill } from '../../../types.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
+/** Replaces Dark Barrage with Doom Approaches' interruptible eight-hit damage and Torment sequence. */
 export function darkBarrage(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   // Doom Approaches converts Dark Barrage from a single hit to 8 rapid pistol hits; without it this handler is a no-op.
   if (!hasTrait(context, TRAIT.DOOM_APPROACHES)) return false;

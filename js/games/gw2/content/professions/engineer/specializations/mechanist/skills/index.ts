@@ -4,9 +4,9 @@
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
-import { MECHANIST_COMMAND_DURATIONS } from '../mechanics/constants.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { MECHANIST_COMMAND_DURATIONS } from '#gw2/content/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 // Crash Down and Recall Mech occupy the same profession-mechanic tile.
 const MECH_TOGGLE_PALETTE_TILE = 'engineer-mechanist-mech-toggle';

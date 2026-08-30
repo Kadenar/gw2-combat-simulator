@@ -1,10 +1,10 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { castRelativeEffectTimingScale } from '../../../../../platform/skills/timing.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapons/loadout.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 /**
  * Warrior trait lifecycle, event observation, and resolver reactions.
  *
@@ -13,20 +13,20 @@ import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapon
  * condition, control, and buff events. Specialization trait reactions live in
  * their specialization slices.
  */
-import type { ScheduledTask } from '../../../../../platform/engine/types.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { combinedTargetDamage } from '../../../../../platform/combat/state/target-health.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import { advanceScheduledCriticalProc } from '../../../../../platform/scheduler/critical-facts.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { gainWarriorEndurance } from '../mechanics/adrenaline-and-endurance.js';
-import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '../../resources.js';
+import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { gainWarriorEndurance } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '#gw2/content/professions/warrior/resources.js';
 import {
   warriorBalanceProfile,
   warriorBalanceProfileEffect,
   WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '../profiles.js';
+} from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -34,7 +34,7 @@ import type {
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill
-} from '../../types.js';
+} from '#gw2/content/professions/warrior/types.js';
 
 // Trigger Lesser Signet of Might on the first eligible post-half-health strike,
 // reserving its ICD before queuing the delayed boon package.

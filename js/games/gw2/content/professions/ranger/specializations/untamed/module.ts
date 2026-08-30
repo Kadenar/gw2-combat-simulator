@@ -1,18 +1,22 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedControl, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createRangerModuleData } from '../../data/catalog.js';
-import { untamedSkillHandlers } from './skills/handlers.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createRangerModuleData } from '#gw2/content/professions/ranger/catalog/module-data.js';
+import { untamedSkillHandlers } from '#gw2/content/professions/ranger/specializations/untamed/skills/execution.js';
 import {
   untamedAttributeRules,
   untamedCastRules,
   untamedSchedulerHooks,
   untamedSkillMechanicHandlers
-} from './mechanics/unleash.js';
-import { reactToUntamedControl, reactToUntamedDamage, untamedEventHandlers } from './mechanics/unleash-effects.js';
-import { UNTAMED_BASE_SKILL_MECHANICS } from './skills/index.js';
-import { untamedState } from './state.js';
-import { bindUntamedUi } from './presentation.js';
-import { UNTAMED_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import {
+  reactToUntamedControl,
+  reactToUntamedDamage,
+  untamedEventHandlers
+} from '#gw2/content/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
+import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/content/professions/ranger/specializations/untamed/skills/index.js';
+import { untamedState } from '#gw2/content/professions/ranger/specializations/untamed/state.js';
+import { bindUntamedUi } from '#gw2/content/professions/ranger/specializations/untamed/presentation.js';
+import { UNTAMED_BALANCE_PROFILES } from '#gw2/content/professions/ranger/specializations/untamed/profiles.js';
 
 export const untamedModule = defineNativeModule({
   id: 'Untamed',

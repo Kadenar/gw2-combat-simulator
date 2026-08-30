@@ -1,8 +1,8 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { clamp } from '../../../../platform/combat/numeric.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { isMesmerBuildSkillAvailable } from './mechanics/availability.js';
-import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { isMesmerBuildSkillAvailable } from '#gw2/content/professions/mesmer/core/mechanics/availability.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
@@ -13,8 +13,13 @@ import type {
   SchedulerRecord,
   Skill,
   SkillId
-} from '../../../../platform/engine/types.js';
-import type { MesmerProfessionState, MesmerResolverEvent, MesmerSkill, MesmerUiContext } from '../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  MesmerProfessionState,
+  MesmerResolverEvent,
+  MesmerSkill,
+  MesmerUiContext
+} from '#gw2/content/professions/mesmer/types.js';
 
 export interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';

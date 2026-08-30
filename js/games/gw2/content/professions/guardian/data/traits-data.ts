@@ -1,7 +1,7 @@
-import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from './guardian-api-metadata.js';
-import type { CatalogEntity } from '../../../../platform/engine/types.js';
-import type { GuardianSpecializationSelection } from '../types.js';
-import { createProfessionTraitData } from '../../lib/traits.js';
+import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/content/professions/guardian/data/guardian-api-metadata.js';
+import type { CatalogEntity } from '#gw2/platform/engine/types.js';
+import type { GuardianSpecializationSelection } from '#gw2/content/professions/guardian/types.js';
+import { createProfessionTraitData } from '#gw2/content/professions/lib/traits.js';
 
 const traitData = createProfessionTraitData<CatalogEntity>(CATALOG_SPECIALIZATIONS);
 

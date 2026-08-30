@@ -1,18 +1,22 @@
-import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups,
   necromancerSoulShardResourceViews,
   necromancerUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/necromancer/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { NecromancerSimulationEvent, NecromancerSkill, NecromancerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  NecromancerSimulationEvent,
+  NecromancerSkill,
+  NecromancerUiContext
+} from '#gw2/content/professions/necromancer/types.js';
 
 const RITUALIST_PACKET_EVENTS = new Set<string>([
   'necromancer.painful-bond',
@@ -21,6 +25,7 @@ const RITUALIST_PACKET_EVENTS = new Set<string>([
   'necromancer.weapon-spell-ally-trigger'
 ]);
 
+// Suppress resolver-only Ritualist packets while leaving ordinary events to the shared renderer.
 function ritualistEventLogRow(
   _context: NecromancerUiContext,
   event: NecromancerSimulationEvent
@@ -35,6 +40,7 @@ const INNERVATE_BY_SPIRIT: Readonly<Record<string, SkillId>> = Object.freeze({
   preservation: ID.INNERVATE_PRESERVATION
 });
 
+// Keep each Innervate palette entry synchronized with its owning spirit's lifetime.
 function ritualistPaletteAvailability(
   context: NecromancerUiContext,
   skill: NecromancerSkill

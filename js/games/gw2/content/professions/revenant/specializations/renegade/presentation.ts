@@ -1,12 +1,8 @@
-import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
-import { revenantUiState } from '../../core/presentation.js';
-import { isBandTogetherReady } from './mechanics/kalla-and-band-together.js';
-import type {
-  ProfessionUiContract,
-  RotationStateSnapshotItem,
-  SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { RevenantSkill, RevenantUiContext } from '../../types.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import { revenantUiState } from '#gw2/content/professions/revenant/core/presentation.js';
+import { isBandTogetherReady } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import type { ProfessionUiContract, RotationStateSnapshotItem, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { RevenantSkill, RevenantUiContext } from '#gw2/content/professions/revenant/types.js';
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
 function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {

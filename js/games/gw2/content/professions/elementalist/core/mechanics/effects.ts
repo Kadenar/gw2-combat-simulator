@@ -1,28 +1,39 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import type { SimulationEvent, Skill } from '../../../../../platform/engine/types.js';
-import type { ElementalistSchedulerContext } from '../../types.js';
-import type { ElementalistAuraState, ElementalistCoreState } from '../state.js';
-import { ETCHING_CHAINS } from '../constants.js';
+/**
+ * Shared Elementalist emission helpers for the scheduler phase.
+ *
+ * Balance-profile-driven buff, condition, proc, and aura emitters plus the small
+ * catalog and state lookups they depend on. Skill and trait handlers depend on
+ * this module; it must not depend on them.
+ */
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
+import { ETCHING_CHAINS } from '#gw2/content/professions/elementalist/core/constants.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue
-} from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 
+/** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
   return String(skill.weapon || skill.skillWeapon || '');
 }
 
+/** Finds the spear etching chain a skill name participates in, if any. */
 export function etchingChain(name: string) {
   return ETCHING_CHAINS.find((chain) => name === chain.etching || name === chain.lesser || name === chain.full);
 }
 
+/** Returns the tracked application of one aura still active at `at`, or null. */
 export function activeAura(state: ElementalistCoreState, aura: string, at: number): ElementalistAuraState | null {
   return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
 }
 
+/** Reports whether `at` lies inside the configured combat window; gates trait effects that only fire in combat. */
 export function combatStarted(context: ElementalistSchedulerContext, at: number): boolean {
   return !context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime);
 }
@@ -41,6 +52,7 @@ export function elementalistEventSkill(
   );
 }
 
+/** Collects already-scheduled buff events of one kind whose window covers `at`. */
 export function activeBuffEvents(context: ElementalistSchedulerContext, kind: string, at: number): SimulationEvent[] {
   const normalized = kind.toLowerCase();
   return context.events.filter(
@@ -52,10 +64,12 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
   );
 }
 
+/** Looks up a balance-profile effect entry so emitters can be retuned by data rather than code. */
 export function profiledEffect(context: unknown, profileId: Skill['id'], type: string, name?: string) {
   return elementalistBalanceEffect(context, profileId, type, name);
 }
 
+/** Emits a boon whose kind, stacks, and duration come from the balance profile, falling back to the supplied literals. */
 export function emitProfiledBuff(
   context: ElementalistSchedulerContext,
   at: number,
@@ -85,6 +99,7 @@ export function emitProfiledBuff(
   });
 }
 
+/** Emits a condition whose type, stacks, and duration come from the balance profile, falling back to the supplied literals. */
 export function emitProfiledCondition(
   context: ElementalistSchedulerContext,
   at: number,

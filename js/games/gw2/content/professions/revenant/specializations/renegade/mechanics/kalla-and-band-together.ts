@@ -1,32 +1,26 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
-import { materializeSkillEffectApplications } from '../../../../../../platform/engine/effects/materializer.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
 import {
-  gw2AlliedPlayerAssumptions,
-  gw2AlliedPlayerProcTimeline
-} from '../../../../../../platform/combat/state/allied-players.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { snapshotRevenantState } from '../../../state/index.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { renegadeState } from '../state.js';
-import { RENEGADE_ENHANCED_SKILL_BY_ID, RENEGADE_PROFILE_IDS } from '../skills/index.js';
-import type {
-  BalanceProfile,
-  SimulationEvent,
-  Skill,
-  SkillEffect,
-  SkillId
-} from '../../../../../../platform/engine/types.js';
+  RENEGADE_ENHANCED_SKILL_BY_ID,
+  RENEGADE_PROFILE_IDS
+} from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
+import type { BalanceProfile, SimulationEvent, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RenegadeState,
   RevenantCastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 export interface BandTogetherState {
   readonly enhanced: boolean;

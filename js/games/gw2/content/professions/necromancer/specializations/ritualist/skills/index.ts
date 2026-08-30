@@ -5,9 +5,9 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {

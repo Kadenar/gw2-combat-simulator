@@ -1,43 +1,61 @@
-import { emitSkillBuff, emitSkillDamage } from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
+/**
+ * Tempest overload mechanic and its scheduler-phase traits.
+ *
+ * Owns the overload gate (the channeled element must be the current attunement and must have been
+ * held long enough), the overload recharge adjustment, the conduit/singularity trait payloads fired
+ * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
+ * reactions the specialization's remaining traits need.
+ */
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type {
   AvailabilityResult,
   SchedulerRecord,
   SimulationEvent,
   SimulationEventInput,
   Skill
-} from '../../../../../../platform/engine/types.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+} from '#gw2/platform/engine/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ElementalistCastContext,
   ElementalistPrecastContext,
   ElementalistSchedulerContext
-} from '../../../types.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+} from '#gw2/content/professions/elementalist/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   applyElementalistAura,
-  emitElementalistProc,
+  emitElementalistProc
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import {
   triggerEarthenBlast,
   triggerElectricDischarge,
   triggerFlameExpulsion,
   triggerSunspot
-} from '../../../core/mechanics/execution.js';
-import { elementalistEventSkill } from '../../../core/mechanics/effects.js';
-import { setElementalistAttunementReadyAt } from '../../../core/state.js';
-import { armElementalistElementalLightningJolt } from '../../../core/skills/elementals.js';
-import { ELEMENTALIST_OVERLOAD_SKILL_IDS, ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import { tempestModifierRules } from '../traits/modifiers.js';
+} from '#gw2/content/professions/elementalist/core/traits/index.js';
+import { elementalistEventSkill } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { setElementalistAttunementReadyAt } from '#gw2/content/professions/elementalist/core/state.js';
+import { armElementalistElementalLightningJolt } from '#gw2/content/professions/elementalist/core/skills/elementals.js';
+import {
+  ELEMENTALIST_OVERLOAD_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/content/professions/elementalist/data/ids.js';
+import { tempestModifierRules } from '#gw2/content/professions/elementalist/specializations/tempest/traits/modifiers.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue,
   elementalistEffectValue
-} from '../../../core/profiles.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { tempestState } from '../state.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/tempest/profiles.js';
+import { tempestState } from '#gw2/content/professions/elementalist/specializations/tempest/state.js';
 
+// Overloads that count for a full spear etching; Overload Water is not one of them.
 const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
 
+/**
+ * Shout after-effects hook: grants Tempestuous Aria's party might when a Tempest shout finishes.
+ * This is the shout half of the trait; its damage buff is refreshed by auras in the resolver.
+ */
 export function applyTempestShoutTraits(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
   const might = elementalistBalanceEffect(context, PROFILE.tempestuousAria, 'boon', 'Shout Might');
@@ -55,8 +73,8 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
   });
 }
 
-// Snapshot overload entry state and consume its attunement availability at cast
-// start so interruptions cannot duplicate the mechanic.
+// Fire the traits that pay out as an overload begins: the conduit boons, and the core
+// attunement-entry proc matching the channeled element.
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, 'Hardy Conduit')) {
@@ -99,6 +117,8 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
     }
   }
 
+  // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
+  // to the channeled element (Water has no such proc).
   if (skill.attunement === 'Fire') {
     triggerSunspot(context as never, context.start, skill.id);
   } else if (skill.attunement === 'Air') {
@@ -108,8 +128,8 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
-// Gate overloads and Tempest replacements by attunement, singularity readiness,
-// and any currently active overload channel.
+// Gate overloads on the current attunement and on the singularity: the attunement must already be
+// the primary one and must have been held for the dwell time. Non-overload skills pass through.
 function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
@@ -122,11 +142,13 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
     };
   }
 
+  // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
       ? elementalistBalanceValue(context, PROFILE.overloads, 'durationMultiplier', 4)
       : elementalistBalanceValue(context, PROFILE.overloads, 'initialDelay', 6)) /
     (context.config.boons?.alacrity ? 1.25 : 1);
+  // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.start : state.attunementEnteredAt + dwell;
   return readyAt > context.start + context.epsilon
@@ -173,6 +195,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   });
 }
 
+// Resolve everything that happens when a Tempest cast finishes: the Gale Song heal payload, then
+// for overloads the attunement lockout and each completion trait.
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
     const protection = elementalistBalanceEffect(context, PROFILE.galeSong, 'boon', 'Protection');
@@ -191,6 +215,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   const state = professionCoreState(context);
   const attunement = String(skill.attunement);
+  // Finishing an overload locks its attunement out until the overload's own recharge ends.
   if (attunement in state.attunementReadyAt) {
     const typedAttunement = attunement as keyof typeof state.attunementReadyAt;
     setElementalistAttunementReadyAt(
@@ -240,6 +265,8 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     });
   }
 
+  // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
+  // active fire/earth elemental and recorded as its own proc for attribution.
   if (skill.name === 'Overload Air') {
     const coefficient = elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 1.32);
     emitSkillDamage(context, {
@@ -273,12 +300,14 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
+// Elemental Enchantment shortens overload recharges only.
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   return context.skill.overload && hasTrait(context, 'Elemental Enchantment')
     ? duration * elementalistBalanceValue(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
     : duration;
 }
 
+// Attribute every overload-sourced event to the profession mechanic rather than a held weapon.
 function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
   return Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS).includes(Number(event.skillId ?? event.sourceId))
     ? { ...event, skillWeapon: 'Profession mechanic' }
@@ -288,11 +317,13 @@ function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationE
 // React to normalized attunement and aura events so Tempest traits share the
 // same timestamps as core state changes and resolver-generated auras.
 function onEventScheduled(context: ElementalistCastContext, event: SimulationEvent): void {
+  // Fresh Air re-attunes to Air off cooldown; clear Overload Air's recorded recharge with it.
   if (event.type === 'elementalist.fresh-air') {
     context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     return;
   }
 
+  // Latent Stamina: vigor on attuning to water, throttled by its own internal cooldown stamp.
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
     const state = tempestState.from(context);
     if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
@@ -315,6 +346,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
     return;
   }
 
+  // Remaining traits react to scheduler-emitted aura events, attributed to the granting skill.
   if (event.type !== 'elementalist.aura') return;
   const source = String(event.skillName || event.source || 'Aura');
   const sourceId = event.skillId ?? event.sourceId;
@@ -349,6 +381,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   }
 }
 
+/** Cast-time rules the module installs: the overload gate and the overload recharge adjustment. */
 export const tempestCastRules = Object.freeze({
   availability: {
     id: 'elementalist.tempest-overload',
@@ -358,10 +391,12 @@ export const tempestCastRules = Object.freeze({
   modifyRechargeDuration
 });
 
+/** Damage-modifier contribution of the specialization, forwarded from traits/modifiers.ts. */
 export const tempestAttributeRules = Object.freeze({
   modifierRules: tempestModifierRules
 });
 
+/** Ordered scheduler lifecycle hooks that drive the overload channel and Tempest's traits. */
 export const tempestSchedulerHooks = Object.freeze({
   prepareEvent: {
     id: 'elementalist.tempest-overload-events',

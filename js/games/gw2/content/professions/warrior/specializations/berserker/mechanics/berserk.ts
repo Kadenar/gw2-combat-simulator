@@ -1,9 +1,12 @@
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { WARRIOR_SKILL_IDS as ID } from '../../../data/ids.js';
-import { syncWarriorAdrenaline } from '../../../core/mechanics/adrenaline-and-endurance.js';
-import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../../core/profiles.js';
-import type { WarriorSchedulerContext } from '../../../types.js';
-import { berserkerState } from '../state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
+import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
+} from '#gw2/content/professions/warrior/core/profiles.js';
+import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
+import { berserkerState } from '#gw2/content/professions/warrior/specializations/berserker/state.js';
 
 export function advanceBerserker(context: WarriorSchedulerContext, target: number): void {
   const state = berserkerState.from(context);

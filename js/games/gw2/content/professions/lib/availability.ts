@@ -1,5 +1,5 @@
-import { denyCast, retryCast } from '../../../platform/engine/skills/availability.js';
-import type { AvailabilityResult, Skill } from '../../../platform/engine/types.js';
+import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import type { AvailabilityResult, Skill } from '#gw2/platform/engine/types.js';
 
 /**
  * Creates the common profession-level unavailable result with a consistent

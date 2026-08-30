@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { GuardianDragonhunterState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { GuardianDragonhunterState } from '#gw2/content/professions/guardian/types.js';
 
 export function createDragonhunterState(): GuardianDragonhunterState {
   return {

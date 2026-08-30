@@ -1,14 +1,17 @@
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { applyEngineerDerivedCondition, queueDamage } from './state-helpers.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  applyEngineerDerivedCondition,
+  queueDamage
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerSchedulerContext,
   EngineerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
-// kit equip/stow is treated as a weapon bar swap by the sigil system — must emit sigil_swap (not a custom type)
+/** Emits kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
 export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   context.emit({
     type: 'sigil_swap',
@@ -27,6 +30,7 @@ function focused(context: EngineerResolverContext, at: number): boolean {
   return Number(professionCoreState(context).focusedUntil || 0) > at;
 }
 
+/** Resolves one Lightning Rod pulse, including its Focused coefficient and second-hit immobilize. */
 export function handleLightningRodPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
   queueDamage(context, event, {
@@ -44,6 +48,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
   }
 }
 
+/** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
 export function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Math.max preserves a longer existing Focused window; Conduit Surge must not shorten it
   professionCoreState(context).focusedUntil = Math.max(
@@ -68,6 +73,7 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
   });
 }
 
+/** Resolves Electric Artillery using its stored charges and current Focused state. */
 export function handleElectricArtillery(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges

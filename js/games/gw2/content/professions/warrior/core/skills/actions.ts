@@ -1,4 +1,4 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 
 // Keep the imported Weapon Stow action visually distinct in the simulator timeline.
 const WEAPON_STOW_ICON = new URL('../../../../../../../../assets/warrior/weapon-stow.png', import.meta.url).href;

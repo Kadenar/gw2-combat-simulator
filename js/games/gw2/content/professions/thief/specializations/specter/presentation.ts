@@ -1,6 +1,6 @@
-import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '../../types.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.HAUNT_SHOT,

@@ -1,9 +1,25 @@
-/** Scepter weapon-skill mechanics owned by the Weaver module. */
+/**
+ * Scepter weapon-skill mechanics owned by the Weaver module.
+ *
+ * Weaver occupies the slot-3 scepter position with a dual attack selected by the
+ * unordered pair of attunements held across its two hands; every fragment names
+ * its pair in `attunement`, and Weaver availability only offers the skill when
+ * both of those elements are currently attuned.
+ *
+ * Declarative data only - no handler logic lives here. Effect offsets are
+ * authored against the quickened timeline given by `quicknessCastTimeMs` and
+ * are scaled back out for slower casts by the cast-scaled scheduler policy.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * The six scepter dual attacks, keyed by skill id and merged into
+ * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
+ */
 export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire+Water. Single hit applying one condition from each element.
   [ID.FIERY_FROST]: {
     name: 'Fiery Frost',
     type: 'Weapon',
@@ -58,6 +74,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ],
     specialization: 'Weaver'
   },
+  // Fire+Air. Five equal 0.55 beam pulses across the cast (240/360/520/640/760
+  // ms) with no conditions attached - pure strike damage split five ways.
   [ID.PLASMA_BEAM]: {
     name: 'Plasma Beam',
     type: 'Weapon',
@@ -128,6 +146,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ],
     specialization: 'Weaver'
   },
+  // Fire+Earth. Two identical hits at 240 and 840 ms, each repeating the same
+  // Burning plus three-stack Vulnerability payload.
   [ID.FRACTURING_STRIKE]: {
     name: 'Fracturing Strike',
     type: 'Weapon',
@@ -221,6 +241,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ],
     specialization: 'Weaver'
   },
+  // Air+Water. One heavy hit that bundles Chilled, self-Stability and a
+  // crowd-control application on the same 480 ms packet.
   [ID.GLACIAL_DRIFT]: {
     name: 'Glacial Drift',
     type: 'Weapon',
@@ -282,6 +304,9 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ],
     specialization: 'Weaver'
   },
+  // Water+Earth. Eight 0.3 pulses on a 280 ms cadence from 760 ms to 2720 ms,
+  // running well past the 600 ms cast; every pulse stacks Bleeding and
+  // Vulnerability, but Cripple is applied once, on the first pulse only.
   [ID.STONE_TIDE]: {
     name: 'Stone Tide',
     type: 'Weapon',
@@ -623,6 +648,8 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ],
     specialization: 'Weaver'
   },
+  // Air+Earth. Opening 1.4 hit at 440 ms, then a second 1.0 hit at 720 ms that
+  // carries the crowd-control application.
   [ID.EARTHEN_SYNERGY]: {
     name: 'Earthen Synergy',
     type: 'Weapon',

@@ -1,16 +1,16 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { specterState } from '../state.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { emitThiefShroudSwap } from '../../../core/mechanics/resource-events.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../../core/profiles.js';
-import { completeStealWithStoredSkills } from '../../../core/mechanics/steal.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../../../platform/combat/state/allied-players.js';
-import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../../types.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitThiefShroudSwap } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+import { completeStealWithStoredSkills } from '#gw2/content/professions/thief/core/mechanics/steal.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
 export function completeSiphon(context: ThiefCastContext): void {
   const state = specterState.from(context);

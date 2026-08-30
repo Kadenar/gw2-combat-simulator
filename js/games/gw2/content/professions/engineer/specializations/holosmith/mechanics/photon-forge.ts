@@ -1,26 +1,22 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { holosmithState } from '../state.js';
-import { snapshotEngineerState } from '../../../state/index.js';
-import { decorateHolosmithHeatEvent } from './heat-tiers.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { materializeSkillEffectApplications } from '../../../../../../platform/engine/effects/materializer.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { emitEngineerBarSwap } from '../../../core/mechanics/event-handlers.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { decorateHolosmithHeatEvent } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitEngineerBarSwap } from '#gw2/content/professions/engineer/core/mechanics/event-handlers.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
   HOLOSMITH_HEAT,
   HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS
-} from './constants.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -28,8 +24,8 @@ import type {
   EngineerSimulationEvent,
   EngineerSkill,
   HolosmithState
-} from '../../../types.js';
-import type { HolosmithSkill } from '../types.js';
+} from '#gw2/content/professions/engineer/types.js';
+import type { HolosmithSkill } from '#gw2/content/professions/engineer/specializations/holosmith/types.js';
 
 interface HeatSegment {
   readonly start: number;
@@ -62,6 +58,7 @@ const PHOTON_BLITZ_PULSE_OFFSETS_MS = HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
 const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
 const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
 
+/** Converts the profiled passive heat rate, including Light Density Amplifier, to one cadence tick. */
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   const heatPerSecond =
     engineerBalanceValue(context, PROFILE.heat, 'energyRegenerationPerSecond', HOLOSMITH_HEAT.basePassivePerSecond) +
@@ -73,6 +70,7 @@ function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   return heatPerSecond * HOLOSMITH_HEAT.heatTickInterval;
 }
 
+/** Returns the cooling due on one cadence tick after accounting for Forge state, delay, and PBM. */
 function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): number {
   const state = holosmithState.from(context);
   if (state.photonForgeActive || state.forgeExitedAt == null) return 0;
@@ -89,8 +87,8 @@ function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): n
   return coolingPerSecond * HOLOSMITH_HEAT.heatTickInterval;
 }
 
+/** Advances the heat cadence while rounding repeated additions onto stable event-ordering boundaries. */
 function nextPassiveHeatTick(at: number): number {
-  // Keep repeated 100 ms additions on stable decimal boundaries for event ordering.
   return Math.round((at + HOLOSMITH_HEAT.heatTickInterval) * 1e9) / 1e9;
 }
 
@@ -119,9 +117,11 @@ function appendHeatSegment(
   state.heat = Math.max(0, Math.min(state.maximumHeat, startHeat + (segmentEnd - start) * rate));
 }
 
+/** Clips a linear heat segment to the portion above ECSU's might threshold. */
 function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
   const heatThreshold = HOLOSMITH_HEAT.enhancedCapacityThreshold;
   const endHeat = segment.startHeat + (segment.end - segment.start) * segment.rate;
+  // Rising heat begins eligibility at the threshold crossing and remains eligible through the segment end.
   if (segment.rate > 0) {
     if (endHeat <= heatThreshold) return null;
     return {
@@ -134,6 +134,7 @@ function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
     };
   }
 
+  // Falling heat ends eligibility at its threshold crossing and records whether the next segment stays eligible.
   if (segment.rate < 0) {
     if (segment.startHeat <= heatThreshold) return null;
     return {
@@ -143,6 +144,7 @@ function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
     };
   }
 
+  // Flat segments are either wholly eligible or wholly below threshold.
   if (segment.startHeat <= heatThreshold) return null;
   return {
     start: segment.start,
@@ -151,6 +153,7 @@ function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
   };
 }
 
+/** Emits one profiled Enhanced Capacity Storage Unit might pulse. */
 function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number): void {
   const sourceSkill = {
     id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
@@ -173,13 +176,12 @@ function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number
   });
 }
 
-// Emits the per-second might pulses from Enhanced Capacity Storage Unit for any
-// time spent above the heat threshold within the provided segments.
-// readyAt tracks the next eligible emission time across calls so pulses aren't doubled.
+/** Materializes ECSU might across high-heat segments while carrying pulse readiness between calls. */
 function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, segments: readonly HeatSegment[]): void {
   if (!hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) return;
   const state = holosmithState.from(context);
   let readyAt = state.enhancedCapacityMightReadyAt;
+  // Walk chronological high-heat intervals while retaining cadence across contiguous eligible segments.
   for (const segment of segments) {
     const interval = highHeatInterval(segment);
     if (!interval) {
@@ -191,6 +193,7 @@ function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, seg
       readyAt = interval.start;
     }
 
+    // Emit every due pulse inside the interval, then carry the next boundary into later calls.
     while (Number(readyAt) <= interval.end + context.epsilon) {
       emitEnhancedCapacityMight(context, Number(readyAt));
       readyAt = Number(readyAt) + engineerBalanceValue(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
@@ -202,6 +205,7 @@ function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, seg
   state.enhancedCapacityMightReadyAt = readyAt;
 }
 
+/** Emits the first ECSU might pulse immediately when a discrete heat gain crosses the threshold. */
 function triggerInstantEnhancedCapacityMight(
   context: EngineerSchedulerContext,
   at: number,
@@ -218,6 +222,7 @@ function triggerInstantEnhancedCapacityMight(
   state.enhancedCapacityMightReadyAt = at + engineerBalanceValue(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
 }
 
+/** Replaces Solar Focusing Lens charges and opens their profiled activation window. */
 export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
   if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
   const state = holosmithState.from(context);
@@ -258,7 +263,9 @@ function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: 
   });
 }
 
+/** Emits the delayed strike and burning packets owned by Photonic Blasting Module. */
 function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, effectAt: number): void {
+  // The explosion owns the blast finisher and resolves before its same-time condition packet.
   emitSkillDamage(context, {
     at: effectAt,
     source: 'Trait',
@@ -280,6 +287,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
       }
     ]
   });
+  // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
   emitSkillCondition(context, {
     at: effectAt,
     source: 'Trait',
@@ -293,6 +301,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
   });
 }
 
+/** Ejects Photon Forge at maximum heat and schedules the delayed Overheat or PBM consequences. */
 function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
@@ -325,6 +334,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
 
+/** Advances continuous heat bookkeeping to a target time without crossing discrete cadence tasks. */
 export function advancePhotonForgeState(context: EngineerSchedulerContext, target: number): void {
   const state = holosmithState.from(context);
   const from = Number(state.heatUpdatedAt || 0);
@@ -349,6 +359,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   }
 }
 
+/** Schedules one low-priority heat cadence task so same-time skill heat resolves first. */
 function schedulePassiveHeat(context: EngineerSchedulerContext, at: number): void {
   context.tasks.schedule({
     type: PHOTON_FORGE_PASSIVE_HEAT_TASK,
@@ -359,12 +370,14 @@ function schedulePassiveHeat(context: EngineerSchedulerContext, at: number): voi
   });
 }
 
+/** Restarts passive heat processing one cadence tick after a Forge state transition. */
 function startPassiveHeatCadence(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   state.passiveHeatAt = nextPassiveHeatTick(at);
   schedulePassiveHeat(context, state.passiveHeatAt);
 }
 
+/** Starts cooling cadence for simulations configured with nonzero initial heat. */
 export function initializePhotonForgeHeat(context: EngineerSchedulerContext): void {
   const state = holosmithState.from(context);
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
@@ -373,6 +386,7 @@ export function initializePhotonForgeHeat(context: EngineerSchedulerContext): vo
   }
 }
 
+/** Processes one validated passive heat or cooling tick and schedules the next tick when needed. */
 export function handlePhotonForgePassiveHeat(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<PhotonForgePassiveHeatPayload>
@@ -414,6 +428,7 @@ export function handlePhotonForgePassiveHeat(
   }
 }
 
+/** Applies a deferred Overheat lockout to eligible tool-belt cooldowns. */
 export function handlePhotonForgeOverheatPenalty(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<PhotonForgeOverheatPenaltyPayload>
@@ -421,6 +436,7 @@ export function handlePhotonForgeOverheatPenalty(
   applyToolbeltOverheatPenalty(context, task.at, Math.max(0, Number(task.payload?.seconds || 0)));
 }
 
+/** Enters Photon Forge, starts heat cadence, and applies entry lockout and trait state. */
 function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
@@ -438,6 +454,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   emitStateSnapshot(context, 'engineer', at, 'enter-forge', snapshotEngineerState(context.state.profession));
 }
 
+/** Exits Photon Forge voluntarily and starts cooling and exit trait state. */
 function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
   const at = context.effectiveEnd;
@@ -449,6 +466,7 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   emitStateSnapshot(context, 'engineer', at, 'exit-forge', snapshotEngineerState(context.state.profession));
 }
 
+/** Queues a skill-owned heat change, optionally allowing it to land after Forge exit. */
 function scheduleHeatPulse(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -468,11 +486,10 @@ function scheduleHeatPulse(
   });
 }
 
-// Schedules heat pulse tasks for the completed cast.
-// Corona Burst and Photon Blitz pulse heat at each animation beat rather than
-// once at the end; Corona Burst pulses are flagged persistsOutsideForge=true
-// because they can resolve after the player has already exited the forge.
-// Most skills only grant heat on full completion (effectiveEnd === fullEnd).
+/**
+ * Schedules a Forge skill's heat at authored animation beats or at completion,
+ * preserving committed pulses after interrupts and Corona Burst pulses after Forge exit.
+ */
 function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   const state = holosmithState.from(context);
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
@@ -506,6 +523,7 @@ function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   scheduleHeatPulse(context, skill, context.effectiveEnd, Number(skill.heatGain));
 }
 
+/** Applies a scheduled skill heat pulse, including immediate ECSU threshold payoff and a state snapshot. */
 export function handlePhotonForgeHeat(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<PhotonForgeHeatPayload>
@@ -518,8 +536,7 @@ export function handlePhotonForgeHeat(
   emitStateSnapshot(context, 'engineer', task.at, 'heat', snapshotEngineerState(context.state.profession));
 }
 
-// Invokes Vent Exhaust from its canonical skill record so the proc row, icon,
-// damage, conditions, and heat loss all have one owner.
+/** Invokes canonical Vent Exhaust effects and removes its authored heat amount. */
 function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: EngineerSkill, at: number): void {
   const ventExhaust: HolosmithSkill | undefined = context.catalog.skillsById.get(ID.VENT_EXHAUST);
   if (!ventExhaust) return;
@@ -534,6 +551,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
     sourceSkill: triggeringSkill.name,
     icon: ventExhaust.icon
   });
+  // Materialize the canonical effect list so UI identity, packets, and trait attribution stay aligned.
   const activationId = context.createActivationId('vent-exhaust');
   for (const effect of ventExhaust.effects || []) {
     const applications = materializeSkillEffectApplications({
@@ -555,6 +573,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
     for (const application of applications) context.emit(application.event);
   }
 
+  // Vent heat immediately after its combat packets are queued at the same timestamp.
   const state = holosmithState.from(context);
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
   state.heatUpdatedAt = at;
@@ -562,9 +581,10 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
   emitStateSnapshot(context, 'engineer', at, 'vent-exhaust', snapshotEngineerState(context.state.profession));
 }
 
-// Vigor is granted unconditionally on dodge; Vent Exhaust fires only when heat > 0.
-// Photonic Blasting Module suppresses Vent Exhaust while holding heat before the
-// explosion fires (overheated=false), because the heat must stay at max for PBM.
+/**
+ * Grants Thermal Release Valve's dodge boon and invokes Vent Exhaust when heat may be spent,
+ * preserving maximum heat while Photonic Blasting Module awaits its explosion.
+ */
 export function triggerThermalReleaseValve(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
@@ -604,8 +624,7 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
 }
 
-// Called for every Holosmith-scheduled event. The shared heat-tier layer snapshots
-// activation state before this hook handles Solar Focusing Lens consumption.
+/** Decorates every Holosmith event with heat metadata, then consumes Solar Focusing Lens on eligible strikes. */
 export function observeHolosmithScheduledEvent(
   context: EngineerSchedulerContext,
   event: EngineerSimulationEvent
@@ -620,6 +639,7 @@ export function observeHolosmithScheduledEvent(
     !hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
   )
     return;
+  // Consume a live charge only after packet ownership and activation-window checks pass.
   const state = holosmithState.from(context);
   if (
     Number(state.solarFocusingLensStacks || 0) <= 0 ||
@@ -646,6 +666,7 @@ export function observeHolosmithScheduledEvent(
   });
 }
 
+/** Routes Photon Forge handler IDs to entry, exit, and skill-heat logic. */
 export const engineerPhotonForgeSkillHandlers = Object.freeze({
   'engineer.photon-forge-enter': enterPhotonForge,
   'engineer.photon-forge-exit': exitPhotonForge,

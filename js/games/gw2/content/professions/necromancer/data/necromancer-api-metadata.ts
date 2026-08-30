@@ -5,8 +5,8 @@
 import type {
   Gw2ApiSpecialization,
   Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { NecromancerSkill } from '../types.js';
+} from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
 export type NecromancerApiTrait = Gw2ApiTrait;
 export type NecromancerApiSpecialization = Gw2ApiSpecialization;

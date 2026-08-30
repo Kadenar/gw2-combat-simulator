@@ -5,9 +5,9 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
-import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
 
 export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.YOU_ARE_ALL_WEAKLINGS]: {

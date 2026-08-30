@@ -1,14 +1,10 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { advanceScheduledCriticalProc } from '../../../../../../platform/scheduler/critical-facts.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import type { ScheduledTask } from '../../../../../../platform/engine/types.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
@@ -16,10 +12,10 @@ import type {
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill
-} from '../../../types.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../../core/profiles.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { berserkerState } from '../state.js';
+} from '#gw2/content/professions/warrior/types.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/berserker/profiles.js';
+import { berserkerState } from '#gw2/content/professions/warrior/specializations/berserker/state.js';
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 

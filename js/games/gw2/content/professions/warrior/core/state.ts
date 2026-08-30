@@ -1,4 +1,4 @@
-import type { WarriorConfig, WarriorCoreState } from '../types.js';
+import type { WarriorConfig, WarriorCoreState } from '#gw2/content/professions/warrior/types.js';
 
 /** Creates only the state shared by every Warrior build; elite caps initialize in their slices. */
 export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreState {

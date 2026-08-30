@@ -1,16 +1,16 @@
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { readProfessionSpecializationState } from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { warriorBalanceProfile } from '../../../core/profiles.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { syncWarriorAdrenaline } from '../../../core/mechanics/adrenaline-and-endurance.js';
-import type { WarriorSchedulerContext } from '../../../types.js';
-import { paragonState } from '../state.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import { warriorBalanceProfile } from '#gw2/content/professions/warrior/core/profiles.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { syncWarriorAdrenaline } from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import type { WarriorSchedulerContext } from '#gw2/content/professions/warrior/types.js';
+import { paragonState } from '#gw2/content/professions/warrior/specializations/paragon/state.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/paragon/profiles.js';
 import {
   advanceParagon,
   applyParagonWeaponSwapTraits,
@@ -18,7 +18,7 @@ import {
   handleParagonCommandEchoTask,
   observeParagonEvent,
   updateParagonCast
-} from '../traits/index.js';
+} from '#gw2/content/professions/warrior/specializations/paragon/traits/index.js';
 
 export const paragonSchedulerHooks = Object.freeze({
   // Paragon adds its specialization trait without owning the base swap.

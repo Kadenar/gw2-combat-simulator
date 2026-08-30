@@ -1,17 +1,20 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { onResolvedControl, onResolvedDamage } from '../../../../../integrations/patches/authoring/mechanics.js';
-import { createGuardianModuleData } from '../../data/catalog.js';
-import { dragonhunterSkillHandlers } from './skills/handlers.js';
-import { dragonhunterEventHandlers, dragonhunterEventReactions } from './mechanics/virtue-effects.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedControl, onResolvedDamage } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createGuardianModuleData } from '#gw2/content/professions/guardian/catalog/module-data.js';
+import { dragonhunterSkillHandlers } from '#gw2/content/professions/guardian/specializations/dragonhunter/skills/execution.js';
+import {
+  dragonhunterEventHandlers,
+  dragonhunterEventReactions
+} from '#gw2/content/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import {
   dragonhunterAttributeRules,
   dragonhunterSchedulerHooks,
   dragonhunterSkillMechanicHandlers
-} from './mechanics/virtues-and-traps.js';
-import { DRAGONHUNTER_SKILL_MECHANICS } from './skills/index.js';
-import { dragonhunterState } from './state.js';
-import { dragonhunterUi } from './presentation.js';
-import { DRAGONHUNTER_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/guardian/specializations/dragonhunter/mechanics/virtues-and-traps.js';
+import { DRAGONHUNTER_SKILL_MECHANICS } from '#gw2/content/professions/guardian/specializations/dragonhunter/skills/index.js';
+import { dragonhunterState } from '#gw2/content/professions/guardian/specializations/dragonhunter/state.js';
+import { dragonhunterUi } from '#gw2/content/professions/guardian/specializations/dragonhunter/presentation.js';
+import { DRAGONHUNTER_BALANCE_PROFILES } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export const dragonhunterModule = defineNativeModule({
   id: 'Dragonhunter',

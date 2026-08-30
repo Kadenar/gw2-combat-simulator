@@ -1,16 +1,16 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-import { snapshotEngineerState } from '../../state/index.js';
-import type { SchedulerRecord, Skill, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import type { SchedulerRecord, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
 interface TurretAttackPayload extends SchedulerRecord {
   readonly skillId: number;
@@ -24,6 +24,7 @@ export const ENGINEER_TURRET_ATTACK_SKILL_IDS = Object.freeze({
   rocket: 'engineer.turret.rocket.attack'
 });
 
+/** Defines the hidden autonomous attack skill used by a deployed turret. */
 const turretAttack = (
   id: string,
   name: string,
@@ -85,11 +86,12 @@ function attackEffect(skill: Skill, type: SkillEffect['type']): SkillEffect | un
   return skill.effects?.find((effect) => effect.type === type);
 }
 
-// consistent ownerId format lets consumeFlip's cancelOwner call stop all pending attacks in one call
+/** Returns the task owner shared by every autonomous attack from one deployed turret. */
 export function turretOwnerId(skillId: SkillId): string {
   return `engineer.turret.${Number(skillId)}`;
 }
 
+/** Arms a turret's detonate flip, applies deploy effects, and starts its autonomous attack chain. */
 export function deployEngineerTurret(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
@@ -128,6 +130,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
   emitStateSnapshot(context, 'engineer', at, 'deploy-turret', snapshotEngineerState(context.state.profession));
 }
 
+/** Emits one autonomous turret attack and schedules the next packet until its ammo limit is reached. */
 export function handleEngineerTurretAttack(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<TurretAttackPayload>

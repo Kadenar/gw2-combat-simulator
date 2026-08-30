@@ -3,13 +3,13 @@ import {
   engineerToolbeltSkillIds,
   namedSkillId,
   uniqueIdsBySkillName
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/engineer/core/presentation.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { EngineerResolverEvent, EngineerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { EngineerResolverEvent, EngineerUiContext } from '#gw2/content/professions/engineer/types.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
 function scrapperProfessionSkills(context: EngineerUiContext) {

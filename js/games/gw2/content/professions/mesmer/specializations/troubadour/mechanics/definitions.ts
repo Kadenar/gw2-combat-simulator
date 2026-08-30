@@ -1,8 +1,8 @@
 /**
  * Troubadour-owned formulas and mechanic classifications.
  */
-import { MESMER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { MesmerInstrument, MesmerTraitDamage } from '../../../types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { MesmerInstrument, MesmerTraitDamage } from '#gw2/content/professions/mesmer/types.js';
 
 export const MESMER_TROUBADOUR_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
   Syncopate: {

@@ -1,7 +1,7 @@
-import { daredevilState } from '../state.js';
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { ThiefPrecastContext, ThiefSkill } from '../../../types.js';
+import { daredevilState } from '#gw2/content/professions/thief/specializations/daredevil/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { ThiefPrecastContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 export function daredevilCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   if (skill.id !== ID.PALM_STRIKE) return { ready: true };

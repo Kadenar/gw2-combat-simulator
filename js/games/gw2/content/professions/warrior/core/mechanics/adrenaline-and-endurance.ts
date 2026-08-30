@@ -1,11 +1,14 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { advanceEndurance, enduranceReadyAt, grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill
+} from '#gw2/content/professions/warrior/types.js';
 import {
-  advanceEndurance,
-  enduranceReadyAt,
-  grantEndurance
-} from '../../../../../platform/combat/resources/endurance.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
-import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/warrior/core/profiles.js';
 
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, at: number): number {
   const vigor = Boolean(context.config.boons?.vigor || context.hasBuff?.('vigor', at));

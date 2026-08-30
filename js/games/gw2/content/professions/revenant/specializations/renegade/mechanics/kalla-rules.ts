@@ -1,25 +1,31 @@
-import { materializeSkillEffectApplications } from '../../../../../../platform/engine/effects/materializer.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../../../platform/combat/state/allied-players.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
   revenantTimedBuff
-} from '../../../core/traits/modifiers.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '../../../core/traits/legend-invocation.js';
-import { grantKallasFervor } from './kalla-and-band-together.js';
-import { renegadeState } from '../state.js';
-import { RENEGADE_PROFILE_IDS, RENEGADE_SPIRIT_BOON_PROFILE_ID } from '../skills/index.js';
+} from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill
+} from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { grantKallasFervor } from '#gw2/content/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { renegadeState } from '#gw2/content/professions/revenant/specializations/renegade/state.js';
+import {
+  RENEGADE_PROFILE_IDS,
+  RENEGADE_SPIRIT_BOON_PROFILE_ID
+} from '#gw2/content/professions/revenant/specializations/renegade/skills/index.js';
 import {
   handleRenegadeCriticalTraitsTask,
   handleRazorclawProcTask,
@@ -29,14 +35,14 @@ import {
   observeRenegadeTraits,
   RENEGADE_CRITICAL_TRAITS_TASK,
   RENEGADE_RAZORCLAW_PROC_TASK
-} from '../traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
+} from '#gw2/content/professions/revenant/specializations/renegade/traits/index.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   RevenantCastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   // Count only applications that have started (at ≤ time) and not yet expired (expiresAt > time)

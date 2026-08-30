@@ -1,17 +1,21 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { onResolvedCriticalHit } from '../../../../../../integrations/patches/authoring/mechanics.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { resolveSummonOwnedComboFinisher } from './combos.js';
-import { applyTraitCondition, queueTraitCoefficientDamage, targetIsChilled } from '../../../core/traits/index.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { resolveSummonOwnedComboFinisher } from '#gw2/content/professions/necromancer/specializations/reaper/mechanics/combos.js';
+import {
+  applyTraitCondition,
+  queueTraitCoefficientDamage,
+  targetIsChilled
+} from '#gw2/content/professions/necromancer/core/traits/index.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails
-} from '../../../types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { reaperState } from '../state.js';
+} from '#gw2/content/professions/necromancer/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/reaper/profiles.js';
+import { reaperState } from '#gw2/content/professions/necromancer/specializations/reaper/state.js';
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
 const chillingNovaCriticalHit = onResolvedCriticalHit<
@@ -63,6 +67,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   }
 });
 
+/** Resolves summon combo finishers and Chilling Nova from one eligible damage packet. */
 function reactToDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -72,6 +77,7 @@ function reactToDamage(
   chillingNovaCriticalHit.handler(context, event, details);
 }
 
+/** Converts Chilled applications into Deathly Chill's configured condition packet. */
 function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition === 'Chilled' && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.deathlyChill), 'condition');
@@ -85,6 +91,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
   }
 }
 
+/** Converts eligible Fear controls into Shivers of Dread's Chill event. */
 function reactToControl(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // controlKind and kind are both checked because fear appears under different fields depending on the event schema version.
   if ((event.controlKind !== 'fear' && event.kind !== 'fear') || !hasTrait(context, TRAIT.SHIVERS_OF_DREAD)) {

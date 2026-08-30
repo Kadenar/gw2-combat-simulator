@@ -1,19 +1,30 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { isGw2PlayerActorEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { buildGuardianStrike } from '../../../core/mechanics/event-handlers.js';
-import { emitGuardianProc, guardianTraitIcon } from '../../../core/traits/index.js';
-import type { SchedulerRecord, SkillId } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill, GuardianVirtue } from '../../../types.js';
-import { activeLethalTempo, gainLethalTempo } from './virtues.js';
-import { willbenderState } from '../state.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../../platform/equipment/weapons/loadout.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { buildGuardianStrike } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  GuardianCastContext,
+  GuardianSchedulerContext,
+  GuardianSkill,
+  GuardianVirtue
+} from '#gw2/content/professions/guardian/types.js';
+import {
+  activeLethalTempo,
+  gainLethalTempo
+} from '#gw2/content/professions/guardian/specializations/willbender/mechanics/virtues.js';
+import { willbenderState } from '#gw2/content/professions/guardian/specializations/willbender/state.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
 function lethalTempoStacks(context: Gw2ModifierContext): number {
   return activeLethalTempo(willbenderState.from(context), context.time);

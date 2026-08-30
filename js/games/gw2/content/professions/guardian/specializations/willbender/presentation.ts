@@ -3,13 +3,13 @@ import {
   guardianSnapshotAt,
   guardianUiSkillIdsByName,
   guardianUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/guardian/core/presentation.js';
 import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { GuardianResolverEvent, GuardianUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/content/professions/guardian/types.js';
 
 function willbenderEventLogRow(
   _context: SchedulerRecord,

@@ -1,8 +1,12 @@
 /**
  * Virtuoso-owned formulas and mechanic classifications.
  */
-import { MESMER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { MesmerPhantasmAttackTiming, MesmerShatter, MesmerTraitDamage } from '../../../types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type {
+  MesmerPhantasmAttackTiming,
+  MesmerShatter,
+  MesmerTraitDamage
+} from '#gw2/content/professions/mesmer/types.js';
 
 export const MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
   Object.freeze({

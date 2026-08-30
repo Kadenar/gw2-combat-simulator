@@ -1,16 +1,16 @@
-import { holosmithState } from '../state.js';
-import { engineerBalanceValue } from '../../../core/profiles.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { HOLOSMITH_HEAT } from './constants.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import { HOLOSMITH_HEAT } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   EngineerConfig,
   EngineerResolverEvent,
   EngineerSchedulerContext,
   EngineerSimulationEvent
-} from '../../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
 export type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
 
@@ -35,6 +35,7 @@ export interface HolosmithEventMetadata {
 export type HolosmithSimulationEvent = EngineerSimulationEvent & HolosmithEventMetadata;
 export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventMetadata;
 
+/** Safely exposes Holosmith metadata fields carried by an otherwise generic event. */
 export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
   return (event && typeof event === 'object' ? event : {}) as HolosmithEventMetadata;
 }
@@ -50,8 +51,7 @@ const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
 
 const PRISMATIC_SINGULARITY_STRIKE_PROFILE = PROFILE.prismaticSingularityHeatTier;
 
-// Captures heat once while a cast is being materialized so delayed packets cannot
-// silently change tier when later heat updates are resolved.
+/** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
 export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
@@ -60,6 +60,7 @@ export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   });
 }
 
+/** Reconstructs a cast-time heat snapshot from event metadata at resolution time. */
 export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSnapshot {
   const metadata = holosmithEventMetadata(event);
   return Object.freeze({
@@ -68,6 +69,7 @@ export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSna
   });
 }
 
+/** Classifies a heat snapshot into base, high, or ECSU-enhanced skill tiers. */
 export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot): HolosmithHeatTier {
   if (snapshot.enhancedCapacitySelected && snapshot.heat > HOLOSMITH_HEAT.enhancedCapacityThreshold) {
     return 'enhanced';
@@ -76,6 +78,7 @@ export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot): HolosmithHea
   return snapshot.heat > HOLOSMITH_HEAT.highThreshold ? 'high' : 'base';
 }
 
+/** Resolves a profile's strike multiplier for a captured heat tier. */
 export function holosmithProfileStrikeFactor(
   context: unknown,
   profileId: SkillId,
@@ -89,6 +92,7 @@ export function holosmithProfileStrikeFactor(
   return tier === 'high' ? engineerBalanceValue(context, profileId, 'highStrikeFactor', 1) : 1;
 }
 
+/** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */
 export function holosmithEventStrikeFactor(context: unknown, event: unknown, fallback = 1): number {
   const metadata = holosmithEventMetadata(event);
   const capturedFactor = Number(metadata.holosmithStrikeFactor);
@@ -98,6 +102,7 @@ export function holosmithEventStrikeFactor(context: unknown, event: unknown, fal
   return holosmithProfileStrikeFactor(context, metadata.holosmithStrikeProfileId, snapshotHolosmithHeat(context));
 }
 
+/** Maps eligible direct strike packets to the balance profile that owns their heat scaling. */
 function strikeProfileForEvent(event: EngineerSimulationEvent): SkillId | undefined {
   const skillId = event.skillId ?? event.sourceId;
   if (String(skillId) === String(ID.PRISMATIC_SINGULARITY)) {
@@ -107,8 +112,7 @@ function strikeProfileForEvent(event: EngineerSimulationEvent): SkillId | undefi
   return HEAT_STRIKE_PROFILES.get(String(skillId));
 }
 
-// Delayed custom effects capture activation heat, while direct strikes carry a
-// profile identity so the resolver can preserve their existing hit-time tier.
+/** Decorates delayed effects with activation heat and direct strikes with their heat-scaling profile. */
 export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
   const holosmithEvent = event as HolosmithSimulationEvent;
   const snapshot = snapshotHolosmithHeat(context);
@@ -117,6 +121,7 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     holosmithEnhancedCapacitySelected: snapshot.enhancedCapacitySelected
   };
 
+  // Fully materialize custom-event tier values that the resolver cannot derive from a generic packet.
   if (event.type === 'engineer.radiant-arc-quickness') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedDuration' : tier === 'high' ? 'highDuration' : 'baseDuration';
@@ -148,6 +153,7 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     return;
   }
 
+  // Direct player strikes defer their factor lookup until modifier resolution.
   if (event.type !== 'damage' || event.actorType !== 'player') return;
   const profileId = strikeProfileForEvent(holosmithEvent);
   if (profileId == null) return;

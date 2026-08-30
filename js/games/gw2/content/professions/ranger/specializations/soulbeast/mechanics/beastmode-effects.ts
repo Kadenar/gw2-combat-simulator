@@ -1,21 +1,21 @@
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { isStandardBoon } from '../../../../../../platform/combat/state/boons.js';
-import type { Gw2TimedBuffApplication } from '../../../../../../platform/combat/state/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { RangerResolverContext, RangerResolverEvent } from '../../../types.js';
-import { rangerPetByName } from '../../../core/state.js';
-import { soulbeastState } from '../state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
+import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import { soulbeastState } from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
 import {
   rangerBalanceProfile,
   rangerBalanceProfileEffect,
   RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
-} from '../../../core/profiles.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { isPlayerStrike } from '../../../core/mechanics/resolution-helpers.js';
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
+import { isPlayerStrike } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 
 function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);

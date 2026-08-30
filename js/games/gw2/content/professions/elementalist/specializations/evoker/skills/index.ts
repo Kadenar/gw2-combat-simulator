@@ -1,7 +1,17 @@
 /** Evoker Elementalist skill mechanics. */
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * Simulator-owned skill definitions merged over the API catalog for Evoker.
+ *
+ * The eight familiar skills form four basic/empowered pairs linked by
+ * `nextChainId` and tagged `elementalistStateMachine: 'evoker-familiar'`, which
+ * is what routes them through the familiar hooks in `mechanics/familiars.ts`;
+ * their gating is charge/empowered state in `mechanics/availability.ts`, not the
+ * `cooldown: 0` declared here. The meditation utilities point at the shared
+ * `elementalist.evoker-meditation` handler so Altruistic Aspect can extend them.
+ */
 export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.IGNITE]: {
     name: 'Ignite',

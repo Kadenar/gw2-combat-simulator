@@ -1,14 +1,14 @@
-import { GEAR_SLOTS } from '../../../../platform/equipment/gear/stats.js';
-import { normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '../../lib/build-codec.js';
-import { RANGER_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
-import { rangerCatalog } from '../catalog.js';
-import { RANGER_PETS } from '../data/ranger-pet-data.js';
-import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
-import { normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from '../core/skills/hammer.js';
-import type { RangerCanonicalBuild } from '../types.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '#gw2/content/professions/lib/build-codec.js';
+import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/content/professions/ranger/app/assumptions.js';
+import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
+import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/content/professions/ranger/data/ids.js';
+import { normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/content/professions/ranger/core/skills/hammer.js';
+import type { RangerCanonicalBuild } from '#gw2/content/professions/ranger/types.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 export const RANGER_BUILD_SCHEMA_VERSION = 4;
 export const RANGER_PROFESSION_ID = 'ranger';

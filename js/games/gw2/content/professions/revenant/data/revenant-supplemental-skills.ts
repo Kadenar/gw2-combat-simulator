@@ -3,7 +3,7 @@
  *
  * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
  */
-import type { Skill } from '../../../../platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 
 const records: readonly Skill[] = [
   {

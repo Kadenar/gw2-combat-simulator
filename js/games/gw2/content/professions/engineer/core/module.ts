@@ -1,29 +1,32 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   onConditionApplied,
   onResolvedCriticalHit,
   onResolvedDamage
-} from '../../../../integrations/patches/authoring/mechanics.js';
-import { createEngineerModuleData } from '../data/catalog.js';
-import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
-import { engineerCoreSkillHandlers } from './skills/handlers.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import { engineerCoreSkillHandlers } from '#gw2/content/professions/engineer/core/skills/execution.js';
 import {
   engineerCoreAttributeRules,
   engineerCoreCastRules,
   engineerCoreSchedulerHooks,
   snapshotEngineerState
-} from './traits/modifiers.js';
-import { engineerCoreResolverEventHandlers, engineerCoreResolverEventReactions } from './mechanics/reactions.js';
+} from '#gw2/content/professions/engineer/core/traits/modifiers.js';
+import {
+  engineerCoreResolverEventHandlers,
+  engineerCoreResolverEventReactions
+} from '#gw2/content/professions/engineer/core/mechanics/reactions.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS,
   ENGINEER_TURRET_ATTACK_SKILLS
-} from './skills/index.js';
-import { createEngineerCoreState } from './state.js';
-import { projectEngineerEndState } from '../state/index.js';
-import { ENGINEER_CORE_BALANCE_PROFILES } from './profiles.js';
-import { bindEngineerCoreUi } from './presentation.js';
-import type { EngineerSchedulerContext } from '../types.js';
+} from '#gw2/content/professions/engineer/core/skills/index.js';
+import { createEngineerCoreState } from '#gw2/content/professions/engineer/core/state.js';
+import { projectEngineerEndState } from '#gw2/content/professions/engineer/state.js';
+import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/content/professions/engineer/core/profiles.js';
+import { bindEngineerCoreUi } from '#gw2/content/professions/engineer/core/presentation.js';
+import type { EngineerSchedulerContext } from '#gw2/content/professions/engineer/types.js';
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',

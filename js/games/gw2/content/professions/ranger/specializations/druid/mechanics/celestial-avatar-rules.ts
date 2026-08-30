@@ -1,23 +1,32 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import type { AvailabilityResult, SimulationEvent } from '../../../../../../platform/engine/types.js';
-import { denySkillCast as deny } from '../../../../lib/availability.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../../platform/combat/query/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../../types.js';
-import { druidState } from '../state.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import type { AvailabilityResult, SimulationEvent } from '#gw2/platform/engine/types.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type {
+  RangerCastContext,
+  RangerPrecastContext,
+  RangerSchedulerContext,
+  RangerSkill
+} from '#gw2/content/professions/ranger/types.js';
+import { druidState } from '#gw2/content/professions/ranger/specializations/druid/state.js';
 import {
   advanceDruidState,
   astralForceReadyAt,
   DRUID_ASTRAL_FORCE_DAMAGE_TASK,
   handleDruidAstralForceDamageTask,
   observeDruidAstralForceEvent
-} from './celestial-avatar.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../../core/profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/druid/profiles.js';
 
 function eclipseEffect(context: RangerCastContext, index: number) {
   return rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.eclipse), 'condition', index);

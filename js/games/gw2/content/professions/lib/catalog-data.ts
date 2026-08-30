@@ -1,4 +1,4 @@
-import type { BalanceProfile, Skill, SkillFragment, SkillId } from '../../../platform/engine/types.js';
+import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 
 export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;

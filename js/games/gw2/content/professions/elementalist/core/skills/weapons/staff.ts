@@ -1,8 +1,15 @@
-/** Staff weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Staff weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers slots 1-5 across all four attunements. Staff is combo-field heavy: several entries
+ * are ground-targeted fields whose damage arrives as `field-tick` packets long after the cast
+ * ends, and some (Geyser, Healing Rain, Magnetic Aura) contribute only a field, aura, or boon
+ * with no damage packets at all. Declarative data merged in by `core/skills/index.ts`.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import { strikeTimeline } from '../../../../../../platform/engine/effects/factories.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Meteor Shower's canonical timeline retains the observed coefficient decay and packet timestamps.
 const METEOR_SHOWER_STRIKE_TICKS = [
@@ -32,6 +39,10 @@ const METEOR_SHOWER_STRIKE_TICKS = [
   { atMs: 10360, coefficient: 0.32 }
 ] as const;
 
+/**
+ * Skill-id keyed fragments the catalog layers over the raw staff skill records so the
+ * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ */
 export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIREBALL]: {
     name: 'Fireball',
@@ -72,6 +83,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Four field-tick packets one second apart inside the 4s fire field, each burning.
   [ID.LAVA_FONT]: {
     name: 'Lava Font',
     type: 'Weapon',
@@ -210,6 +222,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Leaves a burning trail: one strike as the skill starts plus six field-tick packets one
+  // second apart across the 6s fire field.
   [ID.BURNING_RETREAT]: {
     name: 'Burning Retreat',
     type: 'Weapon',
@@ -350,6 +364,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Twenty-four meteors over roughly ten seconds; the shared tick table decays the coefficient
+  // from 1.6 down to a 0.32 floor.
   [ID.METEOR_SHOWER]: {
     name: 'Meteor Shower',
     type: 'Weapon',
@@ -393,6 +409,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Delayed drop: the blast finisher and its five Vulnerability stacks land at 1760ms.
   [ID.ICE_SPIKE]: {
     name: 'Ice Spike',
     type: 'Weapon',
@@ -440,6 +457,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.GEYSER]: {
     name: 'Geyser',
     type: 'Weapon',
@@ -461,6 +479,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     implemented: true,
     effects: []
   },
+  // Ice field for combo purposes; only the initial Chilled application is emitted.
   [ID.FROZEN_GROUNDS]: {
     name: 'Frozen Grounds',
     type: 'Weapon',
@@ -647,6 +666,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Two crowd-control pulses (the field's edges) at 180ms and 680ms, each with its own strike.
   [ID.STATIC_FIELD]: {
     name: 'Static Field',
     type: 'Weapon',
@@ -760,6 +780,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
   [ID.ERUPTION]: {
     name: 'Eruption',
     type: 'Weapon',
@@ -821,6 +842,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
+  // is only available while that aura is active and consumes it for a blast finisher.
   [ID.MAGNETIC_AURA]: {
     name: 'Magnetic Aura',
     type: 'Weapon',
@@ -895,6 +918,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Projectile finisher carrying a 20s Bleeding stack plus a short Immobilize.
   [ID.SHOCK_WAVE]: {
     name: 'Shock Wave',
     type: 'Weapon',

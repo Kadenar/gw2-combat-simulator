@@ -1,20 +1,25 @@
-import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { timedBuffAt } from '../../../../../platform/results/query.js';
-import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode
-} from '../../core/presentation.js';
-import type { Gw2SimulationResult } from '../../../../../platform/simulation/types.js';
+} from '#gw2/content/professions/guardian/core/presentation.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { GuardianResolverEvent, GuardianSkill, GuardianState, GuardianUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  GuardianResolverEvent,
+  GuardianSkill,
+  GuardianState,
+  GuardianUiContext
+} from '#gw2/content/professions/guardian/types.js';
 
 function luminaryEventLogRow(
   _context: SchedulerRecord,

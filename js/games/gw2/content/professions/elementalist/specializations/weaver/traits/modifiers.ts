@@ -1,14 +1,23 @@
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import { readProfessionSpecializationState } from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { elementalistAttunements, elementalistTimedBuffStacks } from '../../../core/traits/modifiers.js';
-import { elementalistBalanceValue } from '../../../core/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import {
+  elementalistAttunements,
+  elementalistTimedBuffStacks
+} from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
+import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
 
+/**
+ * Weaver damage and critical-chance modifiers. Each rule is gated on runtime
+ * evidence rather than the build alone: the timed buffs the dual-attunement
+ * hooks emit (Weave Self fire/air, Elements of Rage) and the Weakness that
+ * Superior Elements applies to the target.
+ */
 export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.weave-self-air',

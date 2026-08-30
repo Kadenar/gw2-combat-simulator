@@ -1,14 +1,14 @@
-import { conduitState } from '../state.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../../state/index.js';
-import { gw2PrimaryWeapon } from '../../../../../../platform/equipment/weapons/loadout.js';
+import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
+} from '#gw2/platform/scheduler/skill-events.js';
 /**
  * Conduit and Legendary Entity runtime mechanics.
  *
@@ -17,23 +17,23 @@ import {
  * state. It also handles delayed affinity-hit tasks and exports the feature's
  * raw skill callbacks for composition by handlers.js.
  */
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../../data/legends.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
-import { revenantConduitFormIsActive } from '../state.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { BalanceProfile, SchedulerRecord, SkillEffect, SkillId } from '../../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
+import { revenantConduitFormIsActive } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
+import type { BalanceProfile, SchedulerRecord, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   ConduitState,
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 // Union type allows the same helper functions to be called from both cast contexts (which have start/effectiveEnd)
 // and raw scheduler contexts (which do not), without requiring separate overloads.

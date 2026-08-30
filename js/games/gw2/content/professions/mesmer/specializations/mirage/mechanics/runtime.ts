@@ -1,18 +1,29 @@
-import { EPSILON } from '../../../../../../../../kernel/core/clock.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { createMirageActionController } from './cloak-and-ambushes.js';
-import { mirageState } from '../state.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import {
+  applyMesmerRuntimeManifest,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { createMirageActionController } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
+import { mirageState } from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
 import {
   MESMER_MIRAGE_AMBUSH_ATTACKS,
   MESMER_MIRAGE_BLIND_SKILLS,
   MESMER_MIRAGE_CONTROL_SKILLS,
   MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS,
   MESMER_MIRAGE_PEITHA_SKILLS
-} from './definitions.js';
-import type { MesmerMirageController, MesmerRuntime, MesmerSchedulerContext, MesmerSkill } from '../../../types.js';
-import { MIRAGE_AMBUSH_PROFILE_IDS, mesmerProfiledAmbush } from '../profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
+import type {
+  MesmerMirageController,
+  MesmerRuntime,
+  MesmerSchedulerContext,
+  MesmerSkill
+} from '#gw2/content/professions/mesmer/types.js';
+import {
+  MIRAGE_AMBUSH_PROFILE_IDS,
+  mesmerProfiledAmbush
+} from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
 
 /** Returns the controller installed only by the Mirage runtime. */
 export function mirageControllerFor(runtime: MesmerRuntime): MesmerMirageController {

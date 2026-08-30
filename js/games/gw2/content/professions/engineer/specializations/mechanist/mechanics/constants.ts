@@ -1,4 +1,4 @@
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 
 // Rounded Quickness animation durations measured from the mech's EVTC
 // activations; command recovery is applied separately before basic attacks resume.

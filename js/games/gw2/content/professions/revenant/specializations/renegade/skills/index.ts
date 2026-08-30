@@ -1,6 +1,6 @@
 /** Renegade skill and proc profiles owned by the Renegade module. */
-import { REVENANT_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { BalanceProfile, Skill, SkillFragment, SkillId } from '../../../../../../platform/engine/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
 
 export const RENEGADE_PROFILE_IDS = Object.freeze({
   spiritBoon: 'revenant.renegade.spirit-boon-renegade',

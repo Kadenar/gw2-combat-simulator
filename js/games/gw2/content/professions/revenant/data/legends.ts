@@ -1,5 +1,5 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from './ids.js';
-import type { SkillId } from '../../../../platform/engine/types.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 
 export const REVENANT_CORE_LEGEND_IDS = Object.freeze([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 

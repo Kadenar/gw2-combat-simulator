@@ -1,4 +1,4 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
@@ -6,9 +6,9 @@ import { professionCoreState } from '../../../../../platform/engine/profession/s
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerNumericResourceState } from '../../state/resources.js';
-import type { SchedulerState } from '../../../../../platform/engine/types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerNumericResourceState } from '#gw2/content/professions/mesmer/state/resources.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddEvent,
@@ -24,7 +24,7 @@ import type {
   MesmerShatterResolver,
   MesmerShatterResolution,
   MesmerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

@@ -1,16 +1,19 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { gw2ResolverBoonDuration } from '../../../../../../platform/resolver/boon-duration.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { isGw2PlayerActorEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { guardianTraitIcon } from '../../../core/traits/index.js';
-import { reactToJusticeHitWithOptions } from '../../../core/mechanics/virtues.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '../../../types.js';
-import { dragonhunterState } from '../state.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
+import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/content/professions/guardian/types.js';
+import { dragonhunterState } from '#gw2/content/professions/guardian/specializations/dragonhunter/state.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 function handleTetherApplied(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   // Falls back to event.at (no tether window) when tetherUntil was not emitted,

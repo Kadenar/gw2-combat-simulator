@@ -1,20 +1,27 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { readProfessionSpecializationState } from '../../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { berserkerState } from '../state.js';
-import type { AvailabilityResult, SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../../types.js';
-import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../../core/profiles.js';
-import { advanceBerserker } from './berserk.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { berserkerState } from '#gw2/content/professions/warrior/specializations/berserker/state.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill
+} from '#gw2/content/professions/warrior/types.js';
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
+} from '#gw2/content/professions/warrior/core/profiles.js';
+import { advanceBerserker } from '#gw2/content/professions/warrior/specializations/berserker/mechanics/berserk.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/berserker/profiles.js';
 import {
   finishBerserkerCast,
   handleKingOfFiresDetonationTask,
   handleKingOfFiresHitTask,
   observeBerserkerEvent
-} from '../traits/index.js';
+} from '#gw2/content/professions/warrior/specializations/berserker/traits/index.js';
 
 export const berserkerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {

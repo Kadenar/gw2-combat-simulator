@@ -1,17 +1,22 @@
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { illusionSource, timedActive } from '../../../core/mechanics/execution.js';
-import { initializeTroubadourRuntime } from './runtime.js';
-import { completeTroubadourPerformance } from './instruments.js';
-import { resolveTroubadourTale } from './tales.js';
-import { troubadourState } from '../state.js';
-import { mesmerBalanceValue } from '../../../core/profiles.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import type { MesmerCastContext, MesmerRechargeContext, MesmerSchedulerContext, MesmerSkill } from '../../../types.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../../platform/combat/query/types.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { illusionSource, timedActive } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
+import { initializeTroubadourRuntime } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
+import { completeTroubadourPerformance } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import { resolveTroubadourTale } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/tales.js';
+import { troubadourState } from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
+import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import type {
+  MesmerCastContext,
+  MesmerRechargeContext,
+  MesmerSchedulerContext,
+  MesmerSkill
+} from '#gw2/content/professions/mesmer/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
 const EPSILON = 0.0001;
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);

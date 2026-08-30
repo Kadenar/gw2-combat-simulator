@@ -1,14 +1,19 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/elementalist/data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2AttributeEffect,
   Gw2BuildAttributeRuleContext,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { ElementalistBuildSpecialization } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { ElementalistBuildSpecialization } from '#gw2/content/professions/elementalist/types.js';
 
+/**
+ * The Elementalist's profession-specific half of attribute calculation: it declares the
+ * trait and signet effects the shared calculator cannot know about, and returns the
+ * finalized attribute set the simulation and the editor's attribute panel both read.
+ */
 // Fold build-time trait, weapon, and selected-skill bonuses into the common
 // attributes while preserving trait-duration and provenance metadata.
 export function applyElementalistBuildAttributeRules(
@@ -24,6 +29,9 @@ export function applyElementalistBuildAttributeRules(
     getActiveTraits
   });
 
+  // Every effect here is declarative: the shared resolver applies flat grants first, then
+  // conversions. `input: 'common'` converts from the pre-effect totals and
+  // `feedsConversions: false` keeps a flat grant out of any conversion's input.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
@@ -103,6 +111,7 @@ export function applyElementalistBuildAttributeRules(
     }
   ];
 
+  // Condition-duration traits are percentage bonuses, tracked apart from the flat effects.
   if (hasTrait('Burning Precision')) {
     traitDurations['Burning Duration'] = 20;
   }

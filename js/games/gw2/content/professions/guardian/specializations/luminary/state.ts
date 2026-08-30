@@ -1,5 +1,5 @@
-import type { GuardianLuminaryState } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
+import type { GuardianLuminaryState } from '#gw2/content/professions/guardian/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
 export function createLuminaryState(): GuardianLuminaryState {
   return {

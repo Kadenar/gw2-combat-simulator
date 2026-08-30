@@ -3,11 +3,11 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { scourgeState } from '../state.js';
-import { snapshotNecromancerState } from '../../../state/index.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { scourgeState } from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Scourge sand shade handlers.
  *
@@ -18,13 +18,19 @@ import { professionCoreState } from '../../../../../../platform/engine/professio
  * non-Manifest casts pay the shade's life-force cost. Exports
  * `necromancerShadeSkillHandlers`.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { normalizedNecromancerLifeForceCost, syncNecromancerResources } from '../../../core/state.js';
-import { removeNecromancerSelfCondition } from '../../../core/mechanics/conditions.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { NecromancerCastContext, NecromancerSkill } from '../../../types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import {
+  normalizedNecromancerLifeForceCost,
+  syncNecromancerResources
+} from '#gw2/content/professions/necromancer/core/state.js';
+import { removeNecromancerSelfCondition } from '#gw2/content/professions/necromancer/core/mechanics/conditions.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { NecromancerCastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
 
 // Default `at` is effectiveEnd because barrier traits fire on cast completion; callers that
 // need a different timing (e.g. Sandstorm pulse) pass their own timestamp explicitly
@@ -52,11 +58,13 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
   }
 }
 
+// Append Scourge's barrier-triggered trait boons after the shared barrier effects resolve.
 function barrier(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   applyBarrierTraits(context, skill);
   return true;
 }
 
+// Resolve shared shade costs and packets before dispatching the selected F-skill's distinct payload.
 function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const state = scourgeState.from(context);
   const at = context.effectiveEnd;
@@ -229,6 +237,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   return true;
 }
 
+/** Exposes shade and barrier casts through the shared skill-handler contract. */
 export const necromancerShadeSkillHandlers = Object.freeze({
   'necromancer.shade': shade,
   'necromancer.barrier': barrier

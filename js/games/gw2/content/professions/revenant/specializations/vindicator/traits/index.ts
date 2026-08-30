@@ -1,8 +1,8 @@
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { vindicatorState } from '../state.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { RevenantPrecastContext, RevenantRechargeContext } from '../../../types.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { vindicatorState } from '#gw2/content/professions/revenant/specializations/vindicator/state.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
+import type { RevenantPrecastContext, RevenantRechargeContext } from '#gw2/content/professions/revenant/types.js';
 
 export function modifyVindicatorCastDuration(context: RevenantPrecastContext, duration: number): number {
   // Dodge is not a normal skill cast; override whatever the catalog says with the fixed animation duration.

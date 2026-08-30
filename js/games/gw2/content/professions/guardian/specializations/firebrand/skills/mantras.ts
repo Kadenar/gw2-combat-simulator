@@ -1,15 +1,15 @@
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { CAST_READY, denyCast, retryCast } from '../../../../../../platform/engine/skills/availability.js';
-import { selectedSkillNameSet } from '../../../../../../platform/builds/selected-skills.js';
-import { GUARDIAN_SKILL_IDS as ID } from '../../../data/ids.js';
-import { firebrandState } from '../state.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/content/professions/guardian/data/ids.js';
+import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,
   GuardianSchedulerContext,
   GuardianSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 interface MantraDefinition {
   readonly rootId: number;

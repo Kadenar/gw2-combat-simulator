@@ -1,12 +1,12 @@
-import type { SchedulerRecord, SimulationEvent, Skill } from '../../../../../../platform/engine/types.js';
+import type { SchedulerRecord, SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   dragonSlashCoefficient,
   projectDragonCharges,
   type DragonFlowRateSegment
-} from './dragon-trigger.js';
-import { ENTER_DRAGON_TRIGGER_REASON } from './gunsaber-and-trigger-rules.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
 
 function eventRotationIndex(event: SimulationEvent): number | null {
   const rotationIndex = Number(event.rotationIndex);

@@ -1,15 +1,15 @@
-import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerMechanicSkillBarGroups,
   mesmerResourceViews
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/mesmer/core/presentation.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { MesmerResolverEvent, MesmerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/content/professions/mesmer/types.js';
 
 interface TroubadourUiState {
   readonly activeInstruments?: readonly {

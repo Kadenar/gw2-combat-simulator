@@ -2,9 +2,9 @@
  * Raw Troubadour skill mechanics. Generated once from the characterized
  * pre-migration table; this file is now the runtime source owner.
  */
-import { MESMER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { Skill, SkillFragment, SkillId } from '../../../../../../platform/engine/types.js';
-import type { MesmerSkill } from '../../../types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/types.js';
+import type { MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
 
 // Tales share one lifecycle trigger; their specialization resolver owns each Tale's distinct outcome.
 const TROUBADOUR_TALE_TRIGGERS = Object.freeze([

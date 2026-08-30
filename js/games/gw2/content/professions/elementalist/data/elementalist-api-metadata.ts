@@ -2,11 +2,8 @@
 // Snapshot: 2026-08-12. Run npm run update:elementalist-data to refresh.
 // Simulator mechanics are maintained under elementalist/mechanics/.
 
-import type {
-  Gw2ApiSpecialization,
-  Gw2ApiTrait
-} from '../../../../integrations/patches/authoring/api-metadata-types.js';
-import type { ElementalistSkill } from '../types.js';
+import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/integrations/patches/authoring/api-metadata-types.js';
+import type { ElementalistSkill } from '#gw2/content/professions/elementalist/types.js';
 
 export type ElementalistApiTrait = Gw2ApiTrait;
 export type ElementalistApiSpecialization = Gw2ApiSpecialization;

@@ -1,23 +1,27 @@
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { targetConditionCount } from '../../../../../../platform/combat/query/runtime-query.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { CAST_READY } from '../../../../../../platform/engine/skills/availability.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   cloneNecromancerAttributes,
   necromancerEventSkill,
   necromancerRuntimeSpecializationState,
   necromancerTargetControlled
-} from '../../../core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord, SkillId } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { necromancerBalanceProfile } from '../../../core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import type { NecromancerPrecastContext, NecromancerSkill } from '../../../types.js';
-import { ritualistState } from '../state.js';
+} from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
+import type { AvailabilityResult, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import { necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
+import type { NecromancerPrecastContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
+import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
 
-export { ritualistSchedulerHooks } from './spirits.js';
+/** Re-exports Ritualist's spirit lifecycle and autonomous-attack scheduler hooks. */
+export { ritualistSchedulerHooks } from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 
 const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
   [ID.INNERVATE_ANGUISH, 'anguish'],
@@ -25,6 +29,7 @@ const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
   [ID.INNERVATE_PRESERVATION, 'preservation']
 ]);
 
+// Gate each Innervate command on the lifetime of its corresponding spirit.
 function ritualistAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
@@ -41,6 +46,7 @@ function ritualistAvailability(
   };
 }
 
+// Apply Ritualist's build-time concentration bonus without double-counting pre-applied static rules.
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {

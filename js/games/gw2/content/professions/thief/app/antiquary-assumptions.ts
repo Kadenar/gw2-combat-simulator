@@ -1,4 +1,4 @@
-import { createProfessionAssumptionControls } from '../../../../app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
 
 export const THIEF_ANTIQUARY_SELECTION_CONTROLS = Object.freeze([
   {

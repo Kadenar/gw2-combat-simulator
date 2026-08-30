@@ -1,25 +1,25 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
+import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
 import {
-  isGw2PlayerActorEvent,
-  isGw2PlayerModifierOwnedEvent
-} from '../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../data/ids.js';
-import { emitGuardianEvent } from './event-handlers.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE, guardianBalanceProfile } from '../profiles.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
+  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  guardianBalanceProfile
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSkill,
   GuardianVirtue
-} from '../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 interface JusticeHitDependencies {
   readonly hitContext?: object;

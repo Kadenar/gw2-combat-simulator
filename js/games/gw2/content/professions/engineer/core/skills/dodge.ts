@@ -1,14 +1,17 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotEngineerState } from '../../state/index.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { spendEndurance } from '../../../../../platform/combat/resources/endurance.js';
-import { isEngineerToolbeltSkill } from '../traits/index.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from '../profiles.js';
-import type { EngineerCastContext, EngineerSkill } from '../../types.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { isEngineerToolbeltSkill } from '#gw2/content/professions/engineer/core/traits/index.js';
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceValue
+} from '#gw2/content/professions/engineer/core/profiles.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
-// a skill lives in exactly one of the two maps (ammo OR cooldowns, never both); scan both to catch all
+/** Reduces recharge for every active cooldown or ammo skill accepted by the predicate. */
 function reduceMatchingCooldowns(
   context: EngineerCastContext,
   predicate: (skill: EngineerSkill) => boolean,
@@ -27,6 +30,7 @@ function reduceMatchingCooldowns(
   return reducedBy;
 }
 
+/** Spends dodge endurance, applies dodge-triggered traits, and publishes the resulting Engineer state. */
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.start;
@@ -43,6 +47,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     skillName: skill.name
   });
 
+  // Power Wrench rewards the dodge by advancing active elite-skill recharge.
   if (hasTrait(context.config, TRAIT.POWER_WRENCH)) {
     const reducedBy = reduceMatchingCooldowns(
       context,
@@ -66,6 +71,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     }
   }
 
+  // Adrenal Implant independently advances every active toolbelt recharge.
   if (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
     const reducedBy = reduceMatchingCooldowns(context, isEngineerToolbeltSkill, 1, at);
     if (reducedBy > 0) {

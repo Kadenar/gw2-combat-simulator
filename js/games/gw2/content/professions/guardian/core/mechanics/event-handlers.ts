@@ -1,5 +1,9 @@
-import type { DamageEvent, SimulationEventInput, Skill } from '../../../../../platform/engine/types.js';
-import type { GuardianEventContext, GuardianEventExtra, GuardianStrikeFields } from '../../types.js';
+import type { DamageEvent, SimulationEventInput, Skill } from '#gw2/platform/engine/types.js';
+import type {
+  GuardianEventContext,
+  GuardianEventExtra,
+  GuardianStrikeFields
+} from '#gw2/content/professions/guardian/types.js';
 
 export function emitGuardianEvent(
   context: GuardianEventContext,

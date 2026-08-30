@@ -1,5 +1,5 @@
-import { reactToJusticeHitWithOptions } from './virtues.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '../../types.js';
+import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/content/professions/guardian/types.js';
 
 interface JusticeHitDependencies {
   readonly hitContext?: object;

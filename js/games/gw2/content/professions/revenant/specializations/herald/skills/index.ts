@@ -1,8 +1,8 @@
 /**
  * Herald skill mechanics owned by the Herald Revenant module.
  */
-import { REVENANT_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { BalanceProfile, SkillFragment } from '../../../../../../platform/engine/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { BalanceProfile, SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const HERALD_SPIRIT_BOON_PROFILE_ID = 'revenant.spirit-boon.dragon';
 export const HERALD_ELEVATED_COMPASSION_PROFILE_ID = 'revenant.elevated-compassion';

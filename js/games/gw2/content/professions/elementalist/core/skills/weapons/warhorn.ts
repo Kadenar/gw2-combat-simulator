@@ -1,8 +1,15 @@
-/** Warhorn weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Warhorn weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers the off-hand slot 4 and 5 skills across all four attunements. Most entries are
+ * long-lived pulsing effects, so their strike and condition packets are authored as shared
+ * offset tables and land well after the cast ends. Declarative data merged into the Core
+ * skill catalog by `core/skills/index.ts`.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import { conditionTimeline, strikeTimeline } from '../../../../../../platform/engine/effects/factories.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
 const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
@@ -30,10 +37,17 @@ const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
   [{ atMs: 4800, coefficient: 0.05 }]
 ] as const;
 
+// Wildfire pulses once per second across its fire field; strikes and Burning share these offsets.
 const WILDFIRE_TICK_OFFSETS_MS = [1560, 2560, 3560, 4560, 5560, 6560, 7560] as const;
 
+// Dust Storm pulses eight times on roughly one-second intervals; strike, Bleeding, and blind
+// applications all reuse these offsets.
 const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640] as const;
 
+/**
+ * Skill-id keyed fragments the catalog layers over the raw warhorn skill records so the
+ * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ */
 export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEAT_SYNC]: {
     name: 'Heat Sync',
@@ -69,6 +83,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Lays an 8s fire field and burns through seven field-tick packets, all after the cast ends.
   [ID.WILDFIRE]: {
     name: 'Wildfire',
     type: 'Weapon',
@@ -159,6 +174,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.WATER_GLOBE]: {
     name: 'Water Globe',
     type: 'Weapon',
@@ -236,6 +252,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Travelling orb whose damage decays over nineteen hits down to a 0.05 floor; each hit also
+  // applies one Vulnerability stack, and the second layer adds the extra simultaneous 4800ms hit.
   [ID.LIGHTNING_ORB]: {
     name: 'Lightning Orb',
     type: 'Weapon',
@@ -260,6 +278,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       )
     ])
   },
+  // Grants Magnetic Aura for 4s alongside Protection; the aura is what other skills transmute.
   [ID.SAND_SQUALL]: {
     name: 'Sand Squall',
     type: 'Weapon',
@@ -285,6 +304,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Eight pulses that each strike, bleed, and blind, with Resistance granted on the first pulse.
   [ID.DUST_STORM]: {
     name: 'Dust Storm',
     type: 'Weapon',

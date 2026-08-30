@@ -1,17 +1,17 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createWarriorModuleData } from '../../data/catalog.js';
-import { BLADESWORN_SKILL_MECHANICS } from './skills/index.js';
-import { bladeswornSkillHandlers } from './skills/handlers.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createWarriorModuleData } from '#gw2/content/professions/warrior/catalog/module-data.js';
+import { BLADESWORN_SKILL_MECHANICS } from '#gw2/content/professions/warrior/specializations/bladesworn/skills/index.js';
+import { bladeswornSkillHandlers } from '#gw2/content/professions/warrior/specializations/bladesworn/skills/execution.js';
 import {
   bladeswornAttributeRules,
   bladeswornCastRules,
   bladeswornSchedulerHooks,
   bladeswornSkillMechanicHandlers
-} from './mechanics/gunsaber-and-trigger-rules.js';
-import { bladeswornState } from './state.js';
-import { bladeswornUi } from './presentation.js';
-import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
-import { BLADESWORN_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornState } from '#gw2/content/professions/warrior/specializations/bladesworn/state.js';
+import { bladeswornUi } from '#gw2/content/professions/warrior/specializations/bladesworn/presentation.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/content/professions/warrior/data/ids.js';
+import { BLADESWORN_BALANCE_PROFILES } from '#gw2/content/professions/warrior/specializations/bladesworn/profiles.js';
 
 export const bladeswornModule = defineNativeModule({
   id: 'Bladesworn',

@@ -1,7 +1,14 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 
+/**
+ * Stable profile ids for every patchable Tempest value; trait entries reuse the shared trait ids so
+ * balance patches address them by the same key the trait catalog uses.
+ */
 export const TEMPEST_BALANCE_PROFILE_IDS = Object.freeze({
   overloads: 'elementalist.tempest.overloads',
   lightningJolt: 'elementalist.tempest.lightning-jolt',
@@ -18,6 +25,7 @@ export const TEMPEST_BALANCE_PROFILE_IDS = Object.freeze({
   elementalBastion: TRAIT.ELEMENTAL_BASTION
 });
 
+// Shorthand for the boon effect shape repeated across the trait profiles below.
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -26,11 +34,19 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
   duration
 });
 
+/**
+ * Balance-authorable Tempest data: the overload singularity dwell timings, the Overload Air
+ * follow-up strike, and the boon/attribute payloads each Tempest trait hands to its runtime hook.
+ * Field names follow the generic profile schema, so several traits reuse `durationMultiplier` and
+ * `maximumStacks` for values that are simply durations or caps in seconds.
+ */
 export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: TEMPEST_BALANCE_PROFILE_IDS.overloads,
     name: 'Tempest Overload Singularity',
     profileKind: 'mechanic',
+    // Seconds an attunement must be held before its overload unlocks: `initialDelay` normally,
+    // `durationMultiplier` once Transcendent Tempest shortens the wait.
     initialDelay: 6,
     durationMultiplier: 4,
     effects: []
@@ -51,6 +67,8 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [boon('Vigor', 'vigor', 1, 3)]
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.unstableConduit, 'Unstable Conduit', {
+    // One entry per attunement: the completing overload looks its aura duration up by
+    // attunement name, so the effect `name` is the lookup key rather than the aura's name.
     effects: [
       {
         type: 'buff',
@@ -89,6 +107,8 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [boon('Protection', 'protection', 1, 3)]
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.tempestuousAria, 'Tempestuous Aria', {
+    // Each aura extends the damage buff by `durationMultiplier` seconds, capped `maximumStacks`
+    // seconds past the triggering aura; `Shout Might` is the separate shout-completion payload.
     maximumStacks: 10,
     durationMultiplier: 5,
     effects: [boon('Shout Might', 'might', 2, 10)]
@@ -100,9 +120,11 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [boon('Vigor', 'vigor', 1, 5), boon('Regeneration', 'regeneration', 1, 5)]
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.transcendentTempest, 'Transcendent Tempest', {
+    // Seconds the post-overload damage buff lasts.
     durationMultiplier: 7
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.lucidSingularity, 'Lucid Singularity', {
+    // At most `maximumStacks` overload hits pulse alacrity; the last of them uses `Final Alacrity`.
     maximumStacks: 5,
     effects: [boon('Pulse Alacrity', 'alacrity', 1, 1), boon('Final Alacrity', 'alacrity', 1, 4.5)]
   }),

@@ -1,4 +1,11 @@
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
+/**
+ * Log-derived damage and timing constants for the Glyph of Elementals summons.
+ *
+ * Pure data: the elemental subsystem in `elementals.ts` reads lifetimes, packet
+ * timings, and post-expiry recharge from these profiles, so every field here
+ * directly shapes simulated elemental output.
+ */
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
 /** Ally-triggered Lightning Jolt uses unequipped weapon strength against the elemental's fixed damage scale. */
 export const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({

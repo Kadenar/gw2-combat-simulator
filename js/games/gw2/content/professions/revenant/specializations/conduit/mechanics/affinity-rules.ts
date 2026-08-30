@@ -1,22 +1,25 @@
-import { conduitState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { vulnerabilityStacks } from '../../../../../../platform/combat/query/runtime-query.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { isDamagingCondition } from '../../../../../../platform/combat/state/targets.js';
+import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '../../../data/legends.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../../data/legends.js';
-import { bolsteredBondsBonuses } from '../traits/bolstered-bonds.js';
-import { revenantRuntimeCoreState, revenantRuntimeSpecializationState } from '../../../core/traits/modifiers.js';
-import { denySkillCast as denyRevenantSkill } from '../../../../lib/availability.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '../skills/index.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
+import { bolsteredBondsBonuses } from '#gw2/content/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/content/professions/lib/availability.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 import {
   completeBeguilingHaze,
   emitNuminousGift,
@@ -24,26 +27,26 @@ import {
   gainConduitAffinity,
   handleConduitAffinityHit,
   syncConduitEnergyCostOverrides
-} from './affinity-and-forms.js';
-import { effectiveRevenantEnergyCost } from '../../../energy.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile } from '../../../core/traits/legend-invocation.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../../../core/skills/index.js';
+} from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
+import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import { emitLegendInvocationProfile } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import {
   afterConduitTraitCast,
   modifyConduitCastDuration,
   modifyConduitRechargeDuration,
   observeConduitTraits
-} from '../traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2Stats } from '../../../../../../platform/equipment/types.js';
+} from '#gw2/content/professions/revenant/specializations/conduit/traits/index.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 function affinity(context: Gw2ModifierContext): number {
   // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.

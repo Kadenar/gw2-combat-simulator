@@ -1,6 +1,6 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -11,9 +11,9 @@ import { hasTrait } from '../../../../../platform/combat/state/traits.js';
  *
  * Handlers depend on this module; it must not depend on them.
  */
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotNecromancerState } from '../../state/index.js';
-import { syncNecromancerResources } from '../state.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
 import type {
   NecromancerCastContext,
   NecromancerCoreState,
@@ -21,7 +21,7 @@ import type {
   NecromancerResolverContext,
   NecromancerSchedulerContext,
   NecromancerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 
@@ -57,12 +57,14 @@ export function necromancerActiveBoonCompanionIds(
   return Object.freeze([...necromancerActiveMinionCompanionIds(context), ...spiritIds]);
 }
 
+/** Expires timed carapace and Soul Shard stacks, then synchronizes their public resource values. */
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   state.carapaceExpiries = state.carapaceExpiries.filter((expiresAt: number) => expiresAt > at);
   state.soulShardExpiries = state.soulShardExpiries.filter((expiresAt: number) => expiresAt > at);
   syncNecromancerResources(state);
 }
 
+/** Adds as many timed carapace stacks as the 30-stack cap permits and returns the amount added. */
 export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
   purgeTimedState(state, at);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 30 - state.carapaceExpiries.length);
@@ -70,6 +72,7 @@ export function addCarapace(state: NecromancerCoreState, stacks: number, at: num
   return count;
 }
 
+/** Refreshes existing Soul Shards, adds stacks up to six, and returns the amount added. */
 export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
   // Every shard shares the newest application's ten-second window so gaining a shard refreshes the stack.
@@ -81,6 +84,7 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
   return count;
 }
 
+/** Removes active Soul Shards up to the requested amount and returns the amount consumed. */
 export function consumeSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
   const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.soulShardExpiries.length);
@@ -89,6 +93,7 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   return count;
 }
 
+/** Applies percentage-based life-force gain, including Gluttony and the pool cap, and returns the actual gain. */
 export function gainNecromancerLifeForce(
   context: NecromancerSchedulerContext,
   amount: number,
@@ -140,6 +145,7 @@ export function registerCreatureSummonReaction(
   reactions.set(id, reaction);
 }
 
+/** Dispatches a creature summon to every reaction registered for this simulation state. */
 export function runCreatureSummonReactions(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -170,6 +176,7 @@ export function registerNecromancerCreatureStrikeMultiplier(
   multipliers.set(id, multiplier);
 }
 
+/** Multiplies all registered Core and specialization contributions for a creature strike. */
 export function necromancerCreatureStrikeMultiplier(context: NecromancerCastContext): number {
   let multiplier = 1;
   for (const contribution of creatureStrikeMultipliers.get(context.state)?.values() || []) {

@@ -4,8 +4,8 @@
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
     implemented: true,

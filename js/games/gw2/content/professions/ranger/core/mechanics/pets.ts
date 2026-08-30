@@ -1,13 +1,13 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { materializeSkillEffectApplications } from '../../../../../platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
-} from '../../../../../platform/scheduler/policy.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/platform/scheduler/policy.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import type {
   ScheduledTask,
   SchedulerRecord,
@@ -15,9 +15,17 @@ import type {
   SimulationEventInput,
   SkillEffect,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { RangerCastContext, RangerResolverContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
-import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  RangerCastContext,
+  RangerResolverContext,
+  RangerSchedulerContext,
+  RangerSkill
+} from '#gw2/content/professions/ranger/types.js';
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/ranger/core/profiles.js';
 
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';

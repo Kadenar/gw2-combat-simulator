@@ -1,17 +1,17 @@
-import { conduitState } from '../state.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
+import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
-} from '../../../data/ids.js';
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { revenantCombatActive } from '../../../core/mechanics/legend-swap.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { revenantConduitFormIsActive } from '../state.js';
-import { applyCosmicWisdomAfterCast } from '../mechanics/affinity-and-forms.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/revenant/data/ids.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { revenantConduitFormIsActive } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { applyCosmicWisdomAfterCast } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-and-forms.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
@@ -19,7 +19,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 // Twin Moon Sweep exists under two different skill IDs in the catalog; both must be excluded from Mistfire.
 const TWIN_MOON_SKILL_IDS = new Set<SkillId>([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001]);

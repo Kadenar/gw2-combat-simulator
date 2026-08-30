@@ -1,8 +1,8 @@
 /** Core Engineer Bomb Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
-// Owns the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit.
+/** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit. */
 export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.BOMB_KIT]: {
     implemented: true,

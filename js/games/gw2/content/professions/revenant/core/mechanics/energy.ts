@@ -1,7 +1,7 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState, readProfessionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state/index.js';
-import { advanceEndurance, enduranceReadyAt } from '../../../../../platform/combat/resources/endurance.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -9,14 +9,14 @@ import { advanceEndurance, enduranceReadyAt } from '../../../../../platform/comb
  * module applies passive regeneration, aggregate upkeep drain, exact starvation
  * timing, out-of-combat Energy capping and endurance regeneration.
  */
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../skills/index.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import type {
   RevenantCoreState,
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 const REVENANT_ENERGY_TICK_INTERVAL = 0.1;
 

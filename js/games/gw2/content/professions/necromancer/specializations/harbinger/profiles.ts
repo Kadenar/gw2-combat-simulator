@@ -1,10 +1,10 @@
-import type { BalanceProfile } from '../../../../../platform/engine/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { GW2_DAMAGING_CONDITIONS } from '../../../../../platform/combat/state/targets.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/necromancer/data/ids.js';
 
 export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'necromancer.harbinger.resources',

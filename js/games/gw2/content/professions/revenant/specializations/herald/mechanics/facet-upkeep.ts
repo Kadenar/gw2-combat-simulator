@@ -1,20 +1,20 @@
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import type { SchedulerRecord, SkillId } from '../../../../../../platform/engine/types.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { snapshotRevenantState } from '../../../state/index.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
 import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill
-} from '../../../types.js';
-import { HERALD_MECHANICS as MECHANICS } from './facets.js';
-import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '../skills/index.js';
-import { heraldState } from '../state.js';
+} from '#gw2/content/professions/revenant/types.js';
+import { HERALD_MECHANICS as MECHANICS } from '#gw2/content/professions/revenant/specializations/herald/mechanics/facets.js';
+import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
+import { heraldState } from '#gw2/content/professions/revenant/specializations/herald/state.js';
 
 interface HeraldFacetPulsePayload extends SchedulerRecord {
   readonly skillId: SkillId;

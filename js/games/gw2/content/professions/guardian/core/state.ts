@@ -1,4 +1,4 @@
-import type { GuardianCoreState, GuardianConfig } from '../types.js';
+import type { GuardianCoreState, GuardianConfig } from '#gw2/content/professions/guardian/types.js';
 
 // Create a complete Guardian core state with bounded resources and initialized
 // virtue, trait, symbol, and flip bookkeeping.

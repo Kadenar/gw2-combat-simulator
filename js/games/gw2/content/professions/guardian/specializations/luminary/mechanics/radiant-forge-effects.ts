@@ -1,10 +1,10 @@
-import { guardianRadiantForgeEventHandlers } from './radiant-forge.js';
+import { guardianRadiantForgeEventHandlers } from '#gw2/content/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import {
   handleEffulgentActivated,
   handleEffulgentDetonate,
   reactToEffulgentStrike,
   reactToLuminaryJusticeHit
-} from '../traits/index.js';
+} from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
 
 export const luminaryEventHandlers = Object.freeze({
   ...guardianRadiantForgeEventHandlers,

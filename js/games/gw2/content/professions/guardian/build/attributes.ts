@@ -1,13 +1,13 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/guardian/data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2CommonAttributeResult,
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { GuardianBuild } from '../types.js';
+} from '#gw2/platform/builds/types.js';
+import type { GuardianBuild } from '#gw2/content/professions/guardian/types.js';
 
 // Apply Guardian trait, weapon, and selected-skill bonuses at build time while
 // retaining provenance needed to avoid reapplying panel-visible modifiers.

@@ -1,4 +1,4 @@
-import type { NecromancerSchedulerContext, NecromancerSkill } from '../../types.js';
+import type { NecromancerSchedulerContext, NecromancerSkill } from '#gw2/content/professions/necromancer/types.js';
 
 interface NecromancerShroudLifecycle {
   readonly onEnter?: (context: NecromancerSchedulerContext, skill: NecromancerSkill, at: number) => void;
@@ -25,6 +25,7 @@ export function registerNecromancerShroudLifecycle(
   registrations.set(id, lifecycle);
 }
 
+/** Notifies every registered module after Core has established the entered shroud state. */
 export function runNecromancerShroudEnter(
   context: NecromancerSchedulerContext,
   skill: NecromancerSkill,
@@ -35,6 +36,7 @@ export function runNecromancerShroudEnter(
   }
 }
 
+/** Notifies every registered module when Core leaves shroud for the supplied reason. */
 export function runNecromancerShroudExit(context: NecromancerSchedulerContext, at: number, reason: string): void {
   for (const lifecycle of shroudLifecycles.get(context.state)?.values() || []) {
     lifecycle.onExit?.(context, at, reason);
@@ -56,6 +58,7 @@ export function registerNecromancerResourceAdvance(
   handlers.set(id, handler);
 }
 
+/** Advances each registered specialization resource clock across the authoritative Core interval. */
 export function runNecromancerResourceAdvance(context: NecromancerSchedulerContext, start: number, end: number): void {
   for (const handler of resourceAdvanceHandlers.get(context.state)?.values() || []) {
     handler(context, start, end);

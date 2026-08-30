@@ -1,0 +1,211 @@
+/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+
+export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [ID.DUSK_STRIKE]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.2,
+        hits: 1
+      }
+    ],
+    lifeForceGain: 2
+  },
+  [ID.GRASPING_DARKNESS]: {
+    interruptCommitMs: 0,
+    commitAtMs: 180,
+    implemented: true,
+    quicknessCastTimeMs: 520,
+    lifeForceOnHit: 10,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.3,
+        hits: 1,
+        atMs: 1440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'custom',
+        eventType: 'necromancer.chill',
+        event: {
+          duration: 4
+        },
+        atMs: 1440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'control',
+        atMs: 1440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        metadata: {
+          controlKind: 'pull'
+        }
+      }
+    ],
+    handlerId: 'necromancer.grasping-darkness'
+  },
+  [ID.NIGHTFALL]: {
+    interruptCommitMs: 0,
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    lifeForcePerPulse: 7,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 4.6,
+        hits: 4,
+        comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
+        atMs: 400,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'blind',
+        applications: 4,
+        atMs: 400,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        applications: 4,
+        atMs: 400,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
+    ],
+    handlerId: 'necromancer.nightfall'
+  },
+  [ID.CHILLING_SCYTHE]: {
+    implemented: true,
+    quicknessCastTimeMs: 920,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1,
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'custom',
+        eventType: 'necromancer.chill',
+        event: {
+          duration: 2
+        },
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ],
+    lifeForceGain: 5,
+    handlerId: 'necromancer.chilling-scythe'
+  },
+  [ID.GRAVEDIGGER]: {
+    implemented: true,
+    quicknessCastTimeMs: 1080,
+    // Completing Gravedigger resets its recharge once the target is below half health.
+    mechanicTriggers: [
+      {
+        type: 'necromancer.core.reset-gravedigger-below-half',
+        timingAnchor: 'castEnd'
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 3.6,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'necromancer',
+            finisherType: 'Whirl',
+            applications: 3,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        atMs: 840,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
+  },
+  [ID.FADING_TWILIGHT]: {
+    implemented: true,
+    quicknessCastTimeMs: 640,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ],
+    lifeForceGain: 2
+  },
+  [ID.DEATH_SPIRAL]: {
+    implemented: true,
+    quicknessCastTimeMs: 720,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 3,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'necromancer',
+            finisherType: 'Whirl',
+            applications: 2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      },
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        name: 'Death Spiral — Life Siphon',
+        metadata: {
+          skillName: 'Death Spiral — Life Siphon',
+          parentSkillName: 'Death Spiral',
+          flatStrikeBase: 3517,
+          flatStrikePowerCoeff: 0.01,
+          noCrit: true,
+          damageKind: 'life-steal'
+        }
+      },
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        duration: 10,
+        stacks: 12
+      }
+    ]
+  }
+});

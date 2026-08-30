@@ -1,8 +1,8 @@
-import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { selectedThiefTraits } from '../../core/state.js';
-import type { DeadeyeState, ThiefConfig } from '../../types.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { selectedThiefTraits } from '#gw2/content/professions/thief/core/state.js';
+import type { DeadeyeState, ThiefConfig } from '#gw2/content/professions/thief/types.js';
 
 export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   const traits = selectedThiefTraits(config);

@@ -1,7 +1,7 @@
-import { defaultWeaponSkillMatchesSet } from '../../../platform/equipment/weapons/skill-matcher.js';
-import { ENGINEER_SKILL_IDS as ID } from './data/ids.js';
-import type { ProfessionUiContract, SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { EngineerSkill, EngineerUiContext } from './types.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { ProfessionUiContract, SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { EngineerSkill, EngineerUiContext } from '#gw2/content/professions/engineer/types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.RADIANT_ARC_ID_69565,

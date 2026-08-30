@@ -1,7 +1,7 @@
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { remainingTargetHealthFraction } from '../../../../../platform/combat/state/target-health.js';
-import { rangerPetCompanionId } from './pets.js';
-import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '../../types.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '#gw2/content/professions/ranger/types.js';
 
 export function eventSkill(context: RangerResolverContext, event: RangerResolverEvent): RangerSkill | undefined {
   return event.skillId == null

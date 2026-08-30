@@ -1,18 +1,18 @@
-import { handleThiefState } from '../../state/index.js';
+import { handleThiefState } from '#gw2/content/professions/thief/state.js';
 import {
   reactToThiefCoreBuff,
   reactToThiefCoreCondition,
   reactToThiefCoreDamage,
   thiefCoreCriticalReactions
-} from '../traits/index.js';
+} from '#gw2/content/professions/thief/core/traits/index.js';
 
-export { handleThiefState } from '../../state/index.js';
+export { handleThiefState } from '#gw2/content/professions/thief/state.js';
 export {
   reactToThiefCoreBuff,
   reactToThiefCoreCondition,
   reactToThiefCoreDamage,
   thiefCoreCriticalReactions
-} from '../traits/index.js';
+} from '#gw2/content/professions/thief/core/traits/index.js';
 
 export const thiefCoreEventHandlers = Object.freeze({
   'thief.state': handleThiefState

@@ -1,6 +1,14 @@
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillEffect } from '../../../../../../platform/engine/types.js';
+/**
+ * Tick tables for the channeled overloads.
+ *
+ * Each overload is expanded into per-pulse strike/condition/boon packets anchored to cast start and
+ * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
+ */
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillEffect } from '#gw2/platform/engine/types.js';
 
+// Packet builders: one pulse each, anchored to cast start and scaled with the channel's duration.
+// `tick` carries per-pulse extras such as combo finishers.
 function strike(atMs: number, coefficient: number, tick: Readonly<Record<string, unknown>> = {}): SkillEffect {
   return {
     type: 'strike',
@@ -44,6 +52,8 @@ const OVERLOAD_AIR_TICKS = Object.freeze([
 
 const OVERLOAD_EARTH_TICKS = Object.freeze([80, 800, 1520, 2240, 2760, 3760, 4760, 5760, 6760]);
 
+// Overload Fire: every pulse strikes, burns, and grants party might; the first four pulses are
+// whirl finishers (the first three double-applying) inside its own fire field.
 function overloadFireEffects(): readonly SkillEffect[] {
   return OVERLOAD_FIRE_TICKS.flatMap((atMs, index) => {
     const whirl =
@@ -64,6 +74,7 @@ function overloadFireEffects(): readonly SkillEffect[] {
   });
 }
 
+// Overload Air: a uniform pulse train of strike, vulnerability, and party fury.
 function overloadAirEffects(): readonly SkillEffect[] {
   return OVERLOAD_AIR_TICKS.flatMap((atMs) => [
     strike(atMs, 0.85),
@@ -72,6 +83,8 @@ function overloadAirEffects(): readonly SkillEffect[] {
   ]);
 }
 
+// Overload Earth: bleed/cripple pulses with party protection; the opening pulse grants stability
+// and the fifth is the blast finisher that also immobilizes.
 function overloadEarthEffects(): readonly SkillEffect[] {
   return OVERLOAD_EARTH_TICKS.flatMap((atMs, index) => [
     strike(
@@ -98,6 +111,7 @@ function overloadEarthEffects(): readonly SkillEffect[] {
   ]);
 }
 
+/** Per-overload effect lists consumed by the Tempest skill catalog; Overload Water has none. */
 export const TEMPEST_OVERLOAD_EFFECTS: Readonly<Record<number, readonly SkillEffect[]>> = Object.freeze({
   [ID.OVERLOAD_FIRE]: overloadFireEffects(),
   [ID.OVERLOAD_WATER]: [],

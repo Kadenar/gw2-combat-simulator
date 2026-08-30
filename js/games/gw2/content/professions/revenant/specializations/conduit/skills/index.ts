@@ -1,8 +1,8 @@
 /**
  * Conduit skill mechanics owned by the Conduit Revenant module.
  */
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { BalanceProfile, SkillFragment } from '../../../../../../platform/engine/types.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import type { BalanceProfile, SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
   affinity: 'revenant.conduit.affinity',

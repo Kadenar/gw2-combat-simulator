@@ -1,8 +1,8 @@
 /** Core Engineer Elixir Gun skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
-// Owns the equip action and packet-level palette mechanics so fields and finishers stay observable.
+/** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_GUN]: {
     implemented: true,

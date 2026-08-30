@@ -1,5 +1,5 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 /**
  * Scheduler-side Revenant trait lifecycle and event observation.
  *
@@ -8,20 +8,20 @@ import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.
  * condition, control, buff, and swap events. Elite trait reactions live in
  * their specialization slices.
  */
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { effectiveRevenantEnergyCost } from '../../energy.js';
-import { revenantCombatActive } from '../mechanics/legend-swap.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../skills/index.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
+import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import type {
   BalanceProfile,
   SchedulerRecord,
   SimulationEvent,
   SkillEffect,
   SkillId
-} from '../../../../../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantCoreState,
@@ -31,7 +31,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
-} from '../../types.js';
+} from '#gw2/content/professions/revenant/types.js';
 
 function balanceProfileById(context: RevenantSchedulerContext, id: SkillId): BalanceProfile {
   const profile = context.catalog.balanceProfilesById.get(id);

@@ -1,12 +1,15 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { applyStealCompletionTraits } from '../traits/index.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
-import type { ThiefCastContext, ThiefCoreState, ThiefSkill } from '../../types.js';
-import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { applyStealCompletionTraits } from '#gw2/content/professions/thief/core/traits/index.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { ThiefCastContext, ThiefCoreState, ThiefSkill } from '#gw2/content/professions/thief/types.js';
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/thief/core/profiles.js';
 
 export const THIEF_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
   ID.THROW_GUNK,

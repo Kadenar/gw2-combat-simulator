@@ -1,17 +1,20 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { firebrandState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { gw2AlliedPlayerProcTimeline } from '../../../../../../platform/combat/state/allied-players.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { emitGuardianEvent } from '../../../core/mechanics/event-handlers.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { emitGuardianProc, guardianTraitIcon } from '../../../core/traits/index.js';
-import { reactToJusticeHitWithOptions } from '../../../core/mechanics/virtues.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { firebrandState } from '#gw2/content/professions/guardian/specializations/firebrand/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { emitGuardianEvent } from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
+import { reactToJusticeHitWithOptions } from '#gw2/content/professions/guardian/core/mechanics/virtues.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
@@ -19,7 +22,7 @@ import type {
   GuardianSchedulerContext,
   GuardianSkill,
   GuardianVirtue
-} from '../../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 const DORMANT_PROFILE_BY_VIRTUE: Readonly<Record<GuardianVirtue, string>> = Object.freeze({
   justice: PROFILE.tomeJustice,

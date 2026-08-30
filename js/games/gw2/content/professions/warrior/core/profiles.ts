@@ -1,7 +1,7 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../integrations/patches/authoring/balance-profiles.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '../../../../platform/combat/state/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
 
 export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.core.resources',

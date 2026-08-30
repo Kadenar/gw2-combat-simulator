@@ -1,14 +1,15 @@
-import { ritualistState } from '../state.js';
-import { EPSILON } from '../../../../../../../../kernel/core/clock.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
+import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerWeaponSpellRecipient
-} from '../../../types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/necromancer/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
+/** Applies duration-stacking Painful Bond and advances its fixed-cadence damage pulses. */
 export function handleNecromancerPainfulBond(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -71,6 +72,7 @@ export function handleNecromancerPainfulBond(
   }
 }
 
+/** Stores one weapon-spell application with independent charge state for each eligible recipient. */
 export function handleNecromancerWeaponSpell(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent

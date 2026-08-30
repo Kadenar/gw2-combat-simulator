@@ -1,6 +1,9 @@
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { spendCoreWarriorAdrenaline, syncWarriorAdrenaline } from '../../../core/mechanics/adrenaline-and-endurance.js';
-import type { WarriorCastContext, WarriorSkill } from '../../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  spendCoreWarriorAdrenaline,
+  syncWarriorAdrenaline
+} from '#gw2/content/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import type { WarriorCastContext, WarriorSkill } from '#gw2/content/professions/warrior/types.js';
 
 /** Applies Paragon's one-bar burst and chant activation costs. */
 export function spendParagonAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {

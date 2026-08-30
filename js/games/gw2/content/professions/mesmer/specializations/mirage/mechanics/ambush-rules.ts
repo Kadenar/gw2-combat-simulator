@@ -1,25 +1,24 @@
-import { mirageState } from '../state.js';
-import { EPSILON } from '../../../../../../../../kernel/core/clock.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { illusionSource, timedStacks } from '../../../core/mechanics/execution.js';
-import { mesmerBalanceValue } from '../../../core/profiles.js';
-import { initializeMirageRuntime, mirageControllerFor } from './runtime.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import type {
-  AvailabilityResult,
-  SimulationEvent,
-  SkillMechanicTrigger
-} from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
+import { mirageState } from '#gw2/content/professions/mesmer/specializations/mirage/state.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { illusionSource, timedStacks } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
+import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+import {
+  initializeMirageRuntime,
+  mirageControllerFor
+} from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/runtime.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import type { AvailabilityResult, SimulationEvent, SkillMechanicTrigger } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   MesmerCastContext,
   MesmerPrecastContext,
   MesmerRechargeContext,
   MesmerSchedulerContext,
   MesmerSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 type MirageSkillMechanicHandler = (invocation: {
   readonly context: MesmerSchedulerContext;

@@ -1,5 +1,5 @@
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {

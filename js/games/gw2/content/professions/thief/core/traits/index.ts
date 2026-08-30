@@ -3,33 +3,36 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { enqueueOrdered } from '../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { CANONICAL_TARGET_CONDITIONS } from '../../../../../platform/combat/state/targets.js';
-import { combinedTargetDamage } from '../../../../../platform/combat/state/target-health.js';
-import { gw2ResolverBoonDuration } from '../../../../../platform/resolver/boon-duration.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gainThiefEndurance, gainThiefInitiative } from '../mechanics/resource-events.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
-import type { ResolvedCriticalHitOptions } from '../../../../../integrations/patches/authoring/mechanics.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  gainThiefEndurance,
+  gainThiefInitiative
+} from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
   ThiefResolverEvent,
   ThiefResolverReactionDetails,
   ThiefSkill
-} from '../../types.js';
+} from '#gw2/content/professions/thief/types.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '../profiles.js';
+} from '#gw2/content/professions/thief/core/profiles.js';
 
 function traitEffect(context: unknown, profileId: SkillId, type: string, index = 0) {
   return thiefBalanceProfileEffect(thiefBalanceProfile(context, profileId), type, index);

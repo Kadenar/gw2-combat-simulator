@@ -1,0 +1,89 @@
+/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
+
+export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  [ID.NECROTIC_GRASP]: {
+    implemented: true,
+    quicknessCastTimeMs: 880,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1
+      }
+    ],
+    lifeForceGain: 4,
+    handlerId: 'necromancer.corruption'
+  },
+  [ID.CHILLBLAINS]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.8,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 2,
+        duration: 8
+      },
+      {
+        type: 'custom',
+        eventType: 'necromancer.chill',
+        event: {
+          duration: 4
+        }
+      }
+    ]
+  },
+  [ID.REAPERS_MARK]: {
+    implemented: true,
+    quicknessCastTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 3,
+        hits: 1
+      },
+      {
+        type: 'control',
+        metadata: {
+          controlKind: 'fear'
+        }
+      }
+    ]
+  },
+  [ID.PUTRID_MARK]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.32,
+        hits: 1
+      }
+    ],
+    handlerId: 'necromancer.condition-transfer'
+  },
+  [ID.MARK_OF_BLOOD]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 8
+      }
+    ]
+  }
+});

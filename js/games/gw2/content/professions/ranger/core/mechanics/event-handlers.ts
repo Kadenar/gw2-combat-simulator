@@ -1,9 +1,9 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { rangerPetCompanionId } from './pets.js';
-import { rangerPetByName } from '../state.js';
-import type { RangerResolverContext, RangerResolverEvent } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
 
 export function handleRangerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
   professionCoreState(context).bloodThirstCharges = Math.max(0, Number(event.charges || 0));

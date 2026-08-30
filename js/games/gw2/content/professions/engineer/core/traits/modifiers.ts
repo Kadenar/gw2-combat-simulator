@@ -1,19 +1,23 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../platform/combat/state/event-ownership.js';
-import { targetConditionActive, vulnerabilityStacks } from '../../../../../platform/combat/query/runtime-query.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { engineerCoreCastAvailability } from '../mechanics/availability.js';
-import { advanceEngineerResources } from '../mechanics/resources.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { engineerCoreCastAvailability } from '#gw2/content/professions/engineer/core/mechanics/availability.js';
+import { advanceEngineerResources } from '#gw2/content/professions/engineer/core/mechanics/resources.js';
 import {
   handleElectricArtilleryExpire,
   handleElectricArtilleryReady,
   handleLightningRodCharge
-} from '../skills/spear.js';
-import { applyEngineerCastTraits, isEngineerToolbeltSkill, observeEngineerHghEvent } from './index.js';
-import { handleEngineerTurretAttack } from '../mechanics/turrets.js';
-import { observeEngineerMineFieldEvent } from '../skills/handlers.js';
+} from '#gw2/content/professions/engineer/core/skills/spear.js';
+import {
+  applyEngineerCastTraits,
+  isEngineerToolbeltSkill,
+  observeEngineerHghEvent
+} from '#gw2/content/professions/engineer/core/traits/index.js';
+import { handleEngineerTurretAttack } from '#gw2/content/professions/engineer/core/mechanics/turrets.js';
+import { observeEngineerMineFieldEvent } from '#gw2/content/professions/engineer/core/skills/execution.js';
 import {
   activeBoonStacks,
   cloneEngineerAttributes,
@@ -25,13 +29,17 @@ import {
   playerHealthFraction,
   targetConditionCount,
   targetHealthFraction
-} from './query-helpers.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE, engineerBalanceValue } from '../profiles.js';
-import type { SchedulerRecord } from '../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
-import type { EngineerRechargeContext } from '../../types.js';
+} from '#gw2/content/professions/engineer/core/traits/query-helpers.js';
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  engineerBalanceValue
+} from '#gw2/content/professions/engineer/core/profiles.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { EngineerRechargeContext } from '#gw2/content/professions/engineer/types.js';
 
-export { snapshotEngineerState } from '../../state/index.js';
+/** Re-exports the Engineer family snapshot hook through the Core modifier surface. */
+export { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
 
 // Chemical Rounds extends pistol-skill base durations before the normal capped condition-duration multiplier.
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
@@ -244,10 +252,12 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
+/** Compiles declarative Engineer modifier rules into the shared hook contract. */
 export function compileEngineerModifierRules(rules: readonly Gw2ModifierRule[]) {
   return createModifierHooks({ rules });
 }
 
+/** Applies Core Engineer's static and runtime-dependent attribute changes to a fresh attribute snapshot. */
 function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
@@ -298,9 +308,10 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
   return modified;
 }
 
-// Sharpshooter replaces bleeding's condition-damage attribute with a Power
-// conversion. Specializations can rerun this after their dynamic Power hooks
-// so the replacement includes bonuses such as Amalgam's Evolved state.
+/**
+ * Replaces player-owned bleeding's condition damage with Sharpshooter's Power conversion.
+ * Specializations may rerun it after their dynamic Power hooks so those bonuses are included.
+ */
 export function applyEngineerSharpshooterConditionDamage(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord
@@ -318,6 +329,7 @@ export function applyEngineerSharpshooterConditionDamage(
     Number(attributes.power || 0) * engineerBalanceValue(context, PROFILE.sharpshooter, 'coefficientMultiplier', 2 / 3);
 }
 
+/** Applies toolbelt and gadget recharge reductions from the active Core traits. */
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {

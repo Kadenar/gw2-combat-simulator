@@ -1,12 +1,27 @@
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { elementalistMightStacks, elementalistTimedBuffStacks } from '../../../core/traits/modifiers.js';
-import { elementalistBalanceValue } from '../../../core/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+/**
+ * Evoker damage and attribute modifiers.
+ *
+ * Declarative rules evaluated per damage event, plus an attribute pass for the
+ * bonuses that must land on ferocity and condition damage before those
+ * attributes feed into scaling.
+ */
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import {
+  elementalistMightStacks,
+  elementalistTimedBuffStacks
+} from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
+import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
+/**
+ * Per-event damage rules for the Evoker traits. Each rule's `when` predicate
+ * checks the selected element plus its trait or buff preconditions, so builds
+ * that lack them contribute nothing.
+ */
 // Familiar's Prowess buffs strike for Air element, condition for Fire — damage type bonus is element-gated
 export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -56,6 +71,10 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
+/**
+ * Applies Enhanced Potency's attribute bonuses: ferocity while Fury is up on an
+ * Air Evoker, and might-scaled condition damage on a Fire Evoker.
+ */
 // ferocity and conditionDamage added here rather than as modifier rules because they must feed into crit-damage and condition scaling before those are computed
 export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = { ...attributes };

@@ -1,18 +1,25 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
-import { grantEndurance } from '../../../../../../platform/combat/resources/endurance.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { guardianTargetDisabled } from '../../../core/traits/modifiers.js';
-import { emitGuardianProc, guardianTraitIcon } from '../../../core/traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../../../types.js';
-import { dragonhunterState } from '../state.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { guardianTargetDisabled } from '#gw2/content/professions/guardian/core/traits/modifiers.js';
+import { emitGuardianProc, guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  GuardianCastContext,
+  GuardianSchedulerContext,
+  GuardianSkill
+} from '#gw2/content/professions/guardian/types.js';
+import { dragonhunterState } from '#gw2/content/professions/guardian/specializations/dragonhunter/state.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

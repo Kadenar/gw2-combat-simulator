@@ -1,6 +1,6 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import { selectedRangerPet } from '../../core/state.js';
-import type { RangerConfig, RangerState, SoulbeastState } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { selectedRangerPet } from '#gw2/content/professions/ranger/core/state.js';
+import type { RangerConfig, RangerState, SoulbeastState } from '#gw2/content/professions/ranger/types.js';
 
 // Soulbeast owns its public Beastmode and stance projection.
 export const SOULBEAST_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([

@@ -1,6 +1,6 @@
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from '../../state/index.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant legend-swap transition.
  *
@@ -8,11 +8,15 @@ import { snapshotRevenantState } from '../../state/index.js';
  * shared swap-sigil event, and applies Core invocation traits. Active elite
  * modules react to the swap event with their own state and invocation effects.
  */
-import { REVENANT_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { applyLegendInvocationTraits } from '../traits/legend-invocation.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '../skills/index.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../../types.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/content/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { applyLegendInvocationTraits } from '#gw2/content/professions/revenant/core/traits/legend-invocation.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
+import type {
+  RevenantCastContext,
+  RevenantSchedulerContext,
+  RevenantSkill
+} from '#gw2/content/professions/revenant/types.js';
 
 /** Reports whether invocation-only combat effects may run at a timestamp. */
 export function revenantCombatActive(context: RevenantSchedulerContext, at = context.state.time): boolean {

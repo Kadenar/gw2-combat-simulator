@@ -1,17 +1,41 @@
-import { emitSkillBuff, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import type { Skill } from '../../../../../platform/engine/types.js';
+/**
+ * Core hammer orb mechanics.
+ *
+ * Owns the orb timers the hammer attunement skills create and the Grand Finale
+ * payload that spends them, plus the queries availability uses to gate both.
+ * Hammer skill data itself lives in `weapons/hammer.ts`.
+ */
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
-} from '../../types.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from '../state.js';
-import { HAMMER_ORB_SKILLS } from '../constants.js';
-import { activeBuffEvents, emitProfiledCondition, profiledEffect, skillWeapon } from '../mechanics/effects.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/types.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  type ElementalistAttunement,
+  type ElementalistCoreState
+} from '#gw2/content/professions/elementalist/core/state.js';
+import { HAMMER_ORB_SKILLS } from '#gw2/content/professions/elementalist/core/constants.js';
+import {
+  activeBuffEvents,
+  emitProfiledCondition,
+  profiledEffect,
+  skillWeapon
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 
-// Replace Grand Finale with one projectile per active orb, preserving each orb's
-// element and consuming the captured set atomically.
+/**
+ * Replace Grand Finale with one projectile per active orb, preserving each orb's
+ * element and consuming the captured set atomically.
+ *
+ * Returning true tells the scheduler this cast's packets were authored here, so
+ * the skill's declarative effects are skipped.
+ */
 export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext, skill: Skill): boolean {
   if (skill.name !== 'Grand Finale') return false;
   const state = professionCoreState(context);
@@ -55,6 +79,7 @@ export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext
   return true;
 }
 
+/** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
 export function activeHammerOrbElements(state: ElementalistCoreState, at: number): ElementalistAttunement[] {
   return ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
@@ -62,6 +87,7 @@ export function activeHammerOrbElements(state: ElementalistCoreState, at: number
   });
 }
 
+/** Core compatibility rule for spending an orb: only one matching the current primary attunement counts. */
 export function hammerOrbMatchesAttunement(
   _context: ElementalistCastContext,
   state: ElementalistCoreState,
@@ -70,8 +96,13 @@ export function hammerOrbMatchesAttunement(
   return element === state.primaryAttunement;
 }
 
-// Creating an orb refreshes all active orb windows; Grand Finale consumes the
-// stored orbs while leaving their visible buffs alive for the final packet.
+/**
+ * Creating an orb refreshes all active orb windows; Grand Finale consumes the
+ * stored orbs while leaving their visible buffs alive for the final packet.
+ *
+ * Cast-completion owner of the orb timers and of the buff events that mirror
+ * them on the log timeline.
+ */
 export function applyHammerState(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
   const state = professionCoreState(context);
@@ -80,6 +111,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
   if (single) {
     const orbDuration = elementalistBalanceValue(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
+    // Refresh every live orb's window and stretch the buff event already on the timeline.
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {
       if (expiresAt != null && expiresAt >= at) {
         state.hammerOrbs[element as ElementalistAttunement] = at + orbDuration;
@@ -96,6 +128,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
       state.hammerOrbGrantedBy[element] = skill.name;
       state.hammerOrbActivationIds[element] = context.reservationId;
       state.hammerOrbBuffUntil[element] = at + orbDuration;
+      // Only a newly created orb emits a buff; a refresh extended the existing one above.
       if (!previouslyActive.has(element)) {
         emitSkillBuff(context, skill, {
           at,
@@ -114,6 +147,8 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
     return;
   }
 
+  // Grand Finale clears the stored orbs and trims their buffs to just past the
+  // cast instead of ending them instantly, so the finisher still reads as covered.
   if (skill.name !== 'Grand Finale') return;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];

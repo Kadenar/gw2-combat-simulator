@@ -1,4 +1,4 @@
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
@@ -7,7 +7,7 @@ import {
   hasActiveTrait,
   namedSkillId,
   uniqueIdsBySkillName
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/engineer/core/presentation.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -16,9 +16,9 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { EngineerResolverEvent, EngineerUiContext } from '../../types.js';
-import type { HolosmithSkill } from './types.js';
+} from '#gw2/platform/engine/types.js';
+import type { EngineerResolverEvent, EngineerUiContext } from '#gw2/content/professions/engineer/types.js';
+import type { HolosmithSkill } from '#gw2/content/professions/engineer/specializations/holosmith/types.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
   'enter-forge',
@@ -41,6 +41,7 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 let engineerSkills: readonly HolosmithSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, HolosmithSkill> = new Map();
 
+/** Returns the available Photon Forge bar, selecting the Storm autoattack variant when traited. */
 function holosmithForgeSkillIds(context: EngineerUiContext): number[] {
   const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
   return [
@@ -52,6 +53,7 @@ function holosmithForgeSkillIds(context: EngineerUiContext): number[] {
   ].filter((skillId) => engineerSkillsById.has(skillId));
 }
 
+/** Projects the tool-belt and current Photon Forge toggle onto Holosmith's profession bar. */
 function holosmithProfessionSkills(context: EngineerUiContext) {
   const state = engineerUiState(context);
   return [
@@ -60,6 +62,7 @@ function holosmithProfessionSkills(context: EngineerUiContext) {
   ];
 }
 
+/** Projects Forge replacement rules and the kit lockout into palette availability. */
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
   const now = Number(context.time || 0);
@@ -98,8 +101,7 @@ function holosmithPaletteAvailability(context: EngineerUiContext, skill: Holosmi
   return { available: true, message: '' };
 }
 
-// Returns null to suppress an event row, undefined to defer to the next handler.
-// Packet events (laser-disk etc.) are hidden; heat state events are shown as resource rows.
+/** Hides internal packets with `null`, renders heat snapshots, and defers unrelated events with `undefined`. */
 function holosmithEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent
@@ -121,6 +123,7 @@ function holosmithEventLogRow(
   };
 }
 
+/** Supplies Holosmith skill-bar, palette, heat-resource, and event-log presentation behavior. */
 export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: holosmithEventLogRow,
   // Photon Forge changes weapon presentation only while the Holosmith slice is active.
@@ -140,6 +143,7 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   ],
   paletteGroups: (context: EngineerUiContext) => {
     const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
+    // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
     return [
       {
         id: 'engineer-profession',
@@ -163,6 +167,7 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
         skillIds: engineerSkills
           .filter((skill) => {
             if (!skill.forgeSkill) return false;
+            // Include only the base or Storm autoattack variant selected by the active trait.
             if (skill.slot !== 'Weapon_1') return true;
             return skill.name.endsWith('—Storm') === storm;
           })
@@ -198,6 +203,7 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
   paletteSkillAvailability: holosmithPaletteAvailability
 });
 
+/** Binds canonical skills used by Holosmith UI projections and returns the shared UI contract. */
 export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): typeof holosmithUi {
   engineerSkills = catalog.skills;
   engineerSkillsById = catalog.skillsById;

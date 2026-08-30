@@ -1,8 +1,8 @@
-import { revenantCoreModule } from './core/module.js';
-import { conduitModule } from './specializations/conduit/module.js';
-import { heraldModule } from './specializations/herald/module.js';
-import { renegadeModule } from './specializations/renegade/module.js';
-import { vindicatorModule } from './specializations/vindicator/module.js';
+import { revenantCoreModule } from '#gw2/content/professions/revenant/core/module.js';
+import { conduitModule } from '#gw2/content/professions/revenant/specializations/conduit/module.js';
+import { heraldModule } from '#gw2/content/professions/revenant/specializations/herald/module.js';
+import { renegadeModule } from '#gw2/content/professions/revenant/specializations/renegade/module.js';
+import { vindicatorModule } from '#gw2/content/professions/revenant/specializations/vindicator/module.js';
 
 export const revenantNativeModules = Object.freeze([
   revenantCoreModule,

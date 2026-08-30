@@ -1,6 +1,9 @@
-import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
-import { MESMER_FLIP_CHILD_BY_PARENT_ID, MESMER_FLIP_PARENT_BY_CHILD_ID } from '../core/mechanics/runtime.js';
-import type { MesmerSkillCatalogFragment } from '../types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  MESMER_FLIP_CHILD_BY_PARENT_ID,
+  MESMER_FLIP_PARENT_BY_CHILD_ID
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerSkillCatalogFragment } from '#gw2/content/professions/mesmer/types.js';
 
 const SHATTER_SKILL_IDS = new Set<number>([
   ID.MIND_WRACK,

@@ -1,14 +1,20 @@
-import { ritualistState } from '../state.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import type { SkillId } from '../../../../../../platform/engine/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '../../../data/ids.js';
-import { handleNecromancerPainfulBond, handleNecromancerWeaponSpell } from './event-handlers.js';
-import { materializeNecromancerSummonAttack } from '../../../core/mechanics/event-handlers.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '../../../types.js';
-import type { BalanceProfile } from '../../../../../../platform/engine/types.js';
-import { balanceProfileEffect, necromancerBalanceProfile } from '../../../core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { ritualistState } from '#gw2/content/professions/necromancer/specializations/ritualist/state.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import {
+  handleNecromancerPainfulBond,
+  handleNecromancerWeaponSpell
+} from '#gw2/content/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
+import { materializeNecromancerSummonAttack } from '#gw2/content/professions/necromancer/core/mechanics/event-handlers.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent
+} from '#gw2/content/professions/necromancer/types.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import { balanceProfileEffect, necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/ritualist/profiles.js';
 
 // Weapon-spell stacks follow the creature that owns an attack before its stat
 // attribution, so player-scaled spirit packets cannot spend the player's stacks.
@@ -37,6 +43,7 @@ function queueNightmareWeapon(
 ): void {
   const strike = balanceProfileEffect(definition, 'strike');
   const vulnerability = balanceProfileEffect(definition, 'condition');
+  // Materialize both components at the triggering strike's timestamp before recording the combined proc.
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,
@@ -90,6 +97,7 @@ function queueSplinterWeapon(
   definition: BalanceProfile
 ): void {
   const strike = balanceProfileEffect(definition, 'strike');
+  // Queue the derived strike first, then expose the same trigger through proc reporting.
   enqueueOrdered(context.queue, {
     type: 'damage',
     at: event.at,
@@ -117,6 +125,7 @@ function queueSplinterWeapon(
   );
 }
 
+/** Resolves a precomputed allied-player weapon-spell trigger without consuming player charges. */
 export function handleNecromancerWeaponSpellAllyTrigger(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
@@ -133,6 +142,7 @@ export function handleNecromancerWeaponSpellAllyTrigger(
   }
 }
 
+// Spend eligible recipients' weapon-spell charges when their damaging strikes resolve.
 function reactToDamage(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Effect-sourced damage (e.g. prior spell proc) must not chain into another proc; coefficient > 0 guards against flat-damage-only strikes
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
@@ -169,10 +179,12 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   }
 }
 
+/** Exposes Ritualist's hit-triggered weapon-spell reaction. */
 export const ritualistResolverEventReactions = Object.freeze({
   damage: reactToDamage
 });
 
+/** Routes Ritualist resolver events to spirit, bond, and weapon-spell handlers. */
 export const ritualistEventHandlers = Object.freeze({
   'necromancer.spirit-attack': (context: NecromancerResolverContext, event: NecromancerResolverEvent): void => {
     const state = ritualistState.from(context);

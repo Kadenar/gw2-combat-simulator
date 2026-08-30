@@ -1,11 +1,11 @@
-import { emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from '../mechanics/resource-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
 import type {
   ThiefCastContext,
   ThiefScheduledTask,
@@ -14,9 +14,12 @@ import type {
   ThiefSummonAttack,
   ThiefSummonDefinition,
   ThiefSummonStrike
-} from '../../types.js';
-import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { thiefSpecializationGuildSummon } from '../../thieves-guild.js';
+} from '#gw2/content/professions/thief/types.js';
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/thief/core/profiles.js';
+import { thiefSpecializationGuildSummon } from '#gw2/content/professions/thief/thieves-guild.js';
 
 interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly attack: ThiefSummonStrike;

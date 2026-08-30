@@ -2,11 +2,11 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defineProfessionApp } from '../../../../app/create-adapter.js';
-import { applyThiefBuildAttributeRules } from '../build/attributes.js';
-import { createDefaultTargetConditions, toApplicationBuild } from '../build/build.js';
-import { thiefProfession } from '../definition.js';
-import type { ThiefApplicationBuild } from '../types.js';
+import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { applyThiefBuildAttributeRules } from '#gw2/content/professions/thief/build/attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '#gw2/content/professions/thief/build/build.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import type { ThiefApplicationBuild } from '#gw2/content/professions/thief/types.js';
 
 // Exposes Thief only through the shared browser application contract.
 export const thiefAppAdapter = defineProfessionApp({

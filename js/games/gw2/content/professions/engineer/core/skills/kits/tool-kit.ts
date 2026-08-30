@@ -1,8 +1,8 @@
 /** Core Engineer Tool Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
-// Owns the equip action, palette skills, stow action, and linked toolbelt skill for Tool Kit.
+/** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Tool Kit. */
 export const ENGINEER_TOOL_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.TOOL_KIT]: {
     implemented: true,

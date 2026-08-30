@@ -1,10 +1,17 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../../data/catalog.js';
-import { heraldSkillHandlers } from './skills/handlers.js';
-import { heraldAttributeRules, heraldCastRules, heraldSchedulerHooks } from './mechanics/facet-rules.js';
-import { heraldState } from './state.js';
-import { heraldUi } from './presentation.js';
-import { HERALD_BALANCE_PROFILES, HERALD_BASE_SKILL_MECHANICS } from './skills/index.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
+import { heraldSkillHandlers } from '#gw2/content/professions/revenant/specializations/herald/skills/execution.js';
+import {
+  heraldAttributeRules,
+  heraldCastRules,
+  heraldSchedulerHooks
+} from '#gw2/content/professions/revenant/specializations/herald/mechanics/facet-rules.js';
+import { heraldState } from '#gw2/content/professions/revenant/specializations/herald/state.js';
+import { heraldUi } from '#gw2/content/professions/revenant/specializations/herald/presentation.js';
+import {
+  HERALD_BALANCE_PROFILES,
+  HERALD_BASE_SKILL_MECHANICS
+} from '#gw2/content/professions/revenant/specializations/herald/skills/index.js';
 
 export const heraldModule = defineNativeModule({
   id: 'Herald',

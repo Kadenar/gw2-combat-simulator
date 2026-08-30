@@ -1,21 +1,24 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../data/catalog.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   troubadourAttributeRules,
   troubadourCastRules,
   troubadourSchedulerHooks,
   troubadourSkillMechanicHandlers
-} from './mechanics/instrument-rules.js';
-import { createTroubadourResolverState, troubadourState } from './state.js';
-import { troubadourUi } from './presentation.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import {
+  createTroubadourResolverState,
+  troubadourState
+} from '#gw2/content/professions/mesmer/specializations/troubadour/state.js';
+import { troubadourUi } from '#gw2/content/professions/mesmer/specializations/troubadour/presentation.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills/index.js';
-import { troubadourSkillHandlers } from './skills/handlers.js';
-import { troubadourEventHandlers } from './mechanics/state-events.js';
-import { TROUBADOUR_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/skills/index.js';
+import { troubadourSkillHandlers } from '#gw2/content/professions/mesmer/specializations/troubadour/skills/execution.js';
+import { troubadourEventHandlers } from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/state-events.js';
+import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',

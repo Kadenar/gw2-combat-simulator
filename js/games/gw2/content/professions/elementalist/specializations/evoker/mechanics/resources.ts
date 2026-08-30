@@ -1,12 +1,32 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../../types.js';
-import { CONJURED_WEAPONS, EVOKER_NO_CHARGE_SKILLS, FULL_SPEAR_ETCHINGS } from './constants.js';
-import { evokerState, type EvokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { elementalistBalanceValue } from '../../../core/profiles.js';
+/**
+ * The Evoker familiar-charge economy.
+ *
+ * Owns charge capacity setup, how much each weapon skill contributes, the
+ * deferral queue that protects grants from a charge-resetting familiar cast, and
+ * the resource events the charge dial renders. Spending charges belongs to the
+ * familiar handlers; this module only accrues and reports them.
+ */
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistSchedulerContext
+} from '#gw2/content/professions/elementalist/types.js';
+import {
+  CONJURED_WEAPONS,
+  EVOKER_NO_CHARGE_SKILLS,
+  FULL_SPEAR_ETCHINGS
+} from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { evokerState, type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
+import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
 
+/**
+ * Seeds charge capacity from the active balance profile before the first cast,
+ * and pins the Core attunement to the selected element when Specialized Elements
+ * has disabled attunement swapping.
+ */
 export function initialize(context: ElementalistSchedulerContext): void {
   const state = evokerState.from(context);
   const core = professionCoreState(context);
@@ -25,6 +45,7 @@ export function initialize(context: ElementalistSchedulerContext): void {
   }
 }
 
+/** Publishes the current charge and empowered totals as an absolute reading at the cast's end. */
 export function emitResource(context: ElementalistCastContext, skill: Skill, state: EvokerState): void {
   context.emit({
     type: 'resource',
@@ -40,6 +61,12 @@ export function emitResource(context: ElementalistCastContext, skill: Skill, sta
   });
 }
 
+/**
+ * Charges a single weapon skill is worth: zero for anything outside weapon slots
+ * 2-5, conjures, exempt skills, and lesser or completed spear etchings;
+ * otherwise the matching-element amount when the skill shares the selected
+ * element, and the smaller off-element amount when it does not.
+ */
 export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pick<EvokerState, 'element'>): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ''));
   if (
@@ -65,6 +92,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     : elementalistBalanceValue(context, PROFILE.resources, 'allyStacks', 1);
 }
 
+// commits one grant, clamped to capacity, and reports it with a delta so the log shows the change
 function applyWeaponSkillChargeGain(
   context: ElementalistCastContext,
   state: EvokerState,
@@ -89,6 +117,11 @@ function applyWeaponSkillChargeGain(
   });
 }
 
+/**
+ * Awards a completing weapon skill's charges, queueing the grant instead when a
+ * charge-resetting basic familiar is still casting so the charges land after the
+ * reset rather than being wiped by it.
+ */
 export function grantWeaponSkillCharges(context: ElementalistCastContext, skill: Skill, state: EvokerState): void {
   const gain = weaponSkillChargeGain(context, skill, state);
   if (gain <= 0) return;
@@ -114,6 +147,7 @@ export function grantWeaponSkillCharges(context: ElementalistCastContext, skill:
   applyWeaponSkillChargeGain(context, state, chargeGain);
 }
 
+/** Replays every deferred grant once the familiar cast that blocked them has settled. */
 export function flushPendingWeaponChargeGains(context: ElementalistCastContext, state: EvokerState): void {
   for (const chargeGain of state.pendingWeaponChargeGains) {
     applyWeaponSkillChargeGain(context, state, chargeGain);

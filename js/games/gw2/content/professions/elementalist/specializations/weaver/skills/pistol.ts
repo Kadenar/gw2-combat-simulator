@@ -1,16 +1,20 @@
-import { emitSkillControl } from '../../../../../../platform/scheduler/skill-events.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext } from '../../../types.js';
+/**
+ * Weaver-side runtime behaviour for the pistol bullet resource; the cataloged
+ * pistol skill data lives in `skills/weapons/pistol.ts`.
+ */
+import { emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { ElementalistCastContext } from '#gw2/content/professions/elementalist/types.js';
 import {
   applyElementalistAura,
   emitProfiledBuff,
   emitProfiledCondition,
   profiledEffect,
   skillWeapon
-} from '../../../core/mechanics/effects.js';
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { weaverDualAttunements } from './index.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/weaver/profiles.js';
+import { weaverDualAttunements } from '#gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 
 /** Consumes and grants pistol bullets for Weaver's dual-attunement weapon skills. */
 export function applyWeaverPistolState(context: ElementalistCastContext, skill: Skill): void {
@@ -19,12 +23,16 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  // With no bullet loaded for either half of the pair, the dual skill loads one
+  // for the current main-hand element instead of firing.
   const active = elements.filter((element) => state.pistolBullets[element]);
   if (!active.length) {
     state.pistolBullets[state.primaryAttunement] = true;
     return;
   }
 
+  // Otherwise every matching bullet is consumed and adds the bonus effect that
+  // this specific dual skill grants for that element.
   for (const element of active) {
     state.pistolBullets[element] = false;
     if (skill.name === 'Frostfire Flurry' && element === 'Fire') {

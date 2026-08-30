@@ -1,8 +1,16 @@
 /** Tempest Elementalist skill mechanics. */
-import { TEMPEST_OVERLOAD_EFFECTS } from '../mechanics/overload-effects.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/content/professions/elementalist/specializations/tempest/mechanics/overload-effects.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * Catalog fragments Tempest owns: the four overloads and the damaging shouts.
+ *
+ * Overloads are `overload: true` profession skills bound to one attunement, recharge from cast end,
+ * and take their tick effects from TEMPEST_OVERLOAD_EFFECTS; the gating, aura, and trait behavior
+ * lives in mechanics/overloads.ts. Shouts route through the 'elementalist.tempest-shout' handler
+ * and declare their self-aura as `element|seconds`, which the core cast pipeline applies for them.
+ */
 export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.OVERLOAD_FIRE]: {
     name: 'Overload Fire',
@@ -28,6 +36,8 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     implemented: true,
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_FIRE]
   },
+  // Overload Water is modeled for its cast time, recharge, and trait triggers only: its healing
+  // pulses carry no simulated damage, condition, or boon packets.
   [ID.OVERLOAD_WATER]: {
     name: 'Overload Water',
     type: 'Profession',

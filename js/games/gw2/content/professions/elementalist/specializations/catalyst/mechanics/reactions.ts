@@ -1,10 +1,18 @@
-import { EPSILON, isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../../../platform/resolver/types.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { grantEndurance } from '../../../../../../platform/combat/resources/endurance.js';
-import type { ElementalistResolverContext } from '../../../types.js';
+/**
+ * Resolver-side Catalyst reactions.
+ *
+ * The scheduler emits the canonical event stream; these handlers read it after
+ * resolution to grant Empowering Auras and Elemental Empowerment stacks, run the
+ * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
+ * Empowerment, and queue the Shattering Ice packet.
+ */
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import type { ElementalistResolverContext } from '#gw2/content/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
   elementalistSourceSkill,
@@ -12,17 +20,26 @@ import {
   queueElementalistBuff,
   recordElementalistTraitProc,
   refreshElementalistBuffs
-} from '../../../core/mechanics/reactions.js';
-import { catalystState, grantCatalystElementalEmpowerment } from '../state.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/reactions.js';
+import {
+  catalystState,
+  grantCatalystElementalEmpowerment
+} from '#gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
   elementalistBalanceEffect,
   elementalistBalanceValue
-} from '../../../core/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/catalyst/profiles.js';
 
-// Convert resolved aura applications into Catalyst aura-stack traits and their
-// profile-defined capped durations.
+/**
+ * Convert resolved aura applications into Catalyst aura-stack traits and their
+ * profile-defined capped durations.
+ *
+ * Empowering Auras refreshes every live stack and adds one more below the cap;
+ * Elemental Epitome turns the same aura into an Elemental Empowerment stack, but
+ * only once combat has started.
+ */
 export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Empowering Auras')) {
     const maximumStacks = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
@@ -55,8 +72,13 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   );
 }
 
-// Resolve combo traits only after field selection is known, enforcing the
-// per-attunement Epitome cooldown before granting aura and empowerment effects.
+/**
+ * Resolve combo traits only after field selection is known, enforcing the
+ * per-attunement Epitome cooldown before granting aura and empowerment effects.
+ *
+ * Elemental Synergy runs on its own per-attunement cooldown and pays out by
+ * element: might in Fire, stability in Earth, endurance in Air.
+ */
 export function applyCatalystComboTraits(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   const state = catalystState.from(context);
@@ -123,6 +145,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   }
 }
 
+// Vicious Empowerment's payouts all share one source name.
 function queueCatalystBuff(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -133,8 +156,13 @@ function queueCatalystBuff(
   queueElementalistBuff(context, event, kind, stacks, duration, 'Vicious Empowerment');
 }
 
-// Trigger Vicious Empowerment from qualifying control or immobilize events while
-// enforcing its shared internal cooldown.
+/**
+ * Trigger Vicious Empowerment from qualifying control or immobilize events while
+ * enforcing its shared internal cooldown.
+ *
+ * Pays Elemental Empowerment stacks plus might, and ignores anything landing
+ * before combat start.
+ */
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const immobilize = ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
   if (
@@ -172,6 +200,9 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
 /**
  * Elemental Empowerment starts with three permanent stacks. Timed grants fill
  * the remaining seven slots and replace the oldest timed stack at the cap.
+ *
+ * The same handler captures the Shattering Ice buff window, rearming its first
+ * proc whenever the buff is reapplied.
  */
 export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
@@ -198,8 +229,13 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   );
 }
 
-// Spend active Shattering Ice state on player-owned attacks, including fields
-// and effects, while preventing summons and the derived packet from retriggering it.
+/**
+ * Spend active Shattering Ice state on player-owned attacks, including fields
+ * and effects, while preventing summons and the derived packet from retriggering it.
+ *
+ * A qualifying hit consumes the profile internal cooldown and queues the strike
+ * and chill packets that Shattering Ice owns.
+ */
 export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const state = catalystState.from(context);
   if (

@@ -1,12 +1,17 @@
-import { handleConduitSurge, handleElectricArtillery, handleLightningRodPulse } from './event-handlers.js';
-import { handleEngineerState } from '../../state/index.js';
+import {
+  handleConduitSurge,
+  handleElectricArtillery,
+  handleLightningRodPulse
+} from '#gw2/content/professions/engineer/core/mechanics/event-handlers.js';
+import { handleEngineerState } from '#gw2/content/professions/engineer/state.js';
 import {
   engineerCoreCriticalHitDefinitions,
   handleEngineerDodge,
   reactToEngineerCondition,
   reactToEngineerDamage
-} from '../traits/index.js';
+} from '#gw2/content/professions/engineer/core/traits/index.js';
 
+/** Re-exports Core resolver helpers used by Engineer traits and specialization reactions. */
 export {
   activeBoonStacks,
   applyEngineerDerivedCondition,
@@ -15,7 +20,7 @@ export {
   queueDamage,
   recordTrait,
   resolverSkill
-} from './state-helpers.js';
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 
 // event handlers fire when a specific event type is dequeued during resolution
 export const engineerCoreResolverEventHandlers = Object.freeze({

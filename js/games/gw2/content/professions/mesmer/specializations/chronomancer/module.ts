@@ -1,21 +1,24 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createMesmerModuleData } from '../../data/catalog.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createMesmerModuleData } from '#gw2/content/professions/mesmer/catalog/module-data.js';
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
   chronomancerRuntimeHooks,
   chronomancerSkillMechanicHandlers
-} from './mechanics/continuum-split-rules.js';
-import { createChronomancerResolverState, chronomancerState } from './state.js';
-import { chronomancerUi } from './presentation.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/continuum-split-rules.js';
+import {
+  createChronomancerResolverState,
+  chronomancerState
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/state.js';
+import { chronomancerUi } from '#gw2/content/professions/mesmer/specializations/chronomancer/presentation.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills/index.js';
-import { chronomancerSkillHandlers } from './skills/handlers.js';
-import { chronomancerEventHandlers } from './mechanics/state-events.js';
-import { CHRONOMANCER_BALANCE_PROFILES } from './profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/index.js';
+import { chronomancerSkillHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/execution.js';
+import { chronomancerEventHandlers } from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/state-events.js';
+import { CHRONOMANCER_BALANCE_PROFILES } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 
 export const chronomancerModule = defineNativeModule({
   id: 'Chronomancer',

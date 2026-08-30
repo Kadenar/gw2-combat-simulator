@@ -1,8 +1,8 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { MESMER_CORE_CLONE_ATTACKS } from '../mechanics/definitions.js';
-import type { SchedulerState } from '../../../../../platform/engine/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -14,7 +14,7 @@ import type {
   MesmerShatter,
   MesmerSkill,
   MesmerTraitDamage
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 const CLARITY_DURATION = 15;
 const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';

@@ -1,18 +1,23 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
-import { REVENANT_SKILL_IDS as SKILL } from '../data/ids.js';
-import { getActiveTraits } from '../data/traits-data.js';
-import { revenantLegend, revenantLegendLoadout } from '../build/legend-loadout.js';
-import { effectiveRevenantEnergyCost } from '../energy.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/content/professions/revenant/app/assumptions.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/revenant/data/traits-data.js';
+import { revenantLegend, revenantLegendLoadout } from '#gw2/content/professions/revenant/app/legend-loadout.js';
+import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SchedulerRecord
-} from '../../../../platform/engine/types.js';
-import type { RevenantResolverEvent, RevenantSkill, RevenantState, RevenantUiContext } from '../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  RevenantResolverEvent,
+  RevenantSkill,
+  RevenantState,
+  RevenantUiContext
+} from '#gw2/content/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
   return flattenProfessionState(context.state?.profession || context.professionState);

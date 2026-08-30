@@ -1,8 +1,8 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { grantEndurance } from '../../../../../platform/combat/resources/endurance.js';
-import { snapshotThiefState } from '../state.js';
-import type { ThiefSchedulerContext, ThiefSkill } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import type { ThiefSchedulerContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 export function emitThiefShroudSwap(context: ThiefSchedulerContext, skill: ThiefSkill, at: number): void {
   context.emit({

@@ -1,10 +1,15 @@
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { Skill } from '../../../../../../platform/engine/types.js';
-import type { ElementalistSchedulerContext } from '../../../types.js';
-import { elementalistBalanceValue } from '../../../core/profiles.js';
-import { evokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import { elementalistBalanceValue } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { evokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
+/**
+ * Spends an armed Elemental Balance window on the next non-autoattack weapon
+ * skill, scaling its recharge by the profile multiplier. The window is
+ * single-use and is cleared here as soon as one skill consumes it.
+ */
 export function modifyRechargeDuration(
   context: ElementalistSchedulerContext & { skill?: Skill },
   duration: number

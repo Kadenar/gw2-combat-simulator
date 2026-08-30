@@ -1,12 +1,20 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
-import { thiefEnduranceReadyAt, thiefInitiativeRegenerationRate } from './initiative-and-endurance.js';
-import { spearChainStageForSkill } from '../skills/spear-and-venoms.js';
-import { storedStolenSkillChoices } from './steal.js';
-import { denySkillCast as deny } from '../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../platform/engine/types.js';
-import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill, ThiefStealthAttackChargeState } from '../../types.js';
-import { gw2ConfiguredWeaponSet } from '../../../../../platform/equipment/weapons/loadout.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import {
+  thiefEnduranceReadyAt,
+  thiefInitiativeRegenerationRate
+} from '#gw2/content/professions/thief/core/mechanics/initiative-and-endurance.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { storedStolenSkillChoices } from '#gw2/content/professions/thief/core/mechanics/steal.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type {
+  ThiefCoreState,
+  ThiefPrecastContext,
+  ThiefSkill,
+  ThiefStealthAttackChargeState
+} from '#gw2/content/professions/thief/types.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;

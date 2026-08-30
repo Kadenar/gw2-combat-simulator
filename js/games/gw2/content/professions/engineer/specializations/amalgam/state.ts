@@ -1,5 +1,5 @@
-import type { AmalgamState, EngineerConfig } from '../../types.js';
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
+import type { AmalgamState, EngineerConfig } from '#gw2/content/professions/engineer/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
 // Amalgam owns its public protocol state and the inactive compatibility values.
 export const AMALGAM_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -28,6 +28,7 @@ export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamSta
   activeStances: {}
 });
 
+/** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
 export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
   return {
     // IDs for the three selected Morph (F2/F3/F4) protocol skills.

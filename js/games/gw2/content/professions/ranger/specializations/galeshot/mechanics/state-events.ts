@@ -1,7 +1,7 @@
-import type { RangerResolverContext, RangerResolverEvent } from '../../../types.js';
-import { galeshotState } from '../state.js';
-import { rangerBalanceValue } from '../../../core/profiles.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import type { RangerResolverContext, RangerResolverEvent } from '#gw2/content/professions/ranger/types.js';
+import { galeshotState } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
+import { rangerBalanceValue } from '#gw2/content/professions/ranger/core/profiles.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 export function handleGaleshotState(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = galeshotState.from(context);

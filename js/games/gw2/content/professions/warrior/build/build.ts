@@ -1,10 +1,10 @@
-import { GEAR_SLOTS } from '../../../../platform/equipment/gear/stats.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../../../platform/equipment/sigils/loadout.js';
-import { createDefaultTargetConditions } from '../../../../platform/builds/default-target-conditions.js';
-import { warriorCatalog } from '../catalog.js';
-import type { WarriorCanonicalBuild } from '../types.js';
-import { createProfessionBuildCodec } from '../../lib/build-codec.js';
-import { createCommonBuildDefaults } from '../../lib/build-defaults.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
+import type { WarriorCanonicalBuild } from '#gw2/content/professions/warrior/types.js';
+import { createProfessionBuildCodec } from '#gw2/content/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/content/professions/lib/build-defaults.js';
 
 export const WARRIOR_BUILD_SCHEMA_VERSION = 3;
 export const WARRIOR_PROFESSION_ID = 'warrior';

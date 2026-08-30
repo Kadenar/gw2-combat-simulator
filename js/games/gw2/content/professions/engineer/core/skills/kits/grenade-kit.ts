@@ -1,11 +1,11 @@
 /** Core Engineer Grenade Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
 // Grenade projectiles commit together during the quickened cast, but their serial recovery still occupies the full throw animation after a weapon-kit transition.
 const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 
-// Owns the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit.
+/** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit. */
 export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.GRENADE_KIT]: {
     implemented: true,

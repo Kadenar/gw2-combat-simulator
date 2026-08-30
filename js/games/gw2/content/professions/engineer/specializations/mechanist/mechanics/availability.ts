@@ -1,8 +1,9 @@
-import { mechanistState } from '../state.js';
-import { denySkillCast as denyEngineerCast } from '../../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '../../../types.js';
+import { mechanistState } from '#gw2/content/professions/engineer/specializations/mechanist/state.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { EngineerPrecastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
+/** Enforces Mechanist's tool-belt replacement, selected commands, and mech summon state before casting. */
 export function mechanistCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Mechanist') return { ready: true };
   const state = mechanistState.from(context);

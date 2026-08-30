@@ -1,8 +1,23 @@
-/** Spear weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Spear weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers slots 1-5 across all four attunements, including the two spear-specific systems:
+ * the slot-3 follow-up empowerments (Seethe/Ripple/Energize/Harden arm a one-shot bonus on
+ * the next qualifying spear cast) and the slot-5 Etching chains, where `Etching: X` places a
+ * combo field and unlocks `Lesser X`, which three further casts upgrade to the full `X`.
+ *
+ * Declarative data only: the named `mechanicTriggers` are implemented by
+ * `core/skills/cast-effects.ts`, the chain/stage gating lives in
+ * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * Skill-id keyed fragments the catalog layers over the raw spear skill records so the
+ * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ */
 export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLAME_SPEAR]: {
     name: 'Flame Spear',
@@ -147,6 +162,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Etching root: lays the fire field and arms the Volcano chain at its `lesser` stage; the
+  // payoff skills below occupy the same slot and are gated on that stage.
   [ID.ETCHING_VOLCANO]: {
     name: 'Etching: Volcano',
     type: 'Weapon',
@@ -180,6 +197,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     elementalistStateMachine: 'spear-etching'
   },
+  // Early payoff: six eruption packets whose coefficients decay from 0.63 down to 0.315.
   [ID.LESSER_VOLCANO]: {
     name: 'Lesser Volcano',
     type: 'Weapon',
@@ -261,6 +279,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     elementalistStateMachine: 'spear-etching'
   },
+  // Full payoff: twelve eruption packets decaying from 1.21 to a 0.05 floor.
   [ID.VOLCANO]: {
     name: 'Volcano',
     type: 'Weapon',
@@ -320,6 +339,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Three beam pulses at 360/520/720ms, each applying its own one-second Chilled stack.
   [ID.ICE_BEAM]: {
     name: 'Ice Beam',
     type: 'Weapon',
@@ -584,6 +604,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Lingering aura: five pulses one second apart, each a strike plus one Vulnerability stack,
+  // so most of the damage lands well after the 560ms cast.
   [ID.FULGOR]: {
     name: 'Fulgor',
     type: 'Weapon',
@@ -1080,6 +1102,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
+  // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
     name: 'Etching: Haboob',
     type: 'Weapon',
@@ -1152,6 +1175,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     elementalistStateMachine: 'spear-etching'
   },
+  // Full payoff: the Lesser version's strike and blind plus Vulnerability and Weakness.
   [ID.HABOOB]: {
     name: 'Haboob',
     type: 'Weapon',

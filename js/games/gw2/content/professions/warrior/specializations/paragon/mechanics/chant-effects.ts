@@ -1,6 +1,6 @@
-import type { SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import { paragonState } from '../state.js';
-import type { WarriorResolverContext, WarriorResolverEvent } from '../../../types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { paragonState } from '#gw2/content/professions/warrior/specializations/paragon/state.js';
+import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/content/professions/warrior/types.js';
 
 // Mirrors scheduler-side paragon state into the resolver so modifier rules
 // can read motivation and activeRefrain. structuredClone prevents the resolver

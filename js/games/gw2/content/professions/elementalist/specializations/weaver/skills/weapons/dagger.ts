@@ -1,9 +1,27 @@
-/** Dagger weapon-skill mechanics owned by the Weaver module. */
+/**
+ * Dagger weapon-skill mechanics owned by the Weaver module.
+ *
+ * Weaver occupies the slot-3 dagger position with a dual attack selected by the
+ * unordered pair of attunements held across its two hands; every fragment names
+ * its pair in `attunement`, and Weaver availability only offers the skill when
+ * both of those elements are currently attuned.
+ *
+ * Declarative data only - no handler logic lives here. Effect offsets are
+ * authored against the quickened timeline given by `quicknessCastTimeMs` and
+ * are scaled back out for slower casts by the cast-scaled scheduler policy.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * The six dagger dual attacks, keyed by skill id and merged into
+ * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair (Fire+Water,
+ * Fire+Air, Fire+Earth, Air+Water, Water+Earth, Air+Earth).
+ */
 export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Fire+Water. The only dagger dual that lays a combo field: a four-second
+  // Water field opening at cast end. Its own strike declares no finisher.
   [ID.STEAM_SURGE]: {
     name: 'Steam Surge',
     type: 'Weapon',
@@ -38,6 +56,8 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Fire+Air. Single hit that doubles as a Blast finisher into the oldest
+  // ambiguous field.
   [ID.PLASMA_BURST]: {
     name: 'Plasma Burst',
     type: 'Weapon',
@@ -86,6 +106,8 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Fire+Earth. Two stages: a token 0.1 packet at 440 ms that exists to carry
+  // the blind, then the real 1.4 hit plus Burning at 920 ms.
   [ID.ASHEN_BLAST]: {
     name: 'Ashen Blast',
     type: 'Weapon',
@@ -147,6 +169,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Air+Water. Two crowd-control applications far apart on the timeline: the
+  // opening 0.1 packet at 234 ms carries the Blast finisher, Chilled,
+  // Regeneration and the first control, while the 1.25 payoff hit and second
+  // control land at 1514 ms - long after the 280 ms cast has ended.
   [ID.KATABATIC_WIND]: {
     name: 'Katabatic Wind',
     type: 'Weapon',
@@ -238,6 +264,8 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Water+Earth. Effectively a pure control skill: the 0.15 packet exists to
+  // deliver the crowd-control application, not damage.
   [ID.MUD_SLIDE]: {
     name: 'Mud Slide',
     type: 'Weapon',
@@ -275,6 +303,9 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     ],
     specialization: 'Weaver'
   },
+  // Air+Earth. Six 0.275 pulses on a 520 ms cadence from 920 ms to 3520 ms,
+  // each stacking Bleeding; the damage keeps running well past the 600 ms cast.
+  // Stability is granted once, on the first pulse only.
   [ID.GRINDING_STONES]: {
     name: 'Grinding Stones',
     type: 'Weapon',

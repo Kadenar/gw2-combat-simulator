@@ -1,22 +1,22 @@
-import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../data/catalog.js';
-import { revenantCoreEventHandlers } from './mechanics/state-events.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
+import { revenantCoreEventHandlers } from '#gw2/content/professions/revenant/core/mechanics/state-events.js';
 import {
   revenantCoreAttributeRules,
   revenantCastRules,
   revenantSchedulerHooks,
   snapshotRevenantState
-} from './traits/modifiers.js';
-import { createRevenantCoreState } from './state.js';
-import { projectRevenantEndState } from '../state/index.js';
-import { revenantCoreUi } from './presentation.js';
+} from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { createRevenantCoreState } from '#gw2/content/professions/revenant/core/state.js';
+import { projectRevenantEndState } from '#gw2/content/professions/revenant/state.js';
+import { revenantCoreUi } from '#gw2/content/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
-} from './skills/index.js';
-import { revenantCoreSkillHandlers } from './skills/handlers.js';
-import type { RevenantSchedulerContext } from '../types.js';
+} from '#gw2/content/professions/revenant/core/skills/index.js';
+import { revenantCoreSkillHandlers } from '#gw2/content/professions/revenant/core/skills/execution.js';
+import type { RevenantSchedulerContext } from '#gw2/content/professions/revenant/types.js';
 
 export const revenantCoreModule = defineNativeModule({
   id: 'Core',

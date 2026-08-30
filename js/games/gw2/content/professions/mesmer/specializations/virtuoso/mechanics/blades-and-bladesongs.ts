@@ -1,18 +1,24 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { illusionSource, timedActive } from '../../../core/mechanics/execution.js';
-import { mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import { initializeVirtuosoRuntime } from './runtime.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../../platform/combat/query/types.js';
-import type { MesmerSchedulerContext, MesmerSchedulerTask } from '../../../types.js';
-import { mesmerBalanceValue } from '../../../core/profiles.js';
-import { handleDeadlyBladesCriticalTask, observeDeadlyBladesEvent } from '../traits/deadly-blades.js';
-import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { handleVirtuosoExpectedProcTask, observeVirtuosoExpectedProcEvent } from '../traits/expected-procs.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { MesmerPrecastContext, MesmerSkill } from '../../../types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { illusionSource, timedActive } from '#gw2/content/professions/mesmer/core/traits/modifiers.js';
+import { mesmerRuntimeFor } from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { initializeVirtuosoRuntime } from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/content/professions/mesmer/types.js';
+import { mesmerBalanceValue } from '#gw2/content/professions/mesmer/core/profiles.js';
+import {
+  handleDeadlyBladesCriticalTask,
+  observeDeadlyBladesEvent
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
+import {
+  handleVirtuosoExpectedProcTask,
+  observeVirtuosoExpectedProcEvent
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { MesmerPrecastContext, MesmerSkill } from '#gw2/content/professions/mesmer/types.js';
 
 /** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
 function virtuosoAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {

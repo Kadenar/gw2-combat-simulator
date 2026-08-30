@@ -1,5 +1,9 @@
-import type { SchedulerRecord, SimulationEventInput } from '../../../../../platform/engine/types.js';
-import type { ElementalistSchedulerContext } from '../../types.js';
+/**
+ * Core Elementalist prepareEvent hooks: last-chance rewrites applied to outgoing
+ * packets before they join the canonical scheduler timeline.
+ */
+import type { SchedulerRecord, SimulationEventInput } from '#gw2/platform/engine/types.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 
 // Preserve packets excluded by the configured hitbox as cancelled markers so
 // timing and diagnostics remain visible without contributing combat effects.

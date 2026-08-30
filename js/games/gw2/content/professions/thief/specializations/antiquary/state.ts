@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from '../../../../../platform/engine/profession/state.js';
-import type { AntiquaryState, ThiefConfig } from '../../types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { AntiquaryState, ThiefConfig } from '#gw2/content/professions/thief/types.js';
 
 export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   return {

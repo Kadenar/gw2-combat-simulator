@@ -1,10 +1,10 @@
-import { createProfessionAssumptionControls } from '../../../../../app/profession/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
   namedSkillId,
   uniqueIdsBySkillName
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/engineer/core/presentation.js';
 import type {
   CanonicalCatalog,
   ProfessionSkillBarGroup,
@@ -13,8 +13,13 @@ import type {
   SchedulerRecord,
   SimulationEvent,
   SkillId
-} from '../../../../../platform/engine/types.js';
-import type { EngineerResolverEvent, EngineerSkill, EngineerUiContext, EngineerUiSelection } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  EngineerResolverEvent,
+  EngineerSkill,
+  EngineerUiContext,
+  EngineerUiSelection
+} from '#gw2/content/professions/engineer/types.js';
 
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
@@ -40,6 +45,7 @@ const AMALGAM_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
   }
 ]);
 
+/** Returns the catalog-backed Morph choices for a mechanic slot in stable UI order. */
 function amalgamProtocolOptions(slot: number): EngineerSkill[] {
   return engineerSkills
     .filter(
@@ -53,19 +59,22 @@ function amalgamProtocolOptions(slot: number): EngineerSkill[] {
     );
 }
 
+/** Reads the current three Morph selections, preferring the editable build over simulated state. */
 function selectedMorphIds(context: EngineerUiContext): number[] {
   return [...(context.build?.selectedMorphSkillIds || engineerUiState(context).selectedMorphSkillIds || [])].map(
     Number
   );
 }
 
+/** Projects the selected protocols between Amalgam's fixed F1 and F5 skills. */
 function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[] {
   return [engineerToolbeltSkillIds(context)[0], ...selectedMorphIds(context).slice(0, 3), namedSkillId('Evolve')];
 }
 
-// Amalgam owns its configurable F2-F4 protocol contract and leaves F1/F5 fixed.
+/** Builds Amalgam's configurable F2-F4 protocol group while leaving F1 and F5 fixed. */
 function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(context);
+  // Build one selector per configurable protocol slot, retaining only selections valid for that slot.
   const selections = [2, 3, 4].flatMap((slot) => {
     const options = amalgamProtocolOptions(slot);
     const selected = Number(selectedMorphIds(context)[slot - 2]);
@@ -83,6 +92,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
       }
     ];
   });
+  // Project fixed F1/F5 skills separately so the UI can render them apart from protocol selectors.
   const fixedSkillIds = skillIds.filter(
     (skillId, index): skillId is SkillId => skillId != null && ![1, 2, 3].includes(index)
   );
@@ -112,6 +122,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
   ];
 }
 
+/** Validates a protocol selection and swaps duplicate protocol names across mechanic slots. */
 function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: EngineerUiSelection): boolean {
   if (selection.key !== 'selectedMorphSkillIds') return false;
   const index = Number(selection.index);
@@ -148,6 +159,7 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
   return true;
 }
 
+/** Reconstructs a source buff's remaining duration from events at the inspected timestamp. */
 function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: number): number {
   let remaining = 0;
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
@@ -164,6 +176,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const state = engineerUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
+  // Evolve is state-backed, so its remaining duration comes directly from the specialization snapshot.
   const evolveRemaining = Number(state.evolvedUntil || 0) - at;
   if (evolveRemaining > 0) {
     items.push({
@@ -174,6 +187,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
     });
   }
 
+  // Merge event-backed emitted buffs with timestamp-backed strains before presenting one active summary.
   const strains: [string, number][] = [
     ['Resiliant', activeBuffRemaining(context, 'engineer.resiliant-strain', at)],
     ['Replicating', activeBuffRemaining(context, 'engineer.replicating-strain', at)],
@@ -195,6 +209,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   return items;
 }
 
+/** Supplies Amalgam-specific skill-bar, palette, snapshot, and event-log presentation behavior. */
 export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
@@ -215,6 +230,7 @@ export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
   ]
 });
 
+/** Binds canonical skills used by Amalgam UI projections and returns the shared UI contract. */
 export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog>): typeof amalgamUi {
   engineerSkills = catalog.skills as readonly EngineerSkill[];
   engineerSkillsById = catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;

@@ -1,27 +1,30 @@
-import { createModifierHooks, MODIFIER_TARGET } from '../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { professionStaticRulesApplied } from '../../../../../platform/builds/attribute-provenance.js';
-import { professionCoreState, readProfessionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { GW2_STANDARD_BOONS } from '../../../../../platform/combat/state/boons.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
   isGw2PlayerModifierEligibleEvent
-} from '../../../../../platform/combat/state/event-ownership.js';
+} from '#gw2/platform/combat/state/event-ownership.js';
 import {
   eventSkill as gw2EventSkill,
   hasSelectedSkill,
   targetConditionActive
-} from '../../../../../platform/combat/query/runtime-query.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { rangerCoreCastAvailability } from '../mechanics/availability.js';
-import { rangerPetByName } from '../state.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../platform/combat/query/types.js';
-import type { RangerSchedulerContext, RangerSkill } from '../../types.js';
-import type { RangerCastContext } from '../../types.js';
-import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '../../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerCoreCastAvailability } from '#gw2/content/professions/ranger/core/mechanics/availability.js';
+import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+import type { RangerCastContext } from '#gw2/content/professions/ranger/types.js';
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 function petEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.

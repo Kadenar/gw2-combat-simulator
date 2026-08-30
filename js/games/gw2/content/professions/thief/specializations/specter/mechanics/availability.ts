@@ -1,8 +1,8 @@
-import { specterState } from '../state.js';
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import { denySkillCast as deny } from '../../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { ThiefPrecastContext, ThiefSkill } from '../../../types.js';
+import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { ThiefPrecastContext, ThiefSkill } from '#gw2/content/professions/thief/types.js';
 
 export function specterCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(context);

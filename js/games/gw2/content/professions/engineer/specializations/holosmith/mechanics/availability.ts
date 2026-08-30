@@ -1,10 +1,10 @@
-import { holosmithState } from '../state.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { denySkillCast as denyEngineerCast } from '../../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import type { EngineerPrecastContext } from '../../../types.js';
-import type { HolosmithSkill } from '../types.js';
+import { holosmithState } from '#gw2/content/professions/engineer/specializations/holosmith/state.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { EngineerPrecastContext } from '#gw2/content/professions/engineer/types.js';
+import type { HolosmithSkill } from '#gw2/content/professions/engineer/specializations/holosmith/types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.RADIANT_ARC_ID_69565,
@@ -14,6 +14,7 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.REFRACTION_CUTTER_ID_71121
 ]);
 
+/** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules. */
 export function holosmithCastAvailability(context: EngineerPrecastContext, skill: HolosmithSkill): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.

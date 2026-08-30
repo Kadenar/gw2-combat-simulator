@@ -1,13 +1,21 @@
-import { flattenProfessionState } from '../../../../../platform/engine/profession/state.js';
-import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '../../core/presentation.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  guardianUiSkillIdsByName,
+  guardianUiSkillsByMode
+} from '#gw2/content/professions/guardian/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionSkillBarGroup,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { GuardianResolverEvent, GuardianSkill, GuardianState, GuardianUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  GuardianResolverEvent,
+  GuardianSkill,
+  GuardianState,
+  GuardianUiContext
+} from '#gw2/content/professions/guardian/types.js';
 
 function firebrandEventLogRow(
   _context: SchedulerRecord,

@@ -1,5 +1,5 @@
-import { readProfessionSpecializationState } from '../../../../../../platform/engine/profession/state.js';
-import type { ConduitState, RevenantEnergyContext, RevenantSkill } from '../../../types.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { ConduitState, RevenantEnergyContext, RevenantSkill } from '#gw2/content/professions/revenant/types.js';
 
 // Extract Conduit specialization state only when that specialization is active,
 // preventing energy rules from reading another module's shape.

@@ -3,15 +3,22 @@ import {
   onBuffApplied,
   onComboResolved,
   onResolvedDamage
-} from '../../../../../integrations/patches/authoring/mechanics.js';
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createEngineerModuleData } from '../../data/catalog.js';
-import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './traits/reactions.js';
-import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './traits/modifiers.js';
-import { SCRAPPER_SKILL_MECHANICS } from './skills/index.js';
-import { scrapperState } from './state.js';
-import { SCRAPPER_BALANCE_PROFILES } from './profiles.js';
-import { scrapperUi } from './presentation.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createEngineerModuleData } from '#gw2/content/professions/engineer/catalog/module-data.js';
+import {
+  scrapperResolverEventHandlers,
+  scrapperResolverEventReactions
+} from '#gw2/content/professions/engineer/specializations/scrapper/traits/reactions.js';
+import {
+  scrapperAttributeRules,
+  scrapperCastRules,
+  scrapperSchedulerHooks
+} from '#gw2/content/professions/engineer/specializations/scrapper/traits/modifiers.js';
+import { SCRAPPER_SKILL_MECHANICS } from '#gw2/content/professions/engineer/specializations/scrapper/skills/index.js';
+import { scrapperState } from '#gw2/content/professions/engineer/specializations/scrapper/state.js';
+import { SCRAPPER_BALANCE_PROFILES } from '#gw2/content/professions/engineer/specializations/scrapper/profiles.js';
+import { scrapperUi } from '#gw2/content/professions/engineer/specializations/scrapper/presentation.js';
 
 export const scrapperModule = defineNativeModule({
   id: 'Scrapper',

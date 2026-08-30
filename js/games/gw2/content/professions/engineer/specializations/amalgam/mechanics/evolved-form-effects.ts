@@ -1,16 +1,17 @@
-import { amalgamState } from '../state.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
+import { amalgamState } from '#gw2/content/professions/engineer/specializations/amalgam/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   applyEngineerDerivedCondition,
   procState,
   queueDamage,
   recordTrait,
   resolverSkill
-} from '../../../core/mechanics/state-helpers.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '../../../types.js';
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/content/professions/engineer/types.js';
 
+/** Identifies player-owned Amalgam hits and the Rapacious effect hit that may chain Carbolic Composition. */
 function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.actorType === 'summon') return false;
   // Rapacious Strain fires as an "effect" actor after player hits. Allow it
@@ -27,6 +28,7 @@ function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerReso
   );
 }
 
+/** Applies damage-triggered Carbolic Composition and Rapacious Strain reactions. */
 function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
@@ -67,6 +69,7 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
   }
 }
 
+/** Exposes Amalgam's resolver reactions keyed by the canonical event hook name. */
 export const amalgamResolverEventReactions = Object.freeze({
   damage: reactToAmalgamDamage
 });

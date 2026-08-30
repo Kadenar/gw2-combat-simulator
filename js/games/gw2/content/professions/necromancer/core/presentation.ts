@@ -1,7 +1,7 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
-import { getActiveTraits } from '../data/traits-data.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/necromancer/data/traits-data.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -12,9 +12,14 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
-} from '../../../../platform/engine/types.js';
-import type { NecromancerSimulationEvent, NecromancerSkill, NecromancerState, NecromancerUiContext } from '../types.js';
-import { gw2PrimaryWeapon } from '../../../../platform/equipment/weapons/loadout.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  NecromancerSimulationEvent,
+  NecromancerSkill,
+  NecromancerState,
+  NecromancerUiContext
+} from '#gw2/content/professions/necromancer/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 let necromancerCatalog: Readonly<CanonicalCatalog>;
 
@@ -29,10 +34,12 @@ const LICH_SKILLS: readonly SkillId[] = Object.freeze([
 ]);
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 
+/** Flattens Core and active-specialization state for Necromancer UI projections. */
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
+/** Resolves the specialization name used to select Necromancer UI groups and rules. */
 export function necromancerUiSpecialization(context: NecromancerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
@@ -61,8 +68,7 @@ function shroudSkillIds(shroud: string, includeFlips = true): SkillId[] {
     .map((skill) => skill.id);
 }
 
-// Build the F-key and active shroud bars from one transform definition, omitting
-// flip children from the read-only skill-bar preview.
+/** Builds F-key and active-shroud skill-bar groups for one transform definition. */
 export function necromancerTransformSkillBarGroups(
   context: NecromancerUiContext,
   {
@@ -89,6 +95,7 @@ export function necromancerTransformSkillBarGroups(
       layout: 'necromancer-shroud'
     }
   ];
+  // Add the read-only shroud bar only when the catalog exposes implemented root skills for this form.
   const shroudName = String(shroud || '');
   const shroudSkills = shroudName ? shroudSkillIds(shroudName, false) : [];
   if (shroudSkills.length) {
@@ -105,6 +112,7 @@ export function necromancerTransformSkillBarGroups(
   return groups;
 }
 
+/** Builds profession, shroud, Lich, and shared-action palette groups for a Necromancer transform. */
 export function necromancerTransformPaletteGroups(
   context: NecromancerUiContext,
   {
@@ -122,6 +130,7 @@ export function necromancerTransformPaletteGroups(
   }
 ): ProfessionPaletteGroup[] {
   const state = necromancerUiState(context);
+  // The profession group anchors transform controls and the shared Soul Shard resource.
   const groups: ProfessionPaletteGroup[] = [
     {
       id: 'profession',
@@ -136,6 +145,7 @@ export function necromancerTransformPaletteGroups(
       stackId
     }
   ];
+  // Active transform bars stack with the profession group while Lich is projected from runtime state.
   const shroudSkills = shroud ? shroudSkillIds(shroud) : [];
   if (shroudSkills.length) {
     groups.push({
@@ -174,6 +184,7 @@ function necromancerCorePaletteAvailability(
   const state = necromancerUiState(context);
   const active = String(state.activeShroud || '');
   const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
+  // Apply trait replacements and living-minion restrictions before transform-wide gates.
   if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {
     return { available: false, message: 'Requires Lingering Curse' };
   }
@@ -196,6 +207,7 @@ function necromancerCorePaletteAvailability(
     };
   }
 
+  // Once transformed, only the corresponding replacement bar remains available.
   if (active === 'lich') {
     const available = new Set(LICH_SKILLS).has(skill.id);
     return {
@@ -244,6 +256,7 @@ function necromancerCorePaletteAvailability(
   return { available: true, message: '' };
 }
 
+/** Formats Necromancer-specific state and chill events while hiding internal lifecycle packets. */
 export function necromancerEventLogRow(
   _context: NecromancerUiContext,
   event: NecromancerSimulationEvent
@@ -275,6 +288,7 @@ export function necromancerEventLogRow(
   }
 
   if (event?.type !== 'necromancer.state') return undefined;
+  // Summarize only player-facing resource and transform fields from state snapshots.
   const state = event.state || {};
   const details = [`Life force ${Number(state.lifeForce || 0).toFixed(1)}`];
   if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
@@ -295,8 +309,7 @@ export function necromancerEventLogRow(
   };
 }
 
-// Expose only the health thresholds required by selected Necromancer traits so
-// the timeline can show meaningful scheduling boundaries.
+/** Returns target-health boundaries required by selected traits and threshold-dependent weapons. */
 export function necromancerCoreTargetHealthThresholds(context: NecromancerUiContext = {}): number[] {
   const build = context.build || {};
   const traits = getActiveTraits(build.specializations || []);
@@ -306,10 +319,10 @@ export function necromancerCoreTargetHealthThresholds(context: NecromancerUiCont
   return hasHalfHealthTrait || hasThresholdWeapon ? [0.5] : [];
 }
 
-// Project Soul Shards as a bounded palette resource with current and maximum
-// values derived from flattened profession state.
+/** Projects Soul Shards when a spear is equipped or shard state is already active. */
 export function necromancerSoulShardResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
+  // Inspect both build loadouts and runtime-resolved primary weapons so the resource appears before simulation.
   const equippedWeapons = [
     ...(context.build?.weapons || []),
     ...(context.build?.alternateWeapons || []),
@@ -336,6 +349,7 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     : [];
 }
 
+// Normalize life force into the configured pool capacity and append Core-only Soul Shards.
 function necromancerCoreResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
   const normalizedMaximum = Math.max(100, Number(state.maximumLifeForce || 100));
@@ -343,6 +357,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
     Math.max(1, Number(state.lifeForcePoolCapacity || context.lifeForcePoolCapacity || normalizedMaximum))
   );
   const normalizedValue = Number(state.lifeForce ?? state.resource ?? context.value ?? context.initialResource ?? 100);
+  // The UI stores life force as a normalized percentage but renders against the build-specific pool capacity.
   const views: ProfessionResourceView[] = [
     {
       id: 'life-force',
@@ -365,6 +380,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
   return views;
 }
 
+/** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
 export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: necromancerEventLogRow,
@@ -390,6 +406,7 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord 
   paletteSkillAvailability: necromancerCorePaletteAvailability
 });
 
+/** Binds the canonical catalog used by transform group builders and returns the Core UI contract. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog>): typeof necromancerCoreUi {
   necromancerCatalog = catalog;
   return necromancerCoreUi;

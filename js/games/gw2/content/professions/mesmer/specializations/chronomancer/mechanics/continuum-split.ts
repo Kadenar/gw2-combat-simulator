@@ -1,10 +1,10 @@
-import { chronomancerState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { replaceAutoattackChains } from '../../../../../../platform/skills/autoattack-chains.js';
+import { chronomancerState } from '#gw2/content/professions/mesmer/specializations/chronomancer/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type { SchedulerState, SkillId } from '../../../../../../platform/engine/types.js';
+import type { SchedulerState, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   MesmerAddEvent,
   MesmerRuntimeState,
@@ -12,7 +12,7 @@ import type {
   MesmerResourceSpendDetails,
   MesmerShatterResolution,
   MesmerSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

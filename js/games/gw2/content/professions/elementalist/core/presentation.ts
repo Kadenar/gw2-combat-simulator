@@ -1,8 +1,25 @@
-import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS, HAMMER_ORB_SKILLS } from './constants.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
-import type { ElementalistState } from '../types.js';
+/**
+ * Core Elementalist UI contract.
+ *
+ * Projects live core state onto the shared build/rotation views: the attunement
+ * and weapon-resource palette, which variant of a state-flipped skill is shown
+ * and castable at the inspection point, the profession event-log rows, and the
+ * timeline's attunement lane. Read-only over simulation state - the one
+ * exception is `updatePaletteControl`, which edits the build's starting stock.
+ */
+import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/content/professions/elementalist/app/assumptions.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import {
+  AURA_TRANSMUTE_SKILLS,
+  ETCHING_CHAINS,
+  HAMMER_ORB_SKILLS
+} from '#gw2/content/professions/elementalist/core/constants.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  type ElementalistAttunement,
+  type ElementalistCoreState
+} from '#gw2/content/professions/elementalist/core/state.js';
+import type { ElementalistState } from '#gw2/content/professions/elementalist/types.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -13,8 +30,11 @@ import type {
   SchedulerRecord,
   SimulationEvent,
   Skill
-} from '../../../../platform/engine/types.js';
-import { bindElementalistFamilyUiCatalog, elementalistAttunementResourceAnchor } from '../presentation.js';
+} from '#gw2/platform/engine/types.js';
+import {
+  bindElementalistFamilyUiCatalog,
+  elementalistAttunementResourceAnchor
+} from '#gw2/content/professions/elementalist/presentation.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -49,6 +69,8 @@ const PISTOL_BULLETS = Object.freeze([
 
 let elementalistCatalog: Readonly<CanonicalCatalog>;
 
+// The palette is inspected both mid-rotation (live scheduler state) and after a
+// run (projected end state); accept either shape.
 function uiState(context: SchedulerRecord): Partial<ElementalistState> {
   const professionState = context.professionState as Partial<ElementalistState> | undefined;
   const endState = context.state as { profession?: Partial<ElementalistState> } | undefined;
@@ -59,11 +81,13 @@ function pistolBulletRecord(value: unknown): SchedulerRecord | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : null;
 }
 
+// Bullets the build starts with, as opposed to what is stocked right now.
 function configuredPistolBullets(context: SchedulerRecord): SchedulerRecord {
   const build = context.build as SchedulerRecord | undefined;
   return pistolBulletRecord(build?.pistolBullets) || {};
 }
 
+// Prefer live simulation stock; before a run there is only the build's setting.
 function displayedPistolBullets(context: SchedulerRecord): SchedulerRecord {
   return pistolBulletRecord(uiState(context).pistolBullets) || configuredPistolBullets(context);
 }
@@ -73,6 +97,8 @@ function elementalistPistolEquipped(context: SchedulerRecord): boolean {
   return Array.isArray(build?.weapons) && build.weapons.includes('Pistol');
 }
 
+// Render the four bullets as toggle controls: `active` shows the current stock,
+// `pressed` the starting stock the user can click to change.
 function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGroup | null {
   if (!elementalistPistolEquipped(context)) return null;
   const state = uiState(context);
@@ -109,6 +135,10 @@ function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGr
   };
 }
 
+// Rewrite the weapon rows the palette shows so state-driven slot replacements
+// are visible: the live etching stage in spear slot 5, and Elemental Explosion
+// standing in for the current attunement's pistol autoattack once all four
+// bullets are stocked.
 function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[]): Skill[] {
   const state = uiState(context);
   // Each spear etching occupies slot 5 throughout its lesser/full progression;
@@ -147,6 +177,7 @@ function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[])
   });
 }
 
+// Handles clicks on the bullet toggles by flipping the build's starting stock.
 function updatePaletteControl(context: SchedulerRecord, controlId: string): boolean {
   if (!controlId.startsWith(PISTOL_BULLET_CONTROL_PREFIX)) return false;
   const element = controlId.slice(PISTOL_BULLET_CONTROL_PREFIX.length);
@@ -218,6 +249,7 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
   return groups;
 }
 
+// Live attunement when a run exists, otherwise the build's configured start.
 function currentAttunement(context: SchedulerRecord): ElementalistAttunement {
   const build = context.build as SchedulerRecord | undefined;
   const value = String(uiState(context).primaryAttunement || build?.startAttunement || 'Fire');
@@ -226,6 +258,9 @@ function currentAttunement(context: SchedulerRecord): ElementalistAttunement {
     : 'Fire';
 }
 
+// Explain why a palette tile is not castable at the inspection point. Covers the
+// skill pairs and resources that flip on core state: aura generator vs transmute,
+// Rock Barrier vs Hurl, hammer orbs, pistol bullets, and autoattack chain order.
 function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   const state = uiState(context);
   const now = Number(context.time || 0);
@@ -361,6 +396,7 @@ function eventLogRow(
   return undefined;
 }
 
+// Label the timeline's weapon lane with the attunement it switches into.
 function timelineWeaponLineTransition(context: SchedulerRecord): string | undefined {
   if (context.initial === true) {
     return currentAttunement(context);
@@ -375,6 +411,7 @@ function timelineWeaponLineTransition(context: SchedulerRecord): string | undefi
   return target;
 }
 
+// Compact per-step readout of the two stockpile resources shown beside the rotation.
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
   const state = uiState(context);
   const bullets = Object.entries(state.pistolBullets || {})
@@ -401,6 +438,10 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
   ];
 }
 
+/**
+ * The Core Elementalist half of the shared profession UI contract, merged with
+ * the family and specialization contracts by the module registry.
+ */
 export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
   skillBarGroups: () => [
@@ -422,6 +463,10 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord
   weaponSwapChangesSet: false
 });
 
+/**
+ * Module presentation entry point: captures the canonical catalog these
+ * projections need before returning the Core UI contract.
+ */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): typeof elementalistCoreUi {
   elementalistCatalog = catalog;
   bindElementalistFamilyUiCatalog(catalog);

@@ -1,16 +1,18 @@
-import { getActiveTraits } from '../data/traits-data.js';
-import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
+import { getActiveTraits } from '#gw2/content/professions/necromancer/data/traits-data.js';
+import {
+  createBuildAttributeContext,
+  finalizeProfessionBuildAttributes
+} from '#gw2/content/professions/lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from '../../../../platform/builds/types.js';
-import type { NecromancerSpecializationSelection } from '../data/traits-data.js';
+} from '#gw2/platform/builds/types.js';
+import type { NecromancerSpecializationSelection } from '#gw2/content/professions/necromancer/data/traits-data.js';
 
-// Apply Necromancer flat bonuses and ordered attribute conversions at build time,
-// then add trait-specific duration and critical-chance contributions.
+/** Applies Necromancer flat bonuses, ordered conversions, durations, and critical chance at build time. */
 export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
@@ -24,6 +26,7 @@ export function applyNecromancerBuildAttributeRules(
 
   const traitDurations: Gw2NumericAttributes = {};
 
+  // Keep static bonuses declarative so shared provenance and conversion ordering remain consistent.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
@@ -139,6 +142,7 @@ export function applyNecromancerBuildAttributeRules(
     traitDurations['Bleeding Duration'] = 20;
   }
 
+  // Finalization merges profession effects with the common equipment-derived attribute result.
   return finalizeProfessionBuildAttributes(common, {
     activeTraits,
     attributeEffects,

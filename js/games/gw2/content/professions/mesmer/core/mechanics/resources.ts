@@ -1,7 +1,7 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerNumericResourceState } from '../../state/resources.js';
-import type { SchedulerState } from '../../../../../platform/engine/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerNumericResourceState } from '#gw2/content/professions/mesmer/state/resources.js';
+import type { SchedulerState } from '#gw2/platform/engine/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,
@@ -15,7 +15,7 @@ import type {
   MesmerResourceDefinition,
   MesmerRuntime,
   MesmerRuntimeState
-} from '../../types.js';
+} from '#gw2/content/professions/mesmer/types.js';
 
 interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

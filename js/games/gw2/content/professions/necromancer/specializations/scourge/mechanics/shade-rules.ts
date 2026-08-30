@@ -1,24 +1,37 @@
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { CAST_READY, denyCast } from '../../../../../../platform/engine/skills/availability.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { cloneNecromancerAttributes, necromancerRuntimeSpecializationState } from '../../../core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord } from '../../../../../../platform/engine/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { NecromancerAmmoModifierContext, NecromancerRechargeModifierContext } from '../../../types.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import {
+  cloneNecromancerAttributes,
+  necromancerRuntimeSpecializationState
+} from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
+import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  NecromancerAmmoModifierContext,
+  NecromancerRechargeModifierContext
+} from '#gw2/content/professions/necromancer/types.js';
 import type {
   NecromancerPrecastContext,
   NecromancerSchedulerContext,
   NecromancerSimulationEvent,
   NecromancerSkill
-} from '../../../types.js';
-import { necromancerBalanceProfile } from '../../../core/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { gainNecromancerLifeForce } from '../../../core/mechanics/state-helpers.js';
-import { purgeScourgeTimedState, scourgeState } from '../state.js';
+} from '#gw2/content/professions/necromancer/types.js';
+import { necromancerBalanceProfile } from '#gw2/content/professions/necromancer/core/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/necromancer/specializations/scourge/profiles.js';
+import { gainNecromancerLifeForce } from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import {
+  purgeScourgeTimedState,
+  scourgeState
+} from '#gw2/content/professions/necromancer/specializations/scourge/state.js';
 
+// Apply Scourge's static conversion and live-shade attribute bonuses from their authoritative inputs.
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.FELL_BEACON)) {
@@ -47,6 +60,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
   return result;
 }
 
+// Apply Sand Savant's recharge penalty only to Manifest Sand Shade.
 function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
   // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
@@ -54,6 +68,7 @@ function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierConte
     : duration;
 }
 
+// Collapse Manifest Sand Shade to Sand Savant's single-charge limit.
 function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maximum: number): number {
   // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)

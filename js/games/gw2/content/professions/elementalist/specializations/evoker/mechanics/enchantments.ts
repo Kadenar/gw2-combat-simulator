@@ -1,11 +1,22 @@
-import { emitSkillCondition, emitSkillDamage } from '../../../../../../platform/scheduler/skill-events.js';
-import type { SimulationEvent } from '../../../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '../../../types.js';
-import { emitElementalistProc } from '../../../core/mechanics/effects.js';
-import { elementalistBalanceEffect } from '../../../core/profiles.js';
-import { ELECTRIC_ENCHANTMENT_ICON } from './constants.js';
-import { type EvokerState } from '../state.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+/**
+ * Electric Enchantment (Galvanic Enchantment) payload delivery.
+ *
+ * Stacks are armed elsewhere - familiar completions and a few Evoker utility
+ * skills - and spent here by attaching a strike plus condition package to the
+ * player strikes that consume them, marking each consumed strike so it can never
+ * be charged twice.
+ */
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistSchedulerContext
+} from '#gw2/content/professions/elementalist/types.js';
+import { emitElementalistProc } from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
+import { elementalistBalanceEffect } from '#gw2/content/professions/elementalist/core/profiles.js';
+import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { type EvokerState } from '#gw2/content/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/elementalist/specializations/evoker/profiles.js';
 
 // Materialize Electric Enchantment's strike and control package for the invoking
 // skill while preserving shared event attribution.
@@ -45,6 +56,11 @@ export function emitElectricEnchantment(context: ElementalistSchedulerContext, e
   });
 }
 
+/**
+ * Retroactively spends armed stacks on already-scheduled player strikes,
+ * earliest first, covering stacks granted after those strikes were queued. Stops
+ * as soon as the stack pool runs out.
+ */
 export function materializeArmedElectricEnchantments(context: ElementalistCastContext, state: EvokerState): void {
   // electricEnchantmentConsumed prevents double-consuming the same hit if this runs twice
   // sorted chronologically so the earliest hits in the window consume stacks first

@@ -1,10 +1,10 @@
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { emitSkillBuff, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../../state/index.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../../platform/combat/state/allied-players.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 /**
  * Life-force resource clock and cast finalization.
  *
@@ -14,22 +14,31 @@ import { selectedSkillNameSet } from '../../../../../platform/builds/selected-sk
  * NecromancerCast` runs after each cast to advance the clock and apply skill
  * life-force gain. Called on a tight loop, so it stays allocation-light.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { syncNecromancerResources } from '../state.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { syncNecromancerResources } from '#gw2/content/professions/necromancer/core/state.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
   necromancerBalanceProfile
-} from '../profiles.js';
-import { gainNecromancerLifeForce, purgeTimedState } from './state-helpers.js';
-import { runNecromancerResourceAdvance, runNecromancerShroudExit } from './shroud-lifecycle.js';
-import type { SkillId } from '../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/necromancer/core/profiles.js';
+import {
+  gainNecromancerLifeForce,
+  purgeTimedState
+} from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import {
+  runNecromancerResourceAdvance,
+  runNecromancerShroudExit
+} from '#gw2/content/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerConfig,
   NecromancerSchedulerContext,
   NecromancerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
 function targetConditionCount(config: NecromancerConfig): number {
   return Object.values(config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length;
@@ -45,6 +54,7 @@ function alacrityRecharge(context: NecromancerSchedulerContext, duration: number
   return duration / (context.hasBuff?.('alacrity', at) ? 1.25 : 1);
 }
 
+// Start the entry skill's post-exit recharge, applying alacrity at the exit timestamp.
 function setShroudRecharge(
   context: NecromancerSchedulerContext,
   entryId: SkillId | null | undefined,
@@ -55,12 +65,12 @@ function setShroudRecharge(
   }
 }
 
-// Exit the current shroud atomically, clear its flip and drain state, then apply
-// exit traits and publish the weapon-set transition.
+/** Exits the active life-force shroud, starts its recharge, and emits exit effects and state. */
 export function leaveShroud(context: NecromancerSchedulerContext, at: number, reason = 'shroud-exit'): void {
   const state = professionCoreState(context);
   const shroud = state.activeShroud;
   if (!shroud || shroud === 'lich') return;
+  // Clear transform and flip state before callbacks observe the exit.
   const entryId = state.activeShroudEntryId;
   const exitId = state.activeShroudExitId;
   state.activeShroud = '';
@@ -73,6 +83,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
     delete state.availableFlips[String(exitId)];
   }
 
+  // Specialization callbacks run before shared exit traits and the visible weapon transition.
   runNecromancerShroudExit(context, at, reason);
   context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, entryId, at);
@@ -119,6 +130,7 @@ function emitAlliedVampiricPresenceHits(context: NecromancerSchedulerContext, st
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
   if (combatStart == null || end < combatStart - context.epsilon) return;
 
+  // Respect both the trait cooldown and the configured aggregate ally strike rate.
   const state = professionCoreState(context);
   const interval = Math.max(
     Number(necromancerBalanceProfile(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5),
@@ -155,6 +167,7 @@ function emitAlliedTasteForBloodHits(context: NecromancerSchedulerContext, start
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
   if (combatStart == null || end < combatStart - context.epsilon) return;
 
+  // Emit one trigger opportunity per ally at each configured aggregate attack interval.
   const state = professionCoreState(context);
   const interval = 1 / allies.strikesPerSecond;
   const windowStart = Math.max(start, combatStart);
@@ -179,8 +192,7 @@ function emitAlliedTasteForBloodHits(context: NecromancerSchedulerContext, start
   state.traitProcReadyAt.tasteForBloodAlliedNextAt = nextAt;
 }
 
-// Advance all continuous Necromancer state to one timestamp: timed traits,
-// signet pulses, life-force sources and drain, and expiring transformations.
+/** Advances every Core and registered specialization resource clock to one authoritative timestamp. */
 export function advanceNecromancerState(context: NecromancerSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const start = Number(state.lastResourceAt || 0);
@@ -189,6 +201,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   emitAlliedVampiricPresenceHits(context, start, end);
   emitAlliedTasteForBloodHits(context, start, end);
 
+  // Resolve passive signet pulses over the elapsed interval without duplicating the starting boundary.
   if (activeSignetOfUndeath(context)) {
     const passive = necromancerBalanceProfile(context, PROFILE.signetOfUndeathPassive);
     const interval = Number(passive?.pulseInterval || 3);
@@ -239,6 +252,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     state.lifeForce = Math.min(threshold, state.lifeForce + seconds * state.maximumLifeForce * 0.03);
   }
 
+  // Let active specializations integrate their clocks before Core applies shroud depletion and expiry.
   runNecromancerResourceAdvance(context, start, end);
 
   if (state.activeShroud && state.activeShroud !== 'lich') {
@@ -256,6 +270,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     }
   }
 
+  // Lich Form expires independently of life-force shroud drain and refunds life force once.
   if (state.activeShroud === 'lich' && state.lichEndsAt <= end + context.epsilon) {
     state.activeShroud = '';
     state.lichEndsAt = 0;
@@ -270,6 +285,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   });
 }
 
+/** Applies a completed skill's fixed and trait-dependent life-force gains. */
 export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
   let amount = Number(skill.lifeForceGain || 0);
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
@@ -290,6 +306,7 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
   }
 }
 
+/** Advances state after a cast, applies completed-cast gains, and commits shroud entry cooldown state. */
 export function finalizeNecromancerCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   advanceNecromancerState(context, context.effectiveEnd);
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
@@ -305,6 +322,22 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
     'necromancer',
     context.effectiveEnd,
     'after-cast',
+    snapshotNecromancerState(context.state.profession),
+    { dedupeAcrossSourceIds: true }
+  );
+}
+
+/** Restores the shared Core resource pool and clears simulated self-conditions after a cooldown reset. */
+export function resetNecromancerResources(context: NecromancerSchedulerContext): void {
+  const state = professionCoreState(context);
+  state.lifeForce = state.maximumLifeForce;
+  state.resource = state.lifeForce;
+  state.selfConditions = [];
+  emitStateSnapshot(
+    context,
+    'necromancer',
+    context.state.time,
+    'cooldown-reset',
     snapshotNecromancerState(context.state.profession),
     { dedupeAcrossSourceIds: true }
   );

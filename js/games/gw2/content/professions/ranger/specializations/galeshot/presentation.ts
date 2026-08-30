@@ -1,6 +1,6 @@
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { rangerPetPaletteGroup, rangerUiState } from '../../core/presentation.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { rangerPetPaletteGroup, rangerUiState } from '#gw2/content/professions/ranger/core/presentation.js';
 import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
@@ -8,8 +8,8 @@ import type {
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { RangerSkill, RangerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RangerSkill, RangerUiContext } from '#gw2/content/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
   ID.KEEN_SHOT,

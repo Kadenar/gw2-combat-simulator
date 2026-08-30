@@ -1,6 +1,6 @@
-import type { BalanceProfile } from '../../../../../platform/engine/types.js';
-import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { BalanceProfile } from '#gw2/platform/engine/types.js';
+import { defineTraitProfile as trait } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
 
 // Stable IDs connect mech inheritance, attack sequencing, signet rules, and
 // trait handlers to values that balance overrides can replace independently.

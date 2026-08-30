@@ -1,16 +1,23 @@
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
+import {
+  applyMesmerRuntimeManifest,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
 import {
   MESMER_TROUBADOUR_CONTROL_SKILLS,
   MESMER_TROUBADOUR_INSTRUMENTS,
   MESMER_TROUBADOUR_TRAIT_DAMAGE
-} from './definitions.js';
-import type { MesmerSchedulerContext } from '../../../types.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+import type { MesmerSchedulerContext } from '#gw2/content/professions/mesmer/types.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
-} from '../profiles.js';
-import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerProfiledTraitDamage } from '../../../core/profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
+import {
+  mesmerBalanceProfile,
+  mesmerBalanceProfileEffect,
+  mesmerProfiledTraitDamage
+} from '#gw2/content/professions/mesmer/core/profiles.js';
 
 export function initializeTroubadourRuntime(context: MesmerSchedulerContext): void {
   const syncopateProfile = mesmerBalanceProfile(context, PROFILE.syncopate);

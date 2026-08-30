@@ -1,17 +1,23 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { targetConditionActive } from '../../../../../../platform/combat/query/runtime-query.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { thiefRuntimeState, thiefRuntimeSpecializationState } from '../../../core/traits/modifiers.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { DaredevilState, ThiefSchedulerContext } from '../../../types.js';
-import { daredevilCastAvailability } from './availability.js';
-import { updatePalmStrikeWindow } from './palm-strike.js';
-import { applyDaredevilDodge, beginDaredevilTraits } from '../traits/index.js';
-import { thiefBalanceProfile } from '../../../core/profiles.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import {
+  thiefRuntimeState,
+  thiefRuntimeSpecializationState
+} from '#gw2/content/professions/thief/core/traits/modifiers.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { DaredevilState, ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
+import { daredevilCastAvailability } from '#gw2/content/professions/thief/specializations/daredevil/mechanics/availability.js';
+import { updatePalmStrikeWindow } from '#gw2/content/professions/thief/specializations/daredevil/mechanics/palm-strike.js';
+import {
+  applyDaredevilDodge,
+  beginDaredevilTraits
+} from '#gw2/content/professions/thief/specializations/daredevil/traits/index.js';
+import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
 
 function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   const state = professionCoreState(context);

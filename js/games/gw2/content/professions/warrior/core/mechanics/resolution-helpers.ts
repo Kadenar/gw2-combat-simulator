@@ -3,7 +3,7 @@ import type {
   WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent
-} from '../../types.js';
+} from '#gw2/content/professions/warrior/types.js';
 
 /**
  * Boons the configured target actually carries, capping how many a removal

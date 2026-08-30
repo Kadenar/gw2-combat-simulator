@@ -1,11 +1,16 @@
-import { emitStateSnapshot } from '../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../platform/engine/profession/state.js';
-import { snapshotRevenantState } from './state/index.js';
-import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
-import { baseRevenantEnergyCost } from './core/mechanics/energy.js';
-import { applyConduitEnergyCostRules } from './specializations/conduit/mechanics/energy-cost.js';
-import { applyVindicatorEnergyCostRules } from './specializations/vindicator/mechanics/energy-cost.js';
-import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeState, RevenantSkill } from './types.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
+import { baseRevenantEnergyCost } from '#gw2/content/professions/revenant/core/mechanics/energy.js';
+import { applyConduitEnergyCostRules } from '#gw2/content/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
+import { applyVindicatorEnergyCostRules } from '#gw2/content/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
+import type {
+  RevenantEnergyContext,
+  RevenantPrecastContext,
+  RevenantRuntimeState,
+  RevenantSkill
+} from '#gw2/content/professions/revenant/types.js';
 
 // Resolve the active Revenant specialization consistently from runtime and
 // configuration shapes used by energy rules.

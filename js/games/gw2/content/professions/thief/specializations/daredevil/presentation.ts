@@ -1,7 +1,7 @@
-import { THIEF_STOLEN_SKILL_IDS } from '../../core/mechanics/steal.js';
-import { thiefStealPaletteGroups, thiefUiState } from '../../core/presentation.js';
-import type { RotationStateSnapshotItem } from '../../../../../platform/engine/types.js';
-import type { ThiefUiContext } from '../../types.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/content/professions/thief/core/mechanics/steal.js';
+import { thiefStealPaletteGroups, thiefUiState } from '#gw2/content/professions/thief/core/presentation.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type { ThiefUiContext } from '#gw2/content/professions/thief/types.js';
 
 /** Shows the Bounding Dodger damage bonus only during its post-dodge window. */
 function daredevilStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {

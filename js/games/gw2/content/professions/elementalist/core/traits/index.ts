@@ -1,16 +1,33 @@
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { advanceScheduledCriticalProc } from '../../../../../platform/scheduler/critical-facts.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../../data/ids.js';
-import type { SimulationEvent, Skill } from '../../../../../platform/engine/types.js';
+/**
+ * Core Elementalist trait-owned behavior.
+ *
+ * One module for every Core trait that emits something, spanning both phases of
+ * a simulation step: attunement-transition and cast-completion triggers driven
+ * from the cast path, and the event observers that react to already-scheduled
+ * damage and control events (Fresh Air, Lightning Rod, Elemental Lockdown,
+ * Persisting Flames). Mechanics modules call in; this file does not call back
+ * into them.
+ *
+ * Every magnitude is read from a balance profile with the live number as the
+ * fallback, so a patch can retune a trait without touching this file.
+ */
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
-} from '../../types.js';
-import { setElementalistAttunementReadyAt, type ElementalistAttunement, type ElementalistCoreState } from '../state.js';
-import { PERSISTING_FLAMES_FIELD_SKILLS } from '../constants.js';
+} from '#gw2/content/professions/elementalist/types.js';
+import {
+  setElementalistAttunementReadyAt,
+  type ElementalistAttunement,
+  type ElementalistCoreState
+} from '#gw2/content/professions/elementalist/core/state.js';
+import { PERSISTING_FLAMES_FIELD_SKILLS } from '#gw2/content/professions/elementalist/core/constants.js';
 import {
   applyElementalistAura,
   combatStarted,
@@ -19,12 +36,12 @@ import {
   emitProfiledBuff,
   emitProfiledCondition,
   profiledEffect
-} from '../mechanics/effects.js';
+} from '#gw2/content/professions/elementalist/core/mechanics/effects.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceValue,
   elementalistEffectValue
-} from '../profiles.js';
+} from '#gw2/content/professions/elementalist/core/profiles.js';
 
 // Trait-skill packets carry canonical artwork so result tables do not fall back to the triggering attunement icon.
 const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
@@ -189,6 +206,9 @@ export function triggerElectricDischarge(
   });
 }
 
+/**
+ * Earthen Blast: the uncritable strike granted on entering Earth attunement.
+ */
 export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) {
     return;
@@ -215,6 +235,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
   });
 }
 
+/** Rock Solid: the Stability granted on entering Earth attunement. */
 export function grantElementalistRockSolid(
   context: ElementalistSchedulerContext,
   at: number,
@@ -227,6 +248,10 @@ export function grantElementalistRockSolid(
   emitProfiledBuff(context, at, PROFILE.rockSolid, 'Stability', 'Stability', 1, 3, 'Rock Solid', sourceId);
 }
 
+/**
+ * Elemental Attunement: grants the boon matching the attunement just entered
+ * (Fire/might, Water/regeneration, Air/swiftness, Earth/protection).
+ */
 export function grantElementalAttunementBoon(
   context: ElementalistSchedulerContext,
   at: number,
@@ -254,6 +279,11 @@ export function grantElementalAttunementBoon(
   );
 }
 
+/**
+ * Bountiful Power: accumulates attunement swaps and, on every threshold reached,
+ * grants Quickness plus the timed damage window its strike modifier reads.
+ * Weaver passes two swaps for a full dual-attunement change.
+ */
 export function triggerBountifulPower(
   context: ElementalistSchedulerContext,
   at: number,
@@ -299,6 +329,8 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
         : attunement === 'Air'
           ? 'Blinding Flash (trait)'
           : 'Shock Wave (trait)';
+  // Water's Cleansing Wave is purely a heal/cleanse, so it produces no offensive
+  // packet and only the marker event below.
   if (attunement === 'Fire') {
     emitSkillDamage(context, {
       at,
@@ -378,6 +410,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     );
   }
 
+  // Heal-skill traits, each on its own internal cooldown.
   if (skill.type === 'Heal') {
     if (
       hasTrait(context, "Earth's Embrace") &&
@@ -422,6 +455,8 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     }
   }
 
+  // Written in Stone: casting a signet applies the aura tied to that signet
+  // (and, elsewhere, keeps its passive active).
   if (hasTrait(context, 'Written in Stone') && skill.skillFamily === 'Signet') {
     const aura =
       skill.name === 'Signet of Restoration'
@@ -443,6 +478,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     }
   }
 
+  // Inscription: glyphs grant the boon matching the current attunement.
   if (hasTrait(context, 'Inscription') && skill.skillFamily === 'Glyph') {
     const boon =
       state.primaryAttunement === 'Fire'
@@ -455,6 +491,8 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     emitProfiledBuff(context, at, PROFILE.inscription, boon[0], boon[1], boon[2], boon[3], skill.name, skill.id);
   }
 
+  // Arcane Lightning: every arcane skill opens the ferocity window, and each
+  // named arcane skill adds its own secondary effect.
   if (hasTrait(context, 'Arcane Lightning') && skill.skillFamily === 'Arcane') {
     const arcaneWindow = profiledEffect(context, PROFILE.arcaneLightning, 'buff', 'Arcane Lightning');
     emitSkillBuff(context, skill, {
@@ -617,11 +655,13 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
   const pending = [];
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
   for (const candidate of candidates) {
+    // Not yet reached by the simulation clock; keep it queued for a later pass.
     if (candidate.at > through + context.epsilon) {
       pending.push(candidate);
       continue;
     }
 
+    // Already in Air: nothing to reset, and the trait cannot bank a proc.
     if (state.primaryAttunement === 'Air') continue;
 
     const event = context.eventByOrder(candidate.eventOrder);
@@ -633,6 +673,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
     state.freshAirProgress = tracker.progress;
     if (!application) continue;
+    // A proc landed: pull Air off recharge as of the critical hit's timestamp.
     if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
@@ -653,8 +694,9 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
   state.freshAirCandidates = pending;
 }
 
-// Route player control events through Lightning Rod and Stormsoul while keeping
-// their damage, conditions, buffs, and proc records tied to the triggering hit.
+// Route player control events through Lightning Rod and Elemental Lockdown while
+// keeping their damage, conditions, buffs, and proc records tied to the
+// triggering hit.
 function observeLightningRod(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player') return;
   const sourceId = event.skillId ?? event.sourceId;
@@ -721,6 +763,10 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
   );
 }
 
+/**
+ * Scheduler event observer for Core traits: routes each newly scheduled event
+ * through the Fresh Air and control-hit trait reactions.
+ */
 export function observeElementalistTraitEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   observeFreshAir(context, event);
   observeLightningRod(context, event);

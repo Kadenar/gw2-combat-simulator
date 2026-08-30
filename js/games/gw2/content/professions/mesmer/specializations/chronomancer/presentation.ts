@@ -1,11 +1,11 @@
-import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerMechanicSkillBarGroups,
   mesmerResourceViews,
   mesmerUiState
-} from '../../core/presentation.js';
-import { timedBuffAt } from '../../../../../platform/results/query.js';
+} from '#gw2/content/professions/mesmer/core/presentation.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
@@ -13,9 +13,9 @@ import type {
   RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
-} from '../../../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../../../platform/simulation/types.js';
-import type { MesmerResolverEvent, MesmerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/content/professions/mesmer/types.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.SPLIT_SECOND,

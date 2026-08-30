@@ -1,22 +1,18 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import type { ScheduledTask } from '../../../../../../platform/engine/types.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../../resources.js';
-import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../../core/profiles.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import type { ScheduledTask } from '#gw2/platform/engine/types.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/content/professions/warrior/data/ids.js';
+import { applyWarriorSkillResource, gainWarriorAdrenaline } from '#gw2/content/professions/warrior/resources.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '#gw2/content/professions/warrior/core/profiles.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill
-} from '../../../types.js';
-import { paragonState } from '../state.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/warrior/types.js';
+import { paragonState } from '#gw2/content/professions/warrior/specializations/paragon/state.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/warrior/specializations/paragon/profiles.js';
 
 const CHANT_IDS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM] as const;
 

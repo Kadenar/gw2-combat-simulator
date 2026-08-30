@@ -1,22 +1,22 @@
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillDamage
-} from '../../../../../../platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
-} from '../../../../../../platform/scheduler/policy.js';
-import type { ScheduledTask, SimulationEvent } from '../../../../../../platform/engine/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '../../../types.js';
-import { RANGER_PET_STRIKE_SCALING } from '../../../core/mechanics/pets.js';
-import { galeshotState } from '../state.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../../core/profiles.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/platform/scheduler/policy.js';
+import type { ScheduledTask, SimulationEvent } from '#gw2/platform/engine/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+import { RANGER_PET_STRIKE_SCALING } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import { galeshotState } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 const MISSILE_SKILL_IDS = new Set<number>([
   ID.RICOCHET,

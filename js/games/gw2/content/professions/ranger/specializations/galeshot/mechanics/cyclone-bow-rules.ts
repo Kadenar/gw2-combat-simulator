@@ -1,19 +1,16 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import { denySkillCast as deny } from '../../../../lib/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '../../../types.js';
-import { rangerPetByName } from '../../../core/state.js';
-import { galeshotState } from '../state.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
+import { galeshotState } from '#gw2/content/professions/ranger/specializations/galeshot/state.js';
 import {
   advanceGaleshotArrows,
   completeGaleshotSkill,
@@ -21,9 +18,13 @@ import {
   handleGaleshotMissileHitTask,
   handleGaleshotPetHitTask,
   observeGaleshotEvent
-} from './cyclone-bow.js';
-import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../../core/profiles.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/galeshot/profiles.js';
 
 // Grant Cloudburst's profile-defined party boons from the qualifying reset skill
 // at cast completion.

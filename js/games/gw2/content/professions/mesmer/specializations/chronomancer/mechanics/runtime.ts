@@ -1,17 +1,34 @@
-import { EPSILON } from '../../../../../../../../kernel/core/clock.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../../core/mechanics/runtime.js';
-import { createContinuumController } from './continuum-split.js';
-import { resolveChronomancerShatterBoons, resolveIllusionaryReversion } from '../traits/shatters.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import {
+  applyMesmerRuntimeManifest,
+  mesmerRuntimeFor
+} from '#gw2/content/professions/mesmer/core/mechanics/runtime.js';
+import { createContinuumController } from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
+import {
+  resolveChronomancerShatterBoons,
+  resolveIllusionaryReversion
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/traits/shatters.js';
 import {
   MESMER_CHRONOMANCER_CONTROL_SKILLS,
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
-} from './definitions.js';
-import type { MesmerContinuumController, MesmerRuntime, MesmerSchedulerContext } from '../../../types.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE, CHRONOMANCER_SHATTER_PROFILE_IDS } from '../profiles.js';
-import { mesmerBalanceValue, mesmerProfiledShatters, mesmerProfiledTraitDamage } from '../../../core/profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import type {
+  MesmerContinuumController,
+  MesmerRuntime,
+  MesmerSchedulerContext
+} from '#gw2/content/professions/mesmer/types.js';
+import {
+  CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
+  CHRONOMANCER_SHATTER_PROFILE_IDS
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
+import {
+  mesmerBalanceValue,
+  mesmerProfiledShatters,
+  mesmerProfiledTraitDamage
+} from '#gw2/content/professions/mesmer/core/profiles.js';
 
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
 

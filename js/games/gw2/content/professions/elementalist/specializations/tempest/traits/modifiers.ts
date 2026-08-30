@@ -1,8 +1,13 @@
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import type { Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import { elementalistTimedBuffStacks } from '../../../core/traits/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import { elementalistTimedBuffStacks } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
 
+/**
+ * Damage modifiers for the two Tempest buffs tracked as timed applications: Tempestuous Aria
+ * (refreshed by auras) and Transcendent Tempest (stamped when an overload completes). Each rule
+ * requires both the trait and a live application of its buff kind at the event's time.
+ */
 export const tempestModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.tempestuous-aria-strike',

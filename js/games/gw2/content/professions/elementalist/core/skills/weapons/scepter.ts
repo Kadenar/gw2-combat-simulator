@@ -1,9 +1,21 @@
-/** Scepter weapon-skill mechanics owned by the Core Elementalist module. */
+/**
+ * Scepter weapon-skill mechanics owned by the Core Elementalist module.
+ *
+ * Covers the main-hand slot 1-3 skills across all four attunements, including the
+ * Earth-attunement Rock Barrier/Hurl flip pair. Declarative data only: the named
+ * `mechanicTriggers` are implemented by `core/skills/cast-effects.ts`, and the table
+ * is merged into the Core skill catalog by `core/skills/index.ts`.
+ */
 
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { SkillFragment } from '#gw2/platform/engine/types.js';
 
+/**
+ * Skill-id keyed fragments the catalog layers over the raw scepter skill records so the
+ * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ */
 export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Two-stage autoattack: each strike packet carries its own Burning application.
   [ID.FLAMESTRIKE]: {
     name: 'Flamestrike',
     type: 'Weapon',
@@ -70,6 +82,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Delayed drop: the single blast finisher and its Burning land 2.6s after cast start,
+  // long after the 680ms cast has ended.
   [ID.DRAGONS_TOOTH]: {
     name: "Dragon's Tooth",
     type: 'Weapon',
@@ -117,6 +131,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Three closely spaced packets; only the middle one is the blast finisher and carries the
+  // Burning stacks, and the trailing packet grants Vigor.
   [ID.PHOENIX]: {
     name: 'Phoenix',
     type: 'Weapon',
@@ -196,6 +212,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Three separate shard hits that all land on the same 480ms timestamp.
   [ID.ICE_SHARDS]: {
     name: 'Ice Shards',
     type: 'Weapon',
@@ -229,6 +246,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Impact at 360ms plus a delayed detonation at 1040ms, each chilling separately.
   [ID.SHATTERSTONE]: {
     name: 'Shatterstone',
     type: 'Weapon',
@@ -293,6 +311,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Ammo skill: two charges on a shared 10s recharge behind a 1s per-cast cooldown.
   [ID.WATER_TRIDENT]: {
     name: 'Water Trident',
     type: 'Weapon',
@@ -392,6 +411,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Instant ammo skill: two charges on a 10s recharge, applying blind plus Weakness.
   [ID.BLINDING_FLASH]: {
     name: 'Blinding Flash',
     type: 'Weapon',
@@ -432,6 +452,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Three-shard autoattack; each shard is an independent 20%-chance projectile finisher and
+  // applies its own Bleeding stack.
   [ID.STONE_SHARDS]: {
     name: 'Stone Shards',
     interruptMode: 'per-packet',
@@ -549,6 +571,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
+  // Rock Barrier and Hurl are a two-state flip pair sharing the Weapon_2 slot: availability
+  // gates each on whether a barrier is currently stored (see core/mechanics/availability.ts).
   [ID.ROCK_BARRIER]: {
     name: 'Rock Barrier',
     type: 'Weapon',
@@ -582,6 +606,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ],
     elementalistStateMachine: 'rock-barrier'
   },
+  // Throws the stored barrier as five projectile-finisher packets 200ms apart, each bleeding.
   [ID.HURL]: {
     name: 'Hurl',
     type: 'Weapon',
@@ -770,6 +795,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ],
     elementalistStateMachine: 'rock-barrier'
   },
+  // The travelling projectile outlives the cast, so its pulses use fixed (cast-speed
+  // independent) offsets and persist after an interrupt past the 160ms commit point.
   [ID.DUST_DEVIL]: {
     name: 'Dust Devil',
     type: 'Weapon',

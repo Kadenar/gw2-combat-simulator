@@ -1,12 +1,12 @@
-import type { BalanceProfile, SkillEffect } from '../../../../../platform/engine/types.js';
+import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../../integrations/patches/authoring/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { mesmerBalanceProfile } from '../../core/profiles.js';
-import { MESMER_MIRAGE_AMBUSH_ATTACKS } from './mechanics/definitions.js';
-import type { MesmerAmbushAttack, MesmerAttackStatus } from '../../types.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
+import { mesmerBalanceProfile } from '#gw2/content/professions/mesmer/core/profiles.js';
+import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
+import type { MesmerAmbushAttack, MesmerAttackStatus } from '#gw2/content/professions/mesmer/types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
   mechanics: 'mesmer.mirage.mechanics',

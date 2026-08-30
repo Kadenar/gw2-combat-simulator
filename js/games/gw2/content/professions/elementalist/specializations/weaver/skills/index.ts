@@ -1,14 +1,17 @@
 /** Weaver Elementalist skill mechanics. */
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { Skill, SkillFragment } from '../../../../../../platform/engine/types.js';
-import { isElementalistAttunement, type ElementalistAttunement } from '../../../core/state.js';
-import { WEAVER_DAGGER_SKILL_MECHANICS } from './weapons/dagger.js';
-import { WEAVER_HAMMER_SKILL_MECHANICS } from './weapons/hammer.js';
-import { WEAVER_PISTOL_SKILL_MECHANICS } from './weapons/pistol.js';
-import { WEAVER_SCEPTER_SKILL_MECHANICS } from './weapons/scepter.js';
-import { WEAVER_SPEAR_SKILL_MECHANICS } from './weapons/spear.js';
-import { WEAVER_STAFF_SKILL_MECHANICS } from './weapons/staff.js';
-import { WEAVER_SWORD_SKILL_MECHANICS } from './weapons/sword.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
+import {
+  isElementalistAttunement,
+  type ElementalistAttunement
+} from '#gw2/content/professions/elementalist/core/state.js';
+import { WEAVER_DAGGER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/dagger.js';
+import { WEAVER_HAMMER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/hammer.js';
+import { WEAVER_PISTOL_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/pistol.js';
+import { WEAVER_SCEPTER_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/scepter.js';
+import { WEAVER_SPEAR_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
+import { WEAVER_STAFF_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/staff.js';
+import { WEAVER_SWORD_SKILL_MECHANICS } from '#gw2/content/professions/elementalist/specializations/weaver/skills/weapons/sword.js';
 
 /** Parses the canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
@@ -42,6 +45,9 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     implemented: true,
     effects: []
   },
+  // The four Primordial Stance variants are authored with static per-element
+  // pulses; the Weaver afterCast hook cancels those and reschedules each tick so
+  // the pulse follows the attunement pair that is live when it lands.
   [ID.PRIMORDIAL_STANCE_FIRE]: {
     name: 'Primordial Stance (Fire)',
     type: 'Utility',
@@ -478,6 +484,8 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
       }
     ]
   },
+  // Weave Self and Tailored Victory chain into each other: completing Weave Self
+  // opens the Perfect Weave flipover, and Tailored Victory consumes it.
   [ID.WEAVE_SELF]: {
     name: 'Weave Self',
     type: 'Elite',

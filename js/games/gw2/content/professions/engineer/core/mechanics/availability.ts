@@ -1,17 +1,21 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { selectedSkillNameSet } from '../../../../../platform/builds/selected-skills.js';
-import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS, engineerBalanceValue } from '../profiles.js';
-import { engineerEnduranceReadyAt } from './resources.js';
-import { denySkillCast as denyEngineerCast } from '../../../lib/availability.js';
-import type { AvailabilityResult } from '../../../../../platform/engine/types.js';
-import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceValue
+} from '#gw2/content/professions/engineer/core/profiles.js';
+import { engineerEnduranceReadyAt } from '#gw2/content/professions/engineer/core/mechanics/resources.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/content/professions/lib/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import type { EngineerConfig, EngineerPrecastContext, EngineerSkill } from '#gw2/content/professions/engineer/types.js';
 
-// Keep the Engineer-facing helper while the shared build boundary owns supported loadout shapes.
+/** Returns the normalized names of slot skills currently equipped by the Engineer build. */
 export function selectedEngineerSkillNames(config: EngineerConfig): Set<string> {
   return new Set(selectedSkillNameSet(config.selectedSkills));
 }
 
+/** Enforces Core Engineer resource, kit, flip, toolbelt, and specialization cast prerequisites. */
 export function engineerCoreCastAvailability(
   context: EngineerPrecastContext,
   skill: EngineerSkill

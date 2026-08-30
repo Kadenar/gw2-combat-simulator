@@ -1,20 +1,23 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { enqueueGw2OwnedComboFinisher } from '../../../../../../platform/resolver/combo-resolution.js';
-import { engineerBalanceEffectValue, engineerBalanceValue } from '../../../core/profiles.js';
-import { queueBuff } from '../../../core/mechanics/state-helpers.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '#gw2/content/professions/engineer/core/profiles.js';
+import { queueBuff } from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
 import {
   holosmithEventMetadata,
   holosmithHeatSnapshotFromEvent,
   holosmithHeatTier,
   holosmithProfileStrikeFactor
-} from './heat-tiers.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import type { EngineerResolverContext } from '../../../types.js';
-import type { HolosmithResolverEvent } from './heat-tiers.js';
+} from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/engineer/specializations/holosmith/profiles.js';
+import type { EngineerResolverContext } from '#gw2/content/professions/engineer/types.js';
+import type { HolosmithResolverEvent } from '#gw2/content/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 
-// Prime Light Beam snapshots heat on activation: above 50 creates ten one-second
-// field pulses, while ECSU above 100 enhances their damage and burn duration.
+/**
+ * Materializes Prime Light Beam's ten one-second field pulses above 50 heat,
+ * with ECSU enhancement above 100 heat taken from the activation snapshot.
+ */
 function handlePrimeLightBeamField(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  // Derive all packet tuning from the captured activation tier before expanding the delayed field.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
   if (tier === 'base') return;
@@ -28,6 +31,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   const conditionBaseDurationFactor = enhancedCapacityTier
     ? engineerBalanceValue(context, PROFILE.primeLightBeamHeatTier, 'enhancedConditionBaseDurationFactor', 1.5)
     : 1;
+  // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
     const at = event.at + pulse * interval;
     enqueueOrdered(context.queue, {
@@ -68,8 +72,9 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   }
 }
 
-// Laser Disk: 12 pulses at base heat, 18 pulses above 50 heat; one pulse every 0.52 s.
+/** Materializes Laser Disk's 12 base or 18 high-heat strike-and-bleed pulses at 0.52-second intervals. */
 function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  // Resolve the heat-dependent cadence once so every delayed packet preserves the activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
   const enhancedCapacityTier = tier === 'enhanced';
@@ -86,6 +91,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   );
   const interval = Math.max(0, engineerBalanceValue(context, PROFILE.laserDiskHeatTier, 'packetInterval', 0.52));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
+  // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
     enqueueOrdered(context.queue, {
@@ -123,8 +129,9 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   }
 }
 
-// Launch Wall: 1 wall at base heat, 3 walls above 50 heat; all walls share the same timestamp.
+/** Materializes one base or three high-heat Launch Walls at one shared delayed impact timestamp. */
 function handleLaunchWall(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  // Resolve wall count, delay, and strike scaling from the captured activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
   const enhancedCapacityTier = tier === 'enhanced';
@@ -141,6 +148,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   );
   const at = event.at + Math.max(0, engineerBalanceValue(context, PROFILE.launchWallHeatTier, 'initialDelay', 0.48));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
+  // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
     enqueueOrdered(context.queue, {
       type: 'damage',
@@ -178,7 +186,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   }
 }
 
-// Resolves the heat-scaled boon emitted only by Holosmith's Radiant Arc variant.
+/** Resolves the heat-scaled Quickness packet emitted by Holosmith's Radiant Arc variant. */
 function handleRadiantArcQuickness(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   queueBuff(context, event, {
     name: 'Radiant Arc - quickness',
@@ -188,10 +196,11 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
   });
 }
 
-// Materializes every heat-granted blade as its own strike, bleed, and projectile finisher.
+/** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(Number(holosmithEventMetadata(event).extraBlades || 0)));
   const delay = Math.max(0, engineerBalanceValue(context, PROFILE.refractionCutterHeatTier, 'initialDelay', 0.36));
+  // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
     const damage = enqueueOrdered(context.queue, {
@@ -219,6 +228,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
         }
       ]
     });
+    // Register the owned finisher from the queued strike rather than emitting an uncorrelated combo event.
     enqueueGw2OwnedComboFinisher(context, damage, {
       ownerId: 'engineer',
       attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
@@ -229,6 +239,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
       preferredFieldTypes: ['Fire'],
       ambiguousFieldSelection: 'oldest'
     });
+    // Pair the blade's bleed with the same delayed impact and application index.
     enqueueOrdered(context.queue, {
       type: 'condition',
       at,
@@ -247,6 +258,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   }
 }
 
+/** Routes Holosmith custom resolver events to their heat-aware packet materializers. */
 export const holosmithResolverEventHandlers = Object.freeze({
   'engineer.prime-light-beam-field': handlePrimeLightBeamField,
   'engineer.laser-disk': handleLaserDisk,

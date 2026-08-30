@@ -3,7 +3,7 @@ import {
   handleNecromancerReviveEvent,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack
-} from './event-handlers.js';
+} from '#gw2/content/professions/necromancer/core/mechanics/event-handlers.js';
 import {
   reactToNecromancerBlind,
   reactToNecromancerCoreCondition,
@@ -12,7 +12,7 @@ import {
   reactToTasteForBloodAlliedHit,
   reactToTasteForBloodGrant,
   reactToVampiricPresenceAlliedHit
-} from '../traits/index.js';
+} from '#gw2/content/professions/necromancer/core/traits/index.js';
 
 /**
  * Necromancer resolver-side handlers for profession state and summon events.

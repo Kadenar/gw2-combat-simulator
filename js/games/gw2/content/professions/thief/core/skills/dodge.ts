@@ -1,18 +1,18 @@
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { emitSkillCondition } from '../../../../../platform/scheduler/skill-events.js';
-import { spendEndurance } from '../../../../../platform/combat/resources/endurance.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotThiefState } from '../state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gainThiefInitiative } from '../mechanics/resource-events.js';
-import type { ThiefCastContext } from '../../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gainThiefInitiative } from '#gw2/content/professions/thief/core/mechanics/resource-events.js';
+import type { ThiefCastContext } from '#gw2/content/professions/thief/types.js';
 import {
   thiefBalanceProfile,
   thiefBalanceProfileEffect,
   THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '../profiles.js';
+} from '#gw2/content/professions/thief/core/profiles.js';
 
 // Spend endurance at dodge start and materialize Uncatchable's delayed Lesser
 // Caltrops pulses from the selected balance profile.

@@ -1,15 +1,31 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../../../platform/engine/types.js';
+/**
+ * Balance profiles for Core Elementalist: the authored, patch-tunable numbers
+ * behind every Core mechanic, weapon resource, and trait.
+ *
+ * Mechanic and skill-variant profiles carry their own ids; trait profiles are
+ * keyed by trait id so a profile can be looked up straight from the trait. Code
+ * reads these through the accessors at the bottom of the file and always passes
+ * a hardcoded fallback, so a build with no patch data still simulates.
+ */
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
-} from '../../../../integrations/patches/authoring/balance-profiles.js';
+} from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValue
-} from '../../../../platform/combat/state/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
+} from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/elementalist/data/ids.js';
 
+/**
+ * Stable profile handles for Core Elementalist. Mechanic and skill-variant
+ * entries use namespaced string ids; trait entries alias the trait id itself.
+ */
 export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.core.resources',
   summonedElemental: 'elementalist.core.summoned-elemental',
@@ -72,6 +88,8 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   bountifulPower: TRAIT.BOUNTIFUL_POWER
 });
 
+// Effect-literal builders keep the profile table below readable; the `name`
+// is the lookup key callers pass to `elementalistBalanceEffect`.
 const namedBoon = (name: string, boon: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -104,6 +122,11 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   duration
 });
 
+/**
+ * The authored Core profile table registered with the module's catalog data.
+ * Multi-element traits and skills list one effect per element, named after that
+ * element so handlers can select the branch that fired.
+ */
 export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources,
@@ -450,14 +473,17 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   })
 ]);
 
+/** Resolves a profile from the live patch data reachable through any context. */
 export function elementalistBalanceProfile(context: unknown, id: SkillId): BalanceProfile | undefined {
   return balanceProfileFromContext(context, id);
 }
 
+/** Reads one top-level profile field, falling back to the authored default. */
 export function elementalistBalanceValue(context: unknown, id: SkillId, field: string, fallback: number): number {
   return balanceProfileValue(elementalistBalanceProfile(context, id), field, fallback);
 }
 
+/** Selects one authored effect from a profile by type, and optionally by name/index. */
 export function elementalistBalanceEffect(
   context: unknown,
   id: SkillId,
@@ -468,6 +494,7 @@ export function elementalistBalanceEffect(
   return balanceProfileEffect(elementalistBalanceProfile(context, id), type, index, name);
 }
 
+/** Reads one field off a profile effect (stacks, duration, coefficient) with a fallback. */
 export function elementalistEffectValue(
   context: unknown,
   id: SkillId,

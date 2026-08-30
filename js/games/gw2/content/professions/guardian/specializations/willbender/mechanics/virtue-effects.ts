@@ -1,13 +1,16 @@
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '../../../data/ids.js';
-import { guardianTraitIcon } from '../../../core/traits/index.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '../../../types.js';
-import { gainLethalTempo } from './virtues.js';
-import { willbenderState } from '../state.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { guardianTraitIcon } from '#gw2/content/professions/guardian/core/traits/index.js';
+import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/content/professions/guardian/types.js';
+import { gainLethalTempo } from '#gw2/content/professions/guardian/specializations/willbender/mechanics/virtues.js';
+import { willbenderState } from '#gw2/content/professions/guardian/specializations/willbender/state.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
 
 function recordLethalTempo(context: GuardianResolverContext, at: number, sourceSkill: string | undefined): void {
   const state = willbenderState.from(context);

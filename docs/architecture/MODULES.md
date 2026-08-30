@@ -347,12 +347,10 @@ The scheduler answers questions such as:
 Profession-owned scheduler behavior usually lives in:
 
 ```text
-skills.ts
+skills/execution.ts
 availability.ts
-handlers.ts
-resources.ts
-rules.ts
-traits.ts
+mechanics/<concept>.ts
+traits/<trait-line>.ts
 ```
 
 depending on the mechanic.
@@ -371,9 +369,9 @@ The resolver answers questions such as:
 Profession-specific resolution generally belongs in:
 
 ```text
-resolver.ts
-traits.ts
-rules.ts
+mechanics/<concept>.ts
+mechanics/<large-concept>/resolution.ts
+traits/<trait-line>.ts
 ```
 
 Shared GW2 resolution belongs in:
@@ -403,7 +401,6 @@ js/games/gw2/content/professions/warrior/
 │   ├── bladesworn/
 │   └── paragon/
 ├── modules.ts
-├── family.ts
 └── definition.ts
 ```
 
@@ -742,8 +739,8 @@ A mechanics module may contain scheduler declarations, resolver declarations, or
 phase visible when assembled in `module.ts`. Shared strike and condition resolution stays under
 `js/games/gw2/platform/resolver/`.
 
-Generic `rules.ts`, `handlers.ts`, `availability.ts`, and `resolver.ts` files are acceptable in small cohesive modules.
-When they start representing several unrelated GW2 concepts, split them by concept rather than by engine phase.
+Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. Keep a cohesive availability file when
+it expresses one module's cast gate; split unrelated behavior into a named mechanic, skill family, or trait line.
 
 ---
 
@@ -879,9 +876,9 @@ This file should contain composition only.
 
 ---
 
-# `family.ts`
+# `definition.ts`
 
-`family.ts` creates the actual native profession contract.
+`definition.ts` creates and exports the native profession contract.
 
 Example:
 
@@ -911,16 +908,6 @@ This is where:
 come together.
 
 ---
-
-# `definition.ts`
-
-`definition.ts` is the stable public profession export.
-
-For example:
-
-```ts
-export { warriorProfession, warriorProfession as default } from './family.js';
-```
 
 Engine/headless callers can import the profession through this stable boundary without loading the browser application
 adapter.
@@ -1235,17 +1222,20 @@ js/games/gw2/content/professions/new-profession/
     core/
     specializations/
     modules.ts
-    family.ts
     definition.ts
+    catalog.ts
+    catalog/
+        module-data.ts
     build/
         build.ts
         attributes.ts
     data/
-        catalog.ts
-    state/
-        index.ts
+        ... generated/static inputs
+    state.ts
     app/
 ```
+
+Use `state/` only when the family projection has multiple substantive files.
 
 Then register it in:
 
@@ -1305,7 +1295,7 @@ When deciding where new code belongs, follow these principles:
 3. **Move code to `platform/gw2` only when it represents reusable Guild Wars 2 behavior.**
 4. **Move code to `platform/engine` only when it is game-neutral simulation infrastructure.**
 5. **Keep browser concerns in `app`.**
-6. **Keep `module.ts`, `modules.ts`, and `family.ts` focused on composition.**
+6. **Keep `module.ts`, `modules.ts`, and `definition.ts` focused on composition.**
 7. **Prefer descriptive files over oversized generic files.**
 8. **Do not create empty files merely to satisfy a folder convention.**
 9. **Do not duplicate an existing source of truth.**

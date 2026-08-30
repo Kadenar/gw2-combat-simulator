@@ -1,10 +1,17 @@
-import { defineNativeModule } from '../../../../../integrations/patches/authoring/profession.js';
-import { createRevenantModuleData } from '../../data/catalog.js';
-import { conduitSkillHandlers } from './skills/handlers.js';
-import { conduitAttributeRules, conduitCastRules, conduitSchedulerHooks } from './mechanics/affinity-rules.js';
-import { conduitState } from './state.js';
-import { conduitUi } from './presentation.js';
-import { CONDUIT_BASE_SKILL_MECHANICS, CONDUIT_BALANCE_PROFILES } from './skills/index.js';
+import { defineNativeModule } from '#gw2/integrations/patches/authoring/profession.js';
+import { createRevenantModuleData } from '#gw2/content/professions/revenant/catalog/module-data.js';
+import { conduitSkillHandlers } from '#gw2/content/professions/revenant/specializations/conduit/skills/execution.js';
+import {
+  conduitAttributeRules,
+  conduitCastRules,
+  conduitSchedulerHooks
+} from '#gw2/content/professions/revenant/specializations/conduit/mechanics/affinity-rules.js';
+import { conduitState } from '#gw2/content/professions/revenant/specializations/conduit/state.js';
+import { conduitUi } from '#gw2/content/professions/revenant/specializations/conduit/presentation.js';
+import {
+  CONDUIT_BASE_SKILL_MECHANICS,
+  CONDUIT_BALANCE_PROFILES
+} from '#gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 
 export const conduitModule = defineNativeModule({
   id: 'Conduit',

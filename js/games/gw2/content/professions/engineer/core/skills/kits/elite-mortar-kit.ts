@@ -1,8 +1,8 @@
 /** Core Engineer Elite Mortar Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '../../../data/ids.js';
-import type { Skill, SkillFragment } from '../../../../../../platform/engine/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/content/professions/engineer/data/ids.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/types.js';
 
-// Owns the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit.
+/** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit. */
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_SHELL]: {
     implemented: true,
@@ -152,7 +152,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   }
 });
 
-// Keeps the synthetic stow action beside the kit palette it closes.
+/** Keeps the synthetic stow action beside the Elite Mortar Kit palette it closes. */
 export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.STOW_ELITE_MORTAR_KIT,

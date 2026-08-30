@@ -1,22 +1,28 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { luminaryState } from '../state.js';
-import { professionCoreState } from '../../../../../../platform/engine/profession/state.js';
-import { resetAutoattackChains } from '../../../../../../platform/skills/autoattack-chains.js';
-import { projectCastRelativeEffectTimingMs } from '../../../../../../platform/skills/timing.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
  * replay.
  */
 
-import { GUARDIAN_SKILL_IDS } from '../../../data/ids.js';
-import { selectedGuardianSpecialization } from '../../../core/mechanics/availability.js';
-import { handleRadiantWeaponEquipped } from '../traits/index.js';
-import { buildGuardianStrike, emitGuardianEvent } from '../../../core/mechanics/event-handlers.js';
-import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../../core/profiles.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { CAST_READY, denyCast } from '../../../../../../platform/engine/skills/availability.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/content/professions/guardian/data/ids.js';
+import { selectedGuardianSpecialization } from '#gw2/content/professions/guardian/core/mechanics/availability.js';
+import { handleRadiantWeaponEquipped } from '#gw2/content/professions/guardian/specializations/luminary/traits/index.js';
+import {
+  buildGuardianStrike,
+  emitGuardianEvent
+} from '#gw2/content/professions/guardian/core/mechanics/event-handlers.js';
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect
+} from '#gw2/content/professions/guardian/core/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/guardian/specializations/luminary/profiles.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -26,7 +32,7 @@ import type {
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill
-} from '../../../types.js';
+} from '#gw2/content/professions/guardian/types.js';
 
 /**
  * Emits the sigil-swap trigger caused by equipping a radiant weapon.

@@ -1,26 +1,34 @@
-import { emitSkillBuff } from '../../../../../../platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import {
   professionCoreState,
   readProfessionCoreState,
   readProfessionSpecializationState
-} from '../../../../../../platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '../../../../../../platform/combat/modifiers/rules.js';
-import { professionStaticRulesApplied } from '../../../../../../platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierEligibleEvent } from '../../../../../../platform/combat/state/event-ownership.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { playerHealthFraction, targetHealthFraction } from '../../../../../../platform/combat/query/runtime-query.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { setRangerPetActive } from '../../../core/mechanics/pets.js';
-import { rangerBalanceValue, RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../../core/profiles.js';
-import { rangerPetByName, selectedRangerPet } from '../../../core/state.js';
-import { applyRangerBeastSkillTraits } from '../../../core/traits/index.js';
-import type { AvailabilityResult } from '../../../../../../platform/engine/types.js';
-import { denySkillCast as deny } from '../../../../lib/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '../../../../../../platform/combat/query/types.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../../types.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
-import { soulbeastState } from '../state.js';
+} from '#gw2/platform/engine/profession/state.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { isGw2PlayerModifierEligibleEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { setRangerPetActive } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
+} from '#gw2/content/professions/ranger/core/profiles.js';
+import { rangerPetByName, selectedRangerPet } from '#gw2/content/professions/ranger/core/state.js';
+import { applyRangerBeastSkillTraits } from '#gw2/content/professions/ranger/core/traits/index.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/types.js';
+import { denySkillCast as deny } from '#gw2/content/professions/lib/availability.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type {
+  RangerCastContext,
+  RangerPrecastContext,
+  RangerSchedulerContext,
+  RangerSkill
+} from '#gw2/content/professions/ranger/types.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/ranger/specializations/soulbeast/profiles.js';
+import { soulbeastState } from '#gw2/content/professions/ranger/specializations/soulbeast/state.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
 // Config/timeline are checked first because runtime may not be populated during attribute pre-computation.

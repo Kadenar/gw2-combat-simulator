@@ -1,15 +1,18 @@
-import { professionCoreState } from '../../../../platform/engine/profession/state.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import type { ElementalistConfig, ElementalistSchedulerContext } from '../types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/content/professions/elementalist/data/ids.js';
+import type { ElementalistConfig, ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 
+/** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 
+/** One of the four elements; the key type for every per-attunement record below. */
 export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 
 // A negative entry time makes the configured starting attunement pre-dwelled
 // while preserving time zero as a real attunement-entry timestamp.
 export const PRE_DWELLED_ATTUNEMENT_ENTERED_AT = -999999;
 
+/** One live aura application: what it is, when it landed, and which skill produced it. */
 export interface ElementalistAuraState {
   type: string;
   appliedAt: number;
@@ -17,6 +20,10 @@ export interface ElementalistAuraState {
   skillName: string;
 }
 
+/**
+ * The single summoned elemental's lifecycle. Generation counters let stale
+ * scheduled actions be discarded when the elemental is resummoned.
+ */
 export interface ElementalistSummonedElementalState {
   element: ElementalistAttunement | null;
   summonGeneration: number;
@@ -30,6 +37,12 @@ export interface ElementalistSummonedElementalState {
   started: boolean;
 }
 
+/**
+ * Mutable per-simulation state shared by every Elementalist weapon and
+ * specialization: attunement bookkeeping, trait progress counters, endurance,
+ * auras, and the per-weapon resources (pistol bullets, hammer orbs, spear
+ * etchings and empowerments, conjures).
+ */
 export interface ElementalistCoreState {
   primaryAttunement: ElementalistAttunement;
   attunementEnteredAt: number;
@@ -83,6 +96,7 @@ export interface ElementalistCoreState {
   arcaneEchoUntil: number;
 }
 
+/** Narrows arbitrary config input to a valid attunement before it reaches state. */
 export function isElementalistAttunement(value: unknown): value is ElementalistAttunement {
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement);
 }
@@ -158,6 +172,11 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   };
 }
 
+/**
+ * Single write path for an attunement's recharge: updates core state and mirrors
+ * the value onto the scheduler cooldown for that attunement's skill so
+ * availability and the UI agree.
+ */
 export function setElementalistAttunementReadyAt(
   context: ElementalistSchedulerContext,
   attunement: ElementalistAttunement,
@@ -176,6 +195,7 @@ export function setElementalistAttunementReadyAt(
   }
 }
 
+/** Clears every attunement recharge to now; the Core `onCooldownReset` hook. */
 export function resetElementalistAttunementCooldowns(context: ElementalistSchedulerContext): void {
   const at = Number((context.state as { time?: number } | undefined)?.time || context.time || 0);
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {

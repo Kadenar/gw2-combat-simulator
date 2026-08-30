@@ -1,17 +1,13 @@
-import { NECROMANCER_SKILL_IDS as ID } from '../../data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/content/professions/necromancer/data/ids.js';
 import {
   necromancerCoreTargetHealthThresholds,
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups
-} from '../../core/presentation.js';
-import { createProfessionAssumptionControls } from '../../../../../app/profession/assumptions.js';
-import type {
-  ProfessionResourceView,
-  ProfessionUiContract,
-  SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { NecromancerUiContext } from '../../types.js';
+} from '#gw2/content/professions/necromancer/core/presentation.js';
+import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import type { ProfessionResourceView, ProfessionUiContract, SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { NecromancerUiContext } from '#gw2/content/professions/necromancer/types.js';
 
 const REAPER_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
   {

@@ -1,12 +1,20 @@
-import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from '../app/core-assumptions.js';
-import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
-import { spearChainStageForSkill } from './skills/spear-and-venoms.js';
-import { thiefWeaponSkillMatchesSet } from './skills/weapons.js';
-import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from './mechanics/steal.js';
-import type { RotationStateSnapshotItem } from '../../../../platform/engine/types.js';
-import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '../types.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/app/simulation/randomness.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/content/professions/thief/app/core-assumptions.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { spearChainStageForSkill } from '#gw2/content/professions/thief/core/skills/spear-and-venoms.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/content/professions/thief/core/skills/weapons.js';
+import {
+  storedStolenSkillChoices,
+  THIEF_STOLEN_SKILL_IDS
+} from '#gw2/content/professions/thief/core/mechanics/steal.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import type {
+  ThiefSimulationEvent,
+  ThiefSkill,
+  ThiefState,
+  ThiefUiContext
+} from '#gw2/content/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;

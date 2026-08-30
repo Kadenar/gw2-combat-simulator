@@ -1,8 +1,11 @@
-import type { ElementalistSchedulerContext } from '../../types.js';
-import type { ElementalistCoreState } from '../state.js';
-import { ENDURANCE_PER_SECOND } from '../constants.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from '../profiles.js';
-import { advanceEndurance } from '../../../../../platform/combat/resources/endurance.js';
+import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
+import type { ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
+import { ENDURANCE_PER_SECOND } from '#gw2/content/professions/elementalist/core/constants.js';
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue
+} from '#gw2/content/professions/elementalist/core/profiles.js';
+import { advanceEndurance } from '#gw2/platform/combat/resources/endurance.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {

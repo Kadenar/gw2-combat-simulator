@@ -1,16 +1,16 @@
-import { emitSkillBuff, emitSkillDamage } from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../kernel/core/clock.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '../../../../../platform/scheduler/policy.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { snapshotEngineerState } from '../../state/index.js';
+import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/engineer/data/ids.js';
+import { snapshotEngineerState } from '#gw2/content/professions/engineer/state.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   engineerBalanceEffectValue,
   engineerBalanceValue
-} from '../profiles.js';
+} from '#gw2/content/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
   procState,
@@ -18,9 +18,9 @@ import {
   queueDamage,
   recordTrait,
   resolverSkill
-} from '../mechanics/state-helpers.js';
-import type { SimulationEvent, SkillId } from '../../../../../platform/engine/types.js';
-import type { ResolvedCriticalHitOptions } from '../../../../../integrations/patches/authoring/mechanics.js';
+} from '#gw2/content/professions/engineer/core/mechanics/state-helpers.js';
+import type { SimulationEvent, SkillId } from '#gw2/platform/engine/types.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,
@@ -28,10 +28,9 @@ import type {
   EngineerResolverReactionDetails,
   EngineerSchedulerContext,
   EngineerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/engineer/types.js';
 
-// Specialization mechanics declare toolbelt behavior explicitly; ordinary
-// toolbelt skills continue to infer it from their equipped utility parent.
+/** Detects explicit specialization toolbelt skills and ordinary parent-linked toolbelt skills. */
 export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
   return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentName);
 }
@@ -44,6 +43,7 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
   return Boolean(skill?.categories?.some((category) => String(category).toLowerCase() === 'elixir'));
 }
 
+/** Applies HGH cast boons and Acid Bomb's extended final pulse to eligible elixirs. */
 function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (
     !hasTrait(context.config, TRAIT.HGH) ||
@@ -85,6 +85,7 @@ function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number
   }
 }
 
+/** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
 export function observeEngineerHghEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
   if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return;
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId) as EngineerSkill | undefined;
@@ -98,7 +99,7 @@ export function observeEngineerHghEvent(context: EngineerSchedulerContext, event
   }
 }
 
-// Grenadier procs on healing skill casts (Healing Turret Overcharge in-game); 20s ICD
+/** Schedules Grenadier's lesser barrage from eligible healing casts after its internal cooldown. */
 function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
@@ -109,6 +110,7 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
   state.traitProcReadyAt.grenadier = at + engineerBalanceValue(context, PROFILE.grenadier, 'internalCooldown', 20);
   const hits = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'hits', 6);
   const coefficient = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'coefficient', 0.5);
+  // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitSkillDamage(context, {
       at,
@@ -130,7 +132,7 @@ function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: 
   }
 }
 
-// Streamlined Kits fires on kit-equip only; 20s ICD prevents rapid kit-swapping from stacking procs
+/** Applies Streamlined Kits on kit entry and adds Grenade Kit's mine strike when appropriate. */
 function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
@@ -141,6 +143,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
     return;
   state.traitProcReadyAt.streamlinedKits =
     at + engineerBalanceValue(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
+  // Every eligible kit entry grants the shared swiftness effect.
   emitSkillBuff(context, skill, {
     at,
     source: 'Trait',
@@ -151,6 +154,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
     duration: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
     stacks: 1
   });
+  // Grenade Kit additionally drops the trait's mine strike on entry.
   if ((skill.kitName || skill.name) === 'Grenade Kit') {
     emitSkillDamage(context, {
       at,
@@ -172,6 +176,7 @@ function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill
   }
 }
 
+/** Applies all Core traits triggered by a completed toolbelt cast. */
 export function applyEngineerToolbeltTraits(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!isEngineerToolbeltSkill(skill)) return;
   const state = professionCoreState(context);
@@ -244,6 +249,7 @@ export function applyEngineerToolbeltTraits(context: EngineerSchedulerContext, s
   }
 }
 
+/** Dispatches Core Engineer cast-completion traits for the finished skill. */
 export function applyEngineerCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
@@ -278,7 +284,7 @@ function usesRandomTraitProcs(context: EngineerResolverContext): boolean {
   return context.random?.stochastic === true;
 }
 
-// resets explosiveEntranceFired so the trait can fire on the first hit of the next attack sequence
+/** Rearms Explosive Entrance after a resolved Engineer dodge. */
 export function handleEngineerDodge(context: EngineerResolverContext): void {
   procState(context).explosiveEntranceFired = false;
 }
@@ -383,6 +389,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
   }
 ] satisfies readonly EngineerCriticalHitDefinition[]);
 
+/** Applies Core Engineer damage-triggered traits to one resolved strike packet. */
 export function reactToEngineerDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -415,6 +422,7 @@ export function reactToEngineerDamage(
     recordTrait(context, 'Explosive Entrance', event);
   }
 
+  // Explosion-triggered traits share the same permissive event classification.
   const explosion = isExplosion(context, event);
   if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
     applyEngineerDerivedCondition(context, event, {
@@ -515,6 +523,7 @@ export function reactToEngineerDamage(
     }
   }
 
+  // Projectile-triggered rockets use their own cooldown and upgrade every fifth eligible proc.
   if (
     hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) &&
     isAimAssistedProjectile(context, event) &&
@@ -566,6 +575,7 @@ export function reactToEngineerDamage(
   }
 }
 
+/** Applies Core Engineer traits triggered by one resolved condition application. */
 export function reactToEngineerCondition(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (event.condition === 'Burning' && event.actorType !== 'summon' && hasTrait(context, TRAIT.THERMAL_VISION)) {
     const state = professionCoreState(context);

@@ -1,5 +1,5 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
-import { revenantUiState } from '../../core/presentation.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/content/professions/revenant/data/ids.js';
+import { revenantUiState } from '#gw2/content/professions/revenant/core/presentation.js';
 import type {
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,
@@ -7,8 +7,8 @@ import type {
   RotationStateSnapshotItem,
   SchedulerRecord,
   Skill
-} from '../../../../../platform/engine/types.js';
-import type { RevenantUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { RevenantUiContext } from '#gw2/content/professions/revenant/types.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
 export const VINDICATOR_DODGE_AUTO_ACTION = '__vindicator_dodge_auto';

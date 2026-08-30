@@ -1,22 +1,22 @@
-import { THIEF_SKILL_IDS as ID } from '../../../data/ids.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import { storeStolenSkillChoices } from '../../../core/mechanics/steal.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { storeStolenSkillChoices } from '#gw2/content/professions/thief/core/mechanics/steal.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   ThiefCastContext,
   ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSimulationEvent,
   ThiefSkill
-} from '../../../types.js';
-import { deadeyeState } from '../state.js';
-import { applyMaleficentSeven } from '../traits/index.js';
-import type { Gw2SchedulerPolicy } from '../../../../../../platform/scheduler/types.js';
-import { advanceScheduledCriticalProc } from '../../../../../../platform/scheduler/critical-facts.js';
-import { thiefBalanceProfile } from '../../../core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/thief/types.js';
+import { deadeyeState } from '#gw2/content/professions/thief/specializations/deadeye/state.js';
+import { applyMaleficentSeven } from '#gw2/content/professions/thief/specializations/deadeye/traits/index.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { thiefBalanceProfile } from '#gw2/content/professions/thief/core/profiles.js';
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
 
 export const DEADEYE_STOLEN_SKILL_IDS: readonly number[] = Object.freeze([
   ID.STEAL_TIME,

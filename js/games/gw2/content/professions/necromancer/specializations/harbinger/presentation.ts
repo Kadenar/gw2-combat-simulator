@@ -1,19 +1,23 @@
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { getActiveTraits } from '../../data/traits-data.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/content/professions/necromancer/data/traits-data.js';
 import {
   necromancerTransformPaletteGroups,
   necromancerSoulShardResourceViews,
   necromancerTransformSkillBarGroups,
   necromancerUiState
-} from '../../core/presentation.js';
+} from '#gw2/content/professions/necromancer/core/presentation.js';
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SchedulerRecord
-} from '../../../../../platform/engine/types.js';
-import type { NecromancerUiContext } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { NecromancerUiContext } from '#gw2/content/professions/necromancer/types.js';
 
+/** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
   const blight = Math.max(0, Math.min(25, Math.trunc(Number(state.blight || 0))));

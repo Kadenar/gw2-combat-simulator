@@ -1,13 +1,13 @@
-import { hasTrait } from '../../../../../platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '../../../../../platform/scheduler/skill-events.js';
-import { emitStateSnapshot } from '../../../../../platform/engine/events/state-snapshots.js';
-import { professionCoreState } from '../../../../../platform/engine/profession/state.js';
-import { snapshotNecromancerState } from '../../state/index.js';
+} from '#gw2/platform/scheduler/skill-events.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *
@@ -18,21 +18,32 @@ import { snapshotNecromancerState } from '../../state/index.js';
  * Exports `necromancerWeaponSkillHandlers` and
  * `necromancerWeaponTaskHandlers`.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { castRelativeEffectTimingScale } from '../../../../../platform/skills/timing.js';
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/content/professions/necromancer/data/ids.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import {
+  resetAutoattackChains,
+  type AutoattackChainTransitionContext
+} from '#gw2/platform/skills/autoattack-chains.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
   necromancerBalanceProfile
-} from '../profiles.js';
-import { addSoulShards, consumeSoulShards, gainNecromancerLifeForce } from '../mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord } from '../../../../../platform/engine/types.js';
+} from '#gw2/content/professions/necromancer/core/profiles.js';
+import {
+  addSoulShards,
+  consumeSoulShards,
+  gainNecromancerLifeForce
+} from '#gw2/content/professions/necromancer/core/mechanics/state-helpers.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSimulationEvent,
   NecromancerSkill
-} from '../../types.js';
+} from '#gw2/content/professions/necromancer/types.js';
 
 interface PerforateState {
   readonly at: number;
@@ -42,8 +53,35 @@ interface PerforateState {
 
 const GRASPING_DARKNESS_LIFE_FORCE_TASK = 'necromancer.grasping-darkness-life-force';
 const NIGHTFALL_LIFE_FORCE_TASK = 'necromancer.nightfall-life-force';
+const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';
+const SWORD_AUTOATTACK_EXPIRY_TASK = 'necromancer.sword-autoattack-chain-expire';
+const SWORD_AUTOATTACK_RETENTION_SECONDS = 3;
 const SOUL_SHARDS_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png';
 
+// Expires a sword continuation only if no newer transition has replaced the scheduled chain state.
+function expireSwordAutoattackChain(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+  const root = Number(task.payload?.root);
+  const next = Number(task.payload?.next);
+  const state = professionCoreState(context);
+  if (Number(state.autoattackChains[root]) === next) resetAutoattackChains(context, [root]);
+}
+
+/** Keeps the Necromancer sword's three-second continuation window aligned with shared chain transitions. */
+export function observeNecromancerAutoattackTransition(transition: AutoattackChainTransitionContext): void {
+  const sword = transition.result.transitions.find((change) => Number(change.chainRootId) === ID.ENERVATION_BLADE);
+  if (!transition.result.committed || !sword || sword.decision === 'preserve') return;
+  const context = transition.cast as unknown as NecromancerCastContext;
+  context.tasks.cancelOwner(SWORD_AUTOATTACK_EXPIRY_OWNER);
+  if (sword.decision !== 'advance' || sword.nextSkillId == null) return;
+  context.tasks.schedule({
+    type: SWORD_AUTOATTACK_EXPIRY_TASK,
+    at: context.effectiveEnd + SWORD_AUTOATTACK_RETENTION_SECONDS,
+    ownerId: SWORD_AUTOATTACK_EXPIRY_OWNER,
+    payload: { root: sword.chainRootId, next: sword.nextSkillId }
+  });
+}
+
+// Updates Soul Shards and records the resource change at the same simulation timestamp.
 function addShards(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -70,6 +108,7 @@ function sinisterStab(context: NecromancerCastContext, skill: NecromancerSkill):
   addShards(context, skill, 1, 'sinister-stab');
 }
 
+// Resets Gravedigger only after Chilling Scythe produces a committed damage packet.
 function chillingScythe(
   context: NecromancerCastContext,
   _skill: NecromancerSkill,
@@ -79,6 +118,7 @@ function chillingScythe(
   context.state.cooldowns.delete(ID.GRAVEDIGGER);
 }
 
+// Resolves Addle's activation-time shard gate before applying its conditional control, life force, and shard gains.
 function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
   const soulShardsAtActivation = Number(professionCoreState(context).soulShards || 0);
@@ -104,6 +144,7 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   addShards(context, skill, bonusEffects ? 4 : 2, 'addle');
 }
 
+// Grants Extirpate's shards once, on the first committed damage packet.
 function extirpate(context: NecromancerCastContext, skill: NecromancerSkill, event: NecromancerSimulationEvent): void {
   if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
   addShards(context, skill, 2, 'extirpate', event.at);
@@ -118,9 +159,11 @@ function soulShardDamage(
   index: number,
   total: number
 ): void {
+  // Resolve profile values at emission time so configured balance patches and traits affect every packet.
   const profile = necromancerBalanceProfile(context, PROFILE.soulShards);
   const strike = balanceProfileEffect(profile, 'strike');
   const metadata = strike?.metadata || {};
+  // Emit shards as their own effect actor while retaining the triggering skill as parent attribution.
   emitSkillDamage(context, {
     at,
     source: 'necromancer',
@@ -147,6 +190,7 @@ function soulShardDamage(
   });
 }
 
+// Captures and consumes the shards available to a completed Perforate cast for its per-hit follow-up damage.
 function preparePerforate(context: NecromancerCastContext): PerforateState {
   const at = context.effectiveEnd;
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
@@ -171,6 +215,7 @@ function afterPerforateEffect(
   }
 }
 
+// Publishes the post-consumption shard state once a non-interrupted Perforate finishes resolving.
 function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
   const perforateState = state as Partial<PerforateState> | null;
   if (perforateState?.interrupted) return;
@@ -184,6 +229,7 @@ function completePerforate(context: NecromancerCastContext, _skill: NecromancerS
   );
 }
 
+// Consumes Distress's flip, refreshes Perforate, and applies the simulator's single-target shard bonus.
 function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   delete professionCoreState(context).availableFlips[skill.id];
   context.state.cooldowns.delete(ID.PERFORATE);
@@ -193,6 +239,7 @@ function distress(context: NecromancerCastContext, skill: NecromancerSkill): boo
   return true;
 }
 
+// Projects an authored base-cast offset onto the active cast duration before testing interruption commitment.
 function committedAtBaseOffset(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -204,6 +251,7 @@ function committedAtBaseOffset(
   return context.effectiveEnd + context.epsilon >= commitAt;
 }
 
+// Converts the target's active-condition count into party Might, subject to Oppressive Collapse's seven-condition cap.
 function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const conditionCount = Math.min(
     7,
@@ -219,10 +267,12 @@ function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerS
   });
 }
 
+// Tests Grasping Darkness against its authored projectile-release commit point.
 function graspingDarknessCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   return committedAtBaseOffset(context, skill, Number(skill.commitAtMs || 0));
 }
 
+// Treats Nightfall as committed once its first runtime-scaled damage packet is due.
 function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
   const authoredOffsetMs = Number(firstPacket?.atMs || skill.castTimeMs || 0);
@@ -235,6 +285,7 @@ function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerS
   return context.effectiveEnd + context.epsilon >= context.start + runtimeOffsetMs / 1000;
 }
 
+// Defers Grasping Darkness life force to a task tied to its committed damage timestamp and reservation.
 function afterGraspingDarknessEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -250,6 +301,7 @@ function afterGraspingDarknessEffect(
   });
 }
 
+// Applies the life-force gain deferred from a committed Grasping Darkness hit.
 function handleGraspingDarknessLifeForce(
   context: NecromancerSchedulerContext,
   task: ScheduledTask<SchedulerRecord>
@@ -257,6 +309,7 @@ function handleGraspingDarknessLifeForce(
   gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'grasping-darkness-hit');
 }
 
+// Schedules one life-force grant for each committed Nightfall pulse without advancing it ahead of damage.
 function afterNightfallEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -272,10 +325,12 @@ function afterNightfallEffect(
   });
 }
 
+// Applies the life-force gain deferred from one committed Nightfall pulse.
 function handleNightfallLifeForce(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'nightfall-pulse');
 }
 
+/** Groups Core weapon activation hooks by skill handler ID for scheduler registration. */
 export const necromancerWeaponSkillHandlers = Object.freeze({
   'necromancer.deadly-slice': deadlySlice,
   'necromancer.sinister-stab': sinisterStab,
@@ -299,7 +354,26 @@ export const necromancerWeaponSkillHandlers = Object.freeze({
   })
 });
 
+/** Groups Core weapon task callbacks by scheduled task type. */
 export const necromancerWeaponTaskHandlers = Object.freeze({
+  [SWORD_AUTOATTACK_EXPIRY_TASK]: expireSwordAutoattackChain,
   [GRASPING_DARKNESS_LIFE_FORCE_TASK]: handleGraspingDarknessLifeForce,
   [NIGHTFALL_LIFE_FORCE_TASK]: handleNightfallLifeForce
+});
+
+/** Applies Core greatsword cooldown feedback after the target crosses half health. */
+export const necromancerCoreSkillMechanicHandlers = Object.freeze({
+  'necromancer.core.reset-gravedigger-below-half': ({
+    context,
+    at
+  }: {
+    context: NecromancerSchedulerContext;
+    at: number;
+  }): void => {
+    const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
+    const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
+    if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + context.epsilon) {
+      context.state.cooldowns.delete(ID.GRAVEDIGGER);
+    }
+  }
 });

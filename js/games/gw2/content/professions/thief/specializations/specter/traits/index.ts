@@ -1,23 +1,23 @@
-import { emitSkillBuff, emitSkillCondition } from '../../../../../../platform/scheduler/skill-events.js';
-import { enqueueOrdered } from '../../../../../../../../kernel/events/queue.js';
-import { emitStateSnapshot } from '../../../../../../platform/engine/events/state-snapshots.js';
-import { isInternalCooldownReady } from '../../../../../../../../kernel/core/clock.js';
-import { gw2AlliedPlayerAssumptions } from '../../../../../../platform/combat/state/allied-players.js';
-import { gw2SchedulerBoonDuration } from '../../../../../../platform/scheduler/policy.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../../../data/ids.js';
-import { snapshotThiefState } from '../../../core/state.js';
-import { hasTrait } from '../../../../../../platform/combat/state/traits.js';
-import { specterState } from '../state.js';
-import type { ThiefScheduledTask, ThiefSchedulerContext } from '../../../types.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
+import { snapshotThiefState } from '#gw2/content/professions/thief/core/state.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { specterState } from '#gw2/content/professions/thief/specializations/specter/state.js';
+import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/content/professions/thief/types.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
   ThiefResolverEvent,
   ThiefSimulationEvent,
   ThiefSkill
-} from '../../../types.js';
-import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../../core/profiles.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '../profiles.js';
+} from '#gw2/content/professions/thief/types.js';
+import { thiefBalanceProfile, thiefBalanceProfileEffect } from '#gw2/content/professions/thief/core/profiles.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
 
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
