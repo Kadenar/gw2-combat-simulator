@@ -1,13 +1,13 @@
-import { escapeHtml as esc } from '../../presentation/shared/html.js';
-import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '../io/files.js';
-import { replaceBuildConfiguration, replaceBuildRotation } from '../state/persistence.js';
+import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
+import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
 import type {
   BuildTemplatePreset,
   BuildTemplateSection,
   ProfessionAppState,
   ProfessionApplicationBuild
-} from '../../types.js';
+} from '#gw2/app/types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template';
 type TemplateCategory = 'power' | 'condi' | 'other';

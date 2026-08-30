@@ -4,8 +4,8 @@ import type {
   SchedulerStep,
   SimulationEvent,
   SkillId
-} from '../../../platform/engine/types.js';
-import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface RotationDragState extends SchedulerRecord {
   readonly source?: string;

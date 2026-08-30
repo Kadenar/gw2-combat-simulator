@@ -3,6 +3,28 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#gw2/*": {
+      "types": "./js/games/gw2/*",
+      "browser": "./js/games/gw2/*",
+      "default": "./dist/js/games/gw2/*"
+    },
+    "#kernel/*": {
+      "types": "./js/kernel/*",
+      "browser": "./js/kernel/*",
+      "default": "./dist/js/kernel/*"
+    },
+    "#ui/*": {
+      "types": "./js/ui/*",
+      "browser": "./js/ui/*",
+      "default": "./dist/js/ui/*"
+    },
+    "#app/*": {
+      "types": "./js/app/*",
+      "browser": "./js/app/*",
+      "default": "./dist/js/app/*"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "clean": "node scripts/build/clean-dist.mjs",

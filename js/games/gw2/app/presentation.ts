@@ -1,19 +1,19 @@
-import { targetHealthBreakpointSnapshots } from './presentation/results/result-transform.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/presentation/results/result-transform.js';
 import {
   mountRotationResults,
   SKILL_COLS,
   type RotationResultsModel,
   type RotationResultsOptions
-} from './presentation/results/rotation-results.js';
-import { PLACEHOLDER_ICON, resultSkillIcon } from './rotation/shared/icons.js';
-import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from './rotation/result/model.js';
-import { analyzeRotationLoops } from './rotation/result/loop-analysis.js';
-import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from './rotation/result/loop-analysis-view.js';
-import { renderSimulationViewModel } from '../../../app/shell/result-view.js';
-import type { SimulationViewModel } from '../../../app/shell/types.js';
-import type { SimulationViewSection } from '../../../ui/simulation-view.js';
-import type { ResultIconRow } from './rotation/shared/icons.js';
-import type { ProfessionAppResult, ProfessionAppState } from './types.js';
+} from '#gw2/app/presentation/results/rotation-results.js';
+import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/rotation/result/model.js';
+import { analyzeRotationLoops } from '#gw2/app/rotation/result/loop-analysis.js';
+import { removeRotationLoopAnalysis, renderRotationLoopAnalysis } from '#gw2/app/rotation/result/loop-analysis-view.js';
+import { renderSimulationViewModel } from '#app/shell/result-view.js';
+import type { SimulationViewModel } from '#app/shell/types.js';
+import type { SimulationViewSection } from '#ui/simulation-view.js';
+import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
+import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 
 const EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',

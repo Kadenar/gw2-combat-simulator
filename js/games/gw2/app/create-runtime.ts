@@ -1,16 +1,16 @@
-import { createGw2SimulationConfig } from './simulation/config.js';
-import { calculateContributionComparisons } from './simulation/modifier-contributions.js';
+import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions.js';
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution
-} from './simulation/random-distribution.js';
-import { RELIC_COMPARISON_TARGET, relicComparisonAvailable } from './simulation/relic-comparison.js';
-import { FOOD_DATA } from '../platform/equipment/consumables/food.js';
-import { SIMULATION_RANDOMNESS_MODES } from '../../../kernel/core/simulation-random.js';
-import { simulateGw2 } from '../platform/simulation/simulate.js';
-import type { ObservationPolicy, RotationCommand, Skill } from '../platform/engine/types.js';
-import type { Gw2Config } from '../platform/simulation/config.js';
-import type { Gw2ProfessionContract, Gw2SimulationResult } from '../platform/simulation/types.js';
+} from '#gw2/app/simulation/random-distribution.js';
+import { RELIC_COMPARISON_TARGET, relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import type { ObservationPolicy, RotationCommand, Skill } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ProfessionContract, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
@@ -28,7 +28,7 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary,
   RelicComparisonJobRequest
-} from './types.js';
+} from '#gw2/app/types.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.

@@ -1,5 +1,5 @@
-import type { Skill } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function isSlotSkillSelectable(
   app: ProfessionAppState,

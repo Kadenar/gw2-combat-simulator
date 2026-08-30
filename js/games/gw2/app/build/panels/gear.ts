@@ -1,12 +1,12 @@
-import { FOOD_GROUPS } from '../../../platform/equipment/consumables/food.js';
-import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '../../../platform/equipment/gear/stats.js';
-import { RELIC_GROUPS } from '../../../platform/equipment/relics/catalog.js';
-import { RUNE_GROUPS } from '../../../platform/equipment/gear/runes.js';
-import { SIGIL_GROUPS } from '../../../platform/equipment/sigils/catalog.js';
-import { UTILITY_GROUPS } from '../../../platform/equipment/consumables/utilities.js';
-import { setWeaponSigil } from '../../../platform/equipment/sigils/loadout.js';
-import { escapeHtml, groupedOptions, option } from '../../presentation/shared/html.js';
-import { requiredElement, requiredInput, requiredSelect } from '../../../../../ui/shared/dom.js';
+import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
+import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
+import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
+import { setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { escapeHtml, groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
+import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
 import {
   foodOptionLabel,
   prefixOptionLabel,
@@ -14,9 +14,9 @@ import {
   runeOptionLabel,
   sigilOptionLabel,
   utilityOptionLabel
-} from '../equipment-option-labels.js';
+} from '#gw2/app/build/equipment-option-labels.js';
 
-import type { ProfessionAppState } from '../../types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 // Short section headings separate related controls without repeating what each select already communicates.
 function sectionHeading(label: string): string {

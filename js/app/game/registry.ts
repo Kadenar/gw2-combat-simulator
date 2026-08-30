@@ -1,4 +1,9 @@
-import type { GamePlugin, GameRegistryEntry, PlayableContentEntry, PlayableContentPlugin } from './contracts.js';
+import type {
+  GamePlugin,
+  GameRegistryEntry,
+  PlayableContentEntry,
+  PlayableContentPlugin
+} from '#app/game/contracts.js';
 
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -67,7 +72,7 @@ export const gameRegistry = defineGameRegistry([
   {
     id: 'gw2',
     load: async () => {
-      const module = await import('../../games/gw2/plugin.js');
+      const module = await import('#gw2/plugin.js');
       return module.gw2Plugin;
     }
   }

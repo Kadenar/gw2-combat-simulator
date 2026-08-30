@@ -1,6 +1,6 @@
-import type { SimulationEvent } from '../../../platform/engine/types.js';
-import type { Gw2ResolverResult } from '../../../platform/resolver/types.js';
-import { escapeHtml } from '../shared/html.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 
 export interface EventLogDescriptor {
   readonly type: string;

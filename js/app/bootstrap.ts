@@ -1,5 +1,5 @@
-import { gameRegistry, loadGameContent } from './game/registry.js';
-import type { GameRegistryEntry } from './game/contracts.js';
+import { gameRegistry, loadGameContent } from '#app/game/registry.js';
+import type { GameRegistryEntry } from '#app/game/contracts.js';
 
 /** Resolves page identity through the game seam, with legacy GW2 profession markup as a compatibility fallback. */
 export async function bootstrapGameApp(

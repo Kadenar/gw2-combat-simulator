@@ -1,10 +1,10 @@
-import { downloadJson, getBuildExportPayload, readJsonFile } from './io/files.js';
-import { bindRotationImportDialog } from './io/rotation-import-dialog.js';
-import { createDefaultBuild, replaceBuildConfiguration } from './state/persistence.js';
-import { redoRotation, undoRotation } from '../rotation/editing/history.js';
-import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '../../../../ui/shared/dom.js';
+import { downloadJson, getBuildExportPayload, readJsonFile } from '#gw2/app/build/io/files.js';
+import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';
 
-import type { ProfessionAppState } from '../types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');

@@ -1,15 +1,15 @@
-import { normalizeRotation } from '../../../platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type {
   EngineerSerratedSteelObservation,
   EngineerShrapnelObservation
-} from '../../../integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
-import type { MesmerSharperImagesObservation } from '../../../integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
-import type { NecromancerBarbedPrecisionObservation } from '../../../integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
-import type { WarriorBloodlustObservation } from '../../../integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
-import type { RotationCommand } from '../../../platform/engine/types.js';
-import type { ProfessionAppState } from '../../types.js';
-import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from './log-rotation-import.js';
-import type { RotationImportObservation } from './rotation-import-model.js';
+} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
+import type { NecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
+import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
+import type { RotationCommand } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
+import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
 
 export interface ImportedEvtcRotation {
   readonly rotation: readonly RotationCommand[];
@@ -124,9 +124,9 @@ export function isJsonRotationFile(file: Pick<File, 'name' | 'type'>): boolean {
 /** Reads EVTC/ZIP bytes and reconstructs the matching active build's rotation. */
 export async function readEvtcRotationFile(file: File, app: ProfessionAppState): Promise<ImportedEvtcRotation> {
   const [{ decompressEvtcInput }, { parseEvtc }, rotationModule] = await Promise.all([
-    import('../../../integrations/logs/evtc/decompression.js'),
-    import('../../../integrations/logs/evtc/parser.js'),
-    import('../../../integrations/logs/evtc/rotation/index.js')
+    import('#gw2/integrations/logs/evtc/decompression.js'),
+    import('#gw2/integrations/logs/evtc/parser.js'),
+    import('#gw2/integrations/logs/evtc/rotation/index.js')
   ]);
   const expanded = await decompressEvtcInput(await file.arrayBuffer());
   const log = parseEvtc(expanded);

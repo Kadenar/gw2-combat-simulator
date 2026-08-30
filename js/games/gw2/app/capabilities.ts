@@ -1,6 +1,6 @@
-import type { Gw2AppCapabilities, ProfessionAppState } from './types.js';
+import type { Gw2AppCapabilities, ProfessionAppState } from '#gw2/app/types.js';
 
-const patchPreview = () => import('../integrations/patches/view.js');
+const patchPreview = () => import('#gw2/integrations/patches/view.js');
 
 /** Keeps optional GW2 analysis, preview, and import tools out of the shared shell contract. */
 export const gw2AppCapabilities: Gw2AppCapabilities = Object.freeze({
@@ -21,7 +21,7 @@ export const gw2AppCapabilities: Gw2AppCapabilities = Object.freeze({
     label: 'Import GW2 XML',
     accept: '.xml,application/xml,text/xml',
     async parse(source: string) {
-      const { parseGw2HotkeyBindingsXml } = await import('../integrations/keybinds/parser.js');
+      const { parseGw2HotkeyBindingsXml } = await import('#gw2/integrations/keybinds/parser.js');
       return parseGw2HotkeyBindingsXml(source);
     }
   })

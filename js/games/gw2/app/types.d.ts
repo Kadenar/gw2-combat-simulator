@@ -8,21 +8,21 @@ import type {
   SchedulerRecord,
   Skill,
   SkillId
-} from '../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2ApplicationBuild,
   Gw2CalculateAttributes,
   Gw2FinalizedAttributeResult,
   Gw2SlotLoadout
-} from '../platform/builds/types.js';
-import type { Gw2Config } from '../platform/simulation/config.js';
-import type { Gw2ProfessionContract, Gw2SimulationResult } from '../platform/simulation/types.js';
-import type { Gw2WeaponDataEntry } from '../platform/equipment/types.js';
-import type { PatchPreview, PatchRuntimeValues } from '../integrations/patches/authoring/patches.js';
-import type { RelicComparisonModel } from './simulation/relic-comparison.js';
-import type { BuildEditor, GameContentAddress, SimulationPresentation } from '../../../app/shell/types.js';
-import type { RotationHotkeyImport } from './rotation/input/hotkeys.js';
+} from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ProfessionContract, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
+import type { PatchPreview, PatchRuntimeValues } from '#gw2/integrations/patches/authoring/patches.js';
+import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison.js';
+import type { BuildEditor, GameContentAddress, SimulationPresentation } from '#app/shell/types.js';
+import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
 
 export interface ProfessionBuildAssumptions extends SchedulerRecord {
   might?: number;
