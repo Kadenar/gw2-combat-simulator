@@ -60,8 +60,10 @@ test('game packages do not import another game package', async () => {
     for (const file of await sourceFiles(gameRoot)) {
       const source = await readFile(file, 'utf8');
       for (const specifier of moduleSpecifiers(file, source)) {
-        if (!specifier.startsWith('.')) continue;
-        const target = path.resolve(path.dirname(file), specifier);
+        if (!specifier.startsWith('.') && !specifier.startsWith('#gw2/')) continue;
+        const target = specifier.startsWith('#gw2/')
+          ? path.resolve(GAMES_ROOT, 'gw2', specifier.slice('#gw2/'.length))
+          : path.resolve(path.dirname(file), specifier);
         const relative = path.relative(GAMES_ROOT, target);
         const targetGame = relative.split(path.sep)[0];
         if (targetGame && targetGame !== game.name && !relative.startsWith('..')) {
@@ -78,8 +80,8 @@ test('kernel and neutral UI do not import app or game modules', async () => {
   const violations = [];
   const gameVocabulary = /guild wars|\bgw2\b|boon|trait|profession|specialization|relic|sigil|quickness|armor weight/i;
   for (const [label, root, forbidden] of [
-    ['kernel', KERNEL_ROOT, /(?:^|\/)app\/|(?:^|\/)games\/|(?:^|\/)ui\//],
-    ['ui', UI_ROOT, /(?:^|\/)games\/|platform\/gw2/]
+    ['kernel', KERNEL_ROOT, /^#(?:app|gw2|ui)\/|(?:^|\/)app\/|(?:^|\/)games\/|(?:^|\/)ui\//],
+    ['ui', UI_ROOT, /^#(?:app|gw2)\/|(?:^|\/)games\/|platform\/gw2/]
   ]) {
     for (const file of await sourceFiles(root)) {
       const source = await readFile(file, 'utf8');
@@ -102,8 +104,8 @@ test('shared bootstrap depends on the game registry, not GW2 domain modules', as
   const source = await readFile(file, 'utf8');
   const specifiers = moduleSpecifiers(file, source);
 
-  assert.deepEqual(specifiers.sort(), ['./game/contracts.js', './game/registry.js']);
-  assert.doesNotMatch(source, /platform\/gw2|games\/gw2/i);
+  assert.deepEqual(specifiers.sort(), ['#app/game/contracts.js', '#app/game/registry.js']);
+  assert.doesNotMatch(source, /#gw2\/|platform\/gw2|games\/gw2/i);
 });
 
 test('the fake game fixture has no GW2 dependency', async () => {
@@ -122,7 +124,7 @@ test('shared shell contracts and rendering contain no game vocabulary or imports
     const source = await readFile(file, 'utf8');
     if (forbidden.test(source)) violations.push(path.relative(APP_ROOT, file));
     for (const specifier of moduleSpecifiers(file, source)) {
-      if (/games\/|platform\/gw2/.test(specifier)) {
+      if (/^#gw2\/|games\/|platform\/gw2/.test(specifier)) {
         violations.push(`${path.relative(APP_ROOT, file)} imports ${specifier}`);
       }
     }
@@ -137,7 +139,7 @@ test('shared app declarations do not import the GW2 platform', async () => {
   for (const file of (await sourceFiles(APP_ROOT)).filter((file) => file.endsWith('.d.ts'))) {
     const source = await readFile(file, 'utf8');
     for (const specifier of moduleSpecifiers(file, source)) {
-      if (specifier.includes('platform/gw2')) {
+      if (specifier.startsWith('#gw2/') || specifier.includes('platform/gw2')) {
         violations.push(`${path.relative(APP_ROOT, file)} imports ${specifier}`);
       }
     }

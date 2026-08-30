@@ -10,34 +10,45 @@
  * The palette is rebuilt after application changes; event handlers therefore
  * read current build and result state instead of retaining DOM-local state.
  */
-import { ammoDisplayView } from '../../../../../ui/rotation/ammo-display.js';
+import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
 import {
   activationDamageCommitMs,
   openActivationEditor,
   suggestedActivationInterruptMs,
   validateActivationInterruptMs
-} from '../../presentation/rotation/editors/activation-editor.js';
-import { openDurationEditor } from '../../../../../ui/rotation/editors/duration-editor.js';
+} from '#gw2/app/presentation/rotation/editors/activation-editor.js';
+import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '../../presentation/rotation/palette.js';
-import { clearTimelineDropIndicators, rotationEntryName } from '../../presentation/rotation/timeline.js';
-import { escapeHtml as esc, gw2ApiText } from '../../presentation/shared/html.js';
-import { createRotationItem, insertRotationItems } from '../editing/actions.js';
-import { openDragonSlashReleaseEditor } from '../editing/charge-release.js';
-import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '../editing/double-edge.js';
-import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
+} from '#gw2/app/presentation/rotation/palette.js';
+import { clearTimelineDropIndicators, rotationEntryName } from '#gw2/app/presentation/rotation/timeline.js';
+import { escapeHtml as esc, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
+import { createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
+import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release.js';
+import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '#gw2/app/rotation/editing/double-edge.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 import {
   rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
-} from '../input/hotkeys.js';
-import { activeSpecialization, paletteEndState, paletteProfessionState, seconds } from '../shared/context.js';
-import { ACTION_ICONS, COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } from '../shared/icons.js';
+} from '#gw2/app/rotation/input/hotkeys.js';
+import {
+  activeSpecialization,
+  paletteEndState,
+  paletteProfessionState,
+  seconds
+} from '#gw2/app/rotation/shared/context.js';
+import {
+  ACTION_ICONS,
+  COMBAT_START_ICON,
+  COOLDOWN_RESET_ICON,
+  PLACEHOLDER_ICON,
+  WAIT_ICON
+} from '#gw2/app/rotation/shared/icons.js';
 import {
   currentAutoattackSkill,
   displayedSkillTiles,
@@ -51,8 +62,8 @@ import {
   weaponPaletteRows,
   weaponPaletteSectionHtml,
   weaponSkills
-} from './model.js';
-import { activeResourceGroup, paletteSkillResourceView } from './resource-view.js';
+} from '#gw2/app/rotation/palette/model.js';
+import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
@@ -60,9 +71,9 @@ import type {
   RotationCommand,
   SchedulerRecord,
   Skill
-} from '../../../platform/engine/types.js';
-import type { PaletteSkillView } from '../../presentation/rotation/palette.js';
-import type { ProfessionAppState } from '../../types.js';
+} from '#gw2/platform/engine/types.js';
+import type { PaletteSkillView } from '#gw2/app/presentation/rotation/palette.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const CONCURRENT_OFFSET_MS = 120;
 

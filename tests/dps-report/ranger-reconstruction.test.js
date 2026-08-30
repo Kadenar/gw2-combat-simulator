@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { rangerCatalog } from '../../js/games/gw2/content/professions/ranger/catalog.js';
-import { parseDpsReport } from '../../js/games/gw2/integrations/logs/dps-report/parser.js';
-import { reconstructDpsReportRotation } from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
+import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
+import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 
 // Fixtures retain only the Ranger signals needed to prove each report correction.
 function reportFixture(profession, rotation, skillMap, options = {}) {

@@ -2,7 +2,7 @@
  * Stable event queue helpers used by both scheduling and resolution. Events are
  * ordered by timestamp, then explicit priority, then insertion order.
  */
-export { EPSILON } from '../core/clock.js';
+export { EPSILON } from '#kernel/core/clock.js';
 
 export interface QueuedEvent {
   readonly at?: number;

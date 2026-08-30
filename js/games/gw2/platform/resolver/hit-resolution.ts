@@ -1,6 +1,6 @@
-import { expectedCritMultiplier, strikeDamage } from '../combat/damage/calculations.js';
-import { resolvedWeaponStrength } from './weapon-strength-resolution.js';
-import { remainingTargetHealthFraction } from '../combat/state/target-health.js';
+import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/damage/calculations.js';
+import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 
 import type {
   Gw2HitResolution,
@@ -8,8 +8,8 @@ import type {
   Gw2ResolverExtensions,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
-} from './types.js';
-import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
 
 const STANDARD_TARGET_ARMOR = 2597;
 

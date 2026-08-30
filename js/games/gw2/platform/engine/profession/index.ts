@@ -1,7 +1,11 @@
 /** Public profession authoring and runtime-selection entrypoint. */
-export { createEventReactions, defineProfession, PROFESSION_HOOK_ORDER } from './contract.js';
-export { defineProfessionFamily, resolveProfessionRuntime } from './family.js';
-export { defineProfessionModule } from './module.js';
+export {
+  createEventReactions,
+  defineProfession,
+  PROFESSION_HOOK_ORDER
+} from '#gw2/platform/engine/profession/contract.js';
+export { defineProfessionFamily, resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+export { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
 export {
   cloneProfessionState,
   defineProfessionSpecializationState,
@@ -10,7 +14,7 @@ export {
   projectPublicProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState
-} from './state.js';
-export type { ProfessionSpecializationStateDefinition } from './state.js';
-export { createProfessionFamilyUi } from './ui.js';
-export type { ProfessionFamilyUiDefinition } from './ui.js';
+} from '#gw2/platform/engine/profession/state.js';
+export type { ProfessionSpecializationStateDefinition } from '#gw2/platform/engine/profession/state.js';
+export { createProfessionFamilyUi } from '#gw2/platform/engine/profession/ui.js';
+export type { ProfessionFamilyUiDefinition } from '#gw2/platform/engine/profession/ui.js';

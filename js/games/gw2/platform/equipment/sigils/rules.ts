@@ -1,10 +1,10 @@
-import { SIGIL_DATA } from './data.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '../../combat/damage/stat-scaling.js';
+} from '#gw2/platform/combat/damage/stat-scaling.js';
 
-import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '../../combat/query/types.js';
+import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
 
 export interface Gw2SigilCriticalContribution {
   readonly chance: number;

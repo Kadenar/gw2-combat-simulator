@@ -6,7 +6,7 @@ import {
   criticalChanceEventAt,
   timedBuffAt,
   timedBuffStacksAt
-} from '../../../js/games/gw2/platform/results/query.js';
+} from '#gw2/platform/results/query.js';
 
 test('critical chance queries select the next eligible player strike', () => {
   const before = { type: 'damage', at: 0.5, criticalChance: 0.4 };

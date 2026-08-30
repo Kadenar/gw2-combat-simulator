@@ -25,19 +25,26 @@
  * a cast-scaled effect follows the same scale unless it explicitly declares
  * `intervalTimingScale: "fixed"`.
  */
-import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from './proc-materializer.js';
-import { createGw2ComboMaterializer, GW2_COMBO_MATERIALIZE_EVENT_TASK } from './combo-materializer.js';
-import { createGw2EventPreparer } from './event-preparer.js';
-import { CAST_READY, denyCast } from '../engine/skills/availability.js';
+import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
+import {
+  createGw2ComboMaterializer,
+  GW2_COMBO_MATERIALIZE_EVENT_TASK
+} from '#gw2/platform/scheduler/combo-materializer.js';
+import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
   remainingDurationStackSeconds
-} from '../combat/state/boons.js';
-import { relicWeaponSwapRechargeMultiplier } from '../equipment/relics/catalog.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
-import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '../skills/timing.js';
+} from '#gw2/platform/combat/state/boons.js';
+import { relicWeaponSwapRechargeMultiplier } from '#gw2/platform/equipment/relics/catalog.js';
+import {
+  gw2BoonDurationMultiplier,
+  gw2SigilSet,
+  gw2StatsForWeaponSet
+} from '#gw2/platform/combat/query/runtime-rules.js';
+import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type {
   CanonicalCatalog,
   CastContext,
@@ -46,14 +53,14 @@ import type {
   SimulationEvent,
   Skill,
   SkillEffect
-} from '../engine/types.js';
-import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '../equipment/weapons/skill-matcher.js';
-import { gw2ConfiguredWeaponSet } from '../equipment/weapons/loadout.js';
-import type { Gw2CombatQuery } from '../combat/query/types.js';
-import type { Gw2Config } from '../simulation/config.js';
-import type { Gw2SchedulerPolicy } from './types.js';
-import type { Gw2Stats } from '../equipment/types.js';
-import type { Gw2WeaponSkillMatcher } from '../equipment/weapons/types.js';
+} from '#gw2/platform/engine/types.js';
+import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2CombatQuery } from '#gw2/platform/combat/query/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 interface CreateGw2SchedulerPolicyOptions {
   readonly traits?: ReadonlySet<string | number> | null;

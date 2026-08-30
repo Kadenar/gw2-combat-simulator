@@ -1,4 +1,4 @@
-import { createNecromancerBuildDefaults } from '../../js/games/gw2/content/professions/necromancer/build/build.js';
+import { createNecromancerBuildDefaults } from '#gw2/content/professions/necromancer/build/build.js';
 
 const output = document.getElementById('fixture-output');
 const frame = document.getElementById('simulator');

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { mountSimulationView } from '../../js/ui/simulation-view.js';
+import { mountSimulationView } from '#ui/simulation-view.js';
 
 test('a fake game renders neutral summary and timeline models', () => {
   const container = { innerHTML: '' };

@@ -4,17 +4,17 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON, isInternalCooldownReady } from '../../../../../kernel/core/clock.js';
-import { enqueueOrdered } from '../../../../../kernel/events/queue.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
   isGw2PlayerActorEvent,
   isGw2PlayerModifierOwnedEvent
-} from '../../combat/state/event-ownership.js';
-import { combinedTargetDamage } from '../../combat/state/target-health.js';
+} from '#gw2/platform/combat/state/event-ownership.js';
+import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 
-import type { SimulationEvent, Skill } from '../../engine/types.js';
+import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
 import type {
   Gw2ApplyCondition,
   Gw2ConditionHelpers,
@@ -24,7 +24,7 @@ import type {
   Gw2RelicRuntime,
   Gw2RelicRuntimeContext,
   Gw2RelicState
-} from './types.js';
+} from '#gw2/platform/equipment/relics/types.js';
 
 interface TimedBuffProcOptions {
   readonly duration: number;

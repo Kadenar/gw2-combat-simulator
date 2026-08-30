@@ -1,4 +1,4 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '../../engine/types.js';
+import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/types.js';
 
 interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;

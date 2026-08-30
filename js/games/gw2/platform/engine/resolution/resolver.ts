@@ -5,10 +5,10 @@
  * resolution layers build on this state shape rather than reimplementing queue
  * management.
  */
-import { assertScheduledEventStream } from '../events/scheduled-stream.js';
-import { createEventQueue, StableEventQueue, takeNextEvent } from '../../../../../kernel/events/queue.js';
-import { cloneProfessionState } from '../profession/state.js';
-import { resolveProfessionRuntime } from '../profession/family.js';
+import { assertScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { createEventQueue, StableEventQueue, takeNextEvent } from '#kernel/events/queue.js';
+import { cloneProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 
 import type {
   NormalizedProfessionContract,
@@ -17,7 +17,7 @@ import type {
   SchedulerConfig,
   SimulationEvent,
   SkillId
-} from '../types.js';
+} from '#gw2/platform/engine/types.js';
 
 // Minimal resolver implementation for event streams whose behavior is fully
 // provided by registered handlers. Shared GW2 resolution layers build on this

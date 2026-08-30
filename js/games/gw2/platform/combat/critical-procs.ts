@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '../../../../kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 
 export type CriticalProcMaterialization = 'threshold' | 'weighted';
 

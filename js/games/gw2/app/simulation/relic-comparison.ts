@@ -1,4 +1,4 @@
-import type { ChartPoint } from '../presentation/results/charts/time-series.js';
+import type { ChartPoint } from '#gw2/app/presentation/results/charts/time-series.js';
 
 /**
  * Relic of Thorns ramps its Condition Damage bonus over the first ~48s and then

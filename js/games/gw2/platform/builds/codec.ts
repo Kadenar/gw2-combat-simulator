@@ -1,14 +1,14 @@
-import { normalizeRotation } from '../engine/execution/rotation.js';
-import { FOOD_NAMES } from '../equipment/consumables/food.js';
-import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '../equipment/gear/stats.js';
-import { RELIC_NAMES } from '../equipment/relics/catalog.js';
-import { RUNE_NAMES } from '../equipment/gear/runes.js';
-import { SIGIL_NAMES } from '../equipment/sigils/data.js';
-import { UTILITY_NAMES } from '../equipment/consumables/utilities.js';
-import { clamp, finiteNumber } from '../combat/numeric.js';
-import { boundedInteger, boundedNumber, enumValue } from './normalization.js';
-import { normalizeWeaponSigils } from '../equipment/sigils/loadout.js';
-import type { CanonicalCatalog, SchedulerRecord, Skill, SkillId } from '../engine/types.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
+import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
+import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
+import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
+import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';
+import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import type { CanonicalCatalog, SchedulerRecord, Skill, SkillId } from '#gw2/platform/engine/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2BuildCodec,
@@ -20,7 +20,7 @@ import type {
   Gw2BuildValidationOptions,
   Gw2BuildValidationResult,
   Gw2CanonicalBuild
-} from './types.js';
+} from '#gw2/platform/builds/types.js';
 
 const SLOT_TYPES = Object.freeze({
   Heal: 'Heal',
@@ -572,8 +572,8 @@ function normalizeSelectedSkills(
 
 /**
  * @param {unknown} value
- * @param {readonly import("./types.ts").Gw2BuildInfusion[]} fallback
- * @returns {import("./types.ts").Gw2BuildInfusion[]}
+ * @param {readonly import("#gw2/platform/builds/types.ts").Gw2BuildInfusion[]} fallback
+ * @returns {import("#gw2/platform/builds/types.ts").Gw2BuildInfusion[]}
  */
 function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
   if (!Array.isArray(value)) return clone([...fallback]);

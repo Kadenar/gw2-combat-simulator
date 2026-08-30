@@ -1,4 +1,4 @@
-import type { Skill } from '../engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;

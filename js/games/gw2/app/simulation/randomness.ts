@@ -1,11 +1,11 @@
-import type { SimulationRandomnessConfig } from '../../platform/engine/types.js';
+import type { SimulationRandomnessConfig } from '#gw2/platform/engine/types.js';
 import {
   DEFAULT_SIMULATION_RANDOMNESS,
   SIMULATION_RANDOMNESS_MODES,
   normalizeSimulationRandomness
-} from '../../../../kernel/core/simulation-random.js';
-import { createProfessionAssumptionControls } from '../profession/assumptions.js';
-import type { ProfessionAssumptionControl } from '../types.js';
+} from '#kernel/core/simulation-random.js';
+import { createProfessionAssumptionControls } from '#gw2/app/profession/assumptions.js';
+import type { ProfessionAssumptionControl } from '#gw2/app/types.js';
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 

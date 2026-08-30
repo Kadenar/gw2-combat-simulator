@@ -1,13 +1,13 @@
-import type { RotationCommand, SchedulerStep } from '../../../platform/engine/types.js';
-import type { Gw2ProcStep } from '../../../platform/resolver/types.js';
-import type { Gw2SimulationResult } from '../../../platform/simulation/types.js';
+import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import {
   eventTimelineMarkers,
   rotationEntryName,
   timelineRows,
   type TimelineRow
-} from '../../presentation/rotation/timeline.js';
-import { targetHealthBreakpointSnapshots } from '../../presentation/results/result-transform.js';
+} from '#gw2/app/presentation/rotation/timeline.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/presentation/results/result-transform.js';
 
 const WEAPON_SET_REFRESH_SKILLS = new Set([
   'Swap Legends',

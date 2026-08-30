@@ -1,7 +1,10 @@
 // Stateless GW2 damage formulas used by timestamp-aware runtime resolution.
 
-import { clamp } from '../numeric.js';
-import { criticalChanceFractionFromPrecision, criticalDamageMultiplierFromFerocity } from './stat-scaling.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
+import {
+  criticalChanceFractionFromPrecision,
+  criticalDamageMultiplierFromFerocity
+} from '#gw2/platform/combat/damage/stat-scaling.js';
 
 const TARGET_ARMOR = 2597;
 

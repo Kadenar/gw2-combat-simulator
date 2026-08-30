@@ -1,4 +1,4 @@
-import type { SchedulerContext, SimulationEvent, SimulationEventInput } from '../types.js';
+import type { SchedulerContext, SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/types.js';
 
 export interface StateSnapshotEventInput extends SimulationEventInput {
   readonly state: object;

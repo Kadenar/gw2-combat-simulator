@@ -1,12 +1,12 @@
-import type { ProfessionAppState } from '../types.js';
-import { renderRotationHistoryControls } from './editing/history.js';
-import { mountRotationHotkeys } from './input/hotkeys.js';
-import { renderPalette } from './palette/view.js';
-import { renderStartResource } from './palette/resource-view.js';
-import { renderEventLog } from './result/event-log.js';
-import { renderWarnings } from './result/warnings.js';
-import { renderRotationStateSnapshot } from './state-snapshot/view.js';
-import { renderTimeline } from './timeline/view.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { renderRotationHistoryControls } from '#gw2/app/rotation/editing/history.js';
+import { mountRotationHotkeys } from '#gw2/app/rotation/input/hotkeys.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
+import { renderEventLog } from '#gw2/app/rotation/result/event-log.js';
+import { renderWarnings } from '#gw2/app/rotation/result/warnings.js';
+import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
+import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
 export function renderRotationBuilder(app: ProfessionAppState): void {
   renderRotationEditor(app);

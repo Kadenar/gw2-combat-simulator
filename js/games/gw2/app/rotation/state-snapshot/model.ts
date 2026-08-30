@@ -1,9 +1,9 @@
 /** Builds the app-owned snapshot at the insertion cursor or rotation end. */
-import type { RotationStateSnapshotItem } from '../../../platform/engine/types.js';
-import { criticalChanceEventAt } from '../../../platform/results/query.js';
-import { criticalChanceTooltip } from '../../presentation/rotation/state-snapshot.js';
-import type { ProfessionAppState } from '../../types.js';
-import { activeSpecialization, paletteEndState } from '../shared/context.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/types.js';
+import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
+import { criticalChanceTooltip } from '#gw2/app/presentation/rotation/state-snapshot.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/shared/context.js';
 
 export function rotationStateSnapshot(app: ProfessionAppState): {
   readonly items: RotationStateSnapshotItem[];

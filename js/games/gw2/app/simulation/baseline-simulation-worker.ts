@@ -1,6 +1,6 @@
-import { createGameWorkerEndpoint } from '../../../../app/simulation/game-worker-harness.js';
-import type { BaselineSimulationRequest } from '../types.js';
-import type { Gw2AppAdapter } from '../types.js';
+import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
+import type { BaselineSimulationRequest } from '#gw2/app/types.js';
+import type { Gw2AppAdapter } from '#gw2/app/types.js';
 
 interface BaselineSimulationWorkerMessage {
   readonly requestId: number;

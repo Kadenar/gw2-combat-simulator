@@ -1,4 +1,4 @@
-import type { Gw2ModifierContext } from '../modifiers/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
 
 interface AdditiveDamageBucketOptions {
   readonly damageType?: 'strike' | 'condition';

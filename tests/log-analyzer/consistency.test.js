@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructDpsReportRotation } from '../../js/games/gw2/integrations/logs/dps-report/rotation/index.js';
-import { reconstructEvtcRotation } from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
-import { EVTC_ROTATION_PROFILES } from '../../js/games/gw2/integrations/logs/evtc/rotation/profiles.js';
-import { ROTATION_PROFILES } from '../../js/games/gw2/integrations/logs/lib/rotation/profiles.js';
-import { selectRotationPlayer } from '../../js/games/gw2/integrations/logs/lib/rotation/selection.js';
-import { buildReplayTimeline } from '../../js/games/gw2/integrations/logs/lib/rotation/timeline.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { EVTC_ROTATION_PROFILES } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 
 const PLAYER = 0x1000n;
 const fixtureSkill = {

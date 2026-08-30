@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
-import { engineerProfession } from '../../../js/games/gw2/content/professions/engineer/definition.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
 
 const baseConfig = Object.freeze({
   specialization: 'Scrapper',

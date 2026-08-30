@@ -1,17 +1,21 @@
-import { BASE_STATS, GEAR_SLOTS, GEAR_STATS, INFUSION_BONUS, JBC_BONUS } from '../equipment/gear/stats.js';
-import { FOOD_DATA } from '../equipment/consumables/food.js';
-import { RUNE_DATA } from '../equipment/gear/runes.js';
-import { SIGIL_DATA } from '../equipment/sigils/data.js';
-import { UTILITY_CONVERSION_RATES, UTILITY_DATA, UTILITY_STAT_DATA } from '../equipment/consumables/utilities.js';
-import { WEAPON_DATA } from '../equipment/weapons/data.js';
+import { BASE_STATS, GEAR_SLOTS, GEAR_STATS, INFUSION_BONUS, JBC_BONUS } from '#gw2/platform/equipment/gear/stats.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import {
+  UTILITY_CONVERSION_RATES,
+  UTILITY_DATA,
+  UTILITY_STAT_DATA
+} from '#gw2/platform/equipment/consumables/utilities.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
   criticalDamagePercentFromFerocity
-} from '../combat/damage/stat-scaling.js';
-import { normalizeWeaponSigils, weaponSigilsForSet } from '../equipment/sigils/loadout.js';
+} from '#gw2/platform/combat/damage/stat-scaling.js';
+import { normalizeWeaponSigils, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 
-import type { Skill } from '../engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
@@ -23,7 +27,7 @@ import type {
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
-} from './types.js';
+} from '#gw2/platform/builds/types.js';
 
 interface CalculateCommonAttributesOptions {
   readonly weaponSet?: number;

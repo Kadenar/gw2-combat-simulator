@@ -1,17 +1,17 @@
-import { enqueueOrdered } from '../../../../kernel/events/queue.js';
-import type { SchedulerRecord } from '../engine/types.js';
-import { isGw2PlayerActorEvent } from '../combat/state/event-ownership.js';
-import { FOOD_DATA, NOURISHMENT_ICON } from '../equipment/consumables/food.js';
-import { SIGIL_PROCS } from '../equipment/sigils/catalog.js';
-import { onResolvedCriticalHit } from '../../integrations/patches/authoring/mechanics.js';
-import { consumeExpectedCriticalProgress } from '../combat/numeric.js';
-import { gw2SigilSet } from '../combat/query/runtime-rules.js';
+import { enqueueOrdered } from '#kernel/events/queue.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { onResolvedCriticalHit } from '#gw2/integrations/patches/authoring/mechanics.js';
+import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/numeric.js';
+import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   isResolverCriticalSigil,
   isSigilInternalCooldownReady
-} from '../equipment/sigils/proc-events.js';
+} from '#gw2/platform/equipment/sigils/proc-events.js';
 import {
   handleBoonRelics,
   handleComboRelic,
@@ -21,20 +21,20 @@ import {
   handleRelicDamageResolved,
   handleRelicsAfterHit,
   handleWeaknessVulnerabilityRelic
-} from './relic-reactions.js';
-import { skillForEvent } from './event-skill.js';
-import { gw2ResolverBoonDuration } from './boon-duration.js';
+} from '#gw2/platform/resolver/relic-reactions.js';
+import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
-import type { NativeResolvedDamageDetails } from '../../integrations/patches/authoring/module-types.js';
-import type { Gw2ConditionHelpers } from '../equipment/relics/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import type {
   Gw2ConditionResolution,
   Gw2ResolverEvent,
   Gw2ResolverReactionContributions,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
-} from './types.js';
-import type { Gw2SigilProc } from '../equipment/types.js';
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
 
 export const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,

@@ -1,7 +1,7 @@
-import type { RotationCommand, SimulationEvent } from '../../platform/engine/types.js';
-import type { Gw2Config } from '../../platform/simulation/config.js';
-import type { Gw2ProcStep, Gw2ResolverEvent } from '../../platform/resolver/types.js';
-import { SIMULATION_RANDOMNESS_MODES } from '../../../../kernel/core/simulation-random.js';
+import type { RotationCommand, SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import type {
   RandomDistributionDriver,
   RandomDistributionMetricSample,
@@ -9,7 +9,7 @@ import type {
   RandomDistributionOutcome,
   RandomDistributionRequest,
   RandomDistributionSummary
-} from '../types.js';
+} from '#gw2/app/types.js';
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;

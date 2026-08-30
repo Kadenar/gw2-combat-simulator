@@ -7,42 +7,42 @@ import {
   suggestedActivationInterruptMs,
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
-} from '../../../js/games/gw2/app/presentation/rotation/editors/activation-editor.js';
-import { chargeReleaseRowLabel } from '../../../js/ui/rotation/editors/charge-release-editor.js';
-import { validateDurationMs } from '../../../js/ui/rotation/editors/duration-editor.js';
-import { positionFloatingEditor } from '../../../js/ui/rotation/editors/floating-editor.js';
+} from '#gw2/app/presentation/rotation/editors/activation-editor.js';
+import { chargeReleaseRowLabel } from '#ui/rotation/editors/charge-release-editor.js';
+import { validateDurationMs } from '#ui/rotation/editors/duration-editor.js';
+import { positionFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   chartValueAt,
   mountTimeSeriesCharts
-} from '../../../js/games/gw2/app/presentation/results/charts/time-series.js';
-import { eventLogCsv, eventLogRows, mountEventLog } from '../../../js/games/gw2/app/presentation/results/event-log.js';
+} from '#gw2/app/presentation/results/charts/time-series.js';
+import { eventLogCsv, eventLogRows, mountEventLog } from '#gw2/app/presentation/results/event-log.js';
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml
-} from '../../../js/games/gw2/app/presentation/rotation/palette.js';
-import { escapeHtml, gw2ApiText } from '../../../js/games/gw2/app/presentation/shared/html.js';
+} from '#gw2/app/presentation/rotation/palette.js';
+import { escapeHtml, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import {
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
-} from '../../../js/ui/rotation/insertion-cursor.js';
+} from '#ui/rotation/insertion-cursor.js';
 import {
   resultSummaryMetrics,
   targetHealthBreakpointSnapshots
-} from '../../../js/games/gw2/app/presentation/results/result-transform.js';
+} from '#gw2/app/presentation/results/result-transform.js';
 import {
   dismissResultMetricDetails,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
-} from '../../../js/games/gw2/app/presentation/results/rotation-results.js';
-import { mountRotationWarnings } from '../../../js/ui/results/rotation-warnings.js';
+} from '#gw2/app/presentation/results/rotation-results.js';
+import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -52,7 +52,7 @@ import {
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals
-} from '../../../js/games/gw2/app/presentation/rotation/timeline.js';
+} from '#gw2/app/presentation/rotation/timeline.js';
 
 function inertContainer() {
   return {

@@ -2,20 +2,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { timelineWeaponRows } from '../../../js/games/gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { migrateRangerBuild } from '../../../js/games/gw2/content/professions/ranger/build/build.js';
-import { rangerCatalog } from '../../../js/games/gw2/content/professions/ranger/catalog.js';
-import {
-  RANGER_SKILL_IDS as ID,
-  RANGER_TRAIT_IDS as TRAIT
-} from '../../../js/games/gw2/content/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '../../../js/games/gw2/content/professions/ranger/data/ranger-pet-data.js';
-import { rangerProfession } from '../../../js/games/gw2/content/professions/ranger/definition.js';
-import { rangerCoreCriticalReactions } from '../../../js/games/gw2/content/professions/ranger/core/mechanics/reactions.js';
-import { rangerCoreModifierRules } from '../../../js/games/gw2/content/professions/ranger/core/traits/modifiers.js';
-import { druidModifierRules } from '../../../js/games/gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { rangerAppAdapter } from '../../../js/games/gw2/content/professions/ranger/app/app-definition.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { migrateRangerBuild } from '#gw2/content/professions/ranger/build/build.js';
+import { rangerCatalog } from '#gw2/content/professions/ranger/catalog.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/content/professions/ranger/data/ranger-pet-data.js';
+import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
+import { rangerCoreCriticalReactions } from '#gw2/content/professions/ranger/core/mechanics/reactions.js';
+import { rangerCoreModifierRules } from '#gw2/content/professions/ranger/core/traits/modifiers.js';
+import { druidModifierRules } from '#gw2/content/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { rangerAppAdapter } from '#gw2/content/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

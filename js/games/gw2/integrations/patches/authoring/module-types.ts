@@ -9,16 +9,20 @@ import type {
   SkillFragment,
   SkillHandlerStrategy,
   SkillId
-} from '../../../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   Gw2HitResolutionContext,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
   Gw2ResolverStage
-} from '../../../platform/resolver/types.js';
-import type { Gw2ModifierRule } from '../../../platform/combat/modifiers/types.js';
-import type { PatchPreview, PatchRuntimeValues, ProfessionPatchPreview } from './patches.js';
-import type { Gw2AutoattackChainOptions } from '../../../platform/skills/autoattack-chains.js';
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type {
+  PatchPreview,
+  PatchRuntimeValues,
+  ProfessionPatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chains.js';
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];

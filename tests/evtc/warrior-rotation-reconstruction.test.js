@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
-import { warriorCatalog } from '../../js/games/gw2/content/professions/warrior/catalog.js';
-import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { warriorCatalog } from '#gw2/content/professions/warrior/catalog.js';
+import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
 
 const PLAYER = 0x1000n;
 

@@ -3,10 +3,16 @@
  * Native professions only declare narrow interruption overrides and optional
  * transition observers; this controller performs every live map mutation.
  */
-import { professionCoreState } from '../engine/profession/state.js';
-import { CAST_READY, denyCast } from '../engine/skills/availability.js';
-import { resolveAutoattackChainStep } from '../engine/skills/autoattack-chains.js';
-import type { AvailabilityResult, CastContext, CastLifecycleContext, Skill, SkillId } from '../engine/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { resolveAutoattackChainStep } from '#gw2/platform/engine/skills/autoattack-chains.js';
+import type {
+  AvailabilityResult,
+  CastContext,
+  CastLifecycleContext,
+  Skill,
+  SkillId
+} from '#gw2/platform/engine/types.js';
 
 interface AutoattackChainCoreState {
   readonly autoattackChains?: Record<string, SkillId>;

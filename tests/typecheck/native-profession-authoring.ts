@@ -1,10 +1,7 @@
-import {
-  defineNativeModule,
-  defineNativeProfession
-} from '../../js/games/gw2/integrations/patches/authoring/profession.js';
-import { onResolvedDamage, skillAvailability } from '../../js/games/gw2/integrations/patches/authoring/mechanics.js';
-import type { NativeProfessionRuntimeState } from '../../js/games/gw2/integrations/patches/authoring/module-types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../js/games/gw2/platform/resolver/types.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+import { onResolvedDamage, skillAvailability } from '#gw2/integrations/patches/authoring/mechanics.js';
+import type { NativeProfessionRuntimeState } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;

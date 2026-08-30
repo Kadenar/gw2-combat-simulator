@@ -7,9 +7,13 @@ import type {
   SchedulerRecord,
   SchedulerState,
   SchedulerStep
-} from '../engine/types.js';
-import type { Gw2ResolverEventHandlers, Gw2ResolverReactions, Gw2ResolverResult } from '../resolver/types.js';
-import type { Gw2Config } from './config.js';
+} from '#gw2/platform/engine/types.js';
+import type {
+  Gw2ResolverEventHandlers,
+  Gw2ResolverReactions,
+  Gw2ResolverResult
+} from '#gw2/platform/resolver/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2ProfessionContract extends Omit<
   NormalizedProfessionContract,

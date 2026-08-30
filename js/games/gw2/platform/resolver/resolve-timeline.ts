@@ -1,10 +1,15 @@
-import { EPSILON } from '../../../../kernel/core/clock.js';
-import { createEventQueue } from '../../../../kernel/events/queue.js';
-import { assertScheduledEventStream as assertPlatformStream } from '../engine/events/scheduled-stream.js';
-import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from './event-loop.js';
-import { playerDamageTotal } from '../combat/state/target-health.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { createEventQueue } from '#kernel/events/queue.js';
+import { assertScheduledEventStream as assertPlatformStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from '#gw2/platform/resolver/event-loop.js';
+import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 
-import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from './types.js';
+import type {
+  Gw2ResolverEvent,
+  Gw2ResolverResult,
+  Gw2ResolverRuntime,
+  ResolveGw2TimelineOptions
+} from '#gw2/platform/resolver/types.js';
 
 interface Gw2ResolverHandoff {
   readonly warnings?: readonly string[];

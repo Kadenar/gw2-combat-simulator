@@ -1,4 +1,4 @@
-import { createSimulationRandom } from '../../../../kernel/core/simulation-random.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   createGw2ComboRuntimeState,
   normalizeComboFieldType,
@@ -6,9 +6,13 @@ import {
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
-} from '../combos/events.js';
-import { materializeComboOutcome } from '../combos/definitions.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet, gw2StatsForWeaponSet } from '../combat/query/runtime-rules.js';
+} from '#gw2/platform/combos/events.js';
+import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
+import {
+  gw2BoonDurationMultiplier,
+  gw2SigilSet,
+  gw2StatsForWeaponSet
+} from '#gw2/platform/combat/query/runtime-rules.js';
 
 import type {
   ScheduledTask,
@@ -16,7 +20,7 @@ import type {
   SchedulerRecord,
   SimulationActorType,
   SimulationEvent
-} from '../engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -24,8 +28,8 @@ import type {
   ComboFieldType,
   ComboFinisherEvent,
   ComboFinisherType
-} from '../combos/types.js';
-import type { Gw2Config } from '../simulation/config.js';
+} from '#gw2/platform/combos/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
 

@@ -3,11 +3,11 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { thiefCatalog, thiefSkillRuntimeOwner } from '../../../js/games/gw2/content/professions/thief/catalog.js';
-import { thiefCoreModule } from '../../../js/games/gw2/content/professions/thief/core/module.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/core/skills/index.js';
-import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { thiefCatalog, thiefSkillRuntimeOwner } from '#gw2/content/professions/thief/catalog.js';
+import { thiefCoreModule } from '#gw2/content/professions/thief/core/module.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/content/professions/thief/core/skills/index.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {
@@ -37,15 +37,15 @@ function combinedSource(entries) {
   return entries.map(({ source }) => source).join('\n');
 }
 
-import { THIEF_SKILL_IDS as ID } from '../../../js/games/gw2/content/professions/thief/data/ids.js';
-import { antiquaryModule } from '../../../js/games/gw2/content/professions/thief/specializations/antiquary/module.js';
-import { ANTIQUARY_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/antiquary/skills/index.js';
-import { daredevilModule } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/module.js';
-import { DAREDEVIL_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/skills/index.js';
-import { deadeyeModule } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/module.js';
-import { DEADEYE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/skills/index.js';
-import { specterModule } from '../../../js/games/gw2/content/professions/thief/specializations/specter/module.js';
-import { SPECTER_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/specializations/specter/skills/index.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/content/professions/thief/data/ids.js';
+import { antiquaryModule } from '#gw2/content/professions/thief/specializations/antiquary/module.js';
+import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/antiquary/skills/index.js';
+import { daredevilModule } from '#gw2/content/professions/thief/specializations/daredevil/module.js';
+import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/daredevil/skills/index.js';
+import { deadeyeModule } from '#gw2/content/professions/thief/specializations/deadeye/module.js';
+import { DEADEYE_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/deadeye/skills/index.js';
+import { specterModule } from '#gw2/content/professions/thief/specializations/specter/module.js';
+import { SPECTER_SKILL_MECHANICS } from '#gw2/content/professions/thief/specializations/specter/skills/index.js';
 
 const slices = Object.freeze([
   ['core', thiefCoreModule],
@@ -149,10 +149,7 @@ test('Thief modules own vertical source slices', () => {
     existsSync(new URL('../../../js/games/gw2/content/professions/thief/core/events.ts', import.meta.url)),
     false
   );
-  assert.equal(
-    existsSync(new URL('../../../js/games/gw2/content/professions/thief/state/index.ts', import.meta.url)),
-    true
-  );
+  assert.equal(existsSync(new URL('../../../js/games/gw2/content/professions/thief/state.ts', import.meta.url)), true);
   assert.equal(
     existsSync(
       new URL('../../../js/games/gw2/content/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '../../../js/games/gw2/app/simulation/config.js';
+import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { FOOD_DATA } from '../../../js/games/gw2/platform/equipment/consumables/food.js';
-import { aggregateSigilSet } from '../../../js/games/gw2/platform/equipment/sigils/loadout.js';
-import { createNecromancerBuildDefaults } from '../../../js/games/gw2/content/professions/necromancer/build/build.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createNecromancerBuildDefaults } from '#gw2/content/professions/necromancer/build/build.js';
 
 test('the shared simulation config defaults to day and preserves a night selection', () => {
   const build = createNecromancerBuildDefaults();

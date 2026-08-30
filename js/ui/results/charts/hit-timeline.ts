@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 // One resolved hit/tick: time (ms, relative to the DPS window), damage, and
 // whether it critically struck (null when deterministic runs use expected crits).

@@ -1,7 +1,7 @@
-import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from './size.js';
-import { storeRotationProcOverlayVisibility } from './proc-overlays.js';
-import type { ProfessionAppState } from '../../types.js';
-import { renderTimeline } from './view.js';
+import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from '#gw2/app/rotation/timeline/size.js';
+import { storeRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
 const sectionOpenByApp = new WeakMap<ProfessionAppState, boolean>();
 

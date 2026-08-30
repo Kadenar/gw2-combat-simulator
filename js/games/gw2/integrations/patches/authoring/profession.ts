@@ -1,4 +1,4 @@
-import { defineProfessionFamily } from '../../../platform/engine/profession/family.js';
+import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
 import type {
   CanonicalCatalog,
   ProfessionFamilyDefinition,
@@ -7,8 +7,8 @@ import type {
   ProfessionUiContract,
   SchedulerConfig,
   SchedulerRecord
-} from '../../../platform/engine/types.js';
-import { getNativeCatalogAssembly } from './catalog.js';
+} from '#gw2/platform/engine/types.js';
+import { getNativeCatalogAssembly } from '#gw2/integrations/patches/authoring/catalog.js';
 import {
   CURRENT_PATCH_ID,
   applyBalanceProfilePatch,
@@ -23,7 +23,7 @@ import {
   skillPatchableNumericFields,
   validatePatchOverview,
   validatePatchPreview
-} from './patches.js';
+} from '#gw2/integrations/patches/authoring/patches.js';
 import type {
   AnyNativeModule,
   NativeModule,
@@ -36,14 +36,14 @@ import type {
   NativeResolvedReaction,
   NativeResolverMechanic,
   NativeSchedulerMechanic
-} from './module-types.js';
-import type { ModifierRulePatchEdit, ProfessionPatchPreview } from './patches.js';
-import type { Gw2ModifierRule } from '../../../platform/combat/modifiers/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../platform/resolver/types.js';
+} from '#gw2/integrations/patches/authoring/module-types.js';
+import type { ModifierRulePatchEdit, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import {
   createGw2AutoattackChainMechanics,
   type Gw2AutoattackChainOptions
-} from '../../../platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chains.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

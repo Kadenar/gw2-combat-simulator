@@ -1,4 +1,4 @@
-import { createElementalistBuildDefaults } from '../../js/games/gw2/content/professions/elementalist/build/build.js';
+import { createElementalistBuildDefaults } from '#gw2/content/professions/elementalist/build/build.js';
 
 const output = document.getElementById('fixture-output');
 const frame = document.getElementById('simulator');

@@ -2,46 +2,39 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionRoute
-} from '../../../js/games/gw2/app/profession/registry.js';
-import { assumptionControlsForSpecialization } from '../../../js/games/gw2/app/profession/assumptions.js';
-import { weaponPaletteRows, weaponSkills } from '../../../js/games/gw2/app/rotation/palette/model.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { createGw2CombatQuery } from '../../../js/games/gw2/platform/combat/query/combat-query.js';
-import { resolveProfessionRuntime } from '../../../js/games/gw2/platform/engine/profession/family.js';
-import { normalizeRotation } from '../../../js/games/gw2/platform/engine/execution/rotation.js';
-import { resourceDisplayViews } from '../../../js/games/gw2/app/rotation/palette/resource-view.js';
-import { skillBreakdownRows } from '../../../js/games/gw2/app/presentation/results/result-tables.js';
+import { loadProfession, loadProfessionAppAdapter, professionRoute } from '#gw2/app/profession/registry.js';
+import { assumptionControlsForSpecialization } from '#gw2/app/profession/assumptions.js';
+import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import { skillBreakdownRows } from '#gw2/app/presentation/results/result-tables.js';
 import {
   createThiefBuildDefaults,
   migrateThiefBuild,
   validateThiefBuild
-} from '../../../js/games/gw2/content/professions/thief/build/build.js';
-import { thiefCatalog, thiefWeaponSkillMatchesSet } from '../../../js/games/gw2/content/professions/thief/catalog.js';
-import { DATA_SNAPSHOT } from '../../../js/games/gw2/content/professions/thief/data/thief-api-metadata.js';
-import { THIEF_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/thief/data/thief-supplemental-skills.js';
+} from '#gw2/content/professions/thief/build/build.js';
+import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/content/professions/thief/catalog.js';
+import { DATA_SNAPSHOT } from '#gw2/content/professions/thief/data/thief-api-metadata.js';
+import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/thief.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
-} from '../../../js/games/gw2/content/professions/thief/data/ids.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/thief/core/skills/index.js';
-import { thiefAppAdapter } from '../../../js/games/gw2/content/professions/thief/app/app-definition.js';
-import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
-import { daredevilModifierRules } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/core/profiles.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/daredevil/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/deadeye/profiles.js';
-import { SPECTER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/specter/profiles.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/thief/specializations/antiquary/profiles.js';
+} from '#gw2/content/professions/thief/data/ids.js';
+import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/content/professions/thief/core/skills/index.js';
+import { thiefAppAdapter } from '#gw2/content/professions/thief/app/app-definition.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import { daredevilModifierRules } from '#gw2/content/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/core/profiles.js';
+import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/daredevil/profiles.js';
+import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/deadeye/profiles.js';
+import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/specter/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/content/professions/thief/specializations/antiquary/profiles.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],

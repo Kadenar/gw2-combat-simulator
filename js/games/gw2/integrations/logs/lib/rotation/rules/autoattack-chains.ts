@@ -1,5 +1,5 @@
-import type { Skill } from '../../../../../platform/engine/types.js';
-import type { RotationActionStatus } from '../model.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
+import type { RotationActionStatus } from '#gw2/integrations/logs/lib/rotation/model.js';
 
 export interface ChainAction {
   readonly start: number;

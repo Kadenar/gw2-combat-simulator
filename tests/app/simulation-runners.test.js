@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ProfessionApp } from '../../js/games/gw2/app/profession-app.js';
-import { ModifierContributionRunner } from '../../js/games/gw2/app/simulation/modifier-contribution-runner.js';
-import { BaselineSimulationRunner } from '../../js/games/gw2/app/simulation/baseline-simulation-runner.js';
-import { createGameWorkerEndpoint, ManagedWorkerBatch } from '../../js/app/simulation/game-worker-harness.js';
-import { RandomDistributionRunner } from '../../js/games/gw2/app/simulation/random-distribution-runner.js';
-import { RelicComparisonRunner } from '../../js/games/gw2/app/simulation/relic-comparison-runner.js';
+import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contribution-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#app/simulation/game-worker-harness.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution-runner.js';
+import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison-runner.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 

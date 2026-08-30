@@ -1,6 +1,6 @@
-import { clamp } from '../numeric.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
 
-import type { SimulationEventInput } from '../../engine/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/types.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc

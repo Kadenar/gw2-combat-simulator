@@ -1,14 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  COMBO_DEFINITIONS,
-  comboDefinition,
-  validateComboDefinitions
-} from '../../../js/games/gw2/platform/combos/definitions.js';
-import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '../../../js/games/gw2/platform/combos/events.js';
-import { createGw2EventPreparer } from '../../../js/games/gw2/platform/scheduler/event-preparer.js';
-import { normalizeGw2ComboCatalogSkill } from '../../../js/games/gw2/platform/combos/catalog.js';
+import { COMBO_DEFINITIONS, comboDefinition, validateComboDefinitions } from '#gw2/platform/combos/definitions.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/events.js';
+import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
+import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
 const context = {
   catalog: { skillsById: new Map(), skillsByName: new Map() },

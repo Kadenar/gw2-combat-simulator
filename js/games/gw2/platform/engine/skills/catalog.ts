@@ -3,9 +3,9 @@
  * boundary where generated API data, hand-authored mechanics, explicit
  * overrides, and resolver handlers become one validated immutable lookup.
  */
-import { normalizeSkillHandler, SKILL_HANDLER_MODES } from './handlers.js';
-import { deriveAutoattackChains, indexAutoattackChains } from './autoattack-chains.js';
-import { toEntries } from '../../../../../kernel/core/collections.js';
+import { normalizeSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
+import { toEntries } from '#kernel/core/collections.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -20,7 +20,7 @@ import type {
   SkillId,
   SkillLockout,
   StrikeTick
-} from '../types.js';
+} from '#gw2/platform/engine/types.js';
 
 interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -165,7 +165,7 @@ function normalizeSkillHandlers(
  * per-skill position index used by runtime rules.
  *
  * @param {readonly Skill[]} skills
- * @param {{additional?: readonly (readonly import("./types.d.ts").SkillId[])[], excludeSkillIds?: readonly import("./types.d.ts").SkillId[]}} [options]
+ * @param {{additional?: readonly (readonly import("#gw2/platform/engine/skills/types.d.ts").SkillId[])[], excludeSkillIds?: readonly import("#gw2/platform/engine/skills/types.d.ts").SkillId[]}} [options]
  */
 function normalizeAutoattackChains(
   skills: readonly Skill[],
@@ -578,7 +578,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
  * Validates the skill-family lockouts applied when a skill activates.
  *
  * @param {unknown} lockouts
- * @param {import("./types.d.ts").SkillId} skillId
+ * @param {import("#gw2/platform/engine/skills/types.d.ts").SkillId} skillId
  * @returns {readonly SkillLockout[]}
  */
 function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillLockout[] {

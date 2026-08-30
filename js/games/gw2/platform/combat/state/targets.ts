@@ -1,6 +1,6 @@
 /** Normalizes configured and runtime target conditions behind canonical stack queries. */
-import type { Gw2Config } from '../../simulation/config.js';
-import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from './types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
 
 const CONDITION_ALIASES = Object.freeze({
   bleed: 'Bleeding',

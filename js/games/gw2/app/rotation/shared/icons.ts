@@ -1,9 +1,9 @@
-import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { Gw2ProcStep } from '../../../platform/resolver/types.js';
-import { FOOD_DATA, NOURISHMENT_ICON } from '../../../platform/equipment/consumables/food.js';
-import { RELIC_DATA } from '../../../platform/equipment/relics/catalog.js';
-import { SIGIL_DATA } from '../../../platform/equipment/sigils/data.js';
-import type { ProfessionAppState } from '../../types.js';
+import type { SchedulerRecord, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export interface ResultIconRow {
   readonly name: string;

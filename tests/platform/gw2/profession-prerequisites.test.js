@@ -1,29 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulationEventLogRows } from '../../../js/games/gw2/app/rotation/result/event-log.js';
-import { createFixedSlotLoadout } from '../../../js/games/gw2/app/profession/slot-loadout.js';
+import { simulationEventLogRows } from '#gw2/app/rotation/result/event-log.js';
+import { createFixedSlotLoadout } from '#gw2/app/profession/slot-loadout.js';
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions
-} from '../../../js/games/gw2/app/profession/assumptions.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import {
-  createGw2CombatQuery,
-  selectedGw2TraitValues
-} from '../../../js/games/gw2/platform/combat/query/combat-query.js';
-import { createGw2TimelineIndex } from '../../../js/games/gw2/platform/combat/query/timeline-index.js';
-import { canonicalTargetConditionName } from '../../../js/games/gw2/platform/combat/state/targets.js';
-import { hasTrait } from '../../../js/games/gw2/platform/combat/state/traits.js';
+} from '#gw2/app/profession/assumptions.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { defaultWeaponSkillMatchesSet } from '../../../js/games/gw2/platform/equipment/weapons/skill-matcher.js';
-import { isGw2WeaponSkillEquipped } from '../../../js/games/gw2/platform/scheduler/policy.js';
-import { engineerProfession } from '../../../js/games/gw2/content/professions/engineer/definition.js';
-import { guardianProfession } from '../../../js/games/gw2/content/professions/guardian/definition.js';
-import { necromancerProfession } from '../../../js/games/gw2/content/professions/necromancer/definition.js';
-import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
 
 const queryProfession = defineProfession({
   id: 'query-fixture',

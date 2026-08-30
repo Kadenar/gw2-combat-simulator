@@ -3,15 +3,15 @@ import { posix } from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { elementalistNativeModules } from '../../js/games/gw2/content/professions/elementalist/modules.js';
-import { engineerNativeModules } from '../../js/games/gw2/content/professions/engineer/modules.js';
-import { guardianNativeModules } from '../../js/games/gw2/content/professions/guardian/modules.js';
-import { mesmerNativeModules } from '../../js/games/gw2/content/professions/mesmer/modules.js';
-import { necromancerNativeModules } from '../../js/games/gw2/content/professions/necromancer/modules.js';
-import { rangerNativeModules } from '../../js/games/gw2/content/professions/ranger/modules.js';
-import { revenantNativeModules } from '../../js/games/gw2/content/professions/revenant/modules.js';
-import { thiefNativeModules } from '../../js/games/gw2/content/professions/thief/modules.js';
-import { warriorNativeModules } from '../../js/games/gw2/content/professions/warrior/modules.js';
+import { elementalistNativeModules } from '#gw2/content/professions/elementalist/modules.js';
+import { engineerNativeModules } from '#gw2/content/professions/engineer/modules.js';
+import { guardianNativeModules } from '#gw2/content/professions/guardian/modules.js';
+import { mesmerNativeModules } from '#gw2/content/professions/mesmer/modules.js';
+import { necromancerNativeModules } from '#gw2/content/professions/necromancer/modules.js';
+import { rangerNativeModules } from '#gw2/content/professions/ranger/modules.js';
+import { revenantNativeModules } from '#gw2/content/professions/revenant/modules.js';
+import { thiefNativeModules } from '#gw2/content/professions/thief/modules.js';
+import { warriorNativeModules } from '#gw2/content/professions/warrior/modules.js';
 
 const PROFESSION_MODULES = Object.freeze({
   elementalist: elementalistNativeModules,
@@ -37,7 +37,13 @@ const EXPECTED_MODULE_IDS = Object.freeze({
   warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
 });
 
-const RETIRED_OWNERSHIP_FILENAMES = new Set(['resolver.ts', 'rule-helpers.ts', 'rules.ts', 'scheduler.ts']);
+const RETIRED_OWNERSHIP_FILENAMES = new Set([
+  'handlers.ts',
+  'resolver.ts',
+  'rule-helpers.ts',
+  'rules.ts',
+  'scheduler.ts'
+]);
 const RETIRED_PHASE_DIRECTORIES = new Set(['execution', 'resolution', 'resolver', 'scheduler']);
 const IMPORT_SPECIFIER_PATTERN = /\b(?:from\s+|import\s*(?:\(\s*)?)["']([^"']+)["']/g;
 
@@ -58,11 +64,18 @@ function professionSources(profession) {
   return collectTypeScriptSources(new URL(`../../js/games/gw2/content/professions/${profession}/`, import.meta.url));
 }
 
-function relativeImportTargets({ relativePath, source }) {
+// Normalize local aliases and relative imports to one profession-relative path for ownership checks.
+function professionImportTargets({ relativePath, source }, profession) {
+  const aliasPrefix = `#gw2/content/professions/${profession}/`;
   return [...source.matchAll(IMPORT_SPECIFIER_PATTERN)]
     .map((match) => match[1])
-    .filter((specifier) => specifier.startsWith('.'))
-    .map((specifier) => posix.normalize(posix.join(posix.dirname(relativePath), specifier)));
+    .flatMap((specifier) => {
+      if (specifier.startsWith('.')) {
+        return [posix.normalize(posix.join(posix.dirname(relativePath), specifier))];
+      }
+
+      return specifier.startsWith(aliasPrefix) ? [specifier.slice(aliasPrefix.length)] : [];
+    });
 }
 
 function schedulerDeclarations(module) {
@@ -160,6 +173,38 @@ test('profession content keeps semantic ownership names instead of phase-mirrore
           `${profession}/${relativePath} belongs in a GW2 concept directory, not ${directory}/`
         );
       }
+
+      assert.equal(
+        /^(?:core|specializations\/[^/]+)\/(?:execution|resolution)\.ts$/.test(relativePath),
+        false,
+        `${profession}/${relativePath} must place phase files inside a named concept folder`
+      );
+    }
+  }
+});
+
+test('profession roots use the asymmetric definition, catalog, and state layout', () => {
+  for (const profession of Object.keys(PROFESSION_MODULES)) {
+    const sources = professionSources(profession);
+    const paths = new Set(sources.map(({ relativePath }) => relativePath));
+    const definition = sources.find(({ relativePath }) => relativePath === 'definition.ts')?.source || '';
+
+    assert.equal(paths.has('family.ts'), false, `${profession}/family.ts`);
+    assert.match(definition, /defineNativeProfession\s*\(/, `${profession}/definition.ts owns the definition`);
+    assert.equal(paths.has('catalog/module-data.ts'), true, `${profession}/catalog/module-data.ts`);
+    assert.equal(paths.has('data/catalog.ts'), false, `${profession}/data/catalog.ts`);
+
+    if (profession === 'mesmer') {
+      assert.equal(paths.has('state.ts'), false, 'mesmer keeps its substantive state modules grouped');
+      assert.equal(paths.has('state/index.ts'), true, 'mesmer/state/index.ts');
+      assert.equal(paths.has('state/resources.ts'), true, 'mesmer/state/resources.ts');
+    } else {
+      assert.equal(paths.has('state.ts'), true, `${profession}/state.ts`);
+      assert.equal(
+        [...paths].some((path) => path.startsWith('state/')),
+        false,
+        `${profession} must not wrap one projection file in state/`
+      );
     }
   }
 });
@@ -169,7 +214,7 @@ test('Core never depends on elite content and elite specializations never depend
     for (const source of professionSources(profession)) {
       const { relativePath } = source;
 
-      for (const target of relativeImportTargets(source)) {
+      for (const target of professionImportTargets(source, profession)) {
         if (relativePath.startsWith('core/')) {
           assert.equal(
             target.startsWith('specializations/'),
@@ -186,6 +231,37 @@ test('Core never depends on elite content and elite specializations never depend
             targetSpecialization,
             sourceSpecialization,
             `${profession}/${relativePath} imports sibling specialization ${target}`
+          );
+        }
+      }
+    }
+  }
+});
+
+test('profession data stays declarative and concept modules never import composition roots', () => {
+  for (const profession of Object.keys(PROFESSION_MODULES)) {
+    for (const source of professionSources(profession)) {
+      const targets = professionImportTargets(source, profession);
+
+      if (source.relativePath.startsWith('data/')) {
+        for (const target of targets) {
+          assert.equal(
+            /^(?:app|core|specializations)\//.test(target) || /(?:^|\/)presentation\.js$/.test(target),
+            false,
+            `${profession}/${source.relativePath} imports behavioral content ${target}`
+          );
+        }
+      }
+
+      if (
+        source.relativePath !== 'modules.ts' &&
+        /^(?:core|specializations\/[^/]+)\/(?:mechanics|skills|traits|state)(?:\/|\.)/.test(source.relativePath)
+      ) {
+        for (const target of targets) {
+          assert.equal(
+            /^(?:core|specializations\/[^/]+)\/module\.js$/.test(target),
+            false,
+            `${profession}/${source.relativePath} imports composition root ${target}`
           );
         }
       }

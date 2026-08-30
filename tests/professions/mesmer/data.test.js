@@ -1,84 +1,81 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { SKILLS, SPECIALIZATIONS } from '../../../js/games/gw2/content/professions/mesmer/data/mesmer-api-metadata.js';
-import { SKILLS as GUARDIAN_API_SKILLS } from '../../../js/games/gw2/content/professions/guardian/data/guardian-api-metadata.js';
-import { TRAITS } from '../../../js/games/gw2/content/professions/mesmer/data/traits-data.js';
-import { mesmerAppAdapter } from '../../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
-import { mesmerCatalog } from '../../../js/games/gw2/content/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../../js/games/gw2/content/professions/mesmer/definition.js';
-import { MESMER_SKILL_IDS as ID } from '../../../js/games/gw2/content/professions/mesmer/data/ids.js';
-import { MESMER_SUPPLEMENTAL_SKILLS } from '../../../js/games/gw2/content/professions/mesmer/data/mesmer-supplemental-skills.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/content/professions/mesmer/data/mesmer-api-metadata.js';
+import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/content/professions/guardian/data/guardian-api-metadata.js';
+import { TRAITS } from '#gw2/content/professions/mesmer/data/traits-data.js';
+import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
+import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/content/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/mesmer.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS,
   MESMER_CORE_SHATTER_PROFILE_IDS,
   mesmerProfiledShatters
-} from '../../../js/games/gw2/content/professions/mesmer/core/profiles.js';
+} from '#gw2/content/professions/mesmer/core/profiles.js';
 import {
   MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE,
   MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH
-} from '../../../js/games/gw2/content/professions/mesmer/core/mechanics/definitions.js';
+} from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
 import {
   MESMER_CORE_EXTRA_SKILLS,
   MESMER_CORE_SKILL_MECHANICS,
   MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/mesmer/core/skills/index.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
+} from '#gw2/content/professions/mesmer/core/skills/index.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/mesmer/specializations/chronomancer/profiles.js';
 import {
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/chronomancer/skills/index.js';
+} from '#gw2/content/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
   MIRAGE_BALANCE_PROFILE_IDS,
   mesmerProfiledAmbush
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/mirage/profiles.js';
-import { MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS } from '../../../js/games/gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
+} from '#gw2/content/professions/mesmer/specializations/mirage/profiles.js';
+import { MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/mirage/skills/index.js';
-import { VIRTUOSO_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/mirage/skills/index.js';
+import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/content/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
   MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_TRAIT_DAMAGE
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
-import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/mesmer/specializations/virtuoso/skills/index.js';
+} from '#gw2/content/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/content/professions/mesmer/specializations/virtuoso/skills/index.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
   MESMER_TROUBADOUR_TRAIT_DAMAGE
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/mesmer/specializations/troubadour/skills/index.js';
+} from '#gw2/content/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   defaultMesmerSkillIdForDuplicateName,
   MESMER_DUPLICATE_SKILL_NAMES,
   resolveMesmerSkillIdFromDuplicateName
-} from '../../../js/games/gw2/content/professions/mesmer/data/duplicate-skill-names.js';
+} from '#gw2/content/professions/mesmer/data/duplicate-skill-names.js';
 
 const MECHANIC_SKILLS = Object.freeze({
   Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),

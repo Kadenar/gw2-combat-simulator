@@ -9,18 +9,18 @@ import {
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '../../js/games/gw2/app/build/panels/options.js';
-import { getBuildExportPayload } from '../../js/games/gw2/app/build/io/files.js';
-import { skillBarDisplaySkill } from '../../js/games/gw2/app/build/panels/skills.js';
-import { clampStartingResourceValues, selectSpecialization } from '../../js/games/gw2/app/build/panels/traits.js';
-import { createDefaultBuild, replaceBuildConfiguration } from '../../js/games/gw2/app/build/state/persistence.js';
-import { groupedOptions, option } from '../../js/games/gw2/app/presentation/shared/html.js';
+} from '#gw2/app/build/panels/options.js';
+import { getBuildExportPayload } from '#gw2/app/build/io/files.js';
+import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
+import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
+import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
 import {
   loadProfessionAppAdapter,
   professionOptions,
   professionRegistry,
   professionRoute
-} from '../../js/games/gw2/app/profession/registry.js';
+} from '#gw2/app/profession/registry.js';
 import {
   autoattackChainSkillAvailable,
   displayedSkillTiles,
@@ -30,8 +30,8 @@ import {
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows
-} from '../../js/games/gw2/app/rotation/palette/model.js';
-import { dragonChargeReleaseProjection } from '../../js/games/gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+} from '#gw2/app/rotation/palette/model.js';
+import { dragonChargeReleaseProjection } from '#gw2/content/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
@@ -43,24 +43,20 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows
-} from '../../js/games/gw2/app/rotation/timeline/model.js';
-import {
-  addRotation,
-  createRotationItem,
-  insertRotationItems
-} from '../../js/games/gw2/app/rotation/editing/actions.js';
-import { syncProcVisibility } from '../../js/games/gw2/app/rotation/timeline/view.js';
-import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/games/gw2/app/rotation/shared/icons.js';
-import { renderResults } from '../../js/games/gw2/app/presentation.js';
-import { PREFIXES, PREFIX_GROUPS } from '../../js/games/gw2/platform/equipment/gear/stats.js';
-import { SIGIL_GROUPS } from '../../js/games/gw2/platform/equipment/sigils/catalog.js';
-import { SIGIL_NAMES } from '../../js/games/gw2/platform/equipment/sigils/data.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '../../js/games/gw2/platform/equipment/weapons/data.js';
-import { createGuardianBuildDefaults } from '../../js/games/gw2/content/professions/guardian/build/build.js';
-import { createEngineerBuildDefaults } from '../../js/games/gw2/content/professions/engineer/build/build.js';
-import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { createMesmerBuildDefaults } from '../../js/games/gw2/content/professions/mesmer/build/build.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+} from '#gw2/app/rotation/timeline/model.js';
+import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
+import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
+import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { renderResults } from '#gw2/app/presentation.js';
+import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
+import { createGuardianBuildDefaults } from '#gw2/content/professions/guardian/build/build.js';
+import { createEngineerBuildDefaults } from '#gw2/content/professions/engineer/build/build.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import { createMesmerBuildDefaults } from '#gw2/content/professions/mesmer/build/build.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 test('starting resource clamps cover every active resource view', () => {

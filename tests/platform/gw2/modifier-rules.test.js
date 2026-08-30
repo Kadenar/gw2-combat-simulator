@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks, MODIFIER_TARGET } from '../../../js/games/gw2/platform/combat/modifiers/rules.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 
 function context({
   sigils = {

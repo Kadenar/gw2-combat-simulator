@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../../js/games/gw2/platform/engine/profession/contract.js';
-import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
-import { WEAPON_DATA } from '../../../js/games/gw2/platform/equipment/weapons/data.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
@@ -14,7 +14,7 @@ import {
   weaponStrengthProfile,
   weaponStrengthProfileForName,
   weaponStrengthProfileIdForEvent
-} from '../../../js/games/gw2/platform/equipment/weapons/strength.js';
+} from '#gw2/platform/equipment/weapons/strength.js';
 
 const EXPECTED_PROFILES = Object.freeze({
   'weapon.axe': [900, 1100, 1000],

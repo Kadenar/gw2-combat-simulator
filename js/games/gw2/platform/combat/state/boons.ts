@@ -1,6 +1,6 @@
-import { clamp } from '../numeric.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
 
-import type { Gw2BuffAudience } from './types.js';
+import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;

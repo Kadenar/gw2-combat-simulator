@@ -1,4 +1,4 @@
-import type { CatalogEntity, SkillId } from '../../engine/types.js';
+import type { CatalogEntity, SkillId } from '#gw2/platform/engine/types.js';
 
 function includesTrait(values: readonly (string | number)[] | undefined, traitId: SkillId, key: string): boolean {
   return Boolean(values?.some((value) => value === traitId || String(value) === key));

@@ -1,8 +1,12 @@
 /** Public authoring surface for declaring native profession modules and their mechanics. */
-export { defineNativeModule, defineNativeProfession } from './profession.js';
-export { defineSkillVariantProfile, defineTraitProfile } from './balance-profiles.js';
-export type { BalanceProfileFields } from './balance-profiles.js';
-export { assembleNativeApplicationCatalog, createNativeModuleData, nativeSkillRuntimeOwner } from './catalog.js';
+export { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+export { defineSkillVariantProfile, defineTraitProfile } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+export type { BalanceProfileFields } from '#gw2/integrations/patches/authoring/balance-profiles.js';
+export {
+  assembleNativeApplicationCatalog,
+  createNativeModuleData,
+  nativeSkillRuntimeOwner
+} from '#gw2/integrations/patches/authoring/catalog.js';
 export {
   augmentSkill,
   replaceSkill,
@@ -17,8 +21,8 @@ export {
   onResolvedControl,
   onResolvedCriticalHit,
   onResolvedDamage
-} from './mechanics.js';
-export type { ResolvedCriticalHitOptions } from './mechanics.js';
+} from '#gw2/integrations/patches/authoring/mechanics.js';
+export type { ResolvedCriticalHitOptions } from '#gw2/integrations/patches/authoring/mechanics.js';
 export type {
   AnyNativeModule,
   NativeAutoattackChains,
@@ -28,7 +32,7 @@ export type {
   NativeProfessionContract,
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
-} from './module-types.js';
+} from '#gw2/integrations/patches/authoring/module-types.js';
 export type {
   AutoattackChainContext,
   AutoattackChainOverride,
@@ -36,4 +40,4 @@ export type {
   AutoattackChainTransitionContext,
   AutoattackChainTransitionResult,
   Gw2AutoattackChainOptions
-} from '../../../platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chains.js';

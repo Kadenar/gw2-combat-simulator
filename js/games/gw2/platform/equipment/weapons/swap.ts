@@ -1,6 +1,6 @@
-import { replaceSkillHandler } from '../../engine/skills/handlers.js';
-import { resetAutoattackChains } from '../../skills/autoattack-chains.js';
-import type { SimulationEventInput, Skill, SkillHandlerStrategy } from '../../engine/types.js';
+import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import type { SimulationEventInput, Skill, SkillHandlerStrategy } from '#gw2/platform/engine/types.js';
 
 interface Gw2WeaponSwapContext {
   readonly state: {

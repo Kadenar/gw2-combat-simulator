@@ -1,7 +1,7 @@
-import type { SchedulerContext, SimulationEvent } from '../engine/types.js';
-import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '../combat/state/event-ownership.js';
-import { canonicalTargetConditionName } from '../combat/state/targets.js';
-import type { MaterializerState } from './materializer-state.js';
+import type { SchedulerContext, SimulationEvent } from '#gw2/platform/engine/types.js';
+import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export interface Gw2CombatObserver {
   observe(context: SchedulerContext, event: SimulationEvent): void;

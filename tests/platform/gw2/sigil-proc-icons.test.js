@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { SIGIL_DATA, SIGIL_NAMES } from '../../../js/games/gw2/platform/equipment/sigils/data.js';
-import { SIGIL_PROCS } from '../../../js/games/gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
 
 const EXPECTED_SIGIL_ICONS = {
   Accuracy: 'https://render.guildwars2.com/file/4B0EFF29FD064E5E93E4F8616BE309A451450AED/220661.png',

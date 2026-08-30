@@ -13,7 +13,7 @@ import {
   numericEditValue,
   partitionPatchAuthoringBalanceProfiles,
   patchSearchText
-} from '../../js/games/gw2/integrations/patches/app/model.js';
+} from '#gw2/integrations/patches/app/model.js';
 import {
   balanceProfileAuthoringReference,
   balanceProfileEffectNumericFieldTier,
@@ -22,16 +22,16 @@ import {
   balanceProfilePatchableNumericFields,
   skillAuthoringReference,
   skillPatchableNumericFields
-} from '../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { elementalistProfession } from '../../js/games/gw2/content/professions/elementalist/definition.js';
-import { engineerProfession } from '../../js/games/gw2/content/professions/engineer/definition.js';
-import { guardianProfession } from '../../js/games/gw2/content/professions/guardian/definition.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
-import { necromancerProfession } from '../../js/games/gw2/content/professions/necromancer/definition.js';
-import { rangerProfession } from '../../js/games/gw2/content/professions/ranger/definition.js';
-import { revenantProfession } from '../../js/games/gw2/content/professions/revenant/definition.js';
-import { thiefProfession } from '../../js/games/gw2/content/professions/thief/definition.js';
-import { warriorProfession } from '../../js/games/gw2/content/professions/warrior/definition.js';
+} from '#gw2/integrations/patches/authoring/patches.js';
+import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
+import { engineerProfession } from '#gw2/content/professions/engineer/definition.js';
+import { guardianProfession } from '#gw2/content/professions/guardian/definition.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
+import { necromancerProfession } from '#gw2/content/professions/necromancer/definition.js';
+import { rangerProfession } from '#gw2/content/professions/ranger/definition.js';
+import { revenantProfession } from '#gw2/content/professions/revenant/definition.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import { warriorProfession } from '#gw2/content/professions/warrior/definition.js';
 
 test('patch authoring omits unused skills but retains indirect runtime skills', () => {
   const engineerSkills = engineerProfession.patchAuthoring.modules.flatMap((module) => module.skills);

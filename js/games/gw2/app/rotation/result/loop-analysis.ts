@@ -1,8 +1,8 @@
-import { eventCausalOrder } from '../../../platform/engine/events/events.js';
-import type { SchedulerStep, SimulationEvent, Skill, SkillId } from '../../../platform/engine/types.js';
-import { createGw2TimelineIndex } from '../../../platform/combat/query/timeline-index.js';
-import type { ProfessionAppState } from '../../types.js';
-import { activeSpecialization } from '../shared/context.js';
+import { eventCausalOrder } from '#gw2/platform/engine/events/events.js';
+import type { SchedulerStep, SimulationEvent, Skill, SkillId } from '#gw2/platform/engine/types.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { activeSpecialization } from '#gw2/app/rotation/shared/context.js';
 
 const MIN_LOOP_TOKENS = 4;
 const MIN_STRUCTURAL_LOOP_TOKENS = 2;

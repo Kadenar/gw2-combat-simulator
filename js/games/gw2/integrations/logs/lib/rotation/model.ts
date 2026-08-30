@@ -1,4 +1,4 @@
-import type { Skill } from '../../../../platform/engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 
 export type RotationActionKind =
   'weapon-skill' | 'profession-skill' | 'utility' | 'heal' | 'elite' | 'dodge' | 'weapon-swap' | 'action' | 'unknown';

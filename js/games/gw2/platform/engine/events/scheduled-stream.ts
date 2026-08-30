@@ -3,10 +3,10 @@
  * validated event stream the scheduler emits and the resolver (and fixtures)
  * consume, and asserts an arbitrary value satisfies that contract before reuse.
  */
-import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from './events.js';
-import { createEventStream } from '../../../../../kernel/events/stream.js';
+import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from '#gw2/platform/engine/events/events.js';
+import { createEventStream } from '#kernel/events/stream.js';
 
-import type { ScheduledEventStream, SimulationEvent } from '../types.js';
+import type { ScheduledEventStream, SimulationEvent } from '#gw2/platform/engine/types.js';
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];

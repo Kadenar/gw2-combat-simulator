@@ -1,12 +1,12 @@
-import { escapeHtml } from '../../presentation/shared/html.js';
-import type { ProfessionAppState } from '../../types.js';
-import { resultSkillIcon } from '../shared/icons.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import type {
   DetectedRotationLoop,
   RotationLoopAnalysis,
   RotationLoopConfidence,
   RotationLoopStep
-} from './loop-analysis.js';
+} from '#gw2/app/rotation/result/loop-analysis.js';
 
 const LOOP_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
 const LOOP_DIALOG_ID = 'rotation-pattern-dialog';

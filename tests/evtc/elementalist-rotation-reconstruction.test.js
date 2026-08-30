@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/games/gw2/integrations/logs/evtc/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../js/games/gw2/content/professions/elementalist/data/ids.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;

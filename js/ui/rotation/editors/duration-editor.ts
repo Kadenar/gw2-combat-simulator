@@ -1,4 +1,4 @@
-import { mountFloatingEditor } from './floating-editor.js';
+import { mountFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
 
 export interface DurationEditorOptions {
   readonly anchor: HTMLElement;

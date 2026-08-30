@@ -1,13 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  decodeGw2BuildTemplate,
-  resolveGw2BuildTemplate
-} from '../../../js/games/gw2/platform/builds/templates/codec.js';
-import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '../../../js/games/gw2/platform/builds/templates/data.js';
-import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
-import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
+import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
+import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/templates/data.js';
+import { elementalistCatalog } from '#gw2/content/professions/elementalist/catalog.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
 
 const ELEMENTALIST_CODE = '[&DQYfHSkvMBfHEicPwxIAAL4BAADLAMsAJgCWAAAAAAAAAAAAAAAAAAAAAAADVgBnAC8AAA==]';
 const ENGINEER_CODE = '[&DQMGJyY5SzYqDwAAhgAAAAcBAACTAQAAex0AAAAAAAAAAAAAAAAAAAAAAAACCQE2AAA=]';

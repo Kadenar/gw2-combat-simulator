@@ -1,4 +1,4 @@
-import type { NumEdit } from './patch-types.js';
+import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type {
   BalanceProfile,
   CanonicalCatalog,
@@ -9,8 +9,8 @@ import type {
   SkillId,
   StrikeEffect,
   StrikeTick
-} from '../../../platform/engine/types.js';
-import type { Gw2ModifierRule } from '../../../platform/combat/modifiers/types.js';
+} from '#gw2/platform/engine/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 
 export const CURRENT_PATCH_ID = 'current';
 

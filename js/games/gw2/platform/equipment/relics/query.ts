@@ -1,7 +1,7 @@
 /** Exposes pure timestamped relic contributions to combat queries. */
-import type { SimulationEvent } from '../../engine/types.js';
-import type { Gw2RelicContext, Gw2RelicRuntimeContext } from './types.js';
-import { invokeRelicHook } from './runtime.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2RelicContext, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 
 /**
  * Calculates the strike multiplier supplied by the selected relic.

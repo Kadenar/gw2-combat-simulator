@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { reconstructEvtcRotation } from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/games/gw2/integrations/logs/evtc/types.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 const PLAYER = 0x1000n;

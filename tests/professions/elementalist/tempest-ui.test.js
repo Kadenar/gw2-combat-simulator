@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteSkillView, renderPalette } from '../../../js/games/gw2/app/rotation/palette/view.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { elementalistAppAdapter } from '../../../js/games/gw2/content/professions/elementalist/app/app-definition.js';
-import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
+import { paletteSkillView, renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { elementalistAppAdapter } from '#gw2/content/professions/elementalist/app/app-definition.js';
+import { elementalistProfession } from '#gw2/content/professions/elementalist/definition.js';
 
 const catalog = elementalistProfession.catalog;
 

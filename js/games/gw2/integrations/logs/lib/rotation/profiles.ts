@@ -1,5 +1,5 @@
-import type { SkillId } from '../../../../platform/engine/types.js';
-import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '../../../../content/professions/elementalist/data/ids.js';
+import type { SkillId } from '#gw2/platform/engine/types.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/content/professions/elementalist/data/ids.js';
 
 export interface RotationActionIdentity {
   readonly name: string;

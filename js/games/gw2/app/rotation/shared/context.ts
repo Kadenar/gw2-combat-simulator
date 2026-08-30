@@ -1,6 +1,6 @@
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type { ProfessionAppResult, ProfessionAppState } from '../../types.js';
-import { normalizeRotationInsertionIndex } from '../../../../../ui/rotation/insertion-cursor.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/types.js';
+import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 type RotationEndState = ProfessionAppResult['endState'];
 

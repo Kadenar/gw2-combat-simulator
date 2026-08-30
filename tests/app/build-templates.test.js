@@ -10,10 +10,10 @@ import {
   templateHasBoon,
   templateSpecializations,
   undoTemplateLoad
-} from '../../js/games/gw2/app/build/panels/presets.js';
-import { normalizeRotation } from '../../js/games/gw2/platform/engine/execution/rotation.js';
-import { mesmerAppAdapter } from '../../js/games/gw2/content/professions/mesmer/app/app-definition.js';
-import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/games/gw2/content/professions/mesmer/data/ids.js';
+} from '#gw2/app/build/panels/presets.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { mesmerAppAdapter } from '#gw2/content/professions/mesmer/app/app-definition.js';
+import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/content/professions/mesmer/data/ids.js';
 
 function createApp() {
   return {

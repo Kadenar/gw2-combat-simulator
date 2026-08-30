@@ -1,5 +1,5 @@
-import { createCanonicalCatalog } from '../../../platform/engine/skills/catalog.js';
-import { toEntries } from '../../../../../kernel/core/collections.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { toEntries } from '#kernel/core/collections.js';
 import type {
   CanonicalCatalog,
   BalanceProfile,
@@ -9,15 +9,15 @@ import type {
   SkillFragment,
   SkillHandlerStrategy,
   SkillId
-} from '../../../platform/engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   AnyNativeModule,
   NativeAutoattackChains,
   NativeCatalogOptions,
   NativeModuleCatalogData,
   NativeSkillHandlerRegistry
-} from './module-types.js';
-import { normalizeGw2ComboCatalogSkill } from '../../../platform/combos/catalog.js';
+} from '#gw2/integrations/patches/authoring/module-types.js';
+import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
 interface NativeModuleDataSelection {
   readonly id: string;

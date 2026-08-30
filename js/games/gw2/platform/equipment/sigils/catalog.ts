@@ -1,5 +1,5 @@
 /** Owns sigil grouping and active-proc declarations separately from passive sigil data. */
-import { SIGIL_DATA, SIGIL_NAMES } from './data.js';
+import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 
 // ─── Sigil Data ───────────────────────────────────────────────────────────────
 // Stat values are percentages stored as numbers (e.g. 7 = 7%).

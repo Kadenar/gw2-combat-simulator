@@ -1,6 +1,6 @@
 /** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { StableEventQueue } from '../../../../kernel/events/queue.js';
-import type { HandlerRegistry } from '../engine/resolution/handler-registry.js';
+import type { StableEventQueue } from '#kernel/events/queue.js';
+import type { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import type {
   ScheduledEventStream,
   SchedulerRecord,
@@ -8,23 +8,23 @@ import type {
   SimulationEvent,
   SimulationRandom,
   Skill
-} from '../engine/types.js';
+} from '#gw2/platform/engine/types.js';
 import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,
   Gw2CriticalResult,
   Gw2QueryRuntime,
   Gw2ResolvedStats
-} from '../combat/query/types.js';
+} from '#gw2/platform/combat/query/types.js';
 import type {
   Gw2RuntimeConditionEntry,
   Gw2RuntimeConditionStack,
   Gw2TimedBuffApplication
-} from '../combat/state/types.js';
-import type { Gw2ComboRuntimeState } from '../combos/types.js';
-import type { Gw2EventDraft, Gw2RelicRuntime } from '../equipment/relics/types.js';
-import type { Gw2ResolvedWeaponStrength } from '../equipment/types.js';
-import type { Gw2Config } from '../simulation/config.js';
+} from '#gw2/platform/combat/state/types.js';
+import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
+import type { Gw2EventDraft, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export type Gw2ResolverEvent = SimulationEvent & {
   readonly causalOrder?: number;
@@ -33,7 +33,7 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly skillName?: string;
   readonly parentSkillName?: string;
   readonly damageBreakdownName?: string;
-  readonly skillId?: import('../engine/types.js').SkillId | null;
+  readonly skillId?: import('#gw2/platform/engine/types.js').SkillId | null;
   readonly icon?: string;
   readonly kind?: string;
   readonly duration?: number;
@@ -129,8 +129,8 @@ export interface Gw2DamageBreakdownEntry {
   parentSkill: string;
   damageBreakdownName?: string;
   icon: string;
-  skillId?: import('../engine/types.js').SkillId | null;
-  sourceId?: import('../engine/types.js').SkillId;
+  skillId?: import('#gw2/platform/engine/types.js').SkillId | null;
+  sourceId?: import('#gw2/platform/engine/types.js').SkillId;
   actorType?: SimulationActorType;
   summonKind?: string;
   source?: string;
@@ -179,11 +179,11 @@ export interface Gw2ProcStep {
 export interface Gw2ResolverHelpers extends SchedulerRecord {
   conditionName(value: unknown): string;
   weaponStrength(event: Gw2ResolverEvent, config: Gw2Config): number;
-  readonly skillsById?: ReadonlyMap<import('../engine/types.js').SkillId, Skill>;
+  readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<
-    import('../engine/types.js').SkillId,
-    import('../engine/types.js').BalanceProfile
+    import('#gw2/platform/engine/types.js').SkillId,
+    import('#gw2/platform/engine/types.js').BalanceProfile
   >;
 }
 

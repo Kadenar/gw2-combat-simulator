@@ -10,10 +10,10 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
   Skill
-} from '../types.js';
-import { createCanonicalCatalog } from '../skills/catalog.js';
-import { toEntries } from '../../../../../kernel/core/collections.js';
-import { assertAvailabilityResult, CAST_READY, foldAvailability } from '../skills/availability.js';
+} from '#gw2/platform/engine/types.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { toEntries } from '#kernel/core/collections.js';
+import { assertAvailabilityResult, CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 

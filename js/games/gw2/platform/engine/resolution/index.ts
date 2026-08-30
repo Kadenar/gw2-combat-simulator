@@ -1,3 +1,3 @@
 /** Public event-resolution and handler-dispatch entrypoint. */
-export * from './handler-registry.js';
-export * from './resolver.js';
+export * from '#gw2/platform/engine/resolution/handler-registry.js';
+export * from '#gw2/platform/engine/resolution/resolver.js';

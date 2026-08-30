@@ -1,20 +1,20 @@
-import { EPSILON } from '../../../../../kernel/core/clock.js';
-import { insertSorted } from '../../../../../kernel/core/collections.js';
-import { eventCausalOrder, eventTimestamp } from '../../engine/events/events.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { insertSorted } from '#kernel/core/collections.js';
+import { eventCausalOrder, eventTimestamp } from '#gw2/platform/engine/events/events.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
   sumActiveStacks
-} from '../state/boons.js';
-import { gw2SigilSet } from './runtime-rules.js';
+} from '#gw2/platform/combat/state/boons.js';
+import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
-import type { SimulationEvent, SkillId } from '../../engine/types.js';
-import type { Gw2BuffAudience } from '../state/types.js';
-import type { Gw2Config } from '../../simulation/config.js';
-import type { Gw2SigilSet } from '../../equipment/types.js';
-import type { Gw2TimelineIndex } from './types.js';
+import type { SimulationEvent, SkillId } from '#gw2/platform/engine/types.js';
+import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/types.js';
 
 interface CreateGw2TimelineIndexOptions {
   readonly config?: Gw2Config;

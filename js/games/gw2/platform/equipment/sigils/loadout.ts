@@ -1,6 +1,6 @@
-import type { Gw2Build } from '../../builds/types.js';
-import type { Gw2SigilSet } from '../types.js';
-import { SIGIL_DATA, SIGIL_NAMES } from './data.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 
 export const DEFAULT_WEAPON_SIGILS: readonly (readonly string[])[] = Object.freeze([
   Object.freeze(['Force', 'Accuracy']),

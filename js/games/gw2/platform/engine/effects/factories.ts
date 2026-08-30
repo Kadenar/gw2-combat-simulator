@@ -1,4 +1,10 @@
-import type { ConditionEffect, ConditionTick, SchedulerRecord, StrikeEffect, StrikeTick } from '../types.js';
+import type {
+  ConditionEffect,
+  ConditionTick,
+  SchedulerRecord,
+  StrikeEffect,
+  StrikeTick
+} from '#gw2/platform/engine/types.js';
 
 const TIMELINE_RESERVED_OPTIONS = new Set(['type', 'ticks']);
 

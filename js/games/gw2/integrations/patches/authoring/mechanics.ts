@@ -1,13 +1,17 @@
-import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skills/handlers.js';
-import type { AvailabilityResult, SkillHandlerStrategy, SkillId } from '../../../platform/engine/types.js';
-import type { NativeResolvedDamageDetails, NativeResolvedReaction, NativeSchedulerMechanic } from './module-types.js';
+import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
+import type { AvailabilityResult, SkillHandlerStrategy, SkillId } from '#gw2/platform/engine/types.js';
+import type {
+  NativeResolvedDamageDetails,
+  NativeResolvedReaction,
+  NativeSchedulerMechanic
+} from '#gw2/integrations/patches/authoring/module-types.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
   type CriticalProcApplication,
   type CriticalProcMaterialization
-} from '../../../platform/combat/critical-procs.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime, Gw2ResolverStage } from '../../../platform/resolver/types.js';
+} from '#gw2/platform/combat/critical-procs.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 
 type OrderedEscapeHandler = Readonly<{
   id: string;

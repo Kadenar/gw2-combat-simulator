@@ -1,4 +1,4 @@
-import type { Skill } from '../engine/types.js';
+import type { Skill } from '#gw2/platform/engine/types.js';
 
 type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown' | 'recharge'>;
 

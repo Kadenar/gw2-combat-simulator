@@ -1,2 +1,2 @@
-export * from './errors.js';
-export * from './rotation/index.js';
+export * from '#gw2/integrations/logs/lib/errors.js';
+export * from '#gw2/integrations/logs/lib/rotation/index.js';

@@ -1,5 +1,5 @@
 import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../helpers/trait-coverage.js';
-import { engineerCatalog } from '../../../js/games/gw2/content/professions/engineer/catalog.js';
+import { engineerCatalog } from '#gw2/content/professions/engineer/catalog.js';
 
 const IMPLEMENTED = new Set([
   'Explosive Entrance',

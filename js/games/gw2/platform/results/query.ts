@@ -1,6 +1,6 @@
-import type { SimulationEvent } from '../engine/types.js';
-import type { Gw2ResolverEvent } from '../resolver/types.js';
-import type { Gw2SimulationResult } from '../simulation/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 /**
  * Finds the player strike whose resolved critical chance best represents a

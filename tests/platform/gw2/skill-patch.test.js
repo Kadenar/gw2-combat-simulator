@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '../../../js/games/gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
@@ -9,13 +9,10 @@ import {
   applySkillPatch,
   patchRuntimeValue,
   validatePatchPreview
-} from '../../../js/games/gw2/integrations/patches/authoring/patches.js';
-import { createModifierHooks, MODIFIER_TARGET } from '../../../js/games/gw2/platform/combat/modifiers/rules.js';
-import {
-  defineNativeModule,
-  defineNativeProfession
-} from '../../../js/games/gw2/integrations/patches/authoring/profession.js';
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
+} from '#gw2/integrations/patches/authoring/patches.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/integrations/patches/authoring/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function fixtureCatalog() {
   return createCanonicalCatalog({

@@ -4,61 +4,54 @@ import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
   resolveAutoattackChainStep
-} from '../../js/games/gw2/platform/engine/skills/autoattack-chains.js';
-import { conditionTimeline, strikeTimeline } from '../../js/games/gw2/platform/engine/effects/factories.js';
-import { COMMON_EVENT_TYPES } from '../../js/games/gw2/platform/engine/events/events.js';
-import { HandlerRegistry } from '../../js/games/gw2/platform/engine/resolution/handler-registry.js';
-import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
-import { resolveScheduledStream } from '../../js/games/gw2/platform/engine/resolution/resolver.js';
-import { normalizeRotation } from '../../js/games/gw2/platform/engine/execution/rotation.js';
-import { createSchedulerState } from '../../js/games/gw2/platform/engine/execution/state.js';
-import { createScheduler } from '../../js/games/gw2/platform/engine/execution/scheduler.js';
-import { buildScheduledEventStream } from '../../js/games/gw2/platform/engine/events/scheduled-stream.js';
-import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-  SKILL_HANDLER_MODES
-} from '../../js/games/gw2/platform/engine/skills/handlers.js';
-import { simulateGw2 } from '../../js/games/gw2/platform/simulation/simulate.js';
-import { professionRegistry } from '../../js/games/gw2/app/profession/registry.js';
-import { createProfessionWeaponData, WEAPON_DATA } from '../../js/games/gw2/platform/equipment/weapons/data.js';
-import { createGw2ResolverExtensions } from '../../js/games/gw2/platform/resolver/extensions.js';
-import {
-  createRelicRuntime,
-  createRelicTimelineRuntime
-} from '../../js/games/gw2/platform/equipment/relics/runtime.js';
-import { handleWeaknessVulnerabilityRelic } from '../../js/games/gw2/platform/resolver/relic-reactions.js';
-import { materializeBoonRelics } from '../../js/games/gw2/platform/scheduler/relic-materializer.js';
+} from '#gw2/platform/engine/skills/autoattack-chains.js';
+import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
+import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { resolveScheduledStream } from '#gw2/platform/engine/resolution/resolver.js';
+import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { augmentSkillHandler, replaceSkillHandler, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { professionRegistry } from '#gw2/app/profession/registry.js';
+import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { handleWeaknessVulnerabilityRelic } from '#gw2/platform/resolver/relic-reactions.js';
+import { materializeBoonRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
   relicStrikeMultiplier,
   recordPassiveRelicTimeline
-} from '../../js/games/gw2/platform/equipment/relics/query.js';
-import { sigilCriticalContribution } from '../../js/games/gw2/platform/equipment/sigils/rules.js';
+} from '#gw2/platform/equipment/relics/query.js';
+import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '../../js/games/gw2/platform/combat/damage/stat-scaling.js';
+} from '#gw2/platform/combat/damage/stat-scaling.js';
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild
-} from '../../js/games/gw2/content/professions/mesmer/build/build.js';
-import { mesmerCatalog } from '../../js/games/gw2/content/professions/mesmer/catalog.js';
-import { mesmerProfession } from '../../js/games/gw2/content/professions/mesmer/definition.js';
+} from '#gw2/content/professions/mesmer/build/build.js';
+import { mesmerCatalog } from '#gw2/content/professions/mesmer/catalog.js';
+import { mesmerProfession } from '#gw2/content/professions/mesmer/definition.js';
 import { MESMER_TRAIT_COVERAGE } from '../fixtures/trait-coverage/mesmer.js';
-import { guardianCatalog } from '../../js/games/gw2/content/professions/guardian/catalog.js';
-import { necromancerCatalog } from '../../js/games/gw2/content/professions/necromancer/catalog.js';
+import { guardianCatalog } from '#gw2/content/professions/guardian/catalog.js';
+import { necromancerCatalog } from '#gw2/content/professions/necromancer/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '../../js/games/gw2/content/professions/mesmer/state/index.js';
+import { snapshotMesmerState } from '#gw2/content/professions/mesmer/state/index.js';
 import { testProfession } from '../fixtures/test-profession.js';
-import { isStandardBoon } from '../../js/games/gw2/platform/combat/state/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {
@@ -2587,6 +2580,13 @@ test('Mesmer conforms to native handler and state contracts', () => {
 async function relativeModuleGraph(entryFiles) {
   const visited = new Set();
   const pending = [...entryFiles];
+  const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
+  const aliasedSourceRoots = [
+    ['#gw2/', path.join(sourceRoot, 'games', 'gw2')],
+    ['#kernel/', path.join(sourceRoot, 'kernel')],
+    ['#ui/', path.join(sourceRoot, 'ui')],
+    ['#app/', path.join(sourceRoot, 'app')]
+  ];
 
   while (pending.length) {
     const file = await sourceModulePath(path.resolve(pending.pop()));
@@ -2619,7 +2619,12 @@ async function relativeModuleGraph(entryFiles) {
 
     visit(syntax);
     for (const specifier of specifiers) {
-      const dependency = path.resolve(path.dirname(file), specifier);
+      // Package aliases resolve through dist at runtime; architecture crawling resolves the same path against source.
+      const alias = aliasedSourceRoots.find(([prefix]) => specifier.startsWith(prefix));
+      if (!specifier.startsWith('.') && !alias) continue;
+      const dependency = alias
+        ? path.resolve(alias[1], specifier.slice(alias[0].length))
+        : path.resolve(path.dirname(file), specifier);
 
       if (dependency.endsWith('.js') || dependency.endsWith('.mjs')) {
         pending.push(dependency);

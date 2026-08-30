@@ -4,7 +4,7 @@
  * pending events. Profession-specific resources are nested under
  * `state.profession` via the profession contract.
  */
-import type { SchedulerRecord, SchedulerState, SimulationEvent } from '../types.js';
+import type { SchedulerRecord, SchedulerState, SimulationEvent } from '#gw2/platform/engine/types.js';
 
 interface SchedulerStateOptions<TProfessionState extends object> {
   readonly profession?: {

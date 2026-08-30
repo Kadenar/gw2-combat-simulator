@@ -1,24 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistCoreModifierRules } from '../../js/games/gw2/content/professions/elementalist/core/traits/modifiers.js';
-import { weaverModifierRules } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
-import { ENGINEER_TRAIT_IDS } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
+import { elementalistCoreModifierRules } from '#gw2/content/professions/elementalist/core/traits/modifiers.js';
+import { weaverModifierRules } from '#gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
+import { ENGINEER_TRAIT_IDS } from '#gw2/content/professions/engineer/data/ids.js';
 import {
   applyEngineerSharpshooterConditionDamage,
   engineerCoreModifierRules
-} from '../../js/games/gw2/content/professions/engineer/core/traits/modifiers.js';
-import { amalgamModifierRules } from '../../js/games/gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
-import { modifyNecromancerCoreAttributes } from '../../js/games/gw2/content/professions/necromancer/core/traits/modifiers.js';
-import { reaperModifierRules } from '../../js/games/gw2/content/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
-import { RANGER_TRAIT_IDS } from '../../js/games/gw2/content/professions/ranger/data/ids.js';
-import { rangerCoreModifierRules } from '../../js/games/gw2/content/professions/ranger/core/traits/modifiers.js';
-import { galeshotModifierRules } from '../../js/games/gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
-import { soulbeastModifierRules } from '../../js/games/gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
-import { REVENANT_TRAIT_IDS } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
-import { revenantCoreModifierRules } from '../../js/games/gw2/content/professions/revenant/core/traits/modifiers.js';
-import { THIEF_TRAIT_IDS } from '../../js/games/gw2/content/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '../../js/games/gw2/content/professions/thief/core/traits/modifiers.js';
+} from '#gw2/content/professions/engineer/core/traits/modifiers.js';
+import { amalgamModifierRules } from '#gw2/content/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { modifyNecromancerCoreAttributes } from '#gw2/content/professions/necromancer/core/traits/modifiers.js';
+import { reaperModifierRules } from '#gw2/content/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
+import { RANGER_TRAIT_IDS } from '#gw2/content/professions/ranger/data/ids.js';
+import { rangerCoreModifierRules } from '#gw2/content/professions/ranger/core/traits/modifiers.js';
+import { galeshotModifierRules } from '#gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
+import { soulbeastModifierRules } from '#gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { REVENANT_TRAIT_IDS } from '#gw2/content/professions/revenant/data/ids.js';
+import { revenantCoreModifierRules } from '#gw2/content/professions/revenant/core/traits/modifiers.js';
+import { THIEF_TRAIT_IDS } from '#gw2/content/professions/thief/data/ids.js';
+import { thiefCoreModifierRules } from '#gw2/content/professions/thief/core/traits/modifiers.js';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],

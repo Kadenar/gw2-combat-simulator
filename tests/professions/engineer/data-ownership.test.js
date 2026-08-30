@@ -5,8 +5,8 @@ import test from 'node:test';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/engineer/core/skills/index.js';
-import { ENGINEER_SKILL_IDS } from '../../../js/games/gw2/content/professions/engineer/data/ids.js';
+} from '#gw2/content/professions/engineer/core/skills/index.js';
+import { ENGINEER_SKILL_IDS } from '#gw2/content/professions/engineer/data/ids.js';
 
 const KIT_SLUGS = new Map([
   ['Med Kit', 'med-kit'],

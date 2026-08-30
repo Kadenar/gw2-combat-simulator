@@ -3,7 +3,7 @@
  * keep the common GW2 event envelope aligned with declarative effects while
  * leaving unusual profession metadata and ownership explicit at the call site.
  */
-import { gw2SchedulerBoonDuration } from './policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 
 import type {
   SchedulerContext,
@@ -13,7 +13,7 @@ import type {
   SimulationEventInput,
   Skill,
   SkillId
-} from '../engine/types.js';
+} from '#gw2/platform/engine/types.js';
 
 interface SkillEventOwnership extends SchedulerRecord {
   /** Optional identity for procedural events that do not have a catalog skill in scope. */

@@ -3,24 +3,18 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { deflateRawSync } from 'node:zlib';
 
-import { isJsonRotationFile, readEvtcRotationFile } from '../../js/games/gw2/app/build/io/evtc-rotation-import.js';
-import {
-  applyRotationImportPreview,
-  previewRotationFile
-} from '../../js/games/gw2/app/build/io/rotation-import-dialog.js';
-import { EvtcError } from '../../js/games/gw2/integrations/logs/evtc/errors.js';
-import { parseEvtc } from '../../js/games/gw2/integrations/logs/evtc/parser.js';
-import {
-  evtcProfessionMetadata,
-  evtcSpecializationMetadata
-} from '../../js/games/gw2/integrations/logs/evtc/profession-metadata.js';
+import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
+import { applyRotationImportPreview, previewRotationFile } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import {
   detectEvtcRotationPlayers,
   EVTC_PROFESSION_ROTATION_PARSERS,
   getEvtcProfessionRotationParser,
   initialHarbingerBlight,
   reconstructEvtcRotation
-} from '../../js/games/gw2/integrations/logs/evtc/rotation/index.js';
+} from '#gw2/integrations/logs/evtc/rotation/index.js';
 
 const PLAYER = 0x1000n;
 

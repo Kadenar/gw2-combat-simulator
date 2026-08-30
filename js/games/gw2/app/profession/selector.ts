@@ -8,13 +8,13 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
-import { embedRoute, isEmbedded } from '../../../../app/embed.js';
-import { mountGw2IconFallback } from '../presentation/shared/gw2-icon-fallback.js';
-import { mountRotationTimelineSize } from '../rotation/timeline/size.js';
-import { mountRotationWorkspace } from '../../../../app/shell/workspace.js';
-import { mountSimulatorTutorial } from '../tutorial.js';
-import { mountSimulatorNavigation } from './navigation.js';
-import { professionGroups, type ProfessionRegistryEntry } from './registry.js';
+import { embedRoute, isEmbedded } from '#app/embed.js';
+import { mountGw2IconFallback } from '#gw2/app/presentation/shared/gw2-icon-fallback.js';
+import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/size.js';
+import { mountRotationWorkspace } from '#app/shell/workspace.js';
+import { mountSimulatorTutorial } from '#gw2/app/tutorial.js';
+import { mountSimulatorNavigation } from '#gw2/app/profession/navigation.js';
+import { professionGroups, type ProfessionRegistryEntry } from '#gw2/app/profession/registry.js';
 
 const GITHUB_ISSUES_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues';
 const BUILD_SUBMISSION_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues/new?template=build-submission.yml';

@@ -1,5 +1,5 @@
-import { createCanonicalCatalog } from '../../js/games/gw2/platform/engine/skills/catalog.js';
-import { defineProfession } from '../../js/games/gw2/platform/engine/profession/contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
 const catalog = createCanonicalCatalog({
   generated: [

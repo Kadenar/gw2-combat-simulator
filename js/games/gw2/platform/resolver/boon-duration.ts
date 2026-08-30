@@ -1,7 +1,7 @@
-import { isStandardBoon } from '../combat/state/boons.js';
-import { gw2BoonDurationMultiplier, gw2SigilSet } from '../combat/query/runtime-rules.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { gw2BoonDurationMultiplier, gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from './types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 
 /** Applies live resolver stats and active sigils to a newly generated standard boon. */
 export function gw2ResolverBoonDuration(

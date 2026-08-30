@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant/catalog.js';
-import { reconcileCastEffectPackets } from '../../js/games/gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { evtcRotationProfile } from '../../js/games/gw2/integrations/logs/evtc/rotation/profiles.js';
-import { reconstructVindicatorActions } from '../../js/games/gw2/integrations/logs/evtc/rotation/professions/revenant/vindicator.js';
+import { revenantCatalog } from '#gw2/content/professions/revenant/catalog.js';
+import { reconcileCastEffectPackets } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import { reconstructVindicatorActions } from '#gw2/integrations/logs/evtc/rotation/professions/revenant/vindicator.js';
 
 const action = (rawSkillId, rawName, start, end, status = 'completed') => ({
   start,

@@ -6,16 +6,19 @@ import type {
   Gw2ResolverReaction,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime
-} from './types.js';
-import { gw2BoonApplicationRecipients, gw2BuffApplicationRecipients } from '../combat/state/allied-players.js';
+} from '#gw2/platform/resolver/types.js';
+import {
+  gw2BoonApplicationRecipients,
+  gw2BuffApplicationRecipients
+} from '#gw2/platform/combat/state/allied-players.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
   remainingDurationStackSeconds
-} from '../combat/state/boons.js';
-import { createGw2ComboResolution } from './combo-resolution.js';
-import { GW2_EVENT_ACTOR_TYPES } from '../combat/state/event-ownership.js';
+} from '#gw2/platform/combat/state/boons.js';
+import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: {

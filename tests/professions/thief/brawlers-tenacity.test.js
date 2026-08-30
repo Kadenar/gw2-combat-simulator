@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '../../../js/games/gw2/platform/simulation/simulate.js';
-import { thiefProfession } from '../../../js/games/gw2/content/professions/thief/definition.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '../../../js/games/gw2/content/professions/thief/data/ids.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { thiefProfession } from '#gw2/content/professions/thief/definition.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
 
 function simulate(rotation, selectedTraitIds = []) {
   return simulateGw2({

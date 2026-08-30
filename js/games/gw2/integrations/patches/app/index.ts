@@ -1,12 +1,12 @@
-import type { SkillEffect } from '../../../platform/engine/types.js';
-import { escapeHtml } from '../../../app/presentation/shared/html.js';
+import type { SkillEffect } from '#gw2/platform/engine/types.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringBalanceProfile,
   NativePatchAuthoringModifierRule,
   NativePatchAuthoringModule,
   NativePatchAuthoringSkill
-} from '../authoring/module-types.js';
+} from '#gw2/integrations/patches/authoring/module-types.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   balanceProfileEffectNumericFieldTier,
@@ -17,8 +17,8 @@ import {
   type PatchOverviewEntry,
   type PatchPreview,
   type SkillPatchEdit
-} from '../authoring/patches.js';
-import { type NumEdit } from '../authoring/patch-types.js';
+} from '#gw2/integrations/patches/authoring/patches.js';
+import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import {
   compactPatchPreview,
   createEffectTemplate,
@@ -30,7 +30,7 @@ import {
   numericEditForValue,
   numericEditValue,
   patchSearchText
-} from './model.js';
+} from '#gw2/integrations/patches/app/model.js';
 
 interface AuthoringPayload {
   readonly preview: PatchPreview | null;

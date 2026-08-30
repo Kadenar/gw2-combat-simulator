@@ -1,4 +1,4 @@
-import type { RotationCommand, SchedulerRecord } from '../../../platform/engine/types.js';
+import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/types.js';
 
 /**
  * Owns mutations of the user-authored rotation so shared timeline renderers

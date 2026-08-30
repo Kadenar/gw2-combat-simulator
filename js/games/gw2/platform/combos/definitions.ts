@@ -1,5 +1,5 @@
-import type { SimulationEventInput, SkillId } from '../engine/types.js';
-import type { ComboEvent, ComboFieldType, ComboFinisherType } from './types.js';
+import type { SimulationEventInput, SkillId } from '#gw2/platform/engine/types.js';
+import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 
 export type ComboOutcome =
   | {
