@@ -20,7 +20,6 @@ import type {
   SkillEffect,
   SkillFragment
 } from '../../../../platform/engine/types.js';
-import type { ElementalistCastContext } from '../types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.
@@ -482,9 +481,9 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-export function createElementalistModuleData<TContext extends object = ElementalistCastContext>(
+export function createElementalistModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ProfessionModuleDataOptions<TContext>
+  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions
 ) {
   return createNativeModuleData({
     id,
@@ -492,7 +491,6 @@ export function createElementalistModuleData<TContext extends object = Elemental
     skillMechanics: finalizedSkillMechanics(skillMechanics),
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: ELEMENTALIST_API_SPECIALIZATIONS,
     ...(id === 'Core'

@@ -128,16 +128,15 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 export function createRevenantModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ProfessionModuleDataOptions<never>
+  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions
 ) {
-  return createNativeModuleData<never>({
+  return createNativeModuleData({
     id,
     generatedSkills: generated,
     sharedExtraSkills: supplemental,
     skillMechanics,
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

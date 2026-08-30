@@ -536,8 +536,9 @@ The phase sections describe where behavior runs, not where its source file must 
 those contributions once under the appropriate sections. Do not create execution and resolution copies of the same GW2
 definition.
 
-Legacy flat mechanics fields and `data.handlers` remain supported only for incremental migration. Do not use both the
-legacy and nested form for the same contribution; the authoring contract rejects duplicates.
+Native profession modules do not support flat phase fields or `data.handlers`. Register scheduler-owned behavior under
+`mechanics.execution` and resolver-owned behavior under `mechanics.resolution`; runtime validation reports the exact
+replacement path when JavaScript callers use a retired field.
 
 Mechanics should normally be implemented in owner-local files and assembled by `module.ts`.
 

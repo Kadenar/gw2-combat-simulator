@@ -28,7 +28,7 @@ export interface NativeAutoattackChains {
 export type NativeSkillHandlerRegistry<TContext extends object> =
   ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 
-export interface NativeModuleCatalogData<THandlerContext extends object = object> {
+export interface NativeModuleCatalogData {
   readonly generatedSkills?: readonly Skill[];
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
@@ -36,7 +36,6 @@ export interface NativeModuleCatalogData<THandlerContext extends object = object
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
-  readonly handlers?: NativeSkillHandlerRegistry<THandlerContext>;
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
@@ -106,7 +105,8 @@ export interface NativeExecutionMechanicsDefinition<
   TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
 > {
   /** Runtime implementations selected by declarative skill handler ids. */
-  readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext>;
+  /** A registry may compose handlers with narrower, handler-specific contexts. */
+  readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext> | NativeSkillHandlerRegistry<never>;
   /** Phase-explicit availability declarations. */
   readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
   /** Phase-explicit cast lifecycle declarations. */
@@ -141,36 +141,15 @@ export interface NativeMechanicsDefinition<
 > {
   /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
-  /** Preferred home for scheduler-owned behavior. */
+  /** Scheduler-owned behavior. */
   readonly execution?: NativeExecutionMechanicsDefinition<
     THandlerContext,
     TCastRulesEscape,
     TSchedulerHooksEscape,
     TSchedulerMechanics
   >;
-  /** Preferred home for resolver-owned behavior. */
+  /** Resolver-owned behavior. */
   readonly resolution?: NativeResolutionMechanicsDefinition<TResolverHooksEscape, TReactions>;
-  /** @deprecated Use execution.availability. */
-  /** Phase-explicit availability declarations. */
-  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-  /** @deprecated Use execution.castLifecycle. */
-  /** Phase-explicit cast lifecycle declarations. */
-  readonly castLifecycle?: TSchedulerMechanics;
-  /** @deprecated Use resolution.reactions. */
-  /** Phase-explicit resolver reactions. */
-  readonly reactions?: TReactions;
-  /** @deprecated Use execution.castRules. */
-  /** Advanced scheduler cast-policy escape hatch. */
-  readonly castRules?: TCastRulesEscape;
-  /** @deprecated Use execution.hooks. */
-  /** Advanced scheduler lifecycle/task escape hatch. */
-  readonly schedulerHooks?: TSchedulerHooksEscape;
-  /** @deprecated Use execution.skillMechanicHandlers. */
-  /** Profession-owned implementations for declarative skill mechanic triggers. */
-  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
-  /** @deprecated Use resolution.hooks. */
-  /** Advanced resolver event-handler/reaction escape hatch. */
-  readonly resolverHooks?: TResolverHooksEscape;
 }
 
 export interface NativeModuleDefinition<
@@ -189,7 +168,7 @@ export interface NativeModuleDefinition<
   TPresentation extends object
 > {
   readonly id: TId;
-  readonly data: NativeModuleCatalogData<THandlerContext>;
+  readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TSchedulerState, TResolverState, TProjectOptions, TProjectedState>;
   readonly mechanics?: NativeMechanicsDefinition<
     TModifierEscape,

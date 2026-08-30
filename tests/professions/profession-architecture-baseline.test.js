@@ -36,16 +36,16 @@ const EXPECTED_MODULE_IDS = Object.freeze({
 });
 
 function schedulerDeclarations(module) {
-  const availability = module.mechanics?.execution?.availability ?? module.mechanics?.availability;
+  const availability = module.mechanics?.execution?.availability;
 
   return [
     ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
-    ...(module.mechanics?.execution?.castLifecycle || module.mechanics?.castLifecycle || [])
+    ...(module.mechanics?.execution?.castLifecycle || [])
   ];
 }
 
 function resolverDeclarations(module) {
-  return module.mechanics?.resolution?.reactions || module.mechanics?.reactions || [];
+  return module.mechanics?.resolution?.reactions || [];
 }
 
 test('native profession module order and semantic owners remain stable during migration', () => {
@@ -88,18 +88,8 @@ test('phase-explicit native declarations retain their scheduler and resolver dis
   }
 });
 
-test('migrated profession modules register phase behavior only through explicit sections', () => {
-  for (const [profession, modules] of [
-    ['elementalist', elementalistNativeModules],
-    ['ranger', rangerNativeModules],
-    ['guardian', guardianNativeModules],
-    ['mesmer', mesmerNativeModules],
-    ['necromancer', necromancerNativeModules],
-    ['engineer', engineerNativeModules],
-    ['thief', thiefNativeModules],
-    ['warrior', warriorNativeModules],
-    ['revenant', revenantNativeModules]
-  ]) {
+test('profession modules register phase behavior only through explicit sections', () => {
+  for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {
       const label = `${profession}/${module.id}`;
 

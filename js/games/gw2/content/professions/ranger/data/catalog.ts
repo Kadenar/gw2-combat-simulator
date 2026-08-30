@@ -132,14 +132,9 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-export function createRangerModuleData<TContext extends object>(
+export function createRangerModuleData(
   id: string,
-  {
-    skillMechanics,
-    extraSkills = [],
-    balanceProfiles = [],
-    handlers
-  }: ProfessionModuleDataOptions<TContext, RangerSkill>
+  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions<RangerSkill>
 ) {
   return createNativeModuleData({
     id,
@@ -147,7 +142,6 @@ export function createRangerModuleData<TContext extends object>(
     skillMechanics,
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

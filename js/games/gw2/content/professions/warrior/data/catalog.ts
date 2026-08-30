@@ -129,21 +129,15 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-interface WarriorModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
+interface WarriorModuleDataOptions extends ProfessionModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
 // Normalize generated and supplemental Warrior mechanics into one module with
-// shared traits, profiles, handlers, and specialization ownership.
-export function createWarriorModuleData<TContext extends object>(
+// shared traits, profiles, and specialization ownership.
+export function createWarriorModuleData(
   id: string,
-  {
-    skillMechanics,
-    balanceProfiles = [],
-    extraSkills = [],
-    handlers,
-    autoattackChains
-  }: WarriorModuleDataOptions<TContext>
+  { skillMechanics, balanceProfiles = [], extraSkills = [], autoattackChains }: WarriorModuleDataOptions
 ) {
   const normalizedSkillMechanics = Object.freeze(
     Object.fromEntries(
@@ -165,7 +159,6 @@ export function createWarriorModuleData<TContext extends object>(
     skillMechanics: normalizedSkillMechanics,
     balanceProfiles,
     extraSkills,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

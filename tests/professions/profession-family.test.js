@@ -113,7 +113,7 @@ function skillSource(entries) {
 }
 
 function nativeSkillHandlers(module) {
-  return module.mechanics?.execution?.skillHandlers || module.data?.handlers;
+  return module.mechanics?.execution?.skillHandlers;
 }
 
 function nativeSkillOwnerMap(slices, catalog) {

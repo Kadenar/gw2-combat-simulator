@@ -107,10 +107,9 @@ explicit sections:
 - `presentation` owns UI contributions. It may be a catalog-aware factory when labels or palettes require the complete
   application catalog.
 
-The nested phase sections are additive and backward compatible during migration. Legacy flat fields such as
-`mechanics.castRules`, `mechanics.schedulerHooks`, `mechanics.reactions`, and `data.handlers` still compile, but a module
-must not declare both forms of the same contribution. `defineNativeModule()` rejects that ambiguity. This keeps a skill,
-trait, or mechanic in one owner-local definition while making its engine phase explicit at the composition boundary.
+The nested phase sections are the only supported registration surface. `defineNativeModule()` rejects retired flat
+fields and reports their phase-explicit replacement paths. This keeps a skill, trait, or mechanic in one owner-local
+definition while making its engine phase explicit at the composition boundary.
 
 `defineNativeModule()` retains each module's literal ID and inferred state type. `defineNativeProfession()` requires
 Core first, infers the active-state union and specialization IDs, and compiles to the existing engine
@@ -272,11 +271,11 @@ secondary proc rolls, floating-point tolerance, and internal-cooldown behavior. 
 threshold materialization and apply every returned proc quantity; weighted declarations apply fractional quantities
 directly.
 
-The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw `mechanics.castRules`,
-`mechanics.schedulerHooks`, and `mechanics.resolverHooks` remain escape hatches for typed tasks, custom event types,
-complex cooldown/ammo policy, multi-event state machines, and existing hook bundles that do not become clearer when
-split. Raw modifier hook bundles are also supported beside typed modifier-rule arrays. Escape hatches must stay
-owner-local and must not import inactive specialization behavior.
+The higher-level helpers intentionally cover only recurring, order-sensitive mechanics. Raw
+`mechanics.execution.castRules`, `mechanics.execution.hooks`, and `mechanics.resolution.hooks` remain escape hatches for
+typed tasks, custom event types, complex cooldown/ammo policy, multi-event state machines, and existing hook bundles
+that do not become clearer when split. Raw modifier hook bundles are also supported beside typed modifier-rule arrays.
+Escape hatches must stay owner-local and must not import inactive specialization behavior.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill uses, pending events, and `profession`.
 For families, Core resources live under `state.profession.core`; active-elite resources live under

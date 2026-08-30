@@ -62,7 +62,7 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
   )
 });
 
-interface MesmerModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
+interface MesmerModuleDataOptions extends ProfessionModuleDataOptions {
   readonly supplementalSkillMechanics?: Readonly<Record<string, SkillFragment>>;
 }
 
@@ -82,15 +82,9 @@ function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): R
 
 // Normalize generated and supplemental Mesmer mechanics for one module, moving
 // ammo ownership from flip parents to ammo-bearing child skills where required.
-export function createMesmerModuleData<TContext extends object>(
+export function createMesmerModuleData(
   id: string,
-  {
-    skillMechanics,
-    supplementalSkillMechanics = {},
-    extraSkills = [],
-    balanceProfiles = [],
-    handlers
-  }: MesmerModuleDataOptions<TContext>
+  { skillMechanics, supplementalSkillMechanics = {}, extraSkills = [], balanceProfiles = [] }: MesmerModuleDataOptions
 ) {
   const flipParentsWithAmmoChild = new Set<number>(
     Object.entries(supplementalSkillMechanics)
@@ -131,7 +125,6 @@ export function createMesmerModuleData<TContext extends object>(
       })
     ),
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

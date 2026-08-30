@@ -160,19 +160,13 @@ const WEAPON_DATA = defineProfessionWeapons({
   Torch: 'oh'
 });
 
-interface GuardianModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
+interface GuardianModuleDataOptions extends ProfessionModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
-export function createGuardianModuleData<TContext extends object>(
+export function createGuardianModuleData(
   id: string,
-  {
-    skillMechanics,
-    extraSkills = [],
-    balanceProfiles = [],
-    handlers,
-    autoattackChains
-  }: GuardianModuleDataOptions<TContext>
+  { skillMechanics, extraSkills = [], balanceProfiles = [], autoattackChains }: GuardianModuleDataOptions
 ) {
   return createNativeModuleData({
     id,
@@ -180,7 +174,6 @@ export function createGuardianModuleData<TContext extends object>(
     skillMechanics,
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

@@ -108,7 +108,7 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-interface NecromancerModuleDataOptions extends ProfessionModuleDataOptions<never> {
+interface NecromancerModuleDataOptions extends ProfessionModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -140,15 +140,14 @@ function applyNecromancerSkillDefaults(
 
 export function createNecromancerModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers, autoattackChains }: NecromancerModuleDataOptions
+  { skillMechanics, extraSkills = [], balanceProfiles = [], autoattackChains }: NecromancerModuleDataOptions
 ) {
-  return createNativeModuleData<never>({
+  return createNativeModuleData({
     id,
     generatedSkills: generated,
     skillMechanics: applyNecromancerSkillDefaults(skillMechanics),
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

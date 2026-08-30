@@ -93,4 +93,23 @@ if (false) {
       }
     }
   });
+
+  defineNativeModule({
+    id: 'LegacyHandlers',
+    data: {
+      // @ts-expect-error Skill handlers belong to the execution phase.
+      handlers: {}
+    },
+    state: { scheduler: () => ({}) }
+  });
+
+  defineNativeModule({
+    id: 'LegacyReactions',
+    data: {},
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      // @ts-expect-error Resolver reactions belong under mechanics.resolution.
+      reactions: []
+    }
+  });
 }

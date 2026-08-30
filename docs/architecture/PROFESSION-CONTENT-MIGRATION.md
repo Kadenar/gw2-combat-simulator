@@ -183,7 +183,7 @@ All nine profession families now use only `mechanics.execution` and `mechanics.r
 | 4B | Migrate Engineer, Thief, and Warrior |
 | 4C | Migrate Elementalist and Revenant |
 | 4D | Migrate Mesmer last because it has the highest scheduler-coordination risk |
-| 5 | Retire compatibility facades and legacy raw hook registration |
+| 5 | Retire compatibility facades and legacy raw hook registration (complete) |
 | 6 | Enforce dependency direction and prohibit regression to generic ownership |
 
 Every phase is based on the preceding branch. Each pull request must remain reviewable as a delta against its immediate

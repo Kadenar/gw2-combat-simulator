@@ -55,22 +55,13 @@ function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
   const candidate = definition as {
     readonly id?: string;
-    readonly data?: {
-      readonly handlers?: unknown;
-    };
+    readonly data?: Record<string, unknown>;
     readonly state?: {
       readonly scheduler?: (...args: never[]) => object;
       readonly resolver?: (...args: never[]) => object;
       readonly project?: (...args: never[]) => object;
     };
     readonly mechanics?: {
-      readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-      readonly castLifecycle?: readonly NativeSchedulerMechanic[];
-      readonly reactions?: readonly { readonly phase?: string }[];
-      readonly castRules?: unknown;
-      readonly schedulerHooks?: unknown;
-      readonly skillMechanicHandlers?: unknown;
-      readonly resolverHooks?: unknown;
       readonly execution?: {
         readonly skillHandlers?: unknown;
         readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
@@ -101,6 +92,10 @@ function assertNativeModuleDefinition(definition: object): void {
     }
   }
 
+  if (candidate.mechanics != null) {
+    assertObject(candidate.mechanics, `${candidate.id}.mechanics`);
+  }
+
   if (candidate.mechanics?.execution != null) {
     assertObject(candidate.mechanics.execution, `${candidate.id}.mechanics.execution`);
   }
@@ -111,28 +106,27 @@ function assertNativeModuleDefinition(definition: object): void {
 
   const execution = candidate.mechanics?.execution;
   const resolution = candidate.mechanics?.resolution;
-  for (const [legacy, nested, preferred] of [
-    [candidate.data?.handlers, execution?.skillHandlers, 'mechanics.execution.skillHandlers'],
-    [candidate.mechanics?.availability, execution?.availability, 'mechanics.execution.availability'],
-    [candidate.mechanics?.castLifecycle, execution?.castLifecycle, 'mechanics.execution.castLifecycle'],
-    [candidate.mechanics?.castRules, execution?.castRules, 'mechanics.execution.castRules'],
-    [candidate.mechanics?.schedulerHooks, execution?.hooks, 'mechanics.execution.hooks'],
-    [
-      candidate.mechanics?.skillMechanicHandlers,
-      execution?.skillMechanicHandlers,
-      'mechanics.execution.skillMechanicHandlers'
-    ],
-    [candidate.mechanics?.reactions, resolution?.reactions, 'mechanics.resolution.reactions'],
-    [candidate.mechanics?.resolverHooks, resolution?.hooks, 'mechanics.resolution.hooks']
+  if (Object.prototype.hasOwnProperty.call(candidate.data, 'handlers')) {
+    throw new TypeError(`${candidate.id}.data.handlers is no longer supported; use mechanics.execution.skillHandlers.`);
+  }
+
+  for (const [legacy, preferred] of [
+    ['availability', 'execution.availability'],
+    ['castLifecycle', 'execution.castLifecycle'],
+    ['castRules', 'execution.castRules'],
+    ['schedulerHooks', 'execution.hooks'],
+    ['skillMechanicHandlers', 'execution.skillMechanicHandlers'],
+    ['reactions', 'resolution.reactions'],
+    ['resolverHooks', 'resolution.hooks']
   ] as const) {
-    if (legacy != null && nested != null) {
-      throw new TypeError(`${candidate.id} declares ${preferred} and its legacy equivalent.`);
+    if (candidate.mechanics && Object.prototype.hasOwnProperty.call(candidate.mechanics, legacy)) {
+      throw new TypeError(`${candidate.id}.mechanics.${legacy} is no longer supported; use mechanics.${preferred}.`);
     }
   }
 
   // availability can be a single mechanic or an array; normalize to array for uniform validation.
-  const availability = execution?.availability ?? candidate.mechanics?.availability;
-  const castLifecycle = execution?.castLifecycle ?? candidate.mechanics?.castLifecycle;
+  const availability = execution?.availability;
+  const castLifecycle = execution?.castLifecycle;
   const schedulerDeclarations = [
     ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
     ...(castLifecycle || [])
@@ -143,7 +137,7 @@ function assertNativeModuleDefinition(definition: object): void {
     }
   }
 
-  for (const declaration of resolution?.reactions ?? candidate.mechanics?.reactions ?? []) {
+  for (const declaration of resolution?.reactions ?? []) {
     if (declaration.phase !== 'resolver') {
       throw new TypeError(`${candidate.id} contains a non-resolver reaction declaration.`);
     }
@@ -157,7 +151,7 @@ export function defineNativeModule<
   TResolverState extends object = TSchedulerState,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  THandlerContext extends object = object,
+  THandlerContext extends object = never,
   TModifierEscape extends object = object,
   TCastRulesEscape extends object = object,
   TSchedulerHooksEscape extends object = object,
@@ -412,23 +406,19 @@ function compileNativeModule(
   const mechanics = module.mechanics || {};
   const execution = mechanics.execution || {};
   const resolution = mechanics.resolution || {};
-  const castRules = {
-    ...((execution.castRules || mechanics.castRules || {}) as SchedulerRecord)
-  };
+  const castRules = { ...((execution.castRules || {}) as SchedulerRecord) };
   const schedulerHooks: SchedulerRecord = {
-    ...((execution.hooks || mechanics.schedulerHooks || {}) as SchedulerRecord),
-    ...((execution.skillMechanicHandlers || mechanics.skillMechanicHandlers) == null
-      ? {}
-      : { skillMechanicHandlers: execution.skillMechanicHandlers || mechanics.skillMechanicHandlers })
+    ...((execution.hooks || {}) as SchedulerRecord),
+    ...(execution.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: execution.skillMechanicHandlers })
   };
-  const availability = execution.availability ?? mechanics.availability;
+  const availability = execution.availability;
   const availabilityDeclarations: readonly NativeSchedulerMechanic[] =
     availability == null ? [] : Array.isArray(availability) ? availability : [availability as NativeSchedulerMechanic];
   // availability mechanics go into castRules (gate whether a skill can be cast);
   // castLifecycle mechanics go into schedulerHooks (run during and after cast).
   for (const declaration of [
     ...availabilityDeclarations,
-    ...((execution.castLifecycle || mechanics.castLifecycle || []) as NativeSchedulerMechanic[])
+    ...((execution.castLifecycle || []) as NativeSchedulerMechanic[])
   ]) {
     appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
   }
@@ -441,14 +431,12 @@ function compileNativeModule(
     appendOrderedHook(schedulerHooks, 'afterCast', controller.castLifecycle as NativeSchedulerMechanic);
   }
 
-  const resolverHooks = {
-    ...((resolution.hooks || mechanics.resolverHooks || {}) as SchedulerRecord)
-  };
+  const resolverHooks = { ...((resolution.hooks || {}) as SchedulerRecord) };
   const reactions = {
     ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
   };
   let requiresCriticalFacts = false;
-  for (const declaration of (resolution.reactions || mechanics.reactions || []) as NativeResolvedReaction<
+  for (const declaration of (resolution.reactions || []) as NativeResolvedReaction<
     Gw2ResolverRuntime,
     Gw2ResolverEvent,
     object

@@ -26,9 +26,7 @@ function sortedIds(entries) {
 
 function registryKeys(core, specialization, container, key) {
   const hooks = (module) =>
-    container === 'schedulerHooks'
-      ? (module?.mechanics?.execution?.hooks ?? module?.mechanics?.schedulerHooks)
-      : (module?.mechanics?.resolution?.hooks ?? module?.mechanics?.resolverHooks);
+    container === 'schedulerHooks' ? module?.mechanics?.execution?.hooks : module?.mechanics?.resolution?.hooks;
 
   return [...Object.keys(hooks(core)?.[key] || {}), ...Object.keys(hooks(specialization)?.[key] || {})].sort();
 }
@@ -43,12 +41,8 @@ function reactionKeys(...modules) {
   return [
     ...new Set(
       modules.flatMap((module) => [
-        ...Object.keys(
-          (module?.mechanics?.resolution?.hooks ?? module?.mechanics?.resolverHooks)?.eventReactions || {}
-        ),
-        ...(module?.mechanics?.resolution?.reactions || module?.mechanics?.reactions || []).map(
-          (reaction) => reaction.stage
-        )
+        ...Object.keys(module?.mechanics?.resolution?.hooks?.eventReactions || {}),
+        ...(module?.mechanics?.resolution?.reactions || []).map((reaction) => reaction.stage)
       ])
     )
   ].sort();
@@ -82,14 +76,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   );
   assertUniqueOwners(
     modules,
-    (module) =>
-      Object.keys((module.mechanics?.execution?.hooks ?? module.mechanics?.schedulerHooks)?.taskHandlers || {}),
+    (module) => Object.keys(module.mechanics?.execution?.hooks?.taskHandlers || {}),
     `${family.id} task handler`
   );
   assertUniqueOwners(
     modules,
-    (module) =>
-      Object.keys((module.mechanics?.resolution?.hooks ?? module.mechanics?.resolverHooks)?.eventHandlers || {}),
+    (module) => Object.keys(module.mechanics?.resolution?.hooks?.eventHandlers || {}),
     `${family.id} event handler`
   );
   for (const key of EXECUTABLE_FAMILY_KEYS) {

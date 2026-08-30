@@ -295,15 +295,10 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 // Normalize generated and supplemental Thief mechanics into one specialization
-// module with shared traits, profiles, handlers, and ownership filters.
-export function createThiefModuleData<TContext extends object>(
+// module with shared traits, profiles, and ownership filters.
+export function createThiefModuleData(
   id: string,
-  {
-    skillMechanics,
-    extraSkills = [],
-    balanceProfiles = [],
-    handlers
-  }: ProfessionModuleDataOptions<TContext, ThiefSkill>
+  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions<ThiefSkill>
 ) {
   const terrestrialMechanics = Object.fromEntries(
     Object.entries(skillMechanics)
@@ -333,7 +328,6 @@ export function createThiefModuleData<TContext extends object>(
     skillMechanics: terrestrialMechanics,
     extraSkills,
     balanceProfiles,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

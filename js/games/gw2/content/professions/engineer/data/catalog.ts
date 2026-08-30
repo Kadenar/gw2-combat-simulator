@@ -247,7 +247,7 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh'
 });
 
-interface EngineerModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
+interface EngineerModuleDataOptions extends ProfessionModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
@@ -299,16 +299,15 @@ function normalizeMechanics(
 
 export const ENGINEER_GENERATED_SKILL_IDS = Object.freeze([...generatedIds]);
 
-export function createEngineerModuleData<TContext extends object>(
+export function createEngineerModuleData(
   id: string,
   {
     skillMechanics,
     balanceProfiles = [],
     extraSkills = [],
-    handlers,
     autoattackChains,
     skillNameOverrides
-  }: EngineerModuleDataOptions<TContext>
+  }: EngineerModuleDataOptions
 ) {
   return createNativeModuleData({
     id,
@@ -317,7 +316,6 @@ export function createEngineerModuleData<TContext extends object>(
     skillMechanics: normalizeMechanics(skillMechanics),
     balanceProfiles,
     extraSkills,
-    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],

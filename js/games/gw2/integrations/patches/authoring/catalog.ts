@@ -19,7 +19,7 @@ import type {
 } from './module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '../../../platform/combos/catalog.js';
 
-interface NativeModuleDataSelection<TContext extends object> {
+interface NativeModuleDataSelection {
   readonly id: string;
   readonly generatedSkills?: readonly Skill[];
   readonly sharedExtraSkills?: readonly Skill[];
@@ -27,7 +27,6 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly handlers?: NativeSkillHandlerRegistry<TContext>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
@@ -48,9 +47,9 @@ function canonicalModuleName(value: object, specializations: readonly CatalogEnt
 
 /**
  * Selects generated identity metadata for one semantic owner while retaining
- * the module's locally authored mechanics, handlers, and extra skills.
+ * the module's locally authored mechanics and extra skills.
  */
-export function createNativeModuleData<TContext extends object>({
+export function createNativeModuleData({
   id,
   generatedSkills = [],
   sharedExtraSkills = [],
@@ -58,7 +57,6 @@ export function createNativeModuleData<TContext extends object>({
   skillOverrides = {},
   extraSkills = [],
   balanceProfiles = [],
-  handlers,
   traits = [],
   specializations = [],
   weapons = [],
@@ -67,7 +65,7 @@ export function createNativeModuleData<TContext extends object>({
   skillNameOverrides,
   specializationOnlySkillIds = [],
   specializationOnlySkillOwners = {}
-}: NativeModuleDataSelection<TContext>): NativeModuleCatalogData<TContext> {
+}: NativeModuleDataSelection): NativeModuleCatalogData {
   const forced = new Set(specializationOnlySkillIds.map(String));
   const ownsSkill = (skill: Skill): boolean => {
     // specializationOnlySkillOwners can pin specific skill IDs to a module,
@@ -98,7 +96,6 @@ export function createNativeModuleData<TContext extends object>({
     specializations: Object.freeze(
       specializations.filter((specialization) => (specialization.elite ? specialization.name === id : id === 'Core'))
     ),
-    ...(handlers == null ? {} : { handlers }),
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
     ...(weaponHands instanceof Map || Object.keys(weaponHands).length ? { weaponHands } : {}),
     ...(autoattackChains == null ? {} : { autoattackChains }),
@@ -254,9 +251,7 @@ function composeNativeCatalog(
       overrides[skillId] = override;
     }
 
-    const moduleHandlers =
-      (module.mechanics?.execution?.skillHandlers as NativeSkillHandlerRegistry<object> | undefined) ||
-      (module.data.handlers as NativeSkillHandlerRegistry<object> | undefined);
+    const moduleHandlers = module.mechanics?.execution?.skillHandlers as NativeSkillHandlerRegistry<object> | undefined;
     for (const [handlerId, handler] of toEntries(moduleHandlers)) {
       const prior = handlerOwners.get(handlerId);
       if (prior) {
