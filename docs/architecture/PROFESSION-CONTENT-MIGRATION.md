@@ -131,6 +131,27 @@ The medium-complexity professions use the same ownership rules with profession-s
 A phase section is present only when the module contributes to that phase. For example, a specialization with only
 scheduler behavior does not add an empty `mechanics.resolution` object for symmetry.
 
+## Elementalist and Revenant layouts
+
+Elementalist and Revenant make the phase boundary especially important because their profession mechanics coordinate
+many otherwise independent skills:
+
+- Elementalist owns attunement transitions, endurance, weapon state, event preparation, and resolution reactions
+  under Core `mechanics/`. Canonical weapon fragments remain under `skills/weapons/`; conjures, elemental summons,
+  hammer orbs, and pistol bullets remain beside the skills that create them. Catalyst Jade Sphere and Elemental
+  Empowerment, Tempest overloads, Weaver dual attunements, and Evoker familiars each have specialization-local
+  mechanic homes.
+- Revenant keeps canonical skill declarations and handlers under `skills/`, trait formulas under `traits/`, and
+  Energy, legend swap, upkeep, and weapon state under Core `mechanics/`. Herald facets, Renegade's Kalla systems,
+  Vindicator Alliance/dodge behavior, and Conduit affinity/forms and Bolstered Bonds remain owned by their
+  specializations.
+- Revenant's Energy cost dispatcher remains at the profession root because it deliberately composes Core costs with
+  active-specialization adjustments. Declarative legend legality lives in `data/legends.ts`, while the application
+  loadout adapter lives in `build/legend-loadout.ts`.
+
+Both profession families register scheduler and resolver behavior exclusively through phase-scoped module sections.
+Their module files are the visible adapters between concept-owned implementations and the phase-oriented engine.
+
 ## Stacked delivery plan
 
 | Phase | Goal |

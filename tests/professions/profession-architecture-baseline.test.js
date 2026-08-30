@@ -90,12 +90,14 @@ test('phase-explicit native declarations retain their scheduler and resolver dis
 
 test('migrated profession modules register phase behavior only through explicit sections', () => {
   for (const [profession, modules] of [
+    ['elementalist', elementalistNativeModules],
     ['ranger', rangerNativeModules],
     ['guardian', guardianNativeModules],
     ['necromancer', necromancerNativeModules],
     ['engineer', engineerNativeModules],
     ['thief', thiefNativeModules],
-    ['warrior', warriorNativeModules]
+    ['warrior', warriorNativeModules],
+    ['revenant', revenantNativeModules]
   ]) {
     for (const module of modules) {
       const label = `${profession}/${module.id}`;

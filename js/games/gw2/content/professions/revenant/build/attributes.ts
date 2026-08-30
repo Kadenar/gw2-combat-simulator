@@ -1,4 +1,4 @@
-import { bolsteredBondsBonuses } from '../bolstered-bonds.js';
+import { bolsteredBondsBonuses } from '../specializations/conduit/traits/bolstered-bonds.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../../lib/build-attributes.js';
 import type {

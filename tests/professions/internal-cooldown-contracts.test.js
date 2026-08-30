@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { elementalistCatalog } from '../../js/games/gw2/content/professions/elementalist/catalog.js';
 import { createElementalistCoreState } from '../../js/games/gw2/content/professions/elementalist/core/state.js';
-import { applyViciousEmpowerment } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/resolver.js';
+import { applyViciousEmpowerment } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { createCatalystState } from '../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
 import { engineerCatalog } from '../../js/games/gw2/content/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '../../js/games/gw2/content/professions/engineer/core/state.js';
@@ -27,7 +27,7 @@ import { revenantCatalog } from '../../js/games/gw2/content/professions/revenant
 import { createRevenantCoreState } from '../../js/games/gw2/content/professions/revenant/core/state.js';
 import { REVENANT_TRAIT_IDS } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
 import { createRenegadeState } from '../../js/games/gw2/content/professions/revenant/specializations/renegade/state.js';
-import { observeRenegadeTraits } from '../../js/games/gw2/content/professions/revenant/specializations/renegade/traits.js';
+import { observeRenegadeTraits } from '../../js/games/gw2/content/professions/revenant/specializations/renegade/traits/index.js';
 import { thiefCatalog } from '../../js/games/gw2/content/professions/thief/catalog.js';
 import { createThiefCoreState } from '../../js/games/gw2/content/professions/thief/core/state.js';
 import { reactToThiefCoreBuff } from '../../js/games/gw2/content/professions/thief/core/traits/index.js';

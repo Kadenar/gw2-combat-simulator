@@ -5,7 +5,7 @@ import { createProfessionBuildCodec } from '../../lib/build-codec.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
 import { revenantCatalog } from '../catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '../data/ids.js';
-import { revenantLegendLoadout } from '../legend-loadout.js';
+import { revenantLegendLoadout } from './legend-loadout.js';
 import type { RevenantCanonicalBuild } from '../types.js';
 import type { Gw2SlotLoadout } from '../../../../platform/builds/types.js';
 import { createCommonBuildDefaults } from '../../lib/build-defaults.js';

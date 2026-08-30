@@ -4,7 +4,7 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '../../../../../content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../../../content/professions/elementalist/core/elemental-profile.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../../../content/professions/elementalist/core/skills/elemental-profiles.js';
 import { firstStrikePacketOffsetMs } from '../../../lib/rotation/timing.js';
 import type { DpsReportProfessionReconstructionContext, DpsReportRecordedAction } from '../types.js';
 

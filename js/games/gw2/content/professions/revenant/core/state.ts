@@ -1,6 +1,6 @@
 import { REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import { hasTrait } from '../../../../platform/combat/state/traits.js';
-import { normalizeRevenantLegendIds } from '../legend-rules.js';
+import { normalizeRevenantLegendIds } from '../data/legends.js';
 import type { RevenantConfig, RevenantCoreState } from '../types.js';
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,

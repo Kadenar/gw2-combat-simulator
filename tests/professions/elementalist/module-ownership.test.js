@@ -10,7 +10,7 @@ import { weaverModule } from '../../../js/games/gw2/content/professions/elementa
 import {
   WEAVER_SKILL_MECHANICS,
   weaverDualAttunements
-} from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/skills.js';
+} from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/skills/index.js';
 
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: ['latentStaminaReadyAt'],

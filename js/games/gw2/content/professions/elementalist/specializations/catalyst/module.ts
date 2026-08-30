@@ -14,16 +14,16 @@ import {
   applyCatalystResolverAura,
   applyCatalystResolvedDamage,
   applyViciousEmpowerment
-} from './resolver.js';
+} from './mechanics/reactions.js';
 import {
   catalystAttributeRules,
   catalystCastRules,
   catalystSchedulerHooks,
   catalystSkillMechanicHandlers
-} from './rules.js';
+} from './mechanics/jade-sphere-and-empowerment.js';
 import { createCatalystState } from './state.js';
 import { catalystUi } from './presentation.js';
-import { CATALYST_SKILL_MECHANICS } from './skills.js';
+import { CATALYST_SKILL_MECHANICS } from './skills/index.js';
 import { CATALYST_BALANCE_PROFILES } from './profiles.js';
 
 export const catalystModule = defineNativeModule({
@@ -35,35 +35,39 @@ export const catalystModule = defineNativeModule({
   state: { scheduler: createCatalystState, resolver: createCatalystState },
   mechanics: {
     modifiers: catalystAttributeRules,
-    castRules: catalystCastRules,
-    skillMechanicHandlers: catalystSkillMechanicHandlers,
-    schedulerHooks: catalystSchedulerHooks,
-    reactions: [
-      onAuraApplied({
-        id: 'elementalist.catalyst-aura',
-        handler: applyCatalystResolverAura
-      }),
-      onResolvedDamage({
-        id: 'elementalist.catalyst-shattering-ice',
-        handler: applyCatalystResolvedDamage
-      }),
-      onBuffApplied({
-        id: 'elementalist.catalyst-empowerment',
-        handler: applyCatalystEmpowerment
-      }),
-      onResolvedControl({
-        id: 'elementalist.catalyst-vicious-empowerment-control',
-        handler: applyViciousEmpowerment
-      }),
-      onConditionApplied({
-        id: 'elementalist.catalyst-vicious-empowerment-immobilize',
-        handler: applyViciousEmpowerment
-      }),
-      onComboResolved({
-        id: 'elementalist.catalyst-combo-traits',
-        handler: applyCatalystComboTraits
-      })
-    ]
+    execution: {
+      castRules: catalystCastRules,
+      skillMechanicHandlers: catalystSkillMechanicHandlers,
+      hooks: catalystSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        onAuraApplied({
+          id: 'elementalist.catalyst-aura',
+          handler: applyCatalystResolverAura
+        }),
+        onResolvedDamage({
+          id: 'elementalist.catalyst-shattering-ice',
+          handler: applyCatalystResolvedDamage
+        }),
+        onBuffApplied({
+          id: 'elementalist.catalyst-empowerment',
+          handler: applyCatalystEmpowerment
+        }),
+        onResolvedControl({
+          id: 'elementalist.catalyst-vicious-empowerment-control',
+          handler: applyViciousEmpowerment
+        }),
+        onConditionApplied({
+          id: 'elementalist.catalyst-vicious-empowerment-immobilize',
+          handler: applyViciousEmpowerment
+        }),
+        onComboResolved({
+          id: 'elementalist.catalyst-combo-traits',
+          handler: applyCatalystComboTraits
+        })
+      ]
+    }
   },
   presentation: catalystUi
 });

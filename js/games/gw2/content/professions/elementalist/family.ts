@@ -4,7 +4,7 @@ import { createElementalistBuildDefaults, migrateElementalistBuild, validateElem
 import { ELEMENTALIST_NATIVE_CATALOG_OPTIONS, elementalistNativeModules } from './modules.js';
 import { elementalistFamilyUi } from './presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from './data/ids.js';
-import { observeElementalistAutoattackTransition } from './core/weapon-state.js';
+import { observeElementalistAutoattackTransition } from './core/mechanics/weapon-state.js';
 
 export const elementalistProfession = defineNativeProfession({
   id: 'elementalist',

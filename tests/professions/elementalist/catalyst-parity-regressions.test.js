@@ -5,8 +5,8 @@ import { elementalistCatalog } from '../../../js/games/gw2/content/professions/e
 import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
-} from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/resolver.js';
-import { catalystAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/rules.js';
+} from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { catalystAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
 import { createCatalystState } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/state.js';
 
 // These unit checks exercise Catalyst state and catalog behavior directly so

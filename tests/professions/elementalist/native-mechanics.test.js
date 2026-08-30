@@ -17,9 +17,9 @@ import { elementalistAppAdapter } from '../../../js/games/gw2/content/profession
 import { applyElementalistBuildAttributeRules } from '../../../js/games/gw2/content/professions/elementalist/build/attributes.js';
 import { elementalistCatalog } from '../../../js/games/gw2/content/professions/elementalist/catalog.js';
 import { elementalistProfession } from '../../../js/games/gw2/content/professions/elementalist/definition.js';
-import { elementalistCoreModifierRules } from '../../../js/games/gw2/content/professions/elementalist/core/modifiers.js';
+import { elementalistCoreModifierRules } from '../../../js/games/gw2/content/professions/elementalist/core/traits/modifiers.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
-import { weaverModifierRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/modifiers.js';
+import { weaverModifierRules } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/elementalist.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.

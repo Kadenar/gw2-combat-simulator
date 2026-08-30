@@ -10,11 +10,11 @@ import {
   elementalistCoreCastRules,
   elementalistCoreSchedulerHooks,
   elementalistCoreSkillMechanicHandlers
-} from './rules.js';
+} from './mechanics/execution.js';
 import { projectElementalistEndState } from '../state/index.js';
 import { createElementalistCoreState } from './state.js';
 import { bindElementalistCoreUi } from './presentation.js';
-import { ELEMENTALIST_CORE_EXTRA_SKILLS, ELEMENTALIST_CORE_SKILL_MECHANICS } from './skills.js';
+import { ELEMENTALIST_CORE_EXTRA_SKILLS, ELEMENTALIST_CORE_SKILL_MECHANICS } from './skills/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from './profiles.js';
 import {
   applyElementalistResolverAttunement,
@@ -23,7 +23,7 @@ import {
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
   elementalistCoreCriticalReactions
-} from './resolver.js';
+} from './mechanics/reactions.js';
 
 export const elementalistCoreModule = defineNativeModule({
   id: 'Core',
@@ -39,32 +39,36 @@ export const elementalistCoreModule = defineNativeModule({
   },
   mechanics: {
     modifiers: elementalistCoreAttributeRules,
-    castRules: elementalistCoreCastRules,
-    skillMechanicHandlers: elementalistCoreSkillMechanicHandlers,
-    schedulerHooks: elementalistCoreSchedulerHooks,
-    reactions: [
-      ...elementalistCoreCriticalReactions,
-      onResolvedDamage({
-        id: 'elementalist.core.damage',
-        handler: applyElementalistResolvedDamage
-      }),
-      onConditionApplied({
-        id: 'elementalist.core.condition',
-        handler: applyElementalistResolvedCondition
-      }),
-      onAuraApplied({
-        id: 'elementalist.core-aura',
-        handler: applyElementalistResolverAura
-      })
-    ],
-    resolverHooks: {
-      eventHandlers: {
-        'elementalist.attunement': applyElementalistResolverAttunement,
-        'elementalist.aura': applyElementalistResolverAura,
-        'elementalist.fresh-air': () => {},
-        'elementalist.evasive-arcana': () => {},
-        'elementalist.attunement-enter': () => {},
-        'elementalist.signet-fire': applyElementalistResolverSignetFire
+    execution: {
+      castRules: elementalistCoreCastRules,
+      skillMechanicHandlers: elementalistCoreSkillMechanicHandlers,
+      hooks: elementalistCoreSchedulerHooks
+    },
+    resolution: {
+      reactions: [
+        ...elementalistCoreCriticalReactions,
+        onResolvedDamage({
+          id: 'elementalist.core.damage',
+          handler: applyElementalistResolvedDamage
+        }),
+        onConditionApplied({
+          id: 'elementalist.core.condition',
+          handler: applyElementalistResolvedCondition
+        }),
+        onAuraApplied({
+          id: 'elementalist.core-aura',
+          handler: applyElementalistResolverAura
+        })
+      ],
+      hooks: {
+        eventHandlers: {
+          'elementalist.attunement': applyElementalistResolverAttunement,
+          'elementalist.aura': applyElementalistResolverAura,
+          'elementalist.fresh-air': () => {},
+          'elementalist.evasive-arcana': () => {},
+          'elementalist.attunement-enter': () => {},
+          'elementalist.signet-fire': applyElementalistResolverSignetFire
+        }
       }
     }
   },

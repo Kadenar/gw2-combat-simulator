@@ -5,8 +5,8 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '../../../js/games/gw2/content/professions/revenant/data/ids.js';
-import { applyConduitEnergyCostRules } from '../../../js/games/gw2/content/professions/revenant/specializations/conduit/energy.js';
-import { applyVindicatorEnergyCostRules } from '../../../js/games/gw2/content/professions/revenant/specializations/vindicator/energy.js';
+import { applyConduitEnergyCostRules } from '../../../js/games/gw2/content/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
+import { applyVindicatorEnergyCostRules } from '../../../js/games/gw2/content/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 
 test('Beguiling Haze follow-up charges waive only Beguiling Haze energy costs', () => {
   const context = {

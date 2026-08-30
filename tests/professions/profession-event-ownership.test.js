@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistCoreModifierRules } from '../../js/games/gw2/content/professions/elementalist/core/modifiers.js';
-import { weaverModifierRules } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/modifiers.js';
+import { elementalistCoreModifierRules } from '../../js/games/gw2/content/professions/elementalist/core/traits/modifiers.js';
+import { weaverModifierRules } from '../../js/games/gw2/content/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { ENGINEER_TRAIT_IDS } from '../../js/games/gw2/content/professions/engineer/data/ids.js';
 import {
   applyEngineerSharpshooterConditionDamage,
@@ -16,7 +16,7 @@ import { rangerCoreModifierRules } from '../../js/games/gw2/content/professions/
 import { galeshotModifierRules } from '../../js/games/gw2/content/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
 import { soulbeastModifierRules } from '../../js/games/gw2/content/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
 import { REVENANT_TRAIT_IDS } from '../../js/games/gw2/content/professions/revenant/data/ids.js';
-import { revenantCoreModifierRules } from '../../js/games/gw2/content/professions/revenant/core/rules.js';
+import { revenantCoreModifierRules } from '../../js/games/gw2/content/professions/revenant/core/traits/modifiers.js';
 import { THIEF_TRAIT_IDS } from '../../js/games/gw2/content/professions/thief/data/ids.js';
 import { thiefCoreModifierRules } from '../../js/games/gw2/content/professions/thief/core/traits/modifiers.js';
 

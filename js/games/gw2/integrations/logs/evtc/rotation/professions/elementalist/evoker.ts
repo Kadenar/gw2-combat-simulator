@@ -4,8 +4,8 @@ import type { ElementalistAttunement } from '../../../../../../content/professio
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
-} from '../../../../../../content/professions/elementalist/specializations/evoker/constants.js';
-import { weaponSkillChargeGain } from '../../../../../../content/professions/elementalist/specializations/evoker/resources.js';
+} from '../../../../../../content/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { weaponSkillChargeGain } from '../../../../../../content/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { findRotationSkill } from '../../catalog.js';
 import { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, skillForAction } from '../../effect-packets.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';

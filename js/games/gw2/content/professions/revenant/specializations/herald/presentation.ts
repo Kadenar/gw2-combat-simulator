@@ -1,6 +1,6 @@
 import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '../../core/presentation.js';
-import { HERALD_MECHANICS } from './mechanics.js';
+import { HERALD_MECHANICS } from './mechanics/facets.js';
 import type {
   PaletteSkillAvailability,
   ProfessionUiContract,

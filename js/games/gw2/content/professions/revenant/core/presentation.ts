@@ -3,7 +3,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simul
 import { REVENANT_ASSUMPTION_CONTROLS } from '../app/assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
-import { revenantLegend, revenantLegendLoadout } from '../legend-loadout.js';
+import { revenantLegend, revenantLegendLoadout } from '../build/legend-loadout.js';
 import { effectiveRevenantEnergyCost } from '../energy.js';
 import type {
   PaletteSkillAvailability,

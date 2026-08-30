@@ -1,12 +1,12 @@
 import { defineNativeModule } from '../../../../integrations/patches/authoring/profession.js';
 import { createRevenantModuleData } from '../data/catalog.js';
-import { revenantCoreEventHandlers } from './resolver.js';
+import { revenantCoreEventHandlers } from './mechanics/state-events.js';
 import {
   revenantCoreAttributeRules,
   revenantCastRules,
   revenantSchedulerHooks,
   snapshotRevenantState
-} from './rules.js';
+} from './traits/modifiers.js';
 import { createRevenantCoreState } from './state.js';
 import { projectRevenantEndState } from '../state/index.js';
 import { revenantCoreUi } from './presentation.js';
@@ -14,8 +14,8 @@ import {
   REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
-} from './skills.js';
-import { revenantCoreSkillHandlers } from './handlers.js';
+} from './skills/index.js';
+import { revenantCoreSkillHandlers } from './skills/handlers.js';
 import type { RevenantSchedulerContext } from '../types.js';
 
 export const revenantCoreModule = defineNativeModule({
@@ -23,8 +23,7 @@ export const revenantCoreModule = defineNativeModule({
   data: createRevenantModuleData('Core', {
     skillMechanics: REVENANT_CORE_BASE_SKILL_MECHANICS,
     extraSkills: REVENANT_CORE_EXTRA_SKILLS,
-    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES,
-    handlers: revenantCoreSkillHandlers
+    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES
   }),
   state: {
     scheduler: createRevenantCoreState,
@@ -33,13 +32,18 @@ export const revenantCoreModule = defineNativeModule({
   },
   mechanics: {
     modifiers: revenantCoreAttributeRules,
-    castRules: revenantCastRules,
-    schedulerHooks: {
-      ...revenantSchedulerHooks,
-      snapshot: (context: RevenantSchedulerContext) => snapshotRevenantState(context.state.profession)
+    execution: {
+      skillHandlers: revenantCoreSkillHandlers,
+      castRules: revenantCastRules,
+      hooks: {
+        ...revenantSchedulerHooks,
+        snapshot: (context: RevenantSchedulerContext) => snapshotRevenantState(context.state.profession)
+      }
     },
-    resolverHooks: {
-      eventHandlers: revenantCoreEventHandlers
+    resolution: {
+      hooks: {
+        eventHandlers: revenantCoreEventHandlers
+      }
     }
   },
   presentation: revenantCoreUi

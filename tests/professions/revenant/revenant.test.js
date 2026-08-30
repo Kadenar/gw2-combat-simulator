@@ -56,19 +56,19 @@ import { REVENANT_TRAIT_COVERAGE } from '../../fixtures/trait-coverage/revenant.
 import {
   REVENANT_CORE_BALANCE_PROFILE_IDS,
   REVENANT_CORE_BASE_SKILL_MECHANICS
-} from '../../../js/games/gw2/content/professions/revenant/core/skills.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/revenant/specializations/conduit/skills.js';
+} from '../../../js/games/gw2/content/professions/revenant/core/skills/index.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/revenant/specializations/conduit/skills/index.js';
 import { revenantProfession } from '../../../js/games/gw2/content/professions/revenant/definition.js';
 import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
-} from '../../../js/games/gw2/content/professions/revenant/legend-rules.js';
+} from '../../../js/games/gw2/content/professions/revenant/data/legends.js';
 import {
   REVENANT_LEGENDS,
   revenantLegendLoadout
-} from '../../../js/games/gw2/content/professions/revenant/legend-loadout.js';
+} from '../../../js/games/gw2/content/professions/revenant/build/legend-loadout.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -736,9 +736,15 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
 test('Revenant modules preserve the declarative authoring contract', async () => {
   const [ids, coreSkills, renegadeSkills, catalog, modules] = await Promise.all([
     readFile(new URL('../../../js/games/gw2/content/professions/revenant/data/ids.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/games/gw2/content/professions/revenant/core/skills.ts', import.meta.url), 'utf8'),
     readFile(
-      new URL('../../../js/games/gw2/content/professions/revenant/specializations/renegade/skills.ts', import.meta.url),
+      new URL('../../../js/games/gw2/content/professions/revenant/core/skills/index.ts', import.meta.url),
+      'utf8'
+    ),
+    readFile(
+      new URL(
+        '../../../js/games/gw2/content/professions/revenant/specializations/renegade/skills/index.ts',
+        import.meta.url
+      ),
       'utf8'
     ),
     readFile(new URL('../../../js/games/gw2/content/professions/revenant/catalog.ts', import.meta.url), 'utf8'),

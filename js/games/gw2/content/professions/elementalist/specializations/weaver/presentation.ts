@@ -15,7 +15,7 @@ import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_WEAVER_SKILL_IDS } from
 import { getActiveTraits } from '../../data/traits-data.js';
 import type { ElementalistBuildSpecialization } from '../../types.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '../../core/state.js';
-import { weaverDualAttunements } from './skills.js';
+import { weaverDualAttunements } from './skills/index.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 

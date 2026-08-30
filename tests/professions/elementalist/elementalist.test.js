@@ -28,13 +28,13 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '../../../js/games/gw2/content/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/games/gw2/content/professions/elementalist/core/elemental-profile.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/elementalist/core/skills.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '../../../js/games/gw2/content/professions/elementalist/core/skills/elemental-profiles.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../../../js/games/gw2/content/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
   elementalistBalanceValue
 } from '../../../js/games/gw2/content/professions/elementalist/core/profiles.js';
-import { elementalistAttunementRechargeDuration } from '../../../js/games/gw2/content/professions/elementalist/core/rules.js';
+import { elementalistAttunementRechargeDuration } from '../../../js/games/gw2/content/professions/elementalist/core/mechanics/execution.js';
 import { TEMPEST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/weaver/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS } from '../../../js/games/gw2/content/professions/elementalist/specializations/catalyst/profiles.js';

@@ -8,11 +8,11 @@ import {
 import { ELEMENTALIST_SKILL_IDS as ID } from './ids.js';
 import { ELEMENTALIST_API_SKILL_ID_OVERRIDES, ELEMENTALIST_LOADOUT_SKILL_IDS } from './skill-identities.js';
 import { TRAITS } from './traits-data.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../core/skills.js';
-import { CATALYST_SKILL_MECHANICS } from '../specializations/catalyst/skills.js';
-import { EVOKER_SKILL_MECHANICS } from '../specializations/evoker/skills.js';
-import { TEMPEST_SKILL_MECHANICS } from '../specializations/tempest/skills.js';
-import { WEAVER_SKILL_MECHANICS } from '../specializations/weaver/skills.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '../core/skills/index.js';
+import { CATALYST_SKILL_MECHANICS } from '../specializations/catalyst/skills/index.js';
+import { EVOKER_SKILL_MECHANICS } from '../specializations/evoker/skills/index.js';
+import { TEMPEST_SKILL_MECHANICS } from '../specializations/tempest/skills/index.js';
+import { WEAVER_SKILL_MECHANICS } from '../specializations/weaver/skills/index.js';
 import type {
   CatalogEntity,
   SchedulerRecord,

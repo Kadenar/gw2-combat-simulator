@@ -8,7 +8,7 @@ import type {
 } from '../../../../../platform/engine/types.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '../../data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../core/state.js';
-import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './constants.js';
+import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './mechanics/constants.js';
 import type { EvokerState } from './state.js';
 
 function uiState(context: SchedulerRecord): Partial<EvokerState> {

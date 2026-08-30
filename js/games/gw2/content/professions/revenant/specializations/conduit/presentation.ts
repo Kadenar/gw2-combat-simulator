@@ -1,5 +1,5 @@
 import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../legend-rules.js';
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '../../data/legends.js';
 import { activeRevenantLegend, revenantUiState } from '../../core/presentation.js';
 import type {
   ProfessionUiContract,

@@ -2,9 +2,9 @@ import { emitStateSnapshot } from '../../../platform/engine/events/state-snapsho
 import { professionCoreState } from '../../../platform/engine/profession/state.js';
 import { snapshotRevenantState } from './state/index.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
-import { baseRevenantEnergyCost } from './core/energy.js';
-import { applyConduitEnergyCostRules } from './specializations/conduit/energy.js';
-import { applyVindicatorEnergyCostRules } from './specializations/vindicator/energy.js';
+import { baseRevenantEnergyCost } from './core/mechanics/energy.js';
+import { applyConduitEnergyCostRules } from './specializations/conduit/mechanics/energy-cost.js';
+import { applyVindicatorEnergyCostRules } from './specializations/vindicator/mechanics/energy-cost.js';
 import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeState, RevenantSkill } from './types.js';
 
 // Resolve the active Revenant specialization consistently from runtime and

@@ -1,6 +1,6 @@
 import { REVENANT_SKILL_IDS as SKILL } from '../../data/ids.js';
 import { revenantUiState } from '../../core/presentation.js';
-import { isBandTogetherReady } from './renegade.js';
+import { isBandTogetherReady } from './mechanics/kalla-and-band-together.js';
 import type {
   ProfessionUiContract,
   RotationStateSnapshotItem,
