@@ -36,12 +36,16 @@ const EXPECTED_MODULE_IDS = Object.freeze({
 });
 
 function schedulerDeclarations(module) {
-  const availability = module.mechanics?.availability;
+  const availability = module.mechanics?.execution?.availability ?? module.mechanics?.availability;
 
   return [
     ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
-    ...(module.mechanics?.castLifecycle || [])
+    ...(module.mechanics?.execution?.castLifecycle || module.mechanics?.castLifecycle || [])
   ];
+}
+
+function resolverDeclarations(module) {
+  return module.mechanics?.resolution?.reactions || module.mechanics?.reactions || [];
 }
 
 test('native profession module order and semantic owners remain stable during migration', () => {
@@ -75,7 +79,7 @@ test('phase-explicit native declarations retain their scheduler and resolver dis
         assert.ok(Number.isFinite(declaration.order), `${label}/${declaration.id}`);
       }
 
-      for (const declaration of module.mechanics?.reactions || []) {
+      for (const declaration of resolverDeclarations(module)) {
         assert.equal(declaration.phase, 'resolver', `${label}/${declaration.id}`);
         assert.equal(typeof declaration.handler, 'function', `${label}/${declaration.id}`);
         assert.ok(Number.isFinite(declaration.order), `${label}/${declaration.id}`);

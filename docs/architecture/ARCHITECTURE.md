@@ -94,16 +94,23 @@ platform tree.
 ## Declarative profession mechanics layout
 
 Every native profession — Elementalist, Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior —
-uses the typed authoring layer in `platform/gw2/native-profession.ts`. A native module is a vertical slice with four
+uses the typed authoring layer in `integrations/patches/authoring/profession.ts`. A native module is a vertical slice with four
 explicit sections:
 
 - `data` owns generated identities, skill mechanics and overrides, extra skills, traits, specialization metadata,
-  handlers, weapon hands, and chain exceptions;
+  weapon hands, and chain exceptions;
 - `state.scheduler` creates scheduler state, optional `state.resolver` creates distinct resolver state, and optional
   `state.project` defines the public end-state projection;
-- `mechanics` owns modifiers, availability, cast lifecycle declarations, and resolved-event reactions; and
+- `mechanics.execution` owns skill handlers, availability, cast lifecycle declarations, cast rules, and scheduler hooks;
+- `mechanics.resolution` owns resolved-event reactions and resolver hooks;
+- `mechanics.modifiers` owns declarative modifier rules that the engine compiles into the appropriate phase; and
 - `presentation` owns UI contributions. It may be a catalog-aware factory when labels or palettes require the complete
   application catalog.
+
+The nested phase sections are additive and backward compatible during migration. Legacy flat fields such as
+`mechanics.castRules`, `mechanics.schedulerHooks`, `mechanics.reactions`, and `data.handlers` still compile, but a module
+must not declare both forms of the same contribution. `defineNativeModule()` rejects that ambiguity. This keeps a skill,
+trait, or mechanic in one owner-local definition while making its engine phase explicit at the composition boundary.
 
 `defineNativeModule()` retains each module's literal ID and inferred state type. `defineNativeProfession()` requires
 Core first, infers the active-state union and specialization IDs, and compiles to the existing engine
@@ -139,15 +146,17 @@ Every native profession otherwise uses the same source roles:
   reason.
 - `data/traits-data.ts` is the only module that exports the flattened runtime `TRAITS` collection; it derives that view
   from specialization metadata.
-- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts`. Tests that need a
+- Families keep authoritative ID-keyed declarative skill fields in Core/specialization `skills.ts` or grouped
+  `skills/*.ts` modules. Tests that need a
   profession-wide inventory compose those owner-local fragments under `tests/`; production does not expose a root
   skill-mechanics aggregate.
-- Triggered effects and state machines live in owner-local `mechanics.ts` files; families do not use mixed
+- Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
+  `mechanics.ts`); families do not use mixed
   profession-wide runtime aggregates.
 - `catalog-data.ts` owns inert profession-wide generated metadata and catalog options used by module data selectors.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
-- owner-local `handlers.ts`, when needed, registers `augmentSkill()` or `replaceSkill()` strategies for behavior that
+- owner-local skill modules or focused handler modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that
   cannot be represented by declarative effects. Root handler aggregates are unnecessary because the application catalog
   is assembled from module contributions.
 
@@ -236,7 +245,7 @@ preserves the single GW2 additive-damage bucket while excluding inactive special
 return `{ type, description, className, order, flags }`; `null` deliberately suppresses an internal event and
 `undefined` requests the diagnostic fallback.
 
-Native-profession scalar combat bonuses are declared as per-effect rules in owner-local Core or elite `rules.ts`
+Native-profession scalar combat bonuses are declared as per-effect rules in owner-local trait, skill, or mechanic
 modules. The shared `platform/gw2/modifier-rules.ts` adapter compiles those rules into the existing critical chance,
 critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar sequencing and the single
 GW2 outgoing additive-damage bucket rebuild; profession modules own predicates and runtime state. Ordered attribute

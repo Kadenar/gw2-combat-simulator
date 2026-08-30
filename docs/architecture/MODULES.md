@@ -54,18 +54,18 @@ Use this table as the first place to look.
 
 | You're adding or changing...                                          | Usually belongs in...                                 |
 | --------------------------------------------------------------------- | ----------------------------------------------------- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Profession `skills.ts`                                |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills.ts` or `skills/<group>.ts`              |
 | Shared mechanic data used by several skills                           | Profession `profiles.ts`                              |
-| Profession runtime resource or state                                  | Profession `state.ts`                                 |
-| Skill availability rule                                               | `availability.ts` or `rules.ts`                       |
-| Resource gain/spend/regeneration                                      | `resources.ts`, `rules.ts`, or mechanic-specific file |
-| Cast lifecycle behavior                                               | `rules.ts`, `handlers.ts`, or mechanic-specific file  |
-| Declarative trait modifier                                            | `rules.ts`                                            |
-| Complex trait proc or imperative behavior                             | `traits.ts`                                           |
-| Scheduler-specific skill implementation                               | `handlers.ts`                                         |
+| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                     |
+| Skill availability rule                                               | The owning skill or mechanic module                   |
+| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                              |
+| Cast lifecycle behavior                                               | The owning skill, trait, or mechanic module            |
+| Declarative trait modifier                                            | `traits.ts` or `traits/<trait-line>.ts`                |
+| Complex trait proc or imperative behavior                             | `traits.ts` or `traits/<trait-line>.ts`                |
+| Scheduler-specific skill implementation                               | The owning skill module; a focused handler if shared   |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
-| Resolver reaction or custom resolved event                            | `resolver.ts`                                         |
-| Profession UI, palette, skill-bar, or active-state display            | `ui.ts`                                               |
+| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`  |
+| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module        |
 | Shared code used by several files within one profession               | `shared.ts`                                           |
 | New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                              |
 | Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                          |
@@ -450,7 +450,6 @@ Examples:
 - skill mechanics;
 - balance profiles;
 - extra synthetic/action skills;
-- skill handlers;
 - trait metadata;
 - weapon metadata;
 - autoattack-chain metadata.
@@ -461,7 +460,6 @@ Example:
 data: createWarriorModuleData("Berserker", {
   skillMechanics: BERSERKER_SKILL_MECHANICS,
   balanceProfiles: BERSERKER_BALANCE_PROFILES,
-  handlers: berserkerSkillHandlers,
 }),
 ```
 
@@ -503,10 +501,17 @@ Common contributions include:
 ```ts
 mechanics: {
   modifiers,
-  castRules,
-  schedulerHooks,
-  resolverHooks,
-  reactions,
+  execution: {
+    skillHandlers,
+    availability,
+    castLifecycle,
+    castRules,
+    hooks,
+  },
+  resolution: {
+    reactions,
+    hooks,
+  },
 }
 ```
 
@@ -515,11 +520,24 @@ For example:
 ```ts
 mechanics: {
   modifiers: berserkerAttributeRules,
-  castRules: berserkerCastRules,
-  schedulerHooks: berserkerSchedulerHooks,
-  reactions: berserkerReactions,
+  execution: {
+    skillHandlers: berserkerSkillHandlers,
+    castRules: berserkerCastRules,
+    hooks: berserkerSchedulerHooks,
+  },
+  resolution: {
+    reactions: berserkerReactions,
+  },
 },
 ```
+
+The phase sections describe where behavior runs, not where its source file must live. A concept module such as
+`mechanics/adrenaline.ts` may export both an execution contribution and a resolution contribution. `module.ts` exposes
+those contributions once under the appropriate sections. Do not create execution and resolution copies of the same GW2
+definition.
+
+Legacy flat mechanics fields and `data.handlers` remain supported only for incremental migration. Do not use both the
+legacy and nested form for the same contribution; the authoring contract rejects duplicates.
 
 Mechanics should normally be implemented in owner-local files and assembled by `module.ts`.
 
@@ -561,7 +579,7 @@ Combat rules do not belong here.
 
 There is no mandatory one-file-per-role template.
 
-A typical specialization might look like:
+A small specialization may remain flat:
 
 ```text
 specializations/berserker/
@@ -569,49 +587,50 @@ specializations/berserker/
 ├── skills.ts
 ├── profiles.ts
 ├── state.ts
-├── rules.ts
-├── handlers.ts
-├── resolver.ts
-└── ui.ts
+├── traits.ts
+├── mechanics.ts
+└── presentation.ts
 ```
 
-A larger Core module may instead look like:
+A larger Core module should group by GW2 concept:
 
 ```text
 core/
 ├── module.ts
-├── skills.ts
+├── skills/
+│   ├── axe.ts
+│   ├── greatsword.ts
+│   └── utilities.ts
+├── traits/
+│   ├── strength.ts
+│   └── tactics.ts
+├── mechanics/
+│   ├── adrenaline.ts
+│   └── bursts.ts
 ├── profiles.ts
-├── state.ts
-├── rules.ts
-├── handlers.ts
-├── resolver.ts
-├── traits.ts
-├── resources.ts
-├── availability.ts
-├── actions.ts
-├── events.ts
-├── shared.ts
-└── ui.ts
+├── state/
+│   └── index.ts
+└── presentation.ts
 ```
 
 These filenames are **ownership conventions, not required placeholders**.
 
 Small modules should stay small.
 
-Large mechanics should be split into descriptive files when that makes ownership clearer.
+Large mechanics should be split into descriptive files when that makes ownership clearer. Do not split merely to make
+every profession look symmetrical, and do not default to one file per skill or trait.
 
 For example:
 
 ```text
-shroud.ts
-tomes.ts
-legends.ts
-kits.ts
-pets.ts
-illusions.ts
-attunements.ts
-dragon-trigger.ts
+mechanics/shroud.ts
+mechanics/tomes.ts
+mechanics/legends.ts
+mechanics/kits.ts
+mechanics/pets.ts
+mechanics/illusions.ts
+mechanics/attunements.ts
+mechanics/dragon-trigger.ts
 ```
 
 are preferable to allowing an unrelated `rules.ts` or `mechanics.ts` file to grow indefinitely.
@@ -636,8 +655,7 @@ export const berserkerModule = defineNativeModule({
 
   data: createWarriorModuleData('Berserker', {
     skillMechanics: BERSERKER_SKILL_MECHANICS,
-    balanceProfiles: BERSERKER_BALANCE_PROFILES,
-    handlers: berserkerSkillHandlers
+    balanceProfiles: BERSERKER_BALANCE_PROFILES
   }),
 
   state: {
@@ -647,9 +665,14 @@ export const berserkerModule = defineNativeModule({
 
   mechanics: {
     modifiers: berserkerAttributeRules,
-    castRules: berserkerCastRules,
-    schedulerHooks: berserkerSchedulerHooks,
-    reactions: berserkerReactions
+    execution: {
+      skillHandlers: berserkerSkillHandlers,
+      castRules: berserkerCastRules,
+      hooks: berserkerSchedulerHooks
+    },
+    resolution: {
+      reactions: berserkerReactions
+    }
   },
 
   presentation: berserkerUi
@@ -660,7 +683,7 @@ Keep implementation details outside this file.
 
 ---
 
-## `skills.ts`
+## `skills.ts` and `skills/`
 
 Authoritative simulator mechanics for skills owned by the module.
 
@@ -676,6 +699,9 @@ Examples:
 - effect timing.
 
 If ArenaNet changes the damage coefficient of a skill, this is usually the first place to inspect.
+
+Group related skills by weapon, slot family, transformation, or another recognizable GW2 concept. Keep a single
+`skills.ts` when the module is already cohesive.
 
 ---
 
@@ -705,61 +731,18 @@ State fields should belong to the module that owns the mechanic.
 
 ---
 
-## `rules.ts`
+## `mechanics/`
 
-Composes mechanic rules.
+Profession and specialization systems that are not naturally owned by one skill or trait. Use GW2 concept names such
+as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`, `attunements.ts`, `energy.ts`, or
+`initiative.ts`.
 
-Common responsibilities include:
+A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that
+phase visible when assembled in `module.ts`. Shared strike and condition resolution stays under
+`js/games/gw2/platform/resolver/`.
 
-- declarative modifiers;
-- cast rules;
-- scheduler hooks;
-- shared predicates;
-- state transitions;
-- trait-independent mechanic rules.
-
-`rules.ts` does not need to own every rule in a large module. Split focused concerns into files such as
-`availability.ts` or `resources.ts` when useful.
-
----
-
-## `availability.ts`
-
-Optional focused home for cast availability.
-
-Use it when availability logic is large enough that keeping it inside `rules.ts` would obscure other mechanics.
-
-Examples:
-
-- resource requirements;
-- transformation requirements;
-- active stance/form requirements;
-- profession state gates.
-
----
-
-## `handlers.ts`
-
-Skill-specific scheduler behavior.
-
-Handlers should primarily coordinate behavior associated with explicit skills.
-
-Do not turn `handlers.ts` into the general home for unrelated profession mechanics.
-
----
-
-## `resolver.ts`
-
-Profession behavior that runs during the resolver phase.
-
-Examples:
-
-- reactions to resolved damage;
-- custom profession events;
-- on-condition behavior;
-- resolver-owned proc logic.
-
-Shared strike and condition resolution stays under `js/games/gw2/platform/resolver/`.
+Generic `rules.ts`, `handlers.ts`, `availability.ts`, and `resolver.ts` files are acceptable in small cohesive modules.
+When they start representing several unrelated GW2 concepts, split them by concept rather than by engine phase.
 
 ---
 

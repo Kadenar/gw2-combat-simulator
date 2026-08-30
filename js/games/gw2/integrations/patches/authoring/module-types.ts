@@ -98,28 +98,77 @@ export interface NativeSchedulerMechanic {
   readonly handler: (...args: never[]) => object | boolean | number | string | null | void;
 }
 
+/** Scheduler-owned behavior exposed by one canonical profession-content module. */
+export interface NativeExecutionMechanicsDefinition<
+  THandlerContext extends object,
+  TCastRulesEscape extends object,
+  TSchedulerHooksEscape extends object,
+  TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
+> {
+  /** Runtime implementations selected by declarative skill handler ids. */
+  readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext>;
+  /** Phase-explicit availability declarations. */
+  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
+  /** Phase-explicit cast lifecycle declarations. */
+  readonly castLifecycle?: TSchedulerMechanics;
+  /** Profession-owned implementations for declarative skill mechanic triggers. */
+  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
+  /** Advanced scheduler cast-policy escape hatch. */
+  readonly castRules?: TCastRulesEscape;
+  /** Advanced scheduler lifecycle/task escape hatch. */
+  readonly hooks?: TSchedulerHooksEscape;
+}
+
+/** Resolver-owned behavior exposed by one canonical profession-content module. */
+export interface NativeResolutionMechanicsDefinition<
+  TResolverHooksEscape extends object,
+  TReactions extends readonly NativeResolverMechanic[]
+> {
+  /** Phase-explicit resolver reactions. */
+  readonly reactions?: TReactions;
+  /** Advanced resolver event-handler/reaction escape hatch. */
+  readonly hooks?: TResolverHooksEscape;
+}
+
 export interface NativeMechanicsDefinition<
   TModifierEscape extends object,
   TCastRulesEscape extends object,
   TSchedulerHooksEscape extends object,
   TResolverHooksEscape extends object,
   TReactions extends readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
+  TSchedulerMechanics extends readonly NativeSchedulerMechanic[],
+  THandlerContext extends object = object
 > {
   /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
+  /** Preferred home for scheduler-owned behavior. */
+  readonly execution?: NativeExecutionMechanicsDefinition<
+    THandlerContext,
+    TCastRulesEscape,
+    TSchedulerHooksEscape,
+    TSchedulerMechanics
+  >;
+  /** Preferred home for resolver-owned behavior. */
+  readonly resolution?: NativeResolutionMechanicsDefinition<TResolverHooksEscape, TReactions>;
+  /** @deprecated Use execution.availability. */
   /** Phase-explicit availability declarations. */
   readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
+  /** @deprecated Use execution.castLifecycle. */
   /** Phase-explicit cast lifecycle declarations. */
   readonly castLifecycle?: TSchedulerMechanics;
+  /** @deprecated Use resolution.reactions. */
   /** Phase-explicit resolver reactions. */
   readonly reactions?: TReactions;
+  /** @deprecated Use execution.castRules. */
   /** Advanced scheduler cast-policy escape hatch. */
   readonly castRules?: TCastRulesEscape;
+  /** @deprecated Use execution.hooks. */
   /** Advanced scheduler lifecycle/task escape hatch. */
   readonly schedulerHooks?: TSchedulerHooksEscape;
+  /** @deprecated Use execution.skillMechanicHandlers. */
   /** Profession-owned implementations for declarative skill mechanic triggers. */
   readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
+  /** @deprecated Use resolution.hooks. */
   /** Advanced resolver event-handler/reaction escape hatch. */
   readonly resolverHooks?: TResolverHooksEscape;
 }
@@ -148,7 +197,8 @@ export interface NativeModuleDefinition<
     TSchedulerHooksEscape,
     TResolverHooksEscape,
     TReactions,
-    TSchedulerMechanics
+    TSchedulerMechanics,
+    THandlerContext
   >;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
 }

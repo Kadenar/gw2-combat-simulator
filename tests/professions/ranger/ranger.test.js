@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
@@ -154,24 +154,9 @@ test('Ranger public state is composed from Core and specialization-owned manifes
 });
 
 test('Ranger Core source stays specialization-agnostic', async () => {
-  const files = [
-    'availability.ts',
-    'events.ts',
-    'handlers.ts',
-    'module.ts',
-    'pets.ts',
-    'resolver.ts',
-    'rules.ts',
-    'shared.ts',
-    'state.ts',
-    'traits.ts',
-    'ui.ts'
-  ];
-  const sources = await Promise.all(
-    files.map((file) =>
-      readFile(new URL(`../../../js/games/gw2/content/professions/ranger/core/${file}`, import.meta.url), 'utf8')
-    )
-  );
+  const directory = new URL('../../../js/games/gw2/content/professions/ranger/core/', import.meta.url);
+  const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
+  const sources = await Promise.all(files.map((file) => readFile(new URL(file, directory), 'utf8')));
   const coreSource = sources.join('\n');
 
   assert.doesNotMatch(coreSource, /specializations\//);

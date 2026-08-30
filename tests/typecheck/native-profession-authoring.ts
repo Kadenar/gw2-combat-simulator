@@ -17,16 +17,20 @@ const core = defineNativeModule({
     resolver: () => ({ resolvedCoreValue: 2 })
   },
   mechanics: {
-    availability: skillAvailability({
-      id: 'fixture.available',
-      handler: () => ({ ready: true })
-    }),
-    reactions: [
-      onResolvedDamage<Gw2ResolverRuntime, Gw2ResolverEvent>({
-        id: 'fixture.damage',
-        handler: () => undefined
+    execution: {
+      availability: skillAvailability({
+        id: 'fixture.available',
+        handler: () => ({ ready: true })
       })
-    ]
+    },
+    resolution: {
+      reactions: [
+        onResolvedDamage<Gw2ResolverRuntime, Gw2ResolverEvent>({
+          id: 'fixture.damage',
+          handler: () => undefined
+        })
+      ]
+    }
   }
 });
 
@@ -75,16 +79,18 @@ if (false) {
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
-      reactions: [
-        {
-          // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
-          phase: 'scheduler',
-          eventType: 'damage',
-          id: 'invalid.phase',
-          order: 0,
-          handler: () => undefined
-        }
-      ]
+      resolution: {
+        reactions: [
+          {
+            // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
+            phase: 'scheduler',
+            eventType: 'damage',
+            id: 'invalid.phase',
+            order: 0,
+            handler: () => undefined
+          }
+        ]
+      }
     }
   });
 }

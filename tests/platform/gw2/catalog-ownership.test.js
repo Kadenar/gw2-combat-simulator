@@ -170,6 +170,72 @@ test('phase-explicit reactions retain stable order', () => {
   assert.deepEqual(calls, ['first', 'middle', 'later']);
 });
 
+test('phase-scoped module sections compile without duplicating their canonical content definition', () => {
+  const calls = [];
+  const handlers = Object.freeze({ 'test.phase-scoped': replaceHandler });
+  const phaseScopedSkill = skill(101, 'Phase-scoped Skill', { handlerId: 'test.phase-scoped' });
+  const core = defineNativeModule({
+    id: 'Core',
+    data: { generatedSkills: [phaseScopedSkill] },
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      execution: {
+        skillHandlers: handlers,
+        availability: {
+          phase: 'scheduler',
+          hook: 'availability',
+          id: 'test.phase-scoped-availability',
+          order: 0,
+          handler: () => ({ ready: true })
+        }
+      },
+      resolution: {
+        reactions: [
+          onResolvedDamage({
+            id: 'test.phase-scoped-damage',
+            handler: () => calls.push('resolved')
+          })
+        ]
+      }
+    }
+  });
+  const runtime = defineNativeProfession({
+    id: 'phase-scoped',
+    name: 'Phase scoped',
+    modules: [core]
+  }).resolveRuntime({ specialization: 'Core' });
+
+  assert.equal(core.data.handlers, undefined);
+  assert.equal(core.mechanics.execution.skillHandlers, handlers);
+  assert.deepEqual(runtime.skillHandlerFor(runtime.catalog.skillsById.get(101)), replaceHandler);
+  assert.equal(typeof runtime.availability, 'function');
+  runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
+  assert.deepEqual(calls, ['resolved']);
+});
+
+test('phase-scoped module sections reject ambiguous legacy duplicates', () => {
+  assert.throws(
+    () =>
+      defineNativeModule({
+        id: 'DuplicateHandlers',
+        data: { handlers: { legacy: replaceHandler } },
+        state: { scheduler: () => ({}) },
+        mechanics: { execution: { skillHandlers: { nested: replaceHandler } } }
+      }),
+    /DuplicateHandlers declares mechanics\.execution\.skillHandlers and its legacy equivalent/
+  );
+  assert.throws(
+    () =>
+      defineNativeModule({
+        id: 'DuplicateReactions',
+        data: {},
+        state: { scheduler: () => ({}) },
+        mechanics: { reactions: [], resolution: { reactions: [] } }
+      }),
+    /DuplicateReactions declares mechanics\.resolution\.reactions and its legacy equivalent/
+  );
+});
+
 test('resolved critical-hit helper preserves threshold and stochastic semantics', () => {
   const state = { progress: 0, readyAt: 0, procs: 0, rolls: 0 };
   const context = {

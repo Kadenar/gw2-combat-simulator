@@ -55,7 +55,9 @@ function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
   const candidate = definition as {
     readonly id?: string;
-    readonly data?: object;
+    readonly data?: {
+      readonly handlers?: unknown;
+    };
     readonly state?: {
       readonly scheduler?: (...args: never[]) => object;
       readonly resolver?: (...args: never[]) => object;
@@ -65,6 +67,22 @@ function assertNativeModuleDefinition(definition: object): void {
       readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
       readonly castLifecycle?: readonly NativeSchedulerMechanic[];
       readonly reactions?: readonly { readonly phase?: string }[];
+      readonly castRules?: unknown;
+      readonly schedulerHooks?: unknown;
+      readonly skillMechanicHandlers?: unknown;
+      readonly resolverHooks?: unknown;
+      readonly execution?: {
+        readonly skillHandlers?: unknown;
+        readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
+        readonly castLifecycle?: readonly NativeSchedulerMechanic[];
+        readonly castRules?: unknown;
+        readonly hooks?: unknown;
+        readonly skillMechanicHandlers?: unknown;
+      };
+      readonly resolution?: {
+        readonly reactions?: readonly { readonly phase?: string }[];
+        readonly hooks?: unknown;
+      };
     };
   };
   if (!String(candidate.id || '').trim()) {
@@ -83,14 +101,41 @@ function assertNativeModuleDefinition(definition: object): void {
     }
   }
 
+  if (candidate.mechanics?.execution != null) {
+    assertObject(candidate.mechanics.execution, `${candidate.id}.mechanics.execution`);
+  }
+
+  if (candidate.mechanics?.resolution != null) {
+    assertObject(candidate.mechanics.resolution, `${candidate.id}.mechanics.resolution`);
+  }
+
+  const execution = candidate.mechanics?.execution;
+  const resolution = candidate.mechanics?.resolution;
+  for (const [legacy, nested, preferred] of [
+    [candidate.data?.handlers, execution?.skillHandlers, 'mechanics.execution.skillHandlers'],
+    [candidate.mechanics?.availability, execution?.availability, 'mechanics.execution.availability'],
+    [candidate.mechanics?.castLifecycle, execution?.castLifecycle, 'mechanics.execution.castLifecycle'],
+    [candidate.mechanics?.castRules, execution?.castRules, 'mechanics.execution.castRules'],
+    [candidate.mechanics?.schedulerHooks, execution?.hooks, 'mechanics.execution.hooks'],
+    [
+      candidate.mechanics?.skillMechanicHandlers,
+      execution?.skillMechanicHandlers,
+      'mechanics.execution.skillMechanicHandlers'
+    ],
+    [candidate.mechanics?.reactions, resolution?.reactions, 'mechanics.resolution.reactions'],
+    [candidate.mechanics?.resolverHooks, resolution?.hooks, 'mechanics.resolution.hooks']
+  ] as const) {
+    if (legacy != null && nested != null) {
+      throw new TypeError(`${candidate.id} declares ${preferred} and its legacy equivalent.`);
+    }
+  }
+
   // availability can be a single mechanic or an array; normalize to array for uniform validation.
+  const availability = execution?.availability ?? candidate.mechanics?.availability;
+  const castLifecycle = execution?.castLifecycle ?? candidate.mechanics?.castLifecycle;
   const schedulerDeclarations = [
-    ...(candidate.mechanics?.availability == null
-      ? []
-      : Array.isArray(candidate.mechanics.availability)
-        ? candidate.mechanics.availability
-        : [candidate.mechanics.availability]),
-    ...(candidate.mechanics?.castLifecycle || [])
+    ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
+    ...(castLifecycle || [])
   ];
   for (const declaration of schedulerDeclarations) {
     if (declaration.phase !== 'scheduler' || typeof declaration.handler !== 'function') {
@@ -98,7 +143,7 @@ function assertNativeModuleDefinition(definition: object): void {
     }
   }
 
-  for (const declaration of candidate.mechanics?.reactions || []) {
+  for (const declaration of resolution?.reactions ?? candidate.mechanics?.reactions ?? []) {
     if (declaration.phase !== 'resolver') {
       throw new TypeError(`${candidate.id} contains a non-resolver reaction declaration.`);
     }
@@ -152,12 +197,21 @@ export function defineNativeModule<
   TPresentation
 > {
   assertNativeModuleDefinition(definition);
+  const execution = definition.mechanics?.execution;
   return Object.freeze({
     ...definition,
     kind: 'native-profession-module' as const,
     data: Object.freeze({ ...definition.data }),
     state: Object.freeze({ ...definition.state }),
-    mechanics: definition.mechanics ? Object.freeze({ ...definition.mechanics }) : undefined,
+    mechanics: definition.mechanics
+      ? Object.freeze({
+          ...definition.mechanics,
+          execution: execution ? Object.freeze({ ...execution }) : undefined,
+          resolution: definition.mechanics.resolution
+            ? Object.freeze({ ...definition.mechanics.resolution })
+            : undefined
+        })
+      : undefined,
     presentation:
       typeof definition.presentation === 'function'
         ? definition.presentation
@@ -356,22 +410,25 @@ function compileNativeModule(
   autoattackChainOptions: Gw2AutoattackChainOptions = {}
 ): ProfessionModuleDefinition {
   const mechanics = module.mechanics || {};
+  const execution = mechanics.execution || {};
+  const resolution = mechanics.resolution || {};
   const castRules = {
-    ...((mechanics.castRules || {}) as SchedulerRecord)
+    ...((execution.castRules || mechanics.castRules || {}) as SchedulerRecord)
   };
   const schedulerHooks: SchedulerRecord = {
-    ...((mechanics.schedulerHooks || {}) as SchedulerRecord),
-    ...(mechanics.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: mechanics.skillMechanicHandlers })
+    ...((execution.hooks || mechanics.schedulerHooks || {}) as SchedulerRecord),
+    ...((execution.skillMechanicHandlers || mechanics.skillMechanicHandlers) == null
+      ? {}
+      : { skillMechanicHandlers: execution.skillMechanicHandlers || mechanics.skillMechanicHandlers })
   };
+  const availability = execution.availability ?? mechanics.availability;
+  const availabilityDeclarations: readonly NativeSchedulerMechanic[] =
+    availability == null ? [] : Array.isArray(availability) ? availability : [availability as NativeSchedulerMechanic];
   // availability mechanics go into castRules (gate whether a skill can be cast);
   // castLifecycle mechanics go into schedulerHooks (run during and after cast).
   for (const declaration of [
-    ...(mechanics.availability == null
-      ? []
-      : Array.isArray(mechanics.availability)
-        ? mechanics.availability
-        : [mechanics.availability]),
-    ...((mechanics.castLifecycle || []) as NativeSchedulerMechanic[])
+    ...availabilityDeclarations,
+    ...((execution.castLifecycle || mechanics.castLifecycle || []) as NativeSchedulerMechanic[])
   ]) {
     appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
   }
@@ -385,13 +442,13 @@ function compileNativeModule(
   }
 
   const resolverHooks = {
-    ...((mechanics.resolverHooks || {}) as SchedulerRecord)
+    ...((resolution.hooks || mechanics.resolverHooks || {}) as SchedulerRecord)
   };
   const reactions = {
     ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
   };
   let requiresCriticalFacts = false;
-  for (const declaration of (mechanics.reactions || []) as NativeResolvedReaction<
+  for (const declaration of (resolution.reactions || mechanics.reactions || []) as NativeResolvedReaction<
     Gw2ResolverRuntime,
     Gw2ResolverEvent,
     object

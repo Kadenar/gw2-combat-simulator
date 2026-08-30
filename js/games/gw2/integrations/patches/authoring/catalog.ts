@@ -254,9 +254,10 @@ function composeNativeCatalog(
       overrides[skillId] = override;
     }
 
-    for (const [handlerId, handler] of toEntries(
-      module.data.handlers as NativeSkillHandlerRegistry<object> | undefined
-    )) {
+    const moduleHandlers =
+      (module.mechanics?.execution?.skillHandlers as NativeSkillHandlerRegistry<object> | undefined) ||
+      (module.data.handlers as NativeSkillHandlerRegistry<object> | undefined);
+    for (const [handlerId, handler] of toEntries(moduleHandlers)) {
       const prior = handlerOwners.get(handlerId);
       if (prior) {
         throw new TypeError(`Duplicate skill handler ${handlerId} in ${prior} and ${module.id}.`);
