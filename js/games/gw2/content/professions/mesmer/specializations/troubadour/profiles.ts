@@ -5,7 +5,7 @@ import {
 } from '../../../../../integrations/patches/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile, mesmerBalanceProfileEffect, mesmerTraitDamageProfile } from '../../core/profiles.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS, MESMER_TROUBADOUR_TRAIT_DAMAGE } from './mechanics.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS, MESMER_TROUBADOUR_TRAIT_DAMAGE } from './mechanics/definitions.js';
 import type { MesmerInstrument } from '../../types.js';
 
 export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({

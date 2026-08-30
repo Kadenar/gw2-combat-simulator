@@ -1,7 +1,7 @@
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
 import { clamp } from '../../../../platform/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../../app/simulation/randomness.js';
-import { isMesmerBuildSkillAvailable } from './availability.js';
+import { isMesmerBuildSkillAvailable } from './mechanics/availability.js';
 import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
 import type {
   ProfessionEventLogDescriptor,

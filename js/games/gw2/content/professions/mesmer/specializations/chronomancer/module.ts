@@ -5,16 +5,16 @@ import {
   chronomancerCastRules,
   chronomancerRuntimeHooks,
   chronomancerSkillMechanicHandlers
-} from './rules.js';
+} from './mechanics/continuum-split-rules.js';
 import { createChronomancerResolverState, chronomancerState } from './state.js';
 import { chronomancerUi } from './presentation.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills.js';
-import { chronomancerSkillHandlers } from './handlers.js';
-import { chronomancerEventHandlers } from './resolver.js';
+} from './skills/index.js';
+import { chronomancerSkillHandlers } from './skills/handlers.js';
+import { chronomancerEventHandlers } from './mechanics/state-events.js';
 import { CHRONOMANCER_BALANCE_PROFILES } from './profiles.js';
 
 export const chronomancerModule = defineNativeModule({
@@ -23,8 +23,7 @@ export const chronomancerModule = defineNativeModule({
     skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
-    balanceProfiles: CHRONOMANCER_BALANCE_PROFILES,
-    handlers: chronomancerSkillHandlers
+    balanceProfiles: CHRONOMANCER_BALANCE_PROFILES
   }),
   state: {
     scheduler: chronomancerState.create,
@@ -32,10 +31,15 @@ export const chronomancerModule = defineNativeModule({
   },
   mechanics: {
     modifiers: chronomancerAttributeRules,
-    castRules: chronomancerCastRules,
-    skillMechanicHandlers: chronomancerSkillMechanicHandlers,
-    schedulerHooks: chronomancerRuntimeHooks,
-    resolverHooks: { eventHandlers: chronomancerEventHandlers }
+    execution: {
+      skillHandlers: chronomancerSkillHandlers,
+      castRules: chronomancerCastRules,
+      skillMechanicHandlers: chronomancerSkillMechanicHandlers,
+      hooks: chronomancerRuntimeHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: chronomancerEventHandlers }
+    }
   },
   presentation: chronomancerUi
 });

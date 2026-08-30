@@ -5,16 +5,16 @@ import {
   troubadourCastRules,
   troubadourSchedulerHooks,
   troubadourSkillMechanicHandlers
-} from './rules.js';
+} from './mechanics/instrument-rules.js';
 import { createTroubadourResolverState, troubadourState } from './state.js';
 import { troubadourUi } from './presentation.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
-} from './skills.js';
-import { troubadourSkillHandlers } from './handlers.js';
-import { troubadourEventHandlers } from './resolver.js';
+} from './skills/index.js';
+import { troubadourSkillHandlers } from './skills/handlers.js';
+import { troubadourEventHandlers } from './mechanics/state-events.js';
 import { TROUBADOUR_BALANCE_PROFILES } from './profiles.js';
 
 export const troubadourModule = defineNativeModule({
@@ -23,8 +23,7 @@ export const troubadourModule = defineNativeModule({
     skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_TROUBADOUR_EXTRA_SKILLS,
-    balanceProfiles: TROUBADOUR_BALANCE_PROFILES,
-    handlers: troubadourSkillHandlers
+    balanceProfiles: TROUBADOUR_BALANCE_PROFILES
   }),
   state: {
     scheduler: troubadourState.create,
@@ -32,10 +31,15 @@ export const troubadourModule = defineNativeModule({
   },
   mechanics: {
     modifiers: troubadourAttributeRules,
-    castRules: troubadourCastRules,
-    skillMechanicHandlers: troubadourSkillMechanicHandlers,
-    schedulerHooks: troubadourSchedulerHooks,
-    resolverHooks: { eventHandlers: troubadourEventHandlers }
+    execution: {
+      skillHandlers: troubadourSkillHandlers,
+      castRules: troubadourCastRules,
+      skillMechanicHandlers: troubadourSkillMechanicHandlers,
+      hooks: troubadourSchedulerHooks
+    },
+    resolution: {
+      hooks: { eventHandlers: troubadourEventHandlers }
+    }
   },
   presentation: troubadourUi
 });

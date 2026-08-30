@@ -7,7 +7,7 @@ import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/kernel/events/queue.js';
 import { buildScheduledEventStream } from '../../../js/games/gw2/platform/engine/events/scheduled-stream.js';
 import { createSimulationRandom } from '../../../js/kernel/core/simulation-random.js';
-import { createCloneAttackScheduler } from '../../../js/games/gw2/content/professions/mesmer/core/clone-attacks.js';
+import { createCloneAttackScheduler } from '../../../js/games/gw2/content/professions/mesmer/core/mechanics/clone-attacks.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../../js/games/gw2/content/professions/mesmer/data/ids.js';
 import { createGw2ResolverEventHandlers } from '../../../js/games/gw2/platform/resolver/event-handlers.js';
 import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/resolver/condition-resolution.js';
@@ -15,20 +15,20 @@ import { createGw2ConditionResolution } from '../../../js/games/gw2/platform/res
 test('Mesmer skill damage scheduling is split into focused modules', () => {
   const core = new URL('../../../js/games/gw2/content/professions/mesmer/core/', import.meta.url);
 
-  for (const filename of [
-    'clone-attacks.ts',
-    'phantasms.ts',
-    'skill-damage.ts',
-    'illusion-resources.ts',
-    'skill-special-effects.ts',
-    'skill-effects.ts'
+  for (const path of [
+    'mechanics/clone-attacks.ts',
+    'mechanics/phantasms.ts',
+    'skills/damage.ts',
+    'mechanics/illusion-resources.ts',
+    'skills/special-effects.ts',
+    'skills/effects.ts'
   ]) {
-    assert.equal(existsSync(new URL(filename, core)), true, filename);
+    assert.equal(existsSync(new URL(path, core)), true, path);
   }
 
   assert.equal(existsSync(new URL('illusions.ts', core)), false);
 
-  const pipeline = readFileSync(new URL('skill-effects.ts', core), 'utf8');
+  const pipeline = readFileSync(new URL('skills/effects.ts', core), 'utf8');
 
   assert.match(pipeline, /createPhantasmEffectController/);
   assert.match(pipeline, /createSkillDamageController/);
@@ -37,8 +37,8 @@ test('Mesmer skill damage scheduling is split into focused modules', () => {
   assert.doesNotMatch(pipeline, /\baddDamage\s*\(/);
   assert.doesNotMatch(pipeline, /mesmer\.phantasm-(?:summoned|attack)/);
 
-  const phantasms = readFileSync(new URL('phantasms.ts', core), 'utf8');
-  const clones = readFileSync(new URL('clone-attacks.ts', core), 'utf8');
+  const phantasms = readFileSync(new URL('mechanics/phantasms.ts', core), 'utf8');
+  const clones = readFileSync(new URL('mechanics/clone-attacks.ts', core), 'utf8');
 
   assert.match(phantasms, /mesmer\.phantasm-summoned/);
   assert.match(phantasms, /\baddDamage\s*\(/);

@@ -5,7 +5,7 @@ import {
 } from '../../../../../integrations/patches/authoring/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerBalanceProfile } from '../../core/profiles.js';
-import { MESMER_MIRAGE_AMBUSH_ATTACKS } from './mechanics.js';
+import { MESMER_MIRAGE_AMBUSH_ATTACKS } from './mechanics/definitions.js';
 import type { MesmerAmbushAttack, MesmerAttackStatus } from '../../types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({

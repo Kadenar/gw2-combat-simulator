@@ -6,7 +6,7 @@ import { MESMER_SUPPLEMENTAL_SKILLS } from './mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from './ids.js';
 import { defaultMesmerSkillIdForDuplicateName, MESMER_DUPLICATE_SKILL_NAMES } from './duplicate-skill-names.js';
 import { TRAITS } from './traits-data.js';
-import { MESMER_FLIP_PARENT_BY_CHILD_ID, prepareMesmerSkillForCatalog } from '../mechanics/handler-mechanics.js';
+import { MESMER_FLIP_PARENT_BY_CHILD_ID, prepareMesmerSkillForCatalog } from '../mechanics/skill-handlers.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../../../platform/engine/types.js';
 import type { NativeCatalogOptions } from '../../../../integrations/patches/authoring/module-types.js';
 

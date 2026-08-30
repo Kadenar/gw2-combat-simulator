@@ -2,7 +2,7 @@ import type { BalanceProfile } from '../../../../../platform/engine/types.js';
 import { defineTraitProfile as trait } from '../../../../../integrations/patches/authoring/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '../../core/profiles.js';
-import { MESMER_CHRONOMANCER_SHATTERS, MESMER_CHRONOMANCER_TRAIT_DAMAGE } from './mechanics.js';
+import { MESMER_CHRONOMANCER_SHATTERS, MESMER_CHRONOMANCER_TRAIT_DAMAGE } from './mechanics/definitions.js';
 
 export const CHRONOMANCER_BALANCE_PROFILE_IDS = Object.freeze({
   continuumSplit: 'mesmer.chronomancer.continuum-split',

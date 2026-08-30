@@ -152,6 +152,25 @@ many otherwise independent skills:
 Both profession families register scheduler and resolver behavior exclusively through phase-scoped module sections.
 Their module files are the visible adapters between concept-owned implementations and the phase-oriented engine.
 
+## Mesmer layout
+
+Mesmer retains its existing controller-based runtime because those controllers already preserve a single authoritative
+definition for each skill and specialization mechanic. The migration makes their ownership discoverable:
+
+- Core skill declarations, handlers, damage materialization, and special-effect handling live under `skills/`.
+  Clone attacks, phantasms, shatters, illusion resources, availability, event materialization, and shared runtime
+  composition live under `mechanics/`.
+- `core/mechanics/execution.ts` is an explicit scheduler adapter. It composes concept-owned controllers but does not
+  become a second definition of their skills or mechanics. Core resolver reactions are assembled separately from
+  `core/mechanics/reactions.ts`.
+- Chronomancer owns Continuum Split and Time Bomb under its mechanic directory. Mirage owns Mirage Cloak and ambush
+  behavior. Virtuoso owns blades and Bladesongs while Deadly Blades and shatter trait reactions remain under
+  `traits/`. Troubadour owns instruments, notes, and tales under its mechanic directory.
+- Family-level skill-handler selection remains a cross-slice adapter at `mechanics/skill-handlers.ts`; shared public
+  resource projection now lives beside the other profession state composition in `state/resources.ts`.
+
+All nine profession families now use only `mechanics.execution` and `mechanics.resolution` to register phase behavior.
+
 ## Stacked delivery plan
 
 | Phase | Goal |

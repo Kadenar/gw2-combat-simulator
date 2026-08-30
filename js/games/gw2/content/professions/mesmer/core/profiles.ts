@@ -9,7 +9,7 @@ import {
   balanceProfileValue
 } from '../../../../platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from './mechanics.js';
+import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from './mechanics/definitions.js';
 import type { MesmerShatter, MesmerTraitDamage } from '../types.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({

@@ -93,6 +93,7 @@ test('migrated profession modules register phase behavior only through explicit 
     ['elementalist', elementalistNativeModules],
     ['ranger', rangerNativeModules],
     ['guardian', guardianNativeModules],
+    ['mesmer', mesmerNativeModules],
     ['necromancer', necromancerNativeModules],
     ['engineer', engineerNativeModules],
     ['thief', thiefNativeModules],

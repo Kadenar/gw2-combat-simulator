@@ -1,6 +1,6 @@
 import { EPSILON } from '../../../../../../kernel/core/clock.js';
 import { flattenProfessionState } from '../../../../platform/engine/profession/state.js';
-import { mesmerRuntimeFor } from '../core/runtime.js';
+import { mesmerRuntimeFor } from '../core/mechanics/runtime.js';
 import { gw2PrimaryWeapon } from '../../../../platform/equipment/weapons/loadout.js';
 import type {
   MesmerCoreState,
