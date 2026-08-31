@@ -1993,6 +1993,7 @@ test('Firebrand tome chapters use their reference packets and cooldowns', () => 
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
     maximumTomePages: 8,
     initialTomePages: 8
   };
@@ -2415,6 +2416,7 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
+    primaryWeapon: 'Axe',
     boons: { quickness: true }
   };
   const axe = simulateGw2({
@@ -3011,6 +3013,7 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
     config: {
       ...config,
       specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
       allies: { count: 0, strikesPerSecond: 0 }
     }
@@ -3066,6 +3069,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     config: {
       ...config,
       specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
       initialTomePages: 5,
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
     }
@@ -3162,6 +3166,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     config: {
       ...config,
       specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
     }
   });
@@ -3213,6 +3218,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
       config: {
         ...config,
         specialization: 'Firebrand',
+        primaryWeapon: 'Mace',
         selectedTraitIds
       }
     });
