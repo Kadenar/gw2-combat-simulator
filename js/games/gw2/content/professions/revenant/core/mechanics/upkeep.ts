@@ -50,6 +50,7 @@ function emitEmbraceTheDarknessPulse(
   if (strike?.type !== 'strike' || torment?.type !== 'condition') {
     throw new Error('Embrace the Darkness is missing its pulse effects.');
   }
+  
   const tormentTick = conditionEffectTicks(torment)[0];
 
   emitSkillDamage(context, skill, {
@@ -140,12 +141,16 @@ export function handleRevenantUpkeepPulse(
   } else if (skill && VENGEFUL_HAMMERS_IDS.has(skill.id)) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     if (!strike) throw new Error('Vengeful Hammers is missing its strike effect.');
-    const hammers = Math.max(0, Math.trunc(Number(strike.hits || 0)));
-    const coefficient = Number(strike.coefficient || 0);
-    for (let hammer = 1; hammer <= hammers; hammer += 1) {
+    
+    const hammers = Math.max(1, Math.trunc(Number(strike.hits || 1)));
+    if (!(Number(strike.atMs) >= 0)) {
+      throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
+    }
+    for (let index = 0; index < hammers; index += 1) {
+      const hammer = index + 1;
       emitSkillDamage(context, skill, {
-        at: task.at,
-        coefficient,
+        at: task.at + Number(strike.atMs) / 1000,
+        coefficient: Number(strike.coefficient || 0) / hammers,
         name: `Vengeful Hammers — Hammer ${hammer}`,
         hitIndex: hammer,
         totalHits: hammers,
