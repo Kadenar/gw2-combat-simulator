@@ -2895,7 +2895,7 @@ test('preserves cancelled Revenant autoattacks and per-packet cast timing', () =
     [
       { name: 'Shattershot', skillId: 40_497, interruptMs: 400 },
       { name: 'Shattershot', skillId: 40_497 },
-      { name: 'Bloodbane Path', skillId: 40_175, interruptMs: 320 }
+      { name: 'Bloodbane Path', skillId: 40_175, interruptMs: 319 }
     ]
   );
 });

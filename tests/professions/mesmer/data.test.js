@@ -448,21 +448,33 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
     assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${skill.name} converts before damage ends`);
     assert.ok(timing.repeatDamageAtMs >= timing.damageAtMs, `${skill.name} has an invalid Chronophantasma damage time`);
     assert.ok(timing.repeatSpawnAtMs >= timing.repeatDamageAtMs, `${skill.name} converts before its repeat ends`);
+    for (const [index, damageAtMs] of timing.damageAtMsByEntity?.entries() ?? []) {
+      assert.ok(
+        (timing.spawnAtMsByEntity?.[index] ?? timing.spawnAtMs) >= damageAtMs,
+        `${skill.name} entity ${index} converts before damage ends`
+      );
+    }
+    for (const [index, damageAtMs] of timing.repeatDamageAtMsByEntity?.entries() ?? []) {
+      assert.ok(
+        (timing.repeatSpawnAtMsByEntity?.[index] ?? timing.repeatSpawnAtMs) >= damageAtMs,
+        `${skill.name} repeat entity ${index} converts before damage ends`
+      );
+    }
   }
 });
 
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
   const expected = {
     [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
-    [ID.PHANTASMAL_BERSERKER]: [560, 1251, 2560, 3721, 5370],
+    [ID.PHANTASMAL_BERSERKER]: [560, 1340, 2620, 3680, 4960],
     [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
-    [ID.PHANTASMAL_DISENCHANTER]: [760, 1400, 1840, 3240, 3930],
-    [ID.PHANTASMAL_DUELIST]: [560, 2283, 2880, 5380, 6010],
-    [ID.PHANTASMAL_LANCER]: [520, 1080, 1920, 3240, 4080],
-    [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5040, 5290],
-    [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3400, 5920, 7040],
-    [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 12530, 14730],
-    [ID.PHANTASMAL_WARLOCK]: [780, 2766, 4240, 7243, 8730]
+    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3230, 3910],
+    [ID.PHANTASMAL_DUELIST]: [560, 2230, 2800, 5260, 5800],
+    [ID.PHANTASMAL_LANCER]: [520, 1160, 2040, 3300, 4140],
+    [ID.PHANTASMAL_MAGE]: [800, 2000, 2240, 3920, 4160],
+    [ID.PHANTASMAL_SWORDSMAN]: [880, 2279, 3410, 6000, 7120],
+    [ID.PHANTASMAL_WARDEN]: [460, 4880, 7040, 12020, 14180],
+    [ID.PHANTASMAL_WARLOCK]: [780, 2900, 4120, 7200, 8460]
   };
   const catalogCastTimeMs = {
     [ID.PHANTASMAL_DEFENDER]: 1155,
@@ -487,12 +499,25 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
   }
 });
 
+test('Warden preserves all measured initial and Chronophantasma strike packets', () => {
+  assert.deepEqual(
+    MESMER_CORE_PHANTASM_ATTACK_TIMINGS[ID.PHANTASMAL_WARDEN].damageTicks.Damage.map((tick) => tick.atMs),
+    [880, 1240, 1600, 1960, 2320, 2680, 3080, 3440, 3800, 4160, 4520, 4880]
+  );
+  assert.deepEqual(
+    MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[ID.PHANTASMAL_WARDEN].repeatDamageTicks.Damage.map((tick) => tick.atMs),
+    [8020, 8380, 8740, 9100, 9460, 9820, 10220, 10580, 10940, 11300, 11670, 12020]
+  );
+});
+
 test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip skill', () => {
   const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
 
   assert.equal(counterspell.id, 10314);
   assert.equal(counterspell.weapon, 'Scepter');
-  assert.deepEqual(counterspell.resource, { mode: 'add', count: 1 });
+  assert.deepEqual(counterspell.resource, { mode: 'add', count: 1, timingAnchor: 'castStart', atMs: 360 });
+  assert.equal(counterspell.interruptCommitMs, 360);
+  assert.equal(counterspell.retainsCastLockoutAfterInterrupt, true);
 });
 
 test('Mesmer instant-cast skills have zero cast time', () => {

@@ -166,8 +166,9 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     [ID.PHANTASMAL_SWORDSMAN]: {
       castTimeMs: 880,
       damageAtMs: 2279,
-      // EVTC phantasm lifecycles convert Swordsman about 3.4s after its cast completes.
-      spawnAtMs: 3400,
+      // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
+      spawnAtMs: 3410,
+      phantasmalBladeDelayAfterSpawnMs: 83,
       damageTicks: {
         'Phantasm leap': [
           {
@@ -200,85 +201,106 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
             atMs: 2279
           }
         ]
-      },
-      phantasmalBladeDelayAfterSpawnMs: 83
+      }
     },
     [ID.PHANTASMAL_DUELIST]: {
       castTimeMs: 560,
-      damageAtMs: 2283,
-      spawnAtMs: 2880,
+      damageAtMs: 2230,
+      // Measured packet and conversion offsets stay anchored to the observed cast end.
+      spawnAtMs: 2800,
+      phantasmalBladeDelayAfterSpawnMs: 175,
       damageTicks: {
         'Illusion Damage': [
           {
-            atMs: 883
+            atMs: 830
           },
           {
-            atMs: 1083
+            atMs: 1030
           },
           {
-            atMs: 1283
+            atMs: 1230
           },
           {
-            atMs: 1483
+            atMs: 1430
           },
           {
-            atMs: 1683
+            atMs: 1630
           },
           {
-            atMs: 1883
+            atMs: 1830
           },
           {
-            atMs: 2083
+            atMs: 2030
           },
           {
-            atMs: 2283
+            atMs: 2230
           }
         ]
-      },
-      phantasmalBladeDelayAfterSpawnMs: 175
+      }
     },
     [ID.PHANTASMAL_MAGE]: {
       castTimeMs: 800,
-      damageAtMs: 2270,
-      spawnAtMs: 2520
+      damageAtMs: 2000,
+      spawnAtMs: 2240
     },
     [ID.PHANTASMAL_WARLOCK]: {
       castTimeMs: 780,
-      damageAtMs: 2766,
-      damageAtMsByEntity: [2722, 2766],
-      spawnAtMs: 4240,
+      damageAtMs: 2900,
+      damageAtMsByEntity: [2800, 2900],
+      // Both Warlocks retain their observed attack and clone-conversion stagger.
+      spawnAtMs: 4120,
+      spawnAtMsByEntity: [4080, 4180],
       damageTicksByEntity: [
         {
-          'One warlock': [{ atMs: 1117 }, { atMs: 1918 }, { atMs: 2722 }]
+          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
         },
         {
-          'One warlock': [{ atMs: 1160 }, { atMs: 1960 }, { atMs: 2766 }]
+          'One warlock': [{ atMs: 1300 }, { atMs: 2100 }, { atMs: 2900 }]
         }
       ]
     },
     [ID.PHANTASMAL_BERSERKER]: {
       castTimeMs: 560,
-      damageAtMs: 1251,
-      damageAtMsByEntity: [1085, 1251],
-      spawnAtMs: 2560,
+      damageAtMs: 1340,
+      damageAtMsByEntity: [1080, 1340],
+      spawnAtMs: 2620,
+      spawnAtMsByEntity: [2360, 2620],
       damageTicksByEntity: [
         {
-          'One berserker': [{ atMs: 717 }, { atMs: 834 }, { atMs: 951 }, { atMs: 1085 }]
+          'One berserker': [{ atMs: 720 }, { atMs: 840 }, { atMs: 960 }, { atMs: 1080 }]
         },
         {
-          'One berserker': [{ atMs: 883 }, { atMs: 1000 }, { atMs: 1117 }, { atMs: 1251 }]
+          'One berserker': [{ atMs: 980 }, { atMs: 1100 }, { atMs: 1220 }, { atMs: 1340 }]
         }
       ]
     },
     [ID.PHANTASMAL_DISENCHANTER]: {
       castTimeMs: 760,
-      damageAtMs: 1400,
-      spawnAtMs: 1840
+      damageAtMs: 1240,
+      // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
+      spawnAtMs: 1920
     },
     [ID.PHANTASMAL_WARDEN]: {
       castTimeMs: 460,
-      damageAtMs: 5040,
-      spawnAtMs: 7240
+      damageAtMs: 4880,
+      spawnAtMs: 7040,
+      // Warden's twelve strikes remain individual packets rather than one aggregate endpoint.
+      damageTicks: {
+        Damage: [
+          { atMs: 880 },
+          { atMs: 1240 },
+          { atMs: 1600 },
+          { atMs: 1960 },
+          { atMs: 2320 },
+          { atMs: 2680 },
+          { atMs: 3080 },
+          { atMs: 3440 },
+          { atMs: 3800 },
+          { atMs: 4160 },
+          { atMs: 4520 },
+          { atMs: 4880 }
+        ]
+      }
     },
     [ID.PHANTASMAL_DEFENDER]: {
       castTimeMs: 780,
@@ -298,8 +320,13 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     },
     [ID.PHANTASMAL_LANCER]: {
       castTimeMs: 520,
-      damageAtMs: 1080,
-      spawnAtMs: 1920
+      // Clarity agents spawn together, but their observed attacks/conversions can stagger:
+      // representative per-entity offsets were damage [920, 1200] and conversion [1760, 2040].
+      // Keep the single-Lancer profile until exact shatter-window fidelity needs a Clarity-only override.
+      damageAtMs: 1160,
+      spawnAtMs: 2040,
+      // The trait blade lands about one second after the Lancer's javelin hit.
+      phantasmalBladeDelayAfterSpawnMs: 120
     }
   });
 export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({

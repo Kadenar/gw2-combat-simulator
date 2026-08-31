@@ -101,6 +101,16 @@ export function expectedConditionDurationsMs(
   ].sort((left, right) => left - right);
 }
 
+/** Accepts both legacy duration-valued buff packets and modern explicit BuffApply condition applications. */
+export function isConditionApplication(event: ParsedEvtcEvent): boolean {
+  return (
+    event.buff !== 0 &&
+    event.buffRemove === 0 &&
+    (event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY ||
+      (event.stateChange === EVTC_STATE_CHANGE.NONE && event.value > 0 && event.buffDamage === 0))
+  );
+}
+
 /** Finds source-to-target condition applications whose ArcDPS duration matches the supplied actor stats. */
 export function matchingConditionApplications(
   log: ParsedEvtc,
@@ -114,8 +124,7 @@ export function matchingConditionApplications(
       event.source === sourceAddress &&
       event.target === targetAddress &&
       event.skillId === conditionSkillId &&
-      event.buff !== 0 &&
-      event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY &&
+      isConditionApplication(event) &&
       durationsMs.some((duration) => Math.abs(event.value - duration) <= EVTC_DURATION_TOLERANCE_MS)
   );
 }

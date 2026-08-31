@@ -11,6 +11,8 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     environment: 'Terrestrial',
     cooldown: 16,
     phantasm: true,
+    // Weapon-swap cancellation does not shorten Duelist's cast lane, so replay must not add the same aftercast as idle time.
+    retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'phantasm',
       count: 1

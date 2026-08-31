@@ -64,10 +64,15 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
   },
   [ID.COUNTERSPELL]: {
     castTimeMs: 900,
+    // The projectile and clone commit on the 360 ms Quickness frame, but weapon-swap cancellation retains the full cast lane.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     resource: {
       mode: 'add',
-      count: 1
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 360
     },
     flipDuration: 2,
     implemented: true,
@@ -87,7 +92,11 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         type: 'condition',
         condition: 'Confusion',
         duration: 7,
-        stacks: 5
+        stacks: 5,
+        // Confusion lands with the committed projectile so a weapon-swap cancellation does not discard it.
+        atMs: 322,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

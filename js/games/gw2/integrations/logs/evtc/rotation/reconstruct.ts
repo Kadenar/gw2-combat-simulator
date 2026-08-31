@@ -91,7 +91,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
     return null;
   }
 
-  const observedMs = quantizeEvtcTimingMs(action.replayInterruptMs ?? action.end - action.start);
+  const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
   const partialCast = action.status === 'interrupted' || action.status === 'reduced';
   const interruptedAutoattack =
     action.status === 'interrupted' &&
@@ -99,9 +99,10 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
     String(skill?.slot || '').toLowerCase() === 'weapon_1';
   const perPacketPartialCast = partialCast && skill?.interruptMode === 'per-packet';
   const runtimeMs = quicknessRuntimeDurationMs(skill);
-  // Cancelled autoattacks and per-packet skills retain their observed lane time;
-  // the engine separately decides which packets committed before that boundary.
-  if ((interruptedAutoattack || perPacketPartialCast) && observedMs < runtimeMs) return observedMs;
+  // Per-packet skills retain exact EVTC timing because rounding across a packet boundary changes which hits commit;
+  // atomic autoattack cancellations still snap to the game's action tick.
+  if (perPacketPartialCast && sourceObservedMs < runtimeMs) return sourceObservedMs;
+  if (interruptedAutoattack && sourceObservedMs < runtimeMs) return quantizeEvtcTimingMs(sourceObservedMs);
 
   const sourceDurationMs = action.replayInterruptMs ?? action.end - action.start;
   const paletteInterruptMs = Number(skill?.paletteInterruptMs);
@@ -639,6 +640,7 @@ function initialSummonActions(
   address: bigint,
   profile: EvtcRotationProfessionProfile,
   catalog: EvtcRotationCatalog | null,
+  existingActions: readonly RecordedAction[],
   anchor: number
 ): RecordedAction[] {
   if (!profile.initialSummons.length || !Number.isFinite(anchor)) return [];
@@ -656,8 +658,17 @@ function initialSummonActions(
       )
       .map((event) => event.source)
   );
-  const detected = profile.initialSummons.filter((summon) =>
-    log.agents.some((agent) => agent.profession === summon.agentSpeciesId && initialAgentAddresses.has(agent.address))
+  const representedPrecasts = new Set(
+    existingActions
+      .filter((action) => action.precast === true)
+      .map((action) => Number(action.canonicalSkillId ?? action.rawSkillId))
+  );
+  // Exclude lifecycle-detected summons already represented by a clipped activation before positioning the precast
+  // chain; reserving and later discarding that cast creates a fake idle gap before combat.
+  const detected = profile.initialSummons.filter(
+    (summon) =>
+      !representedPrecasts.has(Number(summon.action.skillId)) &&
+      log.agents.some((agent) => agent.profession === summon.agentSpeciesId && initialAgentAddresses.has(agent.address))
   );
   let cursor = anchor;
   const reversed: RecordedAction[] = [];
@@ -1051,21 +1062,13 @@ export function reconstructWithProfile(
     agent.address,
     profile,
     catalog,
+    professionActions,
     Math.min(
       ...professionActions.map((action) => action.start),
       combatStart == null ? Number.POSITIVE_INFINITY : combatStart
     )
   );
-  // Prefer a clipped activation over BUFF_INITIAL when both describe the same summon because it preserves observed timing.
-  const uniqueInitialSummons = initialSummons.filter(
-    (initialSummon) =>
-      !professionActions.some(
-        (action) =>
-          action.precast === true &&
-          Number(action.canonicalSkillId ?? action.rawSkillId) === Number(initialSummon.rawSkillId)
-      )
-  );
-  const recorded = [...uniqueInitialSummons, ...professionActions];
+  const recorded = [...initialSummons, ...professionActions];
   let resolved = recorded.map((action) => resolveAction(action, catalog, profile));
   if (options.inferInstantCasts !== false) {
     resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));

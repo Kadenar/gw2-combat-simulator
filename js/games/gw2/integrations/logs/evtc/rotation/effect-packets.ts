@@ -66,6 +66,13 @@ export function skillForAction(
 
 export { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, strikePacketOffsets };
 
+/** Reads the strike definition retained by a profession handler after it replaces the shared effect runner. */
+function packetEffects(skill: Skill): NonNullable<Skill['effects']> {
+  const effects = skill.effects || [];
+  if (effects.length) return effects;
+  return (skill as Skill & { readonly mesmerEffects?: Skill['effects'] }).mesmerEffects || [];
+}
+
 export function createStrikePacketMatcher(
   context: EvtcProfessionReconstructionContext,
   options: StrikePacketMatcherOptions = {}
@@ -92,7 +99,7 @@ export function createStrikePacketMatcher(
       ? (options.runtimeDurationMs?.(skill, action) ?? quicknessRuntimeDurationMs(skill))
       : 0;
     const packets: ExpectedStrikePacket[] = skill
-      ? (skill.effects || []).flatMap((effect) => {
+      ? packetEffects(skill).flatMap((effect) => {
           if (effect.type !== 'strike' || effect.actorType === 'summon') {
             return [];
           }
@@ -329,6 +336,12 @@ export function reconcileCastEffectPackets(
         // Every cancelable timed packet proves completion unless the animation ended at the skill's known cancel point.
         replayDuration = runtimeDuration;
       }
+    }
+
+    if (wasInterrupted && skill?.interruptMode === 'per-packet' && packets.lastObservedExpectedOffsetMs != null) {
+      // A packet after an unreliable animation-stop marker proves the channel reached that packet boundary, while a
+      // cancellation with no packets retains its exact observed duration.
+      replayDuration = Math.max(replayDuration, packets.lastObservedExpectedOffsetMs);
     }
 
     if (wasInterrupted) {

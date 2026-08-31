@@ -130,10 +130,10 @@ export function createPhantasmEffectController({
     const hasRepeat = Boolean(policy.repeat);
 
     // Each entity in the spawn batch gets its own execution so per-entity timing
-    // offsets (e.g. staggered Berserker attacks) are preserved independently.
+    // offsets preserve staggered attacks and clone availability at shatter boundaries.
     return Array.from({ length: count }, (_, entityIndex) => {
       const damageAt = endpoint(timing.damageAtMsByEntity?.[entityIndex] ?? timing.damageAtMs);
-      const spawnAt = endpoint(timing.spawnAtMs);
+      const spawnAt = endpoint(timing.spawnAtMsByEntity?.[entityIndex] ?? timing.spawnAtMs);
       const repeatDamageAt = endpoint(timing.repeatDamageAtMsByEntity?.[entityIndex] ?? timing.repeatDamageAtMs);
       // Blade ticks table may have fewer entries than phantasm count; clamp to last entry.
       const conversionTick = timing.conversionTicks?.[Math.min(entityIndex, timing.conversionTicks.length - 1)];
@@ -146,7 +146,9 @@ export function createPhantasmEffectController({
         spawnAt,
         repeatDamageAt,
         // A repeat policy defers conversion until the specialization-authored re-spawn timestamp.
-        conversionAt: hasRepeat ? endpoint(timing.repeatSpawnAtMs) : spawnAt,
+        conversionAt: hasRepeat
+          ? endpoint(timing.repeatSpawnAtMsByEntity?.[entityIndex] ?? timing.repeatSpawnAtMs)
+          : spawnAt,
         initialBladeAt:
           timing.phantasmalBladeDelayAfterSpawnMs != null
             ? spawnAt + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000

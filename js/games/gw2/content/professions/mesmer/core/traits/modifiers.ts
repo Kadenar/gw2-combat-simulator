@@ -130,10 +130,14 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       strikePerStack: 0.02,
       conditionPerStack: 0.01
     }),
-    amount: (context, target, parameters) =>
-      timedStacks(context, 'compounding', parameters.duration, parameters.maximumStacks) *
-      (target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikePerStack : parameters.conditionPerStack),
-    when: (context) => !illusionSource(context)
+    amount: (context, target, parameters) => {
+      // Illusion strikes use summon ownership, while their applied conditions inherit the Mesmer's outgoing modifiers.
+      if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+      return (
+        timedStacks(context, 'compounding', parameters.duration, parameters.maximumStacks) *
+        (target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikePerStack : parameters.conditionPerStack)
+      );
+    }
   },
   {
     id: 'mesmer.illusionary-membrane',

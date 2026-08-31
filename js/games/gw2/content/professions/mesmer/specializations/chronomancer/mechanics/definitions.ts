@@ -12,76 +12,97 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
-    repeatDamageAtMs: 5920,
-    // The Chronophantasma repeat converts at a measured median near 7.04s post-cast.
-    repeatSpawnAtMs: 7040,
+    repeatDamageAtMs: 6000,
+    // Chronophantasma packet and final conversion offsets stay anchored to the original cast end.
+    repeatSpawnAtMs: 7120,
     repeatDamageTicks: {
-      'Phantasm leap': [{ atMs: 4474 }],
+      'Phantasm leap': [{ atMs: 4560 }],
       'Phantasm Blurred Frenzy': [
-        { atMs: 4960 },
-        { atMs: 5002 },
-        { atMs: 5277 },
-        { atMs: 5319 },
-        { atMs: 5559 },
-        { atMs: 5602 },
-        { atMs: 5876 },
-        { atMs: 5920 }
+        { atMs: 5040 },
+        { atMs: 5080 },
+        { atMs: 5360 },
+        { atMs: 5400 },
+        { atMs: 5640 },
+        { atMs: 5680 },
+        { atMs: 5960 },
+        { atMs: 6000 }
       ]
     }
   },
   [ID.PHANTASMAL_DUELIST]: {
-    repeatDamageAtMs: 5380,
-    repeatSpawnAtMs: 6010,
+    repeatDamageAtMs: 5260,
+    repeatSpawnAtMs: 5800,
     repeatDamageTicks: {
       'Illusion Damage': [
-        { atMs: 3972 },
-        { atMs: 4173 },
-        { atMs: 4372 },
-        { atMs: 4571 },
-        { atMs: 4771 },
-        { atMs: 4973 },
-        { atMs: 5171 },
-        { atMs: 5380 }
+        { atMs: 3860 },
+        { atMs: 4060 },
+        { atMs: 4260 },
+        { atMs: 4460 },
+        { atMs: 4660 },
+        { atMs: 4860 },
+        { atMs: 5060 },
+        { atMs: 5260 }
       ]
     }
   },
   [ID.PHANTASMAL_MAGE]: {
-    repeatDamageAtMs: 5040,
-    repeatSpawnAtMs: 5290
+    repeatDamageAtMs: 3920,
+    repeatSpawnAtMs: 4160
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    repeatDamageAtMs: 7243,
-    repeatDamageAtMsByEntity: [7085, 7243],
-    repeatSpawnAtMs: 8730,
+    repeatDamageAtMs: 7200,
+    repeatDamageAtMsByEntity: [7160, 7200],
+    // The repeated Warlocks preserve their separately observed conversions.
+    repeatSpawnAtMs: 8460,
+    repeatSpawnAtMsByEntity: [8440, 8480],
     repeatDamageTicksByEntity: [
       {
-        'One warlock': [{ atMs: 5484 }, { atMs: 6280 }, { atMs: 7085 }]
+        'One warlock': [{ atMs: 5560 }, { atMs: 6360 }, { atMs: 7160 }]
       },
       {
-        'One warlock': [{ atMs: 5642 }, { atMs: 6441 }, { atMs: 7243 }]
+        'One warlock': [{ atMs: 5600 }, { atMs: 6400 }, { atMs: 7200 }]
       }
     ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    repeatDamageAtMs: 3721,
-    repeatDamageAtMsByEntity: [3544, 3721],
-    repeatSpawnAtMs: 5370,
+    repeatDamageAtMs: 3680,
+    repeatDamageAtMsByEntity: [3520, 3680],
+    repeatSpawnAtMs: 5160,
+    // Bountiful Blades retains both measured repeat attacks and clone conversions independently.
+    repeatSpawnAtMsByEntity: [5120, 5160],
     repeatDamageTicksByEntity: [
       {
-        'One berserker': [{ atMs: 3186 }, { atMs: 3302 }, { atMs: 3427 }, { atMs: 3544 }]
+        'One berserker': [{ atMs: 3160 }, { atMs: 3320 }, { atMs: 3400 }, { atMs: 3520 }]
       },
       {
-        'One berserker': [{ atMs: 3362 }, { atMs: 3480 }, { atMs: 3595 }, { atMs: 3721 }]
+        'One berserker': [{ atMs: 3320 }, { atMs: 3440 }, { atMs: 3560 }, { atMs: 3680 }]
       }
     ]
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    repeatDamageAtMs: 3240,
-    repeatSpawnAtMs: 3930
+    repeatDamageAtMs: 3230,
+    // Keep the repeated phantasm alive through the observed second Continuum Split boundary.
+    repeatSpawnAtMs: 4080
   },
   [ID.PHANTASMAL_WARDEN]: {
-    repeatDamageAtMs: 12530,
-    repeatSpawnAtMs: 14730
+    repeatDamageAtMs: 12020,
+    repeatSpawnAtMs: 14180,
+    repeatDamageTicks: {
+      Damage: [
+        { atMs: 8020 },
+        { atMs: 8380 },
+        { atMs: 8740 },
+        { atMs: 9100 },
+        { atMs: 9460 },
+        { atMs: 9820 },
+        { atMs: 10220 },
+        { atMs: 10580 },
+        { atMs: 10940 },
+        { atMs: 11300 },
+        { atMs: 11670 },
+        { atMs: 12020 }
+      ]
+    }
   },
   [ID.PHANTASMAL_DEFENDER]: {
     repeatDamageAtMs: 8560,
@@ -96,8 +117,11 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     repeatSpawnAtMs: 2600
   },
   [ID.PHANTASMAL_LANCER]: {
-    repeatDamageAtMs: 3240,
-    repeatSpawnAtMs: 4080
+    // Clarity Chronophantasma agents can stagger despite spawning together; representative
+    // per-entity offsets were repeat damage [3120, 3320] and final conversion [4000, 4160].
+    // These are Clarity-only observations and must not replace the single-Lancer profile globally.
+    repeatDamageAtMs: 3300,
+    repeatSpawnAtMs: 4140
   }
 });
 export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({

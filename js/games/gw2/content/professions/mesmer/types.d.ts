@@ -818,9 +818,11 @@ export interface MesmerPhantasmAttackTiming {
   readonly damageAtMs: number;
   readonly damageAtMsByEntity?: readonly number[];
   readonly spawnAtMs: number;
+  readonly spawnAtMsByEntity?: readonly number[];
   readonly repeatDamageAtMs: number;
   readonly repeatDamageAtMsByEntity?: readonly number[];
   readonly repeatSpawnAtMs: number;
+  readonly repeatSpawnAtMsByEntity?: readonly number[];
   readonly conversionTicks?: readonly MesmerAttackTimingTick[];
   readonly damageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
   readonly damageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];

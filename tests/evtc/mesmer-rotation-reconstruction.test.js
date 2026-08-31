@@ -150,6 +150,21 @@ function cloneDeath(source, time, sourceInstance = 20) {
   });
 }
 
+/** Creates the zero-damage clone self-kill record that identifies which shatter consumed the clone. */
+function cloneShatterKill(source, time, skillId, sourceInstance = 20) {
+  return event({
+    time,
+    source,
+    target: source,
+    skillId,
+    sourceInstance,
+    targetInstance: sourceInstance,
+    sourceMasterInstance: 7,
+    targetMasterInstance: 7,
+    result: 8
+  });
+}
+
 function names(result, name) {
   return result.actions.filter((action) => action.name === name);
 }
@@ -269,6 +284,33 @@ test('separates a second shatter after three clone detonations', () => {
   assert.equal(names(result, 'Split Second').length, 2);
 });
 
+test('prefers skill-specific clone killing blows over unrelated lifecycle ends', () => {
+  const cloneAddresses = [0x3000n, 0x3001n];
+  const skills = [skill(56930, 'Split Second')];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      effect(101, 11_000),
+      effect(101, 11_300),
+      cloneShatterKill(cloneAddresses[0], 11_300, 56925),
+      cloneDeath(cloneAddresses[0], 11_300),
+      effect(101, 11_600),
+      cloneDeath(cloneAddresses[1], 11_600, 21)
+    ],
+    cloneAddresses.map((address) => agent(address, 0, 'Clone'))
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    names(result, 'Split Second').map((action) => action.timestampMs),
+    [1_000, 1_600]
+  );
+});
+
 test('recovers a shatter whose only effect signals coincide with clone lifecycle ends', () => {
   const cloneAddresses = [0x3000n, 0x3001n];
   const skills = [skill(56930, 'Split Second')];
@@ -342,6 +384,66 @@ test('preserves an interrupted Mesmer autoattack so replay can apply its chain s
   assert.equal(names(result, 'Psystrike').length, 1);
   assert.equal(names(result, 'Psystrike')[0].status, 'interrupted');
   assert.equal(result.rotation.find((command) => command.name === 'Psystrike')?.interruptMs, 200);
+});
+
+test('matches partial Mesmer handler packets while preserving an unrelated exact autoattack cancellation', () => {
+  const spatialSurge = skill(10234, 'Spatial Surge', {
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
+    interruptMode: 'per-packet',
+    effects: [],
+    mesmerEffects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 360, coefficient: 0.4 },
+          { atMs: 520, coefficient: 0.4 },
+          { atMs: 680, coefficient: 0.4 }
+        ],
+        name: 'Spatial Surge',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  });
+  const fixture = mesmerLog(
+    40,
+    [spatialSurge],
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({ time: 11_000, value: 1020, skillId: 10234, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 11_201,
+        value: 201,
+        skillId: 10234,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL
+      }),
+      event({ time: 12_000, value: 1020, skillId: 10234, stateChange: EVTC_STATE_CHANGE.ANIMATION_START }),
+      event({
+        time: 12_000,
+        skillId: 10234,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL
+      }),
+      direct(10234, 12_360),
+      direct(10234, 12_520)
+    ]
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills: [spatialSurge] });
+  const actions = names(result, 'Spatial Surge');
+  const commands = result.rotation.filter((command) => command.name === 'Spatial Surge');
+
+  assert.deepEqual(
+    actions.map((action) => action.status),
+    ['interrupted', 'reduced']
+  );
+  assert.equal(commands[0].interruptMs, 201);
+  assert.equal(commands[1].interruptMs, 520);
 });
 
 test('does not commit a Mesmer autoattack from a clone packet with the same skill id', () => {
@@ -464,7 +566,15 @@ test('recovers a Mesmer phantasm precast whose animation start predates combat',
 });
 
 test('prefers clipped phantasm timing over duplicate initial summon state', () => {
-  const phantasm = 0x3000n;
+  const swordsmanPhantasm = 0x3000n;
+  const disenchanterPhantasm = 0x3001n;
+  const disenchanter = skill(10267, 'Phantasmal Disenchanter', {
+    type: 'Utility',
+    slot: 'Utility_1',
+    castTimeMs: 1140,
+    quicknessCastTimeMs: 760,
+    phantasm: true
+  });
   const swordsman = skill(10174, 'Phantasmal Swordsman', {
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -480,9 +590,16 @@ test('prefers clipped phantasm timing over duplicate initial summon state', () =
     [
       event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
       event({
-        source: phantasm,
-        target: phantasm,
+        source: swordsmanPhantasm,
+        target: swordsmanPhantasm,
         sourceInstance: 8,
+        sourceMasterInstance: 7,
+        stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+      }),
+      event({
+        source: disenchanterPhantasm,
+        target: disenchanterPhantasm,
+        sourceInstance: 9,
         sourceMasterInstance: 7,
         stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
       }),
@@ -503,13 +620,19 @@ test('prefers clipped phantasm timing over duplicate initial summon state', () =
         activation: EVTC_ACTIVATION.CANCEL_FIRE
       })
     ],
-    [agent(phantasm, 6487, 'Illusionary Swordsman')]
+    [
+      agent(swordsmanPhantasm, 6487, 'Illusionary Swordsman'),
+      agent(disenchanterPhantasm, 6621, 'Illusionary Disenchanter')
+    ]
   );
 
-  const result = reconstructEvtcRotation(fixture, { skills: [swordsman, powerSpike] });
+  const result = reconstructEvtcRotation(fixture, { skills: [disenchanter, swordsman, powerSpike] });
+  const initialDisenchanter = names(result, 'Phantasmal Disenchanter')[0];
+  const clippedSwordsman = names(result, 'Phantasmal Swordsman')[0];
 
   assert.equal(names(result, 'Phantasmal Swordsman').length, 1);
-  assert.equal(names(result, 'Phantasmal Swordsman')[0].evidence, 'animation');
+  assert.equal(clippedSwordsman.evidence, 'animation');
+  assert.equal(initialDisenchanter.endTimestampMs, clippedSwordsman.timestampMs);
 });
 
 test('uses clone lifecycle ends to preserve rapid Chronomancer shatters across Continuum Split', () => {

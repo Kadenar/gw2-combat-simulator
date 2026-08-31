@@ -1,4 +1,4 @@
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -35,9 +35,11 @@ const MAXIMUM_SHATTER_SOURCES = 4;
 const PRIMARY_EFFECT_DUPLICATE_WINDOW_MS = 10;
 const CLONE_EFFECT_LIFECYCLE_WINDOW_MS = 2;
 const MAXIMUM_SHATTER_SOURCE_TAIL_MS = 1000;
+const KILLING_BLOW_RESULT = 8;
 
 interface ShatterSignalSet {
   readonly signals: readonly MesmerSignal[];
+  readonly shatterIds: ReadonlySet<number>;
   readonly maximumClusterSize?: number;
   readonly effectEvidence: boolean;
 }
@@ -58,11 +60,12 @@ function shatterSignals(
   guid: string,
   fallbackIds: readonly number[]
 ): ShatterSignalSet {
-  const direct = directSkillSignals(context, new Set(fallbackIds));
+  const shatterIds = new Set(fallbackIds);
+  const direct = directSkillSignals(context, shatterIds);
   const effects = effectSignals(context, guid);
   return effects.length
-    ? { signals: effects, maximumClusterSize: MAXIMUM_SHATTER_SOURCES, effectEvidence: true }
-    : { signals: direct, effectEvidence: false };
+    ? { signals: effects, shatterIds, maximumClusterSize: MAXIMUM_SHATTER_SOURCES, effectEvidence: true }
+    : { signals: direct, shatterIds, effectEvidence: false };
 }
 
 /**
@@ -93,25 +96,39 @@ function signalGroups(signalSet: ShatterSignalSet, gapMs: number): MesmerSignal[
 }
 
 /**
- * Removes at most one nearby effect signal for each lifecycle end belonging to the selected player's clones, leaving
- * player-side or otherwise unmatched shatter anchors without consuming another Mesmer's clone evidence.
+ * Removes one nearby effect signal for each skill-specific killing blow on the selected player's clones, falling back
+ * to clone lifecycle ends for logs without that evidence so player-side shatter anchors remain intact.
  */
 function effectsWithoutCloneLifecycleEnds(
   context: EvtcProfessionReconstructionContext,
-  signals: readonly MesmerSignal[]
+  signalSet: ShatterSignalSet
 ): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
-  if (ownerInstance == null) return [...signals];
+  if (ownerInstance == null) return [...signalSet.signals];
   const cloneAddresses = new Set(
     context.log.agents.filter((agent) => agent.character.trim().toLowerCase() === 'clone').map((agent) => agent.address)
   );
-  const cloneLifecycleEnds = context.log.events
-    .filter(
-      (event) =>
-        cloneAddresses.has(event.source) &&
-        event.sourceMasterInstance === ownerInstance &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
-    )
+  const cloneShatterKills = context.log.events.filter(
+    (event) =>
+      event.result === KILLING_BLOW_RESULT &&
+      event.stateChange === EVTC_STATE_CHANGE.NONE &&
+      event.activation === EVTC_ACTIVATION.NONE &&
+      event.buff === 0 &&
+      event.source === event.target &&
+      cloneAddresses.has(event.source) &&
+      event.sourceMasterInstance === ownerInstance &&
+      signalSet.shatterIds.has(event.skillId)
+  );
+  const cloneEnds = (
+    cloneShatterKills.length
+      ? cloneShatterKills
+      : context.log.events.filter(
+          (event) =>
+            cloneAddresses.has(event.source) &&
+            event.sourceMasterInstance === ownerInstance &&
+            (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
+        )
+  )
     .sort((left, right) => left.time - right.time)
     .filter(
       (event, index, events) =>
@@ -123,22 +140,22 @@ function effectsWithoutCloneLifecycleEnds(
           )
     );
   const removed = new Set<number>();
-  for (const lifecycleEnd of cloneLifecycleEnds) {
-    const match = signals
+  for (const cloneEnd of cloneEnds) {
+    const match = signalSet.signals
       .map((signal, index) => ({ signal, index }))
       .filter(
         ({ signal, index }) =>
-          !removed.has(index) && Math.abs(signal.event.time - lifecycleEnd.time) <= CLONE_EFFECT_LIFECYCLE_WINDOW_MS
+          !removed.has(index) && Math.abs(signal.event.time - cloneEnd.time) <= CLONE_EFFECT_LIFECYCLE_WINDOW_MS
       )
       .sort(
         (left, right) =>
-          Math.abs(left.signal.event.time - lifecycleEnd.time) -
-            Math.abs(right.signal.event.time - lifecycleEnd.time) || right.index - left.index
+          Math.abs(left.signal.event.time - cloneEnd.time) - Math.abs(right.signal.event.time - cloneEnd.time) ||
+          right.index - left.index
       )[0];
     if (match) removed.add(match.index);
   }
 
-  return signals.filter((_, index) => !removed.has(index));
+  return signalSet.signals.filter((_, index) => !removed.has(index));
 }
 
 /**
@@ -180,7 +197,7 @@ function shatterCastSignals(
     return signalGroups(signalSet, gapMs).map((signals) => signals[0]);
   }
 
-  const primarySignals = effectsWithoutCloneLifecycleEnds(context, signalSet.signals);
+  const primarySignals = effectsWithoutCloneLifecycleEnds(context, signalSet);
   if (primarySignals.length) {
     const lifecycleOnlyCasts = lifecycleOnlyShatterCastSignals(signalSet.signals, primarySignals);
     return clusterSignals([...primarySignals, ...lifecycleOnlyCasts], PRIMARY_EFFECT_DUPLICATE_WINDOW_MS);

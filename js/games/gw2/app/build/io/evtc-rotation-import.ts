@@ -90,17 +90,16 @@ function serratedSteelImportObservation(result: EngineerSerratedSteelObservation
   );
 }
 
-/** Explains the clone ownership and timing constraints behind inferred Sharper Images applications. */
+/** Explains how clone-owned criticals pair with player-attributed Sharper Images applications. */
 function sharperImagesImportObservation(result: MesmerSharperImagesObservation | null): RotationImportObservation[] {
-  return procImportObservation(
-    result,
-    'Sharper Images clone proc rate',
-    result?.cloneCriticalHits || 0,
-    'owned clone critical hits',
-    result
-      ? `ArcDPS marked the owned clone strike packets as critical. Each application is a same-clone Bleeding record within 50 ms matching the active build's ${durationList(result.matchedDurationsMs)} Sharper Images duration. Phantasm hits are excluded.`
-      : ''
-  );
+  if (!result) return [];
+  return [
+    {
+      title: 'Sharper Images',
+      summary: `${result.matchedApplications} of ${result.cloneCriticalHits} owned-clone critical hits were observed to apply Bleeding.`,
+      detail: `ArcDPS records the strike on the clone but attributes the corresponding Bleeding application to the player. Applications were paired within 50 ms and matched the active build's ${durationList(result.matchedDurationsMs)} duration. Phantasm hits are excluded.`
+    }
+  ];
 }
 
 function barbedPrecisionImportObservation(

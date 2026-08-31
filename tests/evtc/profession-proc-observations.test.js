@@ -272,18 +272,18 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
   });
 });
 
-test('pairs owned clone criticals with same-clone expertise-scaled Sharper Images applications', () => {
+test('pairs player-attributed Sharper Images applications across Signet of Midnight expertise states', () => {
   const result = analyzeMesmerSharperImagesObservation(
     fixture(
       [
         event({ time: 900, sourceInstance: 7 }),
         event({ time: 1_000, source: CLONE, sourceMasterInstance: 7 }),
-        condition(1_025, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
-        condition(1_025, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
+        condition(1_025, 736, 7_500),
+        condition(1_025, 736, 7_500),
         event({ time: 1_100, source: CLONE, sourceMasterInstance: 7 }),
-        condition(1_200, 736, 7_500, { source: CLONE, sourceMasterInstance: 7 }),
+        condition(1_125, 736, 6_900, { stateChange: 0 }),
         event({ time: 1_300, source: OTHER_CLONE, sourceMasterInstance: 8 }),
-        condition(1_300, 736, 7_500, { source: OTHER_CLONE, sourceMasterInstance: 8 })
+        condition(1_300, 736, 7_500)
       ],
       undefined,
       [
@@ -295,6 +295,7 @@ test('pairs owned clone criticals with same-clone expertise-scaled Sharper Image
     catalog([sharperImagesProfile]),
     {
       selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
+      selectedSkills: ['Signet of Midnight'],
       stats: { expertise: 750 }
     }
   );
@@ -302,11 +303,11 @@ test('pairs owned clone criticals with same-clone expertise-scaled Sharper Image
   assert.deepEqual(result, {
     targetAddress: TARGET,
     cloneCriticalHits: 2,
-    matchedApplications: 1,
-    observedProcRate: 0.5,
+    matchedApplications: 2,
+    observedProcRate: 1,
     expectedProcChance: 1,
     expectedApplications: 2,
-    matchedDurationsMs: [7_500]
+    matchedDurationsMs: [6_900, 7_500]
   });
 });
 
