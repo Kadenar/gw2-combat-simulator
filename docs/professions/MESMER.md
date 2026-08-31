@@ -1,17 +1,18 @@
 # Mesmer
 
-Native shared-engine profession. Entry point `mesmer.html`. Core owns the shared shatter/phantasm/clone machinery,
-weapons, and traits; each specialization owns a vertical slice under `specializations/<name>/` and only the selected
-elite (Chronomancer, Mirage, Virtuoso, or Troubadour) is present in a given runtime.
+Native shared-engine profession. Entry point `mesmer.html`. `definition.ts` composes the Core-first tuple from
+`modules.ts`; a runtime contains Core plus at most one of Chronomancer, Mirage, Virtuoso, or Troubadour. Core owns the
+shared shatter, phantasm, clone, weapon, and trait behavior; each specialization owns a vertical slice under
+`specializations/<name>/`.
 
 ## Data
 
 - API identity snapshot: 2026-07-25 (official GW2 API for skill IDs, descriptions, icons, specialization membership, and
   traits).
-- Refresh: `npm run update:mesmer-data`, which regenerates the metadata-only `data/mesmer-api-metadata.ts`.
-- PvE coefficients, activation times, cooldowns, strike counts, and condition durations come from the Wiki, with
-  supplied benchmark logs taking precedence for the rows they cover. Simulation-affecting fields live in owner-local
-  Core and specialization `skills.ts` and `mechanics.ts` files. Runtime simulation is network-free.
+- Refresh: `npm run update:profession-data -- --profession Mesmer`, which regenerates the metadata-only
+  `data/mesmer-api-metadata.ts`.
+- Simulation-affecting coefficients, activation times, cooldowns, strike counts, condition durations, and state machines
+  live in owner-local Core and specialization `skills/` and `mechanics/` modules. Runtime simulation is network-free.
 
 ## Architecture notes
 

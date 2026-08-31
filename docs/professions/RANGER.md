@@ -1,16 +1,17 @@
 # Ranger
 
-Native shared-engine profession. Entry point `ranger.html`. `family.ts` composes Core with exactly one of Druid,
-Soulbeast, Untamed, or Galeshot. Core owns pets, pet swapping/commands, weapon state, Hammer variants, shared traits,
-and profession resources; each specialization owns its skills, state, rules, resolver reactions, and UI under
-`specializations/<name>/`. Only the active elite is assembled into a given runtime.
+Native shared-engine profession. Entry point `ranger.html`. `definition.ts` composes the Core-first tuple from
+`modules.ts`; a runtime contains Core plus at most one of Druid, Soulbeast, Untamed, or Galeshot. Core owns pets, pet
+swapping and commands, weapon state, Hammer variants, shared traits, and profession resources. Each specialization owns
+its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Data
 
 - API identity snapshot: 2026-08-08 (official GW2 API) for skill IDs and presentation metadata. Pet identity lives in
   `data/ranger-pet-data.ts` and API-omitted actions in `data/ranger-supplemental-skills.ts`.
-- Refresh: `npm run update:ranger-data` (changes generated identity/presentation metadata only).
-- Authoritative combat fields live in owner-local `skills.ts` fragments, and the application catalog is assembled from
+- Refresh: `npm run update:ranger-data`, which refreshes API metadata and regenerates Ranger IDs, pet data, and generated
+  skill-mechanics sources.
+- Authoritative checked-in combat fields live in owner-local `skills/` fragments, and the application catalog is assembled from
   those module contributions.
 
 ## Implemented systems

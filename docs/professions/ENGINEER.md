@@ -1,17 +1,18 @@
 # Engineer
 
 Native shared-engine profession. Entry point `engineer.html` boots the shared
-application shell. `definition.ts` is the stable export; `family.ts` composes
-Core with exactly one of Holosmith, Mechanist, Amalgam, or Scrapper. Each
-specialization owns its skills, state, rules, resolver reactions, and UI under
-`specializations/<name>/`.
+application shell. `definition.ts` is the stable export and composes the
+Core-first tuple from `modules.ts`. A runtime contains Core plus at most one of
+Scrapper, Holosmith, Mechanist, or Amalgam. Each specialization owns its data,
+state, mechanics, and UI under `specializations/<name>/`.
 
 ## Data
 
 - API identity snapshot: 2026-07-28 (official GW2 API).
 - Refresh: `npm run update:profession-data -- --profession Engineer`.
-- Runtime simulation is network-free. Coefficients, timings, and state-machine
-  rules are manually reviewed and checked into the mechanics modules.
+- Runtime simulation is network-free. Coefficients, timings, modifiers, and
+  state-machine rules are checked into owner-local `skills/`, `traits/`, and
+  `mechanics/` modules.
 
 ## Implemented systems
 
@@ -37,16 +38,22 @@ specialization owns its skills, state, rules, resolver reactions, and UI under
 - Single-target, outgoing-damage focused. Incoming attacks, active defense,
   ally healing/barrier/cleanse, pathing, secondary targets, and competitive
   (PvP/WvW) splits are out of model.
-- Mech health, death, pathing, target acquisition, and AI auto-casting are not
-  modeled; commands are explicit rotation actions and the mech is assumed in
-  Mechanical Genius range.
+- Mech health, death, pathing, target acquisition, and autonomous command use
+  are not modeled; commands are explicit rotation actions and the mech is
+  assumed in Mechanical Genius range.
 - Deterministic simulations use expected critical damage, so a supplied EVTC
   can differ when it realizes an unusually high or low crit count.
 
 ## Authoritative locations
 
 - `core/state.ts` and each `specializations/<name>/state.ts` — owned state.
-- `core/rules.ts` and each specialization's `rules.ts` — attributes and modifiers.
-- `specializations/mechanist/mech.ts` — persistent mech attacks and commands.
-- each module's `skills.ts` — skill packets, cooldowns, and timings.
-- `core/resolver.ts` and specialization `resolver.ts` files — trait reactions.
+- `core/skills/` and each specialization's `skills/` — skill packets,
+  cooldowns, and timings.
+- `core/mechanics/` and specialization `mechanics/` directories — resources,
+  availability, state transitions, and event behavior.
+- `core/traits/` and specialization `traits/` directories — modifiers and
+  trait reactions.
+- `specializations/mechanist/mechanics/mech.ts` — persistent mech attacks and
+  commands.
+- `core/module.ts` and each specialization's `module.ts` — native module
+  registration and phase ownership.

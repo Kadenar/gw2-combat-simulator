@@ -1,19 +1,20 @@
 # Necromancer
 
 Native shared-engine profession. Entry point `necromancer.html`.
-`definition.ts` owns the stable cached simulation contract built from Core plus
-one of Reaper, Scourge, Harbinger, or Ritualist. Each slice contains only the
-concept files it needs, and only the selected elite's skills, traits, state, and
-activation behavior are present in a given runtime.
+`definition.ts` composes the Core-first tuple from `modules.ts`; a runtime
+contains Core plus at most one of Reaper, Scourge, Harbinger, or Ritualist. Only
+the selected elite's skills, traits, state, and activation behavior are present
+in that runtime.
 
 ## Data
 
 - API identity snapshot: 2026-07-25 (official GW2 API): 149 API skills, 108
-  traits, 9 specialization lines. The canonical catalog is 161 entries after
-  adding API-omitted Death Shroud, Lich Form, Ritualist innervate, and
-  simulator actions (kept in `data/necromancer-supplemental-skills.js`).
-- Refresh: `npm run update:necromancer-data` (API metadata only). Simulator
-  timing/behavior live in module `skills.js` fragments, and the application
+  traits, 9 specialization lines. API-omitted Death Shroud, Lich Form,
+  Ritualist innervate, and simulator action identities live in
+  `data/necromancer-supplemental-skills.ts`.
+- Refresh: `npm run update:profession-data -- --profession Necromancer` (API
+  metadata only). Simulator timing and behavior live in owner-local `skills/`
+  and `mechanics/` modules, and the application
   catalog is assembled from those module contributions.
 
 ## Implemented systems
