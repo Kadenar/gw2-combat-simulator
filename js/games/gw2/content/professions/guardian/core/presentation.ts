@@ -74,9 +74,16 @@ export function guardianUiSkillIdsByName(names: readonly string[], context: Guar
 }
 
 export function guardianUiSkillsByMode(property: keyof GuardianSkill, value: unknown = true): SkillId[] {
+  // Keep each root before its same-slot flip so the inactive UI defaults to the root face.
   return guardianCatalog.skills
     .filter((skill) => skill[property] === value)
-    .sort((left, right) => String(left.slot).localeCompare(String(right.slot)) || left.name.localeCompare(right.name))
+    .sort((left, right) => {
+      const slotOrder = String(left.slot).localeCompare(String(right.slot));
+      if (slotOrder) return slotOrder;
+      if (left.flipParentId === right.id) return 1;
+      if (right.flipParentId === left.id) return -1;
+      return left.name.localeCompare(right.name);
+    })
     .map((skill) => skill.id);
 }
 

@@ -103,9 +103,14 @@ test('Guardian snapshots combine core and elite active state', () => {
   assert.equal(dragonhunter['dragonhunter-tether'], '5.0s');
 
   const luminary = valuesById(
-    snapshot(guardianProfession, 'Luminary', { effulgentStacks: 7, effulgentActiveUntil: 6 }, 4)
+    snapshot(guardianProfession, 'Luminary', { lightAuraUntil: 7, effulgentStacks: 7, effulgentActiveUntil: 6 }, 4)
   );
+  assert.equal(luminary['luminary-light-aura'], '3.0s');
   assert.equal(luminary['luminary-effulgent-stance'], '7/10 · 2.0s');
+  assert.equal(
+    valuesById(snapshot(guardianProfession, 'Luminary', { lightAuraUntil: 4 }, 4))['luminary-light-aura'],
+    undefined
+  );
 });
 
 test('Mesmer and Harbinger snapshots expose their short decision windows', () => {

@@ -94,6 +94,14 @@ export function relicProcTimelineMarkers(
   return matchingProcTimelineMarkers(result, 'relic_proc', rotationLength);
 }
 
+/** Places simulated skill procs after the rotation command that triggered them. */
+export function skillProcTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0
+): ProcTimelineMarker[] {
+  return matchingProcTimelineMarkers(result, 'skill_proc', rotationLength);
+}
+
 /**
  * Emits one marker at the true end of each continuous timed-relic window.
  * Activations at or before the current deadline are refreshes, so their window

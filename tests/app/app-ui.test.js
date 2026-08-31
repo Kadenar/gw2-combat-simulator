@@ -41,6 +41,7 @@ import {
   rotationSkillHighlightKey,
   shatterResourceSpends,
   sigilProcTimelineMarkers,
+  skillProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
@@ -171,7 +172,7 @@ test('proc display groups only consecutive occurrences of the same proc', () => 
   );
 });
 
-test('equipment proc timeline markers follow their simulated activation times', () => {
+test('proc timeline markers follow their simulated activation times', () => {
   const result = {
     steps: [
       { ri: 0, skill: 'Opening Strike', start: 0, end: 600 },
@@ -216,6 +217,16 @@ test('equipment proc timeline markers follow their simulated activation times', 
         sourceSkill: 'Follow-up',
         detail: '',
         icon: 'trait.png',
+        start: 800,
+        end: 800
+      },
+      {
+        ri: -1,
+        type: 'skill_proc',
+        skill: 'Sovereign of Light',
+        sourceSkill: 'Dazzling Hammer',
+        detail: 'Light aura detonated',
+        icon: 'sovereign.png',
         start: 800,
         end: 800
       },
@@ -276,6 +287,13 @@ test('equipment proc timeline markers follow their simulated activation times', 
       insertionIndex: marker.insertionIndex
     })),
     [{ skill: 'Relic of Fireworks', insertionIndex: 2 }]
+  );
+  assert.deepEqual(
+    skillProcTimelineMarkers(result, 3).map((marker) => ({
+      skill: marker.skill,
+      insertionIndex: marker.insertionIndex
+    })),
+    [{ skill: 'Sovereign of Light', insertionIndex: 2 }]
   );
   assert.equal(procFilterLabel(result.procSteps[0]), 'Sigil of Air (Sigil)');
 });

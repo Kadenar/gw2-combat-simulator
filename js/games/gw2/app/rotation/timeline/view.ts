@@ -56,6 +56,7 @@ import {
   rotationSkillHighlightKey,
   shatterResourceSpends,
   sigilProcTimelineMarkers,
+  skillProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
   timelineWeaponLineExitMarkerRowIndex,
@@ -543,7 +544,10 @@ export function renderTimeline(app: ProfessionAppState): void {
   const overlayProcMarkers = [
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, app.build.rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, app.build.rotation.length) : []),
-    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, app.build.rotation.length) : [])
+    ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, app.build.rotation.length) : []),
+    ...skillProcTimelineMarkers(results, app.build.rotation.length).filter(
+      (marker) => marker.skill === 'Sovereign of Light'
+    )
   ].sort((left, right) => left.start - right.start);
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
@@ -699,8 +703,10 @@ export function renderTimeline(app: ProfessionAppState): void {
     const time = formatTime(marker.start);
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
     const isRelic = marker.type === 'relic_proc';
+    const isSkill = marker.type === 'skill_proc';
     const expired = marker.expired === true;
-    const type = isRelic ? 'Relic' : 'Sigil';
+    const type = isRelic ? 'Relic' : isSkill ? 'Skill' : 'Sigil';
+    const className = isRelic ? 'rot-relic-proc' : isSkill ? 'rot-skill-proc' : 'rot-sigil-proc';
     const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
     const badgeLabel = expired ? '' : procBadgeLabel(marker.activations);
@@ -730,7 +736,7 @@ export function renderTimeline(app: ProfessionAppState): void {
                 .join(' - ')
             )
           ].join('\n');
-    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? 'rot-relic-proc' : 'rot-sigil-proc'}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
+    return `<div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
             <img src="${esc(icon)}" alt="" />
             ${expired ? '<span class="proc-expired-cross" aria-hidden="true"></span>' : ''}

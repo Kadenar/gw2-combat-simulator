@@ -3383,6 +3383,18 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
       GUARDIAN_SKILL_IDS.RADIANT_BULWARK
     ]
   );
+
+  const forgeSkillIds = guardianProfession.ui.paletteGroups({ specialization: 'Luminary' })[1].skillIds;
+  assert.equal(
+    displayedIdsAfter(['Enter Radiant Forge'], forgeSkillIds, { specialization: 'Luminary' }).at(-1),
+    GUARDIAN_SKILL_IDS.RADIANT_BULWARK
+  );
+  assert.equal(
+    displayedIdsAfter(['Enter Radiant Forge', 'Radiant Bulwark'], forgeSkillIds, {
+      specialization: 'Luminary'
+    }).at(-1),
+    GUARDIAN_SKILL_IDS.BRILLIANT_SLAM
+  );
 });
 
 test('Shining Spin strikes 400 ms into its quickened cast', () => {

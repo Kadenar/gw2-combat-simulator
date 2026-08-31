@@ -63,6 +63,17 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
+  // Expose Light Aura while it can still be consumed by Luminary skills.
+  const lightAuraRemaining = Number(state.lightAuraUntil || 0) - at;
+  if (lightAuraRemaining > 0) {
+    items.push({
+      id: 'luminary-light-aura',
+      label: 'Light Aura',
+      value: formatSecondsRemaining(lightAuraRemaining),
+      title: 'Time until Light Aura expires'
+    });
+  }
+
   const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
     const stacks = Math.max(0, Math.min(10, Math.trunc(Number(state.effulgentStacks || 0))));
