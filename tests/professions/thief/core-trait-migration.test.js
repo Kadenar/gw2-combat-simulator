@@ -183,6 +183,19 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
   assert.equal(context.queue[0].sourceId, TRAIT.NO_QUARTER);
 });
 
+test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
+  const { context } = traitContext([TRAIT.NO_QUARTER]);
+  context.boons.set('fury', [{ at: 0, expiresAt: 1, affectsSelf: true }]);
+  thiefCoreCriticalReactions.noQuarter.handler(
+    context,
+    { type: 'damage', at: 0.99995, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
+    {},
+    { quantity: 1 }
+  );
+  assert.equal(context.boons.get('fury')[0].expiresAt, 1);
+  assert.equal(context.queue.length, 0);
+});
+
 test("Assassin's Fury queues Might from self Fury", () => {
   const { context } = traitContext([TRAIT.ASSASSINS_FURY]);
   reactToThiefCoreBuff(context, { type: 'buff', at: 1, kind: 'fury', affectsSelf: true, skillName: 'Fury Test' });

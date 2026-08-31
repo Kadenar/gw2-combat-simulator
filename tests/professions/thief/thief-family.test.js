@@ -84,10 +84,14 @@ test('Thief modules own vertical source slices', () => {
   }
 
   const modifierRuleOwners = new Map();
+  const professionSourceEntries = [];
 
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(`../../../js/games/gw2/content/professions/thief/${directory}/`, import.meta.url);
     const sources = collectTypeScriptSources(directoryUrl);
+    professionSourceEntries.push(
+      ...sources.map(({ relativePath, source }) => ({ relativePath: `${directory}/${relativePath}`, source }))
+    );
 
     for (const { relativePath, source } of sources) {
       if (directory === 'core') {
@@ -139,9 +143,10 @@ test('Thief modules own vertical source slices', () => {
   assert.equal(modifierRuleOwners.get('thief.strength-of-shadows'), 'Specter');
   assert.equal(modifierRuleOwners.get('thief.meticulous-custodian-artifact-strike'), 'Antiquary');
 
-  const coreSources = combinedSource(
-    collectTypeScriptSources(new URL('../../../js/games/gw2/content/professions/thief/core/', import.meta.url))
+  const coreSourceEntries = collectTypeScriptSources(
+    new URL('../../../js/games/gw2/content/professions/thief/core/', import.meta.url)
   );
+  const coreSources = combinedSource(coreSourceEntries);
 
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
@@ -156,6 +161,17 @@ test('Thief modules own vertical source slices', () => {
     ),
     false
   );
+
+  // Core trait lines stay private implementation details behind the ordered index dispatcher.
+  const traitLines = ['acrobatics', 'critical-strikes', 'deadly-arts', 'shadow-arts', 'trickery'];
+  const traitIndex = professionSourceEntries.find(({ relativePath }) => relativePath === 'core/traits/index.ts').source;
+  for (const traitLine of traitLines) {
+    const importPattern = new RegExp(`core/traits/${traitLine}\\.js`);
+    assert.match(traitIndex, importPattern, traitLine);
+    for (const { relativePath, source } of professionSourceEntries) {
+      if (relativePath !== 'core/traits/index.ts') assert.doesNotMatch(source, importPattern, relativePath);
+    }
+  }
 });
 
 test('Thief raw skill mechanics retain a disjoint no-loss union', () => {

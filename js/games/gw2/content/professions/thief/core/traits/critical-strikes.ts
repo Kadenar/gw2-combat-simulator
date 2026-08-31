@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { enqueueOrdered } from '#kernel/events/queue.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/content/professions/thief/data/ids.js';
@@ -60,8 +60,6 @@ function queueThiefBoon(
     triggeredBy: event.skillName
   });
 }
-
-const EPSILON = 1e-9;
 
 function activeSelfFuryApplications(context: ThiefResolverContext, at: number) {
   return (context.boons.get('fury') || []).filter(
