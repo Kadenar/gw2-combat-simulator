@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -18,7 +19,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
-const EPSILON = 0.0001;
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);
 const instrumentEventIndex = new WeakMap<readonly SimulationEvent[], readonly SimulationEvent[]>();
 

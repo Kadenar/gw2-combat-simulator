@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/content/professions/mesmer/data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/content/professions/mesmer/core/mechanics/definitions.js';
@@ -68,7 +69,7 @@ export function createSkillSpecialEffectController({
   const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id === ID.AXES_OF_SYMMETRY) {
       const axeClones = professionCoreState(state).clones.filter(
-        (clone) => clone.weapon === 'Axe' && clone.createdAt <= castStart + 0.0001
+        (clone) => clone.weapon === 'Axe' && clone.createdAt <= castStart + EPSILON
       );
       for (const clone of axeClones) {
         const impactAt = at - 0.04;
@@ -105,7 +106,7 @@ export function createSkillSpecialEffectController({
 
     if (skill.id === ID.TROUBADOUR_AXES_OF_SYMMETRY) {
       // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
-      const clones = professionCoreState(state).clones.filter((clone) => clone.createdAt <= castStart + 0.0001);
+      const clones = professionCoreState(state).clones.filter((clone) => clone.createdAt <= castStart + EPSILON);
       if (clones.length) {
         addCondition(skill.name, at, { name: 'Confusion', duration: 6, stacks: clones.length }, 'Player', skill.name, {
           skillId: skill.id

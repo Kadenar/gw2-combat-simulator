@@ -1,4 +1,5 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
@@ -13,8 +14,6 @@ import {
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 
-const MODIFIER_EPSILON = 0.0001;
-
 export function illusionSource(context: Gw2ModifierContext): boolean {
   return context.event?.source === 'Clone' || context.event?.source === 'Phantasm';
 }
@@ -28,8 +27,8 @@ export function timedActive(context: Gw2ModifierContext, kind: string): boolean 
 }
 
 function thornsStacksAt(time: number): number {
-  if (time < 3 - MODIFIER_EPSILON) return 0;
-  return Math.min(10, Math.floor((time - 3 + MODIFIER_EPSILON) / 5) + 1);
+  if (time < 3 - EPSILON) return 0;
+  return Math.min(10, Math.floor((time - 3 + EPSILON) / 5) + 1);
 }
 
 // Reconcile build-time Mesmer bonuses with live relic stacks, timed trait stacks,
