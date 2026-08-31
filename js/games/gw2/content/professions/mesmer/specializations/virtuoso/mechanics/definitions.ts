@@ -8,7 +8,11 @@ import type {
   MesmerTraitDamage
 } from '#gw2/content/professions/mesmer/types.js';
 
-/** Authors the exact blade packets available at each resource tier. */
+/**
+ * Builds each blade tier's timed packets from its total strike coefficient.
+ * `coefficients` remains the tier total used by shared shatter profiles, while
+ * `ticks` distributes that total across the packets' individual impact times.
+ */
 function bladePacketTiers(coefficients: readonly number[], atMs: readonly number[]) {
   return coefficients.map((coefficient, spent) =>
     atMs.slice(0, spent).map((packetAtMs) => ({ atMs: packetAtMs, coefficient: coefficient / spent }))

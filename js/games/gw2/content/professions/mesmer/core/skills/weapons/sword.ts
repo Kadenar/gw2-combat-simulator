@@ -99,7 +99,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'phantasm',
       count: 1
     },
-    phantasmSummonProgress: 0.8181818181818182,
+    // The phantasm is committed 720 ms into its measured 880 ms Quickness cast.
+    phantasmSummonProgress: 720 / 880,
     effects: [
       {
         type: 'strike',
