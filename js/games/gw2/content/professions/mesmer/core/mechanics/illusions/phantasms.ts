@@ -314,6 +314,7 @@ export function createPhantasmEffectController({
           `Phantasm strike ${execution.skill.id} packet count does not match its measured timing metadata.`
         );
       }
+
       initialEvents = addDamage(
         execution.skill,
         castStart,
@@ -385,6 +386,7 @@ export function createPhantasmEffectController({
             `Phantasm strike ${execution.skill.id} packet count does not match its measured repeat timing metadata.`
           );
         }
+
         repeatHitTimes = addDamage(
           execution.skill,
           castStart,

@@ -63,7 +63,7 @@ function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearE
     const origin = effect.timingAnchor === 'castEnd' ? context.fullEnd : context.start;
     return origin + Number(atMs) / 1000;
   }
-  
+
   if (effect.at != null) return context.start + Number(effect.at);
 
   return context.fullEnd;

@@ -33,6 +33,7 @@ export function resolveBladesong(
     if (!ticks?.length) throw new TypeError(`${skill.name} requires explicit strike ticks for ${spent} blades.`);
     return ticks;
   };
+
   const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
     runtime.addDamage(
       skill,

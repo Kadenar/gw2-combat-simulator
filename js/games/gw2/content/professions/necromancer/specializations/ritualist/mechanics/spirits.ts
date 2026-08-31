@@ -472,6 +472,7 @@ function emitWanderlustInitial(
   if (!swing || !spirit.lingeringTicks.length) {
     throw new Error('Wanderlust requires explicit initial strike timelines.');
   }
+
   emitSkillDamage(context, skill, {
     at: context.start + Number(swing.atMs) / 1000,
     coefficient: Number(swing.coefficient),
@@ -491,6 +492,7 @@ function emitWanderlustInitial(
       })
     });
   }
+
   emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
   // The lingering field applies its later conditions on their own observed offsets.
   emitSkillCondition(context, skill, {

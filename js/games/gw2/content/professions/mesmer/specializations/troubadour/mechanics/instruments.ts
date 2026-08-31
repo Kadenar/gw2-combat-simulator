@@ -44,6 +44,7 @@ function instrumentAttack(
     if (shreddingActive && shredding?.atMs == null) {
       throw new TypeError('Shredding requires an explicit Lute packet timestamp.');
     }
+
     // Shredding appends its authored fourth note instead of extending an aggregate interval at runtime.
     const ticks = data.ticks?.length
       ? [
