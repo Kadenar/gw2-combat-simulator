@@ -180,6 +180,8 @@ export function weaponStrengthProfileIdForEvent(
     professionValue && typeof professionValue === 'object' ? (professionValue as Record<string, unknown>) : {};
   if (skill?.radiantForgeSkill) return 'transform.radiant-forge';
   if (skill?.cycloneBowSkill) return 'transform.cyclone-bow';
+  // Celestial Avatar replaces the weapon bar and scales its strikes from the transform, not the equipped weapon.
+  if (skill?.celestialAvatarSkill) return 'transform.celestial-avatar';
   if (skill?.forgeSkill) {
     return 'transform.photon-forge';
   }

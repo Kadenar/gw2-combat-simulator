@@ -150,6 +150,12 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
+      skill: { id: 1, name: 'Natural Convergence', celestialAvatarSkill: true }
+    }),
+    'transform.celestial-avatar'
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
       skill: { id: 1, name: 'Shroud', shroud: 'reaper' }
     }),
     'transform.reaper-shroud'
