@@ -21,6 +21,7 @@ import { guardianProfession } from '#gw2/content/professions/guardian/definition
 import { guardianAppAdapter } from '#gw2/content/professions/guardian/app/app-definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/content/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/core/profiles.js';
+import { observeGuardianScheduledEvent } from '#gw2/content/professions/guardian/core/traits/index.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/firebrand/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/content/professions/guardian/specializations/willbender/profiles.js';
@@ -41,6 +42,64 @@ const config = {
 };
 
 const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
+
+test('Guardian trait dispatch preserves mixed cast order and keeps line modules registration-free', async () => {
+  const traitRoot = new URL('../../../js/games/gw2/content/professions/guardian/core/traits/', import.meta.url);
+  const dispatcher = await readFile(new URL('index.ts', traitRoot), 'utf8');
+  const castDispatcher = dispatcher.slice(dispatcher.indexOf('export function updateGuardianTraitCastState'));
+  const castOrder = [
+    'applyWritOfPersistence(context, skill)',
+    'skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION',
+    'skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES',
+    'applyInspiredVirtue(context, skill, virtueSlot, at)',
+    'applyVirtueOfResolution(context, skill, at)',
+    'applyInspiringVirtue(context, skill, at)',
+    'applyIndomitableCourage(context, skill, virtueSlot, at)',
+    'applyFuriousFocus(context, skill, virtueSlot, at)',
+    'applyMasterOfConsecrations(context, skill)'
+  ].map((marker) => castDispatcher.indexOf(marker));
+
+  assert.equal(
+    castOrder.every((index) => index >= 0),
+    true
+  );
+  assert.deepEqual(
+    castOrder,
+    [...castOrder].sort((left, right) => left - right)
+  );
+
+  for (const file of ['zeal.ts', 'radiance.ts', 'honor.ts', 'virtues.ts']) {
+    const source = await readFile(new URL(file, traitRoot), 'utf8');
+    assert.doesNotMatch(source, /defineNativeModule|onResolvedDamage|onBuffApplied|executionHooks|eventHandlers/);
+  }
+});
+
+test('Virtue of Resolution replacement returns before later scheduled-event behavior', () => {
+  const emitted = [];
+  const event = {
+    type: 'buff',
+    at: 1,
+    kind: 'resolution',
+    duration: 4,
+    isSymbol: true,
+    skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION,
+    skillName: 'Symbol of Resolution'
+  };
+  const context = {
+    catalog: guardianCatalog,
+    config: {
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
+    },
+    emit: (scheduled) => emitted.push(scheduled),
+    // Mutating the event to a symbol hit proves the observer stops immediately after replacement.
+    replaceEvent: (scheduled, replacement) => Object.assign(scheduled, replacement, { type: 'damage' })
+  };
+
+  observeGuardianScheduledEvent(context, event);
+
+  assert.equal(event.duration, 5);
+  assert.deepEqual(emitted, []);
+});
 
 test('Guardian uses a current API catalog with real skills and trait lines', () => {
   assert.match(DATA_SNAPSHOT, /^2026-/);
