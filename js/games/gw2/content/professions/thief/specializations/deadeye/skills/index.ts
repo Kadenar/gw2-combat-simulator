@@ -11,10 +11,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Warmth',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -30,10 +31,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Chilled', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -46,10 +47,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Resistance',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -65,10 +67,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 3, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -81,10 +83,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Precision',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -114,10 +117,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Health',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -127,10 +131,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 5,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -143,10 +147,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Strength',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -162,10 +167,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -178,10 +183,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Shadow Flare',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -193,31 +199,32 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Binding Shadow',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 10,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 2, duration: 10 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 15,
-        duration: 10,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 15, duration: 10 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -241,11 +248,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Steal Time',
         actorType: 'player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -261,10 +269,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Slow', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -277,10 +285,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Durability',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -296,10 +305,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -322,10 +331,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Defenses',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -341,10 +351,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 2, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -357,10 +367,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.67,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.67 }],
         name: "Malicious Death's Judgment — Packet 1",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Rifle',
@@ -376,10 +387,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Steal Mobility',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -389,10 +401,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1.5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1.5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -430,10 +442,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Shadow Swap',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -445,10 +458,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.4 }],
         name: 'Shadow Gust',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -475,24 +489,25 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.6 }],
         name: 'Malicious Surprise Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Shortbow',
@@ -508,28 +523,25 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 136 + index * 136, coefficient: 1.8 / 5 })),
         name: 'Malicious Sneak Attack',
         actorType: 'player',
-        atMs: 136,
-        intervalMs: 136,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 5,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Pistol',
@@ -545,10 +557,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Front damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Dagger',
@@ -564,10 +577,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2 }],
         name: 'Malicious Tactical Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -587,10 +601,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Sword',
@@ -606,21 +620,18 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 210.336 + index * 210.336, coefficient: 1.6 / 8 })),
         name: 'Malicious Shadowsquall',
         actorType: 'player',
-        atMs: 210.336,
-        intervalMs: 210.336,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -642,10 +653,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.65 }],
         name: 'Malicious Hook Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -675,31 +687,32 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Malicious Cunning Salvo',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Axe',
@@ -717,42 +730,43 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 173.913043478261 + index * 173.913043478261,
+          coefficient: 1.5 / 5
+        })),
         name: 'Malicious Ashen Assault',
         actorType: 'player',
-        atMs: 173.913043478261,
-        intervalMs: 173.913043478261,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.3 }],
         name: 'Malicious Ashen Assault — Final Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 3,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 3, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Spear',

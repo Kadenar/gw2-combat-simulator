@@ -11,12 +11,12 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 29.160000000000004,
-        hits: 9,
+        ticks: Array.from({ length: 9 }, (_, index) => ({
+          atMs: 75.48 + index * 75.48,
+          coefficient: 29.160000000000004 / 9
+        })),
         name: 'Surge of the Mists',
         actorType: 'player',
-        atMs: 75.48,
-        intervalMs: 75.48,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -38,12 +38,9 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 340 + index * 340, coefficient: 2 / 2 })),
         name: 'Rejuvenating Assault',
         actorType: 'player',
-        atMs: 340,
-        intervalMs: 340,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

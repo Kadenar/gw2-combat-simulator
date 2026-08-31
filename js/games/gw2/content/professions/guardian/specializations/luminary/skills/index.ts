@@ -58,9 +58,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.25 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -73,9 +71,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 760,
+        ticks: [{ atMs: 760, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -122,9 +118,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        atMs: PIERCING_STANCE_IMPACT_MS,
+        ticks: [{ atMs: PIERCING_STANCE_IMPACT_MS, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -176,9 +170,7 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -201,17 +193,13 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 480,
+        ticks: [{ atMs: 480, coefficient: 0.8 }],
         name: 'Lucent Thrust — Projectile Damage',
         timingAnchor: 'castStart',
         timingScale: 'cast'

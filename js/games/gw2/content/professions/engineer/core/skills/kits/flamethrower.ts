@@ -19,10 +19,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 10,
-        atMs: 172,
-        intervalMs: 172,
+        ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 172 + index * 172, coefficient: 2.5 / 10 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flame Jet',
@@ -119,10 +116,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.3,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 1.3 }],
         name: 'Flame Blast',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         interruptCommitMs: 480,
@@ -141,10 +136,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        atMs: 480,
+        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         interruptCommitMs: 480,

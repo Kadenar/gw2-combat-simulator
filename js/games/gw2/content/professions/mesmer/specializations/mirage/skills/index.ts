@@ -47,9 +47,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 6,
-        atMs: 320,
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 320, coefficient: 2.4 / 6 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Damage',
@@ -58,10 +56,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
       },
       {
         type: 'condition',
-        condition: 'confusion',
-        duration: 4,
-        stacks: 6,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'confusion', stacks: 6, duration: 4 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }

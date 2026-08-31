@@ -1,5 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
  * applies its conditional damage changes to scheduler events.
@@ -57,7 +58,11 @@ const SYMBOL_OF_LUMINANCE_ICON =
  * @returns {number} Absolute simulation timestamp for the first strike.
  */
 function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearEffect): number {
-  if (effect.atMs != null) return context.start + Number(effect.atMs) / 1000;
+  const atMs = effect.type === 'strike' || effect.type === 'condition' ? effectFirstAtMs(effect) : effect.atMs;
+  if (atMs != null) {
+    const origin = effect.timingAnchor === 'castEnd' ? context.fullEnd : context.start;
+    return origin + Number(atMs) / 1000;
+  }
   if (effect.at != null) return context.start + Number(effect.at);
   return context.fullEnd;
 }
@@ -105,11 +110,10 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
   }
 
   for (const effect of skill.effects || []) {
-    if (effect.type !== 'strike' || !(Number(effect.coefficient) > 0)) continue;
-    const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
-    const totalBonus = Number(effect.coefficient) * bonusFraction;
-    const perHit = totalBonus / hits;
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    if (effect.type !== 'strike' || !(strikeEffectCoefficient(effect) > 0)) continue;
+    const ticks = strikeEffectTicks(effect);
+    const hits = ticks.length;
+    const totalBonus = strikeEffectCoefficient(effect) * bonusFraction;
     const firstAt = strikeStartSeconds(context, effect);
     if (skill.id === ID.HELIO_RUSH && hits === 1) {
       const baseHit = context.events.find(
@@ -127,7 +131,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     }
 
     if (skill.id === ID.GLEAMING_DISC && hits === 2) {
-      const shockWaveAt = firstAt + interval;
+      const shockWaveAt = firstAt + (Number(ticks[1].atMs) - Number(ticks[0].atMs)) / 1000;
       if (interrupted && shockWaveAt > context.effectiveEnd + context.epsilon) {
         continue;
       }
@@ -149,8 +153,9 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
       continue;
     }
 
-    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-      const at = firstAt + (hitIndex - 1) * interval;
+    for (const [index, tick] of ticks.entries()) {
+      const hitIndex = index + 1;
+      const at = firstAt + (Number(tick.atMs) - Number(ticks[0].atMs)) / 1000;
       if (interrupted && at > context.effectiveEnd + context.epsilon) break;
       context.emit(
         buildGuardianStrike({
@@ -159,7 +164,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           skillName: skill.name,
           at,
           name: `${skill.name} (Illuminated)`,
-          coefficient: perHit,
+          coefficient: Number(tick.coefficient) * bonusFraction,
           hitIndex,
           totalHits: hits,
           skillWeapon: 'Spear'
@@ -260,7 +265,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   } else if (SPEAR_ILLUMINATION_ARMERS.has(skill.id)) {
     const firstStrikeAt =
       (skill.effects || [])
-        .filter((effect) => effect.type === 'strike' && Number(effect.coefficient) > 0)
+        .filter((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0)
         .map((effect) => strikeStartSeconds(context, effect))
         .sort((left, right) => left - right)[0] ?? context.effectiveEnd;
     state.spearIlluminatedArmed = true;

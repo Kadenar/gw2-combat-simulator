@@ -11,24 +11,25 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.25 }],
         name: 'Bola Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1.5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1.5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -40,24 +41,26 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.315,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.315 }],
         name: 'Shadow Strike — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.3125,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.3125 }],
         name: 'Shot Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 4,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 4, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Pistol',
@@ -71,12 +74,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 3.36,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({
+          atMs: 96.666666666667 + index * 96.666666666667,
+          coefficient: 3.36 / 8
+        })),
         name: 'Unload',
         actorType: 'player',
-        atMs: 96.666666666667,
-        intervalMs: 96.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -98,10 +101,11 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Head Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -113,17 +117,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.575,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.575 }],
         name: 'Vital Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -135,21 +140,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 1.5 / 5 })),
         name: 'Repeater (offhand empty)',
         actorType: 'player',
-        atMs: 168,
-        intervalMs: 168,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 5,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Pistol',
@@ -163,12 +165,9 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 120.24 + index * 120.24, coefficient: 0.75 / 3 })),
         name: 'Black Powder',
         actorType: 'player',
-        atMs: 120.24,
-        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -192,21 +191,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 136 + index * 136, coefficient: 1.8 / 5 })),
         name: 'Sneak Attack',
         actorType: 'player',
-        atMs: 136,
-        intervalMs: 136,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 5,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Pistol',
@@ -220,21 +216,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 7.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 7.5 / 5 })),
         name: 'Repeater',
         actorType: 'player',
-        atMs: 168,
-        intervalMs: 168,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 5,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Pistol',

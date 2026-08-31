@@ -11,9 +11,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Negative Bash',
@@ -21,10 +19,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 8,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -39,10 +34,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 5,
-        atMs: 240,
-        intervalMs: 240,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 240 + index * 240, coefficient: 1.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Shock Shield',
@@ -71,10 +63,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 2,
-        atMs: 340,
-        intervalMs: 340,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 340 + index * 340, coefficient: 3 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Electro-whirl',
@@ -92,9 +81,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Equalizing Blow',
@@ -102,10 +89,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 3,
-        duration: 8,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 3, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -128,9 +112,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0.7,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.7 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Positive Strike',
@@ -183,10 +165,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 5,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Thunderclap',
@@ -194,12 +173,12 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 8,
-        applications: 5,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 1000 + index * 1000,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 8
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

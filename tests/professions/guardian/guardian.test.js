@@ -498,11 +498,11 @@ test('Guardian longbow packets and Symbol of Energy burning use measured EVTC ti
     (event) => event.type === 'condition' && event.skillName === 'Symbol of Energy' && event.condition === 'Burning'
   );
 
-  assert.deepEqual(offsets(puncture), [840]);
-  assert.deepEqual(offsets(deflecting), [820]);
+  assert.deepEqual(offsets(puncture), [600]);
+  assert.deepEqual(offsets(deflecting), [640]);
   assert.deepEqual(offsets(symbol), [600, 1600, 2600, 3600, 4600]);
-  assert.deepEqual(offsets(trueShot), [1020]);
-  assert.deepEqual(offsets(ward), [980, 1500, 2020, 2540]);
+  assert.deepEqual(offsets(trueShot), [680]);
+  assert.deepEqual(offsets(ward), [680, 1200, 1720, 2240]);
   assert.deepEqual(
     ward.damage.map((event) => event.coefficient),
     [0.75, 0.75, 0.75, 2.5]
@@ -1533,7 +1533,14 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   const rushingJusticeAction = full.events.find(
     (event) => event.type === 'action' && event.skillName === 'Rushing Justice'
   );
+  const rushingJusticePackets = full.resolvedEvents.filter(
+    (event) => event.name === 'Rushing Justice — Impact Damage' || event.name === 'Rushing Justice — Initial Burning'
+  );
 
+  assert.deepEqual(
+    rushingJusticePackets.map((event) => Math.round((event.at - rushingJusticeAction.at) * 1000)),
+    [440, 440]
+  );
   assert.equal(rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at, 12);
 });
 

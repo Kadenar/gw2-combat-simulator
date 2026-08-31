@@ -204,19 +204,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        duration: 5,
-        stacks: 1,
-        atMs: 350,
+        ticks: [{ atMs: 350, condition: 'Weakness', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 4,
-        stacks: 10,
-        atMs: 1350,
+        ticks: [{ atMs: 1350, condition: 'Vulnerability', stacks: 10, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

@@ -10,10 +10,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 4.6,
-        hits: 8,
-        atMs: 180,
-        intervalMs: 180,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 4.6 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

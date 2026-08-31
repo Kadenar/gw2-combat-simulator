@@ -62,12 +62,10 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 400, coefficient: 0.5 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'scepter',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -92,12 +90,10 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 481, coefficient: 0.5 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'scepter',
-        atMs: 481,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -136,12 +132,10 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 442, coefficient: 0.75 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'scepter',
-        atMs: 442,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

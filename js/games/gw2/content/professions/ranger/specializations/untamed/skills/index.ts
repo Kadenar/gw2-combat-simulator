@@ -259,10 +259,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'condition',
         sourceId: ID.EXPLODING_SPORE,
         name: 'Exploding Spore - Poisoned',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 5,
-        atMs: 1720,
+        ticks: [{ atMs: 1720, condition: 'Poisoned', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: {
@@ -316,10 +313,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'condition',
         sourceId: ID.EXPLODING_SPORE,
         name: 'Exploding Spore - Poisoned',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 5,
-        atMs: 2160,
+        ticks: [{ atMs: 2160, condition: 'Poisoned', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: {

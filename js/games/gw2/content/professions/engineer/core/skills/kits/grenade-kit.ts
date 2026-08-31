@@ -169,10 +169,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
       {
         type: 'strike',
         // Six grenades at 0.6 coefficient each.
-        coefficient: 3.6,
-        hits: 6,
-        atMs: 112.88,
-        intervalMs: 112.88,
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 112.88 + index * 112.88, coefficient: 3.6 / 6 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Grenade Barrage',

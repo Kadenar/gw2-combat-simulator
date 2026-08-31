@@ -125,9 +125,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        atMs: DEMOLISH_SMASH_AT_MS,
+        ticks: [{ atMs: DEMOLISH_SMASH_AT_MS, coefficient: 2.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Smash Damage',
@@ -151,9 +149,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.88,
-        hits: 1,
-        atMs: 640,
+        ticks: [{ atMs: 640, coefficient: 2.88 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Offensive Protocol: Obliterate',
@@ -161,10 +157,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 8,
-        duration: 6,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -222,9 +215,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.88,
-        hits: 1,
-        atMs: 640,
+        ticks: [{ atMs: 640, coefficient: 2.88 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Offensive Protocol: Obliterate',
@@ -232,10 +223,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 8,
-        duration: 6,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -318,9 +306,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.88,
-        hits: 1,
-        atMs: 640,
+        ticks: [{ atMs: 640, coefficient: 2.88 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Offensive Protocol: Obliterate',
@@ -328,10 +314,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 8,
-        duration: 6,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -346,10 +329,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.2,
-        hits: 4,
-        atMs: 250,
-        intervalMs: 250,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 250 + index * 250, coefficient: 3.2 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Liquid State',
@@ -396,9 +376,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        atMs: DEMOLISH_SMASH_AT_MS,
+        ticks: [{ atMs: DEMOLISH_SMASH_AT_MS, coefficient: 2.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Smash Damage',
@@ -439,9 +417,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        atMs: DEMOLISH_SMASH_AT_MS,
+        ticks: [{ atMs: DEMOLISH_SMASH_AT_MS, coefficient: 2.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Smash Damage',
@@ -479,13 +455,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = 
       },
       {
         type: 'strike',
-        coefficient: 9,
-        hits: 12,
         // EVTC field packets land on a measured ~520 ms cadence; preserving
         // it also prevents exact-boundary distortion for 0.5-second ICDs.
-        atMs: 520,
-        intervalMs: 520,
-        intervalTimingScale: 'fixed',
+        ticks: Array.from({ length: 12 }, (_, index) => ({ atMs: 520 + index * 520, coefficient: 9 / 12 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Storm Damage',

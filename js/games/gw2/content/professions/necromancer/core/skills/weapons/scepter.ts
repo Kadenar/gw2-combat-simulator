@@ -9,18 +9,13 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 10,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 3, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -32,27 +27,19 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4.5,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 6,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -64,18 +51,13 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.35,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.35 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4.5,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -87,18 +69,13 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.35,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 0.35 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4.5,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

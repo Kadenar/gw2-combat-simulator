@@ -31,6 +31,7 @@ export interface RevenantSkill extends Skill {
   readonly manualReleaseCooldown?: number;
   readonly paletteLegendId?: string;
   readonly starvationCooldown?: number;
+  readonly triggerIntervalMs?: number;
   readonly upkeepCost?: number;
   readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
   readonly upkeepConsumeId?: SkillId;

@@ -11,17 +11,18 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.55,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.55 }],
         name: 'Trick Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -33,21 +34,18 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 4,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 90 + index * 90, coefficient: 2.4 / 4 })),
         name: 'Choking Gas',
         actorType: 'player',
-        atMs: 90,
-        intervalMs: 90,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -79,17 +77,18 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.25 }],
         name: 'Large Explosion',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -101,21 +100,18 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 4,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 170 + index * 170, coefficient: 2 / 4 })),
         name: 'Small Explosion',
         actorType: 'player',
-        atMs: 170,
-        intervalMs: 170,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -127,17 +123,18 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Disabling Shot (thief short bow skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -150,24 +147,25 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.6 }],
         name: 'Surprise Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Shortbow',

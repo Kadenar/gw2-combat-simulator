@@ -9,18 +9,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
-        atMs: 640,
+        ticks: [{ atMs: 640, coefficient: 2.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 10,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -46,9 +41,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        atMs: 160,
+        ticks: [{ atMs: 160, coefficient: 0.9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -93,29 +86,21 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 1200,
+        ticks: [{ atMs: 1200, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 10,
-        atMs: 1200,
+        ticks: [{ atMs: 1200, condition: 'Bleeding', stacks: 3, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 6,
-        atMs: 1200,
+        ticks: [{ atMs: 1200, condition: 'Weakness', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true

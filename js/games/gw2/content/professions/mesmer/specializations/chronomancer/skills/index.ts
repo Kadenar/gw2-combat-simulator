@@ -85,12 +85,10 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       },
       {
         type: 'strike',
-        coefficient: 2.1,
-        hits: 1,
+        ticks: [{ atMs: 2000, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: 'player',
         weapon: 'utility',
-        atMs: 2000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -156,12 +154,10 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       },
       {
         type: 'strike',
-        coefficient: 2.1,
-        hits: 1,
+        ticks: [{ atMs: 3554, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: 'player',
         weapon: 'utility',
-        atMs: 3554,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true

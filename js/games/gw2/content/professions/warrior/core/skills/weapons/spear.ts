@@ -9,10 +9,8 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.1,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 1.1 }],
         name: 'Maiming Spear — Initial Strike Damage',
-        atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -23,10 +21,8 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
         // target that foe is always the golem, so the effective coefficient is
         // 0.75 * 1.5 = 1.125. The epicenter bonus is folded in here because the
         // simulator has no target-position model to gate it on.
-        coefficient: 1.125,
-        hits: 1,
+        ticks: [{ atMs: 1517, coefficient: 1.125 }],
         name: 'Maiming Spear — Aftershock Damage',
-        atMs: 1517,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
@@ -53,19 +49,15 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 1.2 }],
         name: 'Mighty Throw — Spear Damage',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
+        ticks: [{ atMs: 466.666666666667, coefficient: 0.9 }],
         name: 'Mighty Throw — Shard Damage',
-        atMs: 466.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -77,9 +69,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        atMs: 399.75,
+        ticks: [{ atMs: 399.75, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

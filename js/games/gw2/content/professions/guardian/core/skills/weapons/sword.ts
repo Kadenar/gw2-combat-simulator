@@ -9,10 +9,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 3.25,
-        hits: 5,
-        atMs: 250,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 250 + index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -55,10 +52,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 4.8,
-        hits: 8,
-        atMs: 250,
-        intervalMs: 250,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 250 + index * 250, coefficient: 4.8 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

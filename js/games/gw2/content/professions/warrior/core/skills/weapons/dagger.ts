@@ -11,9 +11,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.05,
-        hits: 1,
-        atMs: 280,
+        ticks: [{ atMs: 280, coefficient: 1.05 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -35,9 +33,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
-        atMs: 280,
+        ticks: [{ atMs: 280, coefficient: 0.65 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -50,9 +46,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
-        atMs: 280,
+        ticks: [{ atMs: 280, coefficient: 0.6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -78,9 +72,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 160,
+        ticks: [{ atMs: 160, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

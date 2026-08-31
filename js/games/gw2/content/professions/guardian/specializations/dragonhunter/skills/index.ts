@@ -8,9 +8,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 500,
+        ticks: [{ atMs: 500, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -43,9 +41,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 0.1875,
-        hits: 1,
-        atMs: 500,
+        ticks: [{ atMs: 500, coefficient: 0.1875 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -76,9 +72,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 3.6,
-        hits: 1,
-        atMs: 500,
+        ticks: [{ atMs: 500, coefficient: 3.6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -90,10 +84,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 4,
-        atMs: 500,
+        ticks: [{ atMs: 500, condition: 'Slow', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

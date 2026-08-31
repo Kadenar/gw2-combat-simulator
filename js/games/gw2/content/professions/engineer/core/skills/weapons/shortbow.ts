@@ -71,10 +71,10 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 645,
-        hits: 645,
-        atMs: 0.693333333333,
-        intervalMs: 0.693333333333,
+        ticks: Array.from({ length: 645 }, (_, index) => ({
+          atMs: 0.693333333333 + index * 0.693333333333,
+          coefficient: 1.0
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Essence of Living Shadows',

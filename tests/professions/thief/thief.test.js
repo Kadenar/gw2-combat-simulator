@@ -95,6 +95,25 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
+  // Thief packets have one canonical authoring shape so handlers never need aggregate-effect fallbacks.
+  for (const skill of thiefCatalog.skills) {
+    for (const effect of skill.effects || []) {
+      if (effect.type !== 'strike' && effect.type !== 'condition') continue;
+      assert.ok(Array.isArray(effect.ticks), skill.name);
+      for (const field of [
+        'coefficient',
+        'hits',
+        'condition',
+        'stacks',
+        'duration',
+        'applications',
+        'atMs',
+        'intervalMs'
+      ]) {
+        assert.equal(field in effect, false, `${skill.name}: ${field}`);
+      }
+    }
+  }
   assert.deepEqual(
     THIEF_CORE_SKILL_MECHANICS[13006].effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
@@ -184,7 +203,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
   const preview = applyThiefPatch({
     skills: {
       [ID.CALTROPS]: {
-        effects: [{ effectIndex: 0, duration: { from: 10, to: 12 } }]
+        effects: [{ effectIndex: 0, tickIndex: 'all', duration: { from: 10, to: 12 } }]
       }
     },
     balanceProfiles: {
@@ -206,7 +225,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
     }
   });
 
-  assert.equal(preview.skillsById.get(ID.CALTROPS).effects[0].duration, 12);
+  assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
   assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
   assert.equal(
     preview.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).effects[0].coefficient,
@@ -216,7 +235,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
   assert.equal(preview.balanceProfilesById.get(ANTIQUARY_BALANCE_PROFILE_IDS.scuffle).pulseInterval, 2.5);
 
-  assert.equal(thiefCatalog.skillsById.get(ID.CALTROPS).effects[0].duration, 10);
+  assert.ok(thiefCatalog.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 10));
   assert.equal(thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 12);
 });
 
@@ -1058,7 +1077,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
   const backstabStrike = thiefCatalog.skillsById.get(ID.BACKSTAB).effects.find((effect) => effect.type === 'strike');
 
   assert.deepEqual(
-    [backstabStrike.atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
+    [backstabStrike.ticks[0].atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
     [200, 'castStart', 'fixed']
   );
   assert.equal(thiefCatalog.skillsById.get(ID.BACKSTAB).interruptCommitMs, 200);
@@ -1077,7 +1096,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
   const totalCoefficient = (name) => {
     const strike = thiefCatalog.skillsByName.get(name).effects.find((effect) => effect.type === 'strike');
 
-    return strike.ticks ? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : strike.coefficient;
+    return strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0);
   };
 
   assert.equal(totalCoefficient('Fist Flurry'), 3.75);
@@ -1155,8 +1174,8 @@ test('Daredevil Staff skills use supplied coefficients and effects', () => {
     const strike = skill.effects.find((effect) => effect.type === 'strike');
 
     assert.equal(skill.weapon, 'Staff', name);
-    assert.equal(strike.coefficient, coefficient, name);
-    assert.equal(strike.hits, hits, name);
+    assert.ok(Math.abs(strike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - coefficient) < 1e-12, name);
+    assert.equal(strike.ticks.length, hits, name);
     assert.equal(skill.initiativeCost, initiativeCost, name);
   }
 
@@ -1191,17 +1210,26 @@ test('Daredevil Staff skills use supplied coefficients and effects', () => {
   const punishing = thiefCatalog.skillsByName.get('Punishing Strikes');
   const vulnerability = punishing.effects.find((effect) => effect.type === 'condition');
 
-  assert.deepEqual([vulnerability.condition, vulnerability.stacks, vulnerability.duration], ['Vulnerability', 4, 8]);
+  assert.deepEqual(
+    [vulnerability.ticks[0].condition, vulnerability.ticks[0].stacks, vulnerability.ticks[0].duration],
+    ['Vulnerability', 4, 8]
+  );
 
   const weakening = thiefCatalog.skillsByName.get('Weakening Whirl');
   const weakness = weakening.effects.find((effect) => effect.type === 'condition');
 
-  assert.deepEqual([weakness.condition, weakness.stacks, weakness.duration], ['Weakness', 1, 2]);
+  assert.deepEqual(
+    [weakness.ticks[0].condition, weakness.ticks[0].stacks, weakness.ticks[0].duration],
+    ['Weakness', 1, 2]
+  );
 
   const arc = thiefCatalog.skillsByName.get('Debilitating Arc');
   const cripple = arc.effects.find((effect) => effect.type === 'condition');
 
-  assert.deepEqual([cripple.condition, cripple.stacks, cripple.duration], ['Crippled', 1, 6]);
+  assert.deepEqual(
+    [cripple.ticks[0].condition, cripple.ticks[0].stacks, cripple.ticks[0].duration],
+    ['Crippled', 1, 6]
+  );
 
   const hook = thiefCatalog.skillsByName.get('Hook Strike');
   const hookControl = hook.effects.find((effect) => effect.type === 'control');
@@ -1433,7 +1461,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     (event) => event.skillName === 'Steal Time' && event.type === 'damage'
   );
 
-  assert.equal(stealTimeStrike.coefficient, 1);
+  assert.equal(stealTimeStrike.ticks[0].coefficient, 1);
   assert.equal(plainStealTimeEvent.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
   const chamberStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], {
@@ -1522,9 +1550,12 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
 
   const sneak = thiefCatalog.skillsByName.get('Malicious Sneak Attack');
   const sneakStrike = sneak.effects.find((effect) => effect.type === 'strike');
-  const sneakTorment = sneak.effects.find((effect) => effect.type === 'condition' && effect.condition === 'Torment');
+  const sneakTorment = sneak.effects
+    .find((effect) => effect.type === 'condition' && effect.ticks.some((tick) => tick.condition === 'Torment'))
+    .ticks.find((tick) => tick.condition === 'Torment');
 
-  assert.deepEqual([sneakStrike.coefficient, sneakStrike.hits], [1.8, 5]);
+  assert.ok(Math.abs(sneakStrike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - 1.8) < 1e-12);
+  assert.equal(sneakStrike.ticks.length, 5);
   assert.deepEqual([sneakTorment.stacks, sneakTorment.duration], [1, 1]);
 
   for (const [name, quicknessCastTimeMs] of [
@@ -1548,7 +1579,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.deepEqual(
     threeRoundBurst.effects
       .filter((effect) => effect.type === 'strike')
-      .map((effect) => [effect.coefficient, effect.hits]),
+      .map((effect) => [effect.ticks.reduce((total, tick) => total + tick.coefficient, 0), effect.ticks.length]),
     [[2.25, 3]]
   );
 
@@ -1708,9 +1739,9 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
   for (const [name, hits, totalCoefficient] of expectedPackets) {
     const strike = thiefCatalog.skillsByName.get(name).effects.find((effect) => effect.type === 'strike');
 
-    assert.equal(strike.ticks?.length || strike.hits, hits, name);
+    assert.equal(strike.ticks.length, hits, name);
     assert.equal(
-      strike.ticks ? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : strike.coefficient,
+      strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0),
       totalCoefficient,
       name
     );
@@ -1719,7 +1750,7 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
   const heartseeker = thiefCatalog.skillsByName.get('Heartseeker');
   const heartseekerStrike = heartseeker.effects.find((effect) => effect.type === 'strike');
 
-  assert.equal(heartseekerStrike.coefficient, 1);
+  assert.equal(heartseekerStrike.ticks[0].coefficient, 1);
   assert.deepEqual(heartseekerStrike.coefficientModifiers, [
     { kind: 'target-health-below', threshold: 0.25, multiplier: 2.22 },
     { kind: 'target-health-below', threshold: 0.5, multiplier: 1.6 }
@@ -1732,8 +1763,8 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
   const backstab = thiefCatalog.skillsByName.get('Backstab');
   const malicious = thiefCatalog.skillsByName.get('Malicious Backstab');
 
-  assert.equal(backstab.effects[0].coefficient, 1.5);
-  assert.equal(malicious.effects[0].coefficient, 1.5);
+  assert.equal(backstab.effects[0].ticks[0].coefficient, 1.5);
+  assert.equal(malicious.effects[0].ticks[0].coefficient, 1.5);
   assert.equal(backstab.cooldown, 1);
   assert.equal(malicious.cooldown, 1);
 });
@@ -1844,7 +1875,7 @@ test('Malicious stealth attacks use their supplied coefficients and malice scali
   assert.deepEqual(
     deathsJudgment.effects
       .filter((effect) => effect.type === 'strike')
-      .map((effect) => [effect.coefficient, effect.hits]),
+      .map((effect) => [effect.ticks.reduce((total, tick) => total + tick.coefficient, 0), effect.ticks.length]),
     [[2.67, 1]]
   );
 
@@ -1937,9 +1968,14 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
   for (const [name, count, coefficient, condition] of expectedPackets) {
     const skill = thiefCatalog.skillsByName.get(name);
     const strikes = skill.effects.filter((effect) => effect.type === 'strike');
-    const applications = skill.effects.find((effect) => effect.type === 'condition' && Array.isArray(effect.ticks));
-    const hits = strikes.reduce((sum, strike) => sum + strike.hits, 0);
-    const totalCoefficient = strikes.reduce((sum, strike) => sum + strike.coefficient, 0);
+    const applications = skill.effects.find(
+      (effect) => effect.type === 'condition' && effect.ticks?.some((tick) => tick.condition === condition)
+    );
+    const hits = strikes.reduce((sum, strike) => sum + strike.ticks.length, 0);
+    const totalCoefficient = strikes.reduce(
+      (sum, strike) => sum + strike.ticks.reduce((tickSum, tick) => tickSum + tick.coefficient, 0),
+      0
+    );
 
     assert.equal(hits, count, name);
     assert.ok(Math.abs(totalCoefficient / count - coefficient) < 1e-12, name);

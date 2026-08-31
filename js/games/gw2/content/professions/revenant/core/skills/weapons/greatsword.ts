@@ -12,21 +12,16 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 400, coefficient: 0.8 }],
         name: 'Mist Slash',
         actorType: 'player',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
+        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         actorType: 'player',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -40,11 +35,9 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 400, coefficient: 1.6 }],
         name: 'Mist Unleashed',
         actorType: 'player',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -66,31 +59,23 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 440, coefficient: 1.2 }],
         name: 'Arcing Mists',
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 440, condition: 'Chilled', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 10,
+        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 2, duration: 10 }],
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

@@ -11,10 +11,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.17,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.17 }],
         name: 'Larcenous Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Sword',
@@ -28,10 +29,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Slice (thief skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -44,17 +46,18 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.8 }],
         name: "Infiltrator's Strike",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -72,10 +75,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Flanking Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Sword',
@@ -89,10 +93,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Slash (thief skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -104,10 +109,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.05,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.05 }],
         name: 'Stab (thief sword skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Sword',
@@ -122,10 +128,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2 }],
         name: 'Tactical Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -137,10 +144,10 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Sword',
@@ -154,24 +161,25 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.55,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.55 }],
         name: 'Crippling Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -203,11 +211,9 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 1240.4, coefficient: 1.6 }],
         name: 'Final Slash Damage',
         actorType: 'player',
-        atMs: 1240.4,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

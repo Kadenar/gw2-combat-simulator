@@ -13,12 +13,10 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
+        ticks: [{ atMs: 200, coefficient: 1.8 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -61,12 +59,10 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
+        ticks: [{ atMs: 401, coefficient: 0.3 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 401,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -121,46 +117,38 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 602, coefficient: 2.5 }],
         name: 'Initial target hit',
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 602,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.1,
-        hits: 1,
+        ticks: [{ atMs: 767, coefficient: 0.1 }],
         name: 'Second target hit after one ally bounce',
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 767,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.004,
-        hits: 1,
+        ticks: [{ atMs: 918, coefficient: 0.004 }],
         name: 'Third target hit after two ally bounces',
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 918,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.00016,
-        hits: 1,
+        ticks: [{ atMs: 1084, coefficient: 0.00016 }],
         name: 'Fourth target hit after three ally bounces',
         requiredTrait: 686,
         actorType: 'player',
         weapon: 'greatsword',
-        atMs: 1084,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

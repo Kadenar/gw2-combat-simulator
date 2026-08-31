@@ -9,7 +9,8 @@ import { enqueueOrdered } from '#kernel/events/queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
-  isGw2PlayerActorEvent
+  isGw2PlayerActorEvent,
+  isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
 import { combinedTargetDamage } from '#gw2/platform/combat/state/target-health.js';
 
@@ -29,22 +30,6 @@ interface TimedBuffProcOptions {
   readonly duration: number;
   readonly name: string;
   readonly detail?: string | null;
-}
-
-function isBloodstoneOwnerStrike(event: SimulationEvent): boolean {
-  // Preserve the explicitly owned effects Fervor already covered before legacy effect ownership was migrated.
-  return (
-    isGw2PlayerActorEvent(event) ||
-    event.sourceId === 'relic.bloodstone' ||
-    event.sourceId === 'engineer.rapacious-strain'
-  );
-}
-
-/** Keeps Claw on its already-owned effect packets without broadening it to migrated effects. */
-function isClawOwnerStrike(event: SimulationEvent): boolean {
-  return (
-    isGw2PlayerActorEvent(event) || event.sourceId === 'sigil.air' || event.sourceId === 77164 // Sovereign of Light
-  );
 }
 
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
@@ -421,8 +406,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         triggeredBy: event.skillName
       });
     },
-    // Fervor also affects the delayed explosion that activated it.
-    strikeMultiplier: timedStrikeBuff(1.07, isBloodstoneOwnerStrike)
+    // Fervor follows outgoing modifier ownership and also affects the delayed explosion that activated it.
+    strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent)
   }),
 
   Brawler: defineRelic({
@@ -464,7 +449,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         name: 'Relic of the Claw'
       });
     },
-    strikeMultiplier: timedStrikeBuff(1.07, isClawOwnerStrike)
+    // Claw follows outgoing modifier ownership so player-owned effect packets inherit its strike bonus.
+    strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent)
   }),
 
   Dragonhunter: defineRelic({

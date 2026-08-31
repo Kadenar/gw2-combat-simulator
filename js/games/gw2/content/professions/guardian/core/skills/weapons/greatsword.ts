@@ -58,9 +58,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -77,9 +75,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 1.1,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -96,9 +92,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -114,19 +108,14 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 200,
+        ticks: [{ atMs: 200, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Symbol of Resolution — Initial'
       },
       {
         type: 'strike',
-        coefficient: 2.6,
-        hits: 4,
-        atMs: 1200,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1200 + index * 1000, coefficient: 2.6 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Symbol of Resolution'
@@ -139,18 +128,13 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 480,
+        ticks: [{ atMs: 480, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 10,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 0 / 10 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Binding Blade — Tether',

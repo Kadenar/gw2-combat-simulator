@@ -2351,7 +2351,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   assert.equal(bleeding.duration, 6);
 });
 
-test('Bloodstone Fervor preserves its established effect exceptions after ownership migration', () => {
+test('Bloodstone Fervor follows modifier ownership', () => {
   const relic = createRelicRuntime('Bloodstone');
   const context = { relic };
 
@@ -2369,28 +2369,20 @@ test('Bloodstone Fervor preserves its established effect exceptions after owners
       ...effect,
       ownerActorType: 'player'
     }),
-    1
+    1.07
   );
   assert.equal(relicStrikeMultiplier(context, effect), 1);
   assert.equal(relicStrikeMultiplier(context, { ...effect, actorType: 'player' }), 1.07);
   assert.equal(
     relicStrikeMultiplier(context, {
       ...effect,
-      ownerActorType: 'player',
-      sourceId: 'engineer.rapacious-strain'
+      ownerActorType: 'summon'
     }),
-    1.07
-  );
-  assert.equal(
-    relicStrikeMultiplier(context, {
-      ...effect,
-      sourceId: 'relic.bloodstone'
-    }),
-    1.07
+    1
   );
 });
 
-test('Claw and Peitha do not broaden their strike buffs to newly owned effect packets', () => {
+test('Claw follows modifier ownership while Peitha remains limited to player actor strikes', () => {
   const player = { type: 'damage', at: 1, actorType: 'player', skillName: 'Player Strike' };
   const ownedEffect = {
     type: 'damage',
@@ -2404,9 +2396,8 @@ test('Claw and Peitha do not broaden their strike buffs to newly owned effect pa
   claw.state.buffFrom = 0;
   claw.state.buffUntil = 8;
   assert.equal(relicStrikeMultiplier({ relic: claw }, player), 1.07);
-  assert.equal(relicStrikeMultiplier({ relic: claw }, ownedEffect), 1);
-  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, sourceId: 'sigil.air' }), 1.07);
-  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, sourceId: 77164 }), 1.07);
+  assert.equal(relicStrikeMultiplier({ relic: claw }, ownedEffect), 1.07);
+  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, ownerActorType: 'summon' }), 1);
 
   const peitha = createRelicRuntime('Peitha');
 

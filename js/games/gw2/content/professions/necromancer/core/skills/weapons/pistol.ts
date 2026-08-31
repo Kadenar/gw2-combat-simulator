@@ -9,18 +9,13 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 5,
-        duration: 6,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 5, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -98,18 +93,13 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.65 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3.5,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Torment', stacks: 1, duration: 3.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

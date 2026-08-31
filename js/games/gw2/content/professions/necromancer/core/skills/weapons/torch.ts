@@ -9,18 +9,13 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 9,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 2, duration: 9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -42,27 +37,19 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 8,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 6,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Torment', stacks: 2, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

@@ -15,27 +15,19 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 840,
+        ticks: [{ atMs: 840, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 5,
-        atMs: 840,
+        ticks: [{ atMs: 840, condition: 'Crippled', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 8,
-        atMs: 840,
+        ticks: [{ atMs: 840, condition: 'Vulnerability', stacks: 10, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -128,9 +120,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5,
-        hits: 1,
-        atMs: 588.461538461539,
+        ticks: [{ atMs: 588.461538461539, coefficient: 3.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -235,18 +225,13 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 4,
-        duration: 10,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Bleeding', stacks: 4, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -295,9 +280,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 4.5,
-        hits: 1,
-        atMs: 760,
+        ticks: [{ atMs: 760, coefficient: 4.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

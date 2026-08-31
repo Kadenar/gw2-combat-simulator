@@ -9,9 +9,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.9 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -24,9 +22,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
@@ -55,9 +51,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 0.9 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -70,9 +64,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -87,18 +79,13 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        atMs: 600,
+        ticks: [{ atMs: 600, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 4,
-        atMs: 600,
+        ticks: [{ atMs: 600, condition: 'Weakness', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -111,18 +98,13 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 7,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Crippled', stacks: 1, duration: 7 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -142,9 +124,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        atMs: 680,
+        ticks: [{ atMs: 680, coefficient: 2.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

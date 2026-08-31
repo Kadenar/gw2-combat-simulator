@@ -12,6 +12,12 @@ import {
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  strikeEffectCoefficient,
+  strikeEffectTicks
+} from '#gw2/platform/engine/effects/timelines.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createEngineerBuildDefaults,
@@ -118,7 +124,7 @@ test('Engineer interrupt timing avoids zero-millisecond placeholders', () => {
   assert.equal('measuredCancelMs' in flameBlast, false);
   assert.equal(flameBlast.retainsCastLockoutAfterInterrupt, true);
   assert.ok(flameBlast.effects.every((effect) => effect.interruptCommitMs === 480));
-  assert.ok(flameBlast.effects.every((effect) => effect.atMs === 480));
+  assert.ok(flameBlast.effects.every((effect) => effectFirstAtMs(effect) === 480));
   assert.ok(flameBlast.effects.every((effect) => effect.persistsAfterInterrupt === true));
 });
 
@@ -182,6 +188,29 @@ test('Napalm interruption retains only volleys fired before the cutoff', () => {
   assert.deepEqual(packetCounts, [5, 5]);
 });
 
+test('Throw Napalm burns on impact and pulses through a three-second fire field', () => {
+  const result = simulate('Core', ['Throw Napalm', { type: 'wait', durationMs: 3500 }], {
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Flame Turret', 'Supply Crate']
+  });
+  const damage = result.events.find((event) => event.type === 'damage' && event.skillId === ID.THROW_NAPALM);
+  const burns = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.THROW_NAPALM);
+  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.THROW_NAPALM);
+
+  assert.ok(Math.abs(damage.coefficient - 0.7) < 1e-12);
+  assert.deepEqual(
+    burns.map((event) => [Number((event.at - damage.at).toFixed(9)), event.stacks, event.duration]),
+    [
+      [0, 1, 4],
+      [1, 1, 2],
+      [2, 1, 2],
+      [3, 1, 2]
+    ]
+  );
+  assert.equal(field.fieldType, 'Fire');
+  assert.equal(field.at, damage.at);
+  assert.ok(field.expiresAt - field.at >= 3);
+});
+
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
@@ -193,7 +222,7 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(engineerCatalog.traits.length, 108);
   assert.ok(engineerCatalog.skills.length >= 330);
   assert.equal(engineerCatalog.skillsById.get(5842).name, 'Bomb');
-  assert.equal(engineerCatalog.skillsByName.get('Bomb').effects[0].coefficient, 1.2);
+  assert.equal(strikeEffectCoefficient(engineerCatalog.skillsByName.get('Bomb').effects[0]), 1.2);
   assert.match(engineerCatalog.skillsById.get(5806).icon, /Special:Redirect\/file\/Poison_Grenade\.png$/);
   assert.equal(
     engineerCatalog.skillsByName.get('Shrapnel Grenade').icon,
@@ -209,11 +238,14 @@ test('Engineer catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(ventExhaust.handlerId, undefined);
   assert.equal(ventExhaust.heatGain, undefined);
   assert.equal(ventExhaust.heatLoss, 15);
-  assert.equal(ventExhaust.effects[0].coefficient, 1.1);
+  assert.equal(strikeEffectCoefficient(ventExhaust.effects[0]), 1.1);
   assert.equal(ventExhaust.effects[0].canCrit, false);
-  assert.equal(ventExhaust.effects[1].condition, 'Burning');
-  assert.equal(ventExhaust.effects[1].stacks, 2);
-  assert.equal(ventExhaust.effects[1].duration, 6);
+  assert.deepEqual(conditionEffectTicks(ventExhaust.effects[1])[0], {
+    atMs: 0,
+    condition: 'Burning',
+    stacks: 2,
+    duration: 6
+  });
   const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(
     HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve
   );
@@ -399,7 +431,7 @@ test('Engineer sword impacts use measured cast-start packet timing', () => {
 
     assert.deepEqual(
       {
-        atMs: strike.atMs,
+        atMs: effectFirstAtMs(strike),
         timingAnchor: strike.timingAnchor,
         timingScale: strike.timingScale
       },
@@ -1634,7 +1666,7 @@ test('Holosmith benchmark attacks retain packets only after their observed commi
   const lightStrike = engineerCatalog.skillsById.get(ID.LIGHT_STRIKE);
 
   assert.equal(lightStrike.interruptCommitMs, 200);
-  assert.equal(lightStrike.effects[0].atMs, 200);
+  assert.equal(effectFirstAtMs(lightStrike.effects[0]), 200);
   assert.equal(lightStrike.effects[0].persistsAfterInterrupt, true);
 
   const interruptedLightStrike = (interruptMs) =>
@@ -1665,7 +1697,7 @@ test('Holosmith benchmark attacks retain packets only after their observed commi
   const brightSlash = engineerCatalog.skillsById.get(ID.BRIGHT_SLASH_STORM);
 
   assert.equal(brightSlash.interruptCommitMs, 280);
-  assert.equal(brightSlash.effects[0].atMs, 320);
+  assert.equal(effectFirstAtMs(brightSlash.effects[0]), 320);
   assert.equal(brightSlash.effects[0].persistsAfterInterrupt, true);
 
   const interruptedBrightSlash = (interruptMs) =>
@@ -2337,7 +2369,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   assert.equal(mechanic('Poison Grenade').quicknessCastTimeMs, 680);
   assert.equal(mechanic('Freeze Grenade').quicknessCastTimeMs, 680);
   assert.equal(mechanic('Flame Jet').castTimeMs, 2570);
-  assert.equal(mechanic('Flame Jet').effects[0].coefficient, 2.5);
+  assert.equal(strikeEffectCoefficient(mechanic('Flame Jet').effects[0]), 2.5);
   assert.equal(
     mechanic('Napalm').effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
     5
@@ -2379,17 +2411,17 @@ test('Engineer packets use total coefficients and configured cadence', () => {
       ['Photon Blitz', 1320]
     ]
   );
-  assert.equal(mechanic('Poison Dart Volley').effects[0].coefficient, 2);
+  assert.equal(strikeEffectCoefficient(mechanic('Poison Dart Volley').effects[0]), 2);
   assert.equal(mechanic('Poison Dart Volley').effects[1].ticks.length, 5);
-  assert.equal(mechanic('Static Shot').effects[1].stacks, 3);
-  assert.equal(mechanic('Static Shot').effects[1].duration, 5);
-  assert.equal(mechanic('Glue Shot').effects[0].coefficient, 2.5);
-  assert.equal(mechanic('Blowtorch').effects[0].coefficient, 2);
-  assert.equal(mechanic('Blowtorch').effects[1].duration, 4.5);
+  assert.equal(conditionEffectTicks(mechanic('Static Shot').effects[1])[0].stacks, 3);
+  assert.equal(conditionEffectTicks(mechanic('Static Shot').effects[1])[0].duration, 5);
+  assert.equal(strikeEffectCoefficient(mechanic('Glue Shot').effects[0]), 2.5);
+  assert.equal(strikeEffectCoefficient(mechanic('Blowtorch').effects[0]), 2);
+  assert.equal(conditionEffectTicks(mechanic('Blowtorch').effects[1])[0].duration, 4.5);
   assert.deepEqual(
     mechanic('Corona Burst')
       .effects.filter((effect) => effect.type === 'strike')
-      .map((effect) => effect.coefficient),
+      .map((effect) => strikeEffectCoefficient(effect)),
     [1.5, 1.5]
   );
   assert.ok(
@@ -2415,7 +2447,7 @@ test('Engineer packets use total coefficients and configured cadence', () => {
       ['Prime Light Beam', 60, 1160]
     ]
   );
-  assert.equal(mechanic('Prime Light Beam').effects[0].coefficient, 3);
+  assert.equal(strikeEffectCoefficient(mechanic('Prime Light Beam').effects[0]), 3);
   assert.equal(mechanic('Prime Light Beam').effects[0].metadata.damageKind, 'explosion');
   assert.equal(mechanic('Prime Light Beam').effects[2].metadata.controlKind, 'launch');
   assert.equal(mechanic('Grenade Barrage').effects[0].weapon, 'Profession mechanic');
@@ -2450,8 +2482,8 @@ test('Engineer packets use total coefficients and configured cadence', () => {
     shred.ticks.map((packet) => packet.atMs),
     [638.4, 684, 729.6]
   );
-  assert.equal(shredSkill.effects[1].condition, 'Immobilized');
-  assert.equal(shredSkill.effects[1].duration, 3);
+  assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].condition, 'Immobilized');
+  assert.equal(conditionEffectTicks(shredSkill.effects[1])[0].duration, 3);
 
   const demolish = mechanic('Offensive Protocol: Demolish');
 
@@ -2467,8 +2499,8 @@ test('Engineer packets use total coefficients and configured cadence', () => {
       [920, 0.9]
     ]
   );
-  assert.equal(demolish.effects[1].coefficient, 2.25);
-  assert.equal(demolish.effects[1].atMs, 1440);
+  assert.equal(strikeEffectCoefficient(demolish.effects[1]), 2.25);
+  assert.equal(effectFirstAtMs(demolish.effects[1]), 1440);
   assert.equal(
     demolish.effects.some((effect) => effect.boon === 'stability'),
     false
@@ -2476,21 +2508,23 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   const obliterate = mechanic('Offensive Protocol: Obliterate');
 
   assert.equal(obliterate.quicknessCastTimeMs, 800);
-  assert.equal(obliterate.effects[0].coefficient, 2.88);
-  assert.equal(obliterate.effects[0].atMs, 640);
+  assert.equal(strikeEffectCoefficient(obliterate.effects[0]), 2.88);
+  assert.equal(effectFirstAtMs(obliterate.effects[0]), 640);
   assert.equal(obliterate.effects[0].timingAnchor, 'castStart');
-  assert.equal(obliterate.effects[1].condition, 'Bleeding');
-  assert.equal(obliterate.effects[1].stacks, 8);
-  assert.equal(obliterate.effects[1].duration, 6);
-  assert.equal(obliterate.effects[1].atMs, 640);
+  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].condition, 'Bleeding');
+  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].stacks, 8);
+  assert.equal(conditionEffectTicks(obliterate.effects[1])[0].duration, 6);
+  assert.equal(effectFirstAtMs(obliterate.effects[1]), 640);
 
   const flux = mechanic('Flux State');
 
   assert.equal(flux.quicknessCastTimeMs, 640);
-  assert.equal(flux.effects[1].coefficient, 9);
-  assert.equal(flux.effects[1].hits, 12);
-  assert.equal(flux.effects[1].atMs, 520);
-  assert.equal(flux.effects[1].intervalMs, 520);
+  assert.equal(strikeEffectCoefficient(flux.effects[1]), 9);
+  assert.equal(strikeEffectTicks(flux.effects[1]).length, 12);
+  assert.deepEqual(
+    strikeEffectTicks(flux.effects[1]).map((tick) => tick.atMs),
+    Array.from({ length: 12 }, (_, index) => 520 + index * 520)
+  );
   assert.equal(flux.effects[2].ticks.length, 12);
 
   const plasmatic = mechanic('Plasmatic State');
@@ -2579,39 +2613,43 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     true
   );
 
-  assert.equal(skill(ID.SUN_EDGE).effects[0].coefficient, 0.88);
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_EDGE).effects[0]), 0.88);
   assert.deepEqual(
     skill(ID.SUN_EDGE)
       .effects.slice(1)
-      .map((effect) => [effect.condition, effect.stacks, effect.duration]),
+      .flatMap((effect) => conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])),
     [['Vulnerability', 1, 10]]
   );
-  assert.equal(skill(ID.SUN_RIPPER).effects[0].coefficient, 0.93);
-  assert.equal(skill(ID.GLEAM_SABER).effects[0].coefficient, 1.5);
-  assert.equal(skill(ID.RADIANT_ARC).effects[0].coefficient, 2.5);
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_RIPPER).effects[0]), 0.93);
+  assert.equal(strikeEffectCoefficient(skill(ID.GLEAM_SABER).effects[0]), 1.5);
+  assert.equal(strikeEffectCoefficient(skill(ID.RADIANT_ARC).effects[0]), 2.5);
   assert.equal(skill(ID.RADIANT_ARC).cooldown, 12);
   assert.equal(skill(ID.RADIANT_ARC).comboFinishers[0].finisherType, 'Leap');
   assert.deepEqual(
     skill(ID.RADIANT_ARC)
       .effects.filter((effect) => effect.type === 'condition')
-      .map((effect) => [effect.condition, effect.stacks, effect.duration]),
+      .flatMap((effect) => conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])),
     [['Crippled', 1, 4]]
   );
-  assert.equal(skill(ID.REFRACTION_CUTTER).effects[0].coefficient, 1.4);
-  assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].coefficient, 0.4);
+  assert.equal(strikeEffectCoefficient(skill(ID.REFRACTION_CUTTER).effects[0]), 1.4);
+  assert.equal(strikeEffectCoefficient(skill(ID.REFRACTION_CUTTER).effects[1]), 0.4);
   assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].comboFinishers[0].chance, 1);
-  assert.equal(skill(ID.REFRACTION_CUTTER_BLADE).effects[0].coefficient, 0.4);
+  assert.equal(strikeEffectCoefficient(skill(ID.REFRACTION_CUTTER_BLADE).effects[0]), 0.4);
 
-  assert.equal(skill(ID.SUN_EDGE_ID_70514).effects[0].coefficient, 0.96);
-  assert.equal(skill(ID.SUN_RIPPER_ID_69906).effects[0].coefficient, 1.02);
-  assert.equal(skill(ID.GLEAM_SABER_ID_70771).effects[0].coefficient, 1.65);
-  assert.equal(skill(ID.RADIANT_ARC_ID_69565).effects[0].coefficient, 2.5);
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_EDGE_ID_70514).effects[0]), 0.96);
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_RIPPER_ID_69906).effects[0]), 1.02);
+  assert.equal(strikeEffectCoefficient(skill(ID.GLEAM_SABER_ID_70771).effects[0]), 1.65);
+  assert.equal(strikeEffectCoefficient(skill(ID.RADIANT_ARC_ID_69565).effects[0]), 2.5);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).cooldown, 14);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).comboFinishers[0].finisherType, 'Leap');
   assert.deepEqual(
     skill(ID.RADIANT_ARC_ID_69565)
       .effects.slice(1)
-      .map((effect) => [effect.condition || effect.boon, effect.stacks, effect.duration]),
+      .flatMap((effect) =>
+        effect.type === 'condition'
+          ? conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])
+          : [[effect.boon, effect.stacks, effect.duration]]
+      ),
     [
       ['Crippled', 1, 4],
       ['quickness', 1, 3]
@@ -2621,11 +2659,11 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   const refraction = skill(ID.REFRACTION_CUTTER_ID_71121);
 
   assert.equal(refraction.cooldown, 6);
-  assert.equal(refraction.effects[0].coefficient, 1.4);
-  assert.equal(refraction.effects[1].coefficient, 0.8);
-  assert.equal(refraction.effects[1].hits, 2);
+  assert.equal(strikeEffectCoefficient(refraction.effects[0]), 1.4);
+  assert.equal(strikeEffectCoefficient(refraction.effects[1]), 0.8);
+  assert.equal(strikeEffectTicks(refraction.effects[1]).length, 2);
   assert.equal(refraction.effects[1].comboFinishers[0].chance, 1);
-  assert.equal(refraction.effects[2].applications, 2);
+  assert.equal(conditionEffectTicks(refraction.effects[2]).length, 2);
 
   const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_ID_70514 }]);
 
@@ -2720,7 +2758,7 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
   assert.equal(burst.quicknessCastTimeMs, 640);
   assert.equal(burst.interruptMode, 'per-packet');
   assert.deepEqual(
-    burst.effects.map((effect) => [effect.coefficient, effect.atMs]),
+    burst.effects.map((effect) => [strikeEffectCoefficient(effect), effectFirstAtMs(effect)]),
     [
       [0.6, 320],
       [0.8, 600]
@@ -2732,27 +2770,40 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
   const blunderbuss = skill('Blunderbuss');
 
   assert.equal(blunderbuss.cooldown, 6);
-  assert.equal(blunderbuss.effects[0].coefficient, 2.2);
+  assert.equal(strikeEffectCoefficient(blunderbuss.effects[0]), 2.2);
   assert.deepEqual(
     blunderbuss.effects
-      .filter((effect) => effect.condition === 'Bleeding')
-      .map((effect) => [effect.stacks, effect.duration]),
+      .flatMap((effect) => (effect.type === 'condition' ? conditionEffectTicks(effect) : []))
+      .filter((tick) => tick.condition === 'Bleeding')
+      .map((tick) => [tick.stacks, tick.duration]),
     [[3, 9]]
   );
 
   const net = skill('Net Shot');
 
   assert.equal(net.cooldown, 9);
-  assert.equal(net.effects[0].coefficient, 1.25);
-  assert.ok(net.effects.some((effect) => effect.condition === 'Immobilized' && effect.duration === 4));
+  assert.equal(strikeEffectCoefficient(net.effects[0]), 1.25);
   assert.ok(
-    net.effects.some((effect) => effect.condition === 'Vulnerability' && effect.stacks === 8 && effect.duration === 8)
+    net.effects.some(
+      (effect) =>
+        effect.type === 'condition' &&
+        conditionEffectTicks(effect).some((tick) => tick.condition === 'Immobilized' && tick.duration === 4)
+    )
+  );
+  assert.ok(
+    net.effects.some(
+      (effect) =>
+        effect.type === 'condition' &&
+        conditionEffectTicks(effect).some(
+          (tick) => tick.condition === 'Vulnerability' && tick.stacks === 8 && tick.duration === 8
+        )
+    )
   );
 
   const overcharged = skill('Overcharged Shot');
 
   assert.equal(overcharged.cooldown, 14);
-  assert.equal(overcharged.effects[0].coefficient, 1);
+  assert.equal(strikeEffectCoefficient(overcharged.effects[0]), 1);
   assert.equal(overcharged.effects[1].metadata.controlKind, 'launch');
 
   const result = simulate('Mechanist', ['Rifle Burst'], {

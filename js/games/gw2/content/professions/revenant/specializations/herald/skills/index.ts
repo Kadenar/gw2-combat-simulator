@@ -182,11 +182,9 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 1,
+        ticks: [{ atMs: 560, coefficient: 4 }],
         name: 'Chaotic Release',
         actorType: 'player',
-        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -223,12 +221,9 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [
       {
         type: 'strike',
-        coefficient: 3.2,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.2 / 2 })),
         name: 'Burst of Strength',
         actorType: 'player',
-        atMs: 360,
-        intervalMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

@@ -114,10 +114,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
       },
       {
         type: 'strike',
-        coefficient: 4.25,
-        hits: 5,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4.25 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Acid Bomb',
@@ -148,10 +145,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 5,
-        atMs: 304,
-        intervalMs: 304,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 304 + index * 304, coefficient: 2 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Fumigate',
@@ -159,24 +153,24 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        atMs: 304,
-        intervalMs: 304,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 304 + index * 304,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
-        applications: 5,
-        atMs: 304,
-        intervalMs: 304,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 304 + index * 304,
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 6
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         actorType: 'player'

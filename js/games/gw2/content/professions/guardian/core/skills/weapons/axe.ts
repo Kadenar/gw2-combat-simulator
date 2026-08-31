@@ -18,12 +18,12 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        applications: 5,
-        atMs: 680,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 680 + index * 1000,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -87,10 +87,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 2,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Burning', stacks: 2, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -111,10 +108,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 1,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -135,10 +129,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 1,
-        atMs: 600,
+        ticks: [{ atMs: 600, condition: 'Bleeding', stacks: 2, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -156,10 +147,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 480,
+        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

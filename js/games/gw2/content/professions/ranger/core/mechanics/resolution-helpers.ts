@@ -1,7 +1,19 @@
 import { enqueueOrdered } from '#kernel/events/queue.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/content/professions/ranger/core/mechanics/pets.js';
+import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '#gw2/content/professions/ranger/types.js';
+
+/** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */
+export function stalkersStrikeTargetImpaired(
+  config: Gw2Config = {},
+  at: number,
+  runtime: Gw2RuntimeStateLike | null = null
+): boolean {
+  return ['Crippled', 'Slow', 'Immobilized'].some((condition) => targetHasCondition(config, condition, at, runtime));
+}
 
 export function eventSkill(context: RangerResolverContext, event: RangerResolverEvent): RangerSkill | undefined {
   return event.skillId == null

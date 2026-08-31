@@ -20,9 +20,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 0.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Fragmentation Shot',
@@ -35,10 +33,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         interruptCommitMs: 360,
@@ -56,10 +51,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 5,
-        atMs: 168,
-        intervalMs: 168,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 168 + index * 168, coefficient: 2 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Poison Dart Volley',

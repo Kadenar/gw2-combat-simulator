@@ -193,55 +193,37 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 1320,
+        ticks: [{ atMs: 1320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 2320,
+        ticks: [{ atMs: 2320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 3320,
+        ticks: [{ atMs: 3320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 4320,
+        ticks: [{ atMs: 4320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        atMs: 5320,
+        ticks: [{ atMs: 5320, condition: 'Burning', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

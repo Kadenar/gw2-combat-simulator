@@ -441,7 +441,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
 
     assert.equal(strike?.timingAnchor, 'castStart', skill.name);
     assert.equal(strike?.timingScale, 'cast', skill.name);
-    assert.equal(Math.round(strike.atMs), expectedOffset, skill.name);
+    assert.equal(Math.round(strike.ticks[0].atMs), expectedOffset, skill.name);
   }
 
   const devouringDarkness = simulate('Core', ['Devouring Darkness'], {
@@ -1721,24 +1721,42 @@ test('Addle grants four shards to defiant foes and checks activation shards', ()
   assert.equal(immobilizes(threshold).length, 1);
 });
 
-test('necromancer wells finish their pulses after the final rotation action', () => {
-  for (const skill of ['Well of Darkness', 'Well of Suffering']) {
+test('Necromancer wells use their EVTC packet schedules after the final rotation action', () => {
+  const schedules = new Map([
+    ['Well of Corruption', [320, 1280, 2280, 3280, 4280, 5280]],
+    ['Well of Darkness', [280, 1280, 2280, 3280, 4280, 5280]],
+    ['Well of Suffering', [280, 1280, 2280, 3280, 4280, 5280]]
+  ]);
+
+  for (const [skill, expectedOffsets] of schedules) {
     const result = simulate(
       'Harbinger',
       [skill],
       {
         target: {
           ...baseConfig.target,
-          health: 1_000_000_000
+          health: 1_000_000_000,
+          conditions: {}
         }
       },
       observationTail(6000)
     );
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skill);
+    const damage = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skill);
 
-    assert.equal(
-      result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skill).length,
-      6,
+    assert.deepEqual(
+      damage.map((event) => Math.round((event.at - action.at) * 1000)),
+      expectedOffsets,
       skill
+    );
+
+    if (skill !== 'Well of Suffering') continue;
+    const vulnerability = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === skill && event.condition === 'Vulnerability'
+    );
+    assert.deepEqual(
+      vulnerability.map((event) => [Math.round((event.at - action.at) * 1000), event.stacks, event.duration]),
+      expectedOffsets.map((atMs) => [atMs, 2, 5])
     );
   }
 });
@@ -2371,6 +2389,7 @@ test('Reaper prioritizes assumed Ice and otherwise uses standard field resolutio
 
 test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   const nightfallSkill = necromancerCatalog.skillsById.get(ID.NIGHTFALL);
+  const executionersScythe = necromancerCatalog.skillsById.get(ID.EXECUTIONERS_SCYTHE);
   const grasp = simulate('Harbinger', ['Grasping Darkness', { type: 'wait', durationMs: 2000 }], {
     initialResource: 0,
     primaryWeapon: 'Greatsword',
@@ -2389,6 +2408,10 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   assert.deepEqual(
     nightfallSkill.effects.map((effect) => effect.applications ?? effect.hits),
     [4, 4, 4]
+  );
+  assert.deepEqual(
+    executionersScythe.effects.find((effect) => effect.type === 'condition').ticks.map((tick) => tick.atMs),
+    [840, 1840, 2840, 3840, 4840]
   );
   assert.deepEqual(
     grasp.events

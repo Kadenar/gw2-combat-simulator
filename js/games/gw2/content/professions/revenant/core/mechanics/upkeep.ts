@@ -1,6 +1,11 @@
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  strikeEffectCoefficient
+} from '#gw2/platform/engine/effects/timelines.js';
 import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 /**
  * Revenant Core upkeep and pulse state machines.
@@ -42,21 +47,22 @@ function emitEmbraceTheDarknessPulse(
       effect.type === 'condition' &&
       String(effect.metadata?.trigger || '') === (active.empoweredNextPulse ? 'empowered-upkeep-pulse' : '')
   );
-  if (!strike || !torment) {
+  if (strike?.type !== 'strike' || torment?.type !== 'condition') {
     throw new Error('Embrace the Darkness is missing its pulse effects.');
   }
+  const tormentTick = conditionEffectTicks(torment)[0];
 
   emitSkillDamage(context, skill, {
     at,
-    coefficient: Number(strike.coefficient || 0),
+    coefficient: strikeEffectCoefficient(strike),
     skillWeapon: 'Unequipped',
     canCrit: null
   });
   emitSkillCondition(context, skill, {
     at,
     condition: 'Torment',
-    stacks: Number(torment.stacks || 0),
-    duration: Number(torment.duration || 0)
+    stacks: Number(tormentTick?.stacks || 0),
+    duration: Number(tormentTick?.duration || 0)
   });
   active.empoweredNextPulse = false;
 }
@@ -89,7 +95,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
       throw new Error('Embrace the Darkness is missing its strike effect.');
     }
 
-    emitEmbraceTheDarknessPulse(context, skill, active, context.start + Number(strike.atMs || 0) / 1000);
+    emitEmbraceTheDarknessPulse(context, skill, active, context.start + Number(effectFirstAtMs(strike) || 0) / 1000);
   }
 
   context.tasks.schedule({

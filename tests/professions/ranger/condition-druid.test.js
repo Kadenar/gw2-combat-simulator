@@ -368,7 +368,7 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
 
   const embrace = rangerCatalog.skillsById.get(ID.JACARANDAS_EMBRACE);
 
-  assert.equal(embrace.effects[0].ticks.length, 5);
+  assert.deepEqual(embrace.effects[0].ticks, [{ atMs: 920, coefficient: 0.16 }]);
   assert.deepEqual(
     embrace.effects
       .find(({ type, ticks }) => type === 'condition' && ticks?.some(({ condition }) => condition === 'Immobilized'))
@@ -382,6 +382,13 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
     selectedTraitIds: []
   });
   const packet = result.resolvedEvents.find(({ type, actorType }) => type === 'damage' && actorType === 'summon');
+  const rootAction = result.events.find(({ type, skillId }) => type === 'action' && skillId === ID.JACARANDA_ROOT_SLAP);
+  const rootHit = result.resolvedEvents.find(
+    ({ type, skillId }) => type === 'damage' && skillId === ID.JACARANDA_ROOT_SLAP
+  );
+
+  // Root Slap connects 920 ms into its recovery, matching the EVTC packet instead of waiting for animation end.
+  assert.ok(Math.abs(rootHit.at - rootAction.at - 0.92) < 1e-9);
 
   assert.deepEqual(
     [
@@ -395,6 +402,36 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
     ],
     [1868, 1524, 2211, 2211, 400, 0, 1200]
   );
+});
+
+test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
+  const run = (target) =>
+    simulate(["Stalker's Strike"], {
+      target,
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Dagger',
+      stats: { expertise: 0 },
+      selectedTraitIds: []
+    });
+  const strikeDamage = (result) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.STALKERS_STRIKE).damage;
+  const poisonStacks = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.sourceId === ID.STALKERS_STRIKE)
+      .reduce((total, event) => total + event.stacks, 0);
+  const base = run({ defiant: false, conditions: {} });
+  const defiant = run({ defiant: true, conditions: {} });
+
+  assert.equal(poisonStacks(base), 3);
+  assert.equal(poisonStacks(defiant), 3);
+  assert.equal(strikeDamage(defiant), strikeDamage(base));
+
+  for (const condition of ['Cripple', 'Slow', 'Immobilize']) {
+    const impaired = run({ defiant: false, conditions: { [condition]: true } });
+
+    assert.equal(poisonStacks(impaired), 5);
+    assert.equal(strikeDamage(impaired), strikeDamage(base) * 2);
+  }
 });
 
 test('Carrion Devourer packets use its level-80 attributes', () => {

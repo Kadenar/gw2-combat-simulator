@@ -6,6 +6,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/content/professions/revenant/data/ids.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { effectiveRevenantEnergyCost } from '#gw2/content/professions/revenant/energy.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/core/skills/index.js';
 import {
@@ -87,13 +88,14 @@ export function handleImpossibleOddsStrike(
   }
 
   const strike = effectByType(impossible, 'strike');
-  state.traitProcReadyAt.impossibleOdds = task.at + Number(strike.intervalMs || 0) / 1000;
+  if (strike?.type !== 'strike') return;
+  state.traitProcReadyAt.impossibleOdds = task.at + Number(impossible.triggerIntervalMs || 0) / 1000;
   emitSkillDamage(context, {
     cause,
-    at: task.at + Number(strike.atMs || 0) / 1000,
+    at: task.at + Number(effectFirstAtMs(strike) || 0) / 1000,
     name: 'Impossible Odds',
     skillName: 'Impossible Odds',
-    coefficient: Number(strike.coefficient || 0),
+    coefficient: strikeEffectCoefficient(strike),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,

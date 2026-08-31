@@ -47,34 +47,28 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 0.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 4,
-        duration: 15,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 4, duration: 15 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ],
     handlerId: 'necromancer.corruption'
   },
+  // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 6,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
+        ticks: [320, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.5 })),
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
@@ -87,20 +81,22 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 6,
-        hits: 6,
-        atMs: 280,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
+        ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 1 })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 5,
-        stacks: 2
+        ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({
+          atMs,
+          condition: 'Vulnerability',
+          stacks: 2,
+          duration: 5
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -123,130 +119,109 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 3.51,
-        hits: 9,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 8,
-        applications: 9,
-        atMs: 1000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 9 }, (_, index) => ({
+          atMs: 1000 + index * 1000,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 8
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 5,
-        applications: 8,
-        atMs: 2000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 8 }, (_, index) => ({
+          atMs: 2000 + index * 1000,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 5
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 5,
-        applications: 7,
-        atMs: 3000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 7 }, (_, index) => ({
+          atMs: 3000 + index * 1000,
+          condition: 'Torment',
+          stacks: 1,
+          duration: 5
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 4000,
+        ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 5000,
+        ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 6000,
+        ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 7000,
+        ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 8000,
+        ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1,
-        atMs: 9000,
+        ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        atMs: 5000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 5000 + index * 1000,
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 3,
-        applications: 4,
-        atMs: 6000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 6000 + index * 1000,
+          condition: 'Weakness',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -265,22 +240,19 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        applications: 2,
-        atMs: 8000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 8000 + index * 1000,
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 10,
-        atMs: 9000,
+        ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -411,14 +383,10 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 4.800000000000001,
-        hits: 6,
+        ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.8 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
-        atMs: 280,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
@@ -504,36 +472,25 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 10,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 2, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 10,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 2, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 6,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Torment', stacks: 2, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -548,28 +505,19 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 10,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Crippled', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 10,
-        stacks: 5,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Vulnerability', stacks: 5, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 10,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Weakness', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

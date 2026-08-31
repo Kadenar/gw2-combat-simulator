@@ -66,9 +66,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.75,
-        hits: 1,
-        atMs: 840,
+        ticks: [{ atMs: 840, coefficient: 2.75 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
@@ -301,9 +299,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.75,
-        hits: 1,
-        atMs: 840,
+        ticks: [{ atMs: 840, coefficient: 2.75 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
@@ -453,9 +449,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 758,
+        ticks: [{ atMs: 758, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -491,9 +485,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 758,
+        ticks: [{ atMs: 758, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -683,18 +675,13 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -711,18 +698,13 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

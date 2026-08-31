@@ -10,10 +10,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Impact Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -33,10 +34,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 4 }],
         name: 'Finishing Blow',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -48,10 +50,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.25 }],
         name: 'Uppercut (Daredevil skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -83,31 +86,22 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 3,
-        duration: 10,
+        ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 3, duration: 10 }],
         actorType: 'player',
-        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 5,
+        ticks: [{ atMs: 440, condition: 'Slow', stacks: 1, duration: 5 }],
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 2 }],
         actorType: 'player',
-        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -129,10 +123,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.75 }],
         name: 'Reflexive Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -153,10 +148,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.55,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.55 }],
         name: 'Distracting Daggers',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -183,19 +179,18 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Palm Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 6.56,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 2000, coefficient: 6.56 / 2 })),
         name: 'Pulmonary Impact',
         actorType: 'player',
         canCrit: false,
-        atMs: 2000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -217,10 +212,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.28,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 3.28 }],
         name: 'Pulmonary Impact (trait skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -246,11 +242,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 5,
+        ticks: [{ atMs: 120, condition: 'Vulnerability', stacks: 1, duration: 5 }],
         actorType: 'player',
-        atMs: 120,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -264,10 +257,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 3.5 }],
         name: 'Bound',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },

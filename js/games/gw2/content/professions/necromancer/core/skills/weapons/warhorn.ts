@@ -21,9 +21,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 0,
+        ticks: [{ atMs: 0, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -36,9 +34,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 500,
+        ticks: [{ atMs: 500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -51,9 +47,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 1000,
+        ticks: [{ atMs: 1000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -66,9 +60,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 1500,
+        ticks: [{ atMs: 1500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -81,9 +73,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 2000,
+        ticks: [{ atMs: 2000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -96,9 +86,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 2500,
+        ticks: [{ atMs: 2500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -111,9 +99,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 3000,
+        ticks: [{ atMs: 3000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -126,9 +112,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 3500,
+        ticks: [{ atMs: 3500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -141,9 +125,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 4000,
+        ticks: [{ atMs: 4000, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
@@ -156,9 +138,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 4500,
+        ticks: [{ atMs: 4500, coefficient: 0 }],
         name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,

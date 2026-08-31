@@ -127,11 +127,9 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 3 }],
         name: "Darkrazor's Daring",
         actorType: 'player',
-        atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -377,11 +375,9 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 3 }],
         name: "Darkrazor's Daring",
         actorType: 'player',
-        atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

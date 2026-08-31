@@ -3,6 +3,11 @@ import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { snapshotRevenantState } from '#gw2/content/professions/revenant/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  strikeEffectCoefficient
+} from '#gw2/platform/engine/effects/timelines.js';
 /**
  * Revenant spear recharge and Crushing Abyss mechanics.
  *
@@ -60,9 +65,12 @@ function emitAbyssalRazePackets(
     throw new Error('Abyssal Raze is missing its declarative effects.');
   }
 
+  const baseCoefficient = strikeEffectCoefficient(strike);
   const coefficient = triggeredBy
-    ? Number(strike.coefficient || 0)
-    : Number(strike.coefficient || 0) * (1 + Number(strike.damageIncreasePerStack || 0) * crushingAbyssStacks);
+    ? baseCoefficient
+    : baseCoefficient * (1 + Number(strike.damageIncreasePerStack || 0) * crushingAbyssStacks);
+  const baseTormentTick = conditionEffectTicks(baseTorment)[0];
+  const crushingTormentTick = conditionEffectTicks(crushingTorment)[0];
   const common = {
     at,
     source: 'revenant',
@@ -88,8 +96,8 @@ function emitAbyssalRazePackets(
 
     name: 'Abyssal Raze — Torment',
     condition: 'Torment',
-    stacks: Number(baseTorment.stacks || 0),
-    duration: Number(baseTorment.duration || 0)
+    stacks: Number(baseTormentTick?.stacks || 0),
+    duration: Number(baseTormentTick?.duration || 0)
   });
   if (crushingAbyssStacks > 0) {
     emitSkillCondition(context, {
@@ -97,8 +105,8 @@ function emitAbyssalRazePackets(
 
       name: 'Abyssal Raze — Crushing Abyss Torment',
       condition: 'Torment',
-      stacks: Number(crushingTorment.stacks || 0) * crushingAbyssStacks,
-      duration: Number(crushingTorment.duration || 0),
+      stacks: Number(crushingTormentTick?.stacks || 0) * crushingAbyssStacks,
+      duration: Number(crushingTormentTick?.duration || 0),
       crushingAbyssStacks
     });
   }
@@ -108,7 +116,7 @@ function emitAbyssalRazePackets(
 export function castAbyssalRaze(context: RevenantCastContext, skill: RevenantSkill): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
-  const at = context.start + Number(strike.atMs || 0) / 1000;
+  const at = context.start + Number(effectFirstAtMs(strike) || 0) / 1000;
   const stacks = crushingAbyssStacksAt(professionCoreState(context), at);
   emitAbyssalRazePackets(context, skill, at, stacks);
   context.tasks.schedule({

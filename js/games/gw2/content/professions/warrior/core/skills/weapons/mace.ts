@@ -120,9 +120,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 2.25 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -137,10 +135,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 6,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 10, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

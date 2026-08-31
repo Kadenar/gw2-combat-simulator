@@ -34,24 +34,25 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.1 }],
         name: 'Deadly Aim',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 2, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     kneelSkill: true
@@ -80,24 +81,25 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.75 }],
         name: 'Brutal Aim',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -109,17 +111,18 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: "Skirmisher's Shot",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -137,17 +140,18 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.3 }],
         name: "Death's Retreat",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -159,12 +163,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.8,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 2.8 / 2 })),
         name: 'Double Tap',
         actorType: 'player',
-        atMs: 260,
-        intervalMs: 260,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -184,17 +185,18 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.3 }],
         name: "Spotter's Shot",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -219,12 +221,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 222 + index * 222, coefficient: 2.25 / 3 })),
         name: 'Three Round Burst',
         actorType: 'player',
-        atMs: 222,
-        intervalMs: 222,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -254,17 +253,19 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.67,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.67 }],
         name: "Death's Judgment — Packet 1",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.32,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.32 }],
         name: 'Damage on Unmarked Foes',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Rifle',

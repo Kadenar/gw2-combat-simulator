@@ -11,21 +11,21 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5999999999999996,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 173.333333333333 + index * 173.333333333333,
+          coefficient: 3.5999999999999996 / 3
+        })),
         name: 'Venomous Volley',
         actorType: 'player',
-        atMs: 173.333333333333,
-        intervalMs: 173.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -37,17 +37,18 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.8 }],
         name: 'Spinning Axe',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -59,10 +60,10 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Axe',
@@ -76,10 +77,10 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Axe',
@@ -93,10 +94,10 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Axe',
@@ -110,17 +111,18 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.8 }],
         name: 'Spinning Axe',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -133,24 +135,25 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Cunning Salvo',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Axe',

@@ -149,12 +149,10 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 2.4 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear',
-        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

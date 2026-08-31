@@ -17,10 +17,10 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Slow', stacks: 1, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -43,32 +43,23 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.5 / 2 })),
         name: 'Eternal Night',
         actorType: 'player',
-        atMs: 360,
-        intervalMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 360, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
-        atMs: 360,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 4,
+        ticks: [{ atMs: 680, condition: 'Weakness', stacks: 1, duration: 4 }],
         actorType: 'player',
-        atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -94,31 +85,23 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.66,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 1.66 }],
         name: 'Grasping Shadows',
         actorType: 'player',
-        atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 1000, condition: 'Crippled', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 6,
+        ticks: [{ atMs: 1000, condition: 'Torment', stacks: 2, duration: 6 }],
         actorType: 'player',
-        atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -141,10 +124,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: "Dawn's Repose",
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -190,11 +174,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 3000, coefficient: 2 }],
         name: 'Mind Shock',
         actorType: 'player',
-        atMs: 3000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         comboFinishers: [
@@ -249,12 +231,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 4.5,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 120.24 + index * 120.24, coefficient: 4.5 / 3 })),
         name: 'Shadowfall',
         actorType: 'player',
-        atMs: 120.24,
-        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -287,12 +266,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.11,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 400 + index * 1000, coefficient: 1.11 / 5 })),
         name: 'Well of Sorrow',
         actorType: 'player',
-        atMs: 400,
-        intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -322,10 +298,10 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -340,12 +316,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0 + index * 1000, coefficient: 5 / 5 })),
         name: 'Well of Tears',
         actorType: 'player',
-        atMs: 0,
-        intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -422,21 +395,16 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.075,
-        hits: 1,
+        ticks: [{ atMs: 566.666666666667, coefficient: 1.075 }],
         name: 'Haunt Shot',
         actorType: 'player',
-        atMs: 566.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 6,
+        ticks: [{ atMs: 566.666666666667, condition: 'Torment', stacks: 1, duration: 6 }],
         actorType: 'player',
-        atMs: 566.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

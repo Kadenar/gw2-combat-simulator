@@ -34,10 +34,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 520, coefficient: 1 }],
         name: 'Crashing Courage — Initial Damage',
-        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -187,10 +185,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 520, coefficient: 1 }],
         name: 'Crashing Courage — Initial Damage',
-        atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -222,21 +218,16 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 440, coefficient: 1.5 }],
         name: 'Rushing Justice — Impact Damage',
-        atMs: -40,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4,
+        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 4 }],
         name: 'Rushing Justice — Initial Burning',
-        atMs: -40,
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ]

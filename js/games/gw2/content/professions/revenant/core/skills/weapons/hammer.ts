@@ -21,11 +21,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
+        ticks: [{ atMs: 560, coefficient: 1.8 }],
         name: 'Field of the Mists',
         actorType: 'player',
-        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -85,11 +83,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 3.2,
-        hits: 1,
+        ticks: [{ atMs: 1639, coefficient: 3.2 }],
         name: 'Drop the Hammer',
         actorType: 'player',
-        atMs: 1639,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -125,11 +121,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 3.5,
-        hits: 1,
+        ticks: [{ atMs: 561, coefficient: 3.5 }],
         name: 'Coalescence of Ruin',
         actorType: 'player',
-        atMs: 561,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -138,11 +132,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
         type: 'strike',
-        coefficient: 3.5,
-        hits: 1,
+        ticks: [{ atMs: 1521, coefficient: 3.5 }],
         name: 'Coalescence of Ruin',
         actorType: 'player',
-        atMs: 1521,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -158,11 +150,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
+        ticks: [{ atMs: 481, coefficient: 0.9 }],
         name: 'Hammer Bolt',
         actorType: 'player',
-        atMs: 481,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [

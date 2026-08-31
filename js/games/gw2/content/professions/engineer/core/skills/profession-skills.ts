@@ -386,23 +386,33 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     implemented: true,
     castTimeMs: 500,
     cooldown: 25,
+    // The impact starts a three-second fire field; its later pulses burn once per second without extra strikes.
     effects: [
       {
         type: 'strike',
-        coefficient: 2.0999999999999996,
-        hits: 3,
-        atMs: 120.24,
-        intervalMs: 120.24,
+        ticks: [{ atMs: 120.24, coefficient: 0.7 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         name: 'Throw Napalm',
-        actorType: 'player'
+        actorType: 'player',
+        comboFields: [
+          {
+            ownerId: 'engineer',
+            fieldType: 'Fire',
+            duration: 3,
+            startAnchor: 'event',
+            inclusiveExpiry: true
+          }
+        ]
       },
       {
         type: 'condition',
         condition: 'Burning',
         stacks: 1,
         duration: 4,
+        atMs: 120.24,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         actorType: 'player'
       },
       {
@@ -410,6 +420,11 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         condition: 'Burning',
         stacks: 1,
         duration: 2,
+        applications: 3,
+        atMs: 1120.24,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         actorType: 'player'
       }
     ],
@@ -641,9 +656,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 480,
+        ticks: [{ atMs: 480, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Static Shock',

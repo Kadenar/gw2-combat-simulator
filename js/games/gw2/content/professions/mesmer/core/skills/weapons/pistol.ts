@@ -71,12 +71,10 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
+        ticks: [{ atMs: 362, coefficient: 0.2 }],
         name: 'Damage',
         actorType: 'player',
         weapon: 'pistol',
-        atMs: 362,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

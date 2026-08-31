@@ -1006,10 +1006,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 5, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
@@ -1035,10 +1032,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 4,
-        duration: 10,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 4, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
@@ -1148,10 +1142,8 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        ticks: [0, 1500, 3000, 4500, 6000].map((atMs) => ({
-          atMs,
-          coefficient: 0.2
-        })),
+        // EVTC records one projectile impact about 920 ms after each command, not one strike per control pulse.
+        ticks: [{ atMs: 920, coefficient: 0.16 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -1195,8 +1187,10 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
+        // The root connects before the pet's recovery ends, allowing the last pre-swap attack to land.
+        ticks: [{ atMs: 920, coefficient: 0.4 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -1267,10 +1261,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1,
-        atMs: 1040,
+        ticks: [{ atMs: 1040, condition: 'Immobilized', stacks: 1, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -1567,10 +1558,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Confusion',
-        stacks: 4,
-        duration: 8,
-        atMs: 600,
+        ticks: [{ atMs: 600, condition: 'Confusion', stacks: 4, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',
@@ -1578,10 +1566,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 10,
-        atMs: 600,
+        ticks: [{ atMs: 600, condition: 'Torment', stacks: 3, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         source: 'ranger-pet',

@@ -80,34 +80,30 @@ const GLADIATORS_DEFENSE_EFFECTS = Object.freeze([
 const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
   {
     type: 'strike',
-    coefficient: 2.5,
-    hits: 1,
+    ticks: [{ atMs: 880, coefficient: 2.5 }],
     name: 'Twin Moon Sweep — Player',
     actorType: 'player',
-    atMs: 880,
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     metadata: { affinityOnHit: true }
   },
   {
     type: 'strike',
-    coefficient: 2.5,
-    hits: 1,
+    ticks: [{ atMs: 880, coefficient: 2.5 }],
     name: 'Twin Moon Sweep — Fragment',
     actorType: 'player',
-    atMs: 880,
     timingAnchor: 'castStart',
     timingScale: 'fixed'
   },
   {
     type: 'condition',
-    condition: 'Bleeding',
-    stacks: 2,
-    duration: 3,
-    applications: 2,
-    intervalMs: 0,
+    ticks: Array.from({ length: 2 }, (_, index) => ({
+      atMs: 880 + index * 0,
+      condition: 'Bleeding',
+      stacks: 2,
+      duration: 3
+    })),
     actorType: 'player',
-    atMs: 880,
     timingAnchor: 'castStart',
     timingScale: 'fixed'
   },
@@ -124,36 +120,30 @@ const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
   },
   {
     type: 'condition',
-    condition: 'Immobilized',
-    stacks: 1,
-    duration: 2,
+    ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
     actorType: 'player',
-    atMs: 880,
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     metadata: { legendId: LEGEND.ASSASSIN }
   },
   {
     type: 'strike',
-    coefficient: 0.4,
-    hits: 2,
-    intervalMs: 0,
+    ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 1402 + index * 0, coefficient: 0.4 / 2 })),
     name: 'Twin Moon Sweep — Shatter',
     actorType: 'player',
-    atMs: 1402,
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     metadata: { legendId: LEGEND.DEMON }
   },
   {
     type: 'condition',
-    condition: 'Confusion',
-    stacks: 3,
-    duration: 3,
-    applications: 2,
-    intervalMs: 0,
+    ticks: Array.from({ length: 2 }, (_, index) => ({
+      atMs: 1402 + index * 0,
+      condition: 'Confusion',
+      stacks: 3,
+      duration: 3
+    })),
     actorType: 'player',
-    atMs: 1402,
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     metadata: { legendId: LEGEND.DEMON }
@@ -355,33 +345,25 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 1.98,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 1.98 }],
         name: 'Release Potential: Mesmer',
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 3,
+        ticks: [{ atMs: 280, condition: 'Torment', stacks: 2, duration: 3 }],
         durationPerAffinity: 0.1,
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 8,
+        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 8 }],
         durationReductionPerAffinity: 0.15,
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: { target: 'self' }
@@ -406,21 +388,16 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        coefficient: 1.98,
-        hits: 1,
+        ticks: [{ atMs: 560, coefficient: 1.98 }],
         name: 'Release Potential: Dervish',
         actorType: 'player',
-        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 6,
+        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 3, duration: 6 }],
         actorType: 'player',
-        atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: { legendId: LEGEND.DEMON }
@@ -467,23 +444,17 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 800, condition: 'Crippled', stacks: 1, duration: 2 }],
         durationPerAffinity: 0.2,
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 800, condition: 'Immobilized', stacks: 1, duration: 2 }],
         durationPerAffinity: 0.2,
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

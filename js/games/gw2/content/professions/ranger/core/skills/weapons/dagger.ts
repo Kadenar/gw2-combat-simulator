@@ -40,14 +40,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         condition: 'Poisoned',
         stacks: 3,
         duration: 8
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 8
       }
     ],
+    // Movement impairment adds the remaining strike and Poison bonuses during resolution.
     quicknessCastTimeMs: 760
   },
   [ID.LEADING_SWIPE]: {

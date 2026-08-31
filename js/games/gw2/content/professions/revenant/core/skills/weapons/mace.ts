@@ -12,11 +12,9 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
+        ticks: [{ atMs: 440, coefficient: 0.6 }],
         name: 'Manifest Toxin — Packet 1',
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         // Once Manifest Toxin launches, its strike and Poison survive a later animation cancel.
@@ -24,11 +22,8 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 12,
+        ticks: [{ atMs: 440, condition: 'Poisoned', stacks: 1, duration: 12 }],
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -43,21 +38,16 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 0.4 }],
         name: 'Anguish Swipe',
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -72,21 +62,16 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.35,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 0.35 }],
         name: 'Misery Swipe',
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -109,31 +94,23 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 1 }],
         name: 'Echoing Eruption',
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 4,
-        duration: 5,
+        ticks: [{ atMs: 800, condition: 'Torment', stacks: 4, duration: 5 }],
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 800, condition: 'Weakness', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -165,23 +142,18 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 0.5 }],
         name: 'Initial Strike',
         actorType: 'player',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 1480 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Pulsing Strikes',
         actorType: 'player',
-        atMs: 1480,
-        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -189,23 +161,20 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 3,
+        ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
         actorType: 'player',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1,
-        applications: 3,
-        atMs: 1480,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 1480 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 1
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',

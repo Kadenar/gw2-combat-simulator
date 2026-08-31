@@ -45,20 +45,15 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.02,
-        hits: 1,
+        ticks: [{ atMs: 450, coefficient: 1.02 }],
         name: 'Sun Ripper (non-holosmith)',
-        atMs: 450,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 450,
+        ticks: [{ atMs: 450, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -72,20 +67,15 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.96,
-        hits: 1,
+        ticks: [{ atMs: 350, coefficient: 0.96 }],
         name: 'Sun Edge (non-holosmith)',
-        atMs: 350,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 350,
+        ticks: [{ atMs: 350, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -100,10 +90,8 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.65,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 1.65 }],
         name: 'Gleam Saber (non-holosmith)',
-        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -124,10 +112,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 2,
-        atMs: 34,
-        intervalMs: 51,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 34 + index * 51, coefficient: 0.8 / 2 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Refraction Cutter Blade',
@@ -146,12 +131,12 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        applications: 2,
-        atMs: 34,
-        intervalMs: 51,
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 34 + index * 51,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 4
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

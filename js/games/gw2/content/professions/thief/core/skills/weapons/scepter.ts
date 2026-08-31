@@ -11,17 +11,18 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.33 }],
         name: 'Shadow Bolt',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -33,22 +34,19 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 2.31,
-        hits: 7,
+        ticks: Array.from({ length: 7 }, (_, index) => ({
+          atMs: 274.285714285714 + index * 274.285714285714,
+          coefficient: 2.31 / 7
+        })),
         name: 'Endless Night',
         actorType: 'player',
-        atMs: 274.285714285714,
-        intervalMs: 274.285714285714,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 1.5,
+        ticks: [{ atMs: 274.285714285714, condition: 'Slow', stacks: 1, duration: 1.5 }],
         actorType: 'player',
-        atMs: 274.285714285714,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -109,31 +107,25 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 1,
+        ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 1,
+        ticks: [{ atMs: 640, coefficient: 0.45 }],
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 1,
+        ticks: [{ atMs: 1040, coefficient: 0.45 }],
         name: 'Triple Bolt',
         actorType: 'player',
-        atMs: 1040,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -158,12 +150,12 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.35,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 333.333333333333 + index * 333.333333333333,
+          coefficient: 1.35 / 3
+        })),
         name: 'Triple Threat',
         actorType: 'player',
-        atMs: 333.333333333333,
-        intervalMs: 333.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -190,21 +182,17 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.375,
-        hits: 1,
+        ticks: [{ atMs: 320, coefficient: 0.375 }],
         name: 'Double Bolt',
         actorType: 'player',
-        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.375,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 0.375 }],
         name: 'Double Bolt',
         actorType: 'player',
-        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -228,51 +216,38 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 640, coefficient: 1 }],
         name: 'Initial Attack',
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 0.5 }],
         name: 'Secondary Attack',
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 640, condition: 'Chilled', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 5,
+        ticks: [{ atMs: 640, condition: 'Poisoned', stacks: 1, duration: 5 }],
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 5,
+        ticks: [{ atMs: 800, condition: 'Torment', stacks: 3, duration: 5 }],
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -288,17 +263,18 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.33 }],
         name: 'Measured Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     movementSkill: true,
@@ -315,12 +291,9 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 245 + index * 245, coefficient: 1.6 / 8 })),
         name: 'Shadowsquall',
         actorType: 'player',
-        atMs: 245,
-        intervalMs: 245,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -352,10 +325,11 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.77,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.77 }],
         name: 'Shadow Sap',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',

@@ -16,9 +16,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 600,
+        ticks: [{ atMs: 600, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
@@ -28,10 +26,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 5,
-        atMs: 600,
+        ticks: [{ atMs: 600, condition: 'Burning', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -73,27 +68,19 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 0.44,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 0.44 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 6,
-        duration: 12,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 6, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 3,
-        atMs: 560,
+        ticks: [{ atMs: 560, condition: 'Immobilized', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -147,18 +134,13 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        coefficient: 1.32,
-        hits: 3,
-        atMs: 240,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 240, coefficient: 1.32 / 3 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 3,
-        atMs: 240,
+        ticks: [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

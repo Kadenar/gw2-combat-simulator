@@ -360,9 +360,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 441.047619047619,
+        ticks: [{ atMs: 441.047619047619, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

@@ -2,6 +2,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/content/professions/guardian/specializations/luminary/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 /**
@@ -78,13 +79,15 @@ function emitForgeTransition(
 
 /** Returns the primary strike timestamp so linked bonuses follow its packet instead of cast completion. */
 function radiantWeaponImpactAt(context: GuardianCastContext, skill: GuardianSkill): number {
-  const strike = skill.effects?.find((effect) => effect.type === 'strike' && Number(effect.coefficient) > 0);
-  if (strike?.atMs == null) return context.effectiveEnd;
+  const strike = skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
+  if (strike?.type !== 'strike') return context.effectiveEnd;
+  const atMs = effectFirstAtMs(strike);
+  if (atMs == null) return context.effectiveEnd;
   const runtimeCastMs = (context.fullEnd - context.start) * 1000;
   const impactMs =
     strike.timingScale === 'cast'
-      ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(strike.atMs))
-      : Number(strike.atMs);
+      ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(atMs))
+      : Number(atMs);
   return context.start + impactMs / 1000;
 }
 

@@ -11,12 +11,12 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 7.199999999999999,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 120.24 + index * 120.24,
+          coefficient: 7.199999999999999 / 3
+        })),
         name: 'Shadow Assault',
         actorType: 'player',
-        atMs: 120.24,
-        intervalMs: 120.24,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -30,17 +30,19 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Flanking Dive — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 2.625,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.625 }],
         name: 'Damage When Flanking',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -52,17 +54,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Tow Line',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -88,17 +91,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 0.55,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.55 }],
         name: 'Piercing Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -110,10 +114,11 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 0.7,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.7 }],
         name: 'Deluge',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -125,24 +130,26 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.33 }],
         name: 'Missile Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.33 }],
         name: 'Escape — Packet 2',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -154,17 +161,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.75 }],
         name: 'Crippling Shot (thief harpoon gun skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -176,10 +184,11 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.75 }],
         name: 'Ink Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'blind',
@@ -209,10 +218,11 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.05,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.05 }],
         name: 'Stab (thief spear skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -224,10 +234,11 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.15,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.15 }],
         name: 'Jab (thief skill)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -239,17 +250,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.33 }],
         name: 'Poison Tip Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -261,28 +273,29 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 16,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({
+          atMs: 125.333333333333 + index * 125.333333333333,
+          coefficient: 16 / 8
+        })),
         name: 'Nine-Tailed Strike — Packet 1',
         actorType: 'player',
-        atMs: 125.333333333333,
-        intervalMs: 125.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Final Strike Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 9,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 9 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -301,17 +314,17 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -356,17 +369,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.4 }],
         name: 'Trail of Knives (Doppelganger)',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -385,12 +399,9 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 10.8,
-        hits: 6,
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 83 + index * 83, coefficient: 10.8 / 6 })),
         name: 'Throw Gunk',
         actorType: 'player',
-        atMs: 83,
-        intervalMs: 83,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -411,17 +422,18 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.25 }],
         name: 'Hooked Spear',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 10,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 10 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -433,10 +445,11 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.5 }],
         name: 'Burst of Shadows',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'blind',

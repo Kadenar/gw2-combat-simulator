@@ -85,10 +85,10 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 14.399999999999999,
-        hits: 6,
-        atMs: 86.666666666667,
-        intervalMs: 86.666666666667,
+        ticks: Array.from({ length: 6 }, (_, index) => ({
+          atMs: 86.666666666667 + index * 86.666666666667,
+          coefficient: 14.399999999999999 / 6
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Superconducting Signet',
@@ -128,9 +128,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.2,
-        hits: 1,
-        atMs: 601,
+        ticks: [{ atMs: 601, coefficient: 2.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Jade Mortar',
@@ -139,10 +137,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 6,
-        atMs: 601,
+        ticks: [{ atMs: 601, condition: 'Burning', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'summon',
@@ -353,10 +348,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 2,
-        atMs: 180,
-        intervalMs: 180,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 0.8 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Twin Strike (Mech)',
@@ -449,9 +441,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 684,
+        ticks: [{ atMs: 684, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Core Reactor Shot',
@@ -511,10 +501,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 5,
-        atMs: 0,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0 + index * 1000, coefficient: 1.5 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Discharge Array',
@@ -522,36 +509,36 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Slow',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        condition: 'Confusion',
-        stacks: 2,
-        duration: 3,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Confusion',
+          stacks: 2,
+          duration: 3
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'summon'
@@ -567,10 +554,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 4.75,
-        hits: 5,
-        atMs: 440,
-        intervalMs: 440,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 440 + index * 440, coefficient: 4.75 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Jade Buster Cannon',
@@ -578,12 +562,12 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        applications: 5,
-        atMs: 440,
-        intervalMs: 440,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 440 + index * 440,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 6
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         actorType: 'summon'

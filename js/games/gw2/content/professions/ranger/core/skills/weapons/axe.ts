@@ -85,19 +85,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 12,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 3, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 4,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Chilled', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -167,10 +161,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 12,
-        duration: 10,
-        atMs: 2600,
+        ticks: [{ atMs: 2600, condition: 'Vulnerability', stacks: 12, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

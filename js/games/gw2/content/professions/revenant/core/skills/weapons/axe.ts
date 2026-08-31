@@ -47,21 +47,16 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 640, coefficient: 0.75 }],
         name: 'Temporal Rift',
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 4,
-        duration: 10,
+        ticks: [{ atMs: 640, condition: 'Torment', stacks: 4, duration: 10 }],
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },

@@ -32,19 +32,14 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.75,
-        hits: 1,
-        atMs: 720,
+        ticks: [{ atMs: 720, coefficient: 2.75 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 5,
-        atMs: 720,
+        ticks: [{ atMs: 720, condition: 'Vulnerability', stacks: 5, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -147,10 +142,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 4,
-        atMs: 480,
+        ticks: [{ atMs: 480, condition: 'Weakness', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -185,9 +177,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 480,
+        ticks: [{ atMs: 480, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -210,9 +200,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -228,10 +216,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 5,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Vulnerability', stacks: 5, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

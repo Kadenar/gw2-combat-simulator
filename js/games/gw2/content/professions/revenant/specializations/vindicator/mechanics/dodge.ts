@@ -14,6 +14,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { revenantCombatActive } from '#gw2/content/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/content/professions/revenant/specializations/vindicator/skills/index.js';
 import type {
@@ -101,9 +102,9 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
   const profile = selectedDodgeSkill(context);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike');
   // Guard against a missing or zero-damage entry so a misconfigured dodge produces no event.
-  if (!effect || !(Number(effect.coefficient) > 0)) return;
+  if (effect?.type !== 'strike' || !(strikeEffectCoefficient(effect) > 0)) return;
   // Strike timestamp is relative to the start of the dodge animation, not the end of the cast window.
-  const at = start + Math.max(0, Number(effect.atMs || 0)) / 1000;
+  const at = start + Math.max(0, Number(effectFirstAtMs(effect) || 0)) / 1000;
   // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
     hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
@@ -121,8 +122,9 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
     skillName: dodge,
     name: dodge,
     coefficient:
-      Number(effect.coefficient) * (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier || 1)) : 1),
-    hits: Number(effect.hits || 1),
+      strikeEffectCoefficient(effect) *
+      (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier || 1)) : 1),
+    hits: strikeEffectTicks(effect).length,
     hitIndex: 1,
     totalHits: 1,
     skillWeapon: 'Unequipped',

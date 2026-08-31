@@ -32,11 +32,9 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 200, coefficient: 1.5 }],
         name: 'Front damage',
         actorType: 'player',
-        atMs: 200,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -93,24 +91,25 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.9 }],
         name: 'Dancing Dagger',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -124,10 +123,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.8 }],
         name: 'Shadow Shot',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'blind',
@@ -151,21 +151,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 160, coefficient: 0.8 }],
         name: 'Wild Strike',
         actorType: 'player',
-        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 3,
+        ticks: [{ atMs: 160, condition: 'Bleeding', stacks: 2, duration: 3 }],
         actorType: 'player',
-        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -180,8 +175,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Heartseeker',
         actorType: 'player',
         coefficientModifiers: [
@@ -195,7 +189,9 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
             threshold: 0.5,
             multiplier: 1.6
           }
-        ]
+        ],
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -208,21 +204,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 1.2 }],
         name: 'Lotus Strike',
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 2,
-        duration: 5,
+        ticks: [{ atMs: 280, condition: 'Poisoned', stacks: 2, duration: 5 }],
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -236,21 +227,18 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.63,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 180 + index * 180, coefficient: 0.63 / 2 })),
         name: 'Twisting Fangs',
         actorType: 'player',
-        atMs: 180,
-        intervalMs: 180,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 10,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 10 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     requiredMainHand: 'Dagger',
@@ -264,10 +252,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.6 }],
         name: 'Cloak and Dagger',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'buff',
@@ -277,10 +266,10 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   }

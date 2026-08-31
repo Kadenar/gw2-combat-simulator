@@ -90,10 +90,8 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
         // EVTC samples land about 1.7 seconds after the cast completes, independent of cast-speed scaling.
-        atMs: 1700,
+        ticks: [{ atMs: 1700, coefficient: 1.33 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Orbital Strike',
@@ -136,12 +134,12 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
-        applications: 5,
-        atMs: 0,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player',

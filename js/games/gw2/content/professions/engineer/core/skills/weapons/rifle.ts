@@ -13,9 +13,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 0.6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rifle Burst',
@@ -35,9 +33,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 600,
+        ticks: [{ atMs: 600, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rifle Burst Grenade',
@@ -56,9 +52,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        atMs: 518,
+        ticks: [{ atMs: 518, coefficient: 1.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Net Shot',
@@ -69,20 +63,14 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 8,
-        atMs: 518,
+        ticks: [{ atMs: 518, condition: 'Vulnerability', stacks: 8, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 4,
-        atMs: 518,
+        ticks: [{ atMs: 518, condition: 'Immobilized', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -97,9 +85,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
-        atMs: 117,
+        ticks: [{ atMs: 117, coefficient: 0.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Leap Damage',
@@ -107,9 +93,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
-        atMs: 1000,
+        ticks: [{ atMs: 1000, coefficient: 2.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Landing Damage',
@@ -117,10 +101,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 3,
-        duration: 7,
-        atMs: 1000,
+        ticks: [{ atMs: 1000, condition: 'Vulnerability', stacks: 3, duration: 7 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -134,9 +115,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 2.2,
-        hits: 1,
-        atMs: 368,
+        ticks: [{ atMs: 368, coefficient: 2.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Maximum Damage',
@@ -144,10 +123,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 9,
-        atMs: 368,
+        ticks: [{ atMs: 368, condition: 'Bleeding', stacks: 3, duration: 9 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -170,9 +146,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 451,
+        ticks: [{ atMs: 451, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Overcharged Shot',

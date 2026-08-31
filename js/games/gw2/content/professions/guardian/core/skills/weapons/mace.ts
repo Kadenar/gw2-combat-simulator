@@ -53,10 +53,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 3.25,
-        hits: 5,
-        atMs: 750,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 750 + index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

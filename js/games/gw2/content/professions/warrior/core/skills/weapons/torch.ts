@@ -20,27 +20,19 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 0.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Burning', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -62,9 +54,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 5480,
+        ticks: [{ atMs: 5480, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true

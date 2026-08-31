@@ -12,10 +12,11 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Scorpion Wire',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -64,21 +65,23 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 10,
-        applications: 10,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 10 }, (_, index) => ({
+          atMs: index * 1000,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 10
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: index * 1000,
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -148,17 +151,17 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 10 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -343,24 +346,25 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.33 }],
         name: 'Dagger Storm',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 7,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 7 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -372,10 +376,10 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -387,10 +391,10 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Chilled', stacks: 1, duration: 1 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -416,24 +420,26 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.25 }],
         name: 'Initial Impact Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Pulse Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 2, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -454,9 +460,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        atMs: 0,
+        ticks: [{ atMs: 0, coefficient: 0.5 }],
         name: 'Thousand Needles — Initial Strike',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -475,43 +479,40 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 3,
-        atMs: 0,
+        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 8,
-        atMs: 0,
-        applications: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 8
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 5,
-        atMs: 0,
-        applications: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Bleeding',
+          stacks: 2,
+          duration: 5
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        atMs: 0,
-        applications: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

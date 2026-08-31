@@ -28,9 +28,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        atMs: 2760,
+        ticks: [{ atMs: 2760, coefficient: 3 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: "Big Ol' Bomb",
@@ -70,9 +68,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 760,
+        ticks: [{ atMs: 760, coefficient: 2.5 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Galvanic Bomb',
@@ -84,11 +80,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
       },
       {
         type: 'condition',
-        condition: 'Confusion',
-        stacks: 6,
-        duration: 8,
+        ticks: [{ atMs: 760, condition: 'Confusion', stacks: 6, duration: 8 }],
         actorType: 'player',
-        atMs: 760,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -125,10 +118,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 4,
-        atMs: 760,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 1 / 4 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Fire Bomb',
@@ -140,23 +130,20 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 5,
+        ticks: [{ atMs: 760, condition: 'Burning', stacks: 2, duration: 5 }],
         actorType: 'player',
-        atMs: 760,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        applications: 3,
-        atMs: 1760,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 1760 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 2
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player',
@@ -185,9 +172,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 1000,
+        ticks: [{ atMs: 1000, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Bomb',
@@ -217,9 +202,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 1760,
+        ticks: [{ atMs: 1760, coefficient: 1.5 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Magnetic Bomb',

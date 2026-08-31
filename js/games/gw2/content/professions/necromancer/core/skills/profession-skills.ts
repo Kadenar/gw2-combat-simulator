@@ -67,91 +67,61 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [
       {
         type: 'strike',
-        coefficient: 3.825,
-        hits: 9,
-        atMs: 222,
-        intervalMs: 222,
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 222 + index * 222, coefficient: 3.825 / 9 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 222,
+        ticks: [{ atMs: 222, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 444,
+        ticks: [{ atMs: 444, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 666,
+        ticks: [{ atMs: 666, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 888,
+        ticks: [{ atMs: 888, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 1110,
+        ticks: [{ atMs: 1110, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 1332,
+        ticks: [{ atMs: 1332, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 1554,
+        ticks: [{ atMs: 1554, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 1776,
+        ticks: [{ atMs: 1776, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        atMs: 1998,
+        ticks: [{ atMs: 1998, condition: 'Bleeding', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -199,9 +169,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 520,
+        ticks: [{ atMs: 520, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -214,9 +182,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 1750,
+        ticks: [{ atMs: 1750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -229,9 +195,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 2750,
+        ticks: [{ atMs: 2750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -244,9 +208,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 3750,
+        ticks: [{ atMs: 3750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -259,9 +221,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        atMs: 4750,
+        ticks: [{ atMs: 4750, coefficient: 0 }],
         name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
@@ -336,9 +296,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [
       {
         type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
-        atMs: 1000,
+        ticks: [{ atMs: 1000, coefficient: 0.33 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'summon',
@@ -347,9 +305,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       },
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        atMs: 6000,
+        ticks: [{ atMs: 6000, coefficient: 1.25 }],
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'summon',
@@ -389,45 +345,31 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 12,
-        atMs: 200,
+        ticks: [{ atMs: 200, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 12,
-        atMs: 1250,
+        ticks: [{ atMs: 1250, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 12,
-        atMs: 2250,
+        ticks: [{ atMs: 2250, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 12,
-        atMs: 3250,
+        ticks: [{ atMs: 3250, condition: 'Torment', stacks: 2, duration: 12 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
-        atMs: 4250,
+        ticks: [{ atMs: 4250, coefficient: 1.25 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

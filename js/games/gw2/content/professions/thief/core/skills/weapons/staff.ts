@@ -11,21 +11,21 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.22,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 111.333333333333 + index * 111.333333333333,
+          coefficient: 2.22 / 3
+        })),
         name: 'Weakening Whirl',
         actorType: 'player',
-        atMs: 111.333333333333,
-        intervalMs: 111.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     comboFinishers: [
@@ -44,10 +44,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.9 }],
         name: 'Staff Bash',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -60,10 +61,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.65 }],
         name: 'Hook Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -86,21 +88,21 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.1,
-        hits: 4,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 166.666666666667 + index * 166.666666666667,
+          coefficient: 2.1 / 4
+        })),
         name: 'Punishing Strikes',
         actorType: 'player',
-        atMs: 166.666666666667,
-        intervalMs: 166.666666666667,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 4,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 4, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     comboFinishers: [
@@ -119,17 +121,18 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Debilitating Arc',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -141,10 +144,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.25 }],
         name: 'Vault',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -156,10 +160,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.85 }],
         name: 'Staff Strike',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -171,12 +176,12 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 173.333333333333 + index * 173.333333333333,
+          coefficient: 1.8 / 3
+        })),
         name: 'Dust Strike',
         actorType: 'player',
-        atMs: 173.333333333333,
-        intervalMs: 173.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -197,10 +202,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.25 }],
         name: 'Helmet Breaker',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',

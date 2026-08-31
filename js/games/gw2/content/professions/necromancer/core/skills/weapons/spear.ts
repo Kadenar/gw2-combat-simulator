@@ -9,8 +9,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.8,
-        hits: 1,
+        ticks: [{ atMs: 760, coefficient: 3.8 }],
         comboFinishers: [
           {
             ownerId: 'necromancer',
@@ -19,7 +18,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -34,10 +32,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 3,
-        atMs: 760,
+        ticks: [{ atMs: 760, condition: 'Weakness', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -60,9 +55,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 480,
+        ticks: [{ atMs: 480, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -74,9 +67,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.9,
-        hits: 1,
-        atMs: 240,
+        ticks: [{ atMs: 240, coefficient: 1.9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -90,9 +81,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -105,9 +94,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        atMs: 520,
+        ticks: [{ atMs: 520, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -181,9 +168,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 2.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -199,10 +184,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 8,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 8, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

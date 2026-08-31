@@ -49,9 +49,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -138,9 +136,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        atMs: 280,
+        ticks: [{ atMs: 280, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -228,13 +224,12 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 1320,
+    // EVTC places the strike and first Chill at 840 ms, followed by four fixed one-second field pulses.
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 1,
+        ticks: [{ atMs: 840, coefficient: 4 }],
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
-        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         coefficientModifiers: [
@@ -261,15 +256,14 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 1,
-        applications: 5,
-        atMs: 840,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
+        ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
+          atMs,
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 1
+        })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       }
     ],
@@ -342,9 +336,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
       },
       {
         type: 'strike',
-        coefficient: 1.625,
-        hits: 1,
-        atMs: 1160,
+        ticks: [{ atMs: 1160, coefficient: 1.625 }],
         name: "Death's Charge — Final Strike",
         timingAnchor: 'castStart',
         timingScale: 'fixed'

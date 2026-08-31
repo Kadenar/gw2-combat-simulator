@@ -58,11 +58,9 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        coefficient: 3.3,
-        hits: 1,
+        ticks: [{ atMs: 160, coefficient: 3.3 }],
         name: 'Death Drop',
         actorType: 'player',
-        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -210,11 +208,9 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 4 }],
         name: "Nomad's Advance",
         actorType: 'player',
-        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -237,11 +233,9 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 160, coefficient: 2 }],
         name: 'Imperial Impact',
         actorType: 'player',
-        atMs: 160,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -320,21 +314,16 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        coefficient: 5,
-        hits: 1,
+        ticks: [{ atMs: 2960, coefficient: 5 }],
         name: 'Spear of Archemorus',
         actorType: 'player',
-        atMs: 2960,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 5,
-        duration: 8,
+        ticks: [{ atMs: 2960, condition: 'Torment', stacks: 5, duration: 8 }],
         actorType: 'player',
-        atMs: 2960,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }

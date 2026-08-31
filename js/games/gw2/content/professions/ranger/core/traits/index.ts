@@ -9,7 +9,11 @@ import {
   balanceProfileEffect
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
-import { eventSkill, queueBleeding } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
+import {
+  eventSkill,
+  queueBleeding,
+  stalkersStrikeTargetImpaired
+} from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 import type {
   RangerCastContext,
   RangerResolverContext,
@@ -338,6 +342,24 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
   triggerSharpeningStone(context, event);
   triggerArachnophobia(context, event);
   triggerStrengthOfThePack(context, event);
+  if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
+    // The base packet owns three stacks; movement impairment contributes the documented two more.
+    enqueueOrdered(context.queue, {
+      type: 'condition',
+      at: event.at,
+      source: 'ranger',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — Poisoned`,
+      condition: 'Poisoned',
+      duration: 8,
+      stacks: 2,
+      activationId: event.activationId
+    });
+  }
+
   if (
     skill?.categories?.includes('Trap') &&
     event.activationId &&

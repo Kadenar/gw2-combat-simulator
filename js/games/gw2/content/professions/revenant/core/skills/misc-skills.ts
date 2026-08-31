@@ -136,12 +136,9 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 24,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 104.832 + index * 104.832, coefficient: 24 / 8 })),
         name: 'Rapid Assault',
         actorType: 'player',
-        atMs: 104.832,
-        intervalMs: 104.832,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -162,12 +159,12 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 6.6000000000000005,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 72 + index * 72,
+          coefficient: 6.6000000000000005 / 5
+        })),
         name: 'Rift Containment',
         actorType: 'player',
-        atMs: 72,
-        intervalMs: 72,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -417,12 +414,9 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 2,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 340 + index * 340, coefficient: 0.8 / 2 })),
         name: 'Reckoning Blast',
         actorType: 'player',
-        atMs: 340,
-        intervalMs: 340,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -479,12 +473,9 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 21.12,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 104.832 + index * 104.832, coefficient: 21.12 / 8 })),
         name: 'Portal Fire',
         actorType: 'player',
-        atMs: 104.832,
-        intervalMs: 104.832,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -533,12 +524,12 @@ export const REVENANT_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 106.47999999999999,
-        hits: 22,
+        ticks: Array.from({ length: 22 }, (_, index) => ({
+          atMs: 61.88 + index * 61.88,
+          coefficient: 106.47999999999999 / 22
+        })),
         name: 'Torrential Mists',
         actorType: 'player',
-        atMs: 61.88,
-        intervalMs: 61.88,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

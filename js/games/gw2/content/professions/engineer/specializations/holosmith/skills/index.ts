@@ -46,20 +46,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 0.88,
-        hits: 1,
+        ticks: [{ atMs: 350, coefficient: 0.88 }],
         name: 'Sun Edge',
-        atMs: 350,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 350,
+        ticks: [{ atMs: 350, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -73,9 +68,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Refraction Cutter - Packet 1',
@@ -83,9 +76,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       },
       {
         type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 0.4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Refraction Cutter Blade',
@@ -104,10 +95,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -164,20 +152,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 0.93,
-        hits: 1,
+        ticks: [{ atMs: 450, coefficient: 0.93 }],
         name: 'Sun Ripper',
-        atMs: 450,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 450,
+        ticks: [{ atMs: 450, condition: 'Vulnerability', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -192,10 +175,8 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 1.5 }],
         name: 'Gleam Saber',
-        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
@@ -278,10 +259,10 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 2,
-        atMs: 186.666666666667,
-        intervalMs: 186.666666666667,
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 186.666666666667 + index * 186.666666666667,
+          coefficient: 1.6 / 2
+        })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Cutter—Storm',
@@ -349,9 +330,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -529,9 +508,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Initial Damage',
@@ -543,9 +520,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
       },
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 1800,
+        ticks: [{ atMs: 1800, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Explosion Damage',
@@ -637,9 +612,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 200,
+        ticks: [{ atMs: 200, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -766,10 +739,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFr
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 2,
-        atMs: 260,
-        intervalMs: 260,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flash Cutter',

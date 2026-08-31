@@ -47,10 +47,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       },
       {
         type: 'condition',
-        condition: 'Blindness',
-        stacks: 1,
-        duration: 2,
-        atMs: 240,
+        ticks: [{ atMs: 240, condition: 'Blindness', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -147,10 +144,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 5,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -228,28 +222,19 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 4,
-        atMs: 520,
+        ticks: [{ atMs: 520, condition: 'Weakness', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 6,
-        atMs: 520,
+        ticks: [{ atMs: 520, condition: 'Vulnerability', stacks: 8, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        atMs: 520,
+        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

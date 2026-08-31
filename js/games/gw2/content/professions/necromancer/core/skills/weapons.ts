@@ -9,6 +9,7 @@ import {
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *
@@ -272,7 +273,9 @@ function graspingDarknessCommitted(context: NecromancerCastContext, skill: Necro
 // Treats Nightfall as committed once its first runtime-scaled damage packet is due.
 function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
-  const authoredOffsetMs = Number(firstPacket?.atMs || skill.castTimeMs || 0);
+  const authoredOffsetMs = Number(
+    firstPacket?.type === 'strike' ? effectFirstAtMs(firstPacket) || skill.castTimeMs || 0 : skill.castTimeMs || 0
+  );
   // Nightfall commits at its first runtime packet, so project its stored
   // Quickness-relative offset onto the current cast before checking interruption.
   const runtimeOffsetMs =

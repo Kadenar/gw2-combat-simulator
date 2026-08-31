@@ -24,9 +24,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        coefficient: 1.3,
-        hits: 1,
-        atMs: 1440,
+        ticks: [{ atMs: 1440, coefficient: 1.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -105,9 +103,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1,
-        atMs: 720,
+        ticks: [{ atMs: 720, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -138,8 +134,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        coefficient: 3.6,
-        hits: 1,
+        ticks: [{ atMs: 840, coefficient: 3.6 }],
         comboFinishers: [
           {
             ownerId: 'necromancer',
@@ -148,7 +143,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -160,9 +154,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 520,
+        ticks: [{ atMs: 520, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

@@ -18,91 +18,61 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 1440,
+        ticks: [{ atMs: 1440, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 2440,
+        ticks: [{ atMs: 2440, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 3440,
+        ticks: [{ atMs: 3440, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        atMs: 4440,
+        ticks: [{ atMs: 4440, condition: 'Burning', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        atMs: 1440,
+        ticks: [{ atMs: 1440, condition: 'Bleeding', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        atMs: 2440,
+        ticks: [{ atMs: 2440, condition: 'Bleeding', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        atMs: 3440,
+        ticks: [{ atMs: 3440, condition: 'Bleeding', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        atMs: 4440,
+        ticks: [{ atMs: 4440, condition: 'Bleeding', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -140,27 +110,19 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.55,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 0.55 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 10,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 4,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Weakness', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -224,27 +186,19 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.95,
-        hits: 1,
-        atMs: 320,
+        ticks: [{ atMs: 320, coefficient: 0.95 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2.5,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 10,
-        atMs: 320,
+        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 2, duration: 10 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

@@ -130,13 +130,12 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     manualReleaseCooldown: 1,
     starvationCooldown: 4,
     pulseInterval: 1,
+    // Triggered strikes use a separate quarter-second ICD from the upkeep pulse.
+    triggerIntervalMs: 250,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
-        atMs: 250,
-        intervalMs: 250,
+        ticks: [{ atMs: 250, coefficient: 0.65 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Impossible Odds',
@@ -219,12 +218,9 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 402 + index * 119, coefficient: 1.2 / 3 })),
         name: 'Banish Enchantment',
         actorType: 'player',
-        atMs: 402,
-        intervalMs: 119,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -232,12 +228,12 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 1,
-        applications: 3,
-        atMs: 402,
-        intervalMs: 119,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 402 + index * 119,
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 1
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -246,12 +242,12 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
-        applications: 3,
-        atMs: 402,
-        intervalMs: 119,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 402 + index * 119,
+          condition: 'Torment',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -285,11 +281,9 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 804, coefficient: 1.2 }],
         name: 'Call to Anguish',
         actorType: 'player',
-        atMs: 804,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -297,11 +291,8 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 804, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
-        atMs: 804,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -378,9 +369,7 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
-        atMs: 362,
+        ticks: [{ atMs: 362, coefficient: 0.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Embrace the Darkness',
@@ -661,12 +650,9 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 7.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 40 + index * 40, coefficient: 7.5 / 5 })),
         name: 'Inspiring Reinforcement',
         actorType: 'player',
-        atMs: 40,
-        intervalMs: 40,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -700,41 +686,30 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 557, coefficient: 1 }],
         name: 'Unyielding Impact',
         actorType: 'player',
-        atMs: 557,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 557, condition: 'Burning', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 557,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 4,
-        duration: 3,
+        ticks: [{ atMs: 557, condition: 'Torment', stacks: 4, duration: 3 }],
         actorType: 'player',
-        atMs: 557,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 557, condition: 'Poisoned', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 557,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

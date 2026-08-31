@@ -148,10 +148,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 6,
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 2, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

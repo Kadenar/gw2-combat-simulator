@@ -11,12 +11,9 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 3.9325,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 104 + index * 104, coefficient: 3.9325 / 5 })),
         name: 'Unrelenting Assault',
         actorType: 'player',
-        atMs: 104,
-        intervalMs: 104,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -38,21 +35,17 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 1,
+        ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Initial Damage',
         actorType: 'player',
-        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 2.67,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 2.67 }],
         name: 'Final Damage',
         actorType: 'player',
-        atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -75,11 +68,9 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 640, coefficient: 1.2 }],
         name: 'Initial Damage',
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -100,21 +91,15 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1,
+        ticks: [{ atMs: 640, condition: 'Immobilized', stacks: 1, duration: 1 }],
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 5,
+        ticks: [{ atMs: 640, condition: 'Vulnerability', stacks: 8, duration: 5 }],
         actorType: 'player',
-        atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -143,21 +128,17 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
+        ticks: [{ atMs: 400, coefficient: 0.9 }],
         name: 'Rift Slash — Packet 1',
         actorType: 'player',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.2175,
-        hits: 1,
+        ticks: [{ atMs: 1400, coefficient: 0.2175 }],
         name: 'Rift Damage',
         actorType: 'player',
-        atMs: 1400,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: {}
@@ -172,21 +153,16 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 320, coefficient: 0.75 }],
         name: 'Preparation Thrust',
         actorType: 'player',
-        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
+        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 1, duration: 6 }],
         actorType: 'player',
-        atMs: 320,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -203,21 +179,17 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 0.8 }],
         name: 'Chilling Isolation — Packet 1',
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 1.6 }],
         name: 'Isolated Damage',
         actorType: 'player',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -225,11 +197,8 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 280, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
-        atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -243,21 +212,16 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 0.8 }],
         name: 'Brutal Blade',
         actorType: 'player',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
+        ticks: [{ atMs: 480, condition: 'Vulnerability', stacks: 2, duration: 6 }],
         actorType: 'player',
-        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

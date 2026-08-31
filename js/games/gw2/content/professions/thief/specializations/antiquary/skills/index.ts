@@ -11,27 +11,29 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3.2,
-        hits: 4,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 0, coefficient: 3.2 / 4 })),
         name: 'Metal Legion Guitar — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.5 }],
         name: 'Final Smash',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Confusion',
-        stacks: 1,
-        duration: 8,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 400 + index * 500,
+          condition: 'Confusion',
+          stacks: 1,
+          duration: 8
+        })),
         actorType: 'player',
-        applications: 4,
-        atMs: 400,
-        intervalMs: 500,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -55,24 +57,26 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 0.8 }],
         name: 'Metal Legion Guitar — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.5 }],
         name: 'Final Smash',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Confusion',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Confusion', stacks: 1, duration: 8 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -95,38 +99,38 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.4,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 2.4 }],
         name: 'Forged Surfer Dash — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 6,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 100, coefficient: 6 / 5 })),
         name: 'Additional Bomb Damage',
         actorType: 'player',
-        intervalMs: 100,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3.5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: index * 100,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3.5
+        })),
         actorType: 'player',
-        applications: 5,
-        intervalMs: 100,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Burning', stacks: 1, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     artifactKind: 'offensive'
@@ -148,11 +152,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 3000, coefficient: 2 }],
         name: 'Holo-Dancer Decoy',
         actorType: 'player',
-        atMs: 3000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -193,10 +195,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Exalted Hammer',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -217,35 +220,36 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({
+          atMs: 111.333333333333 + index * 111.333333333333,
+          coefficient: 3 / 3
+        })),
         name: 'Stone Summit Cannon — Packet 1',
         actorType: 'player',
-        atMs: 111.333333333333,
-        intervalMs: 111.333333333333,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 3 }],
         name: 'Stone Summit Cannon — Packet 2',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 3,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Burning', stacks: 3, duration: 3 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Burning', stacks: 3, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     doubleEdge: true
@@ -260,17 +264,18 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.2 }],
         name: 'Zephyrite Sun Crystal',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 4,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Burning', stacks: 2, duration: 4 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     artifactKind: 'defensive'
@@ -301,31 +306,33 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.2 }],
         name: 'Inquest Portal Device — Packet 1',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.2 }],
         name: 'Inquest Portal Device — Packet 2',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 3, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
+        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 3, duration: 5 }],
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -347,10 +354,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0, coefficient: 1.5 / 5 })),
         name: 'Chak Shield',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     artifactKind: 'defensive'
@@ -365,10 +373,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.6 }],
         name: 'Emergency Jade Shield',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ],
     doubleEdge: true
@@ -401,19 +410,16 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.2 }],
         name: 'Zephyrite Sun Crystal',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 4,
+        ticks: [{ atMs: 400, condition: 'Burning', stacks: 2, duration: 4 }],
         actorType: 'player',
-        atMs: 400,
-        intervalMs: 500,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -435,10 +441,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 3 }],
         name: 'Unstable Skritt Bomb',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -476,24 +483,21 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.8,
-        hits: 8,
+        ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 760 + index * 400, coefficient: 2.8 / 8 })),
         name: 'Summon Kryptis Turret',
         actorType: 'player',
-        atMs: 760,
-        intervalMs: 400,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 4,
+        ticks: Array.from({ length: 8 }, (_, index) => ({
+          atMs: 760 + index * 400,
+          condition: 'Torment',
+          stacks: 1,
+          duration: 4
+        })),
         actorType: 'player',
-        applications: 8,
-        atMs: 760,
-        intervalMs: 400,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -525,10 +529,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Exalted Hammer',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -546,12 +551,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 6,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 167 + index * 167, coefficient: 6 / 3 })),
         name: 'Holo-Dancer Decoy',
         actorType: 'player',
-        atMs: 167,
-        intervalMs: 167,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -608,10 +610,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 1,
+        ticks: [{ atMs: 0, coefficient: 3 }],
         name: 'Skritt Scuffle',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
@@ -633,24 +636,21 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 1000, coefficient: 2.5 / 5 })),
         name: 'Mistburn Mortar',
         actorType: 'player',
-        atMs: 500,
-        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
+        ticks: Array.from({ length: 5 }, (_, index) => ({
+          atMs: 500 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 1.5
+        })),
         actorType: 'player',
-        applications: 5,
-        atMs: 500,
-        intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

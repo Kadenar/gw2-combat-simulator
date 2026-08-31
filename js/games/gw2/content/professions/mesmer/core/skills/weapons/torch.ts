@@ -80,9 +80,7 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 3000,
+        ticks: [{ atMs: 3000, coefficient: 1 }],
         timingAnchor: 'castStart',
         name: 'Damage',
         actorType: 'player',
@@ -90,18 +88,12 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        duration: 9,
-        stacks: 1,
-        atMs: 3000,
+        ticks: [{ atMs: 3000, condition: 'Burning', stacks: 1, duration: 9 }],
         timingAnchor: 'castStart'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        duration: 3,
-        stacks: 2,
-        atMs: 3000,
+        ticks: [{ atMs: 3000, condition: 'Burning', stacks: 2, duration: 3 }],
         timingAnchor: 'castStart',
         requiredTrait: TRAIT.THE_PLEDGE
       }

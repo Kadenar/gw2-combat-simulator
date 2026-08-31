@@ -11,29 +11,21 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 240,
+        ticks: [{ atMs: 240, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 6,
-        atMs: 240,
+        ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 1,
-        atMs: 240,
+        ticks: [{ atMs: 240, condition: 'Crippled', stacks: 1, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
@@ -47,18 +39,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 200,
+        ticks: [{ atMs: 200, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 6,
-        atMs: 200,
+        ticks: [{ atMs: 200, condition: 'Bleeding', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -75,18 +62,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        atMs: 280,
+        ticks: [{ atMs: 280, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 6,
-        atMs: 280,
+        ticks: [{ atMs: 280, condition: 'Bleeding', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -105,27 +87,19 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        atMs: 800,
+        ticks: [{ atMs: 800, coefficient: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        atMs: 800,
+        ticks: [{ atMs: 800, condition: 'Crippled', stacks: 1, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 5,
-        atMs: 800,
+        ticks: [{ atMs: 800, condition: 'Bleeding', stacks: 3, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -201,39 +175,29 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: [
       {
         type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        atMs: 440,
+        ticks: [{ atMs: 440, coefficient: 0.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
         name: 'Rend — Follow-Up Damage',
-        atMs: 880,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        atMs: 440,
+        ticks: [{ atMs: 440, condition: 'Immobilized', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 6,
-        duration: 6,
-        atMs: 880,
+        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 6, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true

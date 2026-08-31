@@ -16,10 +16,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 5,
-        duration: 6,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Burning', stacks: 5, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -95,46 +92,31 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
-        atMs: 280,
+        ticks: [{ atMs: 280, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
-        atMs: 480,
+        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
-        atMs: 640,
+        ticks: [{ atMs: 640, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
-        atMs: 800,
+        ticks: [{ atMs: 800, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1.5,
-        atMs: 960,
+        ticks: [{ atMs: 960, condition: 'Burning', stacks: 1, duration: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -185,10 +167,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 8,
-        atMs: 360,
+        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         metadata: { projectile: true }

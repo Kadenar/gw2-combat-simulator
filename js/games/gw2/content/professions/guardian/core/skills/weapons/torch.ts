@@ -11,19 +11,13 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 10,
-        atMs: 260,
-        intervalMs: 260,
+        ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 260 + index * 260, coefficient: 4 / 10 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
-        duration: 4,
-        atMs: 2600,
+        ticks: [{ atMs: 2600, condition: 'Burning', stacks: 2, duration: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
@@ -42,10 +36,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 3,
-        atMs: 480,
+        ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -61,12 +52,12 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        applications: 4,
-        intervalMs: 1000,
-        atMs: 0,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 0 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

@@ -50,22 +50,17 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 0.65,
-        hits: 1,
+        ticks: [{ atMs: 400, coefficient: 0.65 }],
         name: 'Shattershot',
         actorType: 'player',
-        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player',
         // Shattershot's Bleeding lands with the projectile on its 400 ms commit frame.
-        atMs: 400,
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 1, duration: 3 }],
+        actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -79,21 +74,16 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 440, coefficient: 1 }],
         name: 'Scorchrazor',
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4,
+        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 4 }],
         actorType: 'player',
-        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -175,46 +165,41 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 1.25,
-        hits: 1,
+        ticks: [{ atMs: 1320, coefficient: 1.25 }],
         name: 'Initial Damage',
         actorType: 'player',
-        atMs: 1320,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.75,
-        hits: 3,
+        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 2320 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Spiritcrush — Fire Field',
         actorType: 'player',
-        atMs: 2320,
-        intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         metadata: {}
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        applications: 4,
-        atMs: 1320,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 1320 + index * 1000,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 1.5,
-        applications: 4,
-        atMs: 1320,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({
+          atMs: 1320 + index * 1000,
+          condition: 'Slow',
+          stacks: 1,
+          duration: 1.5
+        })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

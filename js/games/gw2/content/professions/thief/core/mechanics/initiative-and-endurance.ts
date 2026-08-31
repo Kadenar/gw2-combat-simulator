@@ -124,9 +124,9 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   // A default commit-mode interruption cannot award Unload's on-completion refund when its damage was cancelled.
   if (context.action?.cancelled === true) return;
   const bullets = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
-  if (!bullets || bullets.atMs == null) return;
-  const finalBulletOffsetMs =
-    Number(bullets.atMs) + (Math.max(1, Number(bullets.hits || 1)) - 1) * Number(bullets.intervalMs || 0);
+  if (bullets?.type !== 'strike') return;
+  const finalBulletOffsetMs = Number(bullets.ticks?.at(-1)?.atMs);
+  if (!Number.isFinite(finalBulletOffsetMs)) return;
   const timingScale =
     bullets.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000) : 1;
   const finalBulletAt = context.start + (finalBulletOffsetMs * timingScale) / 1000;

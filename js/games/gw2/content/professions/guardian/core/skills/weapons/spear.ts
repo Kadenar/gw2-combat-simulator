@@ -15,9 +15,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 240,
+        ticks: [{ atMs: 240, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -38,10 +36,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 2,
-        atMs: 0,
-        intervalMs: 680,
+        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 0 + index * 680, coefficient: 3 / 2 })),
         name: 'Gleaming Disc',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -59,9 +54,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.7,
-        hits: 1,
-        atMs: 400,
+        ticks: [{ atMs: 400, coefficient: 0.7 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -75,27 +68,21 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 560,
+        ticks: [{ atMs: 560, coefficient: 1.5 }],
         name: 'Solar Storm — 1st Strike',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 760,
+        ticks: [{ atMs: 760, coefficient: 1.2 }],
         name: 'Solar Storm — 2nd Strike',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        atMs: 960,
+        ticks: [{ atMs: 960, coefficient: 0.9 }],
         name: 'Solar Storm — 3rd Strike',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -110,19 +97,14 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        atMs: 360,
+        ticks: [{ atMs: 360, coefficient: 1.5 }],
         name: 'Symbol of Luminance — Initial',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 5,
-        atMs: 360,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 360 + index * 1000, coefficient: 2.5 / 5 })),
         name: 'Symbol of Luminance',
         timingAnchor: 'castStart',
         timingScale: 'fixed'

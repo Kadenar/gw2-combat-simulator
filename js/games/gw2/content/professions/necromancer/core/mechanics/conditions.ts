@@ -14,6 +14,7 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/comb
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
@@ -238,12 +239,13 @@ export function transferNecromancerSelfConditions(
 // Apply a corruption skill's base and trait-added self-conditions, then resolve any armed Plague Sending transfer.
 function corruption(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   if (skill.id === ID.BLOOD_IS_POWER) {
-    const strike = skill.effects?.find((effect) => effect.type === 'strike' && effect.atMs != null);
+    const strike = skill.effects?.find((effect) => effect.type === 'strike' && effectFirstAtMs(effect) != null);
+    const atMs = strike?.type === 'strike' ? effectFirstAtMs(strike) : undefined;
     const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
     const strikeAtMs =
       strike?.timingScale === 'cast'
-        ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(strike.atMs))
-        : Number(strike?.atMs ?? runtimeCastMs);
+        ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(atMs))
+        : Number(atMs ?? runtimeCastMs);
     // Declarative packets are discarded after this handler runs, so suppress self-corruption when no strike committed.
     if (Math.round((context.effectiveEnd - context.start) * 1000) < Math.round(strikeAtMs)) return false;
   }

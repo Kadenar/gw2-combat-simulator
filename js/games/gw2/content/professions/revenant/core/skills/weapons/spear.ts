@@ -154,10 +154,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        atMs: 960,
+        ticks: [{ atMs: 960, condition: 'Chilled', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -188,11 +185,9 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 1162, coefficient: 0.8 }],
         name: 'Abyssal Force',
         actorType: 'player',
-        atMs: 1162,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -200,22 +195,16 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 8,
+        ticks: [{ atMs: 1162, condition: 'Burning', stacks: 1, duration: 8 }],
         actorType: 'player',
-        atMs: 1162,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
+        ticks: [{ atMs: 1162, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
-        atMs: 1162,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -234,33 +223,25 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 0.85,
-        hits: 1,
+        ticks: [{ atMs: 396, coefficient: 0.85 }],
         name: 'Abyssal Strike',
         actorType: 'player',
-        atMs: 396,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 3,
+        ticks: [{ atMs: 396, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
-        atMs: 396,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6,
+        ticks: [{ atMs: 396, condition: 'Vulnerability', stacks: 1, duration: 6 }],
         actorType: 'player',
-        atMs: 396,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
@@ -287,10 +268,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 559, coefficient: 1 }],
         damageIncreasePerStack: 0.33,
-        atMs: 559,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Abyssal Raze',
@@ -298,20 +277,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 1,
-        duration: 5,
-        atMs: 559,
+        ticks: [{ atMs: 559, condition: 'Torment', stacks: 1, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 5,
-        atMs: 559,
+        ticks: [{ atMs: 559, condition: 'Torment', stacks: 2, duration: 5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',

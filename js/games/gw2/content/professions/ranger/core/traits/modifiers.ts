@@ -16,6 +16,7 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/ranger/data/ids.js';
 import { rangerCoreCastAvailability } from '#gw2/content/professions/ranger/core/mechanics/availability.js';
+import { stalkersStrikeTargetImpaired } from '#gw2/content/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerPetByName } from '#gw2/content/professions/ranger/core/state.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
@@ -500,6 +501,16 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       Boolean(
         context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken
       )
+  },
+  {
+    id: 'ranger.stalkers-strike-movement-impaired',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 2,
+    // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
+    when: (context) =>
+      gw2EventSkill(context)?.id === ID.STALKERS_STRIKE &&
+      stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
   },
   {
     id: 'ranger.condition-count-skill-bonus',

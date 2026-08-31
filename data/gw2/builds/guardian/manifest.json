@@ -40,7 +40,7 @@
         "build": "data/gw2/builds/guardian/b-condition-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condition-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41584,
+        "benchmarkDps": 41296,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -49,7 +49,7 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 33128,
+        "benchmarkDps": 33132,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true
@@ -79,14 +79,14 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 42083
+        "benchmarkDps": 42121
       },
       {
         "label": "Power (Greatsword / Longbow)",
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41497,
+        "benchmarkDps": 41529,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true

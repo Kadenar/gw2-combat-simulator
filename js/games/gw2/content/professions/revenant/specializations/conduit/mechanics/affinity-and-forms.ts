@@ -20,6 +20,12 @@ import {
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/content/professions/revenant/data/legends.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  strikeEffectCoefficient,
+  strikeEffectTicks
+} from '#gw2/platform/engine/effects/timelines.js';
+import {
   balanceProfileEffect as effectByType,
   balanceProfileFromContext as balanceProfileById
 } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -55,9 +61,20 @@ function hasLegend(context: RevenantSchedulerContext, legendId: string): boolean
   return professionCoreState(context).selectedLegendIds.includes(legendId);
 }
 
-function effectAt(context: RevenantCastContext, effect: SkillEffect | undefined): number {
+function effectAt(context: RevenantCastContext, effect: SkillEffect | undefined, atMs?: number): number {
   const origin = effect?.timingAnchor === 'castEnd' ? context.fullEnd : context.start;
-  return origin + Math.max(0, Number(effect?.atMs || 0)) / 1000;
+  const packetAtMs =
+    atMs ?? (effect?.type === 'strike' || effect?.type === 'condition' ? effectFirstAtMs(effect) : effect?.atMs);
+  return origin + Math.max(0, Number(packetAtMs || 0)) / 1000;
+}
+
+function strikeCoefficient(effect: SkillEffect | undefined): number {
+  return effect?.type === 'strike' ? strikeEffectCoefficient(effect) : 0;
+}
+
+function firstConditionTick(effect: SkillEffect | undefined, condition?: string) {
+  if (effect?.type !== 'condition') return undefined;
+  return conditionEffectTicks(effect).find((tick) => condition == null || tick.condition === condition);
 }
 
 function sharedWisdomEffect(context: RevenantSchedulerContext, trigger: string): SkillEffect | undefined {
@@ -129,7 +146,7 @@ export function emitDervishFormAttack(
     source: 'revenant',
     skillName: 'Form of the Dervish',
     name: elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)',
-    coefficient: Number(effectByType(attack, 'strike')?.coefficient || 0),
+    coefficient: strikeCoefficient(effectByType(attack, 'strike')),
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: skill.name,
@@ -150,7 +167,7 @@ export function emitLesserEnchantedDaggers(
     at,
     source: 'revenant',
     name: 'Lesser Enchanted Daggers',
-    coefficient: Number(effectByType(skill, 'strike')?.coefficient || 0),
+    coefficient: strikeCoefficient(effectByType(skill, 'strike')),
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: sourceSkill.name,
@@ -280,13 +297,13 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
   const followUp = Number(state.beguilingHazeCharges || 0) > 0;
   const profile = followUp ? balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp) : skill;
   const strike = effectByType(profile, 'strike');
-  const tick = (strike as { readonly ticks?: readonly Record<string, unknown>[] } | undefined)?.ticks?.[0];
+  const tick = strike?.type === 'strike' ? strikeEffectTicks(strike)[0] : undefined;
   const at = context.start + Math.max(0, Number(tick?.atMs || 0)) / 1000;
   if (followUp) {
     state.beguilingHazeCharges -= 1;
     emitSkillDamage(context, skill, {
       at,
-      coefficient: Number(tick?.coefficient || strike?.coefficient || 0),
+      coefficient: Number(tick?.coefficient || 0),
       name: 'Beguiling Haze — Follow-Up',
       skillWeapon: conduitSkillWeapon(context, skill),
       canCrit: null
@@ -296,7 +313,7 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
     state.beguilingHazeMainReservations.push(context.reservationId);
     emitSkillDamage(context, skill, {
       at,
-      coefficient: Number(tick?.coefficient || strike?.coefficient || 0),
+      coefficient: Number(tick?.coefficient || 0),
       name: 'Beguiling Haze',
       skillWeapon: conduitSkillWeapon(context, skill),
       canCrit: null
@@ -446,20 +463,22 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
   if (strike?.type === 'strike') {
     emitSkillDamage(context, skill, {
       at: context.effectiveEnd,
-      coefficient: Number(strike.coefficient || 0),
+      coefficient: strikeEffectCoefficient(strike),
       skillWeapon: conduitSkillWeapon(context, skill),
       canCrit: null
     });
   }
 
   for (const effect of skill.effects || []) {
-    if (effect.type === 'condition' && effect.condition) {
-      emitSkillCondition(context, skill, {
-        at: context.effectiveEnd,
-        condition: effect.condition,
-        stacks: Number(effect.stacks || 1),
-        duration: Number(effect.duration || 0)
-      });
+    if (effect.type === 'condition') {
+      for (const tick of conditionEffectTicks(effect)) {
+        emitSkillCondition(context, skill, {
+          at: context.effectiveEnd,
+          condition: tick.condition,
+          stacks: Number(tick.stacks || 1),
+          duration: Number(tick.duration || 0)
+        });
+      }
     } else if (effect.type === 'boon' && effect.boon) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -489,15 +508,16 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
 export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantSkill): void {
   const mainStrikes = (skill.effects || []).filter((effect) => effect.type === 'strike' && !effect.metadata?.legendId);
   const bleeding = (skill.effects || []).find(
-    (effect) => effect.type === 'condition' && effect.condition === 'Bleeding' && !effect.metadata?.legendId
+    (effect) => effect.type === 'condition' && firstConditionTick(effect, 'Bleeding') && !effect.metadata?.legendId
   );
+  const bleedingTicks = bleeding?.type === 'condition' ? conditionEffectTicks(bleeding) : [];
   const might = (skill.effects || []).find((effect) => effect.type === 'boon' && effect.boon === 'might');
   const at = effectAt(context, bleeding || might || mainStrikes[0]);
-  const packets = Math.max(0, Number(bleeding?.applications || might?.applications || mainStrikes.length));
+  const packets = Math.max(0, Number(bleedingTicks.length || might?.applications || mainStrikes.length));
   // Only the player hit carries affinityOnHit so the single affinity gain fires once per cast, not twice.
   emitSkillDamage(context, skill, {
     at,
-    coefficient: Number(mainStrikes[0]?.coefficient || 0),
+    coefficient: strikeCoefficient(mainStrikes[0]),
     name: 'Twin Moon Sweep — Player',
     hitIndex: 1,
     totalHits: mainStrikes.length,
@@ -507,7 +527,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   });
   emitSkillDamage(context, skill, {
     at,
-    coefficient: Number(mainStrikes[1]?.coefficient || 0),
+    coefficient: strikeCoefficient(mainStrikes[1]),
     name: 'Twin Moon Sweep — Fragment',
     actorType: 'player',
     hitIndex: 2,
@@ -516,11 +536,12 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
     canCrit: null
   });
   for (let index = 0; index < packets; index += 1) {
+    const bleedingTick = bleedingTicks[index] || bleedingTicks[0];
     emitSkillCondition(context, skill, {
       at,
-      condition: String(bleeding?.condition || 'Bleeding'),
-      stacks: Number(bleeding?.stacks || 1),
-      duration: Number(bleeding?.duration || 0),
+      condition: String(bleedingTick?.condition || 'Bleeding'),
+      stacks: Number(bleedingTick?.stacks || 1),
+      duration: Number(bleedingTick?.duration || 0),
       name: `Twin Moon Sweep — Bleeding ${index + 1}`
     });
     emitSkillBuff(context, skill, {
@@ -535,12 +556,13 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   const immobilized = (skill.effects || []).find(
     (effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.ASSASSIN
   );
+  const immobilizedTick = firstConditionTick(immobilized, 'Immobilized');
   if (hasLegend(context, LEGEND.ASSASSIN)) {
     emitSkillCondition(context, skill, {
       at,
-      condition: String(immobilized?.condition || 'Immobilized'),
-      stacks: Number(immobilized?.stacks || 1),
-      duration: Number(immobilized?.duration || 0)
+      condition: String(immobilizedTick?.condition || 'Immobilized'),
+      stacks: Number(immobilizedTick?.stacks || 1),
+      duration: Number(immobilizedTick?.duration || 0)
     });
   }
 
@@ -551,27 +573,26 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
     const confusion = (skill.effects || []).find(
       (effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.DEMON
     );
-    const shatterAt = effectAt(context, shatter || confusion);
-    const shatterHits = Math.max(0, Number(shatter?.hits || 0));
-    for (let index = 0; index < shatterHits; index += 1) {
+    const shatterTicks = shatter?.type === 'strike' ? strikeEffectTicks(shatter) : [];
+    for (const [index, tick] of shatterTicks.entries()) {
       emitSkillDamage(context, skill, {
-        at: shatterAt,
-        coefficient: Number(shatter?.coefficient || 0) / shatterHits,
+        at: effectAt(context, shatter, tick.atMs),
+        coefficient: Number(tick.coefficient || 0),
         name: `Twin Moon Sweep — Shatter ${index + 1}`,
         hitIndex: index + 1,
-        totalHits: shatterHits,
+        totalHits: shatterTicks.length,
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
     }
 
-    const confusionApplications = Math.max(0, Number(confusion?.applications || 0));
-    for (let index = 0; index < confusionApplications; index += 1) {
+    const confusionTicks = confusion?.type === 'condition' ? conditionEffectTicks(confusion) : [];
+    for (const [index, tick] of confusionTicks.entries()) {
       emitSkillCondition(context, skill, {
-        at: shatterAt,
-        condition: String(confusion?.condition || 'Confusion'),
-        stacks: Number(confusion?.stacks || 1),
-        duration: Number(confusion?.duration || 0),
+        at: effectAt(context, confusion, tick.atMs),
+        condition: String(tick.condition || 'Confusion'),
+        stacks: Number(tick.stacks || 1),
+        duration: Number(tick.duration || 0),
         name: `Twin Moon Sweep — Confusion ${index + 1}`
       });
     }
@@ -619,17 +640,18 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       const impactAt = effectAt(context, strike);
       emitSkillDamage(context, skill, {
         at: impactAt,
-        coefficient: Number(strike?.coefficient || 0),
+        coefficient: strikeCoefficient(strike),
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
       const bleeding = conditions.find((effect) => effect.metadata?.legendId === LEGEND.DEMON);
+      const bleedingTick = firstConditionTick(bleeding, 'Bleeding');
       if (hasLegend(context, LEGEND.DEMON) || allLegendEffects) {
         emitSkillCondition(context, skill, {
           at: impactAt,
-          condition: String(bleeding?.condition || 'Bleeding'),
-          stacks: Number(bleeding?.stacks || 1),
-          duration: Number(bleeding?.duration || 0)
+          condition: String(bleedingTick?.condition || 'Bleeding'),
+          stacks: Number(bleedingTick?.stacks || 1),
+          duration: Number(bleedingTick?.duration || 0)
         });
       }
 
@@ -653,28 +675,30 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       const impactAt = effectAt(context, strike);
       emitSkillDamage(context, skill, {
         at: impactAt,
-        coefficient: Number(strike?.coefficient || 0),
+        coefficient: strikeCoefficient(strike),
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
       const torment = conditions.find((effect) => effect.metadata?.target !== 'self');
       const selfTorment = conditions.find((effect) => effect.metadata?.target === 'self');
+      const tormentTick = firstConditionTick(torment, 'Torment');
+      const selfTormentTick = firstConditionTick(selfTorment, 'Torment');
       emitSkillCondition(context, skill, {
         at: impactAt,
-        condition: String(torment?.condition || 'Torment'),
-        stacks: Number(torment?.stacks || 1),
-        duration: Number(torment?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
+        condition: String(tormentTick?.condition || 'Torment'),
+        stacks: Number(tormentTick?.stacks || 1),
+        duration: Number(tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
       });
       // Self-torment duration decreases with higher affinity (more skill = less self-harm); clamped to 0 at max.
       const selfDuration =
-        Number(selfTorment?.duration || 0) *
+        Number(selfTormentTick?.duration || 0) *
         Math.max(0, 1 - affinity * Number(selfTorment?.durationReductionPerAffinity || 0));
       // One self-condition entry per target hit; Hex Eater Vortex then consumes entries to scale its projectiles.
       const count = targetsHit(context);
       for (let index = 0; index < count; index += 1) {
         professionCoreState(context).selfConditions.push({
-          condition: String(selfTorment?.condition || 'Torment'),
-          stacks: Number(selfTorment?.stacks || 1),
+          condition: String(selfTormentTick?.condition || 'Torment'),
+          stacks: Number(selfTormentTick?.stacks || 1),
           at: impactAt,
           expiresAt: impactAt + selfDuration,
           sourceId: skill.id,
@@ -692,7 +716,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
     }
 
     case ID.RELEASE_POTENTIAL_ASSASSIN: {
-      const ticks = strike?.type === 'strike' ? strike.ticks || [] : [];
+      const ticks = strike?.type === 'strike' ? strikeEffectTicks(strike) : [];
       for (const [index, tick] of ticks.entries()) {
         emitSkillDamage(context, skill, {
           at: context.start + Number(tick.atMs || 0) / 1000,
@@ -706,13 +730,15 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
 
       // Conditions land with the final hit; both share the same affinity-scaled duration formula.
       for (const effect of conditions) {
-        if (effect.type !== 'condition' || !effect.condition) continue;
-        emitSkillCondition(context, skill, {
-          at: effectAt(context, effect),
-          condition: effect.condition,
-          stacks: Number(effect.stacks || 1),
-          duration: Number(effect.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
-        });
+        if (effect.type !== 'condition') continue;
+        for (const tick of conditionEffectTicks(effect)) {
+          emitSkillCondition(context, skill, {
+            at: effectAt(context, effect, tick.atMs),
+            condition: tick.condition,
+            stacks: Number(tick.stacks || 1),
+            duration: Number(tick.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
+          });
+        }
       }
 
       break;
@@ -721,7 +747,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
     case ID.RELEASE_POTENTIAL_WARRIOR:
       emitSkillDamage(context, skill, {
         at: context.effectiveEnd,
-        coefficient: Number(strike?.coefficient || 0),
+        coefficient: strikeCoefficient(strike),
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
@@ -742,6 +768,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
     const profile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mistfire);
     const strike = effectByType(profile, 'strike');
     const burning = effectByType(profile, 'condition');
+    const burningTick = firstConditionTick(burning, 'Burning');
     const mistfireSkill = { id: TRAIT.MISTFIRE, name: 'Mistfire' } as RevenantSkill;
     emitSkillDamage(context, mistfireSkill, {
       at,
@@ -749,7 +776,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
       actorType: 'effect',
       ownerActorType: 'player',
       name: 'Mistfire',
-      coefficient: Number(strike?.coefficient || 0),
+      coefficient: strikeCoefficient(strike),
       skillWeapon: 'Unequipped',
       canCrit: null
     });
@@ -759,9 +786,9 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
       actorType: 'effect',
       ownerActorType: 'player',
       name: 'Mistfire — Burning',
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks || 1),
-      duration: Number(burning?.duration || 0)
+      condition: String(burningTick?.condition || 'Burning'),
+      stacks: Number(burningTick?.stacks || 1),
+      duration: Number(burningTick?.duration || 0)
     });
   }
 

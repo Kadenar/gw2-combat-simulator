@@ -36,10 +36,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 3.75,
-        hits: 5,
-        atMs: 500,
-        intervalMs: 2000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 2000, coefficient: 3.75 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rifle Turret',
@@ -134,10 +131,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 5,
-        atMs: 500,
-        intervalMs: 3000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 3000, coefficient: 1 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Flame Turret',
@@ -170,10 +164,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 5,
-        hits: 5,
-        atMs: 500,
-        intervalMs: 3000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 3000, coefficient: 5 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Thumper Turret',
@@ -384,10 +375,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 11.25,
-        hits: 5,
-        atMs: 500,
-        intervalMs: 4000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 4000, coefficient: 11.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rocket Turret',
@@ -526,10 +514,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 4.25,
-        hits: 5,
-        atMs: 500,
-        intervalMs: 2000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 500 + index * 2000, coefficient: 4.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Harpoon Turret',
