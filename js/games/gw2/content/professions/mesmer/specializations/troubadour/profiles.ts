@@ -54,22 +54,24 @@ export function mesmerInstrumentProfile(
 ): BalanceProfile {
   return variant(id, parentId, `${name} - Instrument`, {
     effects: [
-      ...(instrument.hits > 0
+      ...(instrument.ticks?.length
         ? [
             {
               type: 'strike' as const,
-              coefficient: instrument.coefficient,
-              hits: instrument.hits,
-              ...(instrument.intervalMs == null
-                ? {}
-                : {
-                    intervalMs: instrument.intervalMs,
-                    timingAnchor: 'castEnd' as const,
-                    timingScale: 'fixed' as const
-                  })
+              ticks: instrument.ticks,
+              timingAnchor: 'castEnd' as const,
+              timingScale: 'fixed' as const
             }
           ]
-        : []),
+        : Number(instrument.hits) > 0
+          ? [
+              {
+                type: 'strike' as const,
+                coefficient: instrument.coefficient,
+                hits: instrument.hits
+              }
+            ]
+          : []),
       ...(instrument.conditions || []).map((status) => ({
         type: 'condition' as const,
         condition: status.name,
@@ -100,9 +102,13 @@ export function mesmerProfiledInstrument(
   return {
     ...instrument,
     balanceProfileId,
-    coefficient: Number(strike?.coefficient ?? instrument.coefficient),
-    hits: Number(strike?.hits ?? instrument.hits),
-    intervalMs: Number(strike?.intervalMs ?? (instrument.intervalMs || 0)),
+    ...(strike?.ticks?.length
+      ? { coefficient: undefined, hits: undefined, ticks: strike.ticks }
+      : {
+          coefficient: Number(strike?.coefficient ?? instrument.coefficient),
+          hits: Number(strike?.hits ?? instrument.hits),
+          ticks: undefined
+        }),
     conditions: profile ? conditions : instrument.conditions
   };
 }
@@ -221,7 +227,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   },
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.shredding, 'Shredding', {
     damageIncrease: 0.15,
-    effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+    effects: [{ type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
   }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.lifeOfTheParty, 'Life of the Party', {
     effects: [

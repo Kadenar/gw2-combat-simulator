@@ -62,8 +62,6 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 26.5
   },
   Greatsword: {
-    coefficient: 0.8,
-    hits: 3,
     firstAttackDelay: 1.14,
     ticks: [
       { atMs: 518, coefficient: 0.8 / 3 },
@@ -120,6 +118,7 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     name: 'Clone: Winds of Chaos',
     coefficient: 0.49,
     hits: 2,
+    atMs: 0,
     firstAttackDelay: 1.12,
     interval: 2.24,
     weaponStrength: 26,
@@ -168,75 +167,14 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
       damageAtMs: 2279,
       // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
       spawnAtMs: 3410,
-      phantasmalBladeDelayAfterSpawnMs: 83,
-      damageTicks: {
-        'Phantasm leap': [
-          {
-            atMs: 845
-          }
-        ],
-        'Phantasm Blurred Frenzy': [
-          {
-            atMs: 1321
-          },
-          {
-            atMs: 1362
-          },
-          {
-            atMs: 1645
-          },
-          {
-            atMs: 1679
-          },
-          {
-            atMs: 1920
-          },
-          {
-            atMs: 1962
-          },
-          {
-            atMs: 2246
-          },
-          {
-            atMs: 2279
-          }
-        ]
-      }
+      phantasmalBladeDelayAfterSpawnMs: 83
     },
     [ID.PHANTASMAL_DUELIST]: {
       castTimeMs: 560,
       damageAtMs: 2230,
       // Measured packet and conversion offsets stay anchored to the observed cast end.
       spawnAtMs: 2800,
-      phantasmalBladeDelayAfterSpawnMs: 175,
-      damageTicks: {
-        'Illusion Damage': [
-          {
-            atMs: 830
-          },
-          {
-            atMs: 1030
-          },
-          {
-            atMs: 1230
-          },
-          {
-            atMs: 1430
-          },
-          {
-            atMs: 1630
-          },
-          {
-            atMs: 1830
-          },
-          {
-            atMs: 2030
-          },
-          {
-            atMs: 2230
-          }
-        ]
-      }
+      phantasmalBladeDelayAfterSpawnMs: 175
     },
     [ID.PHANTASMAL_MAGE]: {
       castTimeMs: 800,
@@ -283,24 +221,7 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
     [ID.PHANTASMAL_WARDEN]: {
       castTimeMs: 460,
       damageAtMs: 4880,
-      spawnAtMs: 7040,
-      // Warden's twelve strikes remain individual packets rather than one aggregate endpoint.
-      damageTicks: {
-        Damage: [
-          { atMs: 880 },
-          { atMs: 1240 },
-          { atMs: 1600 },
-          { atMs: 1960 },
-          { atMs: 2320 },
-          { atMs: 2680 },
-          { atMs: 3080 },
-          { atMs: 3440 },
-          { atMs: 3800 },
-          { atMs: 4160 },
-          { atMs: 4520 },
-          { atMs: 4880 }
-        ]
-      }
+      spawnAtMs: 7040
     },
     [ID.PHANTASMAL_DEFENDER]: {
       castTimeMs: 780,
@@ -331,9 +252,8 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
   });
 export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
   'Lesser Chaos Storm': {
-    coefficient: 1.98,
-    hits: 6,
-    intervalMs: 1000,
+    // Each storm pulse is a distinct strike packet, not an aggregate hit count.
+    ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
     cooldown: 28
   }
 });

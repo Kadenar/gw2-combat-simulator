@@ -120,7 +120,7 @@ export function triggerMethodOfMadness(
   if (!context.traits.has(TRAIT.METHOD_OF_MADNESS)) return;
   const readyAt = professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
-  const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
+  if (!storm.ticks?.length) throw new TypeError('Lesser Chaos Storm requires explicit strike ticks.');
   context.addDamage(
     {
       id: 'Lesser Chaos Storm',
@@ -130,9 +130,7 @@ export function triggerMethodOfMadness(
     },
     at,
     {
-      coefficient: Number(storm.coefficient || 0),
-      hits,
-      intervalMs: Math.max(0, Number(storm.intervalMs || 0)),
+      ticks: storm.ticks,
       timingAnchor: 'castStart',
       timingScale: 'fixed',
       source: 'Player',

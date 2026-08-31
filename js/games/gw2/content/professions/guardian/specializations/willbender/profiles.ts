@@ -24,9 +24,7 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [
       {
         type: 'strike',
-        coefficient: 0.22,
-        hits: 5,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: (index + 1) * 1000, coefficient: 0.22 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

@@ -239,6 +239,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         name: 'Blooming Fire — Explosion',
         coefficient: 1.2,
         hits: 3,
+        atMs: 0,
         metadata: {
           damageKind: 'explosion'
         }

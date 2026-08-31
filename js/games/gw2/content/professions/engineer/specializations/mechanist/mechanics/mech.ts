@@ -401,23 +401,9 @@ export function handleEngineerMechAttack(
     ),
     hits: engineerBalanceEffectValue(context, PROFILE.meleeChain, 'strike', 'hits', phase === 2 ? 2 : 1, phase)
   });
-  scheduleMechAttack(
-    context,
-    task.at +
-      engineerBalanceEffectValue(
-        context,
-        PROFILE.meleeChain,
-        'strike',
-        'intervalMs',
-        MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] * 1000,
-        phase
-      ) /
-        1000 /
-        rate,
-    {
-      phase: (phase + 1) % 3
-    }
-  );
+  scheduleMechAttack(context, task.at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate, {
+    phase: (phase + 1) % 3
+  });
 }
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */

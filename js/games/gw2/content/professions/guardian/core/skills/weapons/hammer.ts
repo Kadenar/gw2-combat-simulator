@@ -45,6 +45,14 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.SYMBOL_OF_PROTECTION]: {
     implemented: true,
     castTimeMs: 500,
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: 'Light',
+        duration: 2,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -54,8 +62,10 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 3,
+        // The symbol hits on creation and once per second for its two-second lifetime.
+        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.5 })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         name: 'Symbol of Protection — Symbol Damage'
       }
     ]
@@ -81,6 +91,15 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.RING_OF_WARDING]: {
     implemented: true,
     castTimeMs: 750,
+    // Ring is represented only by the five-second Light field relevant to combo resolution.
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: 'Light',
+        duration: 5,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.ZEALOTS_EMBRACE]: {
@@ -91,6 +110,12 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         type: 'strike',
         coefficient: 2.25,
         hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2
       }
     ]
   },

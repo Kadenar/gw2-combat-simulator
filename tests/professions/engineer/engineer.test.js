@@ -1733,7 +1733,7 @@ test('Holosmith benchmark attacks retain packets only after their observed commi
   const staticShock = engineerCatalog.skillsById.get(ID.STATIC_SHOCK);
 
   assert.equal(staticShock.interruptCommitMs, 480);
-  assert.ok(staticShock.effects.every((effect) => effect.atMs === 480));
+  assert.ok(staticShock.effects.every((effect) => effectFirstAtMs(effect) === 480));
 
   const interruptedStaticShock = (interruptMs) =>
     simulate(
@@ -2852,7 +2852,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   const skill = (name) => engineerCatalog.skillsByName.get(name);
 
   assert.equal(skill('Positive Strike').quicknessCastTimeMs, 480);
-  assert.equal(skill('Positive Strike').effects[0].coefficient, 0.7);
+  assert.equal(strikeEffectCoefficient(skill('Positive Strike').effects[0]), 0.7);
   assert.deepEqual(skill('Positive Strike').effects[1], {
     type: 'boon',
     boon: 'might',
@@ -2863,18 +2863,18 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
     timingScale: 'fixed'
   });
   assert.equal(skill('Negative Bash').quicknessCastTimeMs, 640);
-  assert.equal(skill('Negative Bash').effects[0].coefficient, 1);
-  assert.equal(skill('Negative Bash').effects[1].duration, 8);
+  assert.equal(strikeEffectCoefficient(skill('Negative Bash').effects[0]), 1);
+  assert.equal(skill('Negative Bash').effects[1].ticks[0].duration, 8);
   assert.equal(skill('Equalizing Blow').quicknessCastTimeMs, 440);
-  assert.equal(skill('Equalizing Blow').effects[0].coefficient, 1.4);
-  assert.equal(skill('Equalizing Blow').effects[1].stacks, 3);
+  assert.equal(strikeEffectCoefficient(skill('Equalizing Blow').effects[0]), 1.4);
+  assert.equal(skill('Equalizing Blow').effects[1].ticks[0].stacks, 3);
   assert.equal(skill('Equalizing Blow').effects[2].stacks, 3);
 
   const electro = skill('Electro-whirl');
 
   assert.equal(electro.cooldown, 6);
-  assert.equal(electro.effects[0].coefficient, 3);
-  assert.equal(electro.effects[0].hits, 2);
+  assert.equal(strikeEffectCoefficient(electro.effects[0]), 3);
+  assert.equal(strikeEffectTicks(electro.effects[0]).length, 2);
   assert.equal(electro.effects[0].metadata.damageKind, 'explosion');
   assert.equal(electro.comboFinishers[0].finisherType, 'Whirl');
 
@@ -2920,8 +2920,8 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
 
   assert.equal(shield.cooldown, 18);
   assert.equal(shield.blockDuration, 2);
-  assert.equal(shield.effects[0].coefficient, 1.25);
-  assert.equal(shield.effects[0].hits, 5);
+  assert.equal(strikeEffectCoefficient(shield.effects[0]), 1.25);
+  assert.equal(strikeEffectTicks(shield.effects[0]).length, 5);
   assert.equal(shield.effects[1].stacks, 10);
   assert.equal(shield.effects[1].duration, 5);
 
@@ -3032,7 +3032,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
 
   const magnetic = engineerCatalog.skillsByName.get('Magnetic Bomb');
 
-  assert.equal(magnetic.effects[0].coefficient, 1.5);
+  assert.equal(strikeEffectCoefficient(magnetic.effects[0]), 1.5);
   assert.equal(magnetic.effects[1].metadata.controlKind, 'pull');
   assert.equal(magnetic.quicknessCastTimeMs, 600);
   const magneticResult = simulate('Core', ['Bomb Kit', 'Magnetic Bomb', waitForBombPackets()], {
@@ -4895,8 +4895,8 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
 
   assert.equal(orbitalStrike.cooldown, 40);
   assert.equal(orbitalStrike.quicknessCastTimeMs, 880);
-  assert.equal(orbitalStrike.effects[0].coefficient, 1.33);
-  assert.equal(orbitalStrike.effects[0].atMs, 1700);
+  assert.equal(strikeEffectCoefficient(orbitalStrike.effects[0]), 1.33);
+  assert.equal(effectFirstAtMs(orbitalStrike.effects[0]), 1700);
   assert.equal(orbitalStrike.effects[0].timingAnchor, 'castEnd');
   assert.equal(orbitalStrike.comboFinishers[0].finisherType, 'Blast');
 
@@ -4913,14 +4913,14 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
   const grenadeBarrage = mechanic('Grenade Barrage');
 
   assert.equal(grenadeBarrage.cooldown, 25);
-  assert.equal(grenadeBarrage.effects[0].coefficient, 3.6);
-  assert.equal(grenadeBarrage.effects[0].hits, 6);
+  assert.equal(strikeEffectCoefficient(grenadeBarrage.effects[0]), 3.6);
+  assert.equal(strikeEffectTicks(grenadeBarrage.effects[0]).length, 6);
   assert.equal(grenadeBarrage.comboFinishers, undefined);
 
   const staticShock = mechanic('Static Shock');
 
   assert.equal(staticShock.cooldown, 20);
-  assert.equal(staticShock.effects[0].coefficient, 1);
+  assert.equal(strikeEffectCoefficient(staticShock.effects[0]), 1);
   assert.equal(staticShock.effects[1].metadata.controlKind, 'daze');
 
   const result = simulate('Core', ['Grenade Barrage']);
@@ -4955,10 +4955,11 @@ test('Poison Gas Shell pulses its five-second poison field', () => {
 
   assert.equal(poisonGasShell.comboFields[0].fieldType, 'Poison');
   assert.equal(poisonGasShell.comboFields[0].duration, 5);
-  assert.equal(poisonGasShell.effects[1].condition, 'Poisoned');
-  assert.equal(poisonGasShell.effects[1].duration, 3);
-  assert.equal(poisonGasShell.effects[1].applications, 5);
-  assert.equal(poisonGasShell.effects[1].intervalMs, 1000);
+  assert.ok(poisonGasShell.effects[1].ticks.every((tick) => tick.condition === 'Poisoned' && tick.duration === 3));
+  assert.deepEqual(
+    poisonGasShell.effects[1].ticks.map((tick) => tick.atMs),
+    [0, 1000, 2000, 3000, 4000]
+  );
 
   const result = simulate('Core', ['Elite Mortar Kit', 'Poison Gas Shell', { type: 'wait', durationMs: 5000 }], {
     selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Elite Mortar Kit']

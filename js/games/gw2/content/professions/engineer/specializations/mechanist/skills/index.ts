@@ -265,6 +265,7 @@ export const MECHANIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
         type: 'strike',
         coefficient: 1.8,
         hits: 3,
+        atMs: 0,
         name: 'Missile Damage',
         actorType: 'summon'
       },

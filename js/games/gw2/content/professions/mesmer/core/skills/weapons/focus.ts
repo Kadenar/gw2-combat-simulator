@@ -28,8 +28,20 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 1.656,
-        hits: 12,
+        ticks: [
+          { atMs: 880, coefficient: 0.138 },
+          { atMs: 1240, coefficient: 0.138 },
+          { atMs: 1600, coefficient: 0.138 },
+          { atMs: 1960, coefficient: 0.138 },
+          { atMs: 2320, coefficient: 0.138 },
+          { atMs: 2680, coefficient: 0.138 },
+          { atMs: 3080, coefficient: 0.138 },
+          { atMs: 3440, coefficient: 0.138 },
+          { atMs: 3800, coefficient: 0.138 },
+          { atMs: 4160, coefficient: 0.138 },
+          { atMs: 4520, coefficient: 0.138 },
+          { atMs: 4880, coefficient: 0.138 }
+        ],
         name: 'Damage',
         actorType: 'summon',
         summonKind: 'phantasm',

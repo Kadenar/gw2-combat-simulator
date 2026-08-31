@@ -56,26 +56,18 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       {
         type: 'strike',
         coefficient: 0.45,
-        hits: 1,
-        intervalMs: 250,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'strike',
         coefficient: 0.45,
-        hits: 1,
-        intervalMs: 500,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'strike',
         coefficient: 0.8,
         hits: 2,
-        intervalMs: 500,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        atMs: 0
       }
     ]
   },

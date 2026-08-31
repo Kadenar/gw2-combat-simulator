@@ -62,10 +62,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       },
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 4,
-        atMs: 360,
-        intervalMs: 320,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 2.5 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         duration: 2,
@@ -100,10 +97,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       },
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 4,
-        atMs: 2000,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 1.8 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',

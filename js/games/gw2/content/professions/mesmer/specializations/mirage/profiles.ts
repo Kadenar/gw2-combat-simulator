@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/types.js';
+import type { BalanceProfile, SkillEffect, StrikeEffect } from '#gw2/platform/engine/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
@@ -7,7 +7,11 @@ import {
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/content/professions/mesmer/data/ids.js';
 
 import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/content/professions/mesmer/specializations/mirage/mechanics/definitions.js';
-import type { MesmerAmbushAttack, MesmerAttackStatus } from '#gw2/content/professions/mesmer/types.js';
+import type {
+  MesmerAmbushAttack,
+  MesmerAmbushStrike,
+  MesmerAttackStatus
+} from '#gw2/content/professions/mesmer/types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
   mechanics: 'mesmer.mirage.mechanics',
@@ -61,28 +65,37 @@ function boonStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'
   };
 }
 
+/** Keeps each ambush profile in the same compact-or-explicit packet form as its mechanic definition. */
+function ambushStrikeEffect(attack: MesmerAmbushStrike, source: 'Player' | 'Clone'): StrikeEffect {
+  return attack.ticks?.length
+    ? {
+        type: 'strike',
+        name: `${source} attack`,
+        source,
+        ticks: attack.ticks,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    : {
+        type: 'strike',
+        name: `${source} attack`,
+        source,
+        coefficient: attack.coefficient,
+        hits: attack.hits,
+        atMs: attack.atMs
+      };
+}
+
 /** Builds the patchable balance profile for one Mirage player/clone ambush pair. */
 export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalanceProfile {
   return variant(id, attack.id, `${attack.name} - Ambush`, {
     effects: [
-      {
-        type: 'strike',
-        name: 'Player attack',
-        source: 'Player',
-        coefficient: attack.player.coefficient,
-        hits: attack.player.hits
-      },
+      ambushStrikeEffect(attack.player, 'Player'),
       ...(attack.player.conditions || []).flatMap((status) =>
         Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Player'))
       ),
       ...(attack.playerBoons || []).map((status) => boonStatusEffect(status, 'Player')),
-      {
-        type: 'strike',
-        name: 'Clone attack',
-        source: 'Clone',
-        coefficient: attack.clone.coefficient,
-        hits: attack.clone.hits
-      },
+      ambushStrikeEffect(attack.clone, 'Clone'),
       ...(attack.clone.conditions || []).flatMap((status) =>
         Array.from({ length: Number(status.applications || 1) }, () => attackStatusEffect(status, 'Clone'))
       ),
@@ -137,14 +150,26 @@ export function mesmerProfiledAmbush(
     balanceProfileId,
     player: {
       ...attack.player,
-      coefficient: Number(playerStrike?.coefficient ?? attack.player.coefficient),
-      hits: Number(playerStrike?.hits ?? attack.player.hits),
+      ...(playerStrike?.ticks?.length
+        ? { coefficient: undefined, hits: undefined, atMs: undefined, ticks: playerStrike.ticks }
+        : {
+            coefficient: Number(playerStrike?.coefficient ?? attack.player.coefficient),
+            hits: Number(playerStrike?.hits ?? attack.player.hits),
+            atMs: Number(playerStrike?.atMs ?? attack.player.atMs),
+            ticks: undefined
+          }),
       conditions: profile ? profileStatuses(profile, 'condition', 'Player') : attack.player.conditions
     },
     clone: {
       ...attack.clone,
-      coefficient: Number(cloneStrike?.coefficient ?? attack.clone.coefficient),
-      hits: Number(cloneStrike?.hits ?? attack.clone.hits),
+      ...(cloneStrike?.ticks?.length
+        ? { coefficient: undefined, hits: undefined, atMs: undefined, ticks: cloneStrike.ticks }
+        : {
+            coefficient: Number(cloneStrike?.coefficient ?? attack.clone.coefficient),
+            hits: Number(cloneStrike?.hits ?? attack.clone.hits),
+            atMs: Number(cloneStrike?.atMs ?? attack.clone.atMs),
+            ticks: undefined
+          }),
       conditions: profile ? profileStatuses(profile, 'condition', 'Clone') : attack.clone.conditions
     },
     playerBoons: profile ? profileStatuses(profile, 'boon', 'Player') : attack.playerBoons,

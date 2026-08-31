@@ -73,10 +73,9 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 6 }, () => ({
-          atMs: 1640,
-          coefficient: 0.583
-        })),
+        coefficient: 0.583 * 6,
+        hits: 6,
+        atMs: 1640,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

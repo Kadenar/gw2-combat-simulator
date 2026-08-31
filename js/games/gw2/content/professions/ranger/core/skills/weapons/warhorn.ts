@@ -9,7 +9,8 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         coefficient: 2.4,
-        hits: 16
+        hits: 16,
+        atMs: 0
       },
       {
         type: 'condition',

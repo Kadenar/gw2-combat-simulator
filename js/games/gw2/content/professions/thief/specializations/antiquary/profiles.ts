@@ -86,10 +86,15 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Stone Summit Cannon - Success',
     profileKind: 'skill-variant',
     parentId: ID.STONE_SUMMIT_CANNON,
-    initialDelay: 0.44,
-    pulseInterval: 0.283,
     effects: [
-      { type: 'strike', coefficient: 1, hits: 3 },
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 440, coefficient: 1 },
+          { atMs: 723, coefficient: 1 },
+          { atMs: 1006, coefficient: 1 }
+        ]
+      },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
     ]
   },

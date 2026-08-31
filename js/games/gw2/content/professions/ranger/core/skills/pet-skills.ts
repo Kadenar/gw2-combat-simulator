@@ -31,6 +31,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -148,6 +149,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.25,
         hits: 5,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -206,6 +208,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -250,6 +253,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 2,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -270,6 +274,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.25,
         hits: 5,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -371,6 +376,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.25,
         hits: 5,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -415,6 +421,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.6500000000000001,
         hits: 5,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -613,6 +620,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.34,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -685,6 +693,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.7999999999999998,
         hits: 6,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -727,6 +736,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 2,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -749,6 +759,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 2,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -855,6 +866,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.6,
         hits: 4,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -877,6 +889,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.6,
         hits: 4,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -891,6 +904,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 2,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -921,6 +935,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.25,
         hits: 5,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -1085,6 +1100,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 2.2,
         hits: 10,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -1107,6 +1123,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1,
         hits: 2,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -1129,6 +1146,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         coefficient: 1.0499999999999998,
         hits: 3,
+        atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
       }

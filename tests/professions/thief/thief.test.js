@@ -95,22 +95,21 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].castTimeMs, undefined);
   assert.equal(THIEF_CORE_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(thiefCatalog.skillsById.get(13006).castTimeMs, 1560);
-  // Thief packets have one canonical authoring shape so handlers never need aggregate-effect fallbacks.
+  // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
     for (const effect of skill.effects || []) {
-      if (effect.type !== 'strike' && effect.type !== 'condition') continue;
-      assert.ok(Array.isArray(effect.ticks), skill.name);
-      for (const field of [
-        'coefficient',
-        'hits',
-        'condition',
-        'stacks',
-        'duration',
-        'applications',
-        'atMs',
-        'intervalMs'
-      ]) {
-        assert.equal(field in effect, false, `${skill.name}: ${field}`);
+      if (effect.type === 'strike') {
+        if (effect.ticks) {
+          for (const field of ['coefficient', 'hits', 'atMs', 'intervalMs']) {
+            assert.equal(field in effect, false, `${skill.name}: ${field}`);
+          }
+        } else {
+          assert.ok(Number(effect.coefficient) >= 0, skill.name);
+          assert.ok(Number.isInteger(effect.hits) && effect.hits > 0, skill.name);
+          if (effect.hits > 1) assert.ok(Number.isFinite(effect.atMs), skill.name);
+        }
+      } else if (effect.type === 'condition') {
+        assert.ok(Array.isArray(effect.ticks), skill.name);
       }
     }
   }
@@ -189,7 +188,10 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   assert.equal(profile('Core', THIEF_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 12);
   assert.equal(
-    profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].coefficient,
+    profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].ticks.reduce(
+      (total, tick) => total + tick.coefficient,
+      0
+    ),
     0.5625
   );
   assert.equal(profile('Deadeye', DEADEYE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
@@ -217,7 +219,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
         fields: { maximumStacks: { from: 12, to: 13 } }
       },
       [DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 0.5625, to: 0.6 } }]
+        effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: { from: 0.1875, to: 0.2 } }]
       },
       [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
         fields: { maximumStacks: { from: 5, to: 6 } }
@@ -233,9 +235,12 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
   assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
-  assert.equal(
-    preview.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).effects[0].coefficient,
-    0.6
+  assert.ok(
+    Math.abs(
+      preview.balanceProfilesById
+        .get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
+        .effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0) - 0.6
+    ) < 1e-12
   );
   assert.equal(preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
@@ -2144,7 +2149,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
 
   assert.deepEqual(packetOffsets(shroud, 'Grasping Shadows'), [1.24]);
   assert.deepEqual(packetOffsets(shroud, 'Eternal Night'), [0.36, 0.68]);
-  assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.567]);
+  assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.56]);
 });
 
 test('Thief utility skills materialize their declarative pulse timelines', () => {

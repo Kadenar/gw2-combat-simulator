@@ -210,12 +210,12 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       if (!enchantedDaggers) throw new Error('Missing Enchanted Daggers skill declaration.');
       const strike = effectByType(enchantedDaggers, 'strike');
       const buff = effectByType(enchantedDaggers, 'buff');
-      const interval = Number(strike.intervalMs || 0) / 1000;
+      const delay = Number(strike.atMs || 0) / 1000;
       daggers.charges -= 1;
-      daggers.readyAt = event.at + interval;
+      daggers.readyAt = event.at + delay;
       emitSkillDamage(context, {
         cause: event,
-        at: event.at + interval,
+        at: event.at + delay,
         source: 'revenant',
         sourceId: ID.ENCHANTED_DAGGERS,
         actorType: 'effect',

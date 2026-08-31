@@ -1,13 +1,12 @@
 import type { ConditionEffect, ConditionTick, StrikeEffect, StrikeTick } from '#gw2/platform/engine/types.js';
 
-/** Expands either strike authoring form into the packet descriptors consumed by profession mechanics. */
+/** Projects either canonical strike form into the packet descriptors consumed by profession mechanics. */
 export function strikeEffectTicks(effect: StrikeEffect): readonly StrikeTick[] {
   if (effect.ticks) return effect.ticks;
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
   const coefficient = Number(effect.coefficient || 0) / hits;
   const atMs = Number(effect.atMs || 0);
-  const intervalMs = Math.max(0, Number(effect.intervalMs || 0));
-  return Array.from({ length: hits }, (_, index) => ({ atMs: atMs + index * intervalMs, coefficient }));
+  return Array.from({ length: hits }, () => ({ atMs, coefficient }));
 }
 
 /** Expands either condition authoring form into its individual application descriptors. */

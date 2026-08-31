@@ -37,7 +37,14 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
   trait(GALESHOT_BALANCE_PROFILE_IDS.shrike, 'Shrike', {
     threshold: 12,
     resourceGain: 1,
-    effects: [{ type: 'strike', coefficient: 0.8, hits: 3 }]
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.8,
+        hits: 3,
+        atMs: 0
+      }
+    ]
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.wutheringWind, 'Wuthering Wind', {
     effects: [{ type: 'strike', coefficient: 2, hits: 1 }]

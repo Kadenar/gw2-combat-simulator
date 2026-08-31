@@ -105,6 +105,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     // EVTC places the initial impact ~200 ms after activation and shows recharge
     // progressing from activation while the remaining symbol pulses continue.
     rechargeAnchor: 'castStart',
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 200, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',

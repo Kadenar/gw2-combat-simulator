@@ -80,7 +80,8 @@ export function createCloneAttackScheduler({
             }
           : {
               coefficient: step.coefficient,
-              hits: step.hits
+              hits: step.hits,
+              atMs: step.atMs
             }),
         source: 'Clone',
         weaponStrength: attack.weaponStrength

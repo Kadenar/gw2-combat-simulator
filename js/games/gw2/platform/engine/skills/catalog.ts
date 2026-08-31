@@ -459,11 +459,11 @@ function normalizeEffect(effect: unknown): SkillEffect {
   // timingAnchor and timingScale are only meaningful when the effect carries an
   // explicit schedule; bare effects inherit timing from the cast window implicitly.
   if (hasExplicitTiming) {
-    if (!TIMING_ANCHORS.has(String(normalizedEffect.timingAnchor))) {
+    if (normalizedEffect.timingAnchor != null && !TIMING_ANCHORS.has(String(normalizedEffect.timingAnchor))) {
       throw new TypeError('Explicit effect timing requires timingAnchor castStart or castEnd.');
     }
 
-    if (!TIMING_SCALES.has(String(normalizedEffect.timingScale))) {
+    if (normalizedEffect.timingScale != null && !TIMING_SCALES.has(String(normalizedEffect.timingScale))) {
       throw new TypeError('Explicit effect timing requires timingScale cast or fixed.');
     }
 
@@ -475,13 +475,13 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
     // An interval with no atMs means "start immediately after the anchor" — castEnd
     // is the only sensible anchor for that pattern (castStart + 0 = during cast).
-    if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor !== 'castEnd') {
+    if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor != null && normalizedEffect.timingAnchor !== 'castEnd') {
       throw new TypeError('An interval without atMs must be anchored to castEnd.');
     }
 
     if (hasAtMs) {
       const atMs = Number(normalizedEffect.atMs);
-      const castEndOffset = normalizedEffect.timingAnchor === 'castEnd';
+      const castEndOffset = normalizedEffect.timingAnchor !== 'castStart';
       if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
         throw new TypeError('Effect atMs must be finite and may only be negative when anchored to castEnd.');
       }
@@ -539,6 +539,19 @@ function normalizeEffect(effect: unknown): SkillEffect {
     (!Number.isInteger(Number(normalizedEffect.hits ?? 1)) || !(Number(normalizedEffect.hits ?? 1) > 0))
   ) {
     throw new TypeError('Strike effects require a positive integer hit count.');
+  }
+
+  if (normalizedEffect.type === 'strike' && !strikeTicks && normalizedEffect.intervalMs != null) {
+    throw new TypeError('Strike intervals must be authored as an explicit tick timeline.');
+  }
+
+  if (
+    normalizedEffect.type === 'strike' &&
+    !strikeTicks &&
+    Number(normalizedEffect.hits) > 1 &&
+    normalizedEffect.atMs == null
+  ) {
+    throw new TypeError('Simultaneous multi-hit strikes require one explicit atMs timestamp.');
   }
 
   if (normalizedEffect.type === 'condition') {

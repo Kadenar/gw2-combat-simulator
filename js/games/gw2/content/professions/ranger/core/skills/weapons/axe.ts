@@ -40,10 +40,9 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, () => ({
-          atMs: 480,
-          coefficient: 0.5
-        })),
+        coefficient: 2.5,
+        hits: 5,
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [

@@ -424,12 +424,10 @@ function emitCannonSuccess(context: ThiefCastContext): void {
   const profile = balanceProfileFromContext(context, PROFILE.cannonSuccess);
   const strike = balanceProfileEffect(profile, 'strike');
   const burning = balanceProfileEffect(profile, 'condition');
-  const hits = Math.max(1, Number(strike?.hits || 3));
-  for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    const at =
-      context.effectiveEnd +
-      Number(profile?.initialDelay || 0.44) +
-      (hitIndex - 1) * Number(profile?.pulseInterval || 0.283);
+  if (!strike?.ticks?.length) throw new TypeError('Stone Summit Cannon success requires explicit strike ticks.');
+  for (const [index, tick] of strike.ticks.entries()) {
+    const hitIndex = index + 1;
+    const at = context.effectiveEnd + Number(tick.atMs) / 1000;
     emitSkillDamage(context, {
       at,
       source: 'thief',
@@ -438,10 +436,10 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       skillId: ID.STONE_SUMMIT_CANNON,
       skillName: 'Stone Summit Cannon',
       name: 'Stone Summit Cannon',
-      coefficient: Number(strike?.coefficient || 1),
+      coefficient: Number(tick.coefficient),
       hits: 1,
       hitIndex,
-      totalHits: hits
+      totalHits: strike.ticks.length
     });
     emitSkillCondition(context, {
       at,

@@ -17,6 +17,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         type: 'strike',
         coefficient: 1.1,
         hits: 2,
+        atMs: 0,
         name: 'Damage',
         actorType: 'player',
         weapon: 'axe'
@@ -142,6 +143,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         type: 'strike',
         coefficient: 1.2,
         hits: 3,
+        atMs: 0,
         name: 'Damage',
         actorType: 'player',
         weapon: 'axe'
@@ -188,6 +190,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         type: 'strike',
         coefficient: 1.2,
         hits: 3,
+        atMs: 0,
         name: 'Damage',
         actorType: 'player',
         weapon: 'axe'

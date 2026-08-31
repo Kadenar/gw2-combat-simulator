@@ -11,6 +11,7 @@ import {
   resolveAutoattackChainStep
 } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -75,9 +76,7 @@ test('native professions share one skill timing contract', async () => {
         assert.equal('atMsList' in effect, false, skill.name);
         assert.equal('packetOffsets' in effect, false, skill.name);
         assert.equal('atCastEndOffsetMs' in effect, false, skill.name);
-        const explicitlyTimed = effect.atMs != null || effect.intervalMs != null || effect.ticks != null;
-
-        assert.equal(explicitlyTimed, effect.timingAnchor != null && effect.timingScale != null, skill.name);
+        assert.equal(effect.timingAnchor == null, effect.timingScale == null, skill.name);
       }
     }
   }
@@ -758,10 +757,11 @@ test('declarative multi-hit and delayed effects preserve individual events', () 
         effects: [
           {
             type: 'strike',
-            coefficient: 3,
-            hits: 3,
-            atMs: 66.666667,
-            intervalMs: 66.666667,
+            ticks: [
+              { atMs: 66.666667, coefficient: 1 },
+              { atMs: 133.333334, coefficient: 1 },
+              { atMs: 200, coefficient: 1 }
+            ],
             timingAnchor: 'castStart',
             timingScale: 'cast'
           },
@@ -1081,6 +1081,78 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
   );
 });
 
+test('canonical strikes distinguish one timestamp from an explicit packet timeline', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930027,
+        name: 'Canonical Strike Forms',
+        castTimeMs: 0,
+        effects: [
+          { type: 'strike', name: 'Single', coefficient: 1.8, hits: 1, atMs: 360 },
+          { type: 'strike', name: 'Simultaneous', coefficient: 1.8, hits: 2, atMs: 360 },
+          {
+            type: 'strike',
+            name: 'Timeline',
+            ticks: [
+              { atMs: 360, coefficient: 0.9 },
+              { atMs: 860, coefficient: 0.9 }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+  const skill = catalog.skillsById.get(930027);
+  const packets = skill.effects.map((effect) =>
+    materializeSkillEffectApplications({
+      skill,
+      effect,
+      start: 0,
+      fullEnd: 0,
+      baseEvent: { source: 'Fixture', sourceId: skill.id }
+    }).map(({ at, event }) => [Math.round(at * 1000), event.coefficient])
+  );
+
+  assert.deepEqual(packets, [
+    [[360, 1.8]],
+    [
+      [360, 0.9],
+      [360, 0.9]
+    ],
+    [
+      [360, 0.9],
+      [860, 0.9]
+    ]
+  ]);
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930028,
+            name: 'Untimed Aggregate',
+            effects: [{ type: 'strike', coefficient: 1.8, hits: 2 }]
+          }
+        ]
+      }),
+    /explicit atMs/
+  );
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930029,
+            name: 'Interval Aggregate',
+            effects: [{ type: 'strike', coefficient: 1.8, hits: 2, atMs: 360, intervalMs: 500 }]
+          }
+        ]
+      }),
+    /explicit tick timeline/
+  );
+});
+
 test('canonical effects allow negative offsets only from cast end', () => {
   const effect = {
     type: 'strike',
@@ -1206,10 +1278,11 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
         effects: [
           {
             type: 'strike',
-            coefficient: 3,
-            hits: 3,
-            atMs: 133.333333,
-            intervalMs: 133.333333,
+            ticks: [
+              { atMs: 133.333333, coefficient: 1 },
+              { atMs: 266.666666, coefficient: 1 },
+              { atMs: 400, coefficient: 1 }
+            ],
             timingAnchor: 'castStart',
             timingScale: 'cast'
           }
@@ -1223,10 +1296,11 @@ test('GW2 Quickness uses stored effect timing and slower casts scale it upward',
         effects: [
           {
             type: 'strike',
-            coefficient: 3,
-            hits: 3,
-            atMs: 1000,
-            intervalMs: 1000,
+            ticks: [
+              { atMs: 1000, coefficient: 1 },
+              { atMs: 2000, coefficient: 1 },
+              { atMs: 3000, coefficient: 1 }
+            ],
             timingAnchor: 'castEnd',
             timingScale: 'fixed'
           }

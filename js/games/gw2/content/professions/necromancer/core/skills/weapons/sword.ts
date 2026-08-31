@@ -131,13 +131,9 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 5,
-        atMs: 480,
-        intervalMs: 280,
-        intervalTimingScale: 'fixed',
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 480 + index * 280, coefficient: 2.5 / 5 })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
       {

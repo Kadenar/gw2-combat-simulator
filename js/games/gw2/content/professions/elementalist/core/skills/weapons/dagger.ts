@@ -34,20 +34,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.45
-          },
-          {
-            atMs: 440,
-            coefficient: 0.45
-          },
-          {
-            atMs: 440,
-            coefficient: 0.45
-          }
-        ],
+        coefficient: 1.35,
+        hits: 3,
+        atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

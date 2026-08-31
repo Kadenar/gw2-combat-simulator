@@ -102,7 +102,10 @@ export function effectWindowMs(skill: Skill): number {
     const at = Math.max(0, Number(effect.atMs || 0));
     const applications = Math.max(1, Number(effect.applications || 1));
     const interval = Math.max(0, Number(effect.intervalMs || 0));
-    maximum = Math.max(maximum, at + (applications - 1) * interval);
+    const lastTickAt = Array.isArray(effect.ticks)
+      ? Math.max(0, ...effect.ticks.map((tick) => Number(tick.atMs || 0)))
+      : 0;
+    maximum = Math.max(maximum, lastTickAt, at + (applications - 1) * interval);
   }
 
   return Math.max(100, Math.min(maximum + 100, 10_000));

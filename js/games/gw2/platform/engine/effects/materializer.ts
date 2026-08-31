@@ -41,7 +41,7 @@ export interface MaterializeSkillEffectOptions {
 
 /** Resolves the first timestamp at which an effect should fire. */
 export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
-  const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
+  const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }
@@ -84,11 +84,10 @@ export function materializeSkillEffectApplications({
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
     const hits = ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
     const equalCoefficient = Number(effect.coefficient || 0) / hits;
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-    const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
+    const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
-      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (hitIndex - 1) * interval;
+      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt;
       applications.push({
         at,
         event: {
@@ -117,7 +116,7 @@ export function materializeSkillEffectApplications({
     }
   } else if (effect.type === 'condition') {
     if (Array.isArray(effect.ticks)) {
-      const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
+      const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
       const ticks = effect.ticks;
       for (let applicationIndex = 1; applicationIndex <= ticks.length; applicationIndex += 1) {
         const tick = ticks[applicationIndex - 1];

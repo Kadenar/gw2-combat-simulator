@@ -22,6 +22,9 @@ import type { GuardianCastContext, GuardianSkill } from '#gw2/content/profession
  */
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  // Banish fully refreshes Mighty Blow only after Banish completes successfully.
+  if (skill.id === GUARDIAN_SKILL_IDS.BANISH) context.state.cooldowns.delete(GUARDIAN_SKILL_IDS.MIGHTY_BLOW);
+
   if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip?.flipParentId === skill.id) {

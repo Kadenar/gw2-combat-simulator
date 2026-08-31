@@ -47,6 +47,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         type: 'strike',
         coefficient: 4.5,
         hits: 3,
+        atMs: 0,
         name: 'Pulse damage',
         actorType: 'player',
         weapon: 'utility'
@@ -74,12 +75,14 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 3.3,
-        hits: 3,
+        ticks: [
+          { atMs: 0, coefficient: 1.1 },
+          { atMs: 1000, coefficient: 1.1 },
+          { atMs: 2000, coefficient: 1.1 }
+        ],
         name: 'Pulse damage',
         actorType: 'player',
         weapon: 'utility',
-        intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },

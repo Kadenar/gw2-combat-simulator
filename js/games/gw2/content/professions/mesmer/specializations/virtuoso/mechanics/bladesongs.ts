@@ -28,11 +28,11 @@ export function resolveBladesong(
   { skill, shatter, at, castStart, spent }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerRuntimeFor(context);
-  const packetTicks = (fallback: (index: number) => number) =>
-    Array.from({ length: spent }, (_, index) => ({
-      atMs: Number(shatter.ticks?.[index]?.atMs ?? fallback(index)),
-      coefficient: shatter.coefficients[spent] / spent
-    }));
+  const packetTicks = () => {
+    const ticks = shatter.ticks?.[spent];
+    if (!ticks?.length) throw new TypeError(`${skill.name} requires explicit strike ticks for ${spent} blades.`);
+    return ticks;
+  };
   const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
     runtime.addDamage(
       skill,
@@ -48,7 +48,7 @@ export function resolveBladesong(
     );
 
   if (shatter.kind === 'blade-power') {
-    const ticks = packetTicks(() => 0);
+    const ticks = packetTicks();
     addBladeDamage(ticks);
     return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
   }
@@ -62,7 +62,7 @@ export function resolveBladesong(
     const confusion = applyCryOfPain(runtime, baseConfusion);
     const duration = Number(confusion.duration || 0);
     const stacks = Number(confusion.stacks || 1);
-    const ticks = packetTicks(() => 0);
+    const ticks = packetTicks();
 
     addBladeDamage(ticks);
     runtime.addCondition(skill.name, at, {
@@ -97,7 +97,7 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-requiem') {
-    const ticks = packetTicks((index) => (index + 1) * 1000);
+    const ticks = packetTicks();
     addBladeDamage(ticks);
     return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
   }

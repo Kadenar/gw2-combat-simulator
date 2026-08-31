@@ -119,9 +119,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [
       {
         type: 'strike',
-        coefficient: 3.15,
-        hits: 7,
-        intervalMs: 1000,
+        ticks: Array.from({ length: 7 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.15 / 7 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'

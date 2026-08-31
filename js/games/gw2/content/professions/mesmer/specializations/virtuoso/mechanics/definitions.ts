@@ -8,6 +8,13 @@ import type {
   MesmerTraitDamage
 } from '#gw2/content/professions/mesmer/types.js';
 
+/** Authors the exact blade packets available at each resource tier. */
+function bladePacketTiers(coefficients: readonly number[], atMs: readonly number[]) {
+  return coefficients.map((coefficient, spent) =>
+    atMs.slice(0, spent).map((packetAtMs) => ({ atMs: packetAtMs, coefficient: coefficient / spent }))
+  );
+}
+
 export const MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
   Object.freeze({
     [ID.PHANTASMAL_BERSERKER]: {
@@ -36,7 +43,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0.5, 1, 1.5, 2, 2.5],
     minimumResource: 1,
     resourceSpendProgress: 1,
-    ticks: [{ atMs: 1000 }, { atMs: 2000 }, { atMs: 3000 }, { atMs: 4000 }, { atMs: 5000 }]
+    ticks: bladePacketTiers([0, 0.5, 1, 1.5, 2, 2.5], [1000, 2000, 3000, 4000, 5000])
   },
   [ID.BLADESONG_DISSONANCE]: {
     slot: 3,
@@ -54,7 +61,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
     minimumResource: 1,
     resourceSpendProgress: 1,
-    ticks: [{ atMs: 442 }, { atMs: 517 }, { atMs: 601 }, { atMs: 675 }, { atMs: 675 }]
+    ticks: bladePacketTiers([0, 0.42, 0.84, 1.25, 1.67, 2.09], [442, 517, 601, 675, 675])
   },
   [ID.BLADESONG_HARMONY]: {
     slot: 1,
@@ -63,7 +70,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
     minimumResource: 1,
     resourceSpendProgress: 1,
-    ticks: [{ atMs: 50 }, { atMs: 208 }, { atMs: 367 }, { atMs: 534 }, { atMs: 684 }]
+    ticks: bladePacketTiers([0, 0.7, 1.4, 2.1, 2.8, 3.5], [50, 208, 367, 534, 684])
   },
   [ID.BLADESONG_DISTORTION]: {
     slot: 4,

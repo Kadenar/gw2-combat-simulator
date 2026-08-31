@@ -29,21 +29,20 @@ export function resolveCloneShatter(
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerRuntimeFor(context);
   const sources = spent + 1;
-  const strikesPerSource = Math.max(1, Number(shatter.hitsPerSource ?? 1));
 
   const addStrikePackets = (): void => {
-    const coefficient = Number(shatter.coefficients[spent] || 0) / strikesPerSource;
-    const interval = Number(shatter.strikeIntervalMs || 0) / 1000;
+    const ticks = shatter.ticks?.[spent] ?? [{ atMs: 0, coefficient: Number(shatter.coefficients[spent] || 0) }];
 
     // Each source contributes one hit to every packet, but shatter traits are
     // attached only to the first packet as required by repeat-strike shatters.
-    for (let strikeIndex = 0; strikeIndex < strikesPerSource; strikeIndex += 1) {
+    for (const [strikeIndex, tick] of ticks.entries()) {
       runtime.addDamage(
         skill,
-        at + strikeIndex * interval,
+        at + tick.atMs / 1000,
         {
-          coefficient,
+          coefficient: tick.coefficient,
           hits: sources,
+          atMs: 0,
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
@@ -61,6 +60,7 @@ export function resolveCloneShatter(
       {
         coefficient: shatter.coefficients[spent],
         hits: sources,
+        atMs: 0,
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
@@ -94,6 +94,7 @@ export function resolveCloneShatter(
       {
         coefficient: shatter.coefficients[spent],
         hits: sources,
+        atMs: 0,
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },

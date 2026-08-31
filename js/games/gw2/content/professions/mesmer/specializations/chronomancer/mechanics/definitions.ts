@@ -159,8 +159,11 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
     kind: 'power',
     resolver: 'mesmer.core.clone-shatter',
     coefficients: [1.53, 3.07, 3.68, 4.3],
-    hitsPerSource: 2,
-    strikeIntervalMs: 1000
+    // Each resource tier owns both Split Second packets and their full formulas.
+    ticks: [1.53, 3.07, 3.68, 4.3].map((coefficient) => [
+      { atMs: 0, coefficient: coefficient / 2 },
+      { atMs: 1000, coefficient: coefficient / 2 }
+    ])
   }
 });
 export const MESMER_CHRONOMANCER_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.GRAVITY_WELL, ID.TIME_SINK]);

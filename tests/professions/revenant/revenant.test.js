@@ -119,6 +119,9 @@ function simulate(specialization, rotation, config = {}, observationPolicy = und
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
+const strikeCoefficient = (effect) =>
+  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
+
 test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.equal(DATA_SNAPSHOT, '2026-07-28');
   assert.equal(revenantCatalog.specializations.length, 9);
@@ -151,7 +154,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.deepEqual(
     echoingEruption.effects
       .filter((effect) => effect.type === 'strike')
-      .map((effect) => [effect.coefficient, effect.hits]),
+      .map((effect) => [strikeCoefficient(effect), effect.ticks?.length ?? effect.hits]),
     [[1, 1]]
   );
   for (const [skillId, quicknessCastTimeMs] of [
@@ -197,19 +200,19 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.deepEqual(
     searingFissure.effects
       .filter((effect) => effect.name === 'Pulsing Strikes')
-      .map((effect) => [effect.coefficient, effect.hits, effect.intervalMs]),
-    [[0.75, 3, 1000]]
+      .map((effect) => [strikeCoefficient(effect), effect.ticks.map((tick) => tick.atMs)]),
+    [[0.75, [1480, 2480, 3480]]]
   );
   const hammerBolt = revenantCatalog.skillsById.get(SKILL.HAMMER_BOLT);
 
-  assert.equal(hammerBolt.effects[0].coefficient, 0.9);
+  assert.equal(strikeCoefficient(hammerBolt.effects[0]), 0.9);
   assert.equal(hammerBolt.effects[0].comboFinishers[0].finisherType, 'Projectile');
   assert.equal(hammerBolt.effects[0].comboFinishers[0].chance, 1);
   const coalescence = revenantCatalog.skillsById.get(SKILL.COALESCENCE_OF_RUIN);
 
   assert.equal(coalescence.cooldown, 4);
   assert.equal(coalescence.energyCost, 5);
-  assert.equal(coalescence.effects[0].coefficient, 3.5);
+  assert.equal(strikeCoefficient(coalescence.effects[0]), 3.5);
   const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
 
   assert.equal(phaseSmash.cooldown, 8);
@@ -222,7 +225,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
 
   assert.equal(fieldOfTheMists.cooldown, 12);
   assert.equal(fieldOfTheMists.energyCost, 10);
-  assert.equal(fieldOfTheMists.effects[0].coefficient, 1.8);
+  assert.equal(strikeCoefficient(fieldOfTheMists.effects[0]), 1.8);
   assert.equal(fieldOfTheMists.effects[1].boon, 'aegis');
   assert.equal(fieldOfTheMists.effects[1].duration, 2);
   assert.equal(fieldOfTheMists.comboFields[0].fieldType, 'Dark');
@@ -234,7 +237,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
 
   assert.equal(dropTheHammer.cooldown, 15);
   assert.equal(dropTheHammer.energyCost, 10);
-  assert.equal(dropTheHammer.effects[0].coefficient, 3.2);
+  assert.equal(strikeCoefficient(dropTheHammer.effects[0]), 3.2);
   assert.equal(dropTheHammer.effects[0].comboFinishers[0].finisherType, 'Blast');
   assert.equal(dropTheHammer.effects[1].metadata.duration, 3);
   const manifestToxin = revenantCatalog.skillsById.get(SKILL.MANIFEST_TOXIN);
@@ -242,7 +245,7 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
   assert.deepEqual(
     manifestToxin.effects
       .filter((effect) => effect.type === 'strike')
-      .map((effect) => [effect.coefficient, effect.hits]),
+      .map((effect) => [strikeCoefficient(effect), effect.ticks?.length ?? effect.hits]),
     [[0.6, 1]]
   );
   const twinMoonSweep = revenantCatalog.skillsById.get(SKILL.TWIN_MOON_SWEEP);
@@ -278,13 +281,12 @@ test('Revenant catalog pins API identity and explicit skill mechanics', () => {
       (skill) => !Object.hasOwn(skill, 'upkeepEffects') && !Object.hasOwn(skill, 'dodgeEffects')
     )
   );
+  const deathDropStrike = revenantCatalog.skillsById
+    .get(SKILL.DEATH_DROP)
+    .effects.find((effect) => effect.type === 'strike');
+
   assert.deepEqual(
-    Object.fromEntries(
-      ['coefficient', 'hits'].map((field) => [
-        field,
-        revenantCatalog.skillsById.get(SKILL.DEATH_DROP).effects.find((effect) => effect.type === 'strike')[field]
-      ])
-    ),
+    { coefficient: strikeCoefficient(deathDropStrike), hits: deathDropStrike.ticks?.length ?? deathDropStrike.hits },
     { coefficient: 3.3, hits: 1 }
   );
 });
@@ -1162,12 +1164,12 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   assert.equal(spiritcrush.comboFields[0].ownerId, 'revenant');
   assert.equal(spiritcrush.comboFields[0].fieldType, 'Fire');
   assert.equal(spiritcrush.comboFields[0].duration, 3);
-  assert.equal(spiritcrush.effects[1].coefficient, 0.75);
-  assert.equal(spiritcrush.effects[1].hits, 3);
-  assert.equal(spiritcrush.effects[2].applications, 4);
-  assert.equal(spiritcrush.effects[2].atMs, 1320);
-  assert.equal(spiritcrush.effects[3].applications, 4);
-  assert.equal(spiritcrush.effects[3].atMs, 1320);
+  assert.equal(strikeCoefficient(spiritcrush.effects[1]), 0.75);
+  assert.equal(spiritcrush.effects[1].ticks.length, 3);
+  assert.equal(spiritcrush.effects[2].ticks.length, 4);
+  assert.equal(spiritcrush.effects[2].ticks[0].atMs, 1320);
+  assert.equal(spiritcrush.effects[3].ticks.length, 4);
+  assert.equal(spiritcrush.effects[3].ticks[0].atMs, 1320);
 
   const quicknessResult = simulate('Renegade', ['Shattershot', 'Bloodbane Path', 'Sevenshot', 'Spiritcrush'], {
     primaryWeapon: 'Shortbow',
@@ -3337,7 +3339,7 @@ test('Dwarf skills resolve reinforcement pulses and hammer hit rate', () => {
   );
 
   assert.equal(hammerHits.length, 9);
-  assert.ok(hammerHits.every((event) => event.coefficient === 0.2));
+  assert.ok(hammerHits.every((event) => Math.abs(event.coefficient - 0.2) < 1e-12));
   assert.equal(hammers.endState.profession.activeUpkeeps.length, 0);
 });
 
@@ -4270,7 +4272,7 @@ test('Vindicator Luxon skills use supplied combat mechanics', () => {
   assert.equal(nomad.castTimeMs, 960);
   assert.equal(nomad.quicknessCastTimeMs, undefined);
   assert.equal(nomad.unaffectedByQuickness, true);
-  assert.equal(nomad.effects[0].coefficient, 4);
+  assert.equal(strikeCoefficient(nomad.effects[0]), 4);
   assert.deepEqual(
     nomad.effects.slice(1).map((effect) => [effect.boon, effect.stacks, effect.duration]),
     [['might', 1, 6]]
@@ -4310,11 +4312,11 @@ test('Vindicator Luxon skills use supplied combat mechanics', () => {
   assert.equal(spear.energyCost, 20);
   assert.equal(spear.castTimeMs, 720);
   assert.equal(spear.quicknessCastTimeMs, 480);
-  assert.equal(spear.effects[0].coefficient, 5);
-  assert.equal(spear.effects[0].atMs, 2960);
+  assert.equal(strikeCoefficient(spear.effects[0]), 5);
+  assert.equal(spear.effects[0].ticks[0].atMs, 2960);
   assert.equal(spear.effects[0].timingAnchor, 'castEnd');
-  assert.equal(spear.effects[1].condition, 'Torment');
-  assert.equal(spear.effects[1].stacks, 5);
+  assert.equal(spear.effects[1].ticks[0].condition, 'Torment');
+  assert.equal(spear.effects[1].ticks[0].stacks, 5);
 
   const normal = simulate('Vindicator', ['Spear of Archemorus', { name: '__wait', waitMs: 4000 }], {
     selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
@@ -4774,7 +4776,7 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
     ["Phantom's Onslaught", 657, 1.6]
   ]) {
     assert.equal(skill(name).castTimeMs, castTimeMs, name);
-    assert.equal(skill(name).effects.find((effect) => effect.type === 'strike').coefficient, coefficient, name);
+    assert.equal(strikeCoefficient(skill(name).effects.find((effect) => effect.type === 'strike')), coefficient, name);
   }
 
   for (const [name, castTimeMs] of [
@@ -4954,7 +4956,9 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
     ['Mist Slash', 400],
     ['Arcing Mists', 440]
   ]) {
-    assert.equal(skill(name).effects.find((effect) => effect.type === 'strike').atMs, impactMs, `${name} impact`);
+    const strike = skill(name).effects.find((effect) => effect.type === 'strike');
+
+    assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
   }
 
   for (const [name, impactMs] of [
@@ -4963,7 +4967,9 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
     ['Field of the Mists', 560],
     ['Drop the Hammer', 1639]
   ]) {
-    assert.equal(skill(name).effects.find((effect) => effect.type === 'strike').atMs, impactMs, `${name} impact`);
+    const strike = skill(name).effects.find((effect) => effect.type === 'strike');
+
+    assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
   }
 
   const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {

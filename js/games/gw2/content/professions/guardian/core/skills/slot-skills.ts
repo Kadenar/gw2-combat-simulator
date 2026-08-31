@@ -336,7 +336,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 3.2,
-        hits: 4
+        hits: 4,
+        atMs: 0
       }
     ]
   },

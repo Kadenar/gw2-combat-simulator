@@ -59,8 +59,11 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 3,
+        ticks: [
+          { atMs: 1200, coefficient: 0.15 },
+          { atMs: 2000, coefficient: 0.15 },
+          { atMs: 2800, coefficient: 0.15 }
+        ],
         name: 'One warlock',
         actorType: 'summon',
         summonKind: 'phantasm',

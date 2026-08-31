@@ -164,7 +164,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
       {
         type: 'strike',
         coefficient: 4.5,
-        hits: 5
+        hits: 5,
+        atMs: 0
       }
     ]
   },

@@ -30,25 +30,25 @@ import type {
 function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: GuardianSkill, at: number): void {
   const profile = balanceProfileFromContext(context, PROFILE.furiousFocus);
   const strike = balanceProfileEffect(profile, 'strike');
-  const hits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
-  const interval = Number(strike?.intervalMs || 1000) / 1000;
+  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  if (!ticks?.length) throw new Error('Furious Focus requires an explicit strike timeline.');
   // The triggered symbol is one distinct activation so its unequipped weapon-strength roll is shared by its
   // pulses without colliding with the virtue cast's equipped-weapon roll.
   const activationId = context.createActivationId('effect');
-  for (let index = 0; index < hits; index += 1) {
+  for (const [index, tick] of ticks.entries()) {
     context.emit(
       buildGuardianStrike({
-        at: at + index * interval,
+        at: at + Number(tick.atMs) / 1000,
         sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
         actorType: 'player',
         skillId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
         skillName: 'Lesser Symbol of Blades',
         name: 'Lesser Symbol of Blades',
-        coefficient: Number(strike?.coefficient || 0.65) / hits,
+        coefficient: Number(tick.coefficient),
         skillWeapon: 'Unequipped',
         activationId,
         hitIndex: index + 1,
-        totalHits: hits,
+        totalHits: ticks.length,
         isSymbol: true,
         triggeredBy: skill.name
       })
@@ -116,10 +116,10 @@ function queueLesserSymbolOfResolution(
   const profile = balanceProfileFromContext(context, PROFILE.zealotsResolution);
   const strike = balanceProfileEffect(profile, 'strike');
   const resolution = balanceProfileEffect(profile, 'boon');
-  const hits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
-  const interval = Number(strike?.intervalMs || 1000) / 1000;
-  for (let index = 0; index < hits; index += 1) {
-    const pulseAt = at + index * interval;
+  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  if (!ticks?.length) throw new Error("Zealot's Resolution requires an explicit strike timeline.");
+  for (const [index, tick] of ticks.entries()) {
+    const pulseAt = at + Number(tick.atMs) / 1000;
     enqueueOrdered(
       context.queue,
       buildGuardianStrike({
@@ -128,10 +128,10 @@ function queueLesserSymbolOfResolution(
         skillId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
         skillName: 'Lesser Symbol of Resolution',
         name: 'Lesser Symbol of Resolution',
-        coefficient: Number(strike?.coefficient || 0.5) / hits,
+        coefficient: Number(tick.coefficient),
         skillWeapon: 'Unequipped',
         hitIndex: index + 1,
-        totalHits: hits,
+        totalHits: ticks.length,
         isSymbol: true,
         triggeredBy: sourceSkill
       })

@@ -14,8 +14,9 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.2,
+        coefficient: 0.6,
         hits: 3,
+        atMs: 0,
         name: 'Vengeful Hammers',
         actorType: 'effect'
       }
@@ -92,7 +93,6 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         coefficient: 0,
         hits: 1,
         atMs: 500,
-        intervalMs: 500,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         flatStrikeBase: 1028,
@@ -626,8 +626,9 @@ export const REVENANT_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        coefficient: 0.2,
+        coefficient: 0.6,
         hits: 3,
+        atMs: 0,
         name: 'Vengeful Hammers',
         actorType: 'effect'
       }

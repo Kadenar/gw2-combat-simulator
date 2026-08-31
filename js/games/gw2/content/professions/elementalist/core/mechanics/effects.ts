@@ -7,7 +7,7 @@
  */
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent, Skill } from '#gw2/platform/engine/types.js';
+import type { SimulationEvent, Skill, SkillEffect } from '#gw2/platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/content/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/content/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/content/professions/elementalist/core/constants.js';
@@ -60,7 +60,12 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
 }
 
 /** Looks up a balance-profile effect entry so emitters can be retuned by data rather than code. */
-export function profiledEffect(context: unknown, profileId: Skill['id'], type: string, name?: string) {
+export function profiledEffect<TType extends SkillEffect['type']>(
+  context: unknown,
+  profileId: Skill['id'],
+  type: TType,
+  name?: string
+) {
   return elementalistBalanceEffect(context, profileId, type, name);
 }
 

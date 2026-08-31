@@ -187,7 +187,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 2000, coefficient: 6.56 / 2 })),
+        coefficient: 6.56,
+        hits: 2,
+        atMs: 2000,
         name: 'Pulmonary Impact',
         actorType: 'player',
         canCrit: false,

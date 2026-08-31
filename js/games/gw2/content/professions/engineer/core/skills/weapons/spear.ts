@@ -123,6 +123,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         coefficient: 1.2,
         hits: 6,
+        atMs: 0,
         name: 'Focused Devastation',
         actorType: 'player'
       },

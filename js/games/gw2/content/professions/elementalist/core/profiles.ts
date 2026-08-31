@@ -13,6 +13,7 @@ import {
   defineTraitProfile as trait
 } from '#gw2/integrations/patches/authoring/balance-profiles.js';
 import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
+import type { SkillEffectByType } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -240,15 +241,15 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     }
   ),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.fulgor, ID.FULGOR, 'Fulgor - Pulses', {
-    initialDelay: 0.32,
-    pulseInterval: 1,
     effects: [
       {
         type: 'strike',
-        coefficient: 0,
-        hits: 6,
-        flatStrikeBase: 200,
-        flatStrikePowerCoeff: 0.4
+        ticks: Array.from({ length: 6 }, (_, index) => ({
+          atMs: 320 + index * 1000,
+          coefficient: 0,
+          flatStrikeBase: 200,
+          flatStrikePowerCoeff: 0.4
+        }))
       }
     ]
   }),
@@ -470,13 +471,13 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
 ]);
 
 /** Selects one authored effect from a profile by type, and optionally by name/index. */
-export function elementalistBalanceEffect(
+export function elementalistBalanceEffect<TType extends SkillEffect['type']>(
   context: unknown,
   id: SkillId,
-  type: string,
+  type: TType,
   name?: string,
   index = 0
-): SkillEffect | undefined {
+): SkillEffectByType<TType> | undefined {
   return balanceProfileEffectFromContext(context, id, type, index, name);
 }
 
@@ -484,7 +485,7 @@ export function elementalistBalanceEffect(
 export function elementalistEffectValue(
   context: unknown,
   id: SkillId,
-  type: string,
+  type: SkillEffect['type'],
   field: string,
   fallback: number,
   name?: string,

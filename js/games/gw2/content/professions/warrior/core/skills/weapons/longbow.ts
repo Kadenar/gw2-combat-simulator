@@ -134,7 +134,9 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 240, coefficient: 1.32 / 3 })),
+        coefficient: 1.32,
+        hits: 3,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

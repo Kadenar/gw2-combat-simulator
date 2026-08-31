@@ -109,36 +109,9 @@ export const ELEMENTALIST_MISC_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          },
-          {
-            atMs: 240,
-            coefficient: 0.25
-          }
-        ],
+        coefficient: 1.75,
+        hits: 7,
+        atMs: 240,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

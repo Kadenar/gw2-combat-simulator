@@ -11,6 +11,7 @@ import { ritualistState } from '#gw2/content/professions/necromancer/specializat
 import { snapshotNecromancerState } from '#gw2/content/professions/necromancer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -64,21 +65,16 @@ interface SpiritDefinition {
   readonly key: string;
   readonly attackCoefficient: number;
   readonly attackWeaponStrength?: number;
-  readonly summonCoefficient: number;
-  readonly summonHits?: number;
+  readonly summonTicks: readonly SpiritStrikeTick[];
   readonly summonWeaponStrength?: number;
-  readonly summonDelay?: number;
-  readonly summonInterval?: number;
-  readonly summonHitDelays?: readonly number[];
-  readonly lingeringCoefficient?: number;
-  readonly lingeringHits?: number;
-  readonly lingeringInterval?: number;
-  readonly lingeringDelay?: number;
-  readonly activeCoefficient: number;
-  readonly activeHits: number;
-  readonly activeDelay: number;
-  readonly activeInterval: number;
+  readonly lingeringTicks: readonly SpiritStrikeTick[];
+  readonly activeTicks: readonly SpiritStrikeTick[];
   readonly activeDuration: number;
+}
+
+interface SpiritStrikeTick {
+  readonly atMs: number;
+  readonly coefficient: number;
 }
 
 // Apply Ritualist traits shared by spirit and minion summons from the actual
@@ -208,33 +204,19 @@ function spiritDefinition(
   const initial = effects[1];
   const lingering = effects[2];
   const active = key === 'wanderlust' ? effects[3] : effects[2];
-  // Normalize authored millisecond timings and explicit tick lists into scheduler seconds.
-  const initialTicks = Array.isArray(initial?.ticks)
-    ? (initial.ticks as readonly {
-        readonly atMs: number;
-        readonly coefficient?: number;
-      }[])
-    : [];
-  const initialHitDelays = initialTicks.map((tick) => Number(tick.atMs || 0) / 1000);
+  // Procedural spirit scheduling consumes the same canonical packet timelines as declarative skills.
+  const ticks = (effect: typeof initial): readonly SpiritStrikeTick[] =>
+    effect?.type === 'strike'
+      ? strikeEffectTicks(effect).map((tick) => ({ atMs: Number(tick.atMs), coefficient: Number(tick.coefficient) }))
+      : [];
   return {
     key,
     attackCoefficient: Number(autoattack?.coefficient || 0),
     attackWeaponStrength: Number(profile.weaponStrength || 0),
-    summonCoefficient: initialTicks.length
-      ? initialTicks.reduce((sum, tick) => sum + Number(tick.coefficient || 0), 0)
-      : Number(initial?.coefficient || 0),
-    summonHits: initialTicks.length || Number(initial?.hits || 1),
+    summonTicks: ticks(initial),
     summonWeaponStrength: Number(initial?.weaponStrength || 0),
-    summonDelay: initialHitDelays[0] || Number(initial?.atMs || 0) / 1000,
-    summonHitDelays: initialHitDelays.length ? initialHitDelays : undefined,
-    lingeringCoefficient: key === 'wanderlust' ? Number(lingering?.coefficient || 0) : undefined,
-    lingeringHits: key === 'wanderlust' ? Number(lingering?.hits || 1) : undefined,
-    lingeringInterval: key === 'wanderlust' ? Number(lingering?.intervalMs || 0) / 1000 : undefined,
-    lingeringDelay: key === 'wanderlust' ? Number(lingering?.atMs || 0) / 1000 : undefined,
-    activeCoefficient: Number(active?.coefficient || 0),
-    activeHits: Number(active?.hits || 0),
-    activeDelay: Number(active?.atMs || 0) / 1000,
-    activeInterval: Number(active?.intervalMs || 0) / 1000,
+    lingeringTicks: key === 'wanderlust' ? ticks(lingering) : [],
+    activeTicks: ticks(active),
     activeDuration: Number(active?.duration || 0)
   };
 }
@@ -457,27 +439,22 @@ function emitAnguishInitial(
   // Apply the opening control conditions before the profile-timed barrage begins.
   emitSkillCondition(context, skill, { at, condition: 'Crippled', stacks: 1, duration: 4 });
   emitSkillCondition(context, skill, { at, condition: 'Vulnerability', stacks: 8, duration: 10 });
-  const hitCount = Number(spirit.summonHits || 1);
-  const hitDelays =
-    spirit.summonHitDelays ||
-    Array.from(
-      { length: hitCount },
-      (_, index) => Number(spirit.summonDelay || 0) + index * Number(spirit.summonInterval || 0)
-    );
+  const ticks = spirit.summonTicks;
+  if (!ticks.length) throw new Error('Anguish requires an explicit initial strike timeline.');
   // Painful Bond begins on the first barrage impact and shares the same authored hit schedule.
-  emitPainfulBond(context, skill, at + Number(hitDelays[0] || 0));
-  for (let index = 0; index < hitDelays.length; index += 1) {
+  emitPainfulBond(context, skill, at + Number(ticks[0].atMs) / 1000);
+  for (const [index, tick] of ticks.entries()) {
     emitSkillDamage(context, skill, {
-      at: at + Number(hitDelays[index]),
+      at: at + Number(tick.atMs) / 1000,
       name: skill.name,
       source: 'Spirit',
       actorType: 'player',
-      coefficient: spirit.summonCoefficient / hitCount,
+      coefficient: Number(tick.coefficient),
       metadata: spiritMetadata(context, 'anguish', 'initial', {
         anguishConditionalDamage: true,
         weaponStrength: spirit.summonWeaponStrength,
         hitIndex: index + 1,
-        totalHits: hitCount
+        totalHits: ticks.length
       })
     });
   }
@@ -491,22 +468,29 @@ function emitWanderlustInitial(
   at: number
 ): void {
   // The player's own initial swing lands 0.72 s into the cast animation, before the spirit materialises
+  const swing = spirit.summonTicks[0];
+  if (!swing || !spirit.lingeringTicks.length) {
+    throw new Error('Wanderlust requires explicit initial strike timelines.');
+  }
   emitSkillDamage(context, skill, {
-    at: context.start + 0.72,
-    coefficient: spirit.summonCoefficient,
+    at: context.start + Number(swing.atMs) / 1000,
+    coefficient: Number(swing.coefficient),
     skillWeapon: activePrimaryWeapon(context)
   });
-  const fieldAt = at + Number(spirit.lingeringDelay || 0);
-  emitSkillDamage(context, skill, {
-    at: fieldAt,
-    coefficient: Number(spirit.lingeringCoefficient || 0),
-    hits: Number(spirit.lingeringHits || 1),
-    interval: Number(spirit.lingeringInterval || 0),
-    name: 'Spirit of Wanderlust - Initial Attack',
-    source: 'Spirit',
-    actorType: 'player',
-    metadata: spiritMetadata(context, 'wanderlust', 'initial')
-  });
+  const fieldAt = at + Number(spirit.lingeringTicks[0].atMs) / 1000;
+  for (const [index, tick] of spirit.lingeringTicks.entries()) {
+    emitSkillDamage(context, skill, {
+      at: at + Number(tick.atMs) / 1000,
+      coefficient: Number(tick.coefficient),
+      name: 'Spirit of Wanderlust - Initial Attack',
+      source: 'Spirit',
+      actorType: 'player',
+      metadata: spiritMetadata(context, 'wanderlust', 'initial', {
+        hitIndex: index + 1,
+        totalHits: spirit.lingeringTicks.length
+      })
+    });
+  }
   emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
   // The lingering field applies its later conditions on their own observed offsets.
   emitSkillCondition(context, skill, {
@@ -589,12 +573,10 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
     if (!spirit) continue;
     // Spirits still in their initial-attack window cannot participate in Summon Spirits
     if (!state.activeSpirits[spirit.key] || Number(state.spiritInitialUntil[spirit.key] || 0) > at) continue;
-    if (spirit.activeCoefficient > 0 && spirit.activeHits > 0) {
+    for (const [index, tick] of spirit.activeTicks.entries()) {
       emitSkillDamage(context, skill, {
-        at: at + spirit.activeDelay,
-        coefficient: spirit.activeCoefficient,
-        hits: spirit.activeHits,
-        interval: spirit.activeInterval,
+        at: at + Number(tick.atMs) / 1000,
+        coefficient: Number(tick.coefficient),
         name: skill.name,
         source: 'Spirit',
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
@@ -602,14 +584,17 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillWeapon: 'Unequipped',
         metadata: spiritMetadata(context, spirit.key, 'summon-spirits', {
           anguishConditionalDamage: spirit.key === 'anguish',
-          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength || 1056)
+          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength || 1056),
+          hitIndex: index + 1,
+          totalHits: spirit.activeTicks.length
         })
       });
     }
 
     if (spirit.key === 'wanderlust') {
+      const activeAt = at + Number(spirit.activeTicks[0]?.atMs || 0) / 1000;
       emitSkillControl(context, {
-        at: at + spirit.activeDelay,
+        at: activeAt,
         source: 'Spirit',
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
         actorType: 'player',
