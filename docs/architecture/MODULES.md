@@ -632,10 +632,10 @@ For example:
 ```text
 mechanics/shroud.ts
 mechanics/tomes.ts
-mechanics/legends.ts
+mechanics/legend-swap.ts
 mechanics/kits.ts
 mechanics/pets.ts
-mechanics/illusions.ts
+mechanics/illusions/
 mechanics/attunements.ts
 mechanics/dragon-trigger.ts
 ```
@@ -742,7 +742,7 @@ State fields should belong to the module that owns the mechanic.
 
 Profession and specialization systems that are not naturally owned by one skill or trait. Use GW2 concept names such
 as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`, `attunements.ts`, `energy.ts`, or
-`initiative.ts`.
+`initiative-and-endurance.ts`.
 
 A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that
 phase visible when assembled in `module.ts`. Shared strike and condition resolution stays under
